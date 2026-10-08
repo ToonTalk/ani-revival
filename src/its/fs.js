@@ -42,6 +42,13 @@ export class ItsFileSystem {
     this.stubs.set(`${trunc(dir)};${trunc(fn1)}`, stub);
   }
 
+  // Source to load in place of DIR;FN1 FASL, for compiled files whose source is
+  // lost but whose content we recovered (the tags FASLs). entry: { text } or { getBytes }.
+  addFaslSource(dir, fn1, entry) {
+    if (!this.faslSources) this.faslSources = new Map();
+    this.faslSources.set(`${trunc(dir)};${trunc(fn1)}`, { dir: trunc(dir), fn1: trunc(fn1), fn2: "FASL", ...entry });
+  }
+
   // ---- names
 
   // Parse a Lisp file spec into { dev, dir, fn1, fn2 } (fn2 may be null).
@@ -106,10 +113,12 @@ export class ItsFileSystem {
     return versions.get(name.fn2) || null;
   }
 
+  // Tape files are in ITS evacuate format; our own files (reconstructions,
+  // recovered sources) are plain text and supply getText.
   textOf(entry) {
     if (entry.text === undefined) {
-      const bytes = entry.bytes || entry.getBytes();
-      entry.text = decodeItsText(bytes).text;
+      if (entry.getText) entry.text = entry.getText();
+      else entry.text = decodeItsText(entry.bytes || entry.getBytes()).text;
     }
     return entry.text;
   }
@@ -124,6 +133,11 @@ export class ItsFileSystem {
       return { stub, truename: name };
     }
     let entry = null;
+    const faslSource = this.faslSources && this.faslSources.get(`${name.dir};${name.fn1}`);
+    if (faslSource && (name.fn2 === "FASL" || raw.fn2 === null)) {
+      this.log.push(`load ${name.dir};${name.fn1} FASL: recovered source`);
+      return { text: this.textOf(faslSource), truename: { dev: "DSK", dir: name.dir, fn1: name.fn1, fn2: "FASL" }, entry: faslSource };
+    }
     if (name.fn2 === "FASL" || name.fn2 === "NFASL" || name.fn2 === "QFASL" || raw.fn2 === null) {
       // We can't run PDP-10 machine code; load the source instead.
       entry = this.find({ ...name, fn2: ">" });
@@ -137,6 +151,9 @@ export class ItsFileSystem {
 
   probe(spec) {
     const name = this.merge(this.parse(spec), { dir: this.defaultDir });
+    if (name.fn2 === "FASL" && this.faslSources && this.faslSources.has(`${name.dir};${name.fn1}`)) {
+      return { dev: "DSK", dir: name.dir, fn1: name.fn1, fn2: "FASL" };
+    }
     if (name.fn2 === "FASL" && !this.stubs.has(`${name.dir};${name.fn1}`)) return null; // no runnable FASLs here
     const entry = this.find(name);
     return entry ? { dev: "DSK", dir: entry.dir, fn1: entry.fn1, fn2: entry.fn2 } : null;

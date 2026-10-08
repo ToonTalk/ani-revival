@@ -6,14 +6,25 @@ export function install(L) {
   const d = (name, fn) => L.defsubr(name, fn);
   const tv = (b) => (b ? T : NIL);
 
+  // The variables CAR and CDR control checking: NIL means only lists (and NIL);
+  // anything else lets CAR or CDR of an atom return NIL. DRECT sets CAR to T.
+  // (Compiled MacLisp code did no checking at all.)
   function car(x) {
     if (x instanceof Cons) return x.car;
     if (x === NIL) return NIL;
+    if (L.S.CARVAR.value !== NIL) {
+      L.lenientCarCdr++;
+      return NIL;
+    }
     throw new LispError(`car of non-list: ${L.print(x)}`, x);
   }
   function cdr(x) {
     if (x instanceof Cons) return x.cdr;
     if (x === NIL) return NIL;
+    if (L.S.CDRVAR.value !== NIL) {
+      L.lenientCarCdr++;
+      return NIL;
+    }
     throw new LispError(`cdr of non-list: ${L.print(x)}`, x);
   }
   L.car = car;

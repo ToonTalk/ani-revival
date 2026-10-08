@@ -12,7 +12,8 @@
 //    'x     (QUOTE x)                      if x holds no , or !, ...
 //           otherwise code that builds x   (REAMAC's QUOTE-ALLOWING-EVAL-AND-UNPACK)
 //    ,x     (DIRECTOR-SYMBOL-FOR-EVAL x)   evaluate x
-//    `x     (DIRECTOR-SYMBOL-FOR-VALUE x)  the value of variable x
+//    `x     (DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL x)  a comma for one level later:
+//           building the quote around it turns it into ,x (as data)
 //    !x     (DIRECTOR-SYMBOL-FOR-UNPACK x) splice x
 //    {and a b}  (DIRECTOR-SYMBOL-FOR-AND-PATTERN a b)
 //    {or a b}   (DIRECTOR-SYMBOL-FOR-OR-PATTERN a b)
@@ -39,7 +40,7 @@ const TERMINATORS = new Set(["(", ")", ";", "'", "`", ",", "!", "{", "}", "|", "
 const MARKERS = {
   "'": "QUOTE",
   ",": "DIRECTOR-SYMBOL-FOR-EVAL",
-  "`": "DIRECTOR-SYMBOL-FOR-VALUE",
+  "`": "DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL",
   "!": "DIRECTOR-SYMBOL-FOR-UNPACK",
 };
 
@@ -70,6 +71,8 @@ export function makeReader({
     APPEND: sym("APPEND"),
     EVAL: sym("DIRECTOR-SYMBOL-FOR-EVAL"),
     UNPACK: sym("DIRECTOR-SYMBOL-FOR-UNPACK"),
+    POSTPONED: sym("DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL"),
+    SCRIPT: sym("SCRIPT:"),
   };
 
   function list(...items) {
@@ -80,18 +83,59 @@ export function makeReader({
 
   // ---- REAMAC's quote: (CONTAINS-EVAL-OR-UNPACK x) and (QUOTE-ALLOWING-EVAL-AND-UNPACK x)
 
+  // A marker is exactly (DIRECTOR-SYMBOL-FOR-EVAL x) or (DIRECTOR-SYMBOL-FOR-UNPACK x);
+  // the marker symbols can also appear as ordinary data, e.g. (quote
+  // director-symbol-for-eval) in DRECT.
+  const isMarker = (x, kind) =>
+    x instanceof Cons &&
+    (kind ? x.car === kind : x.car === S.EVAL || x.car === S.UNPACK || x.car === S.POSTPONED) &&
+    x.cdr instanceof Cons && x.cdr.cdr === NIL;
+  // !`x: a splice for one level later, not now
+  const isPostponedUnpack = (x) => isMarker(x, S.UNPACK) && isMarker(x.cdr.car, S.POSTPONED);
+
+  // A list beginning with SCRIPT: is protected: its commas are left for later
+  // ("The word script: is used to protect the commas", Director Guide, 1978).
   function containsEvalOrUnpack(x) {
+    if (isMarker(x)) return true;
+    if (x instanceof Cons && x.car === S.SCRIPT) return false;
     while (x instanceof Cons) {
-      if (x.car === S.EVAL || x.car === S.UNPACK) return true;
       if (containsEvalOrUnpack(x.car)) return true;
       x = x.cdr;
+      if (isMarker(x, S.EVAL)) return true; // (a . ,b)
     }
     return false;
   }
 
+  // Building the quote turns a postponed marker into an ordinary one, as data:
+  // `x becomes (DIRECTOR-SYMBOL-FOR-EVAL x) and !`x becomes (DIRECTOR-SYMBOL-FOR-UNPACK
+  // (DIRECTOR-SYMBOL-FOR-EVAL x)). Only the postponed form waits: commas inside it are
+  // evaluated now, by the quote around it (the 1979 compiled SOME's
+  // SOMETHING-INCREMENT-19 shows the inner (ask ,:self recall your ,variable) came out
+  // as (ask :self recall your ,variable)).
+  //
+  // Like REAMAC, constant tails fold into one (QUOTE ...), but the code always builds
+  // a marker from pieces, as the 1979 output does (SOMETHING-PLAN-47: (CONS (QUOTE
+  // DIRECTOR-SYMBOL-FOR-UNPACK) (CONS (CONS (QUOTE DIRECTOR-SYMBOL-FOR-EVAL) (QUOTE
+  // (THE-WHOLE-MESSAGE))) NIL))). So the code never holds a marker as a constant, and a
+  // later QUOTE-ALLOWING-EVAL-AND-UNPACK of the code (DRECT does this when installing
+  // macro methods) leaves it alone.
+  const isConstant = (c) => c === NIL || typeof c === "number" || c instanceof Flonum || (c instanceof Cons && c.car === S.QUOTE);
+  const constantValue = (c) => (c instanceof Cons && c.car === S.QUOTE ? c.cdr.car : c);
+  // code for (cons a b), folding constants
+  function consCode(a, b) {
+    if (isConstant(a) && isConstant(b)) return list(S.QUOTE, new Cons(constantValue(a), constantValue(b)));
+    return list(S.CONS, a, b);
+  }
+  // code for a marker: never folded
+  const markerCode = (symbol, form) => list(S.CONS, list(S.QUOTE, symbol), consCode(form, NIL));
+
   function quoteAllowingEvalAndUnpack(x) {
-    if (x instanceof Cons && x.car === S.EVAL) return x.cdr.car;
-    if (x instanceof Cons && x.car === S.UNPACK) return quoteAllowingEvalAndUnpack(x.cdr.car);
+    if (isMarker(x, S.POSTPONED)) return markerCode(S.EVAL, quoteAllowingEvalAndUnpack(x.cdr.car));
+    if (isPostponedUnpack(x)) {
+      return markerCode(S.UNPACK, markerCode(S.EVAL, quoteAllowingEvalAndUnpack(x.cdr.car.cdr.car)));
+    }
+    if (isMarker(x, S.EVAL)) return x.cdr.car;
+    if (isMarker(x, S.UNPACK)) return quoteAllowingEvalAndUnpack(x.cdr.car);
     if (!containsEvalOrUnpack(x)) {
       if (typeof x === "number" || x instanceof Flonum || x === NIL) return x;
       return list(S.QUOTE, x);
@@ -99,18 +143,18 @@ export function makeReader({
     // x is a list holding markers: build it with CONS, splicing with APPEND
     const items = [];
     let tail = x;
-    while (tail instanceof Cons && tail.car !== S.EVAL) {
+    while (tail instanceof Cons && !isMarker(tail, S.EVAL)) {
       items.push(tail.car);
       tail = tail.cdr;
     }
     let result = tail === NIL ? NIL : quoteAllowingEvalAndUnpack(tail); // (a . ,b)
     for (let i = items.length - 1; i >= 0; i--) {
       const e = items[i];
-      if (e instanceof Cons && e.car === S.UNPACK) {
+      if (isMarker(e, S.UNPACK) && !isPostponedUnpack(e)) {
         const spliced = quoteAllowingEvalAndUnpack(e.cdr.car);
         result = result === NIL ? spliced : list(S.APPEND, spliced, result);
       } else {
-        result = list(S.CONS, quoteAllowingEvalAndUnpack(e), result);
+        result = consCode(quoteAllowingEvalAndUnpack(e), result);
       }
     }
     return result;
@@ -335,7 +379,7 @@ export function printForm(x) {
       const arg = printForm(x.cdr.car);
       if (head === "QUOTE") return "'" + arg;
       if (head === "DIRECTOR-SYMBOL-FOR-EVAL") return "," + arg;
-      if (head === "DIRECTOR-SYMBOL-FOR-VALUE") return "`" + arg;
+      if (head === "DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL") return "`" + arg;
       if (head === "DIRECTOR-SYMBOL-FOR-UNPACK") return "!" + arg;
     }
     const parts = [];

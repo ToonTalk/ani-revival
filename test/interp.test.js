@@ -69,6 +69,16 @@ test("Director quotes: ' with , and !, builds the list", () => {
   assert.equal(run("(let ((x 2) (y '(3 4))) '(a ,x !,y b))"), "(A 2 3 4 B)");
   assert.equal(run("(let ((action '(go))) '((remove-current-method) !,action))"), "((REMOVE-CURRENT-METHOD) GO)");
   assert.equal(run("'(plain list)"), "(PLAIN LIST)");
+  // `x is a comma for one level later: building the quote leaves ,x as data
+  assert.equal(run("(let ((v 'speed)) '(ask-old :self set your ,v to `new-value))"),
+    "(ASK-OLD :SELF SET YOUR SPEED TO (DIRECTOR-SYMBOL-FOR-EVAL NEW-VALUE))");
+  assert.equal(run("'(ask :self do the following: !`things)"),
+    "(ASK :SELF DO THE FOLLOWING: (DIRECTOR-SYMBOL-FOR-UNPACK (DIRECTOR-SYMBOL-FOR-EVAL THINGS)))");
+  // an explicit (director-symbol-for-value x) is data, as in DRECT's value cells
+  assert.equal(run("(let ((p 'object)) '(director-symbol-for-value ,p))"), "(DIRECTOR-SYMBOL-FOR-VALUE OBJECT)");
+  // a marker symbol at the end of a list is data, not a dotted comma
+  assert.equal(run("(let ((v 'x)) '(,v (list 'director-symbol-for-eval (quote ,v))))"),
+    "(X (LIST (QUOTE DIRECTOR-SYMBOL-FOR-EVAL) (QUOTE X)))");
 });
 
 test("read-time evaluation with #", () => {

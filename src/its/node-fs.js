@@ -33,7 +33,16 @@ export function makeProjectFileSystem(root = process.cwd()) {
     for (const f of readdirSync(recon)) {
       if (!f.endsWith(".lisp")) continue;
       const p = join(recon, f);
-      fs.addFile("KEN1", f.replace(/\.lisp$/, ""), "1", { getBytes: () => readFileSync(p), origin: "reconstruction", path: p });
+      fs.addFile("KEN1", f.replace(/\.lisp$/, ""), "1", { getText: () => readFileSync(p, "utf8"), origin: "reconstruction", path: p });
+    }
+  }
+  // The compiled tags files, recovered as source (tools/gen-tags.mjs).
+  const tags = join(root, "src", "director", "tags");
+  if (existsSync(tags)) {
+    for (const f of readdirSync(tags)) {
+      if (!f.endsWith(".lisp")) continue;
+      const p = join(tags, f);
+      fs.addFaslSource("KEN", f.replace(/\.lisp$/, ""), { getText: () => readFileSync(p, "utf8"), origin: "recovered from FASL", path: p });
     }
   }
   installStubs(fs);

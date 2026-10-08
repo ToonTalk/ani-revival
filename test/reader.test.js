@@ -29,7 +29,7 @@ test("numbers: ibase, trailing dot, flonums", () => {
 test("Director read macros", () => {
   assert.equal(show("(ask ,choice-point recall your current-choice)"), "(ask ,choice-point recall your current-choice)");
   assert.equal(read1(",x").car.name, "DIRECTOR-SYMBOL-FOR-EVAL");
-  assert.equal(read1("`x").car.name, "DIRECTOR-SYMBOL-FOR-VALUE");
+  assert.equal(read1("`x").car.name, "DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL");
   assert.equal(read1("!,x").car.name, "DIRECTOR-SYMBOL-FOR-UNPACK");
   assert.equal(read1("{or a an}").car.name, "DIRECTOR-SYMBOL-FOR-OR-PATTERN");
   assert.equal(read1("{and ?x ,p}").car.name, "DIRECTOR-SYMBOL-FOR-AND-PATTERN");

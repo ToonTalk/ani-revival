@@ -92,6 +92,14 @@ export function install(L) {
     return form;
   });
   d("ALPHALESSP", (a, b) => tv(L.print(a, false) < L.print(b, false)));
+
+  // KEN1;REAMAC's two run-time functions. Director's read macros are built into
+  // the reader, but DRECT also calls these directly.
+  const reamac = L.reader("reamac");
+  d("QUOTE-ALLOWING-EVAL-AND-UNPACK", (x) => reamac.quoteAllowingEvalAndUnpack(x));
+  d("CONTAINS-EVAL-OR-UNPACK", (x) => tv(reamac.containsEvalOrUnpack(x)));
+  // An interpreter extension used by the reconstructed UTIL: is s on the obarray?
+  d("+INTERNEDP", (s) => tv(s instanceof Sym && s.interned && L.obarray.find(s.name) === s));
   d("SAMEPNAMEP", (a, b) => tv(L.print(a, false) === L.print(b, false)));
 
   const addresses = new WeakMap();

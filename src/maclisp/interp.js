@@ -76,6 +76,19 @@ export class Lisp {
     this.S.IBASE.value = 10; // Ken's KEN COMPLR and LISP 7: "thats the way I like it"
     this.S.BASE.value = 10;
     this.S.NOPOINT.value = T;
+    // MacLisp's hook variables: the handlers for autoloading and undefined functions
+    this.S.AUTOLOAD_HANDLER = this.S.AUTOLOAD; // the variable AUTOLOAD
+    this.S.DEFAULT_AUTOLOAD = s("+DEFAULT-AUTOLOAD");
+    this.S.AUTOLOAD.value = this.S.DEFAULT_AUTOLOAD;
+    this.S.UNDF_FNCTN = s("UNDF-FNCTN");
+    this.S.DEFAULT_UNDF_FNCTN = s("+DEFAULT-UNDF-FNCTN");
+    this.S.UNDF_FNCTN.value = this.S.DEFAULT_UNDF_FNCTN;
+    // The variables CAR and CDR say how strictly CAR and CDR check their arguments.
+    this.S.CARVAR = s("CAR");
+    this.S.CDRVAR = s("CDR");
+    this.S.CARVAR.value = NIL;
+    this.S.CDRVAR.value = NIL;
+    this.lenientCarCdr = 0; // how often a lenient CAR or CDR of an atom happened
     this.features = new Set();
     installSpecialForms(this);
   }
@@ -155,12 +168,19 @@ export class Lisp {
     return this.NIL;
   }
 
-  // The first function property on the plist: { kind, def } or null.
+  // The first function property on the plist: { kind, def } or null. An AUTOLOAD
+  // property counts only when there is no definition: tags files give functions
+  // AUTOLOAD properties whether or not their files are already loaded.
   fcell(s) {
+    let autoload = null;
     for (let p = this.plistOf(s); p instanceof Cons && p.cdr instanceof Cons; p = p.cdr.cdr) {
-      if (this.fnIndicators.has(p.car)) return { kind: p.car, def: p.cdr.car };
+      if (this.fnIndicators.has(p.car)) {
+        if (p.car === this.S.AUTOLOAD) {
+          if (!autoload) autoload = { kind: p.car, def: p.cdr.car };
+        } else return { kind: p.car, def: p.cdr.car };
+      }
     }
-    return null;
+    return autoload;
   }
 
   defsubr(name, fn, kind = "lsubr") {
@@ -216,6 +236,22 @@ export class Lisp {
       return v;
     }
     if (!(x instanceof Cons)) return x;
+    if (this.formStack) {
+      // debugging: remember the forms being evaluated, for a backtrace
+      this.formStack.push(x);
+      try {
+        return this.evalCons(x);
+      } catch (e) {
+        if (!e.lispBacktrace) e.lispBacktrace = this.formStack.slice(-60).reverse();
+        throw e;
+      } finally {
+        this.formStack.pop();
+      }
+    }
+    return this.evalCons(x);
+  }
+
+  evalCons(x) {
     const f = x.car;
     if (f instanceof Sym) {
       let cell = this.fcell(f);
@@ -223,7 +259,7 @@ export class Lisp {
       const kind = cell.kind;
       if (kind === this.S.FSUBR) return cell.def.fn.call(this, x.cdr, x);
       if (kind === this.S.MACRO) return this.eval(this.macroexpand1(cell.def, x));
-      if (kind === this.S.FEXPR) return this.applyLambda(cell.def, [x.cdr, this.NIL], f, true);
+      if (kind === this.S.FEXPR) return this.callFexpr(cell.def, x.cdr, f);
       return this.callCell(cell, this.evlis(x.cdr), f);
     }
     if (f instanceof Cons && f.car === this.S.LAMBDA) return this.applyLambda(f, this.evlis(x.cdr));
@@ -242,19 +278,53 @@ export class Lisp {
     return v;
   }
 
+  // An FEXPR receives its argument list unevaluated. Its definition may also be
+  // another function's name: DRECT does (defprop director-symbol-for-value quote
+  // fexpr), so (director-symbol-for-value x) behaves like (quote x).
+  callFexpr(def, args, name) {
+    if (def instanceof Sym) {
+      const cell = this.fcell(def);
+      if (cell && cell.kind === this.S.FSUBR) return cell.def.fn.call(this, args);
+      if (cell && cell.kind === this.S.FEXPR) return this.callFexpr(cell.def, args, def);
+      return this.apply(def, [args]);
+    }
+    return this.applyLambda(def, [args, this.NIL], name, true);
+  }
+
   macroexpand1(def, form) {
     if (def instanceof Subr) return def.fn.call(this, form);
     if (def instanceof Sym) return this.apply(def, [form]);
     return this.applyLambda(def, [form]);
   }
 
+  // Calling a function that isn't defined. If it has an AUTOLOAD property, the
+  // function named by the variable AUTOLOAD is called with (function . file)
+  // (MacLisp's default just loads the file; DRECT installs its own handler).
+  // Otherwise the function named by UNDF-FNCTN gets a chance to define it.
   autoload(f, cell) {
     if (cell && cell.kind === this.S.AUTOLOAD) {
       const spec = cell.def;
-      this.load(spec);
+      const handler = this.S.AUTOLOAD_HANDLER.value;
+      if (handler instanceof Sym && handler !== this.NIL && handler !== this.S.DEFAULT_AUTOLOAD) {
+        this.apply(handler, [new Cons(f, spec)]);
+      } else {
+        this.load(spec);
+      }
       const after = this.fcell(f);
       if (after && after.kind !== this.S.AUTOLOAD) return after;
       throw new LispError(`${f.name} undefined function (autoload from ${this.print(spec)} didn't define it)`, f);
+    }
+    const handler = this.S.UNDF_FNCTN.value;
+    if (handler instanceof Sym && handler !== this.NIL && handler !== this.S.DEFAULT_UNDF_FNCTN && !this.inUndfHandler) {
+      this.inUndfHandler = true;
+      let result;
+      try {
+        result = this.apply(handler, [new Cons(f, this.NIL)]);
+      } finally {
+        this.inUndfHandler = false;
+      }
+      const after = this.fcell(f);
+      if (result !== this.NIL && after && after.kind !== this.S.AUTOLOAD) return after;
     }
     throw new LispError(`${f.name} undefined function`, f);
   }

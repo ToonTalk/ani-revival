@@ -22,12 +22,20 @@ export function install(L) {
   const sp = (name, fn) => L.defsubr(name, fn, "fsubr");
 
   // ---- output
+  L.ttyLine = 0;
+  L.ttyColumn = 0;
   function emit(text, file) {
     if (file instanceof LispFile) {
       if (file.closed || file.mode === "in") throw new LispError(`file not open for output: ${file.name.fn1}`, NIL);
       file.buffer += text;
     } else {
       L.out(text);
+      const nl = text.lastIndexOf("\n");
+      if (nl < 0) L.ttyColumn += text.length;
+      else {
+        L.ttyLine += text.split("\n").length - 1;
+        L.ttyColumn = text.length - nl - 1;
+      }
     }
   }
   const fileArg = (f) => (f instanceof LispFile ? f : null);
@@ -64,7 +72,13 @@ export function install(L) {
     emit(L.print(x, false), fileArg(f));
     return x;
   });
-  d("CURSORPOS", () => NIL);
+  // (cursorpos) gives (line . column); with arguments it moves the cursor, which
+  // we ignore.
+  d("CURSORPOS", (...args) => (args.length === 0 ? new Cons(L.ttyLine, L.ttyColumn) : T));
+  d("+DEFAULT-AUTOLOAD", (fnAndFile) => L.load(fnAndFile.cdr));
+  d("+DEFAULT-UNDF-FNCTN", (arg) => {
+    throw new LispError(`${L.print(arg instanceof Cons ? arg.car : arg)} undefined function`, arg);
+  });
   d("FORCE-OUTPUT", () => NIL);
   d("CLEAR-INPUT", () => NIL);
   d("LISTEN", () => 0);
@@ -189,6 +203,10 @@ export function install(L) {
       case "UDIR":
         return this.intern("KEN");
       case "JCL":
+        return NIL;
+      case "TTYTY":
+        return 5; // a Knight TV
+      case "TTY":
         return NIL;
       case "DATE":
         return this.list(79, 1, 8);
