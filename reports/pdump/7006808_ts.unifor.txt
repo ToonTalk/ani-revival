@@ -1,20 +1,690 @@
 PDUMP core image: original/7006808/ts.unifor (KEN;TS UNIFOR, tape 7006808, undated)
-63496 words; 61 pages in the file (61 writable); start instruction 254000,,000167; trailing words: 777774,,000002 637163,,000000 606562,,615157 222027,,270000 637163,,000000 727704,,710230 254000,,000167
-Pages mapped but not in the file (shared/absolute, i.e. the pure Lisp): 0
-Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cells.
+61 pages in the file (61 writable); start instruction 254000,,000167; trailing words: 777774,,000002 637163,,000000 606562,,615157 222027,,270000 637163,,000000 727704,,710230 254000,,000167
+Pages (octal): 0-2 present, 3-33 absent, 34-34 present, 35-35 absent, 36-37 present, 40-45 absent, 46-104 present, 105-333 absent, 334-360 present, 361-364 absent, 365-365 present, 366-366 absent, 367-367 present, 370-373 absent, 374-374 present, 375-377 absent
+Symbols: 1208 headers with impure symbol blocks (1196 names); 5 symbol segments.
 
--- Property indicators that are pure system atoms, as inferred --
-  075075  SUBR      used  542 times; FASL entry votes {'SUBR': 44}
-  075102  MACRO     used  105 times; FASL entry votes {'SUBR': 5}
-  075077  LSUBR     used   60 times; FASL entry votes {'SUBR': 19, 'LSUBR': 16}
-  075123  ?         used   40 times; FASL entry votes -
-  075205  ?         used   40 times; FASL entry votes -
-  075100  ?         used    7 times; FASL entry votes -
-  075103  ?         used    6 times; FASL entry votes {'SUBR': 4}
-  075532  ?         used    6 times; FASL entry votes -
+-- Naming summary --
+  FASL/image function pairs aligned                  43
+  atoms named by FASL alignment                      7
+  atoms named by call link                           9
+  atoms named by indicator                           3
+  atoms named by plist fingerprint                   17
+  atoms named by struct.660 alignment                575
+  atoms named by struct.660 layout                   1
+  kernel symbols from GLOBALSYM/DDT alignment        9
+  link cells named                                   417
+  link cells used by code                            435
+  pattern predicates: atoms confirmed                0
+  pattern predicates: atoms newly named              0
+  pattern predicates: struct.660 names corrected     0
+  single-vote FASL names dropped (contradict struct order) 1
+  struct-order leave-one-out checks agreeing         32
+  struct-order leave-one-out checks disagreeing      0
+  struct.660 DP matches rejected as ambiguous        93
+  struct.660 DP matches rejected by pname spans      9
+  struct.660 DP without anchors: known atoms missed  0
+  struct.660 DP without anchors: known atoms recovered 34
+  struct.660 DP: atoms in the pure allocation chain  402
+  struct.660 order gaps rejected by header features  1
+  struct.660 runs: atoms outside the 1981 list assumed 7
+  struct.660 runs: left with alternatives            7
+  struct.660 runs: no placement fits                 0
+  struct.660 runs: resolved completely               0
+  value cells named by FASL alignment                2
+  pure atoms named: 611
 
--- Pure-Lisp addresses named by aligning FASL code with the image (GLOBALSYMs) --
-  %CONS=14014, %XCONS=14013
+-- Property indicators (pure atoms), as inferred --
+  075075  SUBR       used  542 times
+  075102  MACRO      used  105 times
+  075077  LSUBR      used   60 times
+  075123  #075123    used   40 times
+  075205  EXPR-HASH  used   40 times
+  075100  EXPR       used    7 times
+  075103  AUTOLOAD   used    6 times
+  075532  OR         used    6 times
+
+-- Kernel addresses named (GLOBALSYM/DDT alignment, CARCDR table, snapped links) --
+  011524  SPECBIND
+  011646  UNBIND
+  011732  %NCONS
+  012745  R70
+  013176  .LCALL
+  014013  %XCONS
+  014014  %CONS
+  015256  REMPROP (kernel SUBR)
+  016327  PDLNMK
+  021707  SSTATUS (kernel SUBR)
+  021710  STATUS (kernel SUBR)
+  034155  FIX (kernel SUBR)
+  060650  LOAD (kernel SUBR)
+  071157  ARGLOC
+
+-- Pure atoms named (address, name, evidence) --
+  075000  T                                FASL alignment
+  075001  UNBOUND                          struct.660 layout
+  075022  |+INTERNAL-'-MACRO|              struct.660 alignment
+  075023  |+INTERNAL-;-MACRO|              struct.660 alignment
+  075024  |+INTERNAL-/|-MACRO|             struct.660 alignment
+  075025  |+INTERNAL-"-MACRO|              struct.660 alignment
+  075026  +INTERNAL-TTYSCAN-SUBR           struct.660 alignment
+  075033  +INTERNAL-UREAD-EOFFN            struct.660 alignment
+  075034  +INTERNAL-INCLUDE-EOFFN          struct.660 alignment
+  075035  +INTERNAL-TTY-ENDPAGEFN          struct.660 alignment
+  075036  +INTERNAL-*RSET-BREAK            struct.660 alignment
+  075037  +INTERNAL-UDF-BREAK              struct.660 alignment
+  075040  +INTERNAL-UBV-BREAK              struct.660 alignment
+  075041  +INTERNAL-WTA-BREAK              struct.660 alignment
+  075042  +INTERNAL-UGT-BREAK              struct.660 alignment
+  075043  +INTERNAL-WNA-BREAK              struct.660 alignment
+  075044  +INTERNAL-GCL-BREAK              struct.660 alignment
+  075045  +INTERNAL-FAC-BREAK              struct.660 alignment
+  075046  +INTERNAL-PDL-BREAK              struct.660 alignment
+  075047  +INTERNAL-GCO-BREAK              struct.660 alignment
+  075050  +INTERNAL-AUTOLOAD               struct.660 alignment
+  075051  +INTERNAL-CHAR-N                 struct.660 alignment
+  075052  +INTERNAL-RPLACHAR-N             struct.660 alignment
+  075053  +INTERNAL-STRING-WORD-N          struct.660 alignment
+  075054  +INTERNAL-SET-STRING-WORD-N      struct.660 alignment
+  075055  LIST                             plist fingerprint
+  075056  FIXNUM                           struct.660 alignment
+  075057  FLONUM                           struct.660 alignment
+  075060  BIGNUM                           struct.660 alignment
+  075061  SYMBOL                           struct.660 alignment
+  075062  HUNK2                            struct.660 alignment
+  075063  HUNK4                            struct.660 alignment
+  075064  HUNK8                            struct.660 alignment
+  075065  HUNK16                           struct.660 alignment
+  075066  HUNK32                           struct.660 alignment
+  075067  HUNK64                           struct.660 alignment
+  075070  HUNK128                          struct.660 alignment
+  075071  HUNK256                          struct.660 alignment
+  075072  HUNK512                          struct.660 alignment
+  075073  RANDOM                           struct.660 alignment
+  075074  ARRAY                            struct.660 alignment
+  075075  SUBR                             indicator
+  075076  FSUBR                            struct.660 alignment
+  075077  LSUBR                            indicator
+  075100  EXPR                             struct.660 alignment
+  075101  FEXPR                            struct.660 alignment
+  075102  MACRO                            indicator
+  075103  AUTOLOAD                         struct.660 alignment
+  075104  ERRSET                           struct.660 alignment
+  075202  ?                                plist fingerprint
+  075203  **MISSING-ARG**                  struct.660 alignment
+  075204  _                                struct.660 alignment
+  075205  EXPR-HASH                        struct.660 alignment
+  075206  CALLI                            struct.660 alignment
+  075207  ODDP                             struct.660 alignment
+  075210  EVAL                             struct.660 alignment
+  075211  DEPOSIT                          struct.660 alignment
+  075212  EXAMINE                          struct.660 alignment
+  075213  QMARK                            struct.660 alignment
+  075214  GC                               struct.660 alignment
+  075215  ^G                               struct.660 alignment
+  075216  CAR                              struct.660 alignment
+  075217  CDR                              struct.660 alignment
+  075220  CAAR                             struct.660 alignment
+  075221  CADR                             struct.660 alignment
+  075222  CDAR                             struct.660 alignment
+  075223  CDDR                             struct.660 alignment
+  075224  CAAAR                            struct.660 alignment
+  075225  CAADR                            struct.660 alignment
+  075226  CADAR                            struct.660 alignment
+  075227  CADDR                            struct.660 alignment
+  075230  CDAAR                            struct.660 alignment
+  075231  CDADR                            struct.660 alignment
+  075232  CDDAR                            struct.660 alignment
+  075233  CDDDR                            struct.660 alignment
+  075234  CAAAAR                           struct.660 alignment
+  075235  CAAADR                           struct.660 alignment
+  075236  CAADAR                           struct.660 alignment
+  075237  CAADDR                           struct.660 alignment
+  075240  CADAAR                           struct.660 alignment
+  075241  CADADR                           struct.660 alignment
+  075242  CADDAR                           struct.660 alignment
+  075243  CADDDR                           struct.660 alignment
+  075244  CDAAAR                           struct.660 alignment
+  075245  CDAADR                           struct.660 alignment
+  075246  CDADAR                           struct.660 alignment
+  075247  CDADDR                           struct.660 alignment
+  075250  CDDAAR                           struct.660 alignment
+  075251  CDDADR                           struct.660 alignment
+  075252  CDDDAR                           struct.660 alignment
+  075253  CDDDDR                           struct.660 alignment
+  075254  +INTERNAL-CARCDRP                struct.660 alignment
+  075255  FIXP                             struct.660 alignment
+  075256  FLOATP                           struct.660 alignment
+  075257  EVALFRAME                        struct.660 alignment
+  075260  ERRFRAME                         struct.660 alignment
+  075261  BIGP                             struct.660 alignment
+  075262  BOUNDP                           struct.660 alignment
+  075263  FBOUNDP                          struct.660 alignment
+  075264  PAIRP                            struct.660 alignment
+  075265  LISTIFY                          struct.660 alignment
+  075266  NOT                              plist fingerprint
+  075267  ATOM                             struct.660 alignment
+  075270  TYPEP                            struct.660 alignment
+  075271  EXPLODE                          struct.660 alignment
+  075272  MINUSP                           struct.660 alignment
+  075273  PLUSP                            struct.660 alignment
+  075274  NUMBERP                          struct.660 alignment
+  075275  ZEROP                            struct.660 alignment
+  075276  INTERN                           struct.660 alignment
+  075277  LAST                             struct.660 alignment
+  075300  REVERSE                          struct.660 alignment
+  075301  NREVERSE                         struct.660 alignment
+  075302  READLIST                         struct.660 alignment
+  075303  MAKNAM                           struct.660 alignment
+  075304  LENGTH                           struct.660 alignment
+  075305  ABS                              struct.660 alignment
+  075306  MINUS                            struct.660 alignment
+  075307  ADD1                             struct.660 alignment
+  075310  SUB1                             struct.660 alignment
+  075311  FLOAT                            struct.660 alignment
+  075312  FLATSIZE                         struct.660 alignment
+  075313  FLATC                            struct.660 alignment
+  075314  ARG                              struct.660 alignment
+  075315  COS                              struct.660 alignment
+  075316  SQRT                             struct.660 alignment
+  075317  LOG                              struct.660 alignment
+  075320  EXP                              struct.660 alignment
+  075321  SXHASH                           struct.660 alignment
+  075322  NOINTERRUPT                      struct.660 alignment
+  075323  REMOB                            struct.660 alignment
+  075324  SYSP                             struct.660 alignment
+  075325  MAKUNBOUND                       struct.660 alignment
+  075326  IMPLODE                          struct.660 alignment
+  075327  MUNKAM                           struct.660 alignment
+  075330  MAKNUM                           struct.660 alignment
+  075331  HAULONG                          struct.660 alignment
+  075332  PLIST                            struct.660 alignment
+  075333  SYMEVAL                          struct.660 alignment
+  075334  PUREP                            struct.660 alignment
+  075335  WRITEABLEP                       struct.660 alignment
+  075336  RETURN                           struct.660 alignment
+  075337  RUNTIME                          struct.660 alignment
+  075340  TIME                             call link
+  075341  FIX                              struct.660 alignment
+  075342  IFIX                             struct.660 alignment
+  075343  EXPLODEC                         struct.660 alignment
+  075344  NULL                             struct.660 alignment
+  075345  ASCII                            struct.660 alignment
+  075346  ALLOC                            struct.660 alignment
+  075347  NCONS                            struct.660 alignment
+  075350  SLEEP                            struct.660 alignment
+  075351  SIN                              struct.660 alignment
+  075352  XCONS                            struct.660 alignment
+  075353  GETCHARN                         struct.660 alignment
+  075354  GET                              struct.660 alignment
+  075355  PNGET                            struct.660 alignment
+  075356  PURCOPY                          struct.660 alignment
+  075357  PUTPROP                          struct.660 alignment
+  075360  PURIFY                           struct.660 alignment
+  075361  SYMBOLP                          struct.660 alignment
+  075362  EXPLODEN                         struct.660 alignment
+  075363  ARRAYDIMS                        struct.660 alignment
+  075364  ARRAY-DIMENSION-N                struct.660 alignment
+  075365  ARRAY-#-DIMS                     struct.660 alignment
+  075366  ARRAY-TYPE                       struct.660 alignment
+  075367  VALUE-CELL-LOCATION              struct.660 alignment
+  075370  SUBLIS                           struct.660 alignment
+  075371  REMPROP                          struct.660 alignment
+  075372  SET                              plist fingerprint
+  075373  RPLACA                           struct.660 alignment
+  075374  RPLACD                           struct.660 alignment
+  075375  NTH                              struct.660 alignment
+  075376  NTHCDR                           struct.660 alignment
+  075377  DISPLACE                         struct.660 alignment
+  075400  EQ                               struct.660 alignment
+  075401  FRETURN                          struct.660 alignment
+  075402  FRETRY                           struct.660 alignment
+  075403  EXPT                             struct.660 alignment
+  075404  MEMQ                             struct.660 alignment
+  075405  SETARG                           struct.660 alignment
+  075406  MEMBER                           call link
+  075407  EQUAL                            struct.660 alignment
+  075410  GETL                             struct.660 alignment
+  075411  ASSOC                            struct.660 alignment
+  075412  ASSQ                             struct.660 alignment
+  075413  REMAINDER                        struct.660 alignment
+  075414  ATAN                             struct.660 alignment
+  075415  SAMEPNAMEP                       struct.660 alignment
+  075416  ALPHALESSP                       struct.660 alignment
+  075417  GETCHAR                          struct.660 alignment
+  075420  COPYSYMBOL                       struct.660 alignment
+  075421  PNPUT                            struct.660 alignment
+  075422  FILLARRAY                        struct.660 alignment
+  075423  NRECONC                          struct.660 alignment
+  075424  SETPLIST                         struct.660 alignment
+  075425  *BREAK                           struct.660 alignment
+  075426  *THROW                           struct.660 alignment
+  075427  CXR                              struct.660 alignment
+  075430  MAKHUNK                          struct.660 alignment
+  075431  HUNKP                            struct.660 alignment
+  075432  HUNKSIZE                         struct.660 alignment
+  075433  HUNK                             struct.660 alignment
+  075434  RPLACX                           struct.660 alignment
+  075435  \\                               struct.660 alignment
+  075436  RECLAIM                          struct.660 alignment
+  075437  HAIPART                          struct.660 alignment
+  075440  GCD                              struct.660 alignment
+  075441  LSH                              struct.660 alignment
+  075442  ROT                              struct.660 alignment
+  075443  FSC                              struct.660 alignment
+  075444  ASH                              struct.660 alignment
+  075445  LOAD-BYTE                        struct.660 alignment
+  075446  *LOAD-BYTE                       struct.660 alignment
+  075447  DEPOSIT-BYTE                     struct.660 alignment
+  075450  *DEPOSIT-BYTE                    struct.660 alignment
+  075451  LDB                              struct.660 alignment
+  075452  *LDB                             struct.660 alignment
+  075453  DPB                              struct.660 alignment
+  075454  *DPB                             struct.660 alignment
+  075455  ^                                struct.660 alignment
+  075456  ^$                               struct.660 alignment
+  075457  FIXNUM-IDENTITY                  struct.660 alignment
+  075460  FLONUM-IDENTITY                  struct.660 alignment
+  075461  *DIF                             struct.660 alignment
+  075462  *QUO                             struct.660 alignment
+  075463  1+$                              struct.660 alignment
+  075464  1+                               struct.660 alignment
+  075465  1-$                              struct.660 alignment
+  075466  1-                               struct.660 alignment
+  075467  >                                struct.660 alignment
+  075470  <                                struct.660 alignment
+  075471  =                                plist fingerprint
+  075472  \                                struct.660 alignment
+  075473  SASSOC                           struct.660 alignment
+  075474  SASSQ                            struct.660 alignment
+  075475  SUBST                            struct.660 alignment
+  075476  SETSYNTAX                        struct.660 alignment
+  075477  |LH/||                           struct.660 alignment
+  075500  COND                             struct.660 alignment
+  075501  PROG                             FASL alignment
+  075502  QUOTE                            FASL alignment
+  075503  DO                               FASL alignment
+  075504  DECLARE                          struct.660 alignment
+  075505  PROGV                            struct.660 alignment
+  075506  DEFPROP                          struct.660 alignment
+  075507  BREAK                            struct.660 alignment
+  075510  GO                               struct.660 alignment
+  075511  SETQ                             FASL alignment
+  075512  ERR                              struct.660 alignment
+  075513  SIGNP                            struct.660 alignment
+  075514  STORE                            struct.660 alignment
+  075515  STATUS                           struct.660 alignment
+  075516  SSTATUS                          struct.660 alignment
+  075517  FUNCTION                         struct.660 alignment
+  075520  CASEQ                            struct.660 alignment
+  075521  PUSH                             struct.660 alignment
+  075522  POP                              struct.660 alignment
+  075523  DEFUN                            plist fingerprint
+  075524  COMMENT                          struct.660 alignment
+  075525  UNWIND-PROTECT                   struct.660 alignment
+  075526  *CATCH                           struct.660 alignment
+  075527  CATCHALL                         struct.660 alignment
+  075530  CATCH-BARRIER                    struct.660 alignment
+  075531  AND                              plist fingerprint
+  075532  OR                               plist fingerprint
+  075533  EVAL-WHEN                        struct.660 alignment
+  075534  *FUNCTION                        struct.660 alignment
+  075535  MAPLIST                          struct.660 alignment
+  075536  MAPCAR                           struct.660 alignment
+  075537  MAP                              struct.660 alignment
+  075540  MAPC                             struct.660 alignment
+  075541  MAPCON                           struct.660 alignment
+  075542  MAPCAN                           struct.660 alignment
+  075543  PROG1                            struct.660 alignment
+  075544  PROG2                            struct.660 alignment
+  075545  PROGN                            FASL alignment
+  075546  BOOLE                            struct.660 alignment
+  075547  DELQ                             struct.660 alignment
+  075550  DELETE                           struct.660 alignment
+  075551  APPLY                            struct.660 alignment
+  075552  DELASSQ                          struct.660 alignment
+  075553  SYSCALL                          struct.660 alignment
+  075554  LIST*                            struct.660 alignment
+  075555  MAKE-LIST                        struct.660 alignment
+  075556  CONS                             plist fingerprint
+  075557  FUNCALL                          struct.660 alignment
+  075560  LEXPR-FUNCALL                    struct.660 alignment
+  075561  ARRAYCALL                        struct.660 alignment
+  075562  SUBRCALL                         struct.660 alignment
+  075563  LSUBRCALL                        struct.660 alignment
+  075564  VALRET                           struct.660 alignment
+  075565  BAKTRACE                         struct.660 alignment
+  075566  BAKLIST                          struct.660 alignment
+  075567  GENSYM                           struct.660 alignment
+  075570  SUSPEND                          struct.660 alignment
+  075571  CURSORPOS                        struct.660 alignment
+  075572  QUIT                             struct.660 alignment
+  075573  ERROR                            struct.660 alignment
+  075574  GETSP                            struct.660 alignment
+  075575  MAPATOMS                         struct.660 alignment
+  075576  NCONC                            struct.660 alignment
+  075577  PLUS                             struct.660 alignment
+  075600  TIMES                            struct.660 alignment
+  075601  DIFFERENCE                       struct.660 alignment
+  075602  QUOTIENT                         struct.660 alignment
+  075603  APPEND                           struct.660 alignment
+  075604  MAX                              struct.660 alignment
+  075605  GREATERP                         struct.660 alignment
+  075606  MIN                              struct.660 alignment
+  075607  LESSP                            struct.660 alignment
+  075610  +                                struct.660 alignment
+  075611  -                                struct.660 alignment
+  075612  *                                struct.660 alignment
+  075613  |//|                             struct.660 alignment
+  075614  +$                               struct.660 alignment
+  075615  -$                               struct.660 alignment
+  075616  *$                               struct.660 alignment
+  075617  |//$|                            struct.660 alignment
+  075620  *REARRAY                         struct.660 alignment
+  075621  *ARRAY                           struct.660 alignment
+  075622  LISTARRAY                        struct.660 alignment
+  075623  *DELQ                            struct.660 alignment
+  075624  *DELETE                          struct.660 alignment
+  075625  *APPEND                          struct.660 alignment
+  075626  *TIMES                           struct.660 alignment
+  075627  *GREAT                           struct.660 alignment
+  075630  *LESS                            struct.660 alignment
+  075631  *PLUS                            struct.660 alignment
+  075632  *NCONC                           struct.660 alignment
+  075633  *APPLY                           struct.660 alignment
+  075634  *PRINT                           struct.660 alignment
+  075635  *PRIN1                           struct.660 alignment
+  075636  *PRINC                           call link
+  075637  *TERPRI                          call link
+  075640  *TYO                             struct.660 alignment
+  075641  *READ                            struct.660 alignment
+  075642  *READCH                          struct.660 alignment
+  075643  *TYI                             struct.660 alignment
+  075644  *EVAL                            struct.660 alignment
+  075645  PURE                             struct.660 alignment
+  075646  *PURE                            struct.660 alignment
+  075647  PURCLOBRL                        struct.660 alignment
+  075650  |FASLAPSETUP/||                  struct.660 alignment
+  075651  |LAPSETUP/||                     struct.660 alignment
+  075652  PAGEBPORG                        struct.660 alignment
+  075653  |TTSR/||                         struct.660 alignment
+  075654  GETDDTSYM                        struct.660 alignment
+  075655  PUTDDTSYM                        struct.660 alignment
+  075656  GCPROTECT                        struct.660 alignment
+  075657  SYMBOLS                          struct.660 alignment
+  075660  FASLOAD                          struct.660 alignment
+  075661  FILE-EXIT-FUNCTIONS              struct.660 alignment
+  075662  FILE-EXIT-FUNCTIONS-DEFAULT      struct.660 alignment
+  075663  VERSION                          struct.660 alignment
+  075664  STRING                           struct.660 alignment
+  075665  MAKE-STRING                      struct.660 alignment
+  075666  STRING-PNPUT                     struct.660 alignment
+  075667  *:FIXNUM-TO-CHARACTER            struct.660 alignment
+  075670  SUBSEQ                           struct.660 alignment
+  075671  REPLACE                          struct.660 alignment
+  075672  TO-LIST                          struct.660 alignment
+  075673  TO-VECTOR                        struct.660 alignment
+  075674  TO-STRING                        struct.660 alignment
+  075675  TO-BITS                          struct.660 alignment
+  075676  SHARPM                           struct.660 alignment
+  075677  DEFSHARP                         plist fingerprint
+  075700  +INTERNAL-#-MACRO                struct.660 alignment
+  075701  SETSYNTAX-SHARP-MACRO            struct.660 alignment
+  075702  #-MACRO-DATALIST                 struct.660 alignment
+  075703  BACKQ                            struct.660 alignment
+  075704  BACKQUOTE-EXPAND-WHEN            struct.660 alignment
+  075705  |`-expander/||                   plist fingerprint
+  075706  |+INTERNAL-`-macro/||            struct.660 alignment
+  075707  |+INTERNAL-,-macro/||            struct.660 alignment
+  075710  LET                              plist fingerprint
+  075711  LET-EXPANDER-1                   struct.660 alignment
+  075712  LET*                             plist fingerprint
+  075713  LET*-EXPANDER-1                  struct.660 alignment
+  075714  DESETQ                           plist fingerprint
+  075715  DESETQ-EXPANDER-1                struct.660 alignment
+  075716  SETF                             struct.660 alignment
+  075717  SETF-X                           struct.660 alignment
+  075720  +INTERNAL-SETF-X                 struct.660 alignment
+  075721  +INTERNAL-PUSH-X                 struct.660 alignment
+  075722  +INTERNAL-POP-X                  struct.660 alignment
+  075723  DEFMAX                           struct.660 alignment
+  075724  MACRO-EXPANSION-USE              struct.660 alignment
+  075725  MACROEXPANDED                    plist fingerprint
+  075726  |forget-macromemos/||            struct.660 alignment
+  075727  FLUSH-MACROMEMOS                 struct.660 alignment
+  075730  MACROFETCH                       struct.660 alignment
+  075731  MACROMEMO                        struct.660 alignment
+  075732  MACROEXPAND                      struct.660 alignment
+  075733  MACROEXPAND-1                    struct.660 alignment
+  075734  MACROEXPAND-1*                   struct.660 alignment
+  075735  MACROEXPAND-1*M                  struct.660 alignment
+  075736  +INTERNAL-TRY-AUTOLOADP          struct.660 alignment
+  075737  DEFMACRO                         struct.660 alignment
+  075740  DEFMACRO-DISPLACE                struct.660 alignment
+  075741  |defmacro-1/||                   struct.660 alignment
+  075742  DEFMACRO-CHECK-ARGS              struct.660 alignment
+  075743  DEFMACRO-DISPLACE-CALL           struct.660 alignment
+  075744  DEFMACRO-FOR-COMPILING           struct.660 alignment
+  075745  DEFUN&                           struct.660 alignment
+  075746  |&r-l/||                         struct.660 alignment
+  075747  MACAID                           struct.660 alignment
+  075750  FLATTEN-SYMS                     struct.660 alignment
+  075751  |carcdrp/||                      struct.660 alignment
+  075752  |no-funp/||                      struct.660 alignment
+  075753  +INTERNAL-DUP-P                  struct.660 alignment
+  075754  |side-effectsp/||                struct.660 alignment
+  075755  |constant-p/||                   struct.660 alignment
+  075756  DEFSIMPLEMAC                     struct.660 alignment
+  075757  DEFCOMPLRMAC                     struct.660 alignment
+  075760  DEFBOTHMACRO                     struct.660 alignment
+  075761  SYMBOLCONC                       struct.660 alignment
+  075762  MLMAC                            struct.660 alignment
+  076001  MLSUB                            struct.660 alignment
+  076002  LISTP                            plist fingerprint
+  076003  |MULTIPLE-VALUE-LIST/||          struct.660 alignment
+  076004  VALUES-LIST                      struct.660 alignment
+  076005  SI:CHECK-MULTIPLICITIES          struct.660 alignment
+  076006  <=                               struct.660 alignment
+  076007  >=                               struct.660 alignment
+  076010  LOGAND                           struct.660 alignment
+  076011  LOGIOR                           struct.660 alignment
+  076012  LOGXOR                           struct.660 alignment
+  076013  LOGNOT                           struct.660 alignment
+  076014  FIXNUMP                          struct.660 alignment
+  076015  FLONUMP                          struct.660 alignment
+  076016  EVENP                            struct.660 alignment
+  076017  SEND                             struct.660 alignment
+  076020  CLASSP                           struct.660 alignment
+  076021  CLASS-OF                         struct.660 alignment
+  076022  SI:EXTENDP                       struct.660 alignment
+  076023  EXTENDP                          struct.660 alignment
+  076024  EXTBAS                           struct.660 alignment
+  076025  SI:MAKE-EXTEND                   struct.660 alignment
+  076026  SI:EXTEND                        struct.660 alignment
+  076027  SI:XREF                          struct.660 alignment
+  076030  SI:XSET                          struct.660 alignment
+  076031  SI:EXTEND-LENGTH                 struct.660 alignment
+  076032  EXTSTR                           struct.660 alignment
+  076033  SI:DEFCLASS*-2                   struct.660 alignment
+  076034  **SELF-EVAL**                    struct.660 alignment
+  076035  **CLASS-SELF-EVAL**              struct.660 alignment
+  076036  EXTEND                           struct.660 alignment
+  076046  YESNOP                           struct.660 alignment
+  076047  Y-OR-N-P                         struct.660 alignment
+  076050  YES-OR-NO-P                      struct.660 alignment
+  076051  EXTMAC                           struct.660 alignment
+  076052  DEFCLASS*                        struct.660 alignment
+  076053  DEFMETHOD*                       struct.660 alignment
+  076054  CERROR                           struct.660 alignment
+  076055  FERROR                           struct.660 alignment
+  076056  ERROR-RESTART                    struct.660 alignment
+  076057  +INTERNAL-LOSSAGE                struct.660 alignment
+  076060  EXTSFA                           struct.660 alignment
+  076061  SFA-UNCLAIMED-MESSAGE            struct.660 alignment
+  076062  ERRCK                            struct.660 alignment
+  076072  DEFVSX                           struct.660 alignment
+  076073  SETVST                           struct.660 alignment
+  076074  |defvst-construction/||          struct.660 alignment
+  076075  |defvst-construction-1/||        struct.660 alignment
+  076076  |defvst-selection-1/||           struct.660 alignment
+  076077  |defvst-xref/||                  struct.660 alignment
+  076100  DEFVSY                           struct.660 alignment
+  076101  |defvst-typchk/||                struct.660 alignment
+  076102  STRUCT-TYPEP                     struct.660 alignment
+  076103  |defvst-initialize/||            struct.660 alignment
+  076104  GRIND                            struct.660 alignment
+  076105  CGOLREAD                         struct.660 alignment
+  076106  LAP                              struct.660 alignment
+  076107  TRACE                            struct.660 alignment
+  076110  CGOL                             struct.660 alignment
+  076111  FORMAT                           struct.660 alignment
+  076112  GRIND0                           struct.660 alignment
+  076113  GRINDEF                          struct.660 alignment
+  076114  SPRINTER                         struct.660 alignment
+  076115  SPRIN1                           struct.660 alignment
+  076116  READMACROINVERSE                 struct.660 alignment
+  076117  GETMIDASOP                       struct.660 alignment
+  076120  SORT                             struct.660 alignment
+  076121  SORTCAR                          struct.660 alignment
+  076122  EDIT                             struct.660 alignment
+  076123  LAP-A-LIST                       struct.660 alignment
+  076124  BLTARRAY                         struct.660 alignment
+  076125  DUMPARRAYS                       struct.660 alignment
+  076126  LOADARRAYS                       struct.660 alignment
+  076127  ALLFILES                         struct.660 alignment
+  076130  MAPALLFILES                      struct.660 alignment
+  076131  DIRECTORY                        struct.660 alignment
+  076132  MAPDIRECTORY                     struct.660 alignment
+  076133  LISPT                            struct.660 alignment
+  076134  INF-EDIT                         struct.660 alignment
+  076135  HUMBLE                           struct.660 alignment
+  076136  CREATE-JOB                       struct.660 alignment
+  076137  LOOP                             struct.660 alignment
+  076140  DEFINE-LOOP-PATH                 struct.660 alignment
+  076141  ALARMCLOCK                       struct.660 alignment
+  076142  CLI-MESSAGE                      struct.660 alignment
+  076143  MAR-BREAK                        struct.660 alignment
+  076144  TTY-RETURN                       struct.660 alignment
+  076145  SYS-DEATH                        struct.660 alignment
+  076146  NOUUO                            call link
+  076147  NORET                            struct.660 alignment
+  076150  EVALHOOK                         struct.660 alignment
+  076151  READ-EVAL-*-PRINT                struct.660 alignment
+  076152  READ-EVAL-PRINT-*                struct.660 alignment
+  076153  *-READ-EVAL-PRINT                struct.660 alignment
+  076154  READ-*-EVAL-PRINT                struct.660 alignment
+  076155  GCTWA                            struct.660 alignment
+  076156  ARGS                             struct.660 alignment
+  076157  *RSET                            call link
+  076160  *NOPOINT                         struct.660 alignment
+  076161  OBARRAY                          struct.660 alignment
+  076162  READTABLE                        struct.660 alignment
+  076163  ERROR-BREAK-ENVIRONMENT          struct.660 alignment
+  076164  *:TRUTH                          struct.660 alignment
+  076165  STR:ARRAY                        struct.660 alignment
+  076166  NAMELIST                         struct.660 alignment
+  076167  NAMESTRING                       struct.660 alignment
+  076170  SHORTNAMESTRING                  struct.660 alignment
+  076171  TRUENAME                         struct.660 alignment
+  076172  INPUSH                           struct.660 alignment
+  076173  PROBEF                           struct.660 alignment
+  076174  LOAD                             struct.660 alignment
+  076175  FILEP                            struct.660 alignment
+  076176  DEFAULTF                         struct.660 alignment
+  076177  NODEFAULT                        struct.660 alignment
+  076200  FORCE-OUTPUT                     call link
+  076201  CLEAR-OUTPUT                     struct.660 alignment
+  076202  CLEAR-INPUT                      struct.660 alignment
+  076203  CLOSE                            struct.660 alignment
+  076204  DELETEF                          struct.660 alignment
+  076212  INCLUDEF                         struct.660 alignment
+  076213  RENAMEF                          struct.660 alignment
+  076214  CNAMEF                           struct.660 alignment
+  076215  MERGEF                           struct.660 alignment
+  076216  LENGTHF                          struct.660 alignment
+  076217  LISTEN                           call link
+  076220  SFA-CREATE                       struct.660 alignment
+  076221  SFA-CALL                         struct.660 alignment
+  076222  SFAP                             struct.660 alignment
+  076223  SFA-GET                          struct.660 alignment
+  076235  CRUNIT                           struct.660 alignment
+  076236  UKILL                            struct.660 alignment
+  076237  UFILE                            struct.660 alignment
+  076240  UCLOSE                           struct.660 alignment
+  076241  UAPPEND                          struct.660 alignment
+  076242  UPROBE                           struct.660 alignment
+  076243  INCLUDE                          struct.660 alignment
+  076244  UREAD                            struct.660 alignment
+  076245  UWRITE                           struct.660 alignment
+  076246  INFILE                           struct.660 alignment
+  076247  INSTACK                          struct.660 alignment
+  076250  OUTFILES                         struct.660 alignment
+  076251  ECHOFILES                        struct.660 alignment
+  076252  MSGFILES                         struct.660 alignment
+  076253  TYI                              call link
+  076254  READLINE                         struct.660 alignment
+  076255  TYIPEEK                          struct.660 alignment
+  076256  TYO                              struct.660 alignment
+  076257  PRINT                            plist fingerprint
+  076260  :PRINT-SELF                      struct.660 alignment
+  076261  PRIN1                            struct.660 alignment
+  076262  PRINC                            struct.660 alignment
+  076263  PRINT-OBJECT                     struct.660 alignment
+  076264  FLATSIZE-OBJECT                  struct.660 alignment
+  076265  TERPRI                           struct.660 alignment
+  076266  READ                             struct.660 alignment
+  076267  READCH                           struct.660 alignment
+  076270  ENDPAGEFN                        struct.660 alignment
+  076271  EOFFN                            struct.660 alignment
+  076272  PAGEL                            struct.660 alignment
+  076273  CHARPOS                          struct.660 alignment
+  076274  LINENUM                          struct.660 alignment
+  076275  PAGENUM                          struct.660 alignment
+  076276  LINEL                            struct.660 alignment
+  076277  RUBOUT                           struct.660 alignment
+  076300  FILEPOS                          struct.660 alignment
+  076301  ERRPRINT                         struct.660 alignment
+  076302  BPEND                            struct.660 alignment
+  076303  BPORG                            struct.660 alignment
+  076304  ERRLIST                          struct.660 alignment
+  076305  TTY                              struct.660 alignment
+  076306  ZUNDERFLOW                       struct.660 alignment
+  076307  ZFUZZ                            struct.660 alignment
+  076310  IBASE                            struct.660 alignment
+  076311  BASE                             struct.660 alignment
+  076312  PRINLEVEL                        struct.660 alignment
+  076313  PRINLENGTH                       struct.660 alignment
+  076314  ^Q                               struct.660 alignment
+  076315  ^W                               struct.660 alignment
+  076316  ^R                               struct.660 alignment
+  076317  ^A                               struct.660 alignment
+  076320  +INTERNAL-WITHOUT-INTERRUPTS     struct.660 alignment
+  076321  +INTERNAL-INTERRUPT-BOUND-VARIABLES struct.660 alignment
+  076322  |^[P|                            struct.660 alignment
+  076323  ^D                               struct.660 alignment
+  076324  UNDF-FNCTN                       struct.660 alignment
+  076325  UNBND-VRBL                       struct.660 alignment
+  076326  WRNG-TYPE-ARG                    struct.660 alignment
+  076327  UNSEEN-GO-TAG                    struct.660 alignment
+  076330  WRNG-NO-ARGS                     struct.660 alignment
+  076331  GC-LOSSAGE                       struct.660 alignment
+  076332  FAIL-ACT                         struct.660 alignment
+  076333  IO-LOSSAGE                       struct.660 alignment
+  076334  COMPILER-STATE                   struct.660 alignment
+  076335  MACHINE-ERROR                    struct.660 alignment
+
+-- Pure atoms referenced by code but still unnamed (address: references; candidates) --
+  075112  12  one of VALUE, LAMBDA, DSK, SYM, SPLICING, SINGLE, EVALARG, BPS, SPECIAL, TTYSCAN-STRINGERS|, (not in the 1981 list)
+  075115   4  one of SYM, SPLICING, SINGLE, EVALARG, BPS, SPECIAL, TTYSCAN-STRINGERS|, +INTERNAL-STRING-MARKER, COMPLR, LISP, (not in the 1981 list)
+  075172   2  one of .LISP., ROMAN, SAIL, JOB, FILE, ECHO, CLA, IMAGE, BLOCK
+  076205   1  one of IN, FASLP, +TYI
+  075166   1  one of BC, TT, PT, EXPERIMENTAL, .LISP., ROMAN, SAIL, JOB, FILE
+  075123   1  one of TTYSCAN-STRINGERS|, +INTERNAL-STRING-MARKER, COMPLR, LISP, FASL, JCL, DDT, GLOBALSYM, LABEL, FUNARG, (not in the 1981 list)
+  075027   1  one of +INTERNAL-^B-BREAK, (not in the 1981 list)
+  075030   1  one of +INTERNAL-^B-BREAK, +INTERNAL-IOL-BREAK, (not in the 1981 list)
+
+-- Value cells named by FASL alignment --
+  071106  TYI
+  071110  PRIN1
 
 -- KEN1 definitions from the 1979 tags table (7005017 KEN TAGS) found in this image --
   KEN1; AI: COMP >          26 defs: absent 26
@@ -39,33 +709,36 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   KEN1; AI: INTER >         24 defs: absent 24
   KEN1; AI: RDTAGS >        17 defs: absent 17
   TOTAL 596: absent 549, compiled 31, macro 16
-  Not present as code or macro:
-    KEN1; AI: COMP >: COMP COMPILE-DIRECTOR COMPILE-FILES COMPILE-FILE APPEND-COMPILED-TRANSMISSIONS OPEN-APPEND-IF-EXISTS OPEN-OUT-OR-APPEND READ-AND-PRINT-FORMS CLOSE-AUXILLARY-FILES *COMPILE-ACTORS COMPILE-AND-PRINT-ACTOR COMPILE-ACTOR COMPILE-COMPILED-TRANSMISSIONS PRINT-OR-RETURN SAVE-HELP-ON-FILE SAVE-MACROS-ON-FILE DEFUNIZE SAVE-METHODS DEFINE-COMPILED-CASES COMPILE-METHOD SAVE-PROPERTY COMPILE-TRANSMISSIONS-IN-METHOD LISPIFY-ALL-TRANSMISSIONS GET-MACRO-PROPERTY SAVE-COMPILED-TRANSMISSIONS SAVE-COMPILED-TRANSMISSION
-    KEN1; AI: TRACE >: TRACE DIRECTOR-TRACE DIRECTOR-TRACE-1 MAKE-TRACER-OF DIRECTOR-UNTRACE DIRECTOR-UNTRACE-ALL REPLACE-TRACED-RUN-METHOD RESTORE-TRACED-RUN-METHOD TRACED-RUN-METHOD PRINT-ENTRY PRINT-EXIT
-    KEN1; AI: REAMAC >: DEFCOMMENT REAMAC WHEN-COMPILING |#-READ-MACRO| READ-AND-EVAL DIRECTOR-SYMBOL-FOR-UNPACK EXCL-MACRO |!-READ-MACRO| COMMA-MACRO |,-READ-MACRO| INVERTED-QUOTE-MACRO |`-READ-MACRO| QUOTE-ALLOWING-EVAL-AND-UNPACK CONTAINS-EVAL-OR-UNPACK |'-READ-MACRO| DIRECTOR-QUOTE-READ-MACRO |{-READ-MACRO| READ-AND-EXPAND EXPAND-ABBREVIATION EXPAND-ABBREVIATION-ERROR |&-READ-MACRO|
-    KEN1; AI: EXPMAC >: DEFINE-EXPANSION-MACRO MAKE-EXPANSION EXPANSION: EXPANSION:-1 REMOVE-EXPANSIONS EXPANSION:
-    KEN1; AI: HMAC >: ATOMIZE ANONYMOUS MATCH-LIST BOUND-VARIABLE-PATTERN-CONTAINS-UNPACK LET-MATCH-LIST LET-MACRO-ARG INCREMENT DECREMENT INCREASE DECREASE EXCHANGE
-    KEN1; AI: MACROS >: MACROS DEFINE-METHOD-HELPER DEFINE-FORM DEFINE-HELPER DO-NOW-IF-QUOTED DEFINE-DO-NOW-MACRO *FIRST *REST BINDING-PART-OF-PATTERN ACTION-FUNCTION-OF-PATTERN FIND-VARIABLES-IN-PATTERN DEFINE-SYNONYM COMPILE-ACTORS DEFINE DEFINE-OR-ADD-TO DEFINE-1 PUT-METHOD-PROPERTY DEFINE-RECEIVER DEFINE-METHOD DEFINE-EXTENSION-METHOD DEFINE-MACRO-RECEIVER DEFINE-MACRO-METHOD DEFINE-LISP-LIKE-MACRO-METHOD DEFINE-PLAIN-LISP-MACRO-RECEIVER GENERAL-DEFINE-RECEIVER STORE-AWAY-HELP-FOR DEFINE-RECEIVE COMPILE-USING-ASK-EACH ASK-EACH TELL-EACH ASK-IF-EXISTS UNCOMPILED-ASK-IF-EXISTS ASK-IF-UNDERSTOOD ASK-IF-CAN UNCOMPILED-ASK-IF-CAN ASK-ALL COMPILER-LET COMPILER-MAPSET EXAMPLE-OF A UNCOMPILED-ASK SETQ-IF-UNBOUND COMPILE-USING ASK TELL ASK-OLD ASK-MACRO ACTOR-LET ACTOR-PUSH ACTOR-POP QUOTE-IF-NEED-BE COMMA ACTOR-OF ACTORP GET-ACTOR PARENT-OF NAME-OF METHODS-OF METHOD-COUNT+METHODS-OF PUT-FUNCTION-DEFINITION BODY-OF-METHOD METHOD-PATTERN-PREDICATE METHOD-PATTERN METHOD-OWNER METHOD-APPLICABLE? NTH-REPLACE-IMPURE LISTP LET-FILES EQ-MANY SEQUENTIAL-LET FUNCTIONIFY INITIALIZE-SOMETHING REPEAT PROG1 ROUND DO-THE-FOLLOWING: SCRIPT:
-    KEN1; AI: DRECT >: DRECT RUN-COLOR ASK1 ACTORS-THAT-MATCH EXISTS? UNDEFINED-ACTOR ACTOR-NOT-DEFINED NOT-UNDERSTOOD-MESSAGE MESSAGE-NOT-UNDERSTOOD RECOVERABLE-BAD-MESSAGE COMPILED-ASK SKIP-TYPE-COMPILED-ASK CASES RUN-METHOD-AND-SKIP RUN-METHOD METHOD-THAT-MATCHES METHOD-THAT-MATCHES-JUST-ACTOR SELECT-WINNING-METHOD METHOD-NAME-THAT-MATCHES METHOD-NAME-THAT-MATCHES-JUST-ACTOR HUMANIFY-METHOD EXTRACT-THE-ACTION INSERT-MACRO-RECEIVE BODY-OF-MACRO-METHOD INSERT-LISP-LIKE-MACRO-RECEIVE INSERT-THE-NORMAL-METHOD INSERT-RECEIVE INSERT-THE-METHOD MAKE-METHOD-INFO DEFINE-METHOD-BODY METHOD-NAME INCREMENT-METHOD-COUNT INSIDE-THE-COMPILER ADD-TO-ACTOR FIND-EQUIVALENT-METHOD REMOVE-CURRENT-METHOD REMOVE-METHOD-NAMED MAKE-ACTOR PLACE-ACTOR-ON-NAME GENERAL-PUTPROP GENERAL-GET GENERAL-REMPROP SYNONYM-FOR EVAL-DEFINE PRINT FANCY-PRINT FANCY-PRINT-SCRIPT FANCY-PRINT-MEMORY COLLECT-ALL-VARIABLE-NAMES FANCY-PRINT-VARIABLES PRINT-NAME-VALUE PRINC-ACTOR PRINC-ACTORS HUMANIFY-ACTOR PRINC-OR-PRINT SAVE-ACTOR-ON-FILE DEFINIZE-ACTOR SAVE-BY-PRINTING UNDF-FNCTN-SO-TRY-TO-LOAD ACTOR-OF-ACTION-PART COMPILED-TRANSMISSION-ACTOR ACTOR-AUTOLOAD DIRECTOR-LOAD-AND-RETURN-ACTORS DLOAD DIRECTOR-LOAD FULL-FILE-NAME FULL-FILE-NAME-1 MY-AUTOLOAD-HANDLER NOTHING-MORE-TO-DO RESET-COMPILER COMPILER-SWITCH
-    KEN1; AI: INCOMP >: INCOMP LISPIFY-TRANSMISSION MAKE-NORMAL-COMPILED-TRANSMISSION UPDATE-COMPILED-TRANSMISSION INITIALIZE-MACRO-TRANSMISSION INITIALIZE-COMPILED-TRANSMISSION SELECTOR-BODY ALL-MATCHING-METHODS ALL-MATCHING-METHODS-1 COULD-METHOD-APPLY? PATTERNIFY ADD-DEPENDENT-COMPILED-TRANSMISSION GET-CTS GET-DEPENDENT-COMPILED-TRANSMISSIONS PUT-DEPENDENT-COMPILED-TRANSMISSIONS REMOVE-DEPENDENT-COMPILED-TRANSMISSIONS UPDATE-ALL-DEPENDENT-SELECTORS DECOMPILE-ALL-DEPENDENT-SELECTORS RACT REMOVE-ALL-COMPILED-TRANSMISSIONS UPDATE-APPROPRIATE-DEPENDENT-COMPILED-TRANSMISSIONS
-    KEN1; AI: PROP >: PROP PLACE-PROPERTY PLACE-PROPERTY1 CREATE-PROPERTY REPLACE-EACH-VALUE FIND-RIGHT-LENGTH-VARIABLES ADD-TO-POSITION-IN-LIST SIMPLE-GET SIMPLE-GET-LIST SIMPLE-GET-LIST-PLUS GET-PROPERTY GET-PROPERTY-LIST GET-PROPERTY-LIST1 GET-PROPERTY-ALL GET-PROPERTY-ALL1 SIMPLE-GET-PROPERTY-ALL REMOVE-PROPERTY REMOVE-PROPERTY1 DO-TO-VARIABLE-PLISTS APPLY-TO-NAME-VALUES COLLECT-ALL-NAMES
-    KEN1; AI: UTIL >: UTIL FRACTIONAL-PART TRUNCATE ATOM-REST SAFE-DELETE OCCURENCES-OF MAINTAIN-ALIST ? ASK-IF EVAL-IN-ENV COPY COPY-1 REPLACE-NTH UP-TIL ASSOCIATE SET-MINUS MAXIMUM-IN-SET MINIMUM-IN-SET EVERY-OTHER MIDDLE-ELEMENT SPLICE-ON-END SPLICE-IN-SECOND SPLICE-IN-THIRD REMOVE-FIRST CONS-IF-NON-NIL VALUE-OR-NIL ADDTO CAR-IF-LIST ATOM-IF-ONLY-ONE REPEAT-LIST REPEAT-APPEND IN-RANGE MAKE-THE-SIGN-AS FIRST-IS THING-WHOSE-FIRST-IS CIRCULAR-LIST-OF INTERNEDP INTEGER-AVERAGE ROUND REPLACEPROP EQUAL-GET MOVE-FILE TWO-ARG-NO-OP ONE-ARG-NO-OP NO-OP MEB MACRO-EXPAND-BODY ME MACRO-EXPAND LIST-BEGINNING-WITH
-    KEN1; AI: CMATCH >: CMATCH TEST-PART-OF-PATTERN PREDICATE-OF-PATTERN COMMON-ANCESTOR DEFINED-PREDICATE? DEFINE-PREDICATE NUMBER-OF-ARGS-NIL TEST-PART-OF-PATTERN-1 DEVARIABLIZE-PATTERN ANY-VARIABLES-IN-PATTERN? ALL-ATOMS *ACTION-FUNCTION-OF-PATTERN *BINDING-PART-OF-PATTERN BINDING-PART-OF-PATTERN1 FIRST-ATOM-BEGINNING-WITH-? SUPER-MEMBER SUPER-MEMBER1 *FIND-VARIABLES-IN-PATTERN CDR-OF-OBJECT CAR-OF-OBJECT MATCH-MEMBER MATCH-MEMBER-1 MATCH-DELETE MATCH-SAFE-DELETE MATCH-SAFE-DELETE-1 CCASES COMPILE-CASES-CLEVERLY FIX-IF-PRIVATE-METHOD EXTRACTOR-OF-DIFFERENCE LAMBDAFY-IF-NEED-BE ONLY-ONE-? COUNT-OCCURENCES-EQ FIXUP-METHOD-NAMES AVOID-TESTS-IN-PATTERN TEST-PART-FOR-PATTERNS TEST-?-PATTERNS TEST-REST-PATTERNS COMBINE-COPIES-AND-REVERSE GROUP-BY-FIRST APPLY-AND-PATTERN-HACK APPLY-AND-PATTERN-HACK-1 ADD-TO-A-LIST ADD-TO-EACH-A-LIST START-AFRESH-AND-PROTECT-OLD MATCH MATCH MATCH1 HANDLE-RESTRICTION
-    KEN1; AI: MEMORY >: MEMORY REMEMBER FIRE-DEMONS-THAT-MATCH REMEMBERED FIND-POSSIBLE-ANSWER POSSIBLE-VIRTUAL-ITEM CONSTRUCT-REST-IF-RECALLING-ITEMS CONS-VIRTUAL-ITEM COLLECT-JUST-SELFS FILTER-OUT-WINNERS COLLECT-REMEMBERED COLLECT-REMEMBERED-1 FORGET-ITEM
-    KEN1; AI: TUTIL >: TUTIL COLOR-DIFFERENCES MIX-COLORS PENCOLOR-RGB FIX-HEADING DISTANCE-TO-NEAREST-WALL THINGUP THINGDOWN XOR-POINT DRAW-ARC RIGHT-TRI RECT EQ-TRI DRAW-POLY DRAW-MANY-POLYS DRAW-COLOR-POLY DRAW-COLOR-POLYGON PETALS PETAL DRAW-FLOWER DRAW-ROCKET DRAW-ARROW-TO DRAW-LABELED-ARROW SHOW-TEXT-HORIZONTALLY DRAW-ARROW-HEAD MARK-CENTERED ARE-VECTORS-CROSSING? IS-OTHER-END-BETWEEN-OTHERS?
-    KEN1; AI: COLIDE >: COLIDE REPORT-COLLISIONS REPORT-COLLISIONS-WITHIN OBJECTS-IN-SPACE SPLIT-SPACE-IN-FOUR CHECK-COLLISIONS COLLIDING? INTEGER-SQUARE
-    KEN1; AI: CMOVIE >: CMOVIE PCM PROJECT-COMPILED-MOVIE PROJECT-COMPILED-MOVIE1 RUN-COMPILED-FRAME
-    KEN1; AI: DL >: DL DISPLAY-PACKAGE POSITION-LIST SQUISHED-DISPLAY-PACKAGE SQUISH HOW-TO-GET-TO-CENTER HOW-TO-GET-TO-CENTER-AND-SCALE DRAW-CENTERED DRAW-CENTERED-1 SCALE-CALL-SIMPLE SCALE-CALL NEGATIVE-EVAL FIND-EXTREME-AND-CENTER FIND-CENTER COMPUTE-CENTER COMPUTE-EXTREME FANCY-FORWARD FANCY-RIGHT FANCY-BACK FANCY-LEFT FANCY-PENUP FANCY-PENDOWN MAKE-IT-LESS-THAN-180 HERE-WITHOUT-MOD INVISIBLY RT-FD-RT MOVE-AND-BIND MOVE-AND-BIND-TVRTLE-STUFF UNFANCIFY FANCIFY DIRECTOR-STARTDISPLAY DSD
-    KEN1; AI: FWUSE >: FONTMARK FONTTYO TRY-TO-AUTOLOAD-FONT FWUSE-SLASHIFIED? FONTPRINTCENTERED FWUSE-TEXT-LENGTH FWUSE-DELX-IN-TVSTEPS FWUSE-DELY-IN-TVSTEPS FONTCS FONTHOME FWUSE-LEFT-MARGIN FWUSE-RIGHT-MARGIN FWUSE-TOP-MARGIN FWUSE-BOTTOM-MARGIN FONTTERPRI FONTPRINC FONTPRIN1 FONTPRINT
-    KEN1; AI: FWMAKE >: WINDOWIZE FWMAKE-READ-AND-DISPLAY FWMAKE-READ-HEADING FWMAKE-READ-CHAR-HEADING WRITE-FONT FWMAKE-WRITE-FONT1 FWMAKE-PRINT-DEFPROP FWMAKE-STORE-PROPS-OF-EACH-CHAR
-    KEN1; AI: INSTAN >: INSTAN FAST-TURTLE INITIALIZE-COMMAND-LIST INSTANT TOP-LEVEL-LOOP READ-CHARACTER F B R | || | H = G N COLLAPSE T MAKE-USER-DEFINED-CHARACTER C W D DO-COMMAND GET-COMMAND-LIST ? O PRINT-HELP-FOR-CHARACTER TERPRI+PRINC ACTIVATE DEACTIVATE ACTIVITY ACTIVATE-ALL DEACTIVATE-ALL
-    KEN1; AI: INTER >: INTER MAKE-INTERPOLATION MI INTERPOLATE-TWO-CALLS EQUIVICALIZE FIX-HEADINGS FIX-LENGTH MAKE-OPERATIONS-CORRESPOND MAKE-OPERATIONS-CORRESPOND-1 FATTEN-UP EXPAND-PAIR EXPAND-LINE CONS-INSERT ABOUT-EQUAL INTERPOLATE-EQUIV-PROGRAMS SLOW-CHANGE DISPLAY-INTERPOLATION SL STRAIGHT-LINE SLT STRAIGHT-LINE-TABLE SLM STRAIGHT-LINE-MOVIE MAKE-COLOR-INTERPOLATION
-    KEN1; AI: RDTAGS >: RDTAGS READ-EMACS-TAGS AUTOLOAD-NAME READ-TAGS-FILE-NAME READ-SNAME READ-DEVICE READ-FILE-NAME-1 READ-FILE-NAME-2 READ-LANGUAGE-NAME READ-TO-CR SKIP-REST-OF-FILE THROW-AWAY-UNTIL READ-DEFUN-LINES FIX-FUNCTION-NAME READ-ENDING-WITH FLUSH-SPACES TYIPEEK-EOF
 
--- Symbols with properties (indicator value; code addresses in octal) --
+-- Interpreted definitions (EXPR and FEXPR properties), printed in full --
+  +INTERNAL-HERALD-VERSION  [EXPR]
+    (#75112 (#76231 VERSION TEXT #75166)
+          (COND ((STATUS NOFEATURE NOLDMSG) (TERPRI #75166) (PRINC TEXT #75166)))
+          (COND ((ALPHALESSP (STATUS LISPV) '|2071|) (PUTPROP #76231 VERSION 'VERSION))
+            (T (PUSH (LIST '#75112 '(X) (LIST 'OR 'X (LIST* 'DEFPROP #76231 VERSION '(VERSION))))
+                 FILE-EXIT-FUNCTIONS)))
+          VERSION)
+  DUMP-UNIFORM  [EXPR]
+    (#75112 NIL
+          (SUSPEND '#76415 |second:ken;ts unifor|)
+          (APPLY 'CRUNIT (LIST (STATUS HSNAME)))
+          (READ-INIT-FILE-IF-EXISTS)
+          (UNIFORM))
+  ENTER-SPECIFIC-INF-EDITOR  [EXPR]
+    (#75112 (X)
+          (LOAD '|liblsp;lispt|)
+          (SSTATUS TTYINT #106025 'CONTROL-T)
+          (SETQ *TIME-I-LEFT-HERE (TIME))
+          (LISPT-EDIT '(E)))
+  READ-INIT-FILE-IF-EXISTS  [EXPR]
+    (#75112 NIL
+          (LET ((FILE-NAME (LIST (LIST '#75113 (STATUS UNAME)) 'UNIFORM 'INIT)))
+            (COND ((PROBEF FILE-NAME) (LOAD FILE-NAME)))))
+
+-- Symbols with properties --
   |!-read-macro|                       SUBR 160546
   #+--TEST-FOR-FEATURE                 SUBR 157537
-  #-#B-READER                          #075103 (((#100212 . #114001)) BITS (#100216))
+  #-#B-READER                          AUTOLOAD ((#75125) BITS #75127)
   #-BS-READER                          SUBR 160176
   #-CNTRL-META-IFY                     SUBR 157641
   #-FLUSH-CHARS-NOT-SET                SUBR 160117
@@ -90,55 +763,55 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |#-MACRO-l|                          SUBR 160536
   |#-MACRO-u|                          SUBR 157072
   #-\-PARSE                            SUBR 160401
-  #1ENDPAGEFN                          SUBR 133016; #075205 -31004651738
-  #1ENTER-FORMAT                       MACRO |#1ENTER-FORMAT MACRO| [SUBR 131407, #075205 733750]
-  |#1ENTER-FORMAT MACRO|               SUBR 131407; #075205 -23728916782
-  #1ENTER-FORMAT&OBJ                   MACRO |#1ENTER-FORMAT&OBJ MACRO| [SUBR 131446, #075205 733726]
-  |#1ENTER-FORMAT&OBJ MACRO|           SUBR 131446; #075205 17224755316
-  #1ENTER-OBJ                          SUBR 137076; #075205 -31273588908
-  #1FORMAT-DISPATCH                    SUBR 134165; #075205 12388153434
-  #1FORMAT-HUNK                        SUBR 135235; #075205 22930005117
-  #1FORMAT-INIT                        SUBR 133726; #075205 -21034141239
-  #1FORMAT-LIST                        SUBR 134444; #075205 -14630689698
-  #1FORMAT-LSUBR                       LSUBR 134773; #075205 30404112909
-  #1PRINTER                            SUBR 133106; #075205 -16894127577
-  #1PRINTOUT                           SUBR 137714; #075205 -22700891200
-  #1RCHECK                             SUBR 134337; #075205 4019908742
-  #1REM-PRINTER                        SUBR 132116; #075205 29679468761
-  #1SET-UP-GLOBALS                     SUBR 132044; #075205 29889185468
-  #1SET-UP-MACROS                      SUBR 131526; #075205 4710875658
-  #1SET-UP-PRINTER                     SUBR 132100; #075205 29789116093
-  #1SET-UP-TEMPLATES                   SUBR 131754; #075205 -1130834803
-  #CONTINUE                            SUBR 132637; #075205 17484867994
-  #EXPLODE                             SUBR 132337; #075205 -18587123530
-  #EXPLODEC                            SUBR 132343; #075205 -1407254346
-  #EXPLODEL                            LSUBR 132347; #075205 -8154131930
-  #MAKE-INVERT-QUOTE-FN                MACRO |#MAKE-INVERT-QUOTE-FN MACRO| [SUBR 135537, #075205 722773]
-  |#MAKE-INVERT-QUOTE-FN MACRO|        SUBR 135537; #075205 7895155602
-  #MAKE-INVERT-QUOTE-FN2               MACRO |#MAKE-INVERT-QUOTE-FN2 MACRO| [SUBR 136010, #075205 722736]
-  |#MAKE-INVERT-QUOTE-FN2 MACRO|       SUBR 136010; #075205 -4363084716
-  #MAKE-TEMPLATE                       SUBR 131620; #075205 -9414586835
-  #MAKE-TEMPLATE1                      SUBR 131622; #075205 -21222806732
-  #PRIN1                               LSUBR 132205; #075205 26205606435
-  #PRINC                               LSUBR 132224; #075205 9025737251
-  #PRINT                               LSUBR 132243; #075205 -8154131933
-  #PRINTABORT                          SUBR 132615; #075205 -18615249575
+  #1ENDPAGEFN                          SUBR 133016; EXPR-HASH -31004651738
+  #1ENTER-FORMAT                       MACRO |#1ENTER-FORMAT MACRO| [SUBR 131407, EXPR-HASH 733750]
+  |#1ENTER-FORMAT MACRO|               SUBR 131407; EXPR-HASH -23728916782
+  #1ENTER-FORMAT&OBJ                   MACRO |#1ENTER-FORMAT&OBJ MACRO| [SUBR 131446, EXPR-HASH 733726]
+  |#1ENTER-FORMAT&OBJ MACRO|           SUBR 131446; EXPR-HASH 17224755316
+  #1ENTER-OBJ                          SUBR 137076; EXPR-HASH -31273588908
+  #1FORMAT-DISPATCH                    SUBR 134165; EXPR-HASH 12388153434
+  #1FORMAT-HUNK                        SUBR 135235; EXPR-HASH 22930005117
+  #1FORMAT-INIT                        SUBR 133726; EXPR-HASH -21034141239
+  #1FORMAT-LIST                        SUBR 134444; EXPR-HASH -14630689698
+  #1FORMAT-LSUBR                       LSUBR 134773; EXPR-HASH 30404112909
+  #1PRINTER                            SUBR 133106; EXPR-HASH -16894127577
+  #1PRINTOUT                           SUBR 137714; EXPR-HASH #116405
+  #1RCHECK                             SUBR 134337; EXPR-HASH 4019908742
+  #1REM-PRINTER                        SUBR 132116; EXPR-HASH 29679468761
+  #1SET-UP-GLOBALS                     SUBR 132044; EXPR-HASH 29889185468
+  #1SET-UP-MACROS                      SUBR 131526; EXPR-HASH 4710875658
+  #1SET-UP-PRINTER                     SUBR 132100; EXPR-HASH 29789116093
+  #1SET-UP-TEMPLATES                   SUBR 131754; EXPR-HASH -1130834803
+  #CONTINUE                            SUBR 132637; EXPR-HASH 17484867994
+  #EXPLODE                             SUBR 132337; EXPR-HASH -18587123530
+  #EXPLODEC                            SUBR 132343; EXPR-HASH -1407254346
+  #EXPLODEL                            LSUBR 132347; EXPR-HASH -8154131930
+  #MAKE-INVERT-QUOTE-FN                MACRO |#MAKE-INVERT-QUOTE-FN MACRO| [SUBR 135537, EXPR-HASH 722773]
+  |#MAKE-INVERT-QUOTE-FN MACRO|        SUBR 135537; EXPR-HASH 7895155602
+  #MAKE-INVERT-QUOTE-FN2               MACRO |#MAKE-INVERT-QUOTE-FN2 MACRO| [SUBR 136010, EXPR-HASH 722736]
+  |#MAKE-INVERT-QUOTE-FN2 MACRO|       SUBR 136010; EXPR-HASH -4363084716
+  #MAKE-TEMPLATE                       SUBR 131620; EXPR-HASH -9414586835
+  #MAKE-TEMPLATE1                      SUBR 131622; EXPR-HASH -21222806732
+  #PRIN1                               LSUBR 132205; EXPR-HASH 26205606435
+  #PRINC                               LSUBR 132224; EXPR-HASH 9025737251
+  #PRINT                               LSUBR 132243; EXPR-HASH -8154131933
+  #PRINTABORT                          SUBR 132615; EXPR-HASH -18615249575
   *APPEND-ATOMS                        LSUBR 146354
   *LEDIT-ENTER-LISP-HOOK*              SUBR 131306
   *READ-TOKEN                          SUBR 157720
-  +INTERNAL-HERALD-VERSION             #075100 ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  +INTERNAL-HERALD-VERSION             EXPR (#75112 (#76231 VERSION TEXT #75166) (COND ((STATUS NOFEATURE NOLDM...
   |+INTERNAL-macro-loser/||            SUBR 124552
   |+ibx-pairs/||                       SUBR 124165
   |+ibx-qsequence/||                   SUBR 124426
   |+ibx/||                             SUBR 124104
-  |;Loading BACKQ 50|                  #075123 (#100000)
-  |;Loading DEFMAX 91|                 #075123 (#100000)
-  |;Loading GCDEMN 10|                 #075123 (#100000)
-  |;Loading LET 91|                    #075123 (#100000)
-  |;Loading SHARPM 72|                 #075123 (#100000)
-  |;warning from free-variables-in-form-loop| #075123 (#100000)
-  |;~1G~S, autoload file for ~2G~S, is missing| #075123 (#100000)
-  |;~S was not functionally defined by autoloading| #075123 (#100000)
+  |;Loading BACKQ 50|                  #075123 T
+  |;Loading DEFMAX 91|                 #075123 T
+  |;Loading GCDEMN 10|                 #075123 T
+  |;Loading LET 91|                    #075123 T
+  |;Loading SHARPM 72|                 #075123 T
+  |;warning from free-variables-in-form-loop| #075123 T
+  |;~1G~S, autoload file for ~2G~S, is missing| #075123 T
+  |;~S was not functionally defined by autoloading| #075123 T
   |= NEW-DEFINITION-HANDLER|           SUBR 170364
   |= UNIFIER-FUNCTION|                 SUBR 172513
   |? UNIFIER-FUNCTION|                 SUBR 175204
@@ -158,20 +831,20 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |ADD-ZERO-LENGTH-PATH MACRO|         SUBR 171501
   ALL-BUT-FIRST-POSSIBLE-UNIFIER       SUBR 166166; #261600 NIL
   ALL-CONSTANT-FORMS?                  SUBR 152110
-  ALL-DEFINITIONS                      UNIFIER-FUNCTION |ALL-DEFINITIONS UNIFIER-FUNCTION|; DEFER-TO-OTHER-UNIFIER (#100000)
+  ALL-DEFINITIONS                      UNIFIER-FUNCTION |ALL-DEFINITIONS UNIFIER-FUNCTION|; DEFER-TO-OTHER-UNIFIER T
   |ALL-DEFINITIONS UNIFIER-FUNCTION|   SUBR 167627
   |AND UNIFIER-FUNCTION|               SUBR 177145
   AND-DELAYED-UNIFIER-DELAYED-UNIFIER  SUBR 165071
   AND-DELAYED-UNIFIER-UNIFIER          SUBR 165044
   AND-FAILURE-FAILURE                  SUBR 165146
-  AND-SIMPLIFIER-TABLE                 FAILURE FAILURE-SIMPLIFIERS-OF-AND; DELAYED-UNIFIER DELAYED-UNIFIER-SIMPLIFIERS-OF-AND; #075532 OR-SIMPLIFIERS-OF-AND; UNIFIER UNIFIER-SIMPLIFIERS-OF-AND
+  AND-SIMPLIFIER-TABLE                 FAILURE FAILURE-SIMPLIFIERS-OF-AND; DELAYED-UNIFIER DELAYED-UNIFIER-SIMPLIFIERS-OF-AND; OR OR-SIMPLIFIERS-OF-AND; UNIFIER UNIFIER-SIMPLIFIERS-OF-AND
   AND-UNIFIERS                         SUBR 164101
-  AP                                   #075100 APROPOS
+  AP                                   EXPR APROPOS
   APPEND-ATOMS                         MACRO |APPEND-ATOMS MACRO| [SUBR 147272]
   |APPEND-ATOMS MACRO|                 SUBR 147272
   APPLY-EVALUATION-FUNCTION            SUBR 167436
   APPLY-EVALUATION-FUNCTION-1          SUBR 167451
-  APROPOS                              #075103 (((#100212 . #114001)) APROPOS)
+  APROPOS                              AUTOLOAD ((#75125) APROPOS)
   ARGUMENT-OF                          SUBR 152573
   ARGUMENTS+OPTIONS                    SUBR 154350; MACRO |ARGUMENTS+OPTIONS MACRO| [SUBR 154326]
   |ARGUMENTS+OPTIONS MACRO|            SUBR 154326
@@ -188,11 +861,11 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   BINDINGS                             SUBR 154055; MACRO |BINDINGS MACRO| [SUBR 154033]
   |BINDINGS MACRO|                     SUBR 154033
   BODY-FOR-AND-CLAUSE                  SUBR 155264
-  BOT                                  #075103 ((KEN) STACK)
-  BUG                                  #075100 SNAP-UUOLINKS
-  |Bad form to DESETQ|                 #075123 (#100000)
-  |Bad radix to token-reader for #|    #075123 (#100000)
-  |Bad variable list in LET|           #075123 (#100000)
+  BOT                                  AUTOLOAD ((KEN) STACK)
+  BUG                                  EXPR SNAP-UUOLINKS
+  |Bad form to DESETQ|                 #075123 T
+  |Bad radix to token-reader for #|    #075123 T
+  |Bad variable list in LET|           #075123 T
   CLOSE-FORM                           LSUBR 150671
   CLOSE-FUNCTION                       SUBR 150741
   COMPUTE-VALUE                        SUBR 167236
@@ -236,8 +909,8 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   CREATE-VARIABLE-FORM-WITH-GENERATOR  SUBR 152401; MACRO |CREATE-VARIABLE-FORM-WITH-GENERATOR MACRO| [SUBR 152345]
   |CREATE-VARIABLE-FORM-WITH-GENERATOR MACRO| SUBR 152345
   CURLY-BRACKETED-LIST                 SUBR 160556
-  |Can't parse features request list - #+--TEST-FOR-FEATURE| #075123 (#100000)
-  DEBUG                                #075076 #141305
+  |Can't parse features request list - #+--TEST-FOR-FEATURE| #075123 T
+  DEBUG                                FSUBR 141305
   DEBUG-*RSET-HANDLER                  SUBR 145226
   DEBUG-BKTRACE                        SUBR 142574
   DEBUG-DNFN                           SUBR 144244
@@ -292,21 +965,21 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   DEFINEDP                             SUBR 146572; MACRO |DEFINEDP MACRO| [SUBR 146550]
   |DEFINEDP MACRO|                     SUBR 146550
   |DEFSHARP MACRO|                     SUBR 157073
-  |DEFUN #GRIND-FN|                    SUBR 136322; #075205 -2570422404
+  |DEFUN #GRIND-FN|                    SUBR 136322; EXPR-HASH -2570422404
   DELAY-SUBSTITUTING                   SUBR 162313
   DELAYED-UNIFICATIONS                 SUBR 154101; MACRO |DELAYED-UNIFICATIONS MACRO| [SUBR 154057]
   |DELAYED-UNIFICATIONS MACRO|         SUBR 154057
   DELAYED-UNIFIER                      FORM-PRINTER |DELAYED-UNIFIER FORM-PRINTER|
   |DELAYED-UNIFIER FORM-PRINTER|       SUBR 161753
   DELAYED-UNIFIER-SIMPLIFIERS-OF-AND   FAILURE UNIFIER-AND-FAILURE; DELAYED-UNIFIER AND-DELAYED-UNIFIER-DELAYED-UNIFIER; UNIFIER AND-DELAYED-UNIFIER-UNIFIER
-  DELAYED-UNIFIER-SIMPLIFIERS-OF-OR    FAILURE OR-UNIFIER-AND-FAILURE; #075532 INSERT-UNIFIER-IN-DISJUNCTION; DELAYED-UNIFIER MAKE-OR-UNIFIER
+  DELAYED-UNIFIER-SIMPLIFIERS-OF-OR    FAILURE OR-UNIFIER-AND-FAILURE; OR INSERT-UNIFIER-IN-DISJUNCTION; DELAYED-UNIFIER MAKE-OR-UNIFIER
   |DESETQ MACRO|                       SUBR 130256
   DICKS-MISERLY-PRINT                  LSUBR 140676
   DICKS-PRIN1                          LSUBR 140554
   DICKS-PRINC                          LSUBR 140625
   DICKS-PRINT                          LSUBR 140503
   DO-LAST-MINUTE-TASKS                 SUBR 166765
-  DUMP-UNIFORM                         #075100 ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  DUMP-UNIFORM                         EXPR (#75112 NIL (SUSPEND '|| |second:ken;ts unifor|) (APPLY 'CRUNIT (LI...
   E                                    SUBR 141156
   ELEMENTS-EQ                          SUBR 151574
   EMPTY-FAILURE                        SUBR 156137; MACRO |EMPTY-FAILURE MACRO| [SUBR 156134]
@@ -315,7 +988,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |EMPTY-FAILURE? MACRO|               SUBR 156261
   EMPTY-UNIFIER?                       SUBR 154311; MACRO |EMPTY-UNIFIER? MACRO| [SUBR 154267]
   |EMPTY-UNIFIER? MACRO|               SUBR 154267
-  ENTER-SPECIFIC-INF-EDITOR            #075100 ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  ENTER-SPECIFIC-INF-EDITOR            EXPR (#75112 (X) (LOAD '|liblsp;lispt|) (SSTATUS TTYINT #106025 'CONTROL...
   ERRSET-APPLY                         SUBR 167577
   ESCAPE-TO-LISP                       UNIFIER-FUNCTION |ESCAPE-TO-LISP UNIFIER-FUNCTION|
   |ESCAPE-TO-LISP UNIFIER-FUNCTION|    SUBR 176637
@@ -336,7 +1009,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   FATAL-FAILURE?                       SUBR 156224
   FATALIZE-FAILURE                     SUBR 155655
   FIND-MACRO-DEFINITION                SUBR 125550
-  FINITE-CONS                          UNIFICATION-PATHS (((#101274 UNIFICATION-PATHS #670445 UNIFIER-FUNCTION |CONS UNIFIER...; UNIFIER-FUNCTION |FINITE-CONS UNIFIER-FUNCTION|; MUST-NOT-BE-CIRCULAR (#100000)
+  FINITE-CONS                          UNIFICATION-PATHS ((CONS (#106001 (NIL NIL *UNIFIER-FUNCTION*))) (LIST (#106001 (NIL ...; UNIFIER-FUNCTION |FINITE-CONS UNIFIER-FUNCTION|; MUST-NOT-BE-CIRCULAR T
   |FINITE-CONS UNIFIER-FUNCTION|       SUBR 175644
   FIRST                                MACRO |FIRST MACRO| [SUBR 146440]
   |FIRST MACRO|                        SUBR 146440
@@ -362,14 +1035,14 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |FOUR-LONG MACRO|                    SUBR 147067
   FOURTH                               MACRO |FOURTH MACRO| [SUBR 146454]
   |FOURTH MACRO|                       SUBR 146454
-  FPM                                  #075100 FULL-PRINT-MODE
+  FPM                                  EXPR FULL-PRINT-MODE
   FREE-VARIABLES-IN-FORM               SUBR 151001; MACRO |FREE-VARIABLES-IN-FORM MACRO| [SUBR 150757]
   |FREE-VARIABLES-IN-FORM MACRO|       SUBR 150757
   FREE-VARIABLES-IN-FORM-LOOP          SUBR 151004
   FREE-VARIABLES-IN-FORMS              SUBR 151207
   FULL-PRINT-MODE                      LSUBR 147407
   GC-DAEMON-PRINT                      LSUBR 130330
-  GCDEMN                               #075663 |10|
+  GCDEMN                               VERSION |10|
   |GCDEMN-SETUP-1/||                   SUBR 131221
   GEN-NUMBER                           LSUBR 147640
   GENERATE-SYMBOL                      SUBR 147611; MACRO |GENERATE-SYMBOL MACRO| [SUBR 147567]
@@ -381,12 +1054,12 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   GO-SLOW                              LSUBR 141021
   GREATER-FAILURE-COST                 SUBR 155627; MACRO |GREATER-FAILURE-COST MACRO| [SUBR 155577]
   |GREATER-FAILURE-COST MACRO|         SUBR 155577
-  GROUND                               UNIFIER-FUNCTION |GROUND UNIFIER-FUNCTION|; DONT-DEFER-TO-OTHER-UNIFIER (#100000); MUST-HANDLE-SAME-TYPE (#100000); APPLY-WHEN-OTHER-IS-A-VARIABLE (#100000)
+  GROUND                               UNIFIER-FUNCTION |GROUND UNIFIER-FUNCTION|; DONT-DEFER-TO-OTHER-UNIFIER T; MUST-HANDLE-SAME-TYPE T; APPLY-WHEN-OTHER-IS-A-VARIABLE T
   |GROUND UNIFIER-FUNCTION|            SUBR 176243
   GROUND-CHECK                         SUBR 167104
   GROUND-CHECK-LOOP                    SUBR 167220
-  |Garbage format in #-MACRO-DATALIST| #075123 (#100000)
-  HAS-ARGUMENTS                        UNIFIER-FUNCTION |HAS-ARGUMENTS UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE (#100000)
+  |Garbage format in #-MACRO-DATALIST| #075123 T
+  HAS-ARGUMENTS                        UNIFIER-FUNCTION |HAS-ARGUMENTS UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE T
   |HAS-ARGUMENTS UNIFIER-FUNCTION|     SUBR 176623
   IF-FOR-LISPM                         MACRO |IF-FOR-LISPM MACRO| [SUBR 131361]
   |IF-FOR-LISPM MACRO|                 SUBR 131361
@@ -453,7 +1126,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |LAST-ELEMENT MACRO|                 SUBR 146464
   LAST-MINUTE-TASKS                    SUBR 154126; MACRO |LAST-MINUTE-TASKS MACRO| [SUBR 154104]
   |LAST-MINUTE-TASKS MACRO|            SUBR 154104
-  LEDIT-TTYINT                         #075103 ((KEN) #76132)
+  LEDIT-TTYINT                         AUTOLOAD ((KEN) MAPDIRECTORY)
   |LET MACRO|                          SUBR 130312
   |LET* MACRO|                         SUBR 130274
   |LET.anyvarsp|                       SUBR 126545
@@ -469,7 +1142,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   LOAD-PRINTER                         SUBR 131366
   MACRO-CALL                           MACRO |MACRO-CALL MACRO| [SUBR 147357]
   |MACRO-CALL MACRO|                   SUBR 147357
-  |MACROEXPANDED #GRIND-FN|            SUBR 147435; #075205 7055674685
+  |MACROEXPANDED #GRIND-FN|            SUBR 147435; EXPR-HASH 7055674685
   |MACROEXPANDED MACRO|                SUBR 125434
   MAKE-DELAYED-UNIFICATION             SUBR 165444
   MAKE-DELAYED-UNIFIER                 SUBR 154232; MACRO |MAKE-DELAYED-UNIFIER MACRO| [SUBR 154202]
@@ -510,15 +1183,15 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   NORMAL-PRINT                         SUBR 161256
   NORMAL-PRINT-FORM                    SUBR 161426
   |NOT UNIFIER-FUNCTION|               SUBR 177266
-  NOT-CONTAIN                          UNIFIER-FUNCTION |NOT-CONTAIN UNIFIER-FUNCTION|; APPLY-WHEN-OTHER-IS-A-VARIABLE (#100000)
+  NOT-CONTAIN                          UNIFIER-FUNCTION |NOT-CONTAIN UNIFIER-FUNCTION|; APPLY-WHEN-OTHER-IS-A-VARIABLE T
   |NOT-CONTAIN UNIFIER-FUNCTION|       SUBR 176311
   NTH-REST                             MACRO |NTH-REST MACRO| [SUBR 146402]
   |NTH-REST MACRO|                     SUBR 146402
-  |Not a character - CHARACTER|        #075123 (#100000)
-  |Numeric base out of range for #nR|  #075123 (#100000)
-  |Numeric base required for #nR|      #075123 (#100000)
-  |Numeric token expected by some #-function| #075123 (#100000)
-  OF-TYPE                              UNIFIER-FUNCTION |OF-TYPE UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE (#100000)
+  |Not a character - CHARACTER|        #075123 T
+  |Numeric base out of range for #nR|  #075123 T
+  |Numeric base required for #nR|      #075123 T
+  |Numeric token expected by some #-function| #075123 T
+  OF-TYPE                              UNIFIER-FUNCTION |OF-TYPE UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE T
   |OF-TYPE UNIFIER-FUNCTION|           SUBR 176537
   OLD-STEP-LOOP                        SUBR 171405
   OLD-STEP?                            SUBR 171355
@@ -531,15 +1204,15 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   OR-AND-UNIFIER-LOOP                  SUBR 165006
   OR-FAILURE-FAILURE                   SUBR 164627
   OR-OR-FAILURE                        SUBR 164450
-  OR-SIMPLIFIER-TABLE                  FAILURE FAILURE-SIMPLIFIERS-OF-OR; #075532 OR-SIMPLIFIERS-OF-OR; DELAYED-UNIFIER DELAYED-UNIFIER-SIMPLIFIERS-OF-OR; UNIFIER UNIFIER-SIMPLIFIERS-OF-OR
-  OR-SIMPLIFIERS-OF-AND                FAILURE UNIFIER-AND-FAILURE; DELAYED-UNIFIER OR-AND-UNIFIER; #075532 OR-AND-UNIFIER; UNIFIER OR-AND-UNIFIER
-  OR-SIMPLIFIERS-OF-OR                 FAILURE OR-OR-FAILURE; #075532 MERGE-UNIFIERS-DISJUNCTIONS
+  OR-SIMPLIFIER-TABLE                  FAILURE FAILURE-SIMPLIFIERS-OF-OR; OR OR-SIMPLIFIERS-OF-OR; DELAYED-UNIFIER DELAYED-UNIFIER-SIMPLIFIERS-OF-OR; UNIFIER UNIFIER-SIMPLIFIERS-OF-OR
+  OR-SIMPLIFIERS-OF-AND                FAILURE UNIFIER-AND-FAILURE; DELAYED-UNIFIER OR-AND-UNIFIER; OR OR-AND-UNIFIER; UNIFIER OR-AND-UNIFIER
+  OR-SIMPLIFIERS-OF-OR                 FAILURE OR-OR-FAILURE; OR MERGE-UNIFIERS-DISJUNCTIONS
   OR-UNIFIER-AND-FAILURE               SUBR 164614
   OR-UNIFIERS                          SUBR 164154
-  ORIGINAL-READTABLE                   #075074 #70776
+  ORIGINAL-READTABLE                   ARRAY #70776
   P                                    LSUBR 200434
   PARALLEL-AND-LOOP                    SUBR 155004
-  PARALLEL-OR                          UNIFIER-FUNCTION |PARALLEL-OR UNIFIER-FUNCTION|; MUST-HANDLE-SAME-TYPE (#100000)
+  PARALLEL-OR                          UNIFIER-FUNCTION |PARALLEL-OR UNIFIER-FUNCTION|; MUST-HANDLE-SAME-TYPE T
   |PARALLEL-OR UNIFIER-FUNCTION|       SUBR 176650
   PARALLEL-OR-LOOP                     SUBR 154734
   PARALLEL-UNIFICATION-AND             MACRO |PARALLEL-UNIFICATION-AND MACRO| [SUBR 154773]
@@ -556,11 +1229,11 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   POSITION-IN-LIST-LOOP                SUBR 146523
   PRINC+BLANK                          LSUBR 150637
   PRINC-WITHOUT-PARENS                 LSUBR 150576
-  PRINL                                LSUBR 132320; #075205 -8154131932
-  PRINL1                               LSUBR 132262; #075205 26205606436
-  PRINLC                               LSUBR 132301; #075205 9025737252
+  PRINL                                LSUBR 132320; EXPR-HASH -8154131932
+  PRINL1                               LSUBR 132262; EXPR-HASH 26205606436
+  PRINLC                               LSUBR 132301; EXPR-HASH 9025737252
   |PRINT UNIFIER-FUNCTION|             SUBR 175225
-  PRINT-BINDING                        UNIFIER-FUNCTION |PRINT-BINDING UNIFIER-FUNCTION|; MUST-HANDLE-SAME-TYPE (#100000); SUBR 161617
+  PRINT-BINDING                        UNIFIER-FUNCTION |PRINT-BINDING UNIFIER-FUNCTION|; MUST-HANDLE-SAME-TYPE T; SUBR 161617
   |PRINT-BINDING UNIFIER-FUNCTION|     SUBR 175253
   PRINT-DELAYED-UNIFICATION            SUBR 161633
   PRINT-FORM                           SUBR 161352
@@ -568,7 +1241,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   PRINT-WITHOUT-PARENS                 LSUBR 150544
   PRINTER-EXPLODE                      MACRO |PRINTER-EXPLODE MACRO| [SUBR 147353]
   |PRINTER-EXPLODE MACRO|              SUBR 147353
-  |PROG #GRIND-FN|                     SUBR 136442; #075205 23845787362
+  |PROG #GRIND-FN|                     SUBR 136442; EXPR-HASH 23845787362
   PROPOSE-BINDING                      SUBR 153324; MACRO |PROPOSE-BINDING MACRO| [SUBR 153274]
   |PROPOSE-BINDING MACRO|              SUBR 153274
   PROPOSE-BINDING-ALL                  SUBR 153551; MACRO |PROPOSE-BINDING-ALL MACRO| [SUBR 153521]
@@ -576,7 +1249,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   PROPOSE-TWO-BINDINGS                 SUBR 153337
   PROPOSE-TWO-ORDERED-BINDINGS         SUBR 153477; MACRO |PROPOSE-TWO-ORDERED-BINDINGS MACRO| [SUBR 153437]
   |PROPOSE-TWO-ORDERED-BINDINGS MACRO| SUBR 153437
-  |QUOTE #GRIND-FN|                    SUBR 135744; #075205 22608990587
+  |QUOTE #GRIND-FN|                    SUBR 135744; EXPR-HASH 22608990587
   QUOTE-IF-NECCESSARY                  SUBR 161757
   QUOTE-LIST-IF-NECCESSARY             SUBR 162045
   QUOTED?                              SUBR 147234; MACRO |QUOTED? MACRO| [SUBR 147212]
@@ -584,7 +1257,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   READ-ERROR                           SUBR 150310
   READ-FORM                            SUBR 160574
   READ-FORM-CHECKING-FOR               SUBR 162173
-  READ-INIT-FILE-IF-EXISTS             #075100 ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  READ-INIT-FILE-IF-EXISTS             EXPR (#75112 NIL (LET ((FILE-NAME (LIST (LIST '#75113 (STATUS UNAME)) 'U...
   READ-UNTIL                           SUBR 162137
   REAL-ARGUMENT-OF                     SUBR 152571; MACRO |REAL-ARGUMENT-OF MACRO| [SUBR 152547]
   |REAL-ARGUMENT-OF MACRO|             SUBR 152547
@@ -651,7 +1324,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   STEPS-FIRST-TERM                     SUBR 175116
   STEPS-LAST-TERM                      SUBR 175132
   SUBLIST-OF-LENGTH                    SUBR 151536
-  SUBSTITUTE                           SUBR 172701; UNIFIER-FUNCTION |SUBSTITUTE UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE (#100000); DONT-DEFER-TO-OTHER-UNIFIER (#100000); FORM-PRINTER |SUBSTITUTE FORM-PRINTER|
+  SUBSTITUTE                           SUBR 172701; UNIFIER-FUNCTION |SUBSTITUTE UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE T; DONT-DEFER-TO-OTHER-UNIFIER T; FORM-PRINTER |SUBSTITUTE FORM-PRINTER|
   |SUBSTITUTE FORM-PRINTER|            SUBR 161675
   |SUBSTITUTE UNIFIER-FUNCTION|        SUBR 172567
   SUBSTITUTE-1                         SUBR 172754
@@ -668,10 +1341,10 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |THIRD MACRO|                        SUBR 146450
   THREE-LONG                           SUBR 147037; MACRO |THREE-LONG MACRO| [SUBR 147015]
   |THREE-LONG MACRO|                   SUBR 147015
-  TOP                                  #075103 ((KEN) STACK)
+  TOP                                  AUTOLOAD ((KEN) STACK)
   TOP-LEVEL-COPY                       SUBR 147162; MACRO |TOP-LEVEL-COPY MACRO| [SUBR 147140]
   |TOP-LEVEL-COPY MACRO|               SUBR 147140
-  TOTAL-STORAGE                        FREE #117774; ACCESSIBLE #117775; CONSED #117777
+  TOTAL-STORAGE                        FREE 12933.75; ACCESSIBLE 17245.0; CONSED 3241.0
   TRY-DEFINITIONS-IF-FAILURE           SUBR 173133
   TRY-DEFINITIONS-IF-FAILURE-WITH-SPENDING-CEILING SUBR 173146
   TRY-EACH-PATH                        SUBR 174177
@@ -699,7 +1372,7 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   UNIFIER-FUNCTION-MARKER?             SUBR 171261; MACRO |UNIFIER-FUNCTION-MARKER? MACRO| [SUBR 171237]
   |UNIFIER-FUNCTION-MARKER? MACRO|     SUBR 171237
   UNIFIER-GREATERP                     SUBR 164661
-  UNIFIER-OF                           UNIFIER-FUNCTION |UNIFIER-OF UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE (#100000); SUBR 162566
+  UNIFIER-OF                           UNIFIER-FUNCTION |UNIFIER-OF UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE T; SUBR 162566
   |UNIFIER-OF UNIFIER-FUNCTION|        SUBR 172346
   UNIFIER-OF-ARGUMENTS                 SUBR 163317
   UNIFIER-OF-ARGUMENTS-1               SUBR 163350
@@ -726,13 +1399,13 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   |UNIFIER-OF-TWO-VARIABLES MACRO|     SUBR 153607
   UNIFIER-OF-UNIFIERS                  SUBR 165210
   UNIFIER-SIMPLIFIERS-OF-AND           FAILURE UNIFIER-AND-FAILURE; UNIFIER UNIFIER-OF-UNIFIERS
-  UNIFIER-SIMPLIFIERS-OF-OR            FAILURE OR-UNIFIER-AND-FAILURE; #075532 INSERT-UNIFIER-IN-DISJUNCTION; DELAYED-UNIFIER MAKE-OR-UNIFIER; UNIFIER MAKE-OR-UNIFIER
+  UNIFIER-SIMPLIFIERS-OF-OR            FAILURE OR-UNIFIER-AND-FAILURE; OR INSERT-UNIFIER-IN-DISJUNCTION; DELAYED-UNIFIER MAKE-OR-UNIFIER; UNIFIER MAKE-OR-UNIFIER
   UNIFIER?                             SUBR 154247
   UNIFORM                              SUBR 200216
   UNIFORM-LOAD                         LSUBR 200270
   UNIFORM-PRINT                        SUBR 200254
   UNIFORM-READ                         SUBR 200266
-  UNIFY                                UNIFIER-FUNCTION |UNIFY UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE (#100000)
+  UNIFY                                UNIFIER-FUNCTION |UNIFY UNIFIER-FUNCTION|; CAN-HANDLE-SAME-TYPE T
   |UNIFY UNIFIER-FUNCTION|             SUBR 172350
   UNIFY-CONJUNCTS-TOGETHER-AND-LINK    SUBR 177174
   UNIFY-CONJUNCTS-TOGETHER-LOOP        SUBR 177226
@@ -743,16 +1416,16 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   UNION-TWO-EQ                         SUBR 150262
   UNIQUE-SYMBOL-FOR-CONSTANT-FORM      #GRIND-FN UNIQUE-SYMBOL-FOR-CONSTANT-FORM-GRIND-FN
   UNIQUE-SYMBOL-FOR-CONSTANT-FORM-GRIND-FN SUBR 161351
-  UNIQUE-SYMBOL-FOR-EXCL               #GRIND-FN ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  UNIQUE-SYMBOL-FOR-EXCL               #GRIND-FN (#75112 (TEMP ITEM) (COND ((AND (CDR ITEM) (NULL (CDDR ITEM))) (SET...
   UNIQUE-SYMBOL-FOR-FORM               #GRIND-FN UNIQUE-SYMBOL-FOR-FORM-GRIND-FN
   UNIQUE-SYMBOL-FOR-FORM-GRIND-FN      SUBR 161350
-  UNIQUE-SYMBOL-FOR-UP-ARROW           #GRIND-FN ((#100164 #GRIND-TEMPLATE (#106003 (NEVER) (NEVER #106002 ((#100324...
+  UNIQUE-SYMBOL-FOR-UP-ARROW           #GRIND-FN (#75112 (TEMP ITEM) (COND ((AND (CDR ITEM) (NULL (CDDR ITEM))) (SET...
   UNIQUE-SYMBOL-FOR-VARIABLE           #GRIND-FN UNIQUE-SYMBOL-FOR-VARIABLE-GRIND-FN
   UNIQUE-SYMBOL-FOR-VARIABLE-GRIND-FN  SUBR 161342
   UNSHUT-UP                            SUBR 150466
-  |Unknown dispatch character after #| #075123 (#100000)
-  |Unknown symbolic name to #\|        #075123 (#100000)
-  VALUE-OF                             UNIFIER-FUNCTION |VALUE-OF UNIFIER-FUNCTION|; APPLY-WHEN-OTHER-IS-A-VARIABLE (#100000); CAN-HANDLE-SAME-TYPE (#100000)
+  |Unknown dispatch character after #| #075123 T
+  |Unknown symbolic name to #\|        #075123 T
+  VALUE-OF                             UNIFIER-FUNCTION |VALUE-OF UNIFIER-FUNCTION|; APPLY-WHEN-OTHER-IS-A-VARIABLE T; CAN-HANDLE-SAME-TYPE T
   |VALUE-OF UNIFIER-FUNCTION|          SUBR 176515
   VARIABLE-FORM?                       SUBR 152164; MACRO |VARIABLE-FORM? MACRO| [SUBR 152142]
   |VARIABLE-FORM? MACRO|               SUBR 152142
@@ -766,32 +1439,32 @@ Symbols rebuilt from the image: 1207 headers, 1195 distinct names, 180 value cel
   VARIABLES-IN-FORMS                   SUBR 156732
   VARIABLES-IN-FORMS-LOOP              SUBR 156735
   WARNING                              LSUBR 150362
-  |Welcome to Lisp|                    #075123 (#100000)
+  |Welcome to Lisp|                    #075123 T
   |`,./||                              #GRIND-FN |`,./| #GRIND-FN|; GRINDMACRO |+INTERNAL-`-grindmacros/||
-  |`,./| #GRIND-FN|                    SUBR 136263; #075205 29947017864
+  |`,./| #GRIND-FN|                    SUBR 136263; EXPR-HASH 29947017864
   |`,@/||                              #GRIND-FN |`,@/| #GRIND-FN|; GRINDMACRO |+INTERNAL-`-grindmacros/||
-  |`,@/| #GRIND-FN|                    SUBR 136224; #075205 29951736456
+  |`,@/| #GRIND-FN|                    SUBR 136224; EXPR-HASH 29951736456
   |`,/||                               #GRIND-FN |`,/| #GRIND-FN|; GRINDMACRO |+INTERNAL-`-grindmacros/||
-  |`,/| #GRIND-FN|                     SUBR 136165; #075205 29934959240
-  |`-expander/| #GRIND-FN|             SUBR 136126; #075205 -1539310840
+  |`,/| #GRIND-FN|                     SUBR 136165; EXPR-HASH 29934959240
+  |`-expander/| #GRIND-FN|             SUBR 136126; EXPR-HASH -1539310840
   |`-expander/| MACRO|                 SUBR 126030
-  |either|                             #075123 (#100000); #075123 (#100000)
-  |has an unrecognized type|           #075123 (#100000)
-  |has no simplifier for|              #075123 (#100000)
-  |is an unknown fexpr|                #075123 (#100000)
-  |is not a function|                  #075123 (#100000)
-  |is of the wrong type|               #075123 (#100000)
-  |ken;dmacros|                        #075123 (#100000)
-  |ken;dumper|                         #075123 (#100000)
-  |ken;fixit|                          #075123 (#100000)
-  |ken;printextend|                    #075123 (#100000)
-  |no-(more)-ways-to-unify-sets|       #075123 (#100000)
-  |non-simple-x/||                     #075103 (((#100212 . #114001)) (#101656) (#100216))
-  |not a recognized unifier|           #075123 (#100000)
-  |or|                                 #075123 (#100000); #075123 (#100000)
-  |or of unknown type|                 #075123 (#100000)
-  |second:ken;ts unifor|               #075123 (#100000)
-  |the unifier is not a simple unifier| #075123 (#100000)
+  |either|                             #075123 T; #075123 T
+  |has an unrecognized type|           #075123 T
+  |has no simplifier for|              #075123 T
+  |is an unknown fexpr|                #075123 T
+  |is not a function|                  #075123 T
+  |is of the wrong type|               #075123 T
+  |ken;dmacros|                        #075123 T
+  |ken;dumper|                         #075123 T
+  |ken;fixit|                          #075123 T
+  |ken;printextend|                    #075123 T
+  |no-(more)-ways-to-unify-sets|       #075123 T
+  |non-simple-x/||                     AUTOLOAD ((#75125) MACAID #75127)
+  |not a recognized unifier|           #075123 T
+  |or|                                 #075123 T; #075123 T
+  |or of unknown type|                 #075123 T
+  |second:ken;ts unifor|               #075123 T
+  |the unifier is not a simple unifier| #075123 T
   |{-read-macro|                       SUBR 160555
-  |~%;|                                #075123 (#100000)
-  |~%;Warning from |                   #075123 (#100000)
+  |~%;|                                #075123 T
+  |~%;Warning from |                   #075123 T

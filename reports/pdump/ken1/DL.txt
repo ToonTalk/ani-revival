@@ -1,0 +1,2749 @@
+KEN1; AI: DL >: functions recovered from TS D2500 (KEN;TS D2500, 5 Jan 1980)
+Definitions in the order of the 1979 tags table (7005017 KEN TAGS), then those added in AI: DIRECT; DLIST > by 1980 (701431 KEN TAGS).
+Listings name calls through link cells, kernel routines and atoms where known;
+#75413-style names are pure system atoms not yet identified and #vc71041-style names
+value cells of unidentified system variables (see 701431_ts.d2500.txt for candidates).
+DECOMPILATION blocks are reconstructions from machine code, not Ken's source:
+check each one against its listing. Confidence: high = straight-line code fully
+understood; medium = branches or calls whose argument conventions were inferred;
+low = partial.
+
+==============================================================================
+DL    [absent]
+  tags: (defcomment dl)
+
+==============================================================================
+DISPLAY-PACKAGE    [compiled]
+  tags: (define-function display-package
+  SUBR at 300272, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN DISPLAY-PACKAGE (ARG1)
+  |   ;; binds special *TRUE-PENSTATE to 'T
+  |   ;; binds special *DISPLAY-LIST to NIL
+  |   ;; binds special *MAKING-DISPLAY-LIST to 'T
+  |   ;; binds special *POSITION-LIST to NIL
+  |   ;; binds special *MAKING-POSITION-LIST to 'T
+  |   ;; binds special *STARTED-FROM to NIL
+  |   ;; binds special *NUMBER-OF-INVISIBLIES to 0
+  |   ;; binds special *HEADING-CHANGE to 0.0
+  |   (ERD)
+  |   (HOME)
+  |   (#37221 ARG1)
+  |   (THINGDOWN)
+  |   `(DISPLAY-PACKAGE POSITIONS ,*POSITION-LIST NUMBER-OF-INVISIBLIES ,*NUMBER-OF-INVISIBLIES X-DISPLACEMENT ,(FIX (+$ 0.5 :XCOR)) Y-DISPLACEMENT ,(FIX (+$ 0.5 :YCOR)) HEADING-CHANGE ,(ABS *HEADING-CHANGE) DISPLAY-LIST ,*DISPLAY-LIST))
+  300272  261600,,000001  PUSH P,A
+  300273  201240,,117773  MOVEI AR2A,'0.0
+  300274  201200,,105774  MOVEI AR1,IN0
+  300275  201140,,075000  MOVEI C,'T
+  300276  265300,,011543  JSP T,SPECBIND
+  300277  000140,,071553  140,,(SPECIAL *TRUE-PENSTATE)
+  300300  000000,,071554  0,,(SPECIAL *DISPLAY-LIST)
+  300301  000140,,071700  140,,(SPECIAL *MAKING-DISPLAY-LIST)
+  300302  000000,,071555  0,,(SPECIAL *POSITION-LIST)
+  300303  000140,,071556  140,,(SPECIAL *MAKING-POSITION-LIST)
+  300304  000000,,071557  0,,(SPECIAL *STARTED-FROM)
+  300305  000200,,071560  200,,(SPECIAL *NUMBER-OF-INVISIBLIES)
+  300306  000240,,071561  240,,(SPECIAL *HEADING-CHANGE)
+  300307  256000,,121034  XCT 0,121034   ; CALL 0,'ERD
+  300310  256000,,611426  XCT 0,611426   ; CALL 0,'HOME
+  300311  262600,,000001  POP P,A
+  300312  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300313  256000,,121656  XCT 0,121656   ; CALL 0,'THINGDOWN
+  300314  205340,,200400  MOVSI TT,200400
+  300315  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  300316  261640,,000007  PUSH FLP,TT
+  300317  201055,,000000  MOVEI A,(FLP)
+  300320  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  300321  205340,,200400  MOVSI TT,200400
+  300322  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  300323  261600,,000001  PUSH P,A
+  300324  261640,,000007  PUSH FLP,TT
+  300325  201055,,000000  MOVEI A,(FLP)
+  300326  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  300327  261600,,000001  PUSH P,A
+  300330  200040,,071561  MOVE A,(SPECIAL *HEADING-CHANGE)
+  300331  256000,,121726  XCT 0,121726   ; CALL 1,'ABS
+  300332  261600,,000001  PUSH P,A
+  300333  200040,,071554  MOVE A,(SPECIAL *DISPLAY-LIST)
+  300334  265300,,011722  JSP T,%NCONS
+  300335  201100,,703705  MOVEI B,'DISPLAY-LIST
+  300336  265300,,013746  JSP T,%XCONS
+  300337  262600,,000002  POP P,B
+  300340  265300,,013746  JSP T,%XCONS
+  300341  201100,,617641  MOVEI B,'HEADING-CHANGE
+  300342  265300,,013746  JSP T,%XCONS
+  300343  262600,,000002  POP P,B
+  300344  265300,,013746  JSP T,%XCONS
+  300345  201100,,617640  MOVEI B,'Y-DISPLACEMENT
+  300346  265300,,013746  JSP T,%XCONS
+  300347  262600,,000002  POP P,B
+  300350  265300,,013746  JSP T,%XCONS
+  300351  201100,,617637  MOVEI B,'X-DISPLACEMENT
+  300352  265300,,013746  JSP T,%XCONS
+  300353  200100,,071560  MOVE B,(SPECIAL *NUMBER-OF-INVISIBLIES)
+  300354  265300,,013746  JSP T,%XCONS
+  300355  201100,,617636  MOVEI B,'NUMBER-OF-INVISIBLIES
+  300356  265300,,013746  JSP T,%XCONS
+  300357  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  300360  265300,,013746  JSP T,%XCONS
+  300361  201100,,617635  MOVEI B,'POSITIONS
+  300362  265300,,013746  JSP T,%XCONS
+  300363  201100,,703707  MOVEI B,'DISPLAY-PACKAGE
+  300364  265300,,013746  JSP T,%XCONS
+  300365  260600,,011651  PUSHJ P,UNBIND
+  300366  274640,,012725  SUB FLP,R70+2
+  300367  263600,,000000  POPJ P,0
+
+==============================================================================
+POSITION-LIST    [compiled]
+  tags: (define-function position-list
+  SUBR at 300411, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN POSITION-LIST (ARG1)
+  |   ;; binds special *TRUE-PENSTATE to 'T
+  |   ;; binds special *MAKING-DISPLAY-LIST to NIL
+  |   ;; binds special *POSITION-LIST to (LIST (LIST 0 0))
+  |   ;; binds special *MAKING-POSITION-LIST to 'T
+  |   ;; binds special *STARTED-FROM to NIL
+  |   ;; binds special *NUMBER-OF-INVISIBLIES to 0
+  |   (ERD)
+  |   (HOME)
+  |   (#37221 ARG1)
+  |   (THINGDOWN)
+  |   *POSITION-LIST)
+  300411  261600,,000001  PUSH P,A
+  300412  201040,,105774  MOVEI A,IN0
+  300413  265300,,011722  JSP T,%NCONS
+  300414  201100,,105774  MOVEI B,IN0
+  300415  265300,,013746  JSP T,%XCONS
+  300416  265300,,011722  JSP T,%NCONS
+  300417  201240,,105774  MOVEI AR2A,IN0
+  300420  201200,,075000  MOVEI AR1,'T
+  300421  265300,,011543  JSP T,SPECBIND
+  300422  000200,,071553  200,,(SPECIAL *TRUE-PENSTATE)
+  300423  000000,,071700  0,,(SPECIAL *MAKING-DISPLAY-LIST)
+  300424  000040,,071555  40,,(SPECIAL *POSITION-LIST)
+  300425  000200,,071556  200,,(SPECIAL *MAKING-POSITION-LIST)
+  300426  000000,,071557  0,,(SPECIAL *STARTED-FROM)
+  300427  000240,,071560  240,,(SPECIAL *NUMBER-OF-INVISIBLIES)
+  300430  256000,,121034  XCT 0,121034   ; CALL 0,'ERD
+  300431  256000,,611426  XCT 0,611426   ; CALL 0,'HOME
+  300432  262600,,000001  POP P,A
+  300433  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300434  256000,,121656  XCT 0,121656   ; CALL 0,'THINGDOWN
+  300435  200040,,071555  MOVE A,(SPECIAL *POSITION-LIST)
+  300436  254000,,011651  JRST 0,UNBIND
+
+==============================================================================
+SQUISHED-DISPLAY-PACKAGE    [compiled]
+  tags: (define-function squished-display-package
+  SUBR at 300437, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN SQUISHED-DISPLAY-PACKAGE (ARG1)
+  |   (GET (DISPLAY-PACKAGE ARG1) 'DISPLAY-LIST)
+  |   (SQUISH (GET (DISPLAY-PACKAGE ARG1) 'DISPLAY-LIST))
+  |   (#15015 (DISPLAY-PACKAGE ARG1)
+  |     (SQUISH (GET (DISPLAY-PACKAGE ARG1) 'DISPLAY-LIST))
+  |     'DISPLAY-LIST)
+  |   (DISPLAY-PACKAGE ARG1))
+  300437  261600,,000001  PUSH P,A
+  300440  256000,,611602  XCT 0,611602   ; CALL 1,'DISPLAY-PACKAGE
+  300441  201100,,703705  MOVEI B,'DISPLAY-LIST
+  300442  261600,,000001  PUSH P,A
+  300443  256000,,121436  XCT 0,121436   ; PUSHJ P, GET (snapped link)
+  300444  256000,,611575  XCT 0,611575   ; CALL 1,'SQUISH
+  300445  201140,,703705  MOVEI C,'DISPLAY-LIST
+  300446  201101,,000000  MOVEI B,(A)
+  300447  200054,,000000  MOVE A,(P)
+  300450  256000,,121203  XCT 0,121203   ; PUSHJ P, 15015 (snapped link)
+  300451  262600,,000001  POP P,A
+  300452  274600,,012724  SUB P,R70+1
+  300453  263600,,000000  POPJ P,0
+
+==============================================================================
+SQUISH    [compiled]
+  tags: (define-function squish
+  SUBR at 300454, args (NIL . 1)
+  DECOMPILATION: not available (loop at 300462: SKIPE 0,-1(P))
+  300454  261600,,000001  PUSH P,A
+  300455  550041,,000000  HRRZ A,(A)
+  300456  261600,,000001  PUSH P,A
+  300457  554074,,777777  HLRZ A,@-1(P)
+  300460  265300,,011722  JSP T,%NCONS
+  300461  261600,,000001  PUSH P,A
+  300462  332014,,777777  SKIPE 0,-1(P)
+  300463  254000,,300466  JRST 0,SQUISH+12
+  300464  200054,,000000  MOVE A,(P)
+  300465  254000,,300613  JRST 0,SQUISH+137
+  300466  554074,,777777  HLRZ A,@-1(P)
+  300467  554101,,000000  HLRZ B,(A)
+  300470  554074,,000000  HLRZ A,@(P)
+  300471  554141,,000000  HLRZ C,(A)
+  300472  554074,,777777  HLRZ A,@-1(P)
+  300473  550041,,000000  HRRZ A,(A)
+  300474  554201,,000000  HLRZ AR1,(A)
+  300475  554074,,000000  HLRZ A,@(P)
+  300476  550041,,000000  HRRZ A,(A)
+  300477  554041,,000000  HLRZ A,(A)
+  300500  261600,,000001  PUSH P,A
+  300501  261600,,000002  PUSH P,B
+  300502  261600,,000003  PUSH P,C
+  300503  261600,,000004  PUSH P,AR1
+  300504  302100,,667367  CAIE B,'FORWARD
+  300505  254000,,300527  JRST 0,SQUISH+53
+  300506  302140,,667367  CAIE C,'FORWARD
+  300507  254000,,300527  JRST 0,SQUISH+53
+  300510  200344,,000000  MOVE TT,(AR1)
+  300511  321340,,300514  JUMPL TT,SQUISH+40
+  300512  200341,,000000  MOVE TT,(A)
+  300513  325340,,300527  JUMPGE TT,SQUISH+53
+  300514  250040,,000004  EXCH A,AR1
+  300515  256000,,121726  XCT 0,121726   ; CALL 1,'ABS
+  300516  250040,,000004  EXCH A,AR1
+  300517  256000,,121726  XCT 0,121726   ; CALL 1,'ABS
+  300520  200344,,000000  MOVE TT,(AR1)
+  300521  311341,,000000  CAML TT,(A)
+  300522  254000,,300527  JRST 0,SQUISH+53
+  300523  200114,,777774  MOVE B,-4(P)
+  300524  201040,,640652  MOVEI A,'(RIGHT 0.0)
+  300525  265300,,013747  JSP T,%CONS
+  300526  202054,,777774  MOVEM A,-4(P)
+  300527  200054,,777776  MOVE A,-2(P)
+  300530  302040,,703627  CAIE A,'RUN-INVISIBLY
+  300531  254000,,300567  JRST 0,SQUISH+113
+  300532  550134,,777773  HRRZ B,@-5(P)
+  300533  554102,,000000  HLRZ B,(B)
+  300534  554102,,000000  HLRZ B,(B)
+  300535  302142,,000000  CAIE C,(B)
+  300536  254000,,300562  JRST 0,SQUISH+106
+  300537  554074,,777773  HLRZ A,@-5(P)
+  300540  261600,,000001  PUSH P,A
+  300541  302140,,667367  CAIE C,'FORWARD
+  300542  254000,,300545  JRST 0,SQUISH+71
+  300543  201040,,640652  MOVEI A,'(RIGHT 0.0)
+  300544  254000,,300554  JRST 0,SQUISH+100
+  300545  302140,,723436  CAIE C,'RIGHT
+  300546  254000,,300551  JRST 0,SQUISH+75
+  300547  201040,,640633  MOVEI A,'(FORWARD 0.0)
+  300550  254000,,300554  JRST 0,SQUISH+100
+  300551  201100,,617634  MOVEI B,'BAD-DISPLAY-LIST-SQUISH
+  300552  201040,,075000  MOVEI A,'T
+  300553  256000,,121477  XCT 0,121477   ; PUSHJ P, 16506 (snapped link)
+  300554  200114,,777773  MOVE B,-5(P)
+  300555  265300,,013747  JSP T,%CONS
+  300556  262600,,000002  POP P,B
+  300557  265300,,013746  JSP T,%XCONS
+  300560  202054,,777774  MOVEM A,-4(P)
+  300561  254000,,300607  JRST 0,SQUISH+133
+  300562  200114,,777774  MOVE B,-4(P)
+  300563  554074,,777773  HLRZ A,@-5(P)
+  300564  265300,,013747  JSP T,%CONS
+  300565  202054,,777774  MOVEM A,-4(P)
+  300566  254000,,300607  JRST 0,SQUISH+133
+  300567  302043,,000000  CAIE A,(C)
+  300570  254000,,300603  JRST 0,SQUISH+127
+  300571  200374,,000000  MOVE TT,@(P)
+  300572  144374,,777775  FADR TT,@-3(P)
+  300573  265300,,014002  JSP T,FLCONS
+  300574  265300,,011722  JSP T,%NCONS
+  300575  200114,,777776  MOVE B,-2(P)
+  300576  265300,,013746  JSP T,%XCONS
+  300577  550134,,777774  HRRZ B,@-4(P)
+  300600  265300,,013747  JSP T,%CONS
+  300601  202054,,777774  MOVEM A,-4(P)
+  300602  254000,,300607  JRST 0,SQUISH+133
+  300603  200114,,777774  MOVE B,-4(P)
+  300604  554074,,777773  HLRZ A,@-5(P)
+  300605  265300,,013747  JSP T,%CONS
+  300606  202054,,777774  MOVEM A,-4(P)
+  300607  274600,,012727  SUB P,R70+4
+  300610  550074,,777777  HRRZ A,@-1(P)
+  300611  202054,,777777  MOVEM A,-1(P)
+  300612  254000,,300462  JRST 0,SQUISH+6
+  300613  274600,,012726  SUB P,R70+3
+  300614  263600,,000000  POPJ P,0
+
+==============================================================================
+HOW-TO-GET-TO-CENTER    [compiled]
+  tags: (define-function how-to-get-to-center
+  SUBR at 300615, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN HOW-TO-GET-TO-CENTER (ARG1)
+  |   (CAR (HOW-TO-GET-TO-CENTER-AND-SCALE ARG1 NIL)))
+  300615  201100,,000000  MOVEI B,0
+  300616  256000,,121471  XCT 0,121471   ; CALL 2,'HOW-TO-GET-TO-CENTER-AND-SCALE
+  300617  554041,,000000  HLRZ A,(A)
+  300620  263600,,000000  POPJ P,0
+
+==============================================================================
+HOW-TO-GET-TO-CENTER-AND-SCALE    [compiled]
+  tags: (define-function how-to-get-to-center-and-scale
+  SUBR at 300621, args (NIL . 2)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN HOW-TO-GET-TO-CENTER-AND-SCALE (ARG1 ARG2)
+  |   (LET (V1)
+  |     (COND (ARG2 (FLOAT ARG2)
+  |             (FLOAT (CAR (SETQ V1 (FIND-EXTREME-AND-CENTER ARG1))))
+  |             `((PROGN (RIGHT 90) (BACK ,(CADR V1)) (LEFT 90) (BACK ,(CADDR V1))) ,(|////$| #<TT> #<TT>)))
+  |       (T `((PROGN (RIGHT 90) (BACK ,(CADR (SETQ V1 (FIND-EXTREME-AND-CENTER ARG1)))) (LEFT 90) (BACK ,(CADDR V1))) 1.0)))))
+  300621  261600,,000001  PUSH P,A
+  300622  261600,,000002  PUSH P,B
+  300623  261640,,012723  PUSH FLP,R70
+  300624  256000,,611567  XCT 0,611567   ; CALL 1,'FIND-EXTREME-AND-CENTER
+  300625  554101,,000000  HLRZ B,(A)
+  300626  550141,,000000  HRRZ C,(A)
+  300627  554203,,000000  HLRZ AR1,(C)
+  300630  550243,,000000  HRRZ AR2A,(C)
+  300631  554045,,000000  HLRZ A,(AR2A)
+  300632  261600,,000001  PUSH P,A
+  300633  261600,,000002  PUSH P,B
+  300634  261600,,000004  PUSH P,AR1
+  300635  336014,,777775  SKIPN 0,-3(P)
+  300636  254000,,300651  JRST 0,HOW-TO-GET-TO-CENTER-AND-SCALE+30
+  300637  200054,,777775  MOVE A,-3(P)
+  300640  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  300641  201042,,000000  MOVEI A,(B)
+  300642  261640,,000007  PUSH FLP,TT
+  300643  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  300644  262640,,000010  POP FLP,D
+  300645  174400,,000007  FDVR D,TT
+  300646  202415,,000000  MOVEM D,(FLP)
+  300647  201055,,000000  MOVEI A,(FLP)
+  300650  254000,,300652  JRST 0,HOW-TO-GET-TO-CENTER-AND-SCALE+31
+  300651  201040,,117651  MOVEI A,'1.0
+  300652  250040,,000004  EXCH A,AR1
+  300653  265300,,011722  JSP T,%NCONS
+  300654  201100,,667365  MOVEI B,'BACK
+  300655  265300,,013746  JSP T,%XCONS
+  300656  250054,,777776  EXCH A,-2(P)
+  300657  265300,,011722  JSP T,%NCONS
+  300660  201100,,667365  MOVEI B,'BACK
+  300661  265300,,013746  JSP T,%XCONS
+  300662  265300,,011722  JSP T,%NCONS
+  300663  201100,,640175  MOVEI B,'(LEFT 90)
+  300664  265300,,013746  JSP T,%XCONS
+  300665  200114,,777776  MOVE B,-2(P)
+  300666  265300,,013746  JSP T,%XCONS
+  300667  201100,,640171  MOVEI B,'(RIGHT 90)
+  300670  265300,,013746  JSP T,%XCONS
+  300671  201100,,075510  MOVEI B,'PROGN
+  300672  265300,,013746  JSP T,%XCONS
+  300673  250040,,000004  EXCH A,AR1
+  300674  265300,,013736  JSP T,%PDLNC
+  300675  201104,,000000  MOVEI B,(AR1)
+  300676  265300,,013746  JSP T,%XCONS
+  300677  274640,,012724  SUB FLP,R70+1
+  300700  274600,,012730  SUB P,R70+5
+  300701  263600,,000000  POPJ P,0
+
+==============================================================================
+DRAW-CENTERED    [compiled]
+  tags: (define-function draw-centered
+  LSUBR at 300702, args -
+  DECOMPILATION: not attempted (lsubr entry)
+  300702  265400,,013154  JSP D,.LCALL
+  300703  261600,,000001  PUSH P,A
+  300704  200341,,000000  MOVE TT,(A)
+  300705  305340,,000001  CAIGE TT,1
+  300706  254000,,300711  JRST 0,DRAW-CENTERED+7
+  300707  307340,,000002  CAIG TT,2
+  300710  254000,,300737  JRST 0,DRAW-CENTERED+35
+  300711  201300,,300735  MOVEI T,DRAW-CENTERED+33
+  300712  261600,,000006  PUSH P,T
+  300713  307340,,000002  CAIG TT,2
+  300714  254000,,300716  JRST 0,DRAW-CENTERED+14
+  300715  334040,,301014  SKIPA A,DRAW-CENTERED+112
+  300716  201040,,076411  MOVEI A,'|Too few arguments supplied |
+  300717  261600,,000001  PUSH P,A
+  300720  200054,,777776  MOVE A,-2(P)
+  300721  256000,,121706  XCT 0,121706   ; PUSHJ P, 24324 (snapped link)
+  300722  201100,,703677  MOVEI B,'DRAW-CENTERED
+  300723  265300,,013746  JSP T,%XCONS
+  300724  261600,,000001  PUSH P,A
+  300725  201040,,640133  MOVEI A,'(CALL &OPTIONAL MAX-RADIUS)
+  300726  265300,,011722  JSP T,%NCONS
+  300727  262600,,000002  POP P,B
+  300730  265300,,013746  JSP T,%XCONS
+  300731  261600,,000001  PUSH P,A
+  300732  261600,,301015  PUSH P,DRAW-CENTERED+113
+  300733  211300,,000003  MOVNI T,3
+  300734  256000,,121516  XCT 0,121516   ; JCALL 16,'ERROR lsubr-style
+  300735  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300736  254000,,301012  JRST 0,DRAW-CENTERED+110
+  300737  307340,,000001  CAIG TT,1
+  300740  254000,,300744  JRST 0,DRAW-CENTERED+42
+  300741  200240,,071170  MOVE AR2A,ARGLOC
+  300742  550045,,000002  HRRZ A,2(AR2A)
+  300743  254000,,300745  JRST 0,DRAW-CENTERED+43
+  300744  201040,,000000  MOVEI A,0
+  300745  261600,,000001  PUSH P,A
+  300746  200240,,071170  MOVE AR2A,ARGLOC
+  300747  550045,,000001  HRRZ A,1(AR2A)
+  300750  261600,,000001  PUSH P,A
+  300751  200114,,777777  MOVE B,-1(P)
+  300752  256000,,121471  XCT 0,121471   ; CALL 2,'HOW-TO-GET-TO-CENTER-AND-SCALE
+  300753  554101,,000000  HLRZ B,(A)
+  300754  550141,,000000  HRRZ C,(A)
+  300755  554203,,000000  HLRZ AR1,(C)
+  300756  261600,,000002  PUSH P,B
+  300757  261600,,000004  PUSH P,AR1
+  300760  200344,,000000  MOVE TT,(AR1)
+  300761  164360,,071673  FMPR TT,@(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  300762  265300,,014002  JSP T,FLCONS
+  300763  265300,,011543  JSP T,SPECBIND
+  300764  000040,,071673  40,,(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  300765  256000,,121204  XCT 0,121204   ; PUSHJ P, PENUP (snapped link)
+  300766  200054,,777777  MOVE A,-1(P)
+  300767  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300770  256000,,121115  XCT 0,121115   ; PUSHJ P, PENDOWN (snapped link)
+  300771  200054,,777776  MOVE A,-2(P)
+  300772  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300773  256000,,121204  XCT 0,121204   ; PUSHJ P, PENUP (snapped link)
+  300774  550074,,777777  HRRZ A,@-1(P)
+  300775  256000,,121721  XCT 0,121721   ; PUSHJ P, 15423 (snapped link)
+  300776  261600,,000001  PUSH P,A
+  300777  336014,,000000  SKIPN 0,(P)
+  301000  254000,,301006  JRST 0,DRAW-CENTERED+104
+  301001  554074,,000000  HLRZ A,@(P)
+  301002  256000,,611570  XCT 0,611570   ; CALL 1,'NEGATIVE-EVAL
+  301003  550074,,000000  HRRZ A,@(P)
+  301004  202054,,000000  MOVEM A,(P)
+  301005  254000,,300777  JRST 0,DRAW-CENTERED+75
+  301006  274600,,012724  SUB P,R70+1
+  301007  256000,,121115  XCT 0,121115   ; PUSHJ P, PENDOWN (snapped link)
+  301010  260600,,011651  PUSHJ P,UNBIND
+  301011  274600,,012727  SUB P,R70+4
+  301012  274600,,012724  SUB P,R70+1
+  301013  263600,,000000  POPJ P,0
+  301014  000000,,076404  0,,'|Too many arguments supplied |
+  301015  000000,,076217  0,,'WRNG-NO-ARGS
+
+==============================================================================
+DRAW-CENTERED-1    [absent]
+  tags: (define-function draw-centered-1
+
+==============================================================================
+SCALE-CALL-SIMPLE    [compiled]
+  tags: (define-function scale-call-simple
+  SUBR at 301016, args (NIL . 2)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN SCALE-CALL-SIMPLE (ARG1 ARG2)
+  |   ;; binds special *DIRECTOR-TURTLE-SCALING-FACTOR to (*$ ARG2 *DIRECTOR-TURTLE-SCALING-FACTOR)
+  |   (#37221 ARG1 ARG2))
+  301016  261600,,000001  PUSH P,A
+  301017  261600,,000002  PUSH P,B
+  301020  200342,,000000  MOVE TT,(B)
+  301021  164360,,071673  FMPR TT,@(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  301022  265300,,014002  JSP T,FLCONS
+  301023  265300,,011543  JSP T,SPECBIND
+  301024  000040,,071673  40,,(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  301025  200054,,777777  MOVE A,-1(P)
+  301026  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  301027  274600,,012725  SUB P,R70+2
+  301030  254000,,011651  JRST 0,UNBIND
+
+==============================================================================
+SCALE-CALL    [absent]
+  tags: (define-function scale-call
+
+==============================================================================
+NEGATIVE-EVAL    [compiled]
+  tags: (define-function negative-eval
+  SUBR at 301031, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN NEGATIVE-EVAL (ARG1)
+  |   (FUNCALL (CAR ARG1) (MINUS (CADR ARG1))))
+  301031  261600,,000001  PUSH P,A
+  301032  554041,,000000  HLRZ A,(A)
+  301033  261600,,000001  PUSH P,A
+  301034  550074,,777777  HRRZ A,@-1(P)
+  301035  554041,,000000  HLRZ A,(A)
+  301036  256000,,121727  XCT 0,121727   ; CALL 1,'MINUS
+  301037  016074,,000000  CALLF 1,@(P)
+  301040  274600,,012725  SUB P,R70+2
+  301041  263600,,000000  POPJ P,0
+
+==============================================================================
+FIND-EXTREME-AND-CENTER    [compiled]
+  tags: (define-function find-extreme-and-center
+  SUBR at 301042, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN FIND-EXTREME-AND-CENTER (ARG1)
+  |   (COMPUTE-EXTREME-AND-CENTER (POSITION-LIST ARG1)))
+  301042  256000,,611577  XCT 0,611577   ; CALL 1,'POSITION-LIST
+  301043  256000,,611617  XCT 0,611617   ; JCALL 1,'COMPUTE-EXTREME-AND-CENTER
+
+==============================================================================
+FIND-CENTER    [compiled]
+  tags: (define-function find-center
+  SUBR at 301044, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN FIND-CENTER (ARG1)
+  |   (CDR (FIND-EXTREME-AND-CENTER ARG1)))
+  301044  256000,,611567  XCT 0,611567   ; CALL 1,'FIND-EXTREME-AND-CENTER
+  301045  550041,,000000  HRRZ A,(A)
+  301046  263600,,000000  POPJ P,0
+
+==============================================================================
+COMPUTE-CENTER    [absent]
+  tags: (define-function compute-center
+
+==============================================================================
+COMPUTE-EXTREME    [absent]
+  tags: (define-function compute-extreme
+
+==============================================================================
+FANCY-FORWARD    [compiled]
+  tags: (define-function fancy-forward
+  SUBR at 302236, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-FORWARD (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                                          (SETQ *DISPLAY-LIST
+  |                                                                                            `((FORWARD ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                          (FORWARD (*$ #<TT>
+  |                                                                                                     *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (FLOAT ARG1)
+  |                                                                                      (SETQ *DISPLAY-LIST
+  |                                                                                        `((FORWARD ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                      (FORWARD (*$ #<TT>
+  |                                                                                                 *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (FLOAT ARG1)
+  |                                                         (SETQ *DISPLAY-LIST
+  |                                                           `((FORWARD ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                         (FORWARD (*$ #<TT>
+  |                                                                    *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                (FORWARD (*$ #<TT>
+  |                                                                           *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (FLOAT ARG1)
+  |                                                            (FORWARD (*$ #<TT>
+  |                                                                       *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                            NO-VALUE)))
+  |                                 (T (FLOAT ARG1)
+  |                                   (FORWARD (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                   NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                    (FORWARD (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (FLOAT ARG1)
+  |                                (FORWARD (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                NO-VALUE)))
+  |     (T (FLOAT ARG1) (FORWARD (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) NO-VALUE)))
+  302236  261640,,012723  PUSH FLP,R70
+  302237  261600,,000001  PUSH P,A
+  302240  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  302241  164360,,071673  FMPR TT,@(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  302242  202355,,000000  MOVEM TT,(FLP)
+  302243  201255,,000000  MOVEI AR2A,(FLP)
+  302244  261600,,000005  PUSH P,AR2A
+  302245  336040,,071700  SKIPN A,(SPECIAL *MAKING-DISPLAY-LIST)
+  302246  254000,,302260  JRST 0,FORWARD+22
+  302247  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302250  254000,,302260  JRST 0,FORWARD+22
+  302251  250040,,000005  EXCH A,AR2A
+  302252  265300,,013736  JSP T,%PDLNC
+  302253  201100,,667367  MOVEI B,'FORWARD
+  302254  265300,,013746  JSP T,%XCONS
+  302255  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302256  265300,,013747  JSP T,%CONS
+  302257  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302260  262600,,000001  POP P,A
+  302261  256000,,121421  XCT 0,121421   ; CALL 1,'FORWARD
+  302262  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302263  254000,,302310  JRST 0,FORWARD+52
+  302264  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302265  254000,,302310  JRST 0,FORWARD+52
+  302266  205340,,200400  MOVSI TT,200400
+  302267  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302270  261640,,000007  PUSH FLP,TT
+  302271  201055,,000000  MOVEI A,(FLP)
+  302272  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302273  205340,,200400  MOVSI TT,200400
+  302274  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302275  261600,,000001  PUSH P,A
+  302276  261640,,000007  PUSH FLP,TT
+  302277  201055,,000000  MOVEI A,(FLP)
+  302300  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302301  265300,,011722  JSP T,%NCONS
+  302302  262600,,000002  POP P,B
+  302303  265300,,013746  JSP T,%XCONS
+  302304  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302305  265300,,013747  JSP T,%CONS
+  302306  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302307  274640,,012725  SUB FLP,R70+2
+  302310  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302311  274600,,012724  SUB P,R70+1
+  302312  274640,,012724  SUB FLP,R70+1
+  302313  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-RIGHT    [compiled]
+  tags: (define-function fancy-right
+  SUBR at 302775, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-RIGHT (ARG1)
+  |   (COND (*TRUE-PENSTATE (COND (*MAKING-DISPLAY-LIST (FLOAT ARG1)
+  |                                 (SETQ *DISPLAY-LIST `((RIGHT ,#<TT>) . ,*DISPLAY-LIST))
+  |                                 (SETQ *HEADING-CHANGE
+  |                                   (+$ *HEADING-CHANGE (MAKE-IT-LESS-THAN-180 #<TT>)))
+  |                                 (RIGHT #<TT>))
+  |                           (T (FLOAT ARG1)
+  |                             (SETQ *HEADING-CHANGE
+  |                               (+$ *HEADING-CHANGE (MAKE-IT-LESS-THAN-180 #<TT>)))
+  |                             (RIGHT #<TT>))))
+  |     (T (FLOAT ARG1)
+  |       (SETQ *HEADING-CHANGE (+$ *HEADING-CHANGE (MAKE-IT-LESS-THAN-180 #<TT>)))
+  |       (RIGHT #<TT>))))
+  302775  261640,,012723  PUSH FLP,R70
+  302776  261600,,000001  PUSH P,A
+  302777  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  303000  202355,,000000  MOVEM TT,(FLP)
+  303001  201255,,000000  MOVEI AR2A,(FLP)
+  303002  261600,,000005  PUSH P,AR2A
+  303003  336040,,071553  SKIPN A,(SPECIAL *TRUE-PENSTATE)
+  303004  254000,,303016  JRST 0,RIGHT+21
+  303005  336100,,071700  SKIPN B,(SPECIAL *MAKING-DISPLAY-LIST)
+  303006  254000,,303016  JRST 0,RIGHT+21
+  303007  250040,,000005  EXCH A,AR2A
+  303010  265300,,013736  JSP T,%PDLNC
+  303011  201100,,723436  MOVEI B,'RIGHT
+  303012  265300,,013746  JSP T,%XCONS
+  303013  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  303014  265300,,013747  JSP T,%CONS
+  303015  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  303016  261600,,071561  PUSH P,(SPECIAL *HEADING-CHANGE)
+  303017  200054,,777777  MOVE A,-1(P)
+  303020  256000,,611524  XCT 0,611524   ; CALL 1,'MAKE-IT-LESS-THAN-180
+  303021  200374,,000000  MOVE TT,@(P)
+  303022  144341,,000000  FADR TT,(A)
+  303023  265300,,014002  JSP T,FLCONS
+  303024  202040,,071561  MOVEM A,(SPECIAL *HEADING-CHANGE)
+  303025  200054,,777777  MOVE A,-1(P)
+  303026  256000,,121427  XCT 0,121427   ; CALL 1,'RIGHT
+  303027  274600,,012726  SUB P,R70+3
+  303030  274640,,012724  SUB FLP,R70+1
+  303031  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-BACK    [compiled]
+  tags: (define-function fancy-back
+  SUBR at 302314, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN FANCY-BACK (ARG1)
+  |   (FANCY-FORWARD (MINUS ARG1)))
+  302314  256000,,121727  XCT 0,121727   ; CALL 1,'MINUS
+  302315  256000,,611603  XCT 0,611603   ; JCALL 1,'FANCY-FORWARD
+
+==============================================================================
+FANCY-LEFT    [compiled]
+  tags: (define-function fancy-left
+  SUBR at 303032, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN FANCY-LEFT (ARG1)
+  |   (FANCY-RIGHT (MINUS ARG1)))
+  303032  256000,,121727  XCT 0,121727   ; CALL 1,'MINUS
+  303033  256000,,611474  XCT 0,611474   ; JCALL 1,'FANCY-RIGHT
+
+==============================================================================
+FANCY-PENUP    [compiled]
+  tags: (define-function fancy-penup
+  SUBR at 303034, args (NIL . 0)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-PENUP ()
+  |   (LET (V1)
+  |     (COND (*STARTED-FROM (SETQ *TRUE-PENSTATE NIL) (LOGO-PENUP *STARTED-FROM))
+  |       (T (SETQ *STARTED-FROM (SETQ V1 (HERE-WITHOUT-MOD)))
+  |         (SETQ *TRUE-PENSTATE NIL)
+  |         (LOGO-PENUP V1)))))
+  303034  332040,,071557  SKIPE A,(SPECIAL *STARTED-FROM)
+  303035  254000,,303040  JRST 0,PENUP+4
+  303036  256000,,611063  XCT 0,611063   ; PUSHJ P, HERE-WITHOUT-MOD (snapped link)
+  303037  202040,,071557  MOVEM A,(SPECIAL *STARTED-FROM)
+  303040  402000,,071553  SETZM 0,(SPECIAL *TRUE-PENSTATE)
+  303041  256000,,611361  XCT 0,611361   ; JRST LOGO-PENUP (snapped link)
+
+==============================================================================
+FANCY-PENDOWN    [compiled]
+  tags: (define-function fancy-pendown
+  SUBR at 303042, args (NIL . 0)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-PENDOWN ()
+  |   (LET (V1 V2 V3 V4 V5 V6 V7 V8 V9 V10 V11 V12 V13 V14)
+  |     (COND (*MAKING-DISPLAY-LIST (COND (*STARTED-FROM (COND ((EQUAL (SETQ V3 (HERE-WITHOUT-MOD))
+  |                                                               *STARTED-FROM)
+  |                                                             (COND (*MAKING-POSITION-LIST (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (SETQ V1
+  |                                                                                                          (FIX (+$ 0.5
+  |                                                                                                                 :XCOR)))
+  |                                                                                                    (SETQ V2
+  |                                                                                                      (FIX (+$ 0.5
+  |                                                                                                             :YCOR))))
+  |                                                                                              *POSITION-LIST))
+  |                                                                     (CONS (LIST V1 V2)
+  |                                                                       *POSITION-LIST))
+  |                                                               (T NIL)))
+  |                                                        (*MAKING-POSITION-LIST (SETQ *DISPLAY-LIST
+  |                                                                                 `((RUN-INVISIBLY . ,(RT-FD-RT *STARTED-FROM V3)) . ,*DISPLAY-LIST))
+  |                                                          (SETQ *NUMBER-OF-INVISIBLIES
+  |                                                            (PLUS *NUMBER-OF-INVISIBLIES 1))
+  |                                                          (SETQ *STARTED-FROM NIL)
+  |                                                          (SETQ *TRUE-PENSTATE 'T)
+  |                                                          (SETQ *POSITION-LIST
+  |                                                            (CONS (LIST (SETQ V4
+  |                                                                          (FIX (+$ 0.5 :XCOR)))
+  |                                                                    (SETQ V5
+  |                                                                      (FIX (+$ 0.5 :YCOR))))
+  |                                                              *POSITION-LIST))
+  |                                                          (CONS (LIST V4 V5) *POSITION-LIST))
+  |                                                        (T (SETQ *DISPLAY-LIST
+  |                                                             `((RUN-INVISIBLY . ,(RT-FD-RT *STARTED-FROM V3)) . ,*DISPLAY-LIST))
+  |                                                          (SETQ *NUMBER-OF-INVISIBLIES
+  |                                                            (PLUS *NUMBER-OF-INVISIBLIES 1))
+  |                                                          (SETQ *STARTED-FROM NIL)
+  |                                                          (SETQ *TRUE-PENSTATE 'T)
+  |                                                          NIL)))
+  |                                   (*MAKING-POSITION-LIST (SETQ *POSITION-LIST
+  |                                                            (CONS (LIST (SETQ V6
+  |                                                                          (FIX (+$ 0.5 :XCOR)))
+  |                                                                    (SETQ V7
+  |                                                                      (FIX (+$ 0.5 :YCOR))))
+  |                                                              *POSITION-LIST))
+  |                                     (CONS (LIST V6 V7) *POSITION-LIST))
+  |                                   (T NIL)))
+  |       (*MAKING-POSITION-LIST (COND (*STARTED-FROM (COND ((EQUAL (SETQ V10 (HERE-WITHOUT-MOD))
+  |                                                            *STARTED-FROM)
+  |                                                          (COND (*MAKING-POSITION-LIST (SETQ *POSITION-LIST
+  |                                                                                         (CONS (LIST (SETQ V8
+  |                                                                                                       (FIX (+$ 0.5
+  |                                                                                                              :XCOR)))
+  |                                                                                                 (SETQ V9
+  |                                                                                                   (FIX (+$ 0.5
+  |                                                                                                          :YCOR))))
+  |                                                                                           *POSITION-LIST))
+  |                                                                  (CONS (LIST V8 V9)
+  |                                                                    *POSITION-LIST))
+  |                                                            (T NIL)))
+  |                                                     (*MAKING-POSITION-LIST (SETQ *DISPLAY-LIST
+  |                                                                              `((RUN-INVISIBLY . ,(RT-FD-RT *STARTED-FROM V10)) . ,*DISPLAY-LIST))
+  |                                                       (SETQ *NUMBER-OF-INVISIBLIES
+  |                                                         (PLUS *NUMBER-OF-INVISIBLIES 1))
+  |                                                       (SETQ *STARTED-FROM NIL)
+  |                                                       (SETQ *TRUE-PENSTATE 'T)
+  |                                                       (SETQ *POSITION-LIST
+  |                                                         (CONS (LIST (SETQ V11
+  |                                                                       (FIX (+$ 0.5 :XCOR)))
+  |                                                                 (SETQ V12 (FIX (+$ 0.5 :YCOR))))
+  |                                                           *POSITION-LIST))
+  |                                                       (CONS (LIST V11 V12) *POSITION-LIST))
+  |                                                     (T (SETQ *DISPLAY-LIST
+  |                                                          `((RUN-INVISIBLY . ,(RT-FD-RT *STARTED-FROM V10)) . ,*DISPLAY-LIST))
+  |                                                       (SETQ *NUMBER-OF-INVISIBLIES
+  |                                                         (PLUS *NUMBER-OF-INVISIBLIES 1))
+  |                                                       (SETQ *STARTED-FROM NIL)
+  |                                                       (SETQ *TRUE-PENSTATE 'T)
+  |                                                       NIL)))
+  |                                (*MAKING-POSITION-LIST (SETQ *POSITION-LIST
+  |                                                         (CONS (LIST (SETQ V13
+  |                                                                       (FIX (+$ 0.5 :XCOR)))
+  |                                                                 (SETQ V14 (FIX (+$ 0.5 :YCOR))))
+  |                                                           *POSITION-LIST))
+  |                                  (CONS (LIST V13 V14) *POSITION-LIST))
+  |                                (T NIL)))
+  |       (T (LOGO-PENDOWN *MAKING-DISPLAY-LIST *MAKING-POSITION-LIST)))))
+  303042  332040,,071700  SKIPE A,(SPECIAL *MAKING-DISPLAY-LIST)
+  303043  254000,,303046  JRST 0,PENDOWN+4
+  303044  336100,,071556  SKIPN B,(SPECIAL *MAKING-POSITION-LIST)
+  303045  254000,,303124  JRST 0,PENDOWN+62
+  303046  336100,,071557  SKIPN B,(SPECIAL *STARTED-FROM)
+  303047  254000,,303075  JRST 0,PENDOWN+33
+  303050  256000,,611063  XCT 0,611063   ; PUSHJ P, HERE-WITHOUT-MOD (snapped link)
+  303051  261600,,000001  PUSH P,A
+  303052  200100,,071557  MOVE B,(SPECIAL *STARTED-FROM)
+  303053  256000,,121662  XCT 0,121662   ; PUSHJ P, EQUAL (snapped link)
+  303054  326040,,303074  JUMPN A,PENDOWN+32
+  303055  200114,,000000  MOVE B,(P)
+  303056  200040,,071557  MOVE A,(SPECIAL *STARTED-FROM)
+  303057  256000,,611735  XCT 0,611735   ; CALL 2,'RT-FD-RT
+  303060  201100,,703627  MOVEI B,'RUN-INVISIBLY
+  303061  265300,,013746  JSP T,%XCONS
+  303062  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  303063  265300,,013747  JSP T,%CONS
+  303064  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  303065  200360,,071560  MOVE TT,@(SPECIAL *NUMBER-OF-INVISIBLIES)
+  303066  271340,,000001  ADDI TT,1
+  303067  265300,,013765  JSP T,FXCONS
+  303070  202040,,071560  MOVEM A,(SPECIAL *NUMBER-OF-INVISIBLIES)
+  303071  402000,,071557  SETZM 0,(SPECIAL *STARTED-FROM)
+  303072  201240,,075000  MOVEI AR2A,'T
+  303073  202240,,071553  MOVEM AR2A,(SPECIAL *TRUE-PENSTATE)
+  303074  274600,,012724  SUB P,R70+1
+  303075  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  303076  254000,,303122  JRST 0,PENDOWN+60
+  303077  205340,,200400  MOVSI TT,200400
+  303100  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  303101  261640,,000007  PUSH FLP,TT
+  303102  201055,,000000  MOVEI A,(FLP)
+  303103  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  303104  205340,,200400  MOVSI TT,200400
+  303105  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  303106  261600,,000001  PUSH P,A
+  303107  261640,,000007  PUSH FLP,TT
+  303110  201055,,000000  MOVEI A,(FLP)
+  303111  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  303112  265300,,011722  JSP T,%NCONS
+  303113  262600,,000002  POP P,B
+  303114  265300,,013746  JSP T,%XCONS
+  303115  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  303116  265300,,013747  JSP T,%CONS
+  303117  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  303120  274640,,012725  SUB FLP,R70+2
+  303121  254000,,303125  JRST 0,PENDOWN+63
+  303122  201040,,000000  MOVEI A,0
+  303123  254000,,303125  JRST 0,PENDOWN+63
+  303124  256000,,611323  XCT 0,611323   ; PUSHJ P, LOGO-PENDOWN (snapped link)
+  303125  263600,,000000  POPJ P,0
+
+==============================================================================
+MAKE-IT-LESS-THAN-180    [compiled]
+  tags: (define-function make-it-less-than-180
+  SUBR at 303126, args (NIL . 1)
+  DECOMPILATION: not available (FSBRI not modeled at 303132: FSBRI TT,211550)
+  303126  261600,,000001  PUSH P,A
+  303127  200341,,000000  MOVE TT,(A)
+  303130  317340,,303153  CAMG TT,MAKE-IT-LESS-THAN-180+25
+  303131  254000,,303140  JRST 0,MAKE-IT-LESS-THAN-180+12
+  303132  155340,,211550  FSBRI TT,211550
+  303133  261640,,000007  PUSH FLP,TT
+  303134  201055,,000000  MOVEI A,(FLP)
+  303135  256000,,611524  XCT 0,611524   ; CALL 1,'MAKE-IT-LESS-THAN-180
+  303136  274640,,012724  SUB FLP,R70+1
+  303137  254000,,303151  JRST 0,MAKE-IT-LESS-THAN-180+23
+  303140  311340,,303154  CAML TT,MAKE-IT-LESS-THAN-180+26
+  303141  254000,,303150  JRST 0,MAKE-IT-LESS-THAN-180+22
+  303142  145340,,211550  FADRI TT,211550
+  303143  261640,,000007  PUSH FLP,TT
+  303144  201055,,000000  MOVEI A,(FLP)
+  303145  256000,,611524  XCT 0,611524   ; CALL 1,'MAKE-IT-LESS-THAN-180
+  303146  274640,,012724  SUB FLP,R70+1
+  303147  254000,,303151  JRST 0,MAKE-IT-LESS-THAN-180+23
+  303150  265300,,015747  JSP T,PDLNMK
+  303151  274600,,012724  SUB P,R70+1
+  303152  263600,,000000  POPJ P,0
+  303153  210550,,000000  MOVN FREEAC,(D)
+  303154  567230,,000000  HLROS AR1,@(D)
+
+==============================================================================
+HERE-WITHOUT-MOD    [compiled]
+  tags: (define-function here-without-mod
+  SUBR at 303155, args (NIL . 0)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN HERE-WITHOUT-MOD ()
+  |   (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)) :HEADING))
+  303155  205340,,200400  MOVSI TT,200400
+  303156  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  303157  261640,,000007  PUSH FLP,TT
+  303160  201055,,000000  MOVEI A,(FLP)
+  303161  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  303162  205340,,200400  MOVSI TT,200400
+  303163  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  303164  261600,,000001  PUSH P,A
+  303165  261640,,000007  PUSH FLP,TT
+  303166  201055,,000000  MOVEI A,(FLP)
+  303167  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  303170  261600,,000001  PUSH P,A
+  303171  200040,,071701  MOVE A,(SPECIAL :HEADING)
+  303172  265300,,011722  JSP T,%NCONS
+  303173  262600,,000002  POP P,B
+  303174  265300,,013746  JSP T,%XCONS
+  303175  262600,,000002  POP P,B
+  303176  265300,,013746  JSP T,%XCONS
+  303177  274640,,012725  SUB FLP,R70+2
+  303200  263600,,000000  POPJ P,0
+
+==============================================================================
+INVISIBLY    [absent]
+  tags: (define-function invisibly
+
+==============================================================================
+RT-FD-RT    [compiled]
+  tags: (define-function rt-fd-rt
+  SUBR at 303213, args (NIL . 2)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN RT-FD-RT (ARG1 ARG2)
+  |   (LET (V1)
+  |     (SETTURTLE ARG1)
+  |     (BEARING ARG2)
+  |     (FLOAT #<value of BEARING>)
+  |     (RANGE ARG2)
+  |     (FLOAT #<value of RANGE>)
+  |     `((RIGHT ,(SETQ V1 (-$ #<TT> (CADDR ARG2)))) (FORWARD ,V1) (RIGHT ,(-$ 0.0 V1)))))
+  303213  261640,,012723  PUSH FLP,R70
+  303214  261640,,012723  PUSH FLP,R70
+  303215  261600,,000002  PUSH P,B
+  303216  256000,,611336  XCT 0,611336   ; PUSHJ P, SETTURTLE (snapped link)
+  303217  201300,,303224  MOVEI T,RT-FD-RT+11
+  303220  261600,,000006  PUSH P,T
+  303221  261614,,777777  PUSH P,-1(P)
+  303222  211300,,000001  MOVNI T,1
+  303223  256000,,121176  XCT 0,121176   ; JCALL 16,'BEARING lsubr-style
+  303224  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  303225  550434,,000000  HRRZ D,@(P)
+  303226  550410,,000000  HRRZ D,(D)
+  303227  554410,,000000  HLRZ D,(D)
+  303230  200410,,000000  MOVE D,(D)
+  303231  154340,,000010  FSBR TT,D
+  303232  202355,,777777  MOVEM TT,-1(FLP)
+  303233  201300,,303240  MOVEI T,RT-FD-RT+25
+  303234  261600,,000006  PUSH P,T
+  303235  261614,,777777  PUSH P,-1(P)
+  303236  211300,,000001  MOVNI T,1
+  303237  256000,,121442  XCT 0,121442   ; JCALL 16,'RANGE lsubr-style
+  303240  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  303241  201255,,777777  MOVEI AR2A,-1(FLP)
+  303242  202355,,000000  MOVEM TT,(FLP)
+  303243  201215,,000000  MOVEI AR1,(FLP)
+  303244  201045,,000000  MOVEI A,(AR2A)
+  303245  265300,,013736  JSP T,%PDLNC
+  303246  201100,,723436  MOVEI B,'RIGHT
+  303247  265300,,013746  JSP T,%XCONS
+  303250  250040,,000004  EXCH A,AR1
+  303251  265300,,013736  JSP T,%PDLNC
+  303252  201100,,667367  MOVEI B,'FORWARD
+  303253  265300,,013746  JSP T,%XCONS
+  303254  205340,,000000  MOVSI TT,0
+  303255  154345,,000000  FSBR TT,(AR2A)
+  303256  261600,,000001  PUSH P,A
+  303257  265300,,014002  JSP T,FLCONS
+  303260  265300,,011722  JSP T,%NCONS
+  303261  201100,,723436  MOVEI B,'RIGHT
+  303262  265300,,013746  JSP T,%XCONS
+  303263  265300,,011722  JSP T,%NCONS
+  303264  262600,,000002  POP P,B
+  303265  265300,,013746  JSP T,%XCONS
+  303266  201104,,000000  MOVEI B,(AR1)
+  303267  265300,,013746  JSP T,%XCONS
+  303270  274600,,012724  SUB P,R70+1
+  303271  274640,,012725  SUB FLP,R70+2
+  303272  263600,,000000  POPJ P,0
+
+==============================================================================
+MOVE-AND-BIND    [compiled]
+  tags: (define-function move-and-bind
+  SUBR at 303273, args (NIL . 3)
+  DECOMPILATION: not available (load from address 114032 at 303315: SKIPA A,'(NIL))
+  303273  261600,,000001  PUSH P,A
+  303274  261600,,000002  PUSH P,B
+  303275  261600,,000003  PUSH P,C
+  303276  336000,,000001  SKIPN 0,A
+  303277  334040,,114032  SKIPA A,'(NIL)
+  303300  550041,,000000  HRRZ A,(A)
+  303301  322040,,303310  JUMPE A,MOVE-AND-BIND+15
+  303302  336054,,777776  SKIPN A,-2(P)
+  303303  334040,,114032  SKIPA A,'(NIL)
+  303304  550041,,000000  HRRZ A,(A)
+  303305  336100,,000002  SKIPN B,B
+  303306  201100,,114032  MOVEI B,'(NIL)
+  303307  542042,,000000  HRRM A,(B)
+  303310  336000,,000003  SKIPN 0,C
+  303311  334140,,114032  SKIPA C,'(NIL)
+  303312  550143,,000000  HRRZ C,(C)
+  303313  322140,,303324  JUMPE C,MOVE-AND-BIND+31
+  303314  336054,,000000  SKIPN A,(P)
+  303315  334040,,114032  SKIPA A,'(NIL)
+  303316  550041,,000000  HRRZ A,(A)
+  303317  336114,,777776  SKIPN B,-2(P)
+  303320  201100,,114032  MOVEI B,'(NIL)
+  303321  542042,,000000  HRRM A,(B)
+  303322  201042,,000000  MOVEI A,(B)
+  303323  254000,,303325  JRST 0,MOVE-AND-BIND+32
+  303324  201040,,000000  MOVEI A,0
+  303325  274600,,012726  SUB P,R70+3
+  303326  263600,,000000  POPJ P,0
+
+==============================================================================
+MOVE-AND-BIND-TVRTLE-STUFF    [compiled]
+  tags: (define-function move-and-bind-tvrtle-stuff
+  SUBR at 303327, args (NIL . 1)
+  DECOMPILATION: not available (loop at 303333: SKIPN 0,(P))
+  303327  261600,,000001  PUSH P,A
+  303330  265300,,015747  JSP T,PDLNMK
+  303331  261600,,000001  PUSH P,A
+  303332  261600,,000001  PUSH P,A
+  303333  336014,,000000  SKIPN 0,(P)
+  303334  254000,,303372  JRST 0,MOVE-AND-BIND-TVRTLE-STUFF+43
+  303335  554074,,000000  HLRZ A,@(P)
+  303336  261600,,000001  PUSH P,A
+  303337  201240,,075000  MOVEI AR2A,'T
+  303340  265300,,011543  JSP T,SPECBIND
+  303341  000240,,071104  240,,(SPECIAL *NOPOINT)
+  303342  256000,,121210  XCT 0,121210   ; PUSHJ P, #EXPLODE (snapped link)
+  303343  201101,,000000  MOVEI B,(A)
+  303344  201040,,661145  MOVEI A,'(L O G O -)
+  303345  256000,,121670  XCT 0,121670   ; PUSHJ P, *APPEND (snapped link)
+  303346  256000,,121750  XCT 0,121750   ; PUSHJ P, 17051 (snapped link)
+  303347  260600,,011651  PUSHJ P,UNBIND
+  303350  261600,,000001  PUSH P,A
+  303351  201240,,075000  MOVEI AR2A,'T
+  303352  265300,,011543  JSP T,SPECBIND
+  303353  000240,,071104  240,,(SPECIAL *NOPOINT)
+  303354  200054,,777777  MOVE A,-1(P)
+  303355  256000,,121210  XCT 0,121210   ; PUSHJ P, #EXPLODE (snapped link)
+  303356  201101,,000000  MOVEI B,(A)
+  303357  201040,,661040  MOVEI A,'(F A N C Y -)
+  303360  256000,,121670  XCT 0,121670   ; PUSHJ P, *APPEND (snapped link)
+  303361  256000,,121750  XCT 0,121750   ; PUSHJ P, 17051 (snapped link)
+  303362  260600,,011651  PUSHJ P,UNBIND
+  303363  201141,,000000  MOVEI C,(A)
+  303364  262600,,000002  POP P,B
+  303365  262600,,000001  POP P,A
+  303366  256000,,611623  XCT 0,611623   ; PUSHJ P, MOVE-AND-BIND (snapped link)
+  303367  550074,,000000  HRRZ A,@(P)
+  303370  202054,,000000  MOVEM A,(P)
+  303371  254000,,303333  JRST 0,MOVE-AND-BIND-TVRTLE-STUFF+4
+  303372  274600,,012724  SUB P,R70+1
+  303373  262600,,000001  POP P,A
+  303374  274600,,012724  SUB P,R70+1
+  303375  263600,,000000  POPJ P,0
+
+==============================================================================
+UNFANCIFY    [compiled]
+  tags: (define-function unfancify
+  SUBR at 303376, args (NIL . 0)
+  DECOMPILATION: not available (loop at 303402: SKIPN 0,(P))
+  303376  201240,,656725  MOVEI AR2A,'(FD FORWARD BK BACK RIGHT RT LT LEFT PENUP PU PENDOWN PD DELX DELY DELXY SETX SETY SETXY SETTURTLE SETHEADING)
+  303377  202240,,071563  MOVEM AR2A,(SPECIAL *MOVABLE-TVRTLE-FUNCTIONS)
+  303400  261600,,000005  PUSH P,AR2A
+  303401  261600,,000005  PUSH P,AR2A
+  303402  336014,,000000  SKIPN 0,(P)
+  303403  254000,,303442  JRST 0,UNFANCIFY+44
+  303404  554074,,000000  HLRZ A,@(P)
+  303405  261600,,000001  PUSH P,A
+  303406  201240,,075000  MOVEI AR2A,'T
+  303407  265300,,011543  JSP T,SPECBIND
+  303410  000240,,071104  240,,(SPECIAL *NOPOINT)
+  303411  256000,,121210  XCT 0,121210   ; PUSHJ P, #EXPLODE (snapped link)
+  303412  201101,,000000  MOVEI B,(A)
+  303413  201040,,661145  MOVEI A,'(L O G O -)
+  303414  256000,,121670  XCT 0,121670   ; PUSHJ P, *APPEND (snapped link)
+  303415  256000,,121750  XCT 0,121750   ; PUSHJ P, 17051 (snapped link)
+  303416  260600,,011651  PUSHJ P,UNBIND
+  303417  261600,,000001  PUSH P,A
+  303420  201240,,075000  MOVEI AR2A,'T
+  303421  265300,,011543  JSP T,SPECBIND
+  303422  000240,,071104  240,,(SPECIAL *NOPOINT)
+  303423  200054,,777777  MOVE A,-1(P)
+  303424  256000,,121210  XCT 0,121210   ; PUSHJ P, #EXPLODE (snapped link)
+  303425  201101,,000000  MOVEI B,(A)
+  303426  201040,,661145  MOVEI A,'(L O G O -)
+  303427  256000,,121670  XCT 0,121670   ; PUSHJ P, *APPEND (snapped link)
+  303430  256000,,121750  XCT 0,121750   ; PUSHJ P, 17051 (snapped link)
+  303431  260600,,011651  PUSHJ P,UNBIND
+  303432  201141,,000000  MOVEI C,(A)
+  303433  200114,,777777  MOVE B,-1(P)
+  303434  262600,,000001  POP P,A
+  303435  256000,,611623  XCT 0,611623   ; PUSHJ P, MOVE-AND-BIND (snapped link)
+  303436  274600,,012724  SUB P,R70+1
+  303437  550074,,000000  HRRZ A,@(P)
+  303440  202054,,000000  MOVEM A,(P)
+  303441  254000,,303402  JRST 0,UNFANCIFY+4
+  303442  274600,,012724  SUB P,R70+1
+  303443  262600,,000001  POP P,A
+  303444  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCIFY    [compiled]
+  tags: (define-function fancify
+  SUBR at 303445, args (NIL . 0)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCIFY ()
+  |   (COND ((#21230 '(FEATURES TVRTLE))
+  |          (MOVE-AND-BIND-TVRTLE-STUFF *MOVABLE-TVRTLE-FUNCTIONS)
+  |          (SETQ *MOVABLE-TVRTLE-FUNCTIONS NIL)
+  |          NIL)
+  |     (T (CLEARSCREEN)
+  |       (MOVE-AND-BIND-TVRTLE-STUFF *MOVABLE-TVRTLE-FUNCTIONS)
+  |       (SETQ *MOVABLE-TVRTLE-FUNCTIONS NIL)
+  |       NIL)))
+  303445  201040,,670322  MOVEI A,'(FEATURES TVRTLE)
+  303446  256000,,121052  XCT 0,121052   ; PUSHJ P, 21230 (snapped link)
+  303447  326040,,303451  JUMPN A,FANCIFY+4
+  303450  256000,,121651  XCT 0,121651   ; PUSHJ P, CLEARSCREEN (snapped link)
+  303451  200040,,071563  MOVE A,(SPECIAL *MOVABLE-TVRTLE-FUNCTIONS)
+  303452  256000,,611517  XCT 0,611517   ; PUSHJ P, MOVE-AND-BIND-TVRTLE-STUFF (snapped link)
+  303453  403040,,071563  SETZB A,(SPECIAL *MOVABLE-TVRTLE-FUNCTIONS)
+  303454  263600,,000000  POPJ P,0
+
+==============================================================================
+DIRECTOR-STARTDISPLAY    [compiled]
+  tags: (define-function director-startdisplay
+  SUBR at 300224, args (NIL . 0)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN DIRECTOR-STARTDISPLAY ()
+  |   (LET (V1 V2 V3 V4 V5 V6)
+  |     (COND ((#21230 '(FEATURES COLOR))
+  |            (COND ((SETQ V2 (EXISTS? 'STAGE))
+  |                   (COND ((SETQ V1 (GET 'STAGE 'ACTOR))
+  |                          (STARTDISPLAY)
+  |                          (SETQ :OUTLINE NIL)
+  |                          (WRAP)
+  |                          (HIDETURTLE)
+  |                          (FANCIFY)
+  |                          ;; binds special *MESSAGE to '(WIPE)
+  |                          (CASES V1))
+  |                     (T (STARTDISPLAY)
+  |                       (SETQ :OUTLINE NIL)
+  |                       (WRAP)
+  |                       (HIDETURTLE)
+  |                       (FANCIFY)
+  |                       ;; binds special *MESSAGE to '(WIPE)
+  |                       (CASES (ACTOR-AUTOLOAD 'STAGE NIL)))))
+  |              (T (STARTDISPLAY) (SETQ :OUTLINE NIL) (WRAP) (HIDETURTLE) (FANCIFY) V2)))
+  |       ((#21230 '(FEATURES LISPM))
+  |        (COND ((SETQ V4 (EXISTS? 'STAGE))
+  |               (COND ((SETQ V3 (GET 'STAGE 'ACTOR))
+  |                      (STARTDISPLAY)
+  |                      (SETQ :OUTLINE NIL)
+  |                      (WRAP)
+  |                      (HIDETURTLE)
+  |                      (FANCIFY)
+  |                      ;; binds special *MESSAGE to '(WIPE)
+  |                      (CASES V3))
+  |                 (T (STARTDISPLAY)
+  |                   (SETQ :OUTLINE NIL)
+  |                   (WRAP)
+  |                   (HIDETURTLE)
+  |                   (FANCIFY)
+  |                   ;; binds special *MESSAGE to '(WIPE)
+  |                   (CASES (ACTOR-AUTOLOAD 'STAGE NIL)))))
+  |          (T (STARTDISPLAY) (SETQ :OUTLINE NIL) (WRAP) (HIDETURTLE) (FANCIFY) V4)))
+  |       ((EQ *TVRTLE-FILE-NAME *COLOR-TVRTLE-FILE-NAME)
+  |        (COND ((SETQ V6 (EXISTS? 'STAGE))
+  |               (COND ((SETQ V5 (GET 'STAGE 'ACTOR))
+  |                      (STARTDISPLAY)
+  |                      (SETQ :OUTLINE NIL)
+  |                      (WRAP)
+  |                      (HIDETURTLE)
+  |                      (FANCIFY)
+  |                      ;; binds special *MESSAGE to '(WIPE)
+  |                      (CASES V5))
+  |                 (T (STARTDISPLAY)
+  |                   (SETQ :OUTLINE NIL)
+  |                   (WRAP)
+  |                   (HIDETURTLE)
+  |                   (FANCIFY)
+  |                   ;; binds special *MESSAGE to '(WIPE)
+  |                   (CASES (ACTOR-AUTOLOAD 'STAGE NIL)))))
+  |          (T (STARTDISPLAY) (SETQ :OUTLINE NIL) (WRAP) (HIDETURTLE) (FANCIFY) V6)))
+  |       (T (STARTDISPLAY) (SETQ :OUTLINE NIL) (WRAP) (HIDETURTLE) (TVSIZE *TVRTLE-FILE-NAME)))))
+  300224  256000,,611331  XCT 0,611331   ; CALL 0,'STARTDISPLAY
+  300225  402000,,071552  SETZM 0,(SPECIAL :OUTLINE)
+  300226  256000,,611673  XCT 0,611673   ; PUSHJ P, WRAP (snapped link)
+  300227  256000,,611124  XCT 0,611124   ; PUSHJ P, HIDETURTLE (snapped link)
+  300230  201040,,650343  MOVEI A,'(FEATURES COLOR)
+  300231  256000,,121052  XCT 0,121052   ; PUSHJ P, 21230 (snapped link)
+  300232  326040,,300247  JUMPN A,DIRECTOR-STARTDISPLAY+23
+  300233  201040,,650247  MOVEI A,'(FEATURES LISPM)
+  300234  256000,,121052  XCT 0,121052   ; PUSHJ P, 21230 (snapped link)
+  300235  326040,,300247  JUMPN A,DIRECTOR-STARTDISPLAY+23
+  300236  200040,,071436  MOVE A,(SPECIAL *TVRTLE-FILE-NAME)
+  300237  316040,,071440  CAMN A,(SPECIAL *COLOR-TVRTLE-FILE-NAME)
+  300240  254000,,300247  JRST 0,DIRECTOR-STARTDISPLAY+23
+  300241  201300,,300247  MOVEI T,DIRECTOR-STARTDISPLAY+23
+  300242  261600,,000006  PUSH P,T
+  300243  261600,,300270  PUSH P,DIRECTOR-STARTDISPLAY+44
+  300244  261600,,300271  PUSH P,DIRECTOR-STARTDISPLAY+45
+  300245  211300,,000002  MOVNI T,2
+  300246  256000,,121316  XCT 0,121316   ; JRST TVSIZE (snapped link)
+  300247  256000,,611055  XCT 0,611055   ; PUSHJ P, FANCIFY (snapped link)
+  300250  201040,,703514  MOVEI A,'STAGE
+  300251  256000,,121411  XCT 0,121411   ; PUSHJ P, EXISTS? (snapped link)
+  300252  322040,,300267  JUMPE A,DIRECTOR-STARTDISPLAY+43
+  300253  201240,,627752  MOVEI AR2A,'(WIPE)
+  300254  265300,,011543  JSP T,SPECBIND
+  300255  000240,,071444  240,,(SPECIAL *MESSAGE)
+  300256  201100,,076753  MOVEI B,'ACTOR
+  300257  201040,,703514  MOVEI A,'STAGE
+  300260  256000,,121436  XCT 0,121436   ; PUSHJ P, GET (snapped link)
+  300261  326040,,300265  JUMPN A,DIRECTOR-STARTDISPLAY+41
+  300262  201100,,000000  MOVEI B,0
+  300263  201040,,703514  MOVEI A,'STAGE
+  300264  256000,,121336  XCT 0,121336   ; PUSHJ P, ACTOR-AUTOLOAD (snapped link)
+  300265  256000,,121563  XCT 0,121563   ; PUSHJ P, CASES (snapped link)
+  300266  260600,,011651  PUSHJ P,UNBIND
+  300267  263600,,000000  POPJ P,0
+  300270  000000,,540671  0,,'#540671
+  300271  000000,,106304  0,,'200
+
+==============================================================================
+DSD    [autoload only]
+  tags: (define-synonym dsd
+  property EXPR: DIRECTOR-STARTDISPLAY
+  AUTOLOAD from |DIRECT;TUTIL| (code not in the image)
+
+==============================================================================
+DLIST    [absent]    (added by 1980)
+  tags: (defcomment dlist)
+
+==============================================================================
+DISPLAY-LIST    [compiled]    (added by 1980)
+  tags: (define-function display-list
+  SUBR at 300370, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN DISPLAY-LIST (ARG1)
+  |   ;; binds special *TRUE-PENSTATE to 'T
+  |   ;; binds special *MAKING-DISPLAY-LIST to 'T
+  |   ;; binds special *DISPLAY-LIST to NIL
+  |   ;; binds special *MAKING-POSITION-LIST to NIL
+  |   ;; binds special *STARTED-FROM to NIL
+  |   ;; binds special *NUMBER-OF-INVISIBLIES to 0
+  |   (ERD)
+  |   (HOME)
+  |   (#37221 ARG1)
+  |   (THINGDOWN)
+  |   *DISPLAY-LIST)
+  300370  261600,,000001  PUSH P,A
+  300371  201240,,105774  MOVEI AR2A,IN0
+  300372  201200,,075000  MOVEI AR1,'T
+  300373  265300,,011543  JSP T,SPECBIND
+  300374  000200,,071553  200,,(SPECIAL *TRUE-PENSTATE)
+  300375  000200,,071700  200,,(SPECIAL *MAKING-DISPLAY-LIST)
+  300376  000000,,071554  0,,(SPECIAL *DISPLAY-LIST)
+  300377  000000,,071556  0,,(SPECIAL *MAKING-POSITION-LIST)
+  300400  000000,,071557  0,,(SPECIAL *STARTED-FROM)
+  300401  000240,,071560  240,,(SPECIAL *NUMBER-OF-INVISIBLIES)
+  300402  256000,,121034  XCT 0,121034   ; CALL 0,'ERD
+  300403  256000,,611426  XCT 0,611426   ; CALL 0,'HOME
+  300404  262600,,000001  POP P,A
+  300405  256000,,121247  XCT 0,121247   ; PUSHJ P, 37221 (snapped link)
+  300406  256000,,121656  XCT 0,121656   ; CALL 0,'THINGDOWN
+  300407  200040,,071554  MOVE A,(SPECIAL *DISPLAY-LIST)
+  300410  254000,,011651  JRST 0,UNBIND
+
+==============================================================================
+SQUARE    [macro]    (added by 1980)
+  tags: (defmacro square
+  MACRO expander |SQUARE MACRO| at 301047
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN SQUARE MACRO (FORM)
+  |   (COND ((= (LENGTH FORM) 2) `(LET ((X ,(CADR FORM))) (* X X)))
+  |     (T (ERROR '|Wrong number args to a macro call| FORM) `(LET ((X ,(CADR FORM))) (* X X)))))
+  301047  261600,,000001  PUSH P,A
+  301050  256000,,121104  XCT 0,121104   ; PUSHJ P, LENGTH (snapped link)
+  301051  306340,,000002  CAIN TT,2
+  301052  254000,,301061  JRST 0,|SQUARE MACRO|+12
+  301053  201300,,301061  MOVEI T,|SQUARE MACRO|+12
+  301054  261600,,000006  PUSH P,T
+  301055  261600,,301076  PUSH P,|SQUARE MACRO|+27
+  301056  261614,,777776  PUSH P,-2(P)
+  301057  211300,,000002  MOVNI T,2
+  301060  256000,,121516  XCT 0,121516   ; JCALL 16,'ERROR lsubr-style
+  301061  550074,,000000  HRRZ A,@(P)
+  301062  554101,,000000  HLRZ B,(A)
+  301063  250040,,000002  EXCH A,B
+  301064  265300,,011722  JSP T,%NCONS
+  301065  201100,,076653  MOVEI B,'X
+  301066  265300,,013746  JSP T,%XCONS
+  301067  265300,,011722  JSP T,%NCONS
+  301070  201100,,641527  MOVEI B,'((* X X))
+  301071  265300,,013747  JSP T,%CONS
+  301072  201100,,075652  MOVEI B,'LET
+  301073  265300,,013746  JSP T,%XCONS
+  301074  274600,,012724  SUB P,R70+1
+  301075  263600,,000000  POPJ P,0
+  301076  000000,,076764  0,,'|Wrong number args to a macro call|
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+COMPUTE-EXTREME-AND-CENTER    [compiled]    (added by 1980)
+  tags: (define-form (compute-extreme-and-center points)
+  SUBR at 301077, args (NIL . 1)
+  DECOMPILATION: not available (JSP T,13100 not modeled at 301102: JSP T,13100)
+  301077  261600,,000001  PUSH P,A
+  301100  256000,,611563  XCT 0,611563   ; CALL 1,'PUT-EXTREME-POINTS-FIRST
+  301101  261600,,000001  PUSH P,A
+  301102  265300,,013100  JSP T,13100
+  301103  332014,,777774  SKIPE 0,-4(P)
+  301104  254000,,301133  JRST 0,COMPUTE-EXTREME-AND-CENTER+34
+  301105  332014,,777776  SKIPE 0,-2(P)
+  301106  254000,,301121  JRST 0,COMPUTE-EXTREME-AND-CENTER+22
+  301107  200054,,777775  MOVE A,-3(P)
+  301110  256000,,611151  XCT 0,611151   ; CALL 1,'CIRCLE-PASSING-THROUGH
+  301111  554101,,000000  HLRZ B,(A)
+  301112  550141,,000000  HRRZ C,(A)
+  301113  554203,,000000  HLRZ AR1,(C)
+  301114  550243,,000000  HRRZ AR2A,(C)
+  301115  554045,,000000  HLRZ A,(AR2A)
+  301116  202054,,000000  MOVEM A,(P)
+  301117  202114,,777776  MOVEM B,-2(P)
+  301120  202214,,777777  MOVEM AR1,-1(P)
+  301121  200054,,777776  MOVE A,-2(P)
+  301122  256000,,611740  XCT 0,611740   ; CALL 1,'SQRT
+  301123  261600,,000001  PUSH P,A
+  301124  200054,,777777  MOVE A,-1(P)
+  301125  265300,,011722  JSP T,%NCONS
+  301126  200114,,777776  MOVE B,-2(P)
+  301127  265300,,013746  JSP T,%XCONS
+  301130  262600,,000002  POP P,B
+  301131  265300,,013746  JSP T,%XCONS
+  301132  254000,,301263  JRST 0,COMPUTE-EXTREME-AND-CENTER+164
+  301133  554074,,777774  HLRZ A,@-4(P)
+  301134  261600,,000001  PUSH P,A
+  301135  200114,,777774  MOVE B,-4(P)
+  301136  256000,,121660  XCT 0,121660   ; PUSHJ P, MEMBER (snapped link)
+  301137  326040,,301257  JUMPN A,COMPUTE-EXTREME-AND-CENTER+160
+  301140  550074,,777774  HRRZ A,@-4(P)
+  301141  550041,,000000  HRRZ A,(A)
+  301142  336000,,000001  SKIPN 0,A
+  301143  201040,,075000  MOVEI A,'T
+  301144  242040,,777767  LSH A,-11
+  301145  550041,,004000  HRRZ A,4000(A)
+  301146  302040,,075051  CAIE A,'LIST
+  301147  254000,,301154  JRST 0,COMPUTE-EXTREME-AND-CENTER+55
+  301150  550134,,777774  HRRZ B,@-4(P)
+  301151  550102,,000000  HRRZ B,(B)
+  301152  550102,,000000  HRRZ B,(B)
+  301153  322100,,301161  JUMPE B,COMPUTE-EXTREME-AND-CENTER+62
+  301154  200114,,777774  MOVE B,-4(P)
+  301155  200054,,000000  MOVE A,(P)
+  301156  265300,,013747  JSP T,%CONS
+  301157  202054,,777774  MOVEM A,-4(P)
+  301160  254000,,301257  JRST 0,COMPUTE-EXTREME-AND-CENTER+160
+  301161  332014,,777775  SKIPE 0,-3(P)
+  301162  254000,,301175  JRST 0,COMPUTE-EXTREME-AND-CENTER+76
+  301163  200054,,777774  MOVE A,-4(P)
+  301164  256000,,611151  XCT 0,611151   ; CALL 1,'CIRCLE-PASSING-THROUGH
+  301165  554101,,000000  HLRZ B,(A)
+  301166  550141,,000000  HRRZ C,(A)
+  301167  554203,,000000  HLRZ AR1,(C)
+  301170  550243,,000000  HRRZ AR2A,(C)
+  301171  554045,,000000  HLRZ A,(AR2A)
+  301172  202054,,777777  MOVEM A,-1(P)
+  301173  202114,,777775  MOVEM B,-3(P)
+  301174  202214,,777776  MOVEM AR1,-2(P)
+  301175  265300,,013112  JSP T,13112
+  301176  261614,,000000  PUSH P,(P)
+  301177  554074,,000000  HLRZ A,@(P)
+  301200  550134,,000000  HRRZ B,@(P)
+  301201  554142,,000000  HLRZ C,(B)
+  301202  261600,,000001  PUSH P,A
+  301203  261600,,000003  PUSH P,C
+  301204  200374,,777773  MOVE TT,@-5(P)
+  301205  274341,,000000  SUB TT,(A)
+  301206  202356,,000000  MOVEM TT,(FXP)
+  301207  201256,,000000  MOVEI AR2A,(FXP)
+  301210  200345,,000000  MOVE TT,(AR2A)
+  301211  220340,,000007  IMUL TT,TT
+  301212  200434,,777774  MOVE D,@-4(P)
+  301213  274403,,000000  SUB D,(C)
+  301214  202416,,777777  MOVEM D,-1(FXP)
+  301215  201216,,777777  MOVEI AR1,-1(FXP)
+  301216  200404,,000000  MOVE D,(AR1)
+  301217  220400,,000010  IMUL D,D
+  301220  270340,,000010  ADD TT,D
+  301221  202356,,777776  MOVEM TT,-2(FXP)
+  301222  201256,,777776  MOVEI AR2A,-2(FXP)
+  301223  261600,,000005  PUSH P,AR2A
+  301224  200345,,000000  MOVE TT,(AR2A)
+  301225  315374,,777771  CAMGE TT,@-7(P)
+  301226  254000,,301255  JRST 0,COMPUTE-EXTREME-AND-CENTER+156
+  301227  312374,,777771  CAME TT,@-7(P)
+  301230  254000,,301236  JRST 0,COMPUTE-EXTREME-AND-CENTER+137
+  301231  200114,,777770  MOVE B,-10(P)
+  301232  200054,,777774  MOVE A,-4(P)
+  301233  265300,,013747  JSP T,%CONS
+  301234  202054,,777770  MOVEM A,-10(P)
+  301235  254000,,301255  JRST 0,COMPUTE-EXTREME-AND-CENTER+156
+  301236  200114,,777770  MOVE B,-10(P)
+  301237  200054,,777774  MOVE A,-4(P)
+  301240  256000,,611225  XCT 0,611225   ; CALL 2,'TWO-POINTS-FURTHEST-FROM
+  301241  200114,,777774  MOVE B,-4(P)
+  301242  265300,,013746  JSP T,%XCONS
+  301243  202054,,777770  MOVEM A,-10(P)
+  301244  256000,,611151  XCT 0,611151   ; CALL 1,'CIRCLE-PASSING-THROUGH
+  301245  554101,,000000  HLRZ B,(A)
+  301246  550141,,000000  HRRZ C,(A)
+  301247  554203,,000000  HLRZ AR1,(C)
+  301250  550243,,000000  HRRZ AR2A,(C)
+  301251  554045,,000000  HLRZ A,(AR2A)
+  301252  202054,,777773  MOVEM A,-5(P)
+  301253  202114,,777771  MOVEM B,-7(P)
+  301254  202214,,777772  MOVEM AR1,-6(P)
+  301255  274600,,012727  SUB P,R70+4
+  301256  274700,,012726  SUB FXP,R70+3
+  301257  274600,,012724  SUB P,R70+1
+  301260  550074,,777774  HRRZ A,@-4(P)
+  301261  202054,,777774  MOVEM A,-4(P)
+  301262  254000,,301103  JRST 0,COMPUTE-EXTREME-AND-CENTER+4
+  301263  274600,,012731  SUB P,R70+6
+  301264  263600,,000000  POPJ P,0
+
+==============================================================================
+PUT-EXTREME-POINTS-FIRST    [compiled]    (added by 1980)
+  tags: (define-form (put-extreme-points-first points)
+  SUBR at 301265, args (NIL . 1)
+  DECOMPILATION: not available (CAMG not modeled at 301333: CAMG TT,@-15(P))
+  301265  201101,,000000  MOVEI B,(A)
+  301266  554041,,000000  HLRZ A,(A)
+  301267  554141,,000000  HLRZ C,(A)
+  301270  550201,,000000  HRRZ AR1,(A)
+  301271  554244,,000000  HLRZ AR2A,(AR1)
+  301272  550202,,000000  HRRZ AR1,(B)
+  301273  554042,,000000  HLRZ A,(B)
+  301274  261600,,000003  PUSH P,C
+  301275  261600,,000001  PUSH P,A
+  301276  261600,,000005  PUSH P,AR2A
+  301277  261600,,000001  PUSH P,A
+  301300  261600,,000003  PUSH P,C
+  301301  261600,,000001  PUSH P,A
+  301302  261600,,000005  PUSH P,AR2A
+  301303  261600,,000001  PUSH P,A
+  301304  261600,,000002  PUSH P,B
+  301305  261600,,000004  PUSH P,AR1
+  301306  332014,,000000  SKIPE 0,(P)
+  301307  254000,,301322  JRST 0,PUT-EXTREME-POINTS-FIRST+35
+  301310  200114,,777777  MOVE B,-1(P)
+  301311  200054,,777776  MOVE A,-2(P)
+  301312  265300,,013760  JSP T,%C2NS
+  301313  200114,,777774  MOVE B,-4(P)
+  301314  265300,,013746  JSP T,%XCONS
+  301315  200114,,777772  MOVE B,-6(P)
+  301316  265300,,013746  JSP T,%XCONS
+  301317  200114,,777770  MOVE B,-10(P)
+  301320  265300,,013746  JSP T,%XCONS
+  301321  254000,,301363  JRST 0,PUT-EXTREME-POINTS-FIRST+76
+  301322  554074,,000000  HLRZ A,@(P)
+  301323  261600,,000001  PUSH P,A
+  301324  554134,,000000  HLRZ B,@(P)
+  301325  550174,,000000  HRRZ C,@(P)
+  301326  554203,,000000  HLRZ AR1,(C)
+  301327  261600,,000001  PUSH P,A
+  301330  261600,,000002  PUSH P,B
+  301331  261600,,000004  PUSH P,AR1
+  301332  200342,,000000  MOVE TT,(B)
+  301333  317374,,777763  CAMG TT,@-15(P)
+  301334  254000,,301340  JRST 0,PUT-EXTREME-POINTS-FIRST+53
+  301335  202054,,777764  MOVEM A,-14(P)
+  301336  202114,,777763  MOVEM B,-15(P)
+  301337  254000,,301357  JRST 0,PUT-EXTREME-POINTS-FIRST+72
+  301340  311374,,777767  CAML TT,@-11(P)
+  301341  254000,,301345  JRST 0,PUT-EXTREME-POINTS-FIRST+60
+  301342  202054,,777770  MOVEM A,-10(P)
+  301343  202114,,777767  MOVEM B,-11(P)
+  301344  254000,,301357  JRST 0,PUT-EXTREME-POINTS-FIRST+72
+  301345  200344,,000000  MOVE TT,(AR1)
+  301346  317374,,777765  CAMG TT,@-13(P)
+  301347  254000,,301353  JRST 0,PUT-EXTREME-POINTS-FIRST+66
+  301350  202054,,777766  MOVEM A,-12(P)
+  301351  202214,,777765  MOVEM AR1,-13(P)
+  301352  254000,,301357  JRST 0,PUT-EXTREME-POINTS-FIRST+72
+  301353  311374,,777771  CAML TT,@-7(P)
+  301354  254000,,301357  JRST 0,PUT-EXTREME-POINTS-FIRST+72
+  301355  202054,,777772  MOVEM A,-6(P)
+  301356  202214,,777771  MOVEM AR1,-7(P)
+  301357  274600,,012727  SUB P,R70+4
+  301360  550074,,000000  HRRZ A,@(P)
+  301361  202054,,000000  MOVEM A,(P)
+  301362  254000,,301306  JRST 0,PUT-EXTREME-POINTS-FIRST+21
+  301363  274600,,012735  SUB P,R70+12
+  301364  263600,,000000  POPJ P,0
+
+==============================================================================
+TWO-POINTS-FURTHEST-FROM    [compiled]    (added by 1980)
+  tags: (define-form (two-points-furthest-from point points)
+  SUBR at 301365, args (NIL . 2)
+  DECOMPILATION: not available (JSP T,13112 not modeled at 301426: JSP T,13112)
+  301365  261600,,000001  PUSH P,A
+  301366  261600,,000002  PUSH P,B
+  301367  201042,,000000  MOVEI A,(B)
+  301370  265300,,015747  JSP T,PDLNMK
+  301371  201141,,000000  MOVEI C,(A)
+  301372  554234,,777777  HLRZ AR1,@-1(P)
+  301373  550074,,777777  HRRZ A,@-1(P)
+  301374  554041,,000000  HLRZ A,(A)
+  301375  261600,,301520  PUSH P,TWO-POINTS-FURTHEST-FROM+133
+  301376  261600,,301521  PUSH P,TWO-POINTS-FURTHEST-FROM+134
+  301377  261600,,012723  PUSH P,R70
+  301400  261600,,012723  PUSH P,R70
+  301401  261600,,000001  PUSH P,A
+  301402  261600,,000003  PUSH P,C
+  301403  261600,,000004  PUSH P,AR1
+  301404  332014,,777777  SKIPE 0,-1(P)
+  301405  254000,,301426  JRST 0,TWO-POINTS-FURTHEST-FROM+41
+  301406  336054,,777775  SKIPN A,-3(P)
+  301407  201040,,075000  MOVEI A,'T
+  301410  242040,,777767  LSH A,-11
+  301411  550041,,004000  HRRZ A,4000(A)
+  301412  302040,,075051  CAIE A,'LIST
+  301413  254000,,301424  JRST 0,TWO-POINTS-FURTHEST-FROM+37
+  301414  550134,,777775  HRRZ B,@-3(P)
+  301415  326100,,301424  JUMPN B,TWO-POINTS-FURTHEST-FROM+37
+  301416  336014,,777774  SKIPN 0,-4(P)
+  301417  254000,,301424  JRST 0,TWO-POINTS-FURTHEST-FROM+37
+  301420  200114,,777775  MOVE B,-3(P)
+  301421  200054,,777774  MOVE A,-4(P)
+  301422  265300,,013747  JSP T,%CONS
+  301423  254000,,301425  JRST 0,TWO-POINTS-FURTHEST-FROM+40
+  301424  200054,,777775  MOVE A,-3(P)
+  301425  254000,,301516  JRST 0,TWO-POINTS-FURTHEST-FROM+131
+  301426  265300,,013112  JSP T,13112
+  301427  554074,,777777  HLRZ A,@-1(P)
+  301430  554101,,000000  HLRZ B,(A)
+  301431  550141,,000000  HRRZ C,(A)
+  301432  554203,,000000  HLRZ AR1,(C)
+  301433  261600,,000002  PUSH P,B
+  301434  261600,,000004  PUSH P,AR1
+  301435  200374,,777776  MOVE TT,@-2(P)
+  301436  274342,,000000  SUB TT,(B)
+  301437  202356,,000000  MOVEM TT,(FXP)
+  301440  201256,,000000  MOVEI AR2A,(FXP)
+  301441  200345,,000000  MOVE TT,(AR2A)
+  301442  220340,,000007  IMUL TT,TT
+  301443  200434,,777774  MOVE D,@-4(P)
+  301444  274404,,000000  SUB D,(AR1)
+  301445  202416,,777777  MOVEM D,-1(FXP)
+  301446  201256,,777777  MOVEI AR2A,-1(FXP)
+  301447  200405,,000000  MOVE D,(AR2A)
+  301450  220400,,000010  IMUL D,D
+  301451  270340,,000010  ADD TT,D
+  301452  202356,,777776  MOVEM TT,-2(FXP)
+  301453  201256,,777776  MOVEI AR2A,-2(FXP)
+  301454  261600,,000005  PUSH P,AR2A
+  301455  200345,,000000  MOVE TT,(AR2A)
+  301456  312374,,777767  CAME TT,@-11(P)
+  301457  254000,,301465  JRST 0,TWO-POINTS-FURTHEST-FROM+100
+  301460  200114,,777772  MOVE B,-6(P)
+  301461  554074,,777774  HLRZ A,@-4(P)
+  301462  256000,,121530  XCT 0,121530   ; PUSHJ P, CONS-IF-NOT-MEMBER (snapped link)
+  301463  202054,,777772  MOVEM A,-6(P)
+  301464  254000,,301511  JRST 0,TWO-POINTS-FURTHEST-FROM+124
+  301465  317374,,777767  CAMG TT,@-11(P)
+  301466  254000,,301502  JRST 0,TWO-POINTS-FURTHEST-FROM+115
+  301467  200254,,777767  MOVE AR2A,-11(P)
+  301470  554074,,777772  HLRZ A,@-6(P)
+  301471  202054,,777771  MOVEM A,-7(P)
+  301472  200054,,000000  MOVE A,(P)
+  301473  265300,,015747  JSP T,PDLNMK
+  301474  202054,,777767  MOVEM A,-11(P)
+  301475  554074,,777774  HLRZ A,@-4(P)
+  301476  265300,,011722  JSP T,%NCONS
+  301477  202054,,777772  MOVEM A,-6(P)
+  301500  202254,,777770  MOVEM AR2A,-10(P)
+  301501  254000,,301511  JRST 0,TWO-POINTS-FURTHEST-FROM+124
+  301502  317374,,777770  CAMG TT,@-10(P)
+  301503  254000,,301511  JRST 0,TWO-POINTS-FURTHEST-FROM+124
+  301504  201045,,000000  MOVEI A,(AR2A)
+  301505  265300,,015747  JSP T,PDLNMK
+  301506  554134,,777774  HLRZ B,@-4(P)
+  301507  202054,,777770  MOVEM A,-10(P)
+  301510  202114,,777771  MOVEM B,-7(P)
+  301511  274600,,012726  SUB P,R70+3
+  301512  274700,,012726  SUB FXP,R70+3
+  301513  550074,,777777  HRRZ A,@-1(P)
+  301514  202054,,777777  MOVEM A,-1(P)
+  301515  254000,,301404  JRST 0,TWO-POINTS-FURTHEST-FROM+17
+  301516  274600,,012734  SUB P,R70+11
+  301517  263600,,000000  POPJ P,0
+  301520  000000,,105774  0,,IN0
+  301521  000000,,105774  0,,IN0
+
+==============================================================================
+CIRCLE-PASSING-THROUGH    [compiled]    (added by 1980)
+  tags: (define-form (circle-passing-through points)
+  SUBR at 301522, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN CIRCLE-PASSING-THROUGH (ARG1)
+  |   (COND (*SHOW-MINIMUM-CIRCLES (SETXY (CADR (CIRCLE-PASSING-THROUGH-1 ARG1))
+  |                                  (CADDR (CIRCLE-PASSING-THROUGH-1 ARG1)))
+  |           (SQRT (CAR (CIRCLE-PASSING-THROUGH-1 ARG1)))
+  |           (CIRCLE (SQRT (CAR (CIRCLE-PASSING-THROUGH-1 ARG1))))
+  |           (SETXY :XCOR :YCOR)
+  |           (CIRCLE-PASSING-THROUGH-1 ARG1))
+  |     (T (CIRCLE-PASSING-THROUGH-1 ARG1))))
+  301522  261600,,000001  PUSH P,A
+  301523  336100,,071562  SKIPN B,(SPECIAL *SHOW-MINIMUM-CIRCLES)
+  301524  254000,,301560  JRST 0,CIRCLE-PASSING-THROUGH+36
+  301525  256000,,611560  XCT 0,611560   ; CALL 1,'CIRCLE-PASSING-THROUGH-1
+  301526  261600,,000001  PUSH P,A
+  301527  554101,,000000  HLRZ B,(A)
+  301530  550141,,000000  HRRZ C,(A)
+  301531  554203,,000000  HLRZ AR1,(C)
+  301532  550243,,000000  HRRZ AR2A,(C)
+  301533  554045,,000000  HLRZ A,(AR2A)
+  301534  261600,,000001  PUSH P,A
+  301535  261600,,000002  PUSH P,B
+  301536  261600,,000004  PUSH P,AR1
+  301537  261600,,071703  PUSH P,(SPECIAL :XCOR)
+  301540  261600,,071702  PUSH P,(SPECIAL :YCOR)
+  301541  250100,,000001  EXCH B,A
+  301542  250040,,000004  EXCH A,AR1
+  301543  256000,,611006  XCT 0,611006   ; CALL 2,'SETXY
+  301544  200054,,777775  MOVE A,-3(P)
+  301545  256000,,611117  XCT 0,611117   ; NCALL 1,'SQRT
+  301546  261640,,000007  PUSH FLP,TT
+  301547  201055,,000000  MOVEI A,(FLP)
+  301550  256000,,611267  XCT 0,611267   ; CALL 1,'CIRCLE
+  301551  262600,,000002  POP P,B
+  301552  262600,,000001  POP P,A
+  301553  256000,,611006  XCT 0,611006   ; CALL 2,'SETXY
+  301554  200054,,777775  MOVE A,-3(P)
+  301555  274640,,012724  SUB FLP,R70+1
+  301556  274600,,012727  SUB P,R70+4
+  301557  254000,,301561  JRST 0,CIRCLE-PASSING-THROUGH+37
+  301560  256000,,611560  XCT 0,611560   ; CALL 1,'CIRCLE-PASSING-THROUGH-1
+  301561  274600,,012724  SUB P,R70+1
+  301562  263600,,000000  POPJ P,0
+
+==============================================================================
+CIRCLE-PASSING-THROUGH-1    [compiled]    (added by 1980)
+  tags: (define-form (circle-passing-through-1 points)
+  SUBR at 301563, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN CIRCLE-PASSING-THROUGH-1 (ARG1)
+  |   (COND ((CADDR ARG1)
+  |          (COND (#<value of TWO-POINT-CIRCLE-WITHOUT>
+  |                 (TWO-POINT-CIRCLE-WITHOUT (CAADDR ARG1)
+  |                   (CADADR (CDR ARG1))
+  |                   (CAAR ARG1)
+  |                   (CADAR ARG1)
+  |                   (CAADR ARG1)
+  |                   (CADADR ARG1)))
+  |            (#<value of TWO-POINT-CIRCLE-WITHOUT>
+  |             (TWO-POINT-CIRCLE-WITHOUT (CAADDR ARG1)
+  |               (CADADR (CDR ARG1))
+  |               (CAAR ARG1)
+  |               (CADAR ARG1)
+  |               (CAADR ARG1)
+  |               (CADADR ARG1))
+  |             (TWO-POINT-CIRCLE-WITHOUT (CAADR ARG1)
+  |               (CADADR ARG1)
+  |               (CAADDR ARG1)
+  |               (CADADR (CDR ARG1))
+  |               (CAAR ARG1)
+  |               (CADAR ARG1)))
+  |            (#<value of TWO-POINT-CIRCLE-WITHOUT>
+  |             (TWO-POINT-CIRCLE-WITHOUT (CAADDR ARG1)
+  |               (CADADR (CDR ARG1))
+  |               (CAAR ARG1)
+  |               (CADAR ARG1)
+  |               (CAADR ARG1)
+  |               (CADADR ARG1))
+  |             (TWO-POINT-CIRCLE-WITHOUT (CAADR ARG1)
+  |               (CADADR ARG1)
+  |               (CAADDR ARG1)
+  |               (CADADR (CDR ARG1))
+  |               (CAAR ARG1)
+  |               (CADAR ARG1))
+  |             (TWO-POINT-CIRCLE-WITHOUT (CAAR ARG1)
+  |               (CADAR ARG1)
+  |               (CAADDR ARG1)
+  |               (CADADR (CDR ARG1))
+  |               (CAADR ARG1)
+  |               (CADADR ARG1)))
+  |            (T (TWO-POINT-CIRCLE-WITHOUT (CAADDR ARG1)
+  |                 (CADADR (CDR ARG1))
+  |                 (CAAR ARG1)
+  |                 (CADAR ARG1)
+  |                 (CAADR ARG1)
+  |                 (CADADR ARG1))
+  |              (TWO-POINT-CIRCLE-WITHOUT (CAADR ARG1)
+  |                (CADADR ARG1)
+  |                (CAADDR ARG1)
+  |                (CADADR (CDR ARG1))
+  |                (CAAR ARG1)
+  |                (CADAR ARG1))
+  |              (TWO-POINT-CIRCLE-WITHOUT (CAAR ARG1)
+  |                (CADAR ARG1)
+  |                (CAADDR ARG1)
+  |                (CADADR (CDR ARG1))
+  |                (CAADR ARG1)
+  |                (CADADR ARG1))
+  |              (THREE-POINT-CIRCLE (CAAR ARG1)
+  |                (CADAR ARG1)
+  |                (CAADR ARG1)
+  |                (CADADR ARG1)
+  |                (CAADDR ARG1)
+  |                (CADADR (CDR ARG1))))))
+  |     (T (TWO-POINT-CIRCLE (CAAR ARG1) (CADAR ARG1) (CAADR ARG1) (CADADR ARG1)))))
+  301563  261600,,000001  PUSH P,A
+  301564  265300,,015747  JSP T,PDLNMK
+  301565  554101,,000000  HLRZ B,(A)
+  301566  554142,,000000  HLRZ C,(B)
+  301567  550202,,000000  HRRZ AR1,(B)
+  301570  554244,,000000  HLRZ AR2A,(AR1)
+  301571  550101,,000000  HRRZ B,(A)
+  301572  554042,,000000  HLRZ A,(B)
+  301573  554201,,000000  HLRZ AR1,(A)
+  301574  261600,,000001  PUSH P,A
+  301575  550041,,000000  HRRZ A,(A)
+  301576  202054,,000000  MOVEM A,(P)
+  301577  554041,,000000  HLRZ A,(A)
+  301600  261600,,000001  PUSH P,A
+  301601  550042,,000000  HRRZ A,(B)
+  301602  554101,,000000  HLRZ B,(A)
+  301603  261600,,000002  PUSH P,B
+  301604  261600,,000003  PUSH P,C
+  301605  261600,,000004  PUSH P,AR1
+  301606  261600,,000005  PUSH P,AR2A
+  301607  326100,,301616  JUMPN B,CIRCLE-PASSING-THROUGH-1+33
+  301610  200214,,777774  MOVE AR1,-4(P)
+  301611  200154,,777777  MOVE C,-1(P)
+  301612  250100,,000005  EXCH B,AR2A
+  301613  200054,,777776  MOVE A,-2(P)
+  301614  256000,,611324  XCT 0,611324   ; CALL 4,'TWO-POINT-CIRCLE
+  301615  254000,,301677  JRST 0,CIRCLE-PASSING-THROUGH-1+114
+  301616  554042,,000000  HLRZ A,(B)
+  301617  550142,,000000  HRRZ C,(B)
+  301620  554103,,000000  HLRZ B,(C)
+  301621  261600,,000001  PUSH P,A
+  301622  261600,,000002  PUSH P,B
+  301623  201300,,301635  MOVEI T,CIRCLE-PASSING-THROUGH-1+52
+  301624  261600,,000006  PUSH P,T
+  301625  261600,,000001  PUSH P,A
+  301626  261600,,000002  PUSH P,B
+  301627  261614,,777771  PUSH P,-7(P)
+  301630  261600,,000005  PUSH P,AR2A
+  301631  261600,,000004  PUSH P,AR1
+  301632  261614,,777764  PUSH P,-14(P)
+  301633  211300,,000006  MOVNI T,6
+  301634  256000,,611102  XCT 0,611102   ; JCALL 16,'TWO-POINT-CIRCLE-WITHOUT lsubr-style
+  301635  326040,,301676  JUMPN A,CIRCLE-PASSING-THROUGH-1+113
+  301636  201300,,301650  MOVEI T,CIRCLE-PASSING-THROUGH-1+65
+  301637  261600,,000006  PUSH P,T
+  301640  261614,,777774  PUSH P,-4(P)
+  301641  261614,,777770  PUSH P,-10(P)
+  301642  261614,,777774  PUSH P,-4(P)
+  301643  261614,,777774  PUSH P,-4(P)
+  301644  261614,,777767  PUSH P,-11(P)
+  301645  261614,,777770  PUSH P,-10(P)
+  301646  211300,,000006  MOVNI T,6
+  301647  256000,,611102  XCT 0,611102   ; JCALL 16,'TWO-POINT-CIRCLE-WITHOUT lsubr-style
+  301650  326040,,301676  JUMPN A,CIRCLE-PASSING-THROUGH-1+113
+  301651  201300,,301663  MOVEI T,CIRCLE-PASSING-THROUGH-1+100
+  301652  261600,,000006  PUSH P,T
+  301653  261614,,777773  PUSH P,-5(P)
+  301654  261614,,777774  PUSH P,-4(P)
+  301655  261614,,777774  PUSH P,-4(P)
+  301656  261614,,777774  PUSH P,-4(P)
+  301657  261614,,777770  PUSH P,-10(P)
+  301660  261614,,777764  PUSH P,-14(P)
+  301661  211300,,000006  MOVNI T,6
+  301662  256000,,611102  XCT 0,611102   ; JCALL 16,'TWO-POINT-CIRCLE-WITHOUT lsubr-style
+  301663  326040,,301676  JUMPN A,CIRCLE-PASSING-THROUGH-1+113
+  301664  201300,,301676  MOVEI T,CIRCLE-PASSING-THROUGH-1+113
+  301665  261600,,000006  PUSH P,T
+  301666  261614,,777773  PUSH P,-5(P)
+  301667  261614,,777774  PUSH P,-4(P)
+  301670  261614,,777772  PUSH P,-6(P)
+  301671  261614,,777766  PUSH P,-12(P)
+  301672  261614,,777772  PUSH P,-6(P)
+  301673  261614,,777772  PUSH P,-6(P)
+  301674  211300,,000006  MOVNI T,6
+  301675  256000,,611100  XCT 0,611100   ; JCALL 16,'THREE-POINT-CIRCLE lsubr-style
+  301676  274600,,012725  SUB P,R70+2
+  301677  274600,,012732  SUB P,R70+7
+  301700  263600,,000000  POPJ P,0
+
+==============================================================================
+TWO-POINT-CIRCLE-WITHOUT    [compiled]    (added by 1980)
+  tags: (define-form (two-point-circle-without skip-x skip-y x1 y1 x2 y2)
+  LSUBR at 301701, args (6 . 6)
+  DECOMPILATION: not attempted (lsubr entry)
+  301701  262600,,000004  POP P,AR1
+  301702  262600,,000003  POP P,C
+  301703  262600,,000002  POP P,B
+  301704  262600,,000001  POP P,A
+  301705  256000,,611324  XCT 0,611324   ; CALL 4,'TWO-POINT-CIRCLE
+  301706  265300,,013112  JSP T,13112
+  301707  261600,,000001  PUSH P,A
+  301710  554134,,000000  HLRZ B,@(P)
+  301711  550174,,000000  HRRZ C,@(P)
+  301712  554203,,000000  HLRZ AR1,(C)
+  301713  550243,,000000  HRRZ AR2A,(C)
+  301714  554145,,000000  HLRZ C,(AR2A)
+  301715  261600,,000001  PUSH P,A
+  301716  261600,,000002  PUSH P,B
+  301717  261600,,000003  PUSH P,C
+  301720  200374,,777773  MOVE TT,@-5(P)
+  301721  274344,,000000  SUB TT,(AR1)
+  301722  202356,,000000  MOVEM TT,(FXP)
+  301723  201256,,000000  MOVEI AR2A,(FXP)
+  301724  200345,,000000  MOVE TT,(AR2A)
+  301725  220340,,000007  IMUL TT,TT
+  301726  200434,,777774  MOVE D,@-4(P)
+  301727  274403,,000000  SUB D,(C)
+  301730  202416,,777777  MOVEM D,-1(FXP)
+  301731  201256,,777777  MOVEI AR2A,-1(FXP)
+  301732  200405,,000000  MOVE D,(AR2A)
+  301733  220400,,000010  IMUL D,D
+  301734  270340,,000010  ADD TT,D
+  301735  202356,,777776  MOVEM TT,-2(FXP)
+  301736  201256,,777776  MOVEI AR2A,-2(FXP)
+  301737  261600,,000005  PUSH P,AR2A
+  301740  200345,,000000  MOVE TT,(AR2A)
+  301741  313342,,000000  CAMLE TT,(B)
+  301742  254000,,301744  JRST 0,TWO-POINT-CIRCLE-WITHOUT+43
+  301743  334000,,000000  SKIPA 0,0
+  301744  201040,,000000  MOVEI A,0
+  301745  274700,,012726  SUB FXP,R70+3
+  301746  274600,,012732  SUB P,R70+7
+  301747  263600,,000000  POPJ P,0
+
+==============================================================================
+TWO-POINT-CIRCLE    [compiled]    (added by 1980)
+  tags: (define-form (two-point-circle x1 y1 x2 y2)
+  SUBR at 301750, args (NIL . 4)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN TWO-POINT-CIRCLE (ARG1 ARG2 ARG3 ARG4)
+  |   (LET (V1 V2)
+  |     (LIST (QUOTIENT (PLUS (TIMES (SETQ V1 (DIFFERENCE ARG1 ARG3)) V1)
+  |                       (TIMES (SETQ V2 (DIFFERENCE ARG2 ARG4)) V2))
+  |             4)
+  |       (QUOTIENT (PLUS ARG1 ARG3) 2)
+  |       (QUOTIENT (PLUS ARG2 ARG4) 2))))
+  301750  261700,,012723  PUSH FXP,R70
+  301751  261700,,012723  PUSH FXP,R70
+  301752  261600,,000001  PUSH P,A
+  301753  261600,,000002  PUSH P,B
+  301754  261600,,000003  PUSH P,C
+  301755  261600,,000004  PUSH P,AR1
+  301756  200341,,000000  MOVE TT,(A)
+  301757  274343,,000000  SUB TT,(C)
+  301760  202356,,000000  MOVEM TT,(FXP)
+  301761  201256,,000000  MOVEI AR2A,(FXP)
+  301762  200345,,000000  MOVE TT,(AR2A)
+  301763  220340,,000007  IMUL TT,TT
+  301764  200402,,000000  MOVE D,(B)
+  301765  274404,,000000  SUB D,(AR1)
+  301766  202416,,777777  MOVEM D,-1(FXP)
+  301767  201256,,777777  MOVEI AR2A,-1(FXP)
+  301770  200405,,000000  MOVE D,(AR2A)
+  301771  220400,,000010  IMUL D,D
+  301772  270340,,000010  ADD TT,D
+  301773  231340,,000004  IDIVI TT,4
+  301774  200401,,000000  MOVE D,(A)
+  301775  270403,,000000  ADD D,(C)
+  301776  231400,,000002  IDIVI D,2
+  301777  200442,,000000  MOVE R,(B)
+  302000  270444,,000000  ADD R,(AR1)
+  302001  261700,,000007  PUSH FXP,TT
+  302002  261700,,000010  PUSH FXP,D
+  302003  261700,,000011  PUSH FXP,R
+  302004  200340,,000011  MOVE TT,R
+  302005  231340,,000002  IDIVI TT,2
+  302006  265300,,013765  JSP T,FXCONS
+  302007  265300,,011722  JSP T,%NCONS
+  302010  201116,,777777  MOVEI B,-1(FXP)
+  302011  265300,,013737  JSP T,%PDLXC
+  302012  201116,,777776  MOVEI B,-2(FXP)
+  302013  265300,,013737  JSP T,%PDLXC
+  302014  274600,,012727  SUB P,R70+4
+  302015  274700,,012730  SUB FXP,R70+5
+  302016  263600,,000000  POPJ P,0
+
+==============================================================================
+THREE-POINT-CIRCLE    [compiled]    (added by 1980)
+  tags: (define-form (three-point-circle x1 y1 x2 y2 x3 y3)
+  LSUBR at 302017, args (6 . 6)
+  DECOMPILATION: not attempted (lsubr entry)
+  302017  200214,,777776  MOVE AR1,-2(P)
+  302020  200154,,777775  MOVE C,-3(P)
+  302021  200114,,777774  MOVE B,-4(P)
+  302022  200054,,777773  MOVE A,-5(P)
+  302023  256000,,611252  XCT 0,611252   ; CALL 4,'PERPENDICULAR-BISECTOR
+  302024  261600,,000001  PUSH P,A
+  302025  200214,,777777  MOVE AR1,-1(P)
+  302026  200154,,777776  MOVE C,-2(P)
+  302027  200114,,777773  MOVE B,-5(P)
+  302030  200054,,777772  MOVE A,-6(P)
+  302031  256000,,611252  XCT 0,611252   ; CALL 4,'PERPENDICULAR-BISECTOR
+  302032  261600,,000001  PUSH P,A
+  302033  261700,,012723  PUSH FXP,R70
+  302034  261700,,012723  PUSH FXP,R70
+  302035  201101,,000000  MOVEI B,(A)
+  302036  200054,,777777  MOVE A,-1(P)
+  302037  256000,,611217  XCT 0,611217   ; CALL 2,'LINE-INTERSECTION
+  302040  554101,,000000  HLRZ B,(A)
+  302041  550141,,000000  HRRZ C,(A)
+  302042  554203,,000000  HLRZ AR1,(C)
+  302043  261600,,000002  PUSH P,B
+  302044  261600,,000004  PUSH P,AR1
+  302045  200342,,000000  MOVE TT,(B)
+  302046  274374,,777767  SUB TT,@-11(P)
+  302047  202356,,000000  MOVEM TT,(FXP)
+  302050  201256,,000000  MOVEI AR2A,(FXP)
+  302051  200345,,000000  MOVE TT,(AR2A)
+  302052  220340,,000007  IMUL TT,TT
+  302053  200404,,000000  MOVE D,(AR1)
+  302054  274434,,777770  SUB D,@-10(P)
+  302055  202416,,777777  MOVEM D,-1(FXP)
+  302056  201256,,777777  MOVEI AR2A,-1(FXP)
+  302057  200405,,000000  MOVE D,(AR2A)
+  302060  220400,,000010  IMUL D,D
+  302061  270340,,000010  ADD TT,D
+  302062  250040,,000004  EXCH A,AR1
+  302063  261700,,000007  PUSH FXP,TT
+  302064  265300,,011722  JSP T,%NCONS
+  302065  200114,,777777  MOVE B,-1(P)
+  302066  265300,,013746  JSP T,%XCONS
+  302067  201116,,000000  MOVEI B,(FXP)
+  302070  265300,,013737  JSP T,%PDLXC
+  302071  274700,,012726  SUB FXP,R70+3
+  302072  274600,,012735  SUB P,R70+12
+  302073  263600,,000000  POPJ P,0
+
+==============================================================================
+LINE-INTERSECTION    [compiled]    (added by 1980)
+  tags: (define-form (line-intersection line1 line2)
+  SUBR at 302074, args (NIL . 2)
+  DECOMPILATION: not available (FADRI not modeled at 302125: FADRI TT,200400)
+  302074  265300,,015747  JSP T,PDLNMK
+  302075  554141,,000000  HLRZ C,(A)
+  302076  550201,,000000  HRRZ AR1,(A)
+  302077  554244,,000000  HLRZ AR2A,(AR1)
+  302100  261640,,012723  PUSH FLP,R70
+  302101  201042,,000000  MOVEI A,(B)
+  302102  265300,,015747  JSP T,PDLNMK
+  302103  554101,,000000  HLRZ B,(A)
+  302104  550201,,000000  HRRZ AR1,(A)
+  302105  554044,,000000  HLRZ A,(AR1)
+  302106  200341,,000000  MOVE TT,(A)
+  302107  154345,,000000  FSBR TT,(AR2A)
+  302110  200403,,000000  MOVE D,(C)
+  302111  154402,,000000  FSBR D,(B)
+  302112  174340,,000010  FDVR TT,D
+  302113  202355,,000000  MOVEM TT,(FLP)
+  302114  201215,,000000  MOVEI AR1,(FLP)
+  302115  205340,,200400  MOVSI TT,200400
+  302116  144344,,000000  FADR TT,(AR1)
+  302117  261640,,000007  PUSH FLP,TT
+  302120  201055,,000000  MOVEI A,(FLP)
+  302121  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302122  200343,,000000  MOVE TT,(C)
+  302123  164344,,000000  FMPR TT,(AR1)
+  302124  144345,,000000  FADR TT,(AR2A)
+  302125  145340,,200400  FADRI TT,200400
+  302126  261600,,000001  PUSH P,A
+  302127  261640,,000007  PUSH FLP,TT
+  302130  201055,,000000  MOVEI A,(FLP)
+  302131  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302132  265300,,011722  JSP T,%NCONS
+  302133  262600,,000002  POP P,B
+  302134  265300,,013746  JSP T,%XCONS
+  302135  274640,,012726  SUB FLP,R70+3
+  302136  263600,,000000  POPJ P,0
+
+==============================================================================
+PERPENDICULAR-BISECTOR    [compiled]    (added by 1980)
+  tags: (define-form (perpendicular-bisector x1 y1 x2 y2)
+  SUBR at 302137, args (NIL . 4)
+  DECOMPILATION: not available (JSP T,IFLOAT not modeled at 302146: JSP T,IFLOAT)
+  302137  261600,,000001  PUSH P,A
+  302140  261600,,000002  PUSH P,B
+  302141  261600,,000003  PUSH P,C
+  302142  261600,,000004  PUSH P,AR1
+  302143  261700,,012723  PUSH FXP,R70
+  302144  200342,,000000  MOVE TT,(B)
+  302145  274344,,000000  SUB TT,(AR1)
+  302146  265300,,012755  JSP T,IFLOAT
+  302147  200401,,000000  MOVE D,(A)
+  302150  274403,,000000  SUB D,(C)
+  302151  261640,,000007  PUSH FLP,TT
+  302152  200340,,000010  MOVE TT,D
+  302153  265300,,012755  JSP T,IFLOAT
+  302154  201140,,117626  MOVEI C,'1.570795
+  302155  261640,,000007  PUSH FLP,TT
+  302156  201115,,000000  MOVEI B,(FLP)
+  302157  201055,,777777  MOVEI A,-1(FLP)
+  302160  256000,,611654  XCT 0,611654   ; CALL 3,'ROTATE-SLOPE
+  302161  261700,,012723  PUSH FXP,R70
+  302162  200374,,777775  MOVE TT,@-3(P)
+  302163  270374,,777777  ADD TT,@-1(P)
+  302164  231340,,000002  IDIVI TT,2
+  302165  202356,,777777  MOVEM TT,-1(FXP)
+  302166  201256,,777777  MOVEI AR2A,-1(FXP)
+  302167  200374,,777776  MOVE TT,@-2(P)
+  302170  270374,,000000  ADD TT,@(P)
+  302171  231340,,000002  IDIVI TT,2
+  302172  202356,,000000  MOVEM TT,(FXP)
+  302173  201216,,000000  MOVEI AR1,(FXP)
+  302174  250040,,000004  EXCH A,AR1
+  302175  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  302176  201045,,000000  MOVEI A,(AR2A)
+  302177  261640,,000007  PUSH FLP,TT
+  302200  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  302201  164344,,000000  FMPR TT,(AR1)
+  302202  262640,,000010  POP FLP,D
+  302203  154400,,000007  FSBR D,TT
+  302204  200340,,000010  MOVE TT,D
+  302205  265300,,014002  JSP T,FLCONS
+  302206  265300,,011722  JSP T,%NCONS
+  302207  201104,,000000  MOVEI B,(AR1)
+  302210  265300,,013746  JSP T,%XCONS
+  302211  274700,,012725  SUB FXP,R70+2
+  302212  274640,,012725  SUB FLP,R70+2
+  302213  274600,,012727  SUB P,R70+4
+  302214  263600,,000000  POPJ P,0
+
+==============================================================================
+TAN    [compiled]    (added by 1980)
+  tags: (define-form (tan x)
+  SUBR at 302215, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN TAN (ARG1)
+  |   (|////$| (#75325 ARG1) (COS ARG1)))
+  302215  261600,,000001  PUSH P,A
+  302216  256000,,611144  XCT 0,611144   ; NCALL 1,'#75325
+  302217  262600,,000001  POP P,A
+  302220  261640,,000007  PUSH FLP,TT
+  302221  256000,,611750  XCT 0,611750   ; NCALL 1,'COS
+  302222  262640,,000010  POP FLP,D
+  302223  174400,,000007  FDVR D,TT
+  302224  200340,,000010  MOVE TT,D
+  302225  265300,,014002  JSP T,FLCONS
+  302226  263600,,000000  POPJ P,0
+
+==============================================================================
+ROTATE-SLOPE    [compiled]    (added by 1980)
+  tags: (define-form (rotate-slope x y radians)
+  SUBR at 302227, args (NIL . 3)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN ROTATE-SLOPE (ARG1 ARG2 ARG3)
+  |   (TAN (+$ (ATAN ARG1 ARG2) ARG3)))
+  302227  256000,,611640  XCT 0,611640   ; NCALL 2,'ATAN
+  302230  144343,,000000  FADR TT,(C)
+  302231  261640,,000007  PUSH FLP,TT
+  302232  201055,,000000  MOVEI A,(FLP)
+  302233  256000,,611552  XCT 0,611552   ; CALL 1,'TAN
+  302234  274640,,012724  SUB FLP,R70+1
+  302235  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-FD    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-fd
+  property EXPR: FANCY-FORWARD
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+FANCY-BK    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-bk
+  property EXPR: FANCY-BACK
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+FANCY-DELX    [compiled]    (added by 1980)
+  tags: (define-function fancy-delx
+  SUBR at 302316, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-DELX (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                                          (SETQ *DISPLAY-LIST
+  |                                                                                            `((DELX ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                          (LOGO-DELX (*$ #<TT>
+  |                                                                                                       *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (FLOAT ARG1)
+  |                                                                                      (SETQ *DISPLAY-LIST
+  |                                                                                        `((DELX ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                      (LOGO-DELX (*$ #<TT>
+  |                                                                                                   *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (FLOAT ARG1)
+  |                                                         (SETQ *DISPLAY-LIST
+  |                                                           `((DELX ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                         (LOGO-DELX (*$ #<TT>
+  |                                                                      *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                (LOGO-DELX (*$ #<TT>
+  |                                                                             *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (FLOAT ARG1)
+  |                                                            (LOGO-DELX (*$ #<TT>
+  |                                                                         *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                            NO-VALUE)))
+  |                                 (T (FLOAT ARG1)
+  |                                   (LOGO-DELX (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                   NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                    (LOGO-DELX (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (FLOAT ARG1)
+  |                                (LOGO-DELX (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                NO-VALUE)))
+  |     (T (FLOAT ARG1) (LOGO-DELX (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) NO-VALUE)))
+  302316  261640,,012723  PUSH FLP,R70
+  302317  261600,,000001  PUSH P,A
+  302320  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  302321  164360,,071673  FMPR TT,@(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  302322  202355,,000000  MOVEM TT,(FLP)
+  302323  201255,,000000  MOVEI AR2A,(FLP)
+  302324  261600,,000005  PUSH P,AR2A
+  302325  336040,,071700  SKIPN A,(SPECIAL *MAKING-DISPLAY-LIST)
+  302326  254000,,302340  JRST 0,DELX+22
+  302327  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302330  254000,,302340  JRST 0,DELX+22
+  302331  250040,,000005  EXCH A,AR2A
+  302332  265300,,013736  JSP T,%PDLNC
+  302333  201100,,703447  MOVEI B,'DELX
+  302334  265300,,013746  JSP T,%XCONS
+  302335  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302336  265300,,013747  JSP T,%CONS
+  302337  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302340  262600,,000001  POP P,A
+  302341  256000,,611657  XCT 0,611657   ; CALL 1,'LOGO-DELX
+  302342  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302343  254000,,302370  JRST 0,DELX+52
+  302344  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302345  254000,,302370  JRST 0,DELX+52
+  302346  205340,,200400  MOVSI TT,200400
+  302347  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302350  261640,,000007  PUSH FLP,TT
+  302351  201055,,000000  MOVEI A,(FLP)
+  302352  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302353  205340,,200400  MOVSI TT,200400
+  302354  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302355  261600,,000001  PUSH P,A
+  302356  261640,,000007  PUSH FLP,TT
+  302357  201055,,000000  MOVEI A,(FLP)
+  302360  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302361  265300,,011722  JSP T,%NCONS
+  302362  262600,,000002  POP P,B
+  302363  265300,,013746  JSP T,%XCONS
+  302364  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302365  265300,,013747  JSP T,%CONS
+  302366  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302367  274640,,012725  SUB FLP,R70+2
+  302370  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302371  274600,,012724  SUB P,R70+1
+  302372  274640,,012724  SUB FLP,R70+1
+  302373  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-DELY    [compiled]    (added by 1980)
+  tags: (define-function fancy-dely
+  SUBR at 302374, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-DELY (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                                          (SETQ *DISPLAY-LIST
+  |                                                                                            `((DELY ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                          (LOGO-DELY (*$ #<TT>
+  |                                                                                                       *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (FLOAT ARG1)
+  |                                                                                      (SETQ *DISPLAY-LIST
+  |                                                                                        `((DELY ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                                                      (LOGO-DELY (*$ #<TT>
+  |                                                                                                   *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (FLOAT ARG1)
+  |                                                         (SETQ *DISPLAY-LIST
+  |                                                           `((DELY ,(*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) . ,*DISPLAY-LIST))
+  |                                                         (LOGO-DELY (*$ #<TT>
+  |                                                                      *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                                                (LOGO-DELY (*$ #<TT>
+  |                                                                             *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (FLOAT ARG1)
+  |                                                            (LOGO-DELY (*$ #<TT>
+  |                                                                         *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                                            NO-VALUE)))
+  |                                 (T (FLOAT ARG1)
+  |                                   (LOGO-DELY (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                   NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (FLOAT ARG1)
+  |                                    (LOGO-DELY (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (FLOAT ARG1)
+  |                                (LOGO-DELY (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR))
+  |                                NO-VALUE)))
+  |     (T (FLOAT ARG1) (LOGO-DELY (*$ #<TT> *DIRECTOR-TURTLE-SCALING-FACTOR)) NO-VALUE)))
+  302374  261640,,012723  PUSH FLP,R70
+  302375  261600,,000001  PUSH P,A
+  302376  256000,,121112  XCT 0,121112   ; PUSHJ P, FLOAT (snapped link)
+  302377  164360,,071673  FMPR TT,@(SPECIAL *DIRECTOR-TURTLE-SCALING-FACTOR)
+  302400  202355,,000000  MOVEM TT,(FLP)
+  302401  201255,,000000  MOVEI AR2A,(FLP)
+  302402  261600,,000005  PUSH P,AR2A
+  302403  336040,,071700  SKIPN A,(SPECIAL *MAKING-DISPLAY-LIST)
+  302404  254000,,302416  JRST 0,DELY+22
+  302405  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302406  254000,,302416  JRST 0,DELY+22
+  302407  250040,,000005  EXCH A,AR2A
+  302410  265300,,013736  JSP T,%PDLNC
+  302411  201100,,703446  MOVEI B,'DELY
+  302412  265300,,013746  JSP T,%XCONS
+  302413  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302414  265300,,013747  JSP T,%CONS
+  302415  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302416  262600,,000001  POP P,A
+  302417  256000,,611265  XCT 0,611265   ; CALL 1,'LOGO-DELY
+  302420  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302421  254000,,302446  JRST 0,DELY+52
+  302422  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302423  254000,,302446  JRST 0,DELY+52
+  302424  205340,,200400  MOVSI TT,200400
+  302425  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302426  261640,,000007  PUSH FLP,TT
+  302427  201055,,000000  MOVEI A,(FLP)
+  302430  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302431  205340,,200400  MOVSI TT,200400
+  302432  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302433  261600,,000001  PUSH P,A
+  302434  261640,,000007  PUSH FLP,TT
+  302435  201055,,000000  MOVEI A,(FLP)
+  302436  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302437  265300,,011722  JSP T,%NCONS
+  302440  262600,,000002  POP P,B
+  302441  265300,,013746  JSP T,%XCONS
+  302442  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302443  265300,,013747  JSP T,%CONS
+  302444  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302445  274640,,012725  SUB FLP,R70+2
+  302446  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302447  274600,,012724  SUB P,R70+1
+  302450  274640,,012724  SUB FLP,R70+1
+  302451  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-DELXY    [compiled]    (added by 1980)
+  tags: (define-form (fancy-delxy delx dely)
+  SUBR at 302452, args (NIL . 2)
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN FANCY-DELXY (ARG1 ARG2)
+  |   (FANCY-DELX ARG1)
+  |   (FANCY-DELY ARG2))
+  302452  261600,,000002  PUSH P,B
+  302453  256000,,611042  XCT 0,611042   ; CALL 1,'FANCY-DELX
+  302454  262600,,000001  POP P,A
+  302455  256000,,611576  XCT 0,611576   ; JCALL 1,'FANCY-DELY
+
+==============================================================================
+FANCY-SETX    [compiled]    (added by 1980)
+  tags: (define-function fancy-setx
+  SUBR at 302456, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-SETX (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETQ *DISPLAY-LIST
+  |                                                                                                          `((DIRECTOR-SETX ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                          (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                                :YCOR
+  |                                                                                                                :HEADING))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (SETQ *DISPLAY-LIST
+  |                                                                                         `((DIRECTOR-SETX ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                      (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                            :YCOR
+  |                                                                                                            :HEADING))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (SETQ *DISPLAY-LIST
+  |                                                            `((DIRECTOR-SETX ,ARG1) . ,*DISPLAY-LIST))
+  |                                                         (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                               :YCOR
+  |                                                                               :HEADING))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                    :YCOR
+  |                                                                                                    :HEADING))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                   :YCOR
+  |                                                                                   :HEADING))
+  |                                                            NO-VALUE)))
+  |                                 (T (DIRECTOR-SETTURTLE (LIST ARG1 :YCOR :HEADING)) NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST ARG1 :YCOR :HEADING))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (DIRECTOR-SETTURTLE (LIST ARG1 :YCOR :HEADING)) NO-VALUE)))
+  |     (T (DIRECTOR-SETTURTLE (LIST ARG1 :YCOR :HEADING)) NO-VALUE)))
+  302456  261600,,000001  PUSH P,A
+  302457  336100,,071700  SKIPN B,(SPECIAL *MAKING-DISPLAY-LIST)
+  302460  254000,,302471  JRST 0,SETX+13
+  302461  336140,,071553  SKIPN C,(SPECIAL *TRUE-PENSTATE)
+  302462  254000,,302471  JRST 0,SETX+13
+  302463  265300,,013736  JSP T,%PDLNC
+  302464  201100,,703425  MOVEI B,'DIRECTOR-SETX
+  302465  265300,,013746  JSP T,%XCONS
+  302466  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302467  265300,,013747  JSP T,%CONS
+  302470  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302471  200040,,071701  MOVE A,(SPECIAL :HEADING)
+  302472  265300,,011722  JSP T,%NCONS
+  302473  200100,,071702  MOVE B,(SPECIAL :YCOR)
+  302474  265300,,013746  JSP T,%XCONS
+  302475  262600,,000002  POP P,B
+  302476  265300,,013737  JSP T,%PDLXC
+  302477  256000,,121576  XCT 0,121576   ; PUSHJ P, DIRECTOR-SETTURTLE (snapped link)
+  302500  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302501  254000,,302526  JRST 0,SETX+50
+  302502  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302503  254000,,302526  JRST 0,SETX+50
+  302504  205340,,200400  MOVSI TT,200400
+  302505  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302506  261640,,000007  PUSH FLP,TT
+  302507  201055,,000000  MOVEI A,(FLP)
+  302510  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302511  205340,,200400  MOVSI TT,200400
+  302512  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302513  261600,,000001  PUSH P,A
+  302514  261640,,000007  PUSH FLP,TT
+  302515  201055,,000000  MOVEI A,(FLP)
+  302516  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302517  265300,,011722  JSP T,%NCONS
+  302520  262600,,000002  POP P,B
+  302521  265300,,013746  JSP T,%XCONS
+  302522  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302523  265300,,013747  JSP T,%CONS
+  302524  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302525  274640,,012725  SUB FLP,R70+2
+  302526  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302527  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-SETY    [compiled]    (added by 1980)
+  tags: (define-function fancy-sety
+  SUBR at 302530, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-SETY (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETQ *DISPLAY-LIST
+  |                                                                                                          `((DIRECTOR-SETY ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                          (DIRECTOR-SETTURTLE (LIST :XCOR
+  |                                                                                                                ARG1
+  |                                                                                                                :HEADING))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (SETQ *DISPLAY-LIST
+  |                                                                                         `((DIRECTOR-SETY ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                      (DIRECTOR-SETTURTLE (LIST :XCOR
+  |                                                                                                            ARG1
+  |                                                                                                            :HEADING))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (SETQ *DISPLAY-LIST
+  |                                                            `((DIRECTOR-SETY ,ARG1) . ,*DISPLAY-LIST))
+  |                                                         (DIRECTOR-SETTURTLE (LIST :XCOR
+  |                                                                               ARG1
+  |                                                                               :HEADING))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST :XCOR
+  |                                                                                                    ARG1
+  |                                                                                                    :HEADING))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (DIRECTOR-SETTURTLE (LIST :XCOR
+  |                                                                                   ARG1
+  |                                                                                   :HEADING))
+  |                                                            NO-VALUE)))
+  |                                 (T (DIRECTOR-SETTURTLE (LIST :XCOR ARG1 :HEADING)) NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST :XCOR ARG1 :HEADING))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (DIRECTOR-SETTURTLE (LIST :XCOR ARG1 :HEADING)) NO-VALUE)))
+  |     (T (DIRECTOR-SETTURTLE (LIST :XCOR ARG1 :HEADING)) NO-VALUE)))
+  302530  261600,,000001  PUSH P,A
+  302531  336100,,071700  SKIPN B,(SPECIAL *MAKING-DISPLAY-LIST)
+  302532  254000,,302543  JRST 0,SETY+13
+  302533  336140,,071553  SKIPN C,(SPECIAL *TRUE-PENSTATE)
+  302534  254000,,302543  JRST 0,SETY+13
+  302535  265300,,013736  JSP T,%PDLNC
+  302536  201100,,703424  MOVEI B,'DIRECTOR-SETY
+  302537  265300,,013746  JSP T,%XCONS
+  302540  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302541  265300,,013747  JSP T,%CONS
+  302542  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302543  200040,,071701  MOVE A,(SPECIAL :HEADING)
+  302544  265300,,011722  JSP T,%NCONS
+  302545  262600,,000002  POP P,B
+  302546  265300,,013737  JSP T,%PDLXC
+  302547  200100,,071703  MOVE B,(SPECIAL :XCOR)
+  302550  265300,,013746  JSP T,%XCONS
+  302551  256000,,121576  XCT 0,121576   ; PUSHJ P, DIRECTOR-SETTURTLE (snapped link)
+  302552  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302553  254000,,302600  JRST 0,SETY+50
+  302554  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302555  254000,,302600  JRST 0,SETY+50
+  302556  205340,,200400  MOVSI TT,200400
+  302557  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302560  261640,,000007  PUSH FLP,TT
+  302561  201055,,000000  MOVEI A,(FLP)
+  302562  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302563  205340,,200400  MOVSI TT,200400
+  302564  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302565  261600,,000001  PUSH P,A
+  302566  261640,,000007  PUSH FLP,TT
+  302567  201055,,000000  MOVEI A,(FLP)
+  302570  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302571  265300,,011722  JSP T,%NCONS
+  302572  262600,,000002  POP P,B
+  302573  265300,,013746  JSP T,%XCONS
+  302574  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302575  265300,,013747  JSP T,%CONS
+  302576  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302577  274640,,012725  SUB FLP,R70+2
+  302600  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302601  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-SETXY    [compiled]    (added by 1980)
+  tags: (define-function fancy-setxy
+  SUBR at 302602, args (NIL . 2)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-SETXY (ARG1 ARG2)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETQ *DISPLAY-LIST
+  |                                                                                                          `((DIRECTOR-SETXY ,ARG1 ,ARG2) . ,*DISPLAY-LIST))
+  |                                                                                          (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                                ARG2
+  |                                                                                                                :HEADING))
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (SETQ *DISPLAY-LIST
+  |                                                                                         `((DIRECTOR-SETXY ,ARG1 ,ARG2) . ,*DISPLAY-LIST))
+  |                                                                                      (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                            ARG2
+  |                                                                                                            :HEADING))
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (SETQ *DISPLAY-LIST
+  |                                                            `((DIRECTOR-SETXY ,ARG1 ,ARG2) . ,*DISPLAY-LIST))
+  |                                                         (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                               ARG2
+  |                                                                               :HEADING))
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                                    ARG2
+  |                                                                                                    :HEADING))
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (DIRECTOR-SETTURTLE (LIST ARG1
+  |                                                                                   ARG2
+  |                                                                                   :HEADING))
+  |                                                            NO-VALUE)))
+  |                                 (T (DIRECTOR-SETTURTLE (LIST ARG1 ARG2 :HEADING)) NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE (LIST ARG1 ARG2 :HEADING))
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (DIRECTOR-SETTURTLE (LIST ARG1 ARG2 :HEADING)) NO-VALUE)))
+  |     (T (DIRECTOR-SETTURTLE (LIST ARG1 ARG2 :HEADING)) NO-VALUE)))
+  302602  261600,,000001  PUSH P,A
+  302603  261600,,000002  PUSH P,B
+  302604  336140,,071700  SKIPN C,(SPECIAL *MAKING-DISPLAY-LIST)
+  302605  254000,,302621  JRST 0,SETXY+17
+  302606  336200,,071553  SKIPN AR1,(SPECIAL *TRUE-PENSTATE)
+  302607  254000,,302621  JRST 0,SETXY+17
+  302610  250040,,000002  EXCH A,B
+  302611  265300,,013736  JSP T,%PDLNC
+  302612  200114,,777777  MOVE B,-1(P)
+  302613  265300,,013737  JSP T,%PDLXC
+  302614  201100,,703426  MOVEI B,'DIRECTOR-SETXY
+  302615  265300,,013746  JSP T,%XCONS
+  302616  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302617  265300,,013747  JSP T,%CONS
+  302620  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302621  200040,,071701  MOVE A,(SPECIAL :HEADING)
+  302622  265300,,011722  JSP T,%NCONS
+  302623  262600,,000002  POP P,B
+  302624  265300,,013737  JSP T,%PDLXC
+  302625  262600,,000002  POP P,B
+  302626  265300,,013737  JSP T,%PDLXC
+  302627  256000,,121576  XCT 0,121576   ; PUSHJ P, DIRECTOR-SETTURTLE (snapped link)
+  302630  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302631  254000,,302656  JRST 0,SETXY+54
+  302632  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302633  254000,,302656  JRST 0,SETXY+54
+  302634  205340,,200400  MOVSI TT,200400
+  302635  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302636  261640,,000007  PUSH FLP,TT
+  302637  201055,,000000  MOVEI A,(FLP)
+  302640  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302641  205340,,200400  MOVSI TT,200400
+  302642  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302643  261600,,000001  PUSH P,A
+  302644  261640,,000007  PUSH FLP,TT
+  302645  201055,,000000  MOVEI A,(FLP)
+  302646  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302647  265300,,011722  JSP T,%NCONS
+  302650  262600,,000002  POP P,B
+  302651  265300,,013746  JSP T,%XCONS
+  302652  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302653  265300,,013747  JSP T,%CONS
+  302654  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302655  274640,,012725  SUB FLP,R70+2
+  302656  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302657  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-SETTURTLE    [compiled]    (added by 1980)
+  tags: (define-function fancy-setturtle
+  SUBR at 302660, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-SETTURTLE (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETQ *DISPLAY-LIST
+  |                                                                                                          `((DIRECTOR-SETTURTLE ',ARG1) . ,*DISPLAY-LIST))
+  |                                                                                          (DIRECTOR-SETTURTLE ARG1)
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (SETQ *DISPLAY-LIST
+  |                                                                                         `((DIRECTOR-SETTURTLE ',ARG1) . ,*DISPLAY-LIST))
+  |                                                                                      (DIRECTOR-SETTURTLE ARG1)
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (SETQ *DISPLAY-LIST
+  |                                                            `((DIRECTOR-SETTURTLE ',ARG1) . ,*DISPLAY-LIST))
+  |                                                         (DIRECTOR-SETTURTLE ARG1)
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE ARG1)
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (DIRECTOR-SETTURTLE ARG1) NO-VALUE)))
+  |                                 (T (DIRECTOR-SETTURTLE ARG1) NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (DIRECTOR-SETTURTLE ARG1)
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (DIRECTOR-SETTURTLE ARG1) NO-VALUE)))
+  |     (T (DIRECTOR-SETTURTLE ARG1) NO-VALUE)))
+  302660  261600,,000001  PUSH P,A
+  302661  336100,,071700  SKIPN B,(SPECIAL *MAKING-DISPLAY-LIST)
+  302662  254000,,302676  JRST 0,SETTURTLE+16
+  302663  336140,,071553  SKIPN C,(SPECIAL *TRUE-PENSTATE)
+  302664  254000,,302676  JRST 0,SETTURTLE+16
+  302665  265300,,013736  JSP T,%PDLNC
+  302666  201100,,075442  MOVEI B,'QUOTE
+  302667  265300,,013746  JSP T,%XCONS
+  302670  265300,,011722  JSP T,%NCONS
+  302671  201100,,703427  MOVEI B,'DIRECTOR-SETTURTLE
+  302672  265300,,013746  JSP T,%XCONS
+  302673  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302674  265300,,013747  JSP T,%CONS
+  302675  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302676  262600,,000001  POP P,A
+  302677  256000,,121576  XCT 0,121576   ; PUSHJ P, DIRECTOR-SETTURTLE (snapped link)
+  302700  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302701  254000,,302726  JRST 0,SETTURTLE+46
+  302702  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302703  254000,,302726  JRST 0,SETTURTLE+46
+  302704  205340,,200400  MOVSI TT,200400
+  302705  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302706  261640,,000007  PUSH FLP,TT
+  302707  201055,,000000  MOVEI A,(FLP)
+  302710  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302711  205340,,200400  MOVSI TT,200400
+  302712  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302713  261600,,000001  PUSH P,A
+  302714  261640,,000007  PUSH FLP,TT
+  302715  201055,,000000  MOVEI A,(FLP)
+  302716  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302717  265300,,011722  JSP T,%NCONS
+  302720  262600,,000002  POP P,B
+  302721  265300,,013746  JSP T,%XCONS
+  302722  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302723  265300,,013747  JSP T,%CONS
+  302724  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302725  274640,,012725  SUB FLP,R70+2
+  302726  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302727  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-SETHEADING    [compiled]    (added by 1980)
+  tags: (define-function fancy-setheading
+  SUBR at 302730, args (NIL . 1)
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN FANCY-SETHEADING (ARG1)
+  |   (COND (*MAKING-DISPLAY-LIST (COND (*TRUE-PENSTATE (COND (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETQ *DISPLAY-LIST
+  |                                                                                                          `((SETHEADING ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                          (SETHEADING ARG1)
+  |                                                                                          (SETQ *POSITION-LIST
+  |                                                                                            (CONS (LIST (FIX (+$ 0.5
+  |                                                                                                               :XCOR))
+  |                                                                                                    (FIX (+$ 0.5
+  |                                                                                                           :YCOR)))
+  |                                                                                              *POSITION-LIST))
+  |                                                                                          NO-VALUE)
+  |                                                                                    (T (SETQ *DISPLAY-LIST
+  |                                                                                         `((SETHEADING ,ARG1) . ,*DISPLAY-LIST))
+  |                                                                                      (SETHEADING ARG1)
+  |                                                                                      NO-VALUE)))
+  |                                                       (T (SETQ *DISPLAY-LIST
+  |                                                            `((SETHEADING ,ARG1) . ,*DISPLAY-LIST))
+  |                                                         (SETHEADING ARG1)
+  |                                                         NO-VALUE)))
+  |                                 (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETHEADING ARG1)
+  |                                                                (SETQ *POSITION-LIST
+  |                                                                  (CONS (LIST (FIX (+$ 0.5 :XCOR))
+  |                                                                          (FIX (+$ 0.5 :YCOR)))
+  |                                                                    *POSITION-LIST))
+  |                                                                NO-VALUE)
+  |                                                          (T (SETHEADING ARG1) NO-VALUE)))
+  |                                 (T (SETHEADING ARG1) NO-VALUE)))
+  |     (*MAKING-POSITION-LIST (COND (*TRUE-PENSTATE (SETHEADING ARG1)
+  |                                    (SETQ *POSITION-LIST
+  |                                      (CONS (LIST (FIX (+$ 0.5 :XCOR)) (FIX (+$ 0.5 :YCOR)))
+  |                                        *POSITION-LIST))
+  |                                    NO-VALUE)
+  |                              (T (SETHEADING ARG1) NO-VALUE)))
+  |     (T (SETHEADING ARG1) NO-VALUE)))
+  302730  261600,,000001  PUSH P,A
+  302731  336100,,071700  SKIPN B,(SPECIAL *MAKING-DISPLAY-LIST)
+  302732  254000,,302743  JRST 0,SETHEADING+13
+  302733  336140,,071553  SKIPN C,(SPECIAL *TRUE-PENSTATE)
+  302734  254000,,302743  JRST 0,SETHEADING+13
+  302735  265300,,013736  JSP T,%PDLNC
+  302736  201100,,642060  MOVEI B,'SETHEADING
+  302737  265300,,013746  JSP T,%XCONS
+  302740  200100,,071554  MOVE B,(SPECIAL *DISPLAY-LIST)
+  302741  265300,,013747  JSP T,%CONS
+  302742  202040,,071554  MOVEM A,(SPECIAL *DISPLAY-LIST)
+  302743  262600,,000001  POP P,A
+  302744  256000,,121154  XCT 0,121154   ; CALL 1,'SETHEADING
+  302745  336040,,071556  SKIPN A,(SPECIAL *MAKING-POSITION-LIST)
+  302746  254000,,302773  JRST 0,SETHEADING+43
+  302747  336100,,071553  SKIPN B,(SPECIAL *TRUE-PENSTATE)
+  302750  254000,,302773  JRST 0,SETHEADING+43
+  302751  205340,,200400  MOVSI TT,200400
+  302752  144360,,071703  FADR TT,@(SPECIAL :XCOR)
+  302753  261640,,000007  PUSH FLP,TT
+  302754  201055,,000000  MOVEI A,(FLP)
+  302755  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302756  205340,,200400  MOVSI TT,200400
+  302757  144360,,071702  FADR TT,@(SPECIAL :YCOR)
+  302760  261600,,000001  PUSH P,A
+  302761  261640,,000007  PUSH FLP,TT
+  302762  201055,,000000  MOVEI A,(FLP)
+  302763  256000,,121732  XCT 0,121732   ; PUSHJ P, FIX (snapped link)
+  302764  265300,,011722  JSP T,%NCONS
+  302765  262600,,000002  POP P,B
+  302766  265300,,013746  JSP T,%XCONS
+  302767  200100,,071555  MOVE B,(SPECIAL *POSITION-LIST)
+  302770  265300,,013747  JSP T,%CONS
+  302771  202040,,071555  MOVEM A,(SPECIAL *POSITION-LIST)
+  302772  274640,,012725  SUB FLP,R70+2
+  302773  200040,,071374  MOVE A,(SPECIAL NO-VALUE)
+  302774  263600,,000000  POPJ P,0
+
+==============================================================================
+FANCY-RT    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-rt
+  property EXPR: FANCY-RIGHT
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+FANCY-LT    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-lt
+  property EXPR: FANCY-LEFT
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+FANCY-PU    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-pu
+  property EXPR: FANCY-PENUP
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+FANCY-PD    [autoload only]    (added by 1980)
+  tags: (define-synonym fancy-pd
+  property EXPR: FANCY-PENDOWN
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+
+==============================================================================
+RUN-INVISIBLY    [macro]    (added by 1980)
+  tags: (defmacro run-invisibly
+  MACRO expander |RUN-INVISIBLY MACRO| at 303201
+  DECOMPILATION (reconstructed from machine code; confidence high):
+  | (DEFUN RUN-INVISIBLY MACRO (FORM)
+  |   `(PROGN (THINGUP) . ,(*APPEND (CDR FORM) '((THINGDOWN)))))
+  303201  550101,,000000  HRRZ B,(A)
+  303202  261600,,000002  PUSH P,B
+  303203  201100,,677010  MOVEI B,'((THINGDOWN))
+  303204  262600,,000001  POP P,A
+  303205  256000,,121670  XCT 0,121670   ; PUSHJ P, *APPEND (snapped link)
+  303206  201100,,627170  MOVEI B,'(THINGUP)
+  303207  265300,,013746  JSP T,%XCONS
+  303210  201100,,075510  MOVEI B,'PROGN
+  303211  265300,,013746  JSP T,%XCONS
+  303212  263600,,000000  POPJ P,0
+  AUTOLOAD from |DIRECT;DLIST| (code not in the image)
+

@@ -1,20 +1,597 @@
 PDUMP core image: original/701431/ts.d2500 (KEN;TS D2500, tape 701431, Apr 1980)
-149512 words; 145 pages in the file (143 writable); start instruction 254000,,065643; trailing words: 777774,,000002 637163,,000000 606562,,615157 213121,,240000 637163,,000000 712070,,626170 254000,,065643
-Pages mapped but not in the file (shared/absolute, i.e. the pure Lisp): 0
-Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cells.
+145 pages in the file (143 writable); start instruction 254000,,065643; trailing words: 777774,,000002 637163,,000000 606562,,615157 213121,,240000 637163,,000000 712070,,626170 254000,,065643
+Pages (octal): 0-2 present, 3-31 absent, 32-34 present, 35-35 absent, 36-37 present, 40-45 absent, 46-146 present, 147-253 absent, 254-360 present, 361-364 absent, 365-365 present, 366-366 absent, 367-367 present, 370-373 absent, 374-374 present, 375-377 absent
+Symbols: 2856 headers with impure symbol blocks (2719 names); 24 symbol segments.
 
--- Property indicators that are pure system atoms, as inferred --
-  075071  SUBR      used  951 times; FASL entry votes {'LSUBR': 4, 'SUBR': 171, 'FSUBR': 2}
-  000000  ?         used  376 times; FASL entry votes -
-  075076  MACRO     used  166 times; FASL entry votes {'SUBR': 7, 'FSUBR': 2, 'LSUBR': 4}
-  075077  AUTOLOAD  used  161 times; FASL entry votes {'SUBR': 18, 'LSUBR': 3}
-  076774  ?         used  113 times; FASL entry votes {'FSUBR': 2, 'LSUBR': 4, 'SUBR': 1}
-  075073  LSUBR     used   75 times; FASL entry votes {'SUBR': 25, 'LSUBR': 15}
-  075074  ?         used   44 times; FASL entry votes {'LSUBR': 10, 'SUBR': 6}
-  075166  ?         used   39 times; FASL entry votes -
+-- Naming summary --
+  FASL/image function pairs aligned                  145
+  IN0 (small fixnum table) located from aligned constants 34
+  atoms named by Director source evidence            2
+  atoms named by FASL alignment                      31
+  atoms named by call link                           16
+  atoms named by code usage                          23
+  atoms named by indicator                           4
+  atoms named by pattern predicates                  5
+  atoms named by plist fingerprint                   12
+  atoms named by struct.660 alignment                316
+  atoms named by struct.660 layout                   1
+  atoms named by struct.660 runs                     12
+  kernel symbols from GLOBALSYM/DDT alignment        20
+  link cells named                                   606
+  link cells used by code                            681
+  pattern predicates: atoms confirmed                47
+  pattern predicates: atoms newly named              5
+  pattern predicates: struct.660 names corrected     0
+  single-vote FASL names dropped (contradict struct order) 2
+  struct-order leave-one-out checks agreeing         41
+  struct-order leave-one-out checks disagreeing      0
+  struct.660 DP matches rejected as ambiguous        210
+  struct.660 DP matches rejected by pname spans      1
+  struct.660 DP without anchors: known atoms missed  32
+  struct.660 DP without anchors: known atoms recovered 49
+  struct.660 DP: atoms in the pure allocation chain  381
+  struct.660 runs: atoms outside the 1981 list assumed 15
+  struct.660 runs: left with alternatives            30
+  struct.660 runs: no placement fits                 1
+  struct.660 runs: resolved completely               1
+  value cells named by FASL alignment                2
+  pure atoms named: 420
 
--- Pure-Lisp addresses named by aligning FASL code with the image (GLOBALSYMs) --
-  PDLNMK=15747, R70=12723
+-- Property indicators (pure atoms), as inferred --
+  075071  SUBR       used  951 times
+  000000  #000000    used  376 times
+  075076  MACRO      used  166 times
+  075077  AUTOLOAD   used  161 times
+  076774  #076774    used  113 times
+  075073  LSUBR      used   75 times
+  075074  EXPR       used   44 times
+  075166  #075166    used   39 times
+
+-- Kernel addresses named (GLOBALSYM/DDT alignment, CARCDR table, snapped links) --
+  004000  ST
+  011543  SPECBIND
+  011651  UNBIND
+  011722  %NCONS
+  012723  R70
+  012755  IFLOAT
+  013154  .LCALL
+  013347  CARCDR
+  013350  %CADDAR
+  013351  %CADDR
+  013352  %CADAR
+  013353  %CADR
+  013354  %CAAR
+  013355  %CAR
+  013357  %CDDDDR
+  013360  %CDDDAR
+  013361  %CDDDR
+  013362  %CDDAR
+  013363  %CDDR
+  013364  %CDAR
+  013365  %CDR
+  013367  %CAADDR
+  013370  %CAADAR
+  013371  %CAADR
+  013372  %CAAAR
+  013374  %CDADDR
+  013375  %CDADAR
+  013376  %CDADR
+  013377  %CDAAR
+  013401  %CAAADR
+  013402  %CAAAAR
+  013404  %CDDADR
+  013405  %CDDAAR
+  013407  %CDAADR
+  013410  %CDAAAR
+  013412  %CADADR
+  013413  %CADAAR
+  013736  %PDLNC
+  013737  %PDLXC
+  013740  %PDLC
+  013746  %XCONS
+  013747  %CONS
+  013760  %C2NS
+  013765  FXCONS
+  014002  FLCONS
+  014600  ASSOC (kernel SUBR)
+  014601  ASSQ (kernel SUBR)
+  014717  GET (kernel SUBR)
+  015074  REMPROP (kernel SUBR)
+  015150  LAST (kernel SUBR)
+  015237  EQUAL (kernel SUBR)
+  015375  *NCONC (kernel SUBR)
+  015407  *APPEND (kernel SUBR)
+  015440  NREVERSE (kernel SUBR)
+  015525  MEMBER (kernel SUBR)
+  015743  PDLNKJ
+  015747  PDLNMK
+  017052  MAKNAM (kernel SUBR)
+  021227  SSTATUS (kernel SUBR)
+  024433  SLEEP (kernel SUBR)
+  027017  TERPRI (kernel SUBR)
+  033215  *QUO (kernel SUBR)
+  033216  *TIMES (kernel SUBR)
+  033221  *DIF (kernel SUBR)
+  033222  *PLUS (kernel SUBR)
+  033407  FLOAT (kernel SUBR)
+  033431  FIX (kernel SUBR)
+  033440  *GREAT (kernel SUBR)
+  034225  LENGTH (kernel SUBR)
+  057072  PROBEF (kernel SUBR)
+  057603  LOAD (kernel SUBR)
+  071170  ARGLOC
+  105774  IN0
+  157056  .MAP
+
+-- Pure atoms named (address, name, evidence) --
+  075000  T                                FASL alignment
+  075001  UNBOUND                          struct.660 layout
+  075022  |+INTERNAL-'-MACRO|              struct.660 alignment
+  075023  |+INTERNAL-;-MACRO|              struct.660 alignment
+  075024  |+INTERNAL-/|-MACRO|             struct.660 alignment
+  075025  |+INTERNAL-"-MACRO|              struct.660 alignment
+  075026  +INTERNAL-TTYSCAN-SUBR           struct.660 alignment
+  075033  +INTERNAL-UREAD-EOFFN            struct.660 alignment
+  075034  +INTERNAL-INCLUDE-EOFFN          struct.660 alignment
+  075035  +INTERNAL-TTY-ENDPAGEFN          struct.660 alignment
+  075036  +INTERNAL-*RSET-BREAK            struct.660 alignment
+  075051  LIST                             FASL alignment
+  075052  FIXNUM                           struct.660 alignment
+  075053  FLONUM                           struct.660 alignment
+  075054  BIGNUM                           struct.660 alignment
+  075055  SYMBOL                           struct.660 alignment
+  075056  HUNK2                            struct.660 alignment
+  075057  HUNK4                            struct.660 alignment
+  075060  HUNK8                            struct.660 alignment
+  075061  HUNK16                           struct.660 alignment
+  075062  HUNK32                           struct.660 alignment
+  075063  HUNK64                           struct.660 alignment
+  075064  HUNK128                          struct.660 alignment
+  075065  HUNK256                          struct.660 alignment
+  075066  HUNK512                          struct.660 alignment
+  075067  RANDOM                           struct.660 alignment
+  075070  ARRAY                            FASL alignment
+  075071  SUBR                             indicator
+  075072  FSUBR                            struct.660 alignment
+  075073  LSUBR                            indicator
+  075074  EXPR                             struct.660 alignment
+  075075  FEXPR                            struct.660 alignment
+  075076  MACRO                            indicator
+  075077  AUTOLOAD                         indicator
+  075100  ERRSET                           struct.660 alignment
+  075101  *RSET-TRAP                       struct.660 alignment
+  075102  GC-DAEMON                        struct.660 alignment
+  075103  GC-OVERFLOW                      struct.660 alignment
+  075104  PDL-OVERFLOW                     struct.660 alignment
+  075105  VALUE                            struct.660 alignment
+  075106  LAMBDA                           Director source evidence
+  075120  FASL                             FASL alignment
+  075123  &OPTIONAL                        FASL alignment
+  075124  &REST                            code usage
+  075125  &AUX                             code usage
+  075150  FILE                             FASL alignment
+  075151  ECHO                             struct.660 alignment
+  075152  CLA                              struct.660 alignment
+  075153  IMAGE                            struct.660 alignment
+  075154  BLOCK                            code usage
+  075163  ?                                code usage
+  075164  **MISSING-ARG**                  struct.660 runs
+  075167  ODDP                             struct.660 alignment
+  075170  EVAL                             struct.660 alignment
+  075171  DEPOSIT                          struct.660 alignment
+  075172  EXAMINE                          struct.660 alignment
+  075176  RUNTIME                          call link
+  075200  CAR                              pattern predicates
+  075201  CDR                              pattern predicates
+  075202  CAAR                             struct.660 alignment
+  075203  CADR                             pattern predicates
+  075204  CDAR                             struct.660 alignment
+  075205  CDDR                             struct.660 alignment
+  075206  CAAAR                            struct.660 alignment
+  075207  CAADR                            struct.660 alignment
+  075210  CADAR                            struct.660 alignment
+  075211  CADDR                            struct.660 alignment
+  075212  CDAAR                            struct.660 alignment
+  075213  CDADR                            struct.660 alignment
+  075214  CDDAR                            struct.660 alignment
+  075215  CDDDR                            struct.660 alignment
+  075216  CAAAAR                           struct.660 alignment
+  075217  CAAADR                           struct.660 alignment
+  075220  CAADAR                           struct.660 alignment
+  075221  CAADDR                           struct.660 alignment
+  075222  CADAAR                           struct.660 alignment
+  075223  CADADR                           struct.660 alignment
+  075224  CADDAR                           struct.660 alignment
+  075225  CADDDR                           struct.660 alignment
+  075226  CDAAAR                           struct.660 alignment
+  075227  CDAADR                           struct.660 alignment
+  075230  CDADAR                           struct.660 alignment
+  075231  CDADDR                           struct.660 alignment
+  075232  CDDAAR                           struct.660 alignment
+  075233  CDDADR                           struct.660 alignment
+  075234  CDDDAR                           struct.660 alignment
+  075235  CDDDDR                           struct.660 alignment
+  075236  +INTERNAL-CARCDRP                struct.660 alignment
+  075237  FIXP                             struct.660 alignment
+  075244  BIGP                             struct.660 alignment
+  075245  BOUNDP                           FASL alignment
+  075247  NOT                              code usage
+  075250  ATOM                             struct.660 alignment
+  075251  TYPEP                            code usage
+  075252  EXPLODE                          struct.660 alignment
+  075253  MINUSP                           struct.660 alignment
+  075254  PLUSP                            struct.660 alignment
+  075255  NUMBERP                          struct.660 alignment
+  075256  ZEROP                            struct.660 alignment
+  075257  INTERN                           struct.660 alignment
+  075260  LAST                             struct.660 alignment
+  075261  REVERSE                          struct.660 alignment
+  075262  NREVERSE                         call link
+  075263  READLIST                         struct.660 alignment
+  075264  MAKNAM                           struct.660 alignment
+  075265  LENGTH                           struct.660 alignment
+  075266  ABS                              call link
+  075267  MINUS                            FASL alignment
+  075270  ADD1                             struct.660 alignment
+  075271  SUB1                             struct.660 alignment
+  075272  FIX                              code usage
+  075273  FLOAT                            call link
+  075274  FLATSIZE                         struct.660 alignment
+  075275  FLATC                            struct.660 alignment
+  075276  ARG                              struct.660 alignment
+  075277  COS                              struct.660 alignment
+  075300  SQRT                             struct.660 alignment
+  075301  LOG                              call link
+  075302  EXP                              call link
+  075303  SXHASH                           struct.660 alignment
+  075304  NOINTERRUPT                      call link
+  075305  REMOB                            struct.660 alignment
+  075306  SYSP                             struct.660 alignment
+  075316  IFIX                             code usage
+  075317  EXPLODEC                         struct.660 alignment
+  075320  NULL                             code usage
+  075327  SYMBOLP                          code usage
+  075330  EXPLODEN                         struct.660 alignment
+  075331  ARRAYDIMS                        struct.660 alignment
+  075333  GET                              Director source evidence
+  075334  VALUE-CELL-LOCATION              struct.660 alignment
+  075335  SUBLIS                           struct.660 alignment
+  075336  REMPROP                          code usage
+  075337  SET                              FASL alignment
+  075340  RPLACA                           struct.660 alignment
+  075341  RPLACD                           struct.660 alignment
+  075342  NTH                              struct.660 alignment
+  075343  NTHCDR                           struct.660 alignment
+  075344  DISPLACE                         struct.660 alignment
+  075345  EQ                               struct.660 alignment
+  075346  FRETURN                          struct.660 alignment
+  075347  FRETRY                           struct.660 alignment
+  075350  EXPT                             struct.660 alignment
+  075351  MEMQ                             struct.660 alignment
+  075352  SETARG                           struct.660 alignment
+  075353  MEMBER                           struct.660 alignment
+  075354  EQUAL                            struct.660 alignment
+  075355  GETL                             struct.660 alignment
+  075356  ASSOC                            struct.660 alignment
+  075357  ASSQ                             struct.660 alignment
+  075360  REMAINDER                        struct.660 alignment
+  075361  ATAN                             struct.660 alignment
+  075362  SAMEPNAMEP                       struct.660 alignment
+  075363  ALPHALESSP                       struct.660 alignment
+  075364  GETCHAR                          struct.660 alignment
+  075365  COPYSYMBOL                       struct.660 alignment
+  075366  PNPUT                            struct.660 alignment
+  075367  FILLARRAY                        FASL alignment
+  075372  XCONS                            call link
+  075373  GETCHARN                         code usage
+  075415  FIXNUM-IDENTITY                  struct.660 alignment
+  075416  FLONUM-IDENTITY                  struct.660 alignment
+  075417  *DIF                             struct.660 alignment
+  075420  *QUO                             struct.660 alignment
+  075421  1+$                              struct.660 alignment
+  075422  1+                               struct.660 alignment
+  075423  1-$                              struct.660 alignment
+  075424  1-                               struct.660 alignment
+  075425  >                                struct.660 alignment
+  075426  <                                struct.660 alignment
+  075427  =                                FASL alignment
+  075430  \                                struct.660 alignment
+  075431  SASSOC                           struct.660 alignment
+  075432  SASSQ                            struct.660 alignment
+  075434  SUBST                            struct.660 alignment
+  075435  PUTPROP                          code usage
+  075436  SETSYNTAX                        struct.660 alignment
+  075437  |LH/||                           struct.660 alignment
+  075440  COND                             FASL alignment
+  075441  PROG                             FASL alignment
+  075442  QUOTE                            FASL alignment
+  075443  DO                               FASL alignment
+  075444  DECLARE                          struct.660 alignment
+  075445  PROGV                            struct.660 alignment
+  075446  DEFPROP                          struct.660 alignment
+  075453  SETQ                             FASL alignment
+  075454  ERR                              struct.660 alignment
+  075455  SIGNP                            struct.660 alignment
+  075456  STORE                            struct.660 alignment
+  075457  STATUS                           struct.660 alignment
+  075460  SSTATUS                          struct.660 alignment
+  075461  FUNCTION                         struct.660 alignment
+  075462  CASEQ                            code usage
+  075464  PUSH                             code usage
+  075465  POP                              struct.660 alignment
+  075466  DEFUN                            plist fingerprint
+  075467  COMMENT                          struct.660 alignment
+  075470  UNWIND-PROTECT                   struct.660 alignment
+  075471  *CATCH                           struct.660 alignment
+  075472  CATCHALL                         struct.660 alignment
+  075473  CATCH-BARRIER                    struct.660 alignment
+  075474  AND                              FASL alignment
+  075475  OR                               FASL alignment
+  075476  EVAL-WHEN                        struct.660 alignment
+  075477  *FUNCTION                        struct.660 alignment
+  075500  MAPLIST                          struct.660 alignment
+  075501  MAPCAR                           struct.660 alignment
+  075502  MAP                              struct.660 alignment
+  075503  MAPC                             struct.660 alignment
+  075504  MAPCON                           struct.660 alignment
+  075505  MAPCAN                           struct.660 alignment
+  075506  PROG1                            plist fingerprint
+  075507  PROG2                            struct.660 alignment
+  075510  PROGN                            FASL alignment
+  075511  BOOLE                            struct.660 alignment
+  075512  DELQ                             struct.660 alignment
+  075513  DELETE                           struct.660 alignment
+  075514  APPLY                            struct.660 alignment
+  075516  LIST*                            struct.660 alignment
+  075517  CONS                             FASL alignment
+  075520  FUNCALL                          struct.660 alignment
+  075521  ARRAYCALL                        struct.660 alignment
+  075522  SUBRCALL                         struct.660 alignment
+  075523  LSUBRCALL                        struct.660 alignment
+  075524  VALRET                           struct.660 alignment
+  075525  BAKTRACE                         struct.660 alignment
+  075526  BAKLIST                          struct.660 alignment
+  075527  GENSYM                           struct.660 alignment
+  075530  SUSPEND                          struct.660 alignment
+  075531  CURSORPOS                        struct.660 alignment
+  075532  QUIT                             struct.660 alignment
+  075533  ERROR                            call link
+  075534  GETSP                            struct.660 alignment
+  075535  MAPATOMS                         struct.660 alignment
+  075536  NCONC                            struct.660 alignment
+  075537  PLUS                             FASL alignment
+  075540  TIMES                            FASL alignment
+  075541  DIFFERENCE                       struct.660 alignment
+  075542  QUOTIENT                         call link
+  075543  APPEND                           struct.660 alignment
+  075544  MAX                              struct.660 alignment
+  075545  GREATERP                         struct.660 alignment
+  075546  MIN                              call link
+  075547  LESSP                            struct.660 alignment
+  075550  +                                struct.660 alignment
+  075551  -                                FASL alignment
+  075552  *                                struct.660 alignment
+  075553  |//|                             struct.660 alignment
+  075554  +$                               struct.660 alignment
+  075555  -$                               struct.660 alignment
+  075556  *$                               FASL alignment
+  075557  |//$|                            struct.660 alignment
+  075560  *REARRAY                         struct.660 alignment
+  075561  *ARRAY                           struct.660 alignment
+  075562  LISTARRAY                        struct.660 alignment
+  075563  *DELQ                            call link
+  075564  *DELETE                          struct.660 alignment
+  075565  *APPEND                          struct.660 alignment
+  075566  *TIMES                           struct.660 alignment
+  075567  *GREAT                           struct.660 alignment
+  075570  *LESS                            call link
+  075571  *PLUS                            struct.660 alignment
+  075572  *NCONC                           struct.660 alignment
+  075573  *APPLY                           struct.660 alignment
+  075574  *PRINT                           struct.660 alignment
+  075575  *PRIN1                           struct.660 alignment
+  075576  *PRINC                           struct.660 alignment
+  075577  *TERPRI                          struct.660 alignment
+  075600  *TYO                             struct.660 alignment
+  075601  *READ                            struct.660 alignment
+  075602  *READCH                          struct.660 alignment
+  075603  *TYI                             struct.660 alignment
+  075604  *EVAL                            call link
+  075605  PURE                             struct.660 alignment
+  075606  *PURE                            struct.660 alignment
+  075607  PURCLOBRL                        struct.660 alignment
+  075610  |FASLAPSETUP/||                  struct.660 alignment
+  075611  |LAPSETUP/||                     struct.660 alignment
+  075612  PAGEBPORG                        struct.660 alignment
+  075615  GETDDTSYM                        struct.660 alignment
+  075616  PUTDDTSYM                        struct.660 alignment
+  075617  GCPROTECT                        struct.660 alignment
+  075620  SYMBOLS                          struct.660 alignment
+  075621  FASLOAD                          struct.660 alignment
+  075641  |`-expander/||                   plist fingerprint
+  075643  |`,/||                           plist fingerprint
+  075644  |`,@/||                          plist fingerprint
+  075645  |`,./||                          plist fingerprint
+  075652  LET                              FASL alignment
+  075653  LET-EXPANDER-1                   struct.660 alignment
+  075654  LET*                             plist fingerprint
+  075655  LET*-EXPANDER-1                  struct.660 alignment
+  075656  DESETQ                           plist fingerprint
+  075707  MACROEXPANDED                    plist fingerprint
+  075712  FLUSH-MACROMEMOS                 code usage
+  075713  MACROFETCH                       code usage
+  075714  MACROMEMO                        code usage
+  075715  MACROEXPAND                      code usage
+  075720  DEFMACRO-CHECK-ARGS              struct.660 alignment
+  075721  DEFMACRO-DISPLACE-CALL           struct.660 alignment
+  075722  DEFMACRO-FOR-COMPILING           struct.660 alignment
+  075723  DEFUN&                           struct.660 alignment
+  075724  |&r-l/||                         struct.660 alignment
+  075725  MACAID                           struct.660 alignment
+  075732  DEFUN&-ERROR                     code usage
+  075744  DEFMACRO                         code usage
+  075751  EXTBAS                           struct.660 alignment
+  075762  EXTEND                           struct.660 alignment
+  075776  EXTSFA                           struct.660 alignment
+  075777  ERRCK                            struct.660 alignment
+  076000  DEFVSX                           struct.660 alignment
+  076001  DEFVSY                           struct.660 alignment
+  076002  GRIND                            FASL alignment
+  076003  CGOLREAD                         struct.660 alignment
+  076004  LAP                              struct.660 alignment
+  076005  TRACE                            pattern predicates
+  076035  DEFINE-LOOP-PATH                 struct.660 runs
+  076036  ALARMCLOCK                       struct.660 alignment
+  076037  CLI-MESSAGE                      struct.660 alignment
+  076040  MAR-BREAK                        struct.660 alignment
+  076041  TTY-RETURN                       struct.660 alignment
+  076042  SYS-DEATH                        struct.660 alignment
+  076043  NOUUO                            struct.660 alignment
+  076044  NORET                            struct.660 alignment
+  076045  EVALHOOK                         struct.660 alignment
+  076046  READ-EVAL-*-PRINT                struct.660 alignment
+  076047  READ-EVAL-PRINT-*                struct.660 alignment
+  076050  *-READ-EVAL-PRINT                struct.660 alignment
+  076051  READ-*-EVAL-PRINT                struct.660 alignment
+  076052  GCTWA                            struct.660 alignment
+  076053  ARGS                             struct.660 alignment
+  076054  *RSET                            struct.660 alignment
+  076055  *NOPOINT                         struct.660 alignment
+  076056  OBARRAY                          struct.660 alignment
+  076057  READTABLE                        struct.660 alignment
+  076060  ERROR-BREAK-ENVIRONMENT          struct.660 runs
+  076063  SHORTNAMESTRING                  struct.660 alignment
+  076064  TRUENAME                         struct.660 alignment
+  076065  INPUSH                           struct.660 alignment
+  076066  PROBEF                           struct.660 alignment
+  076067  LOAD                             struct.660 alignment
+  076070  FILEP                            struct.660 alignment
+  076071  DEFAULTF                         struct.660 alignment
+  076072  NODEFAULT                        struct.660 alignment
+  076073  FORCE-OUTPUT                     struct.660 alignment
+  076074  CLEAR-OUTPUT                     struct.660 alignment
+  076075  CLEAR-INPUT                      struct.660 alignment
+  076076  CLOSE                            call link
+  076077  DELETEF                          struct.660 alignment
+  076100  IN                               pattern predicates
+  076103  OPEN                             call link
+  076104  OUT                              struct.660 alignment
+  076105  INCLUDEF                         struct.660 alignment
+  076106  RENAMEF                          struct.660 alignment
+  076107  CNAMEF                           struct.660 alignment
+  076110  MERGEF                           struct.660 alignment
+  076111  LENGTHF                          struct.660 alignment
+  076112  LISTEN                           struct.660 alignment
+  076113  SFA-CREATE                       struct.660 alignment
+  076114  SFA-CALL                         struct.660 alignment
+  076115  SFAP                             struct.660 alignment
+  076116  SFA-GET                          struct.660 runs
+  076117  SFA-STORE                        struct.660 runs
+  076120  FILEMODE                         struct.660 runs
+  076121  TTYSCAN                          struct.660 runs
+  076122  TTYINT                           struct.660 runs
+  076123  SFA                              code usage
+  076124  TTYSIZE                          struct.660 runs
+  076125  NAME                             FASL alignment
+  076126  TTYTYPE                          struct.660 runs
+  076127  OSPEED                           struct.660 runs
+  076130  LINMOD                           struct.660 runs
+  076131  CRUNIT                           struct.660 alignment
+  076132  UKILL                            struct.660 alignment
+  076133  UFILE                            struct.660 alignment
+  076134  UCLOSE                           struct.660 alignment
+  076135  UAPPEND                          struct.660 alignment
+  076136  UPROBE                           struct.660 alignment
+  076137  INCLUDE                          struct.660 alignment
+  076140  UREAD                            struct.660 alignment
+  076141  UWRITE                           struct.660 alignment
+  076142  INFILE                           struct.660 alignment
+  076143  INSTACK                          struct.660 alignment
+  076144  OUTFILES                         struct.660 alignment
+  076145  ECHOFILES                        struct.660 alignment
+  076146  MSGFILES                         struct.660 alignment
+  076147  TYI                              struct.660 alignment
+  076150  READLINE                         struct.660 alignment
+  076151  TYIPEEK                          struct.660 alignment
+  076152  TYO                              struct.660 alignment
+  076153  PRINT                            struct.660 alignment
+  076154  PRIN1                            struct.660 alignment
+  076155  PRINC                            struct.660 alignment
+  076156  TERPRI                           struct.660 alignment
+  076157  READ                             struct.660 alignment
+  076160  READCH                           struct.660 alignment
+  076161  ENDPAGEFN                        struct.660 alignment
+  076162  EOFFN                            struct.660 alignment
+  076163  PAGEL                            struct.660 alignment
+  076164  CHARPOS                          struct.660 alignment
+  076165  LINENUM                          struct.660 alignment
+  076166  PAGENUM                          struct.660 alignment
+  076167  LINEL                            struct.660 alignment
+  076170  RUBOUT                           struct.660 alignment
+  076171  FILEPOS                          struct.660 alignment
+  076172  ERRPRINT                         struct.660 alignment
+  076173  BPEND                            struct.660 alignment
+  076174  BPORG                            struct.660 alignment
+  076175  ERRLIST                          struct.660 alignment
+  076176  TTY                              code usage
+  076217  WRNG-NO-ARGS                     FASL alignment
+  076220  GC-LOSSAGE                       struct.660 alignment
+  076221  FAIL-ACT                         struct.660 alignment
+  076222  IO-LOSSAGE                       struct.660 alignment
+  076223  COMPILER-STATE                   struct.660 alignment
+  076224  MACHINE-ERROR                    struct.660 alignment
+  540253  METHODP                          plist fingerprint
+  540632  EXAMPLE-OF                       plist fingerprint
+  667675  |You are trying to unmake me and I'm protected.  Type (?) for help.| FASL alignment
+  731250  METHODP                          plist fingerprint
+
+-- Why: Director source text and code usage behind those names --
+  075106  LAMBDA             ASK-EACH's expander builds (DIRECTOR-MAPCAR (FUNCTION (#75106 (ACTOR) ...)) ...), the form in macro-expanded KEN;SOME (9004336 some.lmlisp: (FUNCTION (LAMBDA (ACTOR) ...))); its plist holds a GRIND template; struct.660 puts LAMBDA after VALUE
+  075124  &REST              the DEFUN&/DEFMACRO argument-list code tests elements against 75125, 75124 and &OPTIONAL and MEMQs 75124 in the list; struct.660 puts &REST, &AUX after &OPTIONAL
+  075125  &AUX               see 75124 (&REST)
+  075154  BLOCK              #1PRINTER picks #1CRUSH-, #1TBLOCK-, #1BLOCK- or #1MISER-TEMPLATE for the modes CRUSH, TBLOCK, 75154 and MISER
+  075163  ?                  FULL-PRINT-MODE returns its list of options when its argument is this atom; the pattern code tests for it and conses it onto variables (order allows ^B, ? or **MISSING-ARG**)
+  075247  NOT                expansions build (#75247 (= a b)), (#75247 (< a b)), (#75247 (> a b)); a REPLACE-NTH message reads ... IS #75247 EVEN (order allows PAIRP or NOT)
+  075251  TYPEP              the LISTP macro expands to (EQ (#75251 x) 'LIST) (order allows ATOM or TYPEP)
+  075272  FIX                ROUND expands to (#75272 (+$ 0.5 x)), and compiled code adds 0.5 (FADRI 200400) and then calls through a link snapped to the kernel's FIX
+  075316  IFIX               called with NCALL 1 (one argument, numeric result) by turtle code; of the atoms struct.660 allows here (PUREP, TIME, FIX, IFIX) only FIX and IFIX fit, and FIX is 75272
+  075320  NULL               ONE-LONG expands to (AND (LISTP x) (#75320 (REST x))) and TWO-LONG to (AND (LISTP (REST x)) (#75320 (NTH-REST 2 x)))
+  075327  SYMBOLP            EQ-FIRST-CHARACTER expands to (AND (#75327 x) (= (#75373 x 1) code)), where code is (#75373 char 1) computed at expansion time
+  075333  GET                ASK-ALL's expander builds (#75333 (FIRST x) 'NON-ATOMIC-ACTORS), the source text (get (first name) 'non-atomic-actors) of KEN;SOME 665
+  075336  REMPROP            DEFINE-FUNCTION and DEFINE-MACRO expand to (#75336 'name 'AUTOLOAD), PUT-FUNCTION-DEFINITION to (#75336 name 'EXPR) (order allows SUBLIS or REMPROP)
+  075373  GETCHARN           see 75327 (SYMBOLP); struct.660 also puts GETCHARN right after XCONS (75372)
+  075435  PUTPROP            PUT-FUNCTION-DEFINITION expands to (PROGN (REMPROP name 'EXPR) (#75435 name definition 'EXPR))
+  075462  CASEQ              the DEFMACRO-package code treats 75462 like TYPECASEQ (order allows CASEQ)
+  075464  PUSH               ACTOR-PUSH expands to (#75464 x *STACK-OF-ACTORS) and DIRECTOR-MAPCAR builds (#75464 x RESULT) (order allows PUSH or POP)
+  075712  FLUSH-MACROMEMOS   the DEFMACRO expander builds (#75712 'name); struct.660 puts FLUSH-MACROMEMOS just before MACROFETCH and MACROMEMO
+  075713  MACROFETCH         the DEFMACRO expander wraps each expansion in (#75713 FORM) and (#75714 ...), the MACROFETCH/MACROMEMO shape of every DEFMAX macro
+  075714  MACROMEMO          see 75713; MACROFETCH also tests the displace switch against 75714
+  075715  MACROEXPAND        MACROMEMO tests the displace switch against MACROEXPANDED, 75715 and DISPLACE; struct.660 puts MACROEXPAND just after MACROMEMO
+  075732  DEFUN&-ERROR       called with no arguments at each point where the DEFUN& argument-list parser rejects a list (non-symbol variable, duplicate variable, misplaced &OPTIONAL), the places where DEFMAC (src/nilcom/defmac.166) calls (DEFUN&-ERROR)
+  075744  DEFMACRO           DEFINE-MACRO expands to (#75744 (name #75721 T) args . body), DEFMACRO's (name option value) syntax; the DEFMACRO expander memoizes under this name
+  076123  SFA                FORMAT-STREAM-TYPE returns 76123 when the array header has AS.SFA (200000), 'FILE for a file array (AS.FIL 40000), and 76176 when the file's TTS.TY bit (400) is on (bit values from MacLisp's defns.240)
+  076176  TTY                see 76123 (SFA)
+
+-- Check of the order-based names (struct.660 alignment, runs, order) --
+  Five-fold cross-validation: each fifth of the 86 pure atoms named by independent
+  evidence was hidden and the order-based naming rerun without it.
+  same name: 39   left unnamed: 46   different name: 1
+    075373  GETCHARN, but the order gives *BREAK (struct.660 alignment)
+
+-- Pure atoms referenced by code but still unnamed (address: references; candidates) --
+  075413   1  one of ASH, LDB, *LDB, DPB, *DPB, ^
+  075310   1  one of IMPLODE, MUNKAM
+  075246   1  one of FBOUNDP, LISTIFY
+  075746   1  one of MULTIPLE-VALUE-BIND, WITH-INTERRUPTS, WITHOUT-INTERRUPTS, WITHOUT-TTY-INTERRUPTS, MLSUB, LISTP, MULTIPLE-VALUE-LIST|, VALUES-LIST, SI:CHECK-MULTIPLICITIES, <=, >=, LOGAND, LOGIOR, LOGXOR, LOGNOT, FIXNUMP, FLONUMP, EVENP, SEND, CLASSP, CLASS-OF
+  075027   1  one of +INTERNAL-^B-BREAK, (not in the 1981 list)
+  075030   1  one of +INTERNAL-^B-BREAK, +INTERNAL-IOL-BREAK, (not in the 1981 list)
+  075624   1  one of VERSION, STRING, MAKE-STRING, STRING-PNPUT, *:FIXNUM-TO-CHARACTER, SUBSEQ
+  075651   1  one of +INTERNAL-,-macro|, (not in the 1981 list)
+  075650   1  one of +INTERNAL-`-macro|, +INTERNAL-,-macro|, (not in the 1981 list)
+
+-- Value cells named by FASL alignment --
+  071104  *NOPOINT
+  071122  PRIN1
 
 -- KEN1 definitions from the 1979 tags table (7005017 KEN TAGS) found in this image --
   KEN1; AI: COMP >          26 defs: absent 10, autoload only 16
@@ -39,69 +616,285 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   KEN1; AI: INTER >         24 defs: absent 1, autoload only 23
   KEN1; AI: RDTAGS >        17 defs: absent 16, autoload only 1
   TOTAL 596: absent 213, autoload only 67, compiled 229, macro 70, other 17
-  Not present as code or macro:
-    KEN1; AI: COMP >: COMP COMPILE-DIRECTOR COMPILE-FILES COMPILE-FILE APPEND-COMPILED-TRANSMISSIONS OPEN-APPEND-IF-EXISTS OPEN-OUT-OR-APPEND READ-AND-PRINT-FORMS CLOSE-AUXILLARY-FILES *COMPILE-ACTORS COMPILE-AND-PRINT-ACTOR COMPILE-ACTOR COMPILE-COMPILED-TRANSMISSIONS PRINT-OR-RETURN SAVE-HELP-ON-FILE SAVE-MACROS-ON-FILE DEFUNIZE SAVE-METHODS DEFINE-COMPILED-CASES COMPILE-METHOD SAVE-PROPERTY COMPILE-TRANSMISSIONS-IN-METHOD LISPIFY-ALL-TRANSMISSIONS GET-MACRO-PROPERTY SAVE-COMPILED-TRANSMISSIONS SAVE-COMPILED-TRANSMISSION
-    KEN1; AI: TRACE >: TRACE DIRECTOR-TRACE DIRECTOR-TRACE-1 MAKE-TRACER-OF DIRECTOR-UNTRACE DIRECTOR-UNTRACE-ALL REPLACE-TRACED-RUN-METHOD RESTORE-TRACED-RUN-METHOD TRACED-RUN-METHOD PRINT-ENTRY PRINT-EXIT
-    KEN1; AI: REAMAC >: REAMAC WHEN-COMPILING |#-READ-MACRO| READ-AND-EVAL |!-READ-MACRO| |,-READ-MACRO| |`-READ-MACRO| |'-READ-MACRO| |{-READ-MACRO| |&-READ-MACRO|
-    KEN1; AI: EXPMAC >: DEFINE-EXPANSION-MACRO MAKE-EXPANSION EXPANSION: EXPANSION:-1 REMOVE-EXPANSIONS EXPANSION:
-    KEN1; AI: HMAC >: ATOMIZE ANONYMOUS MATCH-LIST BOUND-VARIABLE-PATTERN-CONTAINS-UNPACK LET-MATCH-LIST LET-MACRO-ARG INCREMENT DECREMENT INCREASE DECREASE EXCHANGE
-    KEN1; AI: MACROS >: MACROS DEFINE-HELPER DO-NOW-IF-QUOTED DEFINE-DO-NOW-MACRO *FIRST *REST COMPILE-ACTORS PUT-METHOD-PROPERTY DEFINE-RECEIVER DEFINE-EXTENSION-METHOD DEFINE-MACRO-RECEIVER DEFINE-LISP-LIKE-MACRO-METHOD DEFINE-PLAIN-LISP-MACRO-RECEIVER DEFINE-RECEIVE METHOD-COUNT+METHODS-OF METHOD-OWNER SEQUENTIAL-LET INITIALIZE-SOMETHING REPEAT-FOREVER PROG1 DO-THE-FOLLOWING: SCRIPT:
-    KEN1; AI: DRECT >: DRECT SKIP-TYPE-COMPILED-ASK RUN-METHOD-AND-SKIP METHOD-NAME-THAT-MATCHES METHOD-NAME-THAT-MATCHES-JUST-ACTOR INSERT-MACRO-RECEIVE BODY-OF-MACRO-METHOD INSERT-LISP-LIKE-MACRO-RECEIVE INSERT-THE-NORMAL-METHOD INSERT-RECEIVE INSERT-THE-METHOD MAKE-METHOD-INFO METHOD-NAME INCREMENT-METHOD-COUNT FIND-EQUIVALENT-METHOD REMOVE-METHOD-NAMED PRINT PRINC-ACTOR PRINC-ACTORS SAVE-ACTOR-ON-FILE DEFINIZE-ACTOR UNDF-FNCTN-SO-TRY-TO-LOAD ACTOR-OF-ACTION-PART COMPILED-TRANSMISSION-ACTOR DLOAD NOTHING-MORE-TO-DO
-    KEN1; AI: INCOMP >: INCOMP LISPIFY-TRANSMISSION MAKE-NORMAL-COMPILED-TRANSMISSION UPDATE-COMPILED-TRANSMISSION INITIALIZE-MACRO-TRANSMISSION INITIALIZE-COMPILED-TRANSMISSION SELECTOR-BODY ALL-MATCHING-METHODS ALL-MATCHING-METHODS-1 COULD-METHOD-APPLY? PATTERNIFY ADD-DEPENDENT-COMPILED-TRANSMISSION GET-CTS GET-DEPENDENT-COMPILED-TRANSMISSIONS PUT-DEPENDENT-COMPILED-TRANSMISSIONS REMOVE-DEPENDENT-COMPILED-TRANSMISSIONS UPDATE-ALL-DEPENDENT-SELECTORS DECOMPILE-ALL-DEPENDENT-SELECTORS RACT REMOVE-ALL-COMPILED-TRANSMISSIONS UPDATE-APPROPRIATE-DEPENDENT-COMPILED-TRANSMISSIONS
-    KEN1; AI: PROP >: PROP
-    KEN1; AI: UTIL >: UTIL ? TWO-ARG-NO-OP ONE-ARG-NO-OP MEB ME MACRO-EXPAND
-    KEN1; AI: CMATCH >: CMATCH COMMON-ANCESTOR ANY-VARIABLES-IN-PATTERN? *ACTION-FUNCTION-OF-PATTERN *BINDING-PART-OF-PATTERN BINDING-PART-OF-PATTERN1 *FIND-VARIABLES-IN-PATTERN CCASES FIX-IF-PRIVATE-METHOD EXTRACTOR-OF-DIFFERENCE LAMBDAFY-IF-NEED-BE ONLY-ONE-? COUNT-OCCURENCES-EQ FIXUP-METHOD-NAMES AVOID-TESTS-IN-PATTERN MATCH1
-    KEN1; AI: MEMORY >: MEMORY REMEMBER FIRE-DEMONS-THAT-MATCH REMEMBERED FIND-POSSIBLE-ANSWER POSSIBLE-VIRTUAL-ITEM CONSTRUCT-REST-IF-RECALLING-ITEMS CONS-VIRTUAL-ITEM COLLECT-JUST-SELFS FILTER-OUT-WINNERS COLLECT-REMEMBERED COLLECT-REMEMBERED-1 FORGET-ITEM
-    KEN1; AI: TUTIL >: TUTIL RECT DRAW-MANY-POLYS DRAW-COLOR-POLYGON
-    KEN1; AI: COLIDE >: COLIDE REPORT-COLLISIONS REPORT-COLLISIONS-WITHIN OBJECTS-IN-SPACE SPLIT-SPACE-IN-FOUR CHECK-COLLISIONS COLLIDING? INTEGER-SQUARE
-    KEN1; AI: CMOVIE >: CMOVIE PCM PROJECT-COMPILED-MOVIE PROJECT-COMPILED-MOVIE1 RUN-COMPILED-FRAME
-    KEN1; AI: DL >: DL DRAW-CENTERED-1 SCALE-CALL COMPUTE-CENTER COMPUTE-EXTREME INVISIBLY DSD
-    KEN1; AI: FWUSE >: FONTMARK FONTTYO TRY-TO-AUTOLOAD-FONT FWUSE-SLASHIFIED? FONTPRINTCENTERED FWUSE-TEXT-LENGTH FWUSE-DELX-IN-TVSTEPS FWUSE-DELY-IN-TVSTEPS FONTCS FONTHOME FWUSE-LEFT-MARGIN FWUSE-RIGHT-MARGIN FWUSE-TOP-MARGIN FWUSE-BOTTOM-MARGIN FONTTERPRI FONTPRINC FONTPRIN1 FONTPRINT
-    KEN1; AI: FWMAKE >: WINDOWIZE FWMAKE-READ-AND-DISPLAY FWMAKE-READ-HEADING FWMAKE-READ-CHAR-HEADING WRITE-FONT FWMAKE-WRITE-FONT1 FWMAKE-PRINT-DEFPROP FWMAKE-STORE-PROPS-OF-EACH-CHAR
-    KEN1; AI: INSTAN >: INSTAN FAST-TURTLE INITIALIZE-COMMAND-LIST INSTANT TOP-LEVEL-LOOP READ-CHARACTER F B R L | || | S H = G N COLLAPSE T MAKE-USER-DEFINED-CHARACTER C W D DO-COMMAND GET-COMMAND-LIST ? O P PRINT-HELP-FOR-CHARACTER TERPRI+PRINC ACTIVATE DEACTIVATE ACTIVITY ACTIVATE-ALL DEACTIVATE-ALL
-    KEN1; AI: INTER >: INTER MAKE-INTERPOLATION MI INTERPOLATE-TWO-CALLS EQUIVICALIZE FIX-HEADINGS FIX-LENGTH MAKE-OPERATIONS-CORRESPOND MAKE-OPERATIONS-CORRESPOND-1 FATTEN-UP EXPAND-PAIR EXPAND-LINE CONS-INSERT ABOUT-EQUAL INTERPOLATE-EQUIV-PROGRAMS SLOW-CHANGE DISPLAY-INTERPOLATION SL STRAIGHT-LINE SLT STRAIGHT-LINE-TABLE SLM STRAIGHT-LINE-MOVIE MAKE-COLOR-INTERPOLATION
-    KEN1; AI: RDTAGS >: RDTAGS READ-EMACS-TAGS AUTOLOAD-NAME READ-TAGS-FILE-NAME READ-SNAME READ-DEVICE READ-FILE-NAME-1 READ-FILE-NAME-2 READ-LANGUAGE-NAME READ-TO-CR SKIP-REST-OF-FILE THROW-AWAY-UNTIL READ-DEFUN-LINES FIX-FUNCTION-NAME READ-ENDING-WITH FLUSH-SPACES TYIPEEK-EOF
 
--- Symbols with properties (indicator value; code addresses in octal) --
-  | ~a|                                +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+-- Interpreted definitions (EXPR and FEXPR properties), printed in full --
+  |(MOVE ?SPEED)P|  [EXPR]
+    (LAMBDA (OBJECT) (AND (EQ (CAR OBJECT) 'MOVE) (ONE-LONG (CDR OBJECT))))
+  |(PRINT FRAMES ?BEGIN TO ?END)P|  [EXPR]
+    (LAMBDA (OBJECT)
+          (AND (EQ (CAR OBJECT) 'PRINT)
+            (AND (EQ (CADR OBJECT) 'FRAMES) (AND (EQ (CADDDR OBJECT) 'TO) (ONE-LONG (CDDDDR OBJECT))))))
+  |(SPIN ?SPEED)P|  [EXPR]
+    (LAMBDA (OBJECT) (AND (EQ (CAR OBJECT) 'SPIN) (ONE-LONG (CDR OBJECT))))
+  DIRECTOR  [EXPR]
+    (LAMBDA (SUBSYSTEMS)
+          (MACROEXPANDED LET
+            1
+            (LET ((*PRINT-LOAD-MESSAGES NIL))
+              (REMPROP (READ-MACRO-QUOTE CS) (READ-MACRO-QUOTE AUTOLOAD))
+              (REMPROP (READ-MACRO-QUOTE CLEARSCREEN) (READ-MACRO-QUOTE AUTOLOAD))
+              (COND ((STATUS FEATURES LISP-TAGS-FOR-DIRECTOR))
+                (T (DEFPROP READ-EMACS-TAGS |ai:direct;rdtags| AUTOLOAD)
+                  (READ-BASIC-SYSTEM-TAGS)
+                  (COND ((MEMQ (READ-MACRO-QUOTE ANI) SUBSYSTEMS) (READ-ANI-TAGS)))
+                  (COND ((MEMQ (READ-MACRO-QUOTE TGRAPH) SUBSYSTEMS) (READ-GRAPHICS-TAGS)))
+                  (SSTATUS FEATURES LISP-TAGS-FOR-DIRECTOR)
+                  (OR (STATUS FEATURES DIRECTOR-READ-MACROS) (LOAD (READ-MACRO-QUOTE |direct;readir|)))
+                  (OR (STATUS FEATURES KENS-UTILITIES) (LOAD (READ-MACRO-QUOTE |direct;util|)))
+                  (OR (STATUS FEATURE DIRECTOR) (LOAD (READ-MACRO-QUOTE |ai:direct;drect|)))
+                  (LOAD (READ-MACRO-QUOTE |ai:direct;abbrev|)))))
+            ((LAMBDA (*PRINT-LOAD-MESSAGES)
+               (REMPROP (READ-MACRO-QUOTE CS) (READ-MACRO-QUOTE AUTOLOAD))
+               (REMPROP (READ-MACRO-QUOTE CLEARSCREEN) (READ-MACRO-QUOTE AUTOLOAD))
+               (COND ((STATUS FEATURES LISP-TAGS-FOR-DIRECTOR))
+                 (T (DEFPROP READ-EMACS-TAGS |ai:direct;rdtags| AUTOLOAD)
+                   (READ-BASIC-SYSTEM-TAGS)
+                   (COND ((MEMQ (READ-MACRO-QUOTE ANI) SUBSYSTEMS) (READ-ANI-TAGS)))
+                   (COND ((MEMQ (READ-MACRO-QUOTE TGRAPH) SUBSYSTEMS) (READ-GRAPHICS-TAGS)))
+                   (SSTATUS FEATURES LISP-TAGS-FOR-DIRECTOR)
+                   (OR (STATUS FEATURES DIRECTOR-READ-MACROS) (LOAD (READ-MACRO-QUOTE |direct;readir|)))
+                   (OR (STATUS FEATURES KENS-UTILITIES) (LOAD (READ-MACRO-QUOTE |direct;util|)))
+                   (OR (STATUS FEATURE DIRECTOR) (LOAD (READ-MACRO-QUOTE |ai:direct;drect|)))
+                   (LOAD (READ-MACRO-QUOTE |ai:direct;abbrev|)))))
+             NIL))
+          (COND ((AND (MEMQ (READ-MACRO-QUOTE TGRAPH) SUBSYSTEMS)
+                   (PROBEF (READ-MACRO-QUOTE |ai:direct;graph patch|)))
+                 (DIRECTOR-LOAD (READ-MACRO-QUOTE |ai:direct;graph patch|)
+                   (READ-MACRO-QUOTE |to get a patch|)
+                   NIL
+                   NIL
+                   T)))
+          (COND ((AND (MEMQ (READ-MACRO-QUOTE ANI) SUBSYSTEMS)
+                   (PROBEF (READ-MACRO-QUOTE |ai:direct;ani patch|)))
+                 (DIRECTOR-LOAD (READ-MACRO-QUOTE |ai:direct;ani patch|)
+                   (READ-MACRO-QUOTE |to get a patch|)
+                   NIL
+                   NIL
+                   T))))
+  DUMP-DIRECTOR  [EXPR]
+    (LAMBDA G0002
+          (COMMENT ARGLIST
+            =
+            (&OPTIONAL (FILE-NAME (READ-MACRO-QUOTE |ken;second:ts d2500|)) (LOAD-IT-ALL NIL)))
+          (COND ((> G0002 2)
+                 (EVAL (ERROR '|Too many arguments supplied |
+                         (LIST (CONS 'DUMP-DIRECTOR (#75246 G0002))
+                           '(&OPTIONAL (FILE-NAME (READ-MACRO-QUOTE |ken;second:ts d2500|))
+                              (LOAD-IT-ALL NIL)))
+                         'WRNG-NO-ARGS)))
+            ('T
+             (MACROEXPANDED LET
+               1
+               (LET ((LOAD-IT-ALL (COND ((> G0002 1) (ARG 2)) (NIL)))
+                     (FILE-NAME (COND ((> G0002 0) (ARG 1)) ((READ-MACRO-QUOTE |ken;second:ts d2500|)))))
+                 (AND LOAD-IT-ALL (LOAD-2500-DIRECTOR))
+                 (SHUT-UP (READ-MACRO-QUOTE PENCOLOR))
+                 (SHUT-UP (READ-MACRO-QUOTE ERASERDOWN))
+                 (SHUT-UP (READ-MACRO-QUOTE ERASERUP))
+                 (NOUUO NIL)
+                 (*RSET T)
+                 (SETQ *2500-TTYOUT* NIL)
+                 (SSTATUS FLUSH T)
+                 (TYPE (READ-MACRO-QUOTE |remember to update lisp;lock >|))
+                 (PRINC (STATUS LISPVERSION))
+                 (SUSPEND (READ-MACRO-QUOTE #667264) FILE-NAME)
+                 (SETQ *2500-TTYOUT* (OPEN (READ-MACRO-QUOTE TTY:) (READ-MACRO-QUOTE (OUT IMAGE TTY))))
+                 (SETQ *NEXT-SNAP-LOCATION* 0 *CHARACTERS-SINCE-CLEARSCREEN* 1)
+                 (CLEARSCREEN)
+                 (HIDETURTLE)
+                 (APPLY (READ-MACRO-QUOTE CRUNIT) (LIST (STATUS UNAME)))
+                 (SSTATUS GCTIME 0)
+                 (SSTATUS WHO1 42 (READ-MACRO-QUOTE %) 118 0)
+                 (SSTATUS GCWHO 3)
+                 (COND ((AND (PROBEF (READ-MACRO-QUOTE |direct;direct stats|))
+                          (NOT (EQ (STATUS UNAME) (READ-MACRO-QUOTE KEN))))
+                        (LET-FILES ((FILE (OPEN (READ-MACRO-QUOTE |direct;direct stats|)
+                                            (READ-MACRO-QUOTE APPEND))))
+                          (PRINT (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK ((DIRECTOR-SYMBOL-FOR-EVAL (STATUS UNAME))
+                                                                       ON
+                                                                       (DIRECTOR-SYMBOL-FOR-EVAL (STATUS DATE))
+                                                                       #652716))
+                            FILE))))
+                 (PRINC (READ-MACRO-QUOTE |Welcome to 2500 version of Director|))
+                 (TALK))
+               ((LAMBDA (LOAD-IT-ALL FILE-NAME)
+                  (AND LOAD-IT-ALL (LOAD-2500-DIRECTOR))
+                  (SHUT-UP (READ-MACRO-QUOTE PENCOLOR))
+                  (SHUT-UP (READ-MACRO-QUOTE ERASERDOWN))
+                  (SHUT-UP (READ-MACRO-QUOTE ERASERUP))
+                  (NOUUO NIL)
+                  (*RSET T)
+                  (SETQ *2500-TTYOUT* NIL)
+                  (SSTATUS FLUSH T)
+                  (TYPE (READ-MACRO-QUOTE |remember to update lisp;lock >|))
+                  (PRINC (STATUS LISPVERSION))
+                  (SUSPEND (READ-MACRO-QUOTE #667264) FILE-NAME)
+                  (SETQ *2500-TTYOUT* (OPEN (READ-MACRO-QUOTE TTY:) (READ-MACRO-QUOTE (OUT IMAGE TTY))))
+                  (SETQ *NEXT-SNAP-LOCATION* 0 *CHARACTERS-SINCE-CLEARSCREEN* 1)
+                  (CLEARSCREEN)
+                  (HIDETURTLE)
+                  (APPLY (READ-MACRO-QUOTE CRUNIT) (LIST (STATUS UNAME)))
+                  (SSTATUS GCTIME 0)
+                  (SSTATUS WHO1 42 (READ-MACRO-QUOTE %) 118 0)
+                  (SSTATUS GCWHO 3)
+                  (COND ((AND (PROBEF (READ-MACRO-QUOTE |direct;direct stats|))
+                           (NOT (EQ (STATUS UNAME) (READ-MACRO-QUOTE KEN))))
+                         (LET-FILES ((FILE (OPEN (READ-MACRO-QUOTE |direct;direct stats|)
+                                             (READ-MACRO-QUOTE APPEND))))
+                           (PRINT (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK ((DIRECTOR-SYMBOL-FOR-EVAL (STATUS UNAME))
+                                                                        ON
+                                                                        (DIRECTOR-SYMBOL-FOR-EVAL (STATUS DATE))
+                                                                        #652716))
+                             FILE))))
+                  (PRINC (READ-MACRO-QUOTE |Welcome to 2500 version of Director|))
+                  (TALK))
+                (COND ((> G0002 1) (ARG 2)) (NIL))
+                (COND ((> G0002 0) (ARG 1)) ((READ-MACRO-QUOTE |ken;second:ts d2500|))))))))
+  GO-FAST  [EXPR]
+    (LAMBDA N (COND ((= N 1) (SNAP-UUOLINKS))) (*RSET (NOUUO NIL)))
+  GO-SLOW  [EXPR]
+    (LAMBDA N (SNAP-UUOLINKS) (*RSET T) (COND ((= N 1) (NOUUO (ARG 1))) (T (NOUUO T))))
+  LOAD-2500-DIRECTOR  [EXPR]
+    (LAMBDA NIL
+          (2500-TURTLE)
+          (MACROEXPANDED ASK
+            2
+            (ASK PERFORMER PRINT YOUR NAME)
+            (MACROEXPANDED LET
+              1
+              (LET ((*MESSAGE (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME))))
+                (CASES (MACROEXPANDED ACTOR-OF
+                         1
+                         (ACTOR-OF 'PERFORMER)
+                         (OR (GET 'PERFORMER (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'PERFORMER NIL)))))
+              ((LAMBDA (*MESSAGE)
+                 (CASES (MACROEXPANDED ACTOR-OF
+                          1
+                          (ACTOR-OF 'PERFORMER)
+                          (OR (GET 'PERFORMER (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'PERFORMER NIL)))))
+               (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME)))))
+          (MACROEXPANDED ASK
+            2
+            (ASK MOVIE PRINT YOUR NAME)
+            (MACROEXPANDED LET
+              1
+              (LET ((*MESSAGE (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME))))
+                (CASES (MACROEXPANDED ACTOR-OF
+                         1
+                         (ACTOR-OF 'MOVIE)
+                         (OR (GET 'MOVIE (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'MOVIE NIL)))))
+              ((LAMBDA (*MESSAGE)
+                 (CASES (MACROEXPANDED ACTOR-OF
+                          1
+                          (ACTOR-OF 'MOVIE)
+                          (OR (GET 'MOVIE (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'MOVIE NIL)))))
+               (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME)))))
+          (MACROEXPANDED ASK
+            2
+            (ASK POLY PRINT YOUR NAME)
+            (MACROEXPANDED LET
+              1
+              (LET ((*MESSAGE (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME))))
+                (CASES (MACROEXPANDED ACTOR-OF
+                         1
+                         (ACTOR-OF 'POLY)
+                         (OR (GET 'POLY (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'POLY NIL)))))
+              ((LAMBDA (*MESSAGE)
+                 (CASES (MACROEXPANDED ACTOR-OF
+                          1
+                          (ACTOR-OF 'POLY)
+                          (OR (GET 'POLY (READ-MACRO-QUOTE ACTOR)) (ACTOR-AUTOLOAD 'POLY NIL)))))
+               (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (PRINT YOUR NAME)))))
+          (DIRECTOR-LOAD (READ-MACRO-QUOTE |direct;p2500|))
+          (TALK))
+  READ-BASIC-SYSTEM-TAGS  [EXPR]
+    (LAMBDA NIL
+          (READ-TAGS (READ-MACRO-QUOTE TBASIC)
+            (READ-MACRO-QUOTE (|direct;comp| |direct;trace|
+                                |direct;prop|
+                                |direct;incomp|
+                                |direct;dump|
+                                |direct;imacro|
+                                |direct;cmatch|
+                                |direct;some|
+                                |direct;menu|
+                                |direct;smenu|))))
+  READ-GRAPHICS-TAGS  [EXPR]
+    (LAMBDA NIL
+          (READ-TAGS (READ-MACRO-QUOTE TGRAPH)
+            (READ-MACRO-QUOTE (|direct;perfor| |direct;instan|
+                                |direct;text|
+                                |direct;movie|
+                                |direct;poly|
+                                |direct;tutil|
+                                |direct;turmac|
+                                |direct;cmovie|
+                                |direct;dlist|
+                                |direct;dump|
+                                |direct;fwuse|
+                                |direct;fwmake|
+                                |direct;inter|))))
+  READ-TAGS  [EXPR]
+    (LAMBDA (TAG-FILE-NAME-1 ONLY-THESE-FILES)
+          (COND ((PROBEF (LIST (READ-MACRO-QUOTE (#75107 DIRECT))
+                           TAG-FILE-NAME-1
+                           (READ-MACRO-QUOTE FASL)))
+                 (LOAD (LIST (READ-MACRO-QUOTE (#75107 DIRECT)) TAG-FILE-NAME-1 (READ-MACRO-QUOTE FASL))))
+            ((PROBEF (LIST (READ-MACRO-QUOTE (#75107 DIRECT)) TAG-FILE-NAME-1 (READ-MACRO-QUOTE LTAGS)))
+             (LOAD (LIST (READ-MACRO-QUOTE (#75107 DIRECT)) TAG-FILE-NAME-1 (READ-MACRO-QUOTE LTAGS))))
+            (T (LET ((READTABLE (GET (READ-MACRO-QUOTE ORIGINAL-READTABLE) (READ-MACRO-QUOTE ARRAY))))
+                 (READ-EMACS-TAGS (READ-MACRO-QUOTE |direct;direct tags|)
+                   (LIST (READ-MACRO-QUOTE (#75107 DIRECT)) TAG-FILE-NAME-1 (READ-MACRO-QUOTE LTAGS))
+                   ONLY-THESE-FILES)))))
+  SNAP-UUOLINKS  [EXPR]
+    (LAMBDA NIL (SSTATUS UUOLINKS))
+  UNDF-FNCTN-SO-TRY-TO-LOAD  [EXPR]
+    (LAMBDA (ARG)
+          ((LAMBDA (UNKNOWN-FUNCTION)
+             (COND ((GETL UNKNOWN-FUNCTION '(EXPR SUBR LSUBR LEXPR MACRO)) ARG)
+               (T (FUNCALL SYSTEM-UNDF-FNCTN ARG))))
+           (CAR ARG)))
+
+-- Symbols with properties --
+  | ~a|                                +INTERNAL-STRING-MARKER T
   |!-read-macro|                       SUBR 135621
-  #1ENDPAGEFN                          SUBR 127654; #075166 12855120906
+  #1ENDPAGEFN                          SUBR 127654; #075166 #731663
   #1ENTER-FORMAT                       MACRO |#1ENTER-FORMAT MACRO| [SUBR 126245, #075166 116451]
-  |#1ENTER-FORMAT MACRO|               SUBR 126245; #075166 -23728916782
+  |#1ENTER-FORMAT MACRO|               SUBR 126245; #075166 #116451
   #1ENTER-FORMAT&OBJ                   MACRO |#1ENTER-FORMAT&OBJ MACRO| [SUBR 126304, #075166 116427]
-  |#1ENTER-FORMAT&OBJ MACRO|           SUBR 126304; #075166 17224755316
-  #1ENTER-OBJ                          SUBR 133635; #075166 -14953658058
-  #1FORMAT-DISPATCH                    SUBR 130761; #075166 12388153434
-  #1FORMAT-HUNK                        SUBR 132031; #075166 22930005117
-  #1FORMAT-INIT                        SUBR 130522; #075166 -21034141239
-  #1FORMAT-LIST                        SUBR 131240; #075166 -210077731
-  #1FORMAT-LSUBR                       LSUBR 131567; #075166 30404112909
-  #1PRINTER                            SUBR 127744; #075166 20713628063
-  #1PRINTOUT                           SUBR 134452; #075166 -4229139178
-  #1RCHECK                             SUBR 131133; #075166 4019908742
-  #1REM-PRINTER                        SUBR 126754; #075166 -1070679441
-  #1SET-UP-GLOBALS                     SUBR 126702; #075166 29889185468
-  #1SET-UP-MACROS                      SUBR 126364; #075166 2497691523
-  #1SET-UP-PRINTER                     SUBR 126736; #075166 29789116093
-  #1SET-UP-TEMPLATES                   SUBR 126612; #075166 -1130834803
-  #CONTINUE                            SUBR 127475; #075166 17484867994
-  #EXPLODE                             SUBR 127175; #075166 -18587123530
-  #EXPLODEC                            SUBR 127201; #075166 -1407254346
-  #EXPLODEL                            LSUBR 127205; #075166 -8154131930
+  |#1ENTER-FORMAT&OBJ MACRO|           SUBR 126304; #075166 #116427
+  #1ENTER-OBJ                          SUBR 133635; #075166 #731331
+  #1FORMAT-DISPATCH                    SUBR 130761; #075166 #731530
+  #1FORMAT-HUNK                        SUBR 132031; #075166 #731505
+  #1FORMAT-INIT                        SUBR 130522; #075166 #731533
+  #1FORMAT-LIST                        SUBR 131240; #075166 #731522
+  #1FORMAT-LSUBR                       LSUBR 131567; #075166 #731510
+  #1PRINTER                            SUBR 127744; #075166 #731656
+  #1PRINTOUT                           SUBR 134452; #075166 #731326
+  #1RCHECK                             SUBR 131133; #075166 #731525
+  #1REM-PRINTER                        SUBR 126754; #075166 #116026
+  #1SET-UP-GLOBALS                     SUBR 126702; #075166 #116116
+  #1SET-UP-MACROS                      SUBR 126364; #075166 #116416
+  #1SET-UP-PRINTER                     SUBR 126736; #075166 #116041
+  #1SET-UP-TEMPLATES                   SUBR 126612; #075166 #116231
+  #CONTINUE                            SUBR 127475; #075166 #731671
+  #EXPLODE                             SUBR 127175; #075166 #731715
+  #EXPLODEC                            SUBR 127201; #075166 #731712
+  #EXPLODEL                            LSUBR 127205; #075166 #731707
   #MAKE-INVERT-QUOTE-FN                MACRO |#MAKE-INVERT-QUOTE-FN MACRO| [SUBR 132333, #075166 731470]
-  |#MAKE-INVERT-QUOTE-FN MACRO|        SUBR 132333; #075166 7895155602
+  |#MAKE-INVERT-QUOTE-FN MACRO|        SUBR 132333; #075166 #731470
   #MAKE-INVERT-QUOTE-FN2               MACRO |#MAKE-INVERT-QUOTE-FN2 MACRO| [SUBR 132604, #075166 731433]
-  |#MAKE-INVERT-QUOTE-FN2 MACRO|       SUBR 132604; #075166 -4363084716
+  |#MAKE-INVERT-QUOTE-FN2 MACRO|       SUBR 132604; #075166 #731433
   #MAKE-TEMPLATE                       SUBR 126456; #075166 SY*PURP
-  #MAKE-TEMPLATE1                      SUBR 126460; #075166 -8397824544
-  #PRIN1                               LSUBR 127043; #075166 26205606435
-  #PRINC                               LSUBR 127062; #075166 9025737251
-  #PRINT                               LSUBR 127101; #075166 -8154131933
-  #PRINTABORT                          SUBR 127453; #075166 -18615249575
+  #MAKE-TEMPLATE1                      SUBR 126460; #075166 #116240
+  #PRIN1                               LSUBR 127043; #075166 #731744
+  #PRINC                               LSUBR 127062; #075166 #731741
+  #PRINT                               LSUBR 127101; #075166 #731736
+  #PRINTABORT                          SUBR 127453; #075166 #731676
   $HEADING                             AUTOLOAD |DIRECT;TURMAC|
   $XCOR                                AUTOLOAD |DIRECT;TURMAC|
   $YCOR                                AUTOLOAD |DIRECT;TURMAC|
-  %                                    FORMAT-CTL-REPEAT-CHAR #106011
+  %                                    FORMAT-CTL-REPEAT-CHAR 13
   &                                    FORMAT-CTL-NO-ARG FORMAT-FRESH-LINE-OP
   |'-read-macro|                       SUBR 136111
   |(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)P| SUBR 217651
@@ -168,11 +961,11 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |(MAKE AN INSTANCE NAMED ?NAME COPYING ?VARIABLES-TO-COPY)P| SUBR 214307
   |(MAKE APPEARANCE OF ?PERFORMER)P|   SUBR 251076
   |(MAKE SYNONYM ?NAME)P|              SUBR 213152
-  |(MAKE ~a)~%Lets try again.|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |(MAKE ~a)~%Lets try again.|         +INTERNAL-STRING-MARKER T
   |(MEMORIZE ?ITEM IF ITS NOT ALREADY)P| SUBR 212151
   |(MEMORIZE ?ITEM)P|                  SUBR 212223
   |(METHOD GROUP ?METHOD-GROUP ?METHOD-GROUP-HELP %METHOD-PATTERNS)P| SUBR 307147
-  |(MOVE ?SPEED)P|                     #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  |(MOVE ?SPEED)P|                     EXPR (LAMBDA (OBJECT) (AND (EQ (CAR OBJECT) 'MOVE) (ONE-LONG (CDR OBJECT...
   |(MOVE DOWN ?AMOUNT)P|               SUBR 237351
   |(MOVE LEFT ?AMOUNT)P|               SUBR 237535
   |(MOVE RIGHT ?AMOUNT)P|              SUBR 237463
@@ -188,7 +981,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |(PERFORM %ACTIONS)P|                SUBR 233646
   |(PLAN AFTER RECEIVING ?EVENT-PATTERN TO ?MESSAGE-FORM)P| SUBR 211206
   |(PREPARE TO MIX COLORS WITH ?COLORS)P| SUBR 242456
-  |(PRINT FRAMES ?BEGIN TO ?END)P|     #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  |(PRINT FRAMES ?BEGIN TO ?END)P|     EXPR (LAMBDA (OBJECT) (AND (EQ (CAR OBJECT) 'PRINT) (AND (EQ (CADR OBJEC...
   |(PRINT MY ?VARIABLE)P|              SUBR 216065
   |(PRINT YOUR ?VARIABLE)P|            SUBR 201377
   |(PRINT {MEMQ ?OPTION '(MEMORY VARIABLES SCRIPT DATABASE ALL)} ON FILE ?FILE-NAME)P| SUBR 201477
@@ -264,7 +1057,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |(SETHEADING ?NEW-HEADING)P|         SUBR 237703
   |(SETTURTLE ?NEW-STATE)P|            SUBR 240004
   |(SHRINK ?AMOUNT)P|                  SUBR 242622
-  |(SPIN ?SPEED)P|                     #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  |(SPIN ?SPEED)P|                     EXPR (LAMBDA (OBJECT) (AND (EQ (CAR OBJECT) 'SPIN) (ONE-LONG (CDR OBJECT...
   |(TELL EACH OF YOUR ?OTHERS WHENEVER YOUR ?VARIABLE IS CHANGED)P| SUBR 202255
   |(TELL YOUR ?OTHER WHENEVER YOUR ?VARIABLE IS CHANGED)P| SUBR 202045
   |(TO %MESSAGE)P|                     SUBR 215664
@@ -278,12 +1071,12 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |(YIELD DISTANCE TO (?X ?Y %))P|     SUBR 241765
   |(YIELD HEADING FROM (?X ?Y %))P|    SUBR 241557
   |(YIELD HEADING TO (?X ?Y %))P|      SUBR 241662
-  |(comment begun on ~a)|              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |(comment more added at ~a)|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |(return '<actor-name>)~%|           +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |(return '<correct-spelling>)|       +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |(return '<right-version-of-message>)~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |(return 'retry)~% or if the message was misstyped then type~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |(comment begun on ~a)|              +INTERNAL-STRING-MARKER T
+  |(comment more added at ~a)|         +INTERNAL-STRING-MARKER T
+  |(return '<actor-name>)~%|           +INTERNAL-STRING-MARKER T
+  |(return '<correct-spelling>)|       +INTERNAL-STRING-MARKER T
+  |(return '<right-version-of-message>)~%| +INTERNAL-STRING-MARKER T
+  |(return 'retry)~% or if the message was misstyped then type~%| +INTERNAL-STRING-MARKER T
   |({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)P| SUBR 210610
   |({or DISPLAY REDISPLAY})P|          SUBR 252366
   |({or GROW SHRINK} BY FACTOR ?FACTOR)P| SUBR 242723
@@ -295,7 +1088,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   +INTERNAL.FORMAT-FRESH-LINE.AUX.FUNCTION SUBR 144055
   +INTERNAL.FORMAT-TAB-TO.AUX.FUNCTION SUBR 144464
   |,-read-macro|                       SUBR 135627
-  |--- type (?) for help|              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |--- type (?) for help|              +INTERNAL-STRING-MARKER T
   11-BIT-SIGNED-INTEGER                SUBR 275040
   2500-BACK                            SUBR 275110
   2500-CLEARSCREEN                     SUBR 274065
@@ -315,7 +1108,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   2500-SNAP                            SUBR 275270
   2500-SPIN                            SUBR 275245
   2500-TURTLE                          SUBR 162247
-  |;This file is produced by Director's menu subsystem for ~a| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |;This file is produced by Director's menu subsystem for ~a| +INTERNAL-STRING-MARKER T
   ?FORMAT                              LSUBR 145241
   |@-read-macro|                       SUBR 156145
   A                                    FORMAT-CTL-ONE-ARG FORMAT-PRINC-LISP-OBJECT-OP; MACRO |A MACRO| []
@@ -323,18 +1116,18 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   ABOUT-EQUAL                          AUTOLOAD |DIRECT;INTER|
   ACTION-FUNCTION-OF-PATTERN           SUBR 255151
   ACTOR-AUTOLOAD                       SUBR 166570
-  ACTOR-EQ                             MACRO |ACTOR-EQ MACRO| [SUBR 141261]; #076774 #105775
+  ACTOR-EQ                             MACRO |ACTOR-EQ MACRO| [SUBR 141261]; #076774 1
   |ACTOR-EQ MACRO|                     SUBR 141261
-  ACTOR-LET                            MACRO |ACTOR-LET MACRO| [SUBR 170366]; #076774 #105775
+  ACTOR-LET                            MACRO |ACTOR-LET MACRO| [SUBR 170366]; #076774 1
   |ACTOR-LET MACRO|                    SUBR 170366
   ACTOR-NOT-DEFINED                    SUBR 162312
-  ACTOR-OF                             MACRO |ACTOR-OF MACRO| [SUBR 141373]; #076774 #105775
+  ACTOR-OF                             MACRO |ACTOR-OF MACRO| [SUBR 141373]; #076774 1
   |ACTOR-OF MACRO|                     SUBR 141373
-  ACTOR-POP                            MACRO |ACTOR-POP MACRO| [SUBR 170656]; #076774 #105775
+  ACTOR-POP                            MACRO |ACTOR-POP MACRO| [SUBR 170656]; #076774 1
   |ACTOR-POP MACRO|                    SUBR 170656
-  ACTOR-PUSH                           MACRO |ACTOR-PUSH MACRO| [SUBR 170603]; #076774 #105775
+  ACTOR-PUSH                           MACRO |ACTOR-PUSH MACRO| [SUBR 170603]; #076774 1
   |ACTOR-PUSH MACRO|                   SUBR 170603
-  ACTORP                               MACRO |ACTORP MACRO| [SUBR 141211]; #076774 #105775
+  ACTORP                               MACRO |ACTORP MACRO| [SUBR 141211]; #076774 1
   |ACTORP MACRO|                       SUBR 141211
   ACTORS-THAT-MATCH                    SUBR 162264
   ADD-HELP-TO-ACTOR                    MACRO |ADD-HELP-TO-ACTOR MACRO| [SUBR 232171]; AUTOLOAD |DIRECT;SOME|
@@ -352,8 +1145,8 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   ALL-MATCHING-METHODS-1               AUTOLOAD |DIRECT;INCOMP|
   ANDIFY                               SUBR 257112
   ANY-SPECIAL-SYMBOLS-IN-PATTERN?      SUBR 255121
-  AP                                   #075074 APROPOS
-  APPEARANCE                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) APPEARANCE PR...
+  AP                                   EXPR APROPOS
+  APPEARANCE                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME APPEARANCE PRIVATE...
   APPEARANCE-SETUP-DRAW                SUBR 232346
   APPEARANCE-SETUP-ERASE               SUBR 232367
   APPEND-ATOMS                         MACRO |APPEND-ATOMS MACRO| [SUBR 143105]
@@ -361,28 +1154,28 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   APPLY-AND-PATTERN-HACK               SUBR 257570
   APPLY-AND-PATTERN-HACK-1             SUBR 257577
   APPLY-TO-NAME-VALUES                 SUBR 304621
-  APROPOS                              AUTOLOAD (((#100156) LIBLSP) APROPO)
+  APROPOS                              AUTOLOAD ((#75107 LIBLSP) APROPO)
   ARCTAN                               SUBR 272435
   ARE-VECTORS-CROSSING?                SUBR 277710
-  ASK                                  MACRO |ASK MACRO| [SUBR 140462]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK                                  MACRO |ASK MACRO| [SUBR 140462]; #076774 2; DIRECTOR-FORM T
   |ASK MACRO|                          SUBR 140462
   ASK-ABOUT-METHOD-PATTERNS            SUBR 271123
-  ASK-ALL                              MACRO |ASK-ALL MACRO| [SUBR 140043]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK-ALL                              MACRO |ASK-ALL MACRO| [SUBR 140043]; #076774 2; DIRECTOR-FORM T
   |ASK-ALL MACRO|                      SUBR 140043
   ASK-AND-DO-TRANSMISSION              SUBR 266357
   ASK-DOUBLE-MENU                      LSUBR 267105
   ASK-DOWN-THE-TREE                    SUBR 266704
-  ASK-EACH                             MACRO |ASK-EACH MACRO| [SUBR 137505]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK-EACH                             MACRO |ASK-EACH MACRO| [SUBR 137505]; #076774 2; DIRECTOR-FORM T
   |ASK-EACH MACRO|                     SUBR 137505
   ASK-FOR-A-NAME                       SUBR 312533
   ASK-FOR-A-WORD                       SUBR 312542
   ASK-FOR-NEXT-PATTERN-ELEMENT         SUBR 312441
   ASK-IF                               SUBR 156725
-  ASK-IF-CAN                           MACRO |ASK-IF-CAN MACRO| [SUBR 137741]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK-IF-CAN                           MACRO |ASK-IF-CAN MACRO| [SUBR 137741]; #076774 2; DIRECTOR-FORM T
   |ASK-IF-CAN MACRO|                   SUBR 137741
-  ASK-IF-EXISTS                        MACRO |ASK-IF-EXISTS MACRO| [SUBR 137567]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK-IF-EXISTS                        MACRO |ASK-IF-EXISTS MACRO| [SUBR 137567]; #076774 2; DIRECTOR-FORM T
   |ASK-IF-EXISTS MACRO|                SUBR 137567
-  ASK-IF-UNDERSTOOD                    MACRO |ASK-IF-UNDERSTOOD MACRO| [SUBR 137700]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ASK-IF-UNDERSTOOD                    MACRO |ASK-IF-UNDERSTOOD MACRO| [SUBR 137700]; #076774 2; DIRECTOR-FORM T
   |ASK-IF-UNDERSTOOD MACRO|            SUBR 137700
   ASK-MACRO                            LSUBR 140567
   ASK-MENU                             LSUBR 267417
@@ -408,32 +1201,32 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |AVERAGE$ MACRO|                     SUBR 173253
   AY                                   ABBREVIATION-EXPANSION (ASK YOUR)
   AYP                                  ABBREVIATION-EXPANSION (ABSORB YOUR PARTS)
-  |Asking ~a to ~a~%causes an error.  Should we try it anyway?| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |Asking ~a to ~a~%causes an error.  Should we try it anyway?| +INTERNAL-STRING-MARKER T
   BACK                                 SUBR 302314
   BEARING                              LSUBR 272451; AUTOLOAD |DIRECT;TURMAC|
   BINDING-PART-OF-PATTERN              SUBR 255166
   BINDING-PART-OF-PATTERN-1            LSUBR 255250; AUTOLOAD |DIRECT;CMATCH|
-  BK                                   #075074 FANCY-BACK; AUTOLOAD |DIRECT;DLIST|
+  BK                                   EXPR FANCY-BACK; AUTOLOAD |DIRECT;DLIST|
   BLINK                                SUBR 274436
-  BOAY                                 ABBREVIATION-EXPANSION (BROADCAST (#101132 . #111165) ASK YOUR)
+  BOAY                                 ABBREVIATION-EXPANSION (BROADCAST OR ASK YOUR)
   BODY-OF-COMPILED-TRANSMISSION        AUTOLOAD |DIRECT;INCOMP|
   BODY-OF-DO-THE-FOLLOWING             SUBR 177106
   BODY-OF-METHOD                       MACRO |BODY-OF-METHOD MACRO| [SUBR 142340]
   |BODY-OF-METHOD MACRO|               SUBR 142340
-  BOT                                  AUTOLOAD (((#100156) LIBLSP) STACK)
+  BOT                                  AUTOLOAD ((#75107 LIBLSP) STACK)
   BPO                                  ABBREVIATION-EXPANSION (BECOME PART OF)
   BTY                                  ABBREVIATION-EXPANSION (BROADCAST TO YOUR)
-  BUG                                  #075074 SNAP-UUOLINKS
+  BUG                                  EXPR SNAP-UUOLINKS
   BUTLAST                              SUBR 157632
   C                                    FORMAT-CTL-ONE-ARG FORMAT-CHARACTER-OP
-  CANI                                 ABBREVIATION-EXPANSION (CLONE (#101130 . #111162) (#102212) IT)
+  CANI                                 ABBREVIATION-EXPANSION (CLONE AND NAME IT)
   CAR-IF-LIST                          SUBR 160437
   CAR-OF-OBJECT                        SUBR 256166
   CASES                                SUBR 162517
   CD                                   ABBREVIATION-EXPANSION (CHILDLESS-DESCENDANTS)
   CDR-OF-OBJECT                        SUBR 256131
-  CHANGE                               #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #201100 (#101264 FORMAT-CTL-MULTI-ARG FORMAT-IGNORE-OP . #111423)
-  CHANGE-PARENT-OF                     MACRO |CHANGE-PARENT-OF MACRO| [SUBR 141743]; #076774 #105775
+  CHANGE                               #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #201100 *
+  CHANGE-PARENT-OF                     MACRO |CHANGE-PARENT-OF MACRO| [SUBR 141743]; #076774 1
   |CHANGE-PARENT-OF MACRO|             SUBR 141743
   CHEATING-NAME-OF                     SUBR 165650
   CHECK-OUT-THIS-METHOD                AUTOLOAD |DIRECT;INCOMP|
@@ -443,7 +1236,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   CIRCLE-PASSING-THROUGH-1             SUBR 301563
   CIRCULAR-LIST-OF                     SUBR 160635
   CLEARSCREEN                          SUBR 273362; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
-  CLOCK                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) CLOCK PRIVATE...
+  CLOCK                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME CLOCK PRIVATE) (TI...
   CLONE-ACTOR                          SUBR 177622
   CLOSE-AUXILLARY-FILES                AUTOLOAD |DIRECT;COMP|
   CO                                   ABBREVIATION-EXPANSION (CONCURRENTLY)
@@ -452,11 +1245,11 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   COLLECT-ALL-VARIABLE-NAMES           SUBR 231751
   COLOR                                #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL
   COLOR-DIFFERENCES                    SUBR 275437
-  COLOR-POLY                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) COLOR-POLY PR...
+  COLOR-POLY                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME COLOR-POLY PRIVATE...
   COMBINE-3-BITS-AND-SEND-OUT          SUBR 275015
   COMBINE-AND-SEND-OUT                 SUBR 274756
   COMBINE-COPIES-AND-REVERSE           SUBR 257325
-  COMMA                                MACRO |COMMA MACRO| [SUBR 141154]; #076774 #105775
+  COMMA                                MACRO |COMMA MACRO| [SUBR 141154]; #076774 1
   |COMMA MACRO|                        SUBR 141154
   COMMA-MACRO                          SUBR 135622
   COMMAFY                              SUBR 254463
@@ -471,16 +1264,16 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   COMPILE-METHOD                       AUTOLOAD |DIRECT;COMP|
   COMPILE-NORMAL-ACTOR                 AUTOLOAD |DIRECT;COMP|
   COMPILE-TRANSMISSIONS-IN-METHOD      AUTOLOAD |DIRECT;COMP|
-  COMPILE-USING                        MACRO |COMPILE-USING MACRO| [SUBR 170266]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  COMPILE-USING                        MACRO |COMPILE-USING MACRO| [SUBR 170266]; #076774 1; DIRECTOR-FORM T
   |COMPILE-USING MACRO|                SUBR 170266
   COMPILE-USING-ASK-EACH               SUBR 170227
   COMPILED-ACTOR?                      SUBR 164611
   COMPILED-ASK                         SUBR 162570
   COMPILED-CONTINUE-ASKING             SUBR 162605
   COMPILER-ISNT-COMPILING-THE-FIRST-HELPER-RIGHT SUBR 173347
-  COMPILER-LET                         MACRO |COMPILER-LET MACRO| [SUBR 170014]; #076774 #105775
+  COMPILER-LET                         MACRO |COMPILER-LET MACRO| [SUBR 170014]; #076774 1
   |COMPILER-LET MACRO|                 SUBR 170014
-  COMPILER-MAPSET                      MACRO |COMPILER-MAPSET MACRO| [SUBR 170121]; #076774 #105775
+  COMPILER-MAPSET                      MACRO |COMPILER-MAPSET MACRO| [SUBR 170121]; #076774 1
   |COMPILER-MAPSET MACRO|              SUBR 170121
   COMPILER-SWITCH                      SUBR 167524
   COMPUTE-EXTREME-AND-CENTER           SUBR 301077
@@ -488,9 +1281,9 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   CONS-IF-NOT-MEMBER                   SUBR 160423
   CONS-INSERT                          AUTOLOAD |DIRECT;INTER|
   CONTAINS-EVAL-OR-UNPACK              SUBR 136052
-  CONTINUE-ASKING                      MACRO |CONTINUE-ASKING MACRO| []; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  CONTINUE-ASKING                      MACRO |CONTINUE-ASKING MACRO| []; #076774 2; DIRECTOR-FORM T
   |CONTINUE-ASKING MACRO|              SUBR 140420
-  CONTINUE-ASKING-IF-UNDERSTOOD        MACRO |CONTINUE-ASKING-IF-UNDERSTOOD MACRO| [SUBR 140375]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  CONTINUE-ASKING-IF-UNDERSTOOD        MACRO |CONTINUE-ASKING-IF-UNDERSTOOD MACRO| [SUBR 140375]; #076774 2; DIRECTOR-FORM T
   |CONTINUE-ASKING-IF-UNDERSTOOD MACRO| SUBR 140375
   CONTINUE-ASKING1                     SUBR 162257
   CONTINUE-CASES                       SUBR 162536
@@ -500,7 +1293,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   COPY-INTERNAL-VARIABLE-ALIST         SUBR 177411
   COULD-METHOD-APPLY?                  AUTOLOAD |DIRECT;INCOMP|
   CREATE-PROPERTY                      SUBR 303643
-  CS                                   #075074 CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
+  CS                                   EXPR CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   CURLY-BRACKETED-LIST                 SUBR 156024
   D                                    FORMAT-CTL-ONE-ARG FORMAT-DECIMAL-INTEGER-OP
   D-C                                  ABBREVIATION-EXPANSION (ASK DEFAULT-CLOCK)
@@ -513,49 +1306,49 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   D0172                                SUBR 233473
   D0359                                SUBR 200371
   DA                                   ABBREVIATION-EXPANSION (DEFINE-ABBREVIATION)
-  DAS                                  ABBREVIATION-EXPANSION ((#101046 . #111033) AT SPEED)
+  DAS                                  ABBREVIATION-EXPANSION (DO AT SPEED)
   DASH                                 SUBR 274273
   DASH-DOT                             SUBR 274334
-  DCS                                  #075074 DIRECTOR-CLEAR-STAGE; AUTOLOAD |DIRECT;PERFOR|
-  DEFAULT-CLOCK                        ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) DEFAULT-CLOCK...
-  DEFCOMMENT                           MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  DEFINE                               AUTOLOAD-PROPERTY ACTOR-LOAD; MACRO |DEFINE MACRO| [SUBR 136725]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DCS                                  EXPR DIRECTOR-CLEAR-STAGE; AUTOLOAD |DIRECT;PERFOR|
+  DEFAULT-CLOCK                        ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME DEFAULT-CLOCK PRIV...
+  DEFCOMMENT                           MACRO (LAMBDA (USELESS) NIL)
+  DEFINE                               AUTOLOAD-PROPERTY ACTOR-LOAD; MACRO |DEFINE MACRO| [SUBR 136725]; #076774 1; DIRECTOR-FORM T
   |DEFINE MACRO|                       SUBR 136725
   DEFINE-1                             SUBR 137075
-  DEFINE-ABBREVIATION                  MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  DEFINE-ALIAS                         MACRO |DEFINE-ALIAS MACRO| [SUBR 173271]; #076774 #105775
+  DEFINE-ABBREVIATION                  MACRO (LAMBDA (FORM) (READ-QUOTE-ALLOWING-EVAL-AND-UNPACK (DEFPROP (DIREC...
+  DEFINE-ALIAS                         MACRO |DEFINE-ALIAS MACRO| [SUBR 173271]; #076774 1
   |DEFINE-ALIAS MACRO|                 SUBR 173271
   DEFINE-FAST-TURTLE-HANDLER           AUTOLOAD |DIRECT;INSTAN|
-  DEFINE-FORM                          MACRO |DEFINE-FORM MACRO| [SUBR 167636]; #076774 #105775; AUTOLOAD-PROPERTY (#100136)
+  DEFINE-FORM                          MACRO |DEFINE-FORM MACRO| [SUBR 167636]; #076774 1; AUTOLOAD-PROPERTY AUTOLOAD
   |DEFINE-FORM MACRO|                  SUBR 167636
-  DEFINE-FUNCTION                      AUTOLOAD-PROPERTY (#100136); MACRO |DEFINE-FUNCTION MACRO| [SUBR 137023]; #076774 #105775
+  DEFINE-FUNCTION                      AUTOLOAD-PROPERTY AUTOLOAD; MACRO |DEFINE-FUNCTION MACRO| [SUBR 137023]; #076774 1
   |DEFINE-FUNCTION MACRO|              SUBR 137023
-  DEFINE-MACRO                         AUTOLOAD-PROPERTY (#100136); MACRO |DEFINE-MACRO MACRO| [SUBR 136376]
+  DEFINE-MACRO                         AUTOLOAD-PROPERTY AUTOLOAD; MACRO |DEFINE-MACRO MACRO| [SUBR 136376]
   |DEFINE-MACRO MACRO|                 SUBR 136376
-  DEFINE-MACRO-METHOD                  MACRO |DEFINE-MACRO-METHOD MACRO| [SUBR 137277]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DEFINE-MACRO-METHOD                  MACRO |DEFINE-MACRO-METHOD MACRO| [SUBR 137277]; #076774 1; DIRECTOR-FORM T
   |DEFINE-MACRO-METHOD MACRO|          SUBR 137277
-  DEFINE-METHOD                        MACRO |DEFINE-METHOD MACRO| [SUBR 137173]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DEFINE-METHOD                        MACRO |DEFINE-METHOD MACRO| [SUBR 137173]; #076774 1; DIRECTOR-FORM T
   |DEFINE-METHOD MACRO|                SUBR 137173
   DEFINE-METHOD-BODY                   SUBR 164431
-  DEFINE-METHOD-HELPER                 MACRO |DEFINE-METHOD-HELPER MACRO| [SUBR 167574]; #076774 #105775; DIRECTOR-HELPER (#100362 . #107767); AUTOLOAD-PROPERTY (#100136)
+  DEFINE-METHOD-HELPER                 MACRO |DEFINE-METHOD-HELPER MACRO| [SUBR 167574]; #076774 1; DIRECTOR-HELPER CADDR; AUTOLOAD-PROPERTY AUTOLOAD
   |DEFINE-METHOD-HELPER MACRO|         SUBR 167574
-  DEFINE-OR-ADD-TO                     AUTOLOAD-PROPERTY ACTOR-LOAD; MACRO |DEFINE-OR-ADD-TO MACRO| [SUBR 136764]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DEFINE-OR-ADD-TO                     AUTOLOAD-PROPERTY ACTOR-LOAD; MACRO |DEFINE-OR-ADD-TO MACRO| [SUBR 136764]; #076774 1; DIRECTOR-FORM T
   |DEFINE-OR-ADD-TO MACRO|             SUBR 136764
   DEFINE-PREDICATE                     SUBR 253605
-  DEFINE-PRIMITIVE-METHOD              MACRO |DEFINE-PRIMITIVE-METHOD MACRO| [SUBR 137233]; #076774 #105775; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DEFINE-PRIMITIVE-METHOD              MACRO |DEFINE-PRIMITIVE-METHOD MACRO| [SUBR 137233]; #076774 1; DIRECTOR-FORM T
   |DEFINE-PRIMITIVE-METHOD MACRO|      SUBR 137233
-  DEFINE-READ-MACRO-FUNCTION           MACRO |DEFINE-READ-MACRO-FUNCTION MACRO| [SUBR 135517]; #076774 #105775
+  DEFINE-READ-MACRO-FUNCTION           MACRO |DEFINE-READ-MACRO-FUNCTION MACRO| [SUBR 135517]; #076774 1
   |DEFINE-READ-MACRO-FUNCTION MACRO|   SUBR 135517
-  DEFINE-SIMPLE-MACRO                  AUTOLOAD-PROPERTY (#100136); MACRO |DEFINE-SIMPLE-MACRO MACRO| [SUBR 136452]
+  DEFINE-SIMPLE-MACRO                  AUTOLOAD-PROPERTY AUTOLOAD; MACRO |DEFINE-SIMPLE-MACRO MACRO| [SUBR 136452]
   |DEFINE-SIMPLE-MACRO MACRO|          SUBR 136452
-  DEFINE-SYNONYM                       MACRO |DEFINE-SYNONYM MACRO| [SUBR 167752]; #076774 #105775; AUTOLOAD-PROPERTY (#100136)
+  DEFINE-SYNONYM                       MACRO |DEFINE-SYNONYM MACRO| [SUBR 167752]; #076774 1; AUTOLOAD-PROPERTY AUTOLOAD
   |DEFINE-SYNONYM MACRO|               SUBR 167752
-  DEFINE-TRANSMISSION-MACRO            MACRO |DEFINE-TRANSMISSION-MACRO MACRO| [SUBR 140316]; #076774 #105775
+  DEFINE-TRANSMISSION-MACRO            MACRO |DEFINE-TRANSMISSION-MACRO MACRO| [SUBR 140316]; #076774 1
   |DEFINE-TRANSMISSION-MACRO MACRO|    SUBR 140316
   DEFINED-PREDICATE?                   SUBR 253603
   DEFINEDP                             MACRO |DEFINEDP MACRO| [SUBR 142030]
   |DEFINEDP MACRO|                     SUBR 142030
-  |DEFUN #GRIND-FN|                    SUBR 133116; #075166 -2570422404
+  |DEFUN #GRIND-FN|                    SUBR 133116; #075166 #731346
   DEFUNIZE                             AUTOLOAD |DIRECT;COMP|
   DELX                                 SUBR 302316
   DELXY                                SUBR 302452
@@ -577,16 +1370,16 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |DIRECT;MENU 133_1.|                 SUBR 271121
   |DIRECT;MENU 133_2.|                 SUBR 271226
   |DIRECT;SMENU LISP_1.|               SUBR 305374
-  DIRECTOR                             #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  DIRECTOR                             EXPR (LAMBDA (SUBSYSTEMS) (MACROEXPANDED LET 1 (LET ((*PRINT-LOAD-MESSAG...
   DIRECTOR-CLEAR-STAGE                 SUBR 232225
   DIRECTOR-COMPILE                     AUTOLOAD |DIRECT;COMP|
-  DIRECTOR-ERRSET                      MACRO |DIRECTOR-ERRSET MACRO| [SUBR 136652]; #076774 #105775
+  DIRECTOR-ERRSET                      MACRO |DIRECTOR-ERRSET MACRO| [SUBR 136652]; #076774 1
   |DIRECTOR-ERRSET MACRO|              SUBR 136652
   DIRECTOR-LOAD                        LSUBR 166741
   DIRECTOR-LOAD-AND-RETURN-ACTORS      LSUBR 166655
-  DIRECTOR-MAPCAN                      MACRO |DIRECTOR-MAPCAN MACRO| [SUBR 171667]; #076774 #105775
+  DIRECTOR-MAPCAN                      MACRO |DIRECTOR-MAPCAN MACRO| [SUBR 171667]; #076774 1
   |DIRECTOR-MAPCAN MACRO|              SUBR 171667
-  DIRECTOR-MAPCAR                      MACRO |DIRECTOR-MAPCAR MACRO| [SUBR 171373]; #076774 #105775
+  DIRECTOR-MAPCAR                      MACRO |DIRECTOR-MAPCAR MACRO| [SUBR 171373]; #076774 1
   |DIRECTOR-MAPCAR MACRO|              SUBR 171373
   DIRECTOR-QUOTE-READ-MACRO            SUBR 136112
   DIRECTOR-SETTURTLE                   SUBR 276057
@@ -622,21 +1415,21 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   DISPLAY-OR-ERASE-TEXT                AUTOLOAD |DIRECT;TEXT|
   DISPLAY-PACKAGE                      SUBR 300272
   DISTANCE-TO-NEAREST-WALL             SUBR 276016
-  DLOAD                                #075074 DIRECTOR-LOAD
-  DMAAO                                #075074 DISPLAY-MOVIE-ALL-AT-ONCE; AUTOLOAD |DIRECT;MOVIE|
+  DLOAD                                EXPR DIRECTOR-LOAD
+  DMAAO                                EXPR DISPLAY-MOVIE-ALL-AT-ONCE; AUTOLOAD |DIRECT;MOVIE|
   DO-AT-SPEED                          SUBR 177045
   DO-GRADUALLY                         SUBR 176127
   DO-GRADUALLY-AT-RATE                 LSUBR 174735
   DO-GRADUALLY-AT-SPEED                LSUBR 175203
   DO-GRADUALLY-LIST                    SUBR 175702
   DO-GRADUALLY-NUMBER                  SUBR 175435
-  DO-OLD-BEHAVIOR                      #076774 NIL; MACRO |DO-OLD-BEHAVIOR MACRO| [SUBR 140562]; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  DO-OLD-BEHAVIOR                      #076774 NIL; MACRO |DO-OLD-BEHAVIOR MACRO| [SUBR 140562]; DIRECTOR-FORM T
   |DO-OLD-BEHAVIOR MACRO|              SUBR 140562
   DO-THE-FOLLOWING                     MACRO |DO-THE-FOLLOWING MACRO| [SUBR 143350]
   |DO-THE-FOLLOWING MACRO|             SUBR 143350
   DO-TO-VARIABLE-PLISTS                SUBR 304554
   DOT                                  SUBR 274171
-  DOWR                                 ABBREVIATION-EXPANSION ((#101046 . #111033) ONCE WHEN RECEIVING)
+  DOWR                                 ABBREVIATION-EXPANSION (DO ONCE WHEN RECEIVING)
   DRAW-ARC                             SUBR 276166
   DRAW-ARROW                           SUBR 277200
   DRAW-ARROW-HEAD                      SUBR 277647; AUTOLOAD |DIRECT;TUTIL|
@@ -651,23 +1444,23 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   DRAW-ROCKET                          SUBR 277111
   DRAW-SCALED-AND-CENTERED             SUBR 253007
   DS                                   ABBREVIATION-EXPANSION (DEFAULT-SPEED)
-  DSD                                  #075074 DIRECTOR-STARTDISPLAY; AUTOLOAD |DIRECT;TUTIL|
-  DTF                                  ABBREVIATION-EXPANSION ((#101046 . #111033) THE FOLLOWING)
+  DSD                                  EXPR DIRECTOR-STARTDISPLAY; AUTOLOAD |DIRECT;TUTIL|
+  DTF                                  ABBREVIATION-EXPANSION (DO THE FOLLOWING)
   DUMMY-TURTLE                         SUBR 162244
-  DUMP-DIRECTOR                        #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  DWIPE                                #075074 DIRECTOR-WIPE; AUTOLOAD |DIRECT;PERFOR|
-  DWR                                  ABBREVIATION-EXPANSION ((#101046 . #111033) WHEN RECEIVING)
-  |Do you want|                        +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Do you want to send another message to| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Do you want to talk to|             +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Don't know what you wanted to say. Lets try it all over again.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Don't know who you wanted to talk to.  Oh well, lets try again.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  EOF                                  #075074 EVAL-ON-FRAME; AUTOLOAD |DIRECT;MOVIE|
-  EQ-FIRST                             MACRO |EQ-FIRST MACRO| [SUBR 172546]; #076774 #105775
+  DUMP-DIRECTOR                        EXPR (LAMBDA G0002 (COMMENT ARGLIST = (&OPTIONAL (FILE-NAME (READ-MACRO-...
+  DWIPE                                EXPR DIRECTOR-WIPE; AUTOLOAD |DIRECT;PERFOR|
+  DWR                                  ABBREVIATION-EXPANSION (DO WHEN RECEIVING)
+  |Do you want|                        +INTERNAL-STRING-MARKER T
+  |Do you want to send another message to| +INTERNAL-STRING-MARKER T
+  |Do you want to talk to|             +INTERNAL-STRING-MARKER T
+  |Don't know what you wanted to say. Lets try it all over again.| +INTERNAL-STRING-MARKER T
+  |Don't know who you wanted to talk to.  Oh well, lets try again.| +INTERNAL-STRING-MARKER T
+  EOF                                  EXPR EVAL-ON-FRAME; AUTOLOAD |DIRECT;MOVIE|
+  EQ-FIRST                             MACRO |EQ-FIRST MACRO| [SUBR 172546]; #076774 1
   |EQ-FIRST MACRO|                     SUBR 172546
-  EQ-FIRST-CHARACTER                   MACRO |EQ-FIRST-CHARACTER MACRO| [SUBR 172622]; #076774 #105775
+  EQ-FIRST-CHARACTER                   MACRO |EQ-FIRST-CHARACTER MACRO| [SUBR 172622]; #076774 1
   |EQ-FIRST-CHARACTER MACRO|           SUBR 172622
-  EQ-MANY                              MACRO |EQ-MANY MACRO| [SUBR 172467]; #076774 #105775
+  EQ-MANY                              MACRO |EQ-MANY MACRO| [SUBR 172467]; #076774 1
   |EQ-MANY MACRO|                      SUBR 172467
   EQ-TRI                               SUBR 276336
   EQUAL-GET                            SUBR 160770
@@ -682,7 +1475,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   EVAL-ON-FRAME                        SUBR 260725
   EVENP                                SUBR 156227
   EVERY-OTHER                          SUBR 160174
-  EXAMPLE-OF                           MACRO |EXAMPLE-OF MACRO| [SUBR 170163]; #076774 #105775
+  EXAMPLE-OF                           MACRO |EXAMPLE-OF MACRO| [SUBR 170163]; #076774 1
   |EXAMPLE-OF MACRO|                   SUBR 170163
   EXCL-MACRO                           SUBR 135574
   EXISTS?                              SUBR 162271
@@ -694,24 +1487,24 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   EXTRACT-THE-ACTION                   SUBR 163516
   FANCIFY                              SUBR 303445
   FANCY-BACK                           SUBR 302314
-  FANCY-BK                             #075074 FANCY-BACK; AUTOLOAD |DIRECT;DLIST|
+  FANCY-BK                             EXPR FANCY-BACK; AUTOLOAD |DIRECT;DLIST|
   FANCY-DELX                           SUBR 302316
   FANCY-DELXY                          SUBR 302452
   FANCY-DELY                           SUBR 302374
-  FANCY-FD                             #075074 FANCY-FORWARD; AUTOLOAD |DIRECT;DLIST|
+  FANCY-FD                             EXPR FANCY-FORWARD; AUTOLOAD |DIRECT;DLIST|
   FANCY-FORWARD                        SUBR 302236
   FANCY-LEFT                           SUBR 303032
-  FANCY-LT                             #075074 FANCY-LEFT; AUTOLOAD |DIRECT;DLIST|
-  FANCY-PD                             #075074 FANCY-PENDOWN; AUTOLOAD |DIRECT;DLIST|
+  FANCY-LT                             EXPR FANCY-LEFT; AUTOLOAD |DIRECT;DLIST|
+  FANCY-PD                             EXPR FANCY-PENDOWN; AUTOLOAD |DIRECT;DLIST|
   FANCY-PENDOWN                        SUBR 303042
   FANCY-PENUP                          SUBR 303034
   FANCY-PRINT                          SUBR 231622
   FANCY-PRINT-MEMORY                   SUBR 173574
   FANCY-PRINT-SCRIPT                   SUBR 173654
   FANCY-PRINT-VARIABLES                SUBR 173474
-  FANCY-PU                             #075074 FANCY-PENUP; AUTOLOAD |DIRECT;DLIST|
+  FANCY-PU                             EXPR FANCY-PENUP; AUTOLOAD |DIRECT;DLIST|
   FANCY-RIGHT                          SUBR 302775
-  FANCY-RT                             #075074 FANCY-RIGHT; AUTOLOAD |DIRECT;DLIST|
+  FANCY-RT                             EXPR FANCY-RIGHT; AUTOLOAD |DIRECT;DLIST|
   FANCY-SETHEADING                     SUBR 302730
   FANCY-SETTURTLE                      SUBR 302660
   FANCY-SETX                           SUBR 302456
@@ -719,7 +1512,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FANCY-SETY                           SUBR 302530
   FAST-TURTLE                          ACTOR-LOAD |DIRECT;INSTAN|
   FATTEN-UP                            AUTOLOAD |DIRECT;INTER|
-  FD                                   #075074 FANCY-FORWARD; AUTOLOAD |DIRECT;DLIST|
+  FD                                   EXPR FANCY-FORWARD; AUTOLOAD |DIRECT;DLIST|
   FE                                   ABBREVIATION-EXPANSION (FORGET EVERYTHING)
   FEP                                  ABBREVIATION-EXPANSION (FILM EVERYTHING PLANNED)
   FERROR                               LSUBR 145274
@@ -742,7 +1535,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FIX-LENGTH                           AUTOLOAD |DIRECT;INTER|
   FLONUM-EQUAL                         MACRO |FLONUM-EQUAL MACRO| [SUBR 173150]; AUTOLOAD |DIRECT;IMACRO|
   |FLONUM-EQUAL MACRO|                 SUBR 173150
-  FLOWER                               ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) FLOWER PRIVAT...
+  FLOWER                               ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME FLOWER PRIVATE) (N...
   FONT                                 ACTOR-LOAD |DIRECT;TEXT|
   FONT-SERIES                          ACTOR-LOAD |DIRECT;TEXT|
   FORGET-YOUR-VARIABLE                 SUBR 200106
@@ -752,11 +1545,11 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FORMAT-CASE-OP                       SUBR 150112
   FORMAT-CASE-SKIP-ONE-CLAUSE          SUBR 147747
   FORMAT-CHARACTER-COUNT-STREAM        SUBR 146453
-  FORMAT-CHARACTER-OP                  AUTOLOAD (((#100174 . #107600)) (#714620 (#100126) #145211 VERSION |308| . #...
+  FORMAT-CHARACTER-OP                  AUTOLOAD ((#75116) #76006 AUX)
   FORMAT-COLLECT-PARAMS                SUBR 145440
   FORMAT-DECIMAL-INTEGER-OP            SUBR 147356
   FORMAT-DEFAULT-TYO                   SUBR 145347
-  FORMAT-FLATC                         MACRO |FORMAT-FLATC MACRO| [SUBR 146511]; #076774 #105775
+  FORMAT-FLATC                         MACRO |FORMAT-FLATC MACRO| [SUBR 146511]; #076774 1
   |FORMAT-FLATC MACRO|                 SUBR 146511
   FORMAT-FORMFEED                      LSUBR 144246
   FORMAT-FORMFEED-1                    SUBR 144320
@@ -777,7 +1570,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FORMAT-INTERNAL-1                    SUBR 146271
   FORMAT-INTERNAL-2                    SUBR 146420
   FORMAT-JUSTIFY                       LSUBR 146566
-  FORMAT-JUSTIFY-OP                    AUTOLOAD (((#100174 . #107600)) (#714620 (#100126) #145211 VERSION |308| . #...
+  FORMAT-JUSTIFY-OP                    AUTOLOAD ((#75116) #76006 AUX)
   FORMAT-MACLISPIFY-STREAM             SUBR 145176
   FORMAT-N-CHARACTERS                  SUBR 146535
   FORMAT-NULL-STREAM                   SUBR 145006
@@ -788,7 +1581,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FORMAT-POP-ONE-ARG                   SUBR 146113
   FORMAT-PRIN1-LISP-OBJECT-OP          SUBR 147532
   FORMAT-PRINC-LISP-OBJECT-OP          SUBR 147534
-  FORMAT-PRINT-FANCY-NUMBER-OP         AUTOLOAD (((#100174 . #107600)) (#714620 (#100126) #145211 VERSION |308| . #...
+  FORMAT-PRINT-FANCY-NUMBER-OP         AUTOLOAD ((#75116) #76006 AUX)
   FORMAT-PROCESS-TO-NEXT-OPERATOR      SUBR 145726
   FORMAT-READ-OPERATOR                 SUBR 145777
   FORMAT-RECLAIM                       SUBR 145436
@@ -805,24 +1598,24 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   FORWARD$                             SUBR 272075
   FOURTH                               MACRO |FOURTH MACRO| [SUBR 136330]
   |FOURTH MACRO|                       SUBR 136330
-  FPM                                  #075074 FULL-PRINT-MODE
+  FPM                                  EXPR FULL-PRINT-MODE
   FPS                                  ABBREVIATION-EXPANSION (FRAMES-PER-SECOND)
   FRACTIONAL-PART                      SUBR 156146
-  FRAME-HANDLER                        ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) FRAME-HANDLER...
+  FRAME-HANDLER                        ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME FRAME-HANDLER PRIV...
   FSTN                                 ABBREVIATION-EXPANSION (FILM SECRETLY THE NEXT)
   FTN                                  ABBREVIATION-EXPANSION (FILM THE NEXT)
   FULL-FILE-NAME                       SUBR 167217
   FULL-FILE-NAME-1                     SUBR 167221
   FULL-PRINT-MODE                      LSUBR 143640
-  FUNCTIONIFY                          MACRO |FUNCTIONIFY MACRO| [SUBR 172701]; #076774 #105775
+  FUNCTIONIFY                          MACRO |FUNCTIONIFY MACRO| [SUBR 172701]; #076774 1
   |FUNCTIONIFY MACRO|                  SUBR 172701
   FUSE-PARTS                           SUBR 253045
   FWUSE-TEXT-LENGTH                    AUTOLOAD |DIRECT;FWUSE|
   FY                                   ABBREVIATION-EXPANSION (FORGET YOUR)
-  FYLO                                 ABBREVIATION-EXPANSION (FROM YOUR (#100062 FREE 27047 ALLOC-RATE #117735 CONSED 2423 ACCES...
+  FYLO                                 ABBREVIATION-EXPANSION (FROM YOUR LIST OF)
   FYP                                  ABBREVIATION-EXPANSION (FUSE YOUR PARTS)
-  |For help type (?)|                  +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |For help type either "? " or a number followed by a "? "| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |For help type (?)|                  +INTERNAL-STRING-MARKER T
+  |For help type either "? " or a number followed by a "? "| +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
   G                                    FORMAT-CTL-MULTI-ARG FORMAT-GOTO-OP
   GBF                                  ABBREVIATION-EXPANSION (GROW BY FACTOR)
   GEN-NUMBER                           LSUBR 161041
@@ -845,11 +1638,11 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   GET-PROPERTY-ALL1                    SUBR 304176
   GET-PROPERTY-LIST                    SUBR 304121
   GET-PROPERTY-LIST1                   SUBR 304141
-  GO-FAST                              #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  GO-SLOW                              #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  GO-FAST                              EXPR (LAMBDA N (COND ((= N 1) (SNAP-UUOLINKS))) (*RSET (NOUUO NIL)))
+  GO-SLOW                              EXPR (LAMBDA N (SNAP-UUOLINKS) (*RSET T) (COND ((= N 1) (NOUUO (ARG 1)))...
   GRAD                                 ABBREVIATION-EXPANSION (GRADUALLY)
   GROUP-BY-FIRST                       SUBR 257355
-  GSY                                  ABBREVIATION-EXPANSION (GRADUALLY (#100636 . #110457) YOUR)
+  GSY                                  ABBREVIATION-EXPANSION (GRADUALLY SET YOUR)
   HANDLE-RESTRICTION                   SUBR 260510; AUTOLOAD |DIRECT;CMATCH|
   HAVE-ANY-OFFSPRING                   SUBR 267020
   HEADING                              SUBR 272323
@@ -863,14 +1656,14 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   HTD                                  ABBREVIATION-EXPANSION (HOW-TO-DRAW)
   HUMANIFY-ACTOR                       SUBR 165514
   HUMANIFY-METHOD                      SUBR 163347
-  |Having trouble considering|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  I                                    MACRO |I MACRO| [SUBR 140355]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |Having trouble considering|         +INTERNAL-STRING-MARKER T
+  I                                    MACRO |I MACRO| [SUBR 140355]; #076774 2; DIRECTOR-FORM T
   |I MACRO|                            SUBR 140355
-  |I didn't grok ~:@c try again|       +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  IF-FOR-LISPM                         MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  IF-FOR-MACLISP                       MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  IF-FOR-MACLISP-ELSE-LISPM            MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
-  IINA                                 ABBREVIATION-EXPANSION (IF (#100244) (#100456 . #110152) ALREADY)
+  |I didn't grok ~:@c try again|       +INTERNAL-STRING-MARKER T
+  IF-FOR-LISPM                         MACRO (LAMBDA (NIL) '(COMMENT FOR THE #75116 MACHINE))
+  IF-FOR-MACLISP                       MACRO (LAMBDA (X) (CONS 'PROGN (CONS ''COMPILE (CDR X))))
+  IF-FOR-MACLISP-ELSE-LISPM            MACRO (LAMBDA (X) (CADR X))
+  IINA                                 ABBREVIATION-EXPANSION (IF #75142 NOT ALREADY)
   IN-RANGE                             SUBR 160523
   INITIALIZE-DIRECTOR                  SUBR 162160
   INSERT-COMPILED-METHOD               SUBR 163641
@@ -886,7 +1679,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   INTEGER-YCOR                         AUTOLOAD |DIRECT;TURMAC|
   INTERN-APPEND-ATOMS                  MACRO |INTERN-APPEND-ATOMS MACRO| [SUBR 143207]
   |INTERN-APPEND-ATOMS MACRO|          SUBR 143207
-  INTERNAL-RECALL-YOUR-VARIABLE-OF     MACRO |INTERNAL-RECALL-YOUR-VARIABLE-OF MACRO| [SUBR 170667]; #076774 #105775
+  INTERNAL-RECALL-YOUR-VARIABLE-OF     MACRO |INTERNAL-RECALL-YOUR-VARIABLE-OF MACRO| [SUBR 170667]; #076774 1
   |INTERNAL-RECALL-YOUR-VARIABLE-OF MACRO| SUBR 170667
   INTERNEDP                            SUBR 160642
   INTERPOLATE-EQUIV-PROGRAMS           AUTOLOAD |DIRECT;INTER|
@@ -894,27 +1687,27 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   INTERSECT                            LSUBR 160006
   INTERSECT-TWO                        SUBR 160013
   INVERTED-QUOTE-MACRO                 SUBR 155650
-  INVOKE-MACRO-METHOD                  MACRO |INVOKE-MACRO-METHOD MACRO| [SUBR 171144]; #076774 #105775
+  INVOKE-MACRO-METHOD                  MACRO |INVOKE-MACRO-METHOD MACRO| [SUBR 171144]; #076774 1
   |INVOKE-MACRO-METHOD MACRO|          SUBR 171144
-  INVOKE-METHOD                        MACRO |INVOKE-METHOD MACRO| [SUBR 171057]; #076774 #105775
+  INVOKE-METHOD                        MACRO |INVOKE-METHOD MACRO| [SUBR 171057]; #076774 1
   |INVOKE-METHOD MACRO|                SUBR 171057
-  INVOKE-METHOD-SELECTOR               MACRO |INVOKE-METHOD-SELECTOR MACRO| [SUBR 171203]; #076774 #105775
+  INVOKE-METHOD-SELECTOR               MACRO |INVOKE-METHOD-SELECTOR MACRO| [SUBR 171203]; #076774 1
   |INVOKE-METHOD-SELECTOR MACRO|       SUBR 171203
   IS-ANY-ANCESTOR-OF                   SUBR 231572
   IS-OTHER-END-BETWEEN-OTHERS?         SUBR 277743
   ITX                                  ABBREVIATION-EXPANSION (INTERPOLATION TO)
   IY                                   ABBREVIATION-EXPANSION (INCREMENT YOUR)
-  |Ignoring the COMPILE-USING since|   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |In "the name of elements of ..." of| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |Ignoring the COMPILE-USING since|   +INTERNAL-STRING-MARKER T
+  |In "the name of elements of ..." of| +INTERNAL-STRING-MARKER T
   JUMP                                 SUBR 275435
-  JUST-STORE-AWAY-FRAME                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) JUST-STORE-AW...
+  JUST-STORE-AWAY-FRAME                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME JUST-STORE-AWAY-FR...
   KDU                                  ABBREVIATION-EXPANSION (KEEP DOING UNTIL)
   KEEP-SENDING-ITEMS-COLLECTING-ALL    SUBR 177132
   KEEP-SENDING-ITEMS-TIL-MATCH         SUBR 177302
   |KEN1;PROP 56_2.|                    SUBR 304664
   LAST-ELEMENT                         MACRO |LAST-ELEMENT MACRO| [SUBR 136624]
   |LAST-ELEMENT MACRO|                 SUBR 136624
-  LAYVN                                ABBREVIATION-EXPANSION ((#100062 FREE 27047 ALLOC-RATE #117735 CONSED 2423 ACCESSIBLE 2805...
+  LAYVN                                ABBREVIATION-EXPANSION (LIST ALL YOUR VARIABLE NAMES)
   LEFT                                 SUBR 303032
   LENGTH-IN-FRAMES                     SUBR 174264
   LENGTH-IN-SECONDS                    SUBR 174125
@@ -922,7 +1715,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   |LET* MACRO|                         SUBR 125730
   LET*-EXPANDER-1                      SUBR 124634
   LET-EXPANDER-1                       SUBR 124732
-  LET-FILES                            MACRO |LET-FILES MACRO| [SUBR 172252]; #076774 #105775
+  LET-FILES                            MACRO |LET-FILES MACRO| [SUBR 172252]; #076774 1
   |LET-FILES MACRO|                    SUBR 172252
   LIMITED-BACK                         SUBR 275143
   LIMITED-FORWARD                      SUBR 275140
@@ -936,10 +1729,10 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   LIST-BEGINNING-WITH                  SUBR 161755
   LIST-DOUBLE-MENU                     SUBR 267673
   LIST-MENU                            SUBR 270200
-  LISTP                                MACRO |LISTP MACRO| [SUBR 275333]; #076774 #105775
+  LISTP                                MACRO |LISTP MACRO| [SUBR 275333]; #076774 1
   |LISTP MACRO|                        SUBR 275333
-  LMDY                                 ABBREVIATION-EXPANSION ((#101464 ((#777140 NIL #100002) ((#777140 NIL #100002) ((#777140 N...
-  LOAD-2500-DIRECTOR                   #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  LMDY                                 ABBREVIATION-EXPANSION (LET ME DRAW YOU)
+  LOAD-2500-DIRECTOR                   EXPR (LAMBDA NIL (2500-TURTLE) (MACROEXPANDED ASK 2 (ASK PERFORMER PRINT...
   LOAD-PRINTER                         SUBR 126224
   LOGO-BACK                            SUBR 272125
   LOGO-DELX                            SUBR 272363; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
@@ -952,96 +1745,96 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   LOGO-PENUP                           SUBR 273376; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOGO-PU                              ABBREVIATION-EXPANSION (PEN UP); AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOGO-RIGHT                           SUBR 272203
-  LOGO-SETHEADING                      #075074 SETHEAD
+  LOGO-SETHEADING                      EXPR SETHEAD
   LOGO-SETTURTLE                       SUBR 272233; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOGO-SETX                            SUBR 272263; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOGO-SETXY                           SUBR 272047; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOGO-SETY                            #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; SUBR 272273; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   LOOK-UP-VARIABLE-IN-ACTOR            SUBR 166020
-  LT                                   #075074 FANCY-LEFT; AUTOLOAD |DIRECT;DLIST|
-  |MACRO-(ABSORB MY PARTS)SOMETHING|   MACRO |MACRO-(ABSORB MY PARTS)SOMETHING MACRO| [SUBR 216615]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  LT                                   EXPR FANCY-LEFT; AUTOLOAD |DIRECT;DLIST|
+  |MACRO-(ABSORB MY PARTS)SOMETHING|   MACRO |MACRO-(ABSORB MY PARTS)SOMETHING MACRO| [SUBR 216615]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ABSORB MY PARTS)SOMETHING MACRO| SUBR 216615
-  |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)SOMETHING| MACRO |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| [SUBR 217564]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)SOMETHING| MACRO |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| [SUBR 217564]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| SUBR 217564
-  |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE)SOMETHING| MACRO |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE)SOMETHING MACRO| [SUBR 217720]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE)SOMETHING| MACRO |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE)SOMETHING MACRO| [SUBR 217720]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ADD ?ITEM TO MY LIST OF ?VARIABLE)SOMETHING MACRO| SUBR 217720
-  |MACRO-(ADD ?VALUE TO YOUR LIST OF ?LIST-NAME)SOMETHING| MACRO |MACRO-(ADD ?VALUE TO YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| [SUBR 215106]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ADD ?VALUE TO YOUR LIST OF ?LIST-NAME)SOMETHING| MACRO |MACRO-(ADD ?VALUE TO YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| [SUBR 215106]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ADD ?VALUE TO YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| SUBR 215106
-  |MACRO-(ADD ?VALUE TO YOUR LIST OF ?VARIABLE REGARDLESS)SOMETHING| MACRO |MACRO-(ADD ?VALUE TO YOUR LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| [SUBR 214732]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ADD ?VALUE TO YOUR LIST OF ?VARIABLE REGARDLESS)SOMETHING| MACRO |MACRO-(ADD ?VALUE TO YOUR LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| [SUBR 214732]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ADD ?VALUE TO YOUR LIST OF ?VARIABLE REGARDLESS)SOMETHING MACRO| SUBR 214732
-  |MACRO-(ASK EACH OF MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(ASK EACH OF MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216370]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ASK EACH OF MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(ASK EACH OF MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216370]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ASK EACH OF MY ?VARIABLE %MESSAGE)SOMETHING MACRO| SUBR 216370
-  |MACRO-(ASK MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(ASK MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216512]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(ASK MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(ASK MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216512]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(ASK MY ?VARIABLE %MESSAGE)SOMETHING MACRO| SUBR 216512
-  |MACRO-(BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216256]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216256]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| SUBR 216256
-  |MACRO-(CHANGE {or YOUR MY} ?VARIABLE TO ?VALUE)SOMETHING| MACRO |MACRO-(CHANGE {or YOUR MY} ?VARIABLE TO ?VALUE)SOMETHING MACRO| [SUBR 215671]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(CHANGE {or YOUR MY} ?VARIABLE TO ?VALUE)SOMETHING| MACRO |MACRO-(CHANGE {or YOUR MY} ?VARIABLE TO ?VALUE)SOMETHING MACRO| [SUBR 215671]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(CHANGE {or YOUR MY} ?VARIABLE TO ?VALUE)SOMETHING MACRO| SUBR 215671
-  |MACRO-(DO AT SPEED %REST)SOMETHING| MACRO |MACRO-(DO AT SPEED %REST)SOMETHING MACRO| [SUBR 211036]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO AT SPEED %REST)SOMETHING| MACRO |MACRO-(DO AT SPEED %REST)SOMETHING MACRO| [SUBR 211036]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO AT SPEED %REST)SOMETHING MACRO| SUBR 211036
-  |MACRO-(DO IN %REST)SOMETHING|       MACRO |MACRO-(DO IN %REST)SOMETHING MACRO| [SUBR 210750]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO IN %REST)SOMETHING|       MACRO |MACRO-(DO IN %REST)SOMETHING MACRO| [SUBR 210750]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO IN %REST)SOMETHING MACRO| SUBR 210750
-  |MACRO-(DO ONCE WHEN RECEIVING ?PATTERN %ACTION)SOMETHING| MACRO |MACRO-(DO ONCE WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| [SUBR 222712]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO ONCE WHEN RECEIVING ?PATTERN %ACTION)SOMETHING| MACRO |MACRO-(DO ONCE WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| [SUBR 222712]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO ONCE WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| SUBR 222712
-  |MACRO-(DO OR BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(DO OR BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216123]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO OR BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING| MACRO |MACRO-(DO OR BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| [SUBR 216123]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO OR BROADCAST TO MY ?VARIABLE %MESSAGE)SOMETHING MACRO| SUBR 216123
-  |MACRO-(DO OR BROADCAST TO YOUR %REST)SOMETHING| MACRO |MACRO-(DO OR BROADCAST TO YOUR %REST)SOMETHING MACRO| [SUBR 210632]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO OR BROADCAST TO YOUR %REST)SOMETHING| MACRO |MACRO-(DO OR BROADCAST TO YOUR %REST)SOMETHING MACRO| [SUBR 210632]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO OR BROADCAST TO YOUR %REST)SOMETHING MACRO| SUBR 210632
-  |MACRO-(DO WHEN RECEIVING ?PATTERN %ACTION)SOMETHING| MACRO |MACRO-(DO WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| [SUBR 223115]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(DO WHEN RECEIVING ?PATTERN %ACTION)SOMETHING| MACRO |MACRO-(DO WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| [SUBR 223115]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(DO WHEN RECEIVING ?PATTERN %ACTION)SOMETHING MACRO| SUBR 223115
-  |MACRO-(FORGET MY ?VARIABLE)SOMETHING| MACRO |MACRO-(FORGET MY ?VARIABLE)SOMETHING MACRO| [SUBR 217307]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(FORGET MY ?VARIABLE)SOMETHING| MACRO |MACRO-(FORGET MY ?VARIABLE)SOMETHING MACRO| [SUBR 217307]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(FORGET MY ?VARIABLE)SOMETHING MACRO| SUBR 217307
-  |MACRO-(GROW ?AMOUNT)PERFORMER|      MACRO |MACRO-(GROW ?AMOUNT)PERFORMER MACRO| [SUBR 242770]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(GROW ?AMOUNT)PERFORMER|      MACRO |MACRO-(GROW ?AMOUNT)PERFORMER MACRO| [SUBR 242770]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(GROW ?AMOUNT)PERFORMER MACRO| SUBR 242770
-  |MACRO-(INCREMENT MY ?VARIABLE BY ?AMOUNT)SOMETHING| MACRO |MACRO-(INCREMENT MY ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| [SUBR 217165]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(INCREMENT MY ?VARIABLE BY ?AMOUNT)SOMETHING| MACRO |MACRO-(INCREMENT MY ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| [SUBR 217165]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(INCREMENT MY ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| SUBR 217165
-  |MACRO-(INCREMENT YOUR ?VARIABLE BY ?AMOUNT)SOMETHING| MACRO |MACRO-(INCREMENT YOUR ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| [SUBR 215451]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(INCREMENT YOUR ?VARIABLE BY ?AMOUNT)SOMETHING| MACRO |MACRO-(INCREMENT YOUR ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| [SUBR 215451]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(INCREMENT YOUR ?VARIABLE BY ?AMOUNT)SOMETHING MACRO| SUBR 215451
-  |MACRO-(LIST ALL MY VARIABLE NAMES)SOMETHING| MACRO |MACRO-(LIST ALL MY VARIABLE NAMES)SOMETHING MACRO| [SUBR 217002]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(LIST ALL MY VARIABLE NAMES)SOMETHING| MACRO |MACRO-(LIST ALL MY VARIABLE NAMES)SOMETHING MACRO| [SUBR 217002]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(LIST ALL MY VARIABLE NAMES)SOMETHING MACRO| SUBR 217002
-  |MACRO-(MAKE)SOMETHING|              MACRO |MACRO-(MAKE)SOMETHING MACRO| [SUBR 214105]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(MAKE)SOMETHING|              MACRO |MACRO-(MAKE)SOMETHING MACRO| [SUBR 214105]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(MAKE)SOMETHING MACRO|        SUBR 214105
-  |MACRO-(MULTIPLY MY ?VARIABLE BY ?FACTOR)SOMETHING| MACRO |MACRO-(MULTIPLY MY ?VARIABLE BY ?FACTOR)SOMETHING MACRO| [SUBR 217043]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(MULTIPLY MY ?VARIABLE BY ?FACTOR)SOMETHING| MACRO |MACRO-(MULTIPLY MY ?VARIABLE BY ?FACTOR)SOMETHING MACRO| [SUBR 217043]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(MULTIPLY MY ?VARIABLE BY ?FACTOR)SOMETHING MACRO| SUBR 217043
-  |MACRO-(MULTIPLY YOUR ?VARIABLE BY ?FACTOR)SOMETHING| MACRO |MACRO-(MULTIPLY YOUR ?VARIABLE BY ?FACTOR)SOMETHING MACRO| [SUBR 215276]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(MULTIPLY YOUR ?VARIABLE BY ?FACTOR)SOMETHING| MACRO |MACRO-(MULTIPLY YOUR ?VARIABLE BY ?FACTOR)SOMETHING MACRO| [SUBR 215276]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(MULTIPLY YOUR ?VARIABLE BY ?FACTOR)SOMETHING MACRO| SUBR 215276
-  |MACRO-(PRINT MY ?VARIABLE)SOMETHING| MACRO |MACRO-(PRINT MY ?VARIABLE)SOMETHING MACRO| [SUBR 216015]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(PRINT MY ?VARIABLE)SOMETHING| MACRO |MACRO-(PRINT MY ?VARIABLE)SOMETHING MACRO| [SUBR 216015]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(PRINT MY ?VARIABLE)SOMETHING MACRO| SUBR 216015
-  |MACRO-(RECALL AN ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING| MACRO |MACRO-(RECALL AN ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| [SUBR 211616]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(RECALL AN ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING| MACRO |MACRO-(RECALL AN ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| [SUBR 211616]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(RECALL AN ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| SUBR 211616
-  |MACRO-(RECALL EACH ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING| MACRO |MACRO-(RECALL EACH ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| [SUBR 211507]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(RECALL EACH ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING| MACRO |MACRO-(RECALL EACH ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| [SUBR 211507]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(RECALL EACH ITEM MATCHING ?PATTERN THEN %ACTION)SOMETHING MACRO| SUBR 211507
-  |MACRO-(RECALL EACH OF MY ?VARIABLE)SOMETHING| MACRO |MACRO-(RECALL EACH OF MY ?VARIABLE)SOMETHING MACRO| [SUBR 216656]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(RECALL EACH OF MY ?VARIABLE)SOMETHING| MACRO |MACRO-(RECALL EACH OF MY ?VARIABLE)SOMETHING MACRO| [SUBR 216656]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(RECALL EACH OF MY ?VARIABLE)SOMETHING MACRO| SUBR 216656
-  |MACRO-(RECALL MY ?VARIABLE)SOMETHING| MACRO |MACRO-(RECALL MY ?VARIABLE)SOMETHING MACRO| [SUBR 220207]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(RECALL MY ?VARIABLE)SOMETHING| MACRO |MACRO-(RECALL MY ?VARIABLE)SOMETHING MACRO| [SUBR 220207]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(RECALL MY ?VARIABLE)SOMETHING MACRO| SUBR 220207
-  |MACRO-(REMOVE ?ELEMENT FROM YOUR LIST OF ?LIST-NAME)SOMETHING| MACRO |MACRO-(REMOVE ?ELEMENT FROM YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| [SUBR 214542]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(REMOVE ?ELEMENT FROM YOUR LIST OF ?LIST-NAME)SOMETHING| MACRO |MACRO-(REMOVE ?ELEMENT FROM YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| [SUBR 214542]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(REMOVE ?ELEMENT FROM YOUR LIST OF ?LIST-NAME)SOMETHING MACRO| SUBR 214542
-  |MACRO-(REMOVE ?ITEM FROM MY LIST OF ?VARIABLE)SOMETHING| MACRO |MACRO-(REMOVE ?ITEM FROM MY LIST OF ?VARIABLE)SOMETHING MACRO| [SUBR 217415]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(REMOVE ?ITEM FROM MY LIST OF ?VARIABLE)SOMETHING| MACRO |MACRO-(REMOVE ?ITEM FROM MY LIST OF ?VARIABLE)SOMETHING MACRO| [SUBR 217415]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(REMOVE ?ITEM FROM MY LIST OF ?VARIABLE)SOMETHING MACRO| SUBR 217415
-  |MACRO-(SEQUENTIALLY (PLAN NEXT %MESSAGE) %FOLLOWUP)SOMETHING| MACRO |MACRO-(SEQUENTIALLY (PLAN NEXT %MESSAGE) %FOLLOWUP)SOMETHING MACRO| [SUBR 210404]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(SEQUENTIALLY (PLAN NEXT %MESSAGE) %FOLLOWUP)SOMETHING| MACRO |MACRO-(SEQUENTIALLY (PLAN NEXT %MESSAGE) %FOLLOWUP)SOMETHING MACRO| [SUBR 210404]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(SEQUENTIALLY (PLAN NEXT %MESSAGE) %FOLLOWUP)SOMETHING MACRO| SUBR 210404
-  |MACRO-(SEQUENTIALLY (REPEAT ?MESSAGE FOREVER) %FOLLOWUP)SOMETHING| MACRO |MACRO-(SEQUENTIALLY (REPEAT ?MESSAGE FOREVER) %FOLLOWUP)SOMETHING MACRO| [SUBR 207357]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(SEQUENTIALLY (REPEAT ?MESSAGE FOREVER) %FOLLOWUP)SOMETHING| MACRO |MACRO-(SEQUENTIALLY (REPEAT ?MESSAGE FOREVER) %FOLLOWUP)SOMETHING MACRO| [SUBR 207357]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(SEQUENTIALLY (REPEAT ?MESSAGE FOREVER) %FOLLOWUP)SOMETHING MACRO| SUBR 207357
-  |MACRO-(SET MY ?VARIABLE TO ?VALUE %REST)SOMETHING| MACRO |MACRO-(SET MY ?VARIABLE TO ?VALUE %REST)SOMETHING MACRO| [SUBR 220067]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(SET MY ?VARIABLE TO ?VALUE %REST)SOMETHING| MACRO |MACRO-(SET MY ?VARIABLE TO ?VALUE %REST)SOMETHING MACRO| [SUBR 220067]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(SET MY ?VARIABLE TO ?VALUE %REST)SOMETHING MACRO| SUBR 220067
-  |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER| MACRO |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER MACRO| [#700116 700006]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER MACRO| #700116 ((#101040 #GRIND-TEMPLATE (NIL (NEVER) (NEVER #105775 (NEVER) (NORM...; SUBR 237630
-  |MACRO-(SETTURTLE ?NEW-STATE)PERFORMER| MACRO |MACRO-(SETTURTLE ?NEW-STATE)PERFORMER MACRO| [SUBR 237731]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER| MACRO |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER MACRO| [#700116 700006]; #076774 1; MACRO-DEFINITION-FORM T
+  |MACRO-(SETHEADING ?NEW-HEADING)PERFORMER MACRO| #700116 (COND ((GETL UNKNOWN-FUNCTION '(EXPR SUBR LSUBR LEXPR MACRO)) ARG) ...; SUBR 237630
+  |MACRO-(SETTURTLE ?NEW-STATE)PERFORMER| MACRO |MACRO-(SETTURTLE ?NEW-STATE)PERFORMER MACRO| [SUBR 237731]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(SETTURTLE ?NEW-STATE)PERFORMER MACRO| SUBR 237731
-  |MACRO-(SHRINK ?AMOUNT)PERFORMER|    MACRO |MACRO-(SHRINK ?AMOUNT)PERFORMER MACRO| [SUBR 242536]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(SHRINK ?AMOUNT)PERFORMER|    MACRO |MACRO-(SHRINK ?AMOUNT)PERFORMER MACRO| [SUBR 242536]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(SHRINK ?AMOUNT)PERFORMER MACRO| SUBR 242536
-  |MACRO-(TO %MESSAGE)SOMETHING|       MACRO |MACRO-(TO %MESSAGE)SOMETHING MACRO| [SUBR 215624]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-(TO %MESSAGE)SOMETHING|       MACRO |MACRO-(TO %MESSAGE)SOMETHING MACRO| [SUBR 215624]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-(TO %MESSAGE)SOMETHING MACRO| SUBR 215624
-  |MACRO-({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)SOMETHING| MACRO |MACRO-({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)SOMETHING MACRO| [SUBR 210533]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)SOMETHING| MACRO |MACRO-({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)SOMETHING MACRO| [SUBR 210533]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-({MEMQ ?ACTION '(PLAN GRADUALLY REPEAT ASK BROADCAST)} ?NEXT %REST)SOMETHING MACRO| SUBR 210533
-  |MACRO-({or GROW SHRINK} BY FACTOR ?FACTOR)PERFORMER| MACRO |MACRO-({or GROW SHRINK} BY FACTOR ?FACTOR)PERFORMER MACRO| [SUBR 242650]; #076774 #105775; MACRO-DEFINITION-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |MACRO-({or GROW SHRINK} BY FACTOR ?FACTOR)PERFORMER| MACRO |MACRO-({or GROW SHRINK} BY FACTOR ?FACTOR)PERFORMER MACRO| [SUBR 242650]; #076774 1; MACRO-DEFINITION-FORM T
   |MACRO-({or GROW SHRINK} BY FACTOR ?FACTOR)PERFORMER MACRO| SUBR 242650
-  MACRO-DEFINITION                     MACRO |MACRO-DEFINITION MACRO| []; #076774 #105775
+  MACRO-DEFINITION                     MACRO |MACRO-DEFINITION MACRO| []; #076774 1
   |MACRO-DEFINITION MACRO|             SUBR 170751
   MACRO-EXPAND-BODY                    SUBR 161403
   MACRO-EXPAND-FORM                    SUBR 161410
-  MACRO-METHOD?                        MACRO |MACRO-METHOD? MACRO| [SUBR 142221]; #076774 #105775
+  MACRO-METHOD?                        MACRO |MACRO-METHOD? MACRO| [SUBR 142221]; #076774 1
   |MACRO-METHOD? MACRO|                SUBR 142221
   |MACROEXPANDED #GRIND-FN|            SUBR 143666
   MAINTAIN-ALIST                       SUBR 156316
@@ -1073,19 +1866,19 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   MAXIMUM-IN-SET                       SUBR 160122
   MB                                   ABBREVIATION-EXPANSION (MOVE BACK)
   MD                                   ABBREVIATION-EXPANSION (MOVE DOWN)
-  ME                                   #075074 MACRO-EXPAND-FORM
-  MEB                                  #075074 MACRO-EXPAND-BODY
+  ME                                   EXPR MACRO-EXPAND-FORM
+  MEB                                  EXPR MACRO-EXPAND-BODY
   MEM                                  ABBREVIATION-EXPANSION (MEMORIZE)
   MESSAGE-FORMIFY                      LSUBR 254476
   MESSAGE-NOT-UNDERSTOOD               SUBR 162413
   MESSAGE-WITH-FOLLOWUP                SUBR 231560
   METHOD-ALIST                         MACRO |METHOD-ALIST MACRO| [SUBR 142506]
   |METHOD-ALIST MACRO|                 SUBR 142506
-  METHOD-APPLICABLE?                   MACRO |METHOD-APPLICABLE? MACRO| [SUBR 171276]; #076774 #105775
+  METHOD-APPLICABLE?                   MACRO |METHOD-APPLICABLE? MACRO| [SUBR 171276]; #076774 1
   |METHOD-APPLICABLE? MACRO|           SUBR 171276
-  METHOD-AT-POSITION                   MACRO |METHOD-AT-POSITION MACRO| [SUBR 143500]; #076774 #105775
+  METHOD-AT-POSITION                   MACRO |METHOD-AT-POSITION MACRO| [SUBR 143500]; #076774 1
   |METHOD-AT-POSITION MACRO|           SUBR 143500
-  METHOD-EQ                            MACRO |METHOD-EQ MACRO| [SUBR 141326]; #076774 #105775
+  METHOD-EQ                            MACRO |METHOD-EQ MACRO| [SUBR 141326]; #076774 1
   |METHOD-EQ MACRO|                    SUBR 141326
   METHOD-PATTERN                       SUBR 142470
   METHOD-PATTERN-PREDICATE             MACRO |METHOD-PATTERN-PREDICATE MACRO| [SUBR 142422]
@@ -1133,7 +1926,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   METHOD-SELECTOR-OF-SOMETHING-7       SUBR 225513
   METHOD-SELECTOR-OF-SOMETHING-9       SUBR 225553
   METHOD-SELECTOR-OF-STAGE-1           SUBR 252156
-  METHOD-SELECTOR?                     MACRO |METHOD-SELECTOR? MACRO| [#000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000]; #076774 #105775
+  METHOD-SELECTOR?                     MACRO |METHOD-SELECTOR? MACRO| [#000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000, #000000 000000]; #076774 1
   |METHOD-SELECTOR? MACRO|             #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; SUBR 142257
   METHOD-THAT-MATCHES                  SUBR 162764
   METHOD-THAT-MATCHES-JUST-ACTOR       SUBR 163117
@@ -1141,7 +1934,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   METHOD-THAT-MATCHES-UNTIL-STOP       SUBR 163135
   METHOD-TYPE                          MACRO |METHOD-TYPE MACRO| [SUBR 142315]
   |METHOD-TYPE MACRO|                  SUBR 142315
-  METHODP                              MACRO |METHODP MACRO| [SUBR 142055]; #076774 #105775
+  METHODP                              MACRO |METHODP MACRO| [SUBR 142055]; #076774 1
   |METHODP MACRO|                      SUBR 142055
   METHODS-OF                           MACRO |METHODS-OF MACRO| [SUBR 142005]
   |METHODS-OF MACRO|                   SUBR 142005
@@ -1156,12 +1949,12 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   MOVE-AND-BIND                        SUBR 303273
   MOVE-AND-BIND-TVRTLE-STUFF           SUBR 303327
   MOVE-FILE                            SUBR 161112
-  MOVIE                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) MOVIE PRIVATE...
+  MOVIE                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME MOVIE PRIVATE) (SP...
   MR                                   ABBREVIATION-EXPANSION (MOVE RIGHT)
   MS                                   ABBREVIATION-EXPANSION (MAKE SYNONYM)
   MU                                   ABBREVIATION-EXPANSION (MOVE UP)
-  MUAN                                 ABBREVIATION-EXPANSION (MAKE UP A (#102212))
-  MUAUN                                ABBREVIATION-EXPANSION (MAKE UP AN UNINTERNED (#102212))
+  MUAN                                 ABBREVIATION-EXPANSION (MAKE UP A NAME)
+  MUAUN                                ABBREVIATION-EXPANSION (MAKE UP AN UNINTERNED NAME)
   MY-AUTOLOAD-HANDLER                  SUBR 167314
   MYX                                  ABBREVIATION-EXPANSION (MULTIPLY YOUR)
   N-FAST-TURTLE-HANDLER-FOR-LET-ME-DRAW-YOU AUTOLOAD |DIRECT;INSTAN|
@@ -1173,14 +1966,14 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   NO-OP                                LSUBR 161400
   NORMAL-METHOD                        #GRIND-FN |NORMAL-METHOD #GRIND-FN|
   |NORMAL-METHOD #GRIND-FN|            SUBR 155551
-  NORMAL-METHOD?                       MACRO |NORMAL-METHOD? MACRO| [SUBR 142125]; #076774 #105775
+  NORMAL-METHOD?                       MACRO |NORMAL-METHOD? MACRO| [SUBR 142125]; #076774 1
   |NORMAL-METHOD? MACRO|               SUBR 142125
   NORMAL-PRINT                         SUBR 155540
   NOT-IMPLEMENTED                      MACRO |NOT-IMPLEMENTED MACRO| [SUBR 273125]
   |NOT-IMPLEMENTED MACRO|              SUBR 273125
   NOT-UNDERSTOOD-MESSAGE               SUBR 162406
-  NOTHING-MORE-TO-DO                   #075074 (#100600 . #110371)
-  NTH-REPLACE-IMPURE                   MACRO |NTH-REPLACE-IMPURE MACRO| [SUBR 172165]; #076774 #105775
+  NOTHING-MORE-TO-DO                   EXPR NULL
+  NTH-REPLACE-IMPURE                   MACRO |NTH-REPLACE-IMPURE MACRO| [SUBR 172165]; #076774 1
   |NTH-REPLACE-IMPURE MACRO|           SUBR 172165
   NTH-REST                             MACRO |NTH-REST MACRO| [SUBR 143344]
   |NTH-REST MACRO|                     SUBR 143344
@@ -1188,34 +1981,34 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   NUMBER-OF-ARGS-NIL                   MACRO |NUMBER-OF-ARGS-NIL MACRO| [SUBR 253607]; AUTOLOAD |DIRECT;CMATCH|
   |NUMBER-OF-ARGS-NIL MACRO|           SUBR 253607
   NUMBER-OF-TICKS                      SUBR 174563
-  |No such option|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |No such option|                     +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
   O                                    FORMAT-CTL-ONE-ARG FORMAT-OCTAL-INTEGER-OP
   OCCURENCES-OF                        SUBR 156236
   OFFS                                 ABBREVIATION-EXPANSION (OFFSPRING)
-  ONE-ARG-NO-OP                        #075074 NO-OP
+  ONE-ARG-NO-OP                        EXPR NO-OP
   ONE-LONG                             MACRO |ONE-LONG MACRO| [SUBR 142703]
   |ONE-LONG MACRO|                     SUBR 142703
   OPEN-APPEND-IF-EXISTS                AUTOLOAD |DIRECT;COMP|
   OPEN-OUT-OR-APPEND                   AUTOLOAD |DIRECT;COMP|
-  ORIGINAL-READTABLE                   #075070 #70746
+  ORIGINAL-READTABLE                   ARRAY #70746
   ORIGINAL-RUN-METHOD                  SUBR 162657
   OUT-OF-BOUNDS?                       LSUBR 300121; AUTOLOAD |DIRECT;TUTIL|
   P                                    FORMAT-CTL-MULTI-ARG FORMAT-PLURAL-OP
   PA                                   ABBREVIATION-EXPANSION (PLAN AFTER)
-  PARENT-OF                            MACRO |PARENT-OF MACRO| [SUBR 141705]; #076774 #105775
+  PARENT-OF                            MACRO |PARENT-OF MACRO| [SUBR 141705]; #076774 1
   |PARENT-OF MACRO|                    SUBR 141705
   PARX                                 ABBREVIATION-EXPANSION (PLAN AFTER RECEIVING)
   PATTERNIFY                           AUTOLOAD |DIRECT;INCOMP|
   PCM                                  AUTOLOAD |DIRECT;CMOVIE|
-  PD                                   #075074 FANCY-PENDOWN; AUTOLOAD |DIRECT;DLIST|
-  PDB                                  ABBREVIATION-EXPANSION ((#102266 . #113057) DATABASE)
+  PD                                   EXPR FANCY-PENDOWN; AUTOLOAD |DIRECT;DLIST|
+  PDB                                  ABBREVIATION-EXPANSION (PRINT DATABASE)
   PENCOLOR                             LSUBR 273314; AUTOLOAD |DIRECT;TURMAC|
   PENCOLOR-RGB                         SUBR 275724
   PENDOWN                              SUBR 303042
   PENSTATE                             AUTOLOAD |DIRECT;TURMAC|
   PENUP                                SUBR 303034
   PER                                  ABBREVIATION-EXPANSION (ASK PERFORMER)
-  PERFORMER                            ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) PERFORMER PRI...
+  PERFORMER                            ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME PERFORMER PRIVATE)...
   PERPENDICULAR-BISECTOR               SUBR 302137
   PETAL                                SUBR 276676
   PETALS                               SUBR 276614
@@ -1224,19 +2017,18 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   PLACE-ACTOR-ON-NAME                  SUBR 165221
   PLACE-PROPERTY                       SUBR 303455
   PLACE-PROPERTY1                      SUBR 303535
-  PLAN                                 #307340 #776022; #307340 #776022
-  PM                                   ABBREVIATION-EXPANSION ((#102266 . #113057) MEMORY)
+  PM                                   ABBREVIATION-EXPANSION (PRINT MEMORY)
   PN                                   ABBREVIATION-EXPANSION (PLAN NEXT)
-  POLY                                 ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) POLY PRIVATE)...
+  POLY                                 ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME POLY PRIVATE) (ANG...
   POSITION-LIST                        SUBR 300411
   PREDICATE-OF-PATTERN                 LSUBR 253503
-  PRIMITIVE?                           #332000 NIL; #100000 FORMAT-CTL-NO-ARG
+  PRIMITIVE?                           #332000 NIL
   PRINC+BLANK                          LSUBR 157163
   PRINC-OR-PRINT                       SUBR 166364
   PRINC-WITHOUT-PARENS                 LSUBR 157064
-  PRINL                                LSUBR 127156; #075166 -8154131932
-  PRINL1                               LSUBR 127120; #075166 26205606436
-  PRINLC                               LSUBR 127137; #075166 9025737252
+  PRINL                                LSUBR 127156; #075166 #731720
+  PRINL1                               LSUBR 127120; #075166 #731731
+  PRINLC                               LSUBR 127137; #075166 #731724
   PRINT-ENTRY                          AUTOLOAD |DIRECT;TRACE|
   PRINT-EXIT                           AUTOLOAD |DIRECT;TRACE|
   PRINT-FORM-OF-ACTOR                  AUTOLOAD |DIRECT;INCOMP|
@@ -1248,34 +2040,34 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   PRINT-WITHOUT-PARENS                 LSUBR 156774
   PRINTER-EXPLODE                      MACRO |PRINTER-EXPLODE MACRO| [SUBR 143311]
   |PRINTER-EXPLODE MACRO|              SUBR 143311
-  |PROG #GRIND-FN|                     SUBR 133201; #075166 23845787362
+  |PROG #GRIND-FN|                     SUBR 133201; #075166 #731336
   |PROG1 MACRO|                        SUBR 173112
   PROGN-COMPILE                        MACRO |PROGN-COMPILE MACRO| [SUBR 167566]; AUTOLOAD |DIRECT;IMACRO|
   |PROGN-COMPILE MACRO|                SUBR 167566
   PROJECT-COMPILED-MOVIE               AUTOLOAD |DIRECT;CMOVIE|
   PROTECTED-ACTOR-BUT-OK               SUBR 166257
-  PS                                   ABBREVIATION-EXPANSION ((#102266 . #113057) SCRIPT)
+  PS                                   ABBREVIATION-EXPANSION (PRINT SCRIPT)
   PSAF                                 ABBREVIATION-EXPANSION (PROJECT STARTING AT FRAME)
   PSE                                  ABBREVIATION-EXPANSION (PROJECT SHOWING EVERY)
   PTMCW                                ABBREVIATION-EXPANSION (PREPARE TO MIX COLORS WITH)
-  PU                                   #075074 FANCY-PENUP; AUTOLOAD |DIRECT;DLIST|
+  PU                                   EXPR FANCY-PENUP; AUTOLOAD |DIRECT;DLIST|
   PUT-EXTREME-POINTS-FIRST             SUBR 301265
-  PUT-FUNCTION-DEFINITION              MACRO |PUT-FUNCTION-DEFINITION MACRO| [SUBR 171005]; #076774 #105775
+  PUT-FUNCTION-DEFINITION              MACRO |PUT-FUNCTION-DEFINITION MACRO| [SUBR 171005]; #076774 1
   |PUT-FUNCTION-DEFINITION MACRO|      SUBR 171005
   PUT-IN-WHOLINE                       SUBR 264372
-  PVS                                  ABBREVIATION-EXPANSION ((#102266 . #113057) VARIABLES)
-  PY                                   ABBREVIATION-EXPANSION ((#102266 . #113057) YOUR)
+  PVS                                  ABBREVIATION-EXPANSION (PRINT VARIABLES)
+  PY                                   ABBREVIATION-EXPANSION (PRINT YOUR)
   QUICK-COMPILED-ASK                   SUBR 162555
-  QUICK-COMPILED-CONTINUE-ASKING       #075074 RUN-METHOD
-  |QUOTE #GRIND-FN|                    SUBR 155404; #075166 22608990587
+  QUICK-COMPILED-CONTINUE-ASKING       EXPR RUN-METHOD
+  |QUOTE #GRIND-FN|                    SUBR 155404; #075166 #731447
   QUOTE-ALLOWING-EVAL-AND-UNPACK       SUBR 135630
   QUOTE-ALLOWING-EVAL-AND-UNPACK-1     SUBR 135646
-  QUOTE-IF-NEED-BE                     MACRO |QUOTE-IF-NEED-BE MACRO| [SUBR 136564]; #076774 #105775
+  QUOTE-IF-NEED-BE                     MACRO |QUOTE-IF-NEED-BE MACRO| [SUBR 136564]; #076774 1
   |QUOTE-IF-NEED-BE MACRO|             SUBR 136564
-  QUOTE-SHARP-COMMA                    #GRIND-FN |QUOTE-SHARP-COMMA #GRIND-FN|; MACRO |QUOTE-SHARP-COMMA MACRO| [SUBR 143360]; #076774 #105775
+  QUOTE-SHARP-COMMA                    #GRIND-FN |QUOTE-SHARP-COMMA #GRIND-FN|; MACRO |QUOTE-SHARP-COMMA MACRO| [SUBR 143360]; #076774 1
   |QUOTE-SHARP-COMMA #GRIND-FN|        SUBR 155340
   |QUOTE-SHARP-COMMA MACRO|            SUBR 143360
-  QUOTED?                              MACRO |QUOTED? MACRO| [SUBR 167702]; #076774 #105775
+  QUOTED?                              MACRO |QUOTED? MACRO| [SUBR 167702]; #076774 1
   |QUOTED? MACRO|                      SUBR 167702
   R                                    FORMAT-CTL-ONE-ARG FORMAT-PRINT-FANCY-NUMBER-OP
   RAIM                                 ABBREVIATION-EXPANSION (RECALL AN ITEM MATCHING)
@@ -1285,12 +2077,12 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   READ-AHEAD-IF-CAN                    LSUBR 270405
   READ-AND-EVAL-FORMS                  AUTOLOAD |DIRECT;COMP|
   READ-AND-EXPAND                      SUBR 156063
-  READ-BASIC-SYSTEM-TAGS               #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  READ-BASIC-SYSTEM-TAGS               EXPR (LAMBDA NIL (READ-TAGS (READ-MACRO-QUOTE TBASIC) (READ-MACRO-QUOTE ...
   READ-CHARACTER                       AUTOLOAD |DIRECT;INSTAN|
   READ-EMACS-TAGS                      AUTOLOAD |ai:direct;rdtags|
   READ-ERROR                           SUBR 156406
   READ-FORM-CHECKING-FOR               SUBR 155712
-  READ-GRAPHICS-TAGS                   #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  READ-GRAPHICS-TAGS                   EXPR (LAMBDA NIL (READ-TAGS (READ-MACRO-QUOTE TGRAPH) (READ-MACRO-QUOTE ...
   READ-MACRO-ASK                       #GRIND-FN |READ-MACRO-ASK #GRIND-FN|
   |READ-MACRO-ASK #GRIND-FN|           SUBR 154671
   READ-MACRO-QUOTE                     #GRIND-FN |READ-MACRO-QUOTE #GRIND-FN|; MACRO |READ-MACRO-QUOTE MACRO| [SUBR 136105]
@@ -1303,7 +2095,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   READ-QUOTE-ALLOWING-EVAL-AND-UNPACK  #GRIND-FN |READ-QUOTE-ALLOWING-EVAL-AND-UNPACK #GRIND-FN|; MACRO |READ-QUOTE-ALLOWING-EVAL-AND-UNPACK MACRO| [SUBR 136131]
   |READ-QUOTE-ALLOWING-EVAL-AND-UNPACK #GRIND-FN| SUBR 155010
   |READ-QUOTE-ALLOWING-EVAL-AND-UNPACK MACRO| SUBR 136131
-  READ-TAGS                            #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  READ-TAGS                            EXPR (LAMBDA (TAG-FILE-NAME-1 ONLY-THESE-FILES) (COND ((PROBEF (LIST (RE...
   READ-TRANSMISSIONS                   LSUBR 312551
   READ-UNTIL                           SUBR 155656
   REAP-SYMBOL                          LSUBR 162001
@@ -1326,7 +2118,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   REMOVE-SYNONYMS-FROM-ALIST           AUTOLOAD |DIRECT;COMP|
   RENAME-FASL-FILE                     AUTOLOAD |DIRECT;COMP|
   REOY                                 ABBREVIATION-EXPANSION (RECALL EACH OF YOUR)
-  REPEAT                               MACRO |REPEAT MACRO| [SUBR 172777]; #076774 #105775
+  REPEAT                               MACRO |REPEAT MACRO| [SUBR 172777]; #076774 1
   |REPEAT MACRO|                       SUBR 172777
   REPEAT-APPEND                        SUBR 160502
   REPEAT-LIST                          SUBR 160463
@@ -1339,9 +2131,9 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   REPLACE-NTH                          SUBR 157503
   REPLACE-REST                         MACRO |REPLACE-REST MACRO| [SUBR 143340]
   |REPLACE-REST MACRO|                 SUBR 143340
-  REPLACE-SECOND                       MACRO |REPLACE-SECOND MACRO| [SUBR 142531]; #076774 #105775
+  REPLACE-SECOND                       MACRO |REPLACE-SECOND MACRO| [SUBR 142531]; #076774 1
   |REPLACE-SECOND MACRO|               SUBR 142531
-  REPLACE-THIRD                        MACRO |REPLACE-THIRD MACRO| [SUBR 142613]; #076774 #105775
+  REPLACE-THIRD                        MACRO |REPLACE-THIRD MACRO| [SUBR 142613]; #076774 1
   |REPLACE-THIRD MACRO|                SUBR 142613
   REPLACE-TRACED-RUN-METHOD            AUTOLOAD |DIRECT;TRACE|
   REPLACEPROP                          SUBR 160720
@@ -1358,12 +2150,12 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   RIGHT-TRI                            SUBR 276224
   RIMF                                 ABBREVIATION-EXPANSION (RECALL INTERNAL METHOD FOR)
   RMF                                  ABBREVIATION-EXPANSION (RECALL METHOD FOR)
-  ROCKET                               ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) ROCKET PRIVAT...
+  ROCKET                               ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME ROCKET PRIVATE) (D...
   ROTATE-SLOPE                         SUBR 302227
   ROUND                                MACRO |ROUND MACRO| [SUBR 173207]; AUTOLOAD |DIRECT;IMACRO|
   |ROUND MACRO|                        SUBR 173207
   ROUND-IF-FLONUM                      SUBR 272021
-  RT                                   #075074 FANCY-RIGHT; AUTOLOAD |DIRECT;DLIST|
+  RT                                   EXPR FANCY-RIGHT; AUTOLOAD |DIRECT;DLIST|
   RT-FD-RT                             SUBR 303213
   RUN-COLOR                            SUBR 162241
   RUN-COMPILED-FRAME                   AUTOLOAD |DIRECT;CMOVIE|
@@ -1381,7 +2173,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   RYW                                  ABBREVIATION-EXPANSION (RECALL YOUR WHOLE)
   RYX                                  ABBREVIATION-EXPANSION (RECALL YOUR XCOR)
   RYY                                  ABBREVIATION-EXPANSION (RECALL YOUR YCOR)
-  |Remember always to follow numbers with a space.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |Remember always to follow numbers with a space.| +INTERNAL-STRING-MARKER T
   S                                    FORMAT-CTL-ONE-ARG FORMAT-PRIN1-LISP-OBJECT-OP
   S0019-1                              SUBR 263455
   S0019-5                              SUBR 263545
@@ -1396,7 +2188,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SCALE-CALL-SIMPLE                    SUBR 301016
   SCRIPT                               MACRO |SCRIPT MACRO| [SUBR 143354]
   |SCRIPT MACRO|                       SUBR 143354
-  SD                                   #075074 CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
+  SD                                   EXPR CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   SE                                   ABBREVIATION-EXPANSION (SEQUENTIALLY)
   SECOND                               MACRO |SECOND MACRO| [SUBR 136262]
   |SECOND MACRO|                       SUBR 136262
@@ -1404,10 +2196,10 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SELECT-METHOD-PATTERN-FROM-GROUP     SUBR 271325
   SELECT-WINNING-METHOD                SUBR 163303
   SEND-5-BITS-AND-NUMBER               SUBR 275001
-  SEND-OUT                             MACRO |SEND-OUT MACRO| [SUBR 273441]; #076774 #105775
+  SEND-OUT                             MACRO |SEND-OUT MACRO| [SUBR 273441]; #076774 1
   |SEND-OUT MACRO|                     SUBR 273441
   SEPERATE-SHAPE-ARGS                  SUBR 253164
-  SET-BODY-OF-METHOD                   MACRO |SET-BODY-OF-METHOD MACRO| [SUBR 142363]; #076774 #105775
+  SET-BODY-OF-METHOD                   MACRO |SET-BODY-OF-METHOD MACRO| [SUBR 142363]; #076774 1
   |SET-BODY-OF-METHOD MACRO|           SUBR 142363
   SET-FILE-NAME-2                      SUBR 167303
   SET-GRADUALLY                        LSUBR 176764
@@ -1419,7 +2211,7 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SETHEAD                              SUBR 272157
   SETHEAD$                             SUBR 272142
   SETHEADING                           SUBR 302730
-  SETQ-IF-UNBOUND                      MACRO |SETQ-IF-UNBOUND MACRO| [SUBR 140204]; #076774 #105775
+  SETQ-IF-UNBOUND                      MACRO |SETQ-IF-UNBOUND MACRO| [SUBR 140204]; #076774 1
   |SETQ-IF-UNBOUND MACRO|              SUBR 140204
   SETTURTLE                            SUBR 302660
   SETX                                 SUBR 302456
@@ -1445,11 +2237,11 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SMALL-DOT                            SUBR 274130
   SNAP-AT                              SUBR 275330
   SNAP-POPJ                            SUBR 274477
-  SNAP-UUOLINKS                        #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  SNAP-UUOLINKS                        EXPR (LAMBDA NIL (SSTATUS UUOLINKS))
   SOM                                  ABBREVIATION-EXPANSION (ASK SOMETHING)
-  SOMETHING                            ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) SOMETHING PRI...
-  SPECIAL-MENU                         ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) SPECIAL-MENU ...
-  SPECIAL-MENU-OF                      NON-ATOMIC-ACTORS ((SOMETHING (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) (...
+  SOMETHING                            ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME SOMETHING PRIVATE)...
+  SPECIAL-MENU                         ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME SPECIAL-MENU PRIVA...
+  SPECIAL-MENU-OF                      NON-ATOMIC-ACTORS ((SOMETHING (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME (SPECI...
   SPEED-IN-TICKS                       SUBR 174510
   SPIN                                 SUBR 273415
   SPLICE-IN-SECOND                     SUBR 160264
@@ -1460,10 +2252,9 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SQUISH                               SUBR 300454
   SQUISHED-DISPLAY-PACKAGE             SUBR 300437
   STA                                  #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; ABBREVIATION-EXPANSION (ASK STAGE)
-  STAGE                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) STAGE PRIVATE...
+  STAGE                                ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME STAGE PRIVATE) (HE...
   START-AFRESH-AND-PROTECT-OLD         SUBR 260022
-  STARTDISPLAY                         #075074 CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
-  STARTING                             #200340 #16040; #727630 (#100122 . #107522)
+  STARTDISPLAY                         EXPR CLEARSCREEN; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   STATE-EQUAL                          SUBR 300037
   STORE-AWAY-HELP-FOR                  SUBR 137461
   STRAIGHT-LINE                        AUTOLOAD |DIRECT;INTER|
@@ -1473,27 +2264,27 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   SUBSTITUTE-IN-ALIST                  SUBR 165057
   SUPER-MEMBER                         LSUBR 255631
   SUPER-MEMBER1                        SUBR 255717
-  SY                                   ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR)
-  SYCT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR COLOR TO)
-  SYHT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR HEADING TO)
+  SY                                   ABBREVIATION-EXPANSION (SET YOUR)
+  SYCT                                 ABBREVIATION-EXPANSION (SET YOUR COLOR TO)
+  SYHT                                 ABBREVIATION-EXPANSION (SET YOUR HEADING TO)
   SYNONYM-FOR                          SUBR 165345
-  SYPT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR POSITION TO)
-  SYST                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR STATE TO)
-  SYWT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR WHOLE TO)
-  SYXT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR XCOR TO)
-  SYYT                                 ABBREVIATION-EXPANSION ((#100636 . #110457) YOUR YCOR TO)
-  |Shouldn't reap symbols needed by compiled code| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Sorry but ~a does not know what to do with | +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Sorry no special help available|    +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Sorry no special help available -- try typing (ask something help)| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  SYPT                                 ABBREVIATION-EXPANSION (SET YOUR POSITION TO)
+  SYST                                 ABBREVIATION-EXPANSION (SET YOUR STATE TO)
+  SYWT                                 ABBREVIATION-EXPANSION (SET YOUR WHOLE TO)
+  SYXT                                 ABBREVIATION-EXPANSION (SET YOUR XCOR TO)
+  SYYT                                 ABBREVIATION-EXPANSION (SET YOUR YCOR TO)
+  |Shouldn't reap symbols needed by compiled code| +INTERNAL-STRING-MARKER T
+  |Sorry but ~a does not know what to do with | +INTERNAL-STRING-MARKER T
+  |Sorry no special help available|    +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
+  |Sorry no special help available -- try typing (ask something help)| +INTERNAL-STRING-MARKER T
   T-C                                  ABBREVIATION-EXPANSION (ASK THE-CAST)
   TA                                   ABBREVIATION-EXPANSION (TO ALWAYS)
   TALK                                 LSUBR 265776
   TAN                                  SUBR 302215
-  TE                                   ABBREVIATION-EXPANSION ((#101240 . #111361) EVERY)
-  TELL                                 MACRO |TELL MACRO| [SUBR 140522]; #076774 #105776; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  TE                                   ABBREVIATION-EXPANSION (TIMES EVERY)
+  TELL                                 MACRO |TELL MACRO| [SUBR 140522]; #076774 2; DIRECTOR-FORM T
   |TELL MACRO|                         SUBR 140522
-  TELL-EACH                            #076774 NIL; MACRO |TELL-EACH MACRO| [SUBR 137563]; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  TELL-EACH                            #076774 NIL; MACRO |TELL-EACH MACRO| [SUBR 137563]; DIRECTOR-FORM T
   |TELL-EACH MACRO|                    SUBR 137563
   TELL-OTHER-NEW-VALUE                 SUBR 174013
   TELL-OTHERS-NEW-VALUE                SUBR 174056
@@ -1506,64 +2297,63 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   TEST-REST-PATTERNS                   SUBR 257207
   TEXT                                 ACTOR-LOAD |DIRECT;TEXT|
   TFP                                  ABBREVIATION-EXPANSION (TICKS-PER-FRAME)
-  THE-CAST                             ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) THE-CAST PRIV...
+  THE-CAST                             ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME THE-CAST PRIVATE) ...
   THE-COMPILER-ISNT-COMPILING-THE-FIRST-HELPER-RIGHT SUBR 232216
-  THE-TRAILS                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) THE-TRAILS PR...
-  THE-TURTLE                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) THE-TURTLE PR...
+  THE-TRAILS                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME THE-TRAILS PRIVATE...
+  THE-TURTLE                           ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME THE-TURTLE PRIVATE...
   THING-WHOSE-FIRST-IS                 SUBR 160570
   THINGDOWN                            SUBR 276161
   THINGUP                              SUBR 276135
   THIRD                                MACRO |THIRD MACRO| [SUBR 136305]
   |THIRD MACRO|                        SUBR 136305
-  THIS-IS-A-DIRECTOR-FILE              MACRO ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  THIS-IS-A-DIRECTOR-FILE              MACRO (LAMBDA (THIS-IS-A-DIRECTOR-FILE-MACROARG) THIS-IS-A-DIRECTOR-FILE-...
   THREE-LONG                           MACRO |THREE-LONG MACRO| [SUBR 143010]
   |THREE-LONG MACRO|                   SUBR 143010
   THREE-POINT-CIRCLE                   LSUBR 302017
   TIMES-ROMAN                          ACTOR-LOAD |DIRECT;TEXT|
   TIMES-ROMAN-FONT                     ACTOR-LOAD |DIRECT;TEXT|
   TL                                   ABBREVIATION-EXPANSION (TURN LEFT)
-  TOP                                  AUTOLOAD (((#100156) LIBLSP) STACK)
+  TOP                                  AUTOLOAD ((#75107 LIBLSP) STACK)
   TOP-LEVEL-COPY                       MACRO |TOP-LEVEL-COPY MACRO| [SUBR 143060]
   |TOP-LEVEL-COPY MACRO|               SUBR 143060
   TOP-LEVEL-LOOP                       AUTOLOAD |DIRECT;INSTAN|
-  TOTAL-STORAGE                        FREE #117736; ACCESSIBLE #117737; CONSED #117740
+  TOTAL-STORAGE                        FREE 32171.25; ACCESSIBLE 42895.0; CONSED 2882.0
   TOWARDS                              LSUBR 272624
   TR                                   ABBREVIATION-EXPANSION (TURN RIGHT)
   TR12B                                ACTOR-LOAD |DIRECT;TEXT|
   TR18                                 ACTOR-LOAD |DIRECT;TEXT|; FONT-AUTOLOAD-FILE |direct;tr18 winfon|
   TRACED-RUN-METHOD                    AUTOLOAD |DIRECT;TRACE|
   TRACER                               ACTOR-LOAD |DIRECT;TRACE|
-  TRAIL-APPEARANCE                     ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD ((((#102212) TRAIL-APPEARA...
+  TRAIL-APPEARANCE                     ACTOR (DIRECTOR-SYMBOL-FOR-ACTOR (VALUE-METHOD (((NAME TRAIL-APPEARANCE P...
   TRUNCATE                             SUBR 156160
   TTDN                                 ABBREVIATION-EXPANSION (THINGS-TO-DO-NEXT)
   TURTLESIZE                           LSUBR 273302; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   TVFONT                               ACTOR-LOAD |DIRECT;TEXT|; FONT-AUTOLOAD-FILE |direct;tvfont winfon|
   TVSIZE                               LSUBR 273270; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   TVSIZE-DRAW-RECTANGLE                SUBR 253251
-  TWO-ARG-NO-OP                        #075074 NO-OP
+  TWO-ARG-NO-OP                        EXPR NO-OP
   TWO-LONG                             MACRO |TWO-LONG MACRO| [SUBR 142743]
   |TWO-LONG MACRO|                     SUBR 142743
   TWO-POINT-CIRCLE                     SUBR 301750
   TWO-POINT-CIRCLE-WITHOUT             LSUBR 301701
   TWO-POINTS-FURTHEST-FROM             SUBR 301365
   TYI-IF-CAN                           SUBR 270562
-  TYLO                                 ABBREVIATION-EXPANSION (TO YOUR (#100062 FREE 27047 ALLOC-RATE #117735 CONSED 2423 ACCESSI...
+  TYLO                                 ABBREVIATION-EXPANSION (TO YOUR LIST OF)
   TYPE                                 LSUBR 156617
-  |The message is|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |There is no actor named ~a~%If you want to make one ask its parent to | +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |This is a quick and easy way of getting everyone to hide.| #406072 #302040; #100062 FREE; #116752 ALLOC-RATE; #117735 CONSED; #116757 ACCESSIBLE
-  |Type a number followed by a ? for a description of that choice.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Type one of the numbers followed by a space.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Type one of the numbers followed by a space. | +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |Type the number on the side of the actor that you want to talk to.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  UNCOMPILED-ASK                       #076774 NIL; MACRO |UNCOMPILED-ASK MACRO| []; DIRECTOR-FORM (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |The message is|                     +INTERNAL-STRING-MARKER T
+  |There is no actor named ~a~%If you want to make one ask its parent to | +INTERNAL-STRING-MARKER T
+  |Type a number followed by a ? for a description of that choice.| +INTERNAL-STRING-MARKER T
+  |Type one of the numbers followed by a space.| +INTERNAL-STRING-MARKER T
+  |Type one of the numbers followed by a space. | +INTERNAL-STRING-MARKER T
+  |Type the number on the side of the actor that you want to talk to.| +INTERNAL-STRING-MARKER T
+  UNCOMPILED-ASK                       #076774 NIL; MACRO |UNCOMPILED-ASK MACRO| []; DIRECTOR-FORM T
   |UNCOMPILED-ASK MACRO|               SUBR 140263
-  UNCOMPILED-ASK-IF-CAN                MACRO |UNCOMPILED-ASK-IF-CAN MACRO| [SUBR 140002]; #076774 #105775
+  UNCOMPILED-ASK-IF-CAN                MACRO |UNCOMPILED-ASK-IF-CAN MACRO| [SUBR 140002]; #076774 1
   |UNCOMPILED-ASK-IF-CAN MACRO|        SUBR 140002
-  UNCOMPILED-ASK-IF-EXISTS             MACRO |UNCOMPILED-ASK-IF-EXISTS MACRO| [SUBR 137637]; #076774 #105775
+  UNCOMPILED-ASK-IF-EXISTS             MACRO |UNCOMPILED-ASK-IF-EXISTS MACRO| [SUBR 137637]; #076774 1
   |UNCOMPILED-ASK-IF-EXISTS MACRO|     SUBR 137637
   UNDEFINED-ACTOR                      SUBR 162301
-  UNDF-FNCTN-SO-TRY-TO-LOAD            #075074 ((#100154 #GRIND-TEMPLATE (#105776 (NEVER) (NEVER #105775 ((#100270...
+  UNDF-FNCTN-SO-TRY-TO-LOAD            EXPR (LAMBDA (ARG) ((LAMBDA (UNKNOWN-FUNCTION) (COND ((GETL UNKNOWN-FUNC...
   UNFANCIFY                            SUBR 303376
   UNION                                LSUBR 160041
   UNION-TWO                            SUBR 160046
@@ -1573,14 +2363,14 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   USE-SPECIAL-MENU-FOR-METHOD-PATTERN  SUBR 271230
   VALUE-METHOD                         #GRIND-FN |VALUE-METHOD #GRIND-FN|
   |VALUE-METHOD #GRIND-FN|             SUBR 155577
-  VALUE-METHOD?                        MACRO |VALUE-METHOD? MACRO| [SUBR 142163]; #076774 #105775
+  VALUE-METHOD?                        MACRO |VALUE-METHOD? MACRO| [SUBR 142163]; #076774 1
   |VALUE-METHOD? MACRO|                SUBR 142163
   VALUE-OF-SYNONYMS                    SUBR 166046
   VALUE-OR-NIL                         SUBR 160370
   VP                                   ABBREVIATION-EXPANSION (VISIBLE-PARTS)
   VTCUC                                ABBREVIATION-EXPANSION (VARIABLES-TO-COPY-UPON-CREATION)
   WARNING                              LSUBR 156444
-  WDD                                  ABBREVIATION-EXPANSION (WHEN DRAWING (#101046 . #111033))
+  WDD                                  ABBREVIATION-EXPANSION (WHEN DRAWING DO)
   WDU                                  ABBREVIATION-EXPANSION (WHEN DRAWING USE)
   WF                                   ABBREVIATION-EXPANSION (WAIT FOR)
   WIDE-DASH                            SUBR 274375
@@ -1588,84 +2378,84 @@ Symbols rebuilt from the image: 2855 headers, 2718 distinct names, 329 value cel
   WINDOW                               ACTOR-LOAD |DIRECT;TEXT|
   WIPE                                 SUBR 273330; AUTOLOAD DUMMY-TVRTLE-FILE-NAME
   WRAP                                 SUBR 273326
-  |Which actor do you want to talk to?| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  X                                    FORMAT-CTL-REPEAT-CHAR #106034
+  |Which actor do you want to talk to?| +INTERNAL-STRING-MARKER T
+  X                                    FORMAT-CTL-REPEAT-CHAR 32
   XCOR                                 SUBR 272303; AUTOLOAD |DIRECT;TURMAC|
   XOR-POINT                            SUBR 276163
   XORDOWN                              LSUBR 273232
   XORSTATE                             AUTOLOAD |DIRECT;TURMAC|
   XORUP                                LSUBR 273244
   YCOR                                 SUBR 272313; AUTOLOAD |DIRECT;TURMAC|
-  |You are trying to unmake me and I'm protected.  Type (?) for help.| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |You are trying to unmake me and I'm protected.  Type (?) for help.| +INTERNAL-STRING-MARKER T
   [                                    FORMAT-CTL-ONE-ARG FORMAT-CASE-OP
   \$                                   SUBR 272420
-  |`,./| #GRIND-FN|                    SUBR 133057; #075166 29947017864
-  |`,@/| #GRIND-FN|                    SUBR 133020; #075166 29951736456
-  |`,/| #GRIND-FN|                     SUBR 132761; #075166 29934959240
-  |`-expander/| #GRIND-FN|             SUBR 132722; #075166 -1539310840
+  |`,./| #GRIND-FN|                    SUBR 133057; #075166 #731357
+  |`,@/| #GRIND-FN|                    SUBR 133020; #075166 #731370
+  |`,/| #GRIND-FN|                     SUBR 132761; #075166 #731401
+  |`-expander/| #GRIND-FN|             SUBR 132722; #075166 #731412
   |`-read-macro|                       SUBR 155655
-  |ai:direct;tvrtle|                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |ai:tvlisp;colort|                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |ancestors so lets try again.|       +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |and NIL will be returned|           +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |and then type "(return t)"|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |bad method type in|                 +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |can't reap non-symbol|              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |can't reap the pure symbol|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |could not find|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |direct;turt25|                      +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |does not exist|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |done|                               #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |either stop using graphical stuff|  +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |file|                               +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |file does not exist -- request ignored| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |great |                             +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |has a value of|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |has no named ancestors|             +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |if you typed ~a wrong and you want it to go to another type~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |in|                                 +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is a mal-formed actor|              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is neither a function nor an actor| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is not a list|                      +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is not a valid transmission|        +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is not an actor|                    +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is not an actor --- type (?) for help| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is not understood|                  +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |is only one long|                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |macro expands to|                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |must be a list, not an atom|        +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |nameless child of ~a|               +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |nameless grandchild of ~a|          +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |nameless ~agrandchild of ~a|        +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |not recognized method|              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |ok to delete file|                  +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |or else load in the turtle yourself| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |should be a list|                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP); +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |since ~a did not understand~%~a~%you can either modify ~a | +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |so that it can understand the message and then type~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |synonyms, since one has a value of| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |the message~%~a~%Neither does any of its | +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |then remove its name from the variable *protected-actors~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |there is no method which is at|     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |to get a patch|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |to restore the world to how it was last time| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |trying to load|                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |while|                              +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |who you just made?|                 +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |within itself while trying|         +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |you are neither on a tv nor running color so| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  |ai:direct;tvrtle|                   +INTERNAL-STRING-MARKER T
+  |ai:tvlisp;colort|                   +INTERNAL-STRING-MARKER T
+  |ancestors so lets try again.|       +INTERNAL-STRING-MARKER T
+  |and NIL will be returned|           +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
+  |and then type "(return t)"|         +INTERNAL-STRING-MARKER T
+  |bad method type in|                 +INTERNAL-STRING-MARKER T
+  |can't reap non-symbol|              +INTERNAL-STRING-MARKER T
+  |can't reap the pure symbol|         +INTERNAL-STRING-MARKER T
+  |could not find|                     +INTERNAL-STRING-MARKER T
+  |direct;turt25|                      +INTERNAL-STRING-MARKER T
+  |does not exist|                     +INTERNAL-STRING-MARKER T
+  |done|                               #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; #000000 NIL; +INTERNAL-STRING-MARKER T
+  |either stop using graphical stuff|  +INTERNAL-STRING-MARKER T
+  |file|                               +INTERNAL-STRING-MARKER T
+  |file does not exist -- request ignored| +INTERNAL-STRING-MARKER T
+  |great |                             +INTERNAL-STRING-MARKER T
+  |has a value of|                     +INTERNAL-STRING-MARKER T
+  |has no named ancestors|             +INTERNAL-STRING-MARKER T
+  |if you typed ~a wrong and you want it to go to another type~%| +INTERNAL-STRING-MARKER T
+  |in|                                 +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
+  |is a mal-formed actor|              +INTERNAL-STRING-MARKER T
+  |is neither a function nor an actor| +INTERNAL-STRING-MARKER T
+  |is not a list|                      +INTERNAL-STRING-MARKER T
+  |is not a valid transmission|        +INTERNAL-STRING-MARKER T
+  |is not an actor|                    +INTERNAL-STRING-MARKER T
+  |is not an actor --- type (?) for help| +INTERNAL-STRING-MARKER T
+  |is not understood|                  +INTERNAL-STRING-MARKER T
+  |is only one long|                   +INTERNAL-STRING-MARKER T
+  |macro expands to|                   +INTERNAL-STRING-MARKER T
+  |must be a list, not an atom|        +INTERNAL-STRING-MARKER T
+  |nameless child of ~a|               +INTERNAL-STRING-MARKER T
+  |nameless grandchild of ~a|          +INTERNAL-STRING-MARKER T
+  |nameless ~agrandchild of ~a|        +INTERNAL-STRING-MARKER T
+  |not recognized method|              +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
+  |ok to delete file|                  +INTERNAL-STRING-MARKER T
+  |or else load in the turtle yourself| +INTERNAL-STRING-MARKER T
+  |should be a list|                   +INTERNAL-STRING-MARKER T; +INTERNAL-STRING-MARKER T
+  |since ~a did not understand~%~a~%you can either modify ~a | +INTERNAL-STRING-MARKER T
+  |so that it can understand the message and then type~%| +INTERNAL-STRING-MARKER T
+  |synonyms, since one has a value of| +INTERNAL-STRING-MARKER T
+  |the message~%~a~%Neither does any of its | +INTERNAL-STRING-MARKER T
+  |then remove its name from the variable *protected-actors~%| +INTERNAL-STRING-MARKER T
+  |there is no method which is at|     +INTERNAL-STRING-MARKER T
+  |to get a patch|                     +INTERNAL-STRING-MARKER T
+  |to restore the world to how it was last time| +INTERNAL-STRING-MARKER T
+  |trying to load|                     +INTERNAL-STRING-MARKER T
+  |while|                              +INTERNAL-STRING-MARKER T
+  |who you just made?|                 +INTERNAL-STRING-MARKER T
+  |within itself while trying|         +INTERNAL-STRING-MARKER T
+  |you are neither on a tv nor running color so| +INTERNAL-STRING-MARKER T
   |{-read-macro|                       SUBR 156062
   |{and ?FORM ({or DELX DELY SETX SETY} ?)}P| SUBR 237153
   |{and ?FORM ({or FD FORWARD BK BACK RT RIGHT LT LEFT} ?)}P| SUBR 243074
   |{and ?FORM ({or SETXY DELXY} ? ?)}P| SUBR 237576
   |/||                                 FORMAT-CTL-NO-ARG FORMAT-FORMFEED-OP
   |/|///|method-selector-of-///|SPECIAL-MENU/|-1| SUBR 307503
-  ~                                    FORMAT-CTL-REPEAT-CHAR #106172
-  |~%;|                                +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~%;Loading ~a |                     +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~%;Warning from |                   +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~%;finished loading ~a|             +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~%If you want to define ~a do so now and then type~%(return 'retry)~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~%The descendants of ~a are ~a.|    +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~a does not exist~%|                +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
-  |~a is not defined as an actor --- if it is misspelled then type~%| +INTERNAL-STRING-MARKER (#100000 FORMAT-CTL-NO-ARG FORMAT-TAB-TO-OP)
+  ~                                    FORMAT-CTL-REPEAT-CHAR 126
+  |~%;|                                +INTERNAL-STRING-MARKER T
+  |~%;Loading ~a |                     +INTERNAL-STRING-MARKER T
+  |~%;Warning from |                   +INTERNAL-STRING-MARKER T
+  |~%;finished loading ~a|             +INTERNAL-STRING-MARKER T
+  |~%If you want to define ~a do so now and then type~%(return 'retry)~%| +INTERNAL-STRING-MARKER T
+  |~%The descendants of ~a are ~a.|    +INTERNAL-STRING-MARKER T
+  |~a does not exist~%|                +INTERNAL-STRING-MARKER T
+  |~a is not defined as an actor --- if it is misspelled then type~%| +INTERNAL-STRING-MARKER T

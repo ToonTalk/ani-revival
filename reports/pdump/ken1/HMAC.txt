@@ -1,0 +1,110 @@
+KEN1; AI: HMAC >: functions recovered from TS D2500 (KEN;TS D2500, 5 Jan 1980)
+Definitions in the order of the 1979 tags table (7005017 KEN TAGS).
+Listings name calls through link cells, kernel routines and atoms where known;
+#75413-style names are pure system atoms not yet identified and #vc71041-style names
+value cells of unidentified system variables (see 701431_ts.d2500.txt for candidates).
+DECOMPILATION blocks are reconstructions from machine code, not Ken's source:
+check each one against its listing. Confidence: high = straight-line code fully
+understood; medium = branches or calls whose argument conventions were inferred;
+low = partial.
+
+==============================================================================
+ATOMIZE    [absent]
+  tags: (DEFUN ATOMIZE
+
+==============================================================================
+ANONYMOUS    [absent]
+  tags: (DEFUN ANONYMOUS
+
+==============================================================================
+MATCH-LIST    [absent]
+  tags: (DEFUN (MATCH-LIST
+
+==============================================================================
+BOUND-VARIABLE-PATTERN-CONTAINS-UNPACK    [absent]
+  tags: (DEFUN BOUND-VARIABLE-PATTERN-CONTAINS-UNPACK
+
+==============================================================================
+LET-MATCH-LIST    [absent]
+  tags: (DEFUN LET-MATCH-LIST
+
+==============================================================================
+DEFINE-MACRO    [macro]
+  tags: (DEFUN (DEFINE-MACRO
+  property AUTOLOAD-PROPERTY: AUTOLOAD
+  MACRO expander |DEFINE-MACRO MACRO| at 136376
+  DECOMPILATION (reconstructed from machine code; confidence medium):
+  | (DEFUN DEFINE-MACRO MACRO (FORM)
+  |   (COND ((LESSP (LENGTH FORM) 2)
+  |          (ERROR '|Wrong number args to a macro call| FORM)
+  |          `(PROGN 'COMPILE (REMPROP ',(CAADR FORM) 'AUTOLOAD) (DEFMACRO (,(CAADR FORM) DEFMACRO-DISPLACE-CALL T) ,(CDADR FORM) . ,(CDDR FORM))))
+  |     (T `(PROGN 'COMPILE (REMPROP ',(CAADR FORM) 'AUTOLOAD) (DEFMACRO (,(CAADR FORM) DEFMACRO-DISPLACE-CALL T) ,(CDADR FORM) . ,(CDDR FORM))))))
+  136376  261600,,000001  PUSH P,A
+  136377  256000,,121104  XCT 0,121104   ; PUSHJ P, LENGTH (snapped link)
+  136400  301340,,000002  CAIL TT,2
+  136401  254000,,136410  JRST 0,|DEFINE-MACRO MACRO|+12
+  136402  201300,,136410  MOVEI T,|DEFINE-MACRO MACRO|+12
+  136403  261600,,000006  PUSH P,T
+  136404  261600,,136451  PUSH P,|DEFINE-MACRO MACRO|+53
+  136405  261614,,777776  PUSH P,-2(P)
+  136406  211300,,000002  MOVNI T,2
+  136407  256000,,121516  XCT 0,121516   ; JCALL 16,'ERROR lsubr-style
+  136410  550074,,000000  HRRZ A,@(P)
+  136411  550101,,000000  HRRZ B,(A)
+  136412  554141,,000000  HLRZ C,(A)
+  136413  554203,,000000  HLRZ AR1,(C)
+  136414  550243,,000000  HRRZ AR2A,(C)
+  136415  201044,,000000  MOVEI A,(AR1)
+  136416  261600,,000002  PUSH P,B
+  136417  265300,,011722  JSP T,%NCONS
+  136420  201100,,075442  MOVEI B,'QUOTE
+  136421  265300,,013746  JSP T,%XCONS
+  136422  201100,,726671  MOVEI B,'('AUTOLOAD)
+  136423  265300,,013747  JSP T,%CONS
+  136424  201100,,075336  MOVEI B,'REMPROP
+  136425  265300,,013746  JSP T,%XCONS
+  136426  201100,,726647  MOVEI B,'(DEFMACRO-DISPLACE-CALL T)
+  136427  250040,,000004  EXCH A,AR1
+  136430  265300,,013747  JSP T,%CONS
+  136431  262600,,000002  POP P,B
+  136432  250040,,000005  EXCH A,AR2A
+  136433  265300,,013747  JSP T,%CONS
+  136434  201105,,000000  MOVEI B,(AR2A)
+  136435  265300,,013746  JSP T,%XCONS
+  136436  201100,,075744  MOVEI B,'DEFMACRO
+  136437  265300,,013746  JSP T,%XCONS
+  136440  265300,,011722  JSP T,%NCONS
+  136441  201104,,000000  MOVEI B,(AR1)
+  136442  265300,,013746  JSP T,%XCONS
+  136443  201100,,726644  MOVEI B,''COMPILE
+  136444  265300,,013746  JSP T,%XCONS
+  136445  201100,,075510  MOVEI B,'PROGN
+  136446  265300,,013746  JSP T,%XCONS
+  136447  274600,,012724  SUB P,R70+1
+  136450  263600,,000000  POPJ P,0
+  136451  000000,,076764  0,,'|Wrong number args to a macro call|
+
+==============================================================================
+LET-MACRO-ARG    [absent]
+  tags: (DEFINE-MACRO LET-MACRO-ARG
+
+==============================================================================
+INCREMENT    [absent]
+  tags: (DEFINE-MACRO INCREMENT
+
+==============================================================================
+DECREMENT    [absent]
+  tags: (DEFINE-MACRO DECREMENT
+
+==============================================================================
+INCREASE    [absent]
+  tags: (DEFINE-MACRO INCREASE
+
+==============================================================================
+DECREASE    [absent]
+  tags: (DEFINE-MACRO DECREASE
+
+==============================================================================
+EXCHANGE    [absent]
+  tags: (DEFINE-MACRO EXCHANGE
+

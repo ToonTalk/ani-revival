@@ -9,7 +9,9 @@
 | `itsdir.py` | Decode UFD directory listings | `--all` writes `reports/itsdir/` |
 | `itsarc.py` | List and extract ITS archives | `--all` writes `reports/archives/` |
 | `itspic.py` | Render TV-turtle windows and KST fonts as PNG | `--all` writes `reports/images/` |
-| `pdump.py` | Rebuild symbols and listings from PDUMP core images | `--all` writes `reports/pdump/` |
+| `pdump.py` | Rebuild symbols, name kernel routines, call links and system atoms, and list code from PDUMP core images | `--all` writes `reports/pdump/` (and `ken1/` for TS D2500) |
+| `lispdecomp.py` | Best-effort decompiler from compiled MacLisp code to Lisp (used by `pdump.py`) | none (library) |
+| `maclisp_atoms.py` | Expands MacLisp's `src/l/struct.660` into the system atoms in allocation order (`--vcells`: the atoms that get value cells, in order) | `PATH/struct.660 > tools/maclisp_atoms_1981.txt` |
 
 ## 1. The byte encoding: "ITS evacuate" format
 
@@ -189,14 +191,52 @@ Members are written in the same evacuate format as `original/`, so text reads as
 
 ## 6. Core images (PDUMP)
 
-**Format.** Word 0 = 0, then a 256-word page map, then the pages that are in the file. A dumped MacLisp leaves out the Lisp's own pure pages, so system atoms (SUBR, LAMBDA, ...) appear only as addresses. `pdump.py` rebuilds the user symbol table from the image:
+**Format.** Word 0 = 0, then a 256-word page map, then the pages that are in the file. A dumped MacLisp leaves out the Lisp's own pure pages:
 
-- SY2 blocks `777xxx,,value-cell / args,,pname-list`, with pnames as lists of 5-character fixnums;
-- symbol headers `SY2,,plist`.
+- kernel code (pages 3-31 in TS D2500);
+- pure symbol blocks, pnames and system property lists (pages 40-45).
 
-It names the property indicators from ARGS and value kinds (SUBR 075071, LSUBR 075073, MACRO 075076, AUTOLOAD 075077 in TS D2500). It then disassembles every compiled entry, resolving symbols, value cells, quoted lists and fixnums, plus two pure-Lisp addresses learned by aligning FASL code with the image (PDLNMK, R70). A compiled macro FOO has MACRO property `|FOO MACRO|`, a symbol whose SUBR is the code.
+So kernel routines and system atoms appear only as addresses. `pdump.py` rebuilds what it can:
 
-**`701431/ts.d2500` (`KEN;TS D2500`, written 1980-01-05 by author 322)** is a saved Director job. It has 2,855 symbol headers. Compared with the 596 definitions that the 1979 tags table assigns to `KEN1;` Lisp files, the image has:
+- **User symbols.** From impure SY2 blocks (`777xxx,,value-cell / args,,pname-list`) and the symbol headers `SY2,,plist` that point at them. A compiled macro FOO has MACRO property `|FOO MACRO|`, whose SUBR is the code.
+- **Property indicators.** From ARGS and value kinds. In TS D2500: SUBR 075071, FSUBR 075072, LSUBR 075073, EXPR 075074, FEXPR 075075, MACRO 075076, AUTOLOAD 075077. The order matches the sequence `struct.660` requires.
+- **Segment types.** The segment table at 4000 holds each 512-word segment's type bits and, in its right half, the type's atom (LIST, FIXNUM, FLONUM, BIGNUM, SYMBOL, ARRAY, RANDOM). Flonum constants print as numbers. Segment 71 is value-cell space.
+- **FASL alignment.** Each function compiled in a FASL is matched to the same-named function in the image by sequence alignment. At aligned positions:
+  - GLOBALSYM and DDT relocations give kernel addresses;
+  - CALL items give the callee of each link cell;
+  - quoted atoms, quoted lists and special references give the addresses of system atoms and value cells;
+  - fixnum constants locate MacLisp's small-fixnum table (IN0).
+- **Call links.** Compiled code calls through link cells (`XCT cell`). Each cell holds `CALL n,'F` or, once snapped, `PUSHJ P,code`. The listing shows the call after every XCT.
+- **System atoms**, from evidence independent of any atom order:
+  - Plist fingerprints: a value `|NAME IND|` under indicator IND names its atom.
+  - Pattern predicates: Director names a pattern's test after the pattern. The interpreted `|(PRINT FRAMES ?BEGIN TO ?END)P|` tests `(EQ (CAR OBJECT) 'PRINT)`, `(EQ (CADR OBJECT) 'FRAMES)` and so on, so a known word names the C...R function and a known C...R names the word.
+  - Code usage: 23 atoms identified by reading the code that uses them. Three examples: the LISTP macro expands to `(EQ (TYPEP x) 'LIST)`; FORMAT-STREAM-TYPE returns SFA, FILE or TTY according to the AS.SFA, AS.FIL and TTS.TY bits; the DEFMACRO expander wraps every expansion in MACROFETCH and MACROMEMO. The report prints the reason for each.
+  - Director's own sources, where an expander builds a form whose text survives: LAMBDA and GET.
+- **System atoms**, from MacLisp's allocation order (`src/l/struct.660`, expanded by `maclisp_atoms.py` into `tools/maclisp_atoms_1981.txt`):
+  - The missing pure list area was filled in allocation order: for each atom with its own property list, 2 plist cells, then its pname; for every other atom, just its pname. An atom's original plist pointer is its header's right half or, if properties were added later, the tail where its impure plist cells end.
+  - The 381 pointers that form one increasing chain give those atoms' allocation addresses. Eight more atoms, whose symbol blocks were copied into impure memory, give their pname addresses. The difference between two known addresses equals what the atoms in between allocated.
+  - A dynamic-programming alignment with the 1981 list scores this evidence, using the independently named atoms as anchors. A name is kept only if every alignment that gives the atom another row, or none, scores at least 3 lower.
+  - Between two placed atoms, an exhaustive search tries every choice of which 1981 atoms are missing (allowing up to 3 atoms that are not in the 1981 list). It names an atom only when every placement that fits the header types and the known addresses agrees.
+
+**`701431/ts.d2500` (`KEN;TS D2500`, written 1980-01-05 by author 322)** is a saved Director job. It has 2,855 symbol headers.
+
+What resolves:
+
+- **Kernel routines.** `%NCONS` 11722, `%XCONS` 13746, `%CONS` 13747, `%PDLNC`/`%PDLXC`/`%PDLC` 13736-13740, `%C2NS` 13760, `SPECBIND` 11543, `UNBIND` 11651, `.LCALL` 13154, `ARGLOC` 71170, `PDLNMK` 15747, `PDLNKJ` 15743, `R70` 12723, `ST` 4000, `CARCDR` 13347 (with its 30 entry points: `%CADR`, `%CDDR`, ...), `FXCONS` 13765, `FLCONS` 14002, `IFLOAT` 12755 and IN0 105774. Snapped links also give the kernel entry points of system functions such as GET, ASSQ, MEMBER, LENGTH, EQUAL, NREVERSE, FIX and *APPEND.
+- **Call links.** 606 of the 681 link cells used by compiled code are named.
+- **System atoms.** 414 of the 643 pure atoms are named:
+  - 86 by independent evidence: 27 FASL alignment, 23 code usage, 16 call links, 9 plist fingerprints, 5 pattern predicates, 4 indicators, 2 Director sources;
+  - 328 by the allocation order: 316 by the alignment, 12 by the run search.
+
+  Only 9 pure atoms referenced by code remain unnamed, each used once. For each, the report lists the atoms that `struct.660` allows there.
+- **Check.** Five-fold cross-validation hides each fifth of the 86 independently named atoms and reruns the order-based naming. Of the 86, it names 39 the same, leaves 46 unnamed and names 1 differently (75373: GETCHARN, where the order says *BREAK). So roughly one order-based name in 40 may be wrong. The errors cluster where the 1980 Lisp put an atom elsewhere than the 1981 list does; RUNTIME, XCONS, GETCHARN, PUTPROP, SYMBOLP, SFA and DEFMACRO are such atoms.
+- **Corrections.** The first version of these listings named 547 atoms with a looser alignment. This one withdraws the 148 that the evidence does not pin down and corrects 60. For example:
+  - 76153 is PRINT, not FLATSIZE-OBJECT, and the print and read atoms after it move by two (READ is 76157, not 76155);
+  - 75163 is ?, not **MISSING-ARG**;
+  - 75320 is NULL; 76123 is SFA, not TTYSCAN.
+- **Value cells.** 331 are named, from impure symbol blocks and FASL alignment. The other 180 cells in value-cell space belong to system variables whose symbol blocks are pure; they print as `#vcNNNNN`. Compiled code uses 33 of them.
+
+Compared with the 596 definitions that the 1979 tags table assigns to `KEN1;` Lisp files, the image has:
 
 | KEN1 definitions | Count |
 |---|---|
@@ -220,7 +260,44 @@ It names the property indicators from ARGS and value kinds (SUBR 075071, LSUBR 0
 | COMP, INCOMP, TRACE, INTER, CMOVIE | | autoload stubs only |
 | MEMORY, COLIDE, FWMAKE, RDTAGS | | absent |
 
-This is compiled code for most of the lost runtime, as of January 1980, eleven months after the Ani run. `reports/pdump/701431_ts.d2500.txt` has the symbol table and coverage. `701431_ts.d2500.code.txt` has 62,000 lines of listings.
+This is compiled code for most of the lost runtime, as of January 1980, eleven months after the Ani run. The 1980 tags table (701431) lists the same files under `DIRECT;` with more definitions, so the per-file reports also include definitions added by 1980.
+
+The image also holds 44 interpreted definitions (EXPR properties), now printed in full in the report. Some are pattern predicates and command abbreviations. One is `DIRECTOR`, the function that loads the system: it reads the tags, then loads `direct;readir`, `direct;util`, `ai:direct;drect` and `ai:direct;abbrev`.
+
+**Outputs:**
+
+- `reports/pdump/701431_ts.d2500.txt`: naming summary, kernel and atom tables, the reason behind each source or usage name, the cross-validation, unnamed atoms with their candidates, KEN1 coverage, the interpreted definitions, and the symbol table.
+- `701431_ts.d2500.code.txt`: 60,800 instructions, with calls, atoms, specials, kernel routines and constants named.
+- `reports/pdump/ken1/<FILE>.txt`: one file per KEN1 source file, in tags order with the 1980 additions after it. For each definition: what the image holds, the listing, and where possible a reconstruction. `ken1/INDEX.md` has the per-file counts.
+
+**Decompilation (`lispdecomp.py`).** Symbolic execution of the compiled code:
+
+- consers build lists, CARCDR entries and HLRZ/HRRZ become CAR/CDR, and link calls become calls;
+- jumps and skips become COND; type tests via ST become ATOM, TYPEP, FIXP and the like; fixnum and flonum stack code becomes arithmetic;
+- expanders generated by DEFMACRO (MACROFETCH, a LENGTH check, MACROMEMO) become `(DEFMACRO name (args) `template)`.
+
+Results:
+
+- 710 of the image's 937 compiled entries decompile. In the KEN1 files that is 274 blocks: 118 at high confidence (straight-line, fully understood) and 156 at medium (branches, or argument counts inferred for snapped calls).
+- Argument names can't be recovered (the tags lines stop at the name), so they print as ARG1, ARG2 ... REST.
+- Failures are reported per definition with the instruction that stopped it. Most are loops (90; DO/MAPC-style code). Others are addresses of stack slots (26), paths too long to explore (16) and jumps outside the function (13).
+
+The first targets decompile cleanly at high confidence:
+
+- `SETQ-IF-UNBOUND` → `(DEFMACRO SETQ-IF-UNBOUND (ARG1 ARG2) `(OR (BOUNDP ',ARG1) (SETQ ,ARG1 ,ARG2)))`
+- `DEFINE-FUNCTION` → `(PROGN-COMPILE (REMPROP ',ARG1 (READ-MACRO-QUOTE AUTOLOAD)) (DEFUN ,ARG1 . ,REST))`. This matches the `(REMPROP 'fn 'AUTOLOAD)` forms at the head of every Ani FASL.
+- `DEFINE-FORM` → `(DEFINE-FUNCTION ,(CAR ARG1) ,(MAKE-ARG-LIST-COMPATIBLE-WITH-EXTENDED-LAMBDA (CDR ARG1)) . ,REST)`
+- `DEFINE-METHOD`, `DEFINE-MACRO-METHOD` and `DEFINE-PRIMITIVE-METHOD` → calls to `GENERAL-DEFINE-RECEIVER` with `'(DO WHEN RECEIVING)` or `'(MACRO EXPAND WHEN RECEIVING)`.
+- `DEFINE` and `DEFINE-OR-ADD-TO` → `(DEFINE-1 ARG1 ARG2 REST 'T/NIL)`.
+- `DEFINE-MACRO` → `(DEFMACRO (name DEFMACRO-DISPLACE-CALL T) args . body)` after `(REMPROP 'name 'AUTOLOAD)`, medium confidence.
+- The ASK family:
+  - `ASK` and `TELL` → `(ASK-MACRO (CDR FORM) ARG1 REST)`, medium confidence;
+  - `ASK-IF-CAN` and `ASK-IF-UNDERSTOOD` → LET bindings of `*MESSAGE-NOT-UNDERSTOOD` (and, for ASK-IF-CAN, `*ACTOR-NOT-DEFINED`);
+  - `ASK-EACH`, `ASK-ALL` and `ASK-IF-EXISTS` → their full templates;
+  - `A` → `(UNCOMPILED-ASK . args)`.
+- Small macros now read naturally, for example `ONE-LONG` → `(AND (LISTP x) (NULL (REST x)))` and `ROUND` → `(FIX (+$ 0.5 x))`.
+
+Every reconstruction is labeled as such and printed above its listing, so it can be checked.
 
 **`7006808/ts.unifor`** is a different Lisp system: a unifier with paths, costs, delayed unifiers and a Baker GC daemon. It is almost certainly Ken's Uniform language. It is not in the November 1980 ONTAPE listing, so it is later than that.
 
@@ -247,7 +324,12 @@ This is compiled code for most of the lost runtime, as of January 1980, eleven m
 - **Version word.** Is it really the MacLisp version without its first digit?
 - **Bit 35 in text.** Why do four words in Ani's sources have bit 35 set? The text is unaffected.
 - **Author indices.** 322, 265, 353 and 126 can't be named without an MFD from those years.
-- **Unnamed indicators in TS D2500.** 075074, 076774 and 075166 are unidentified. 075166's values are fixnums (perhaps EXPR-HASH).
-- **Pure-Lisp routines.** Most routines in TS D2500's listings remain octal addresses. More could be named by aligning more FASL code with the image.
+- **TS D2500 naming gaps.**
+  - 75 link cells and 229 pure atoms remain unnamed. Only 9 of those atoms are referenced by code, once each; most unnamed atoms sit in runs that have no plist and no known addresses, where the 1981 order allows several placements.
+  - The 180 value cells of system variables (`#vcNNNNN`) are unnamed. `maclisp_atoms.py --vcells` gives the 1981 value-cell order, but the two known cells (*NOPOINT at 71104, PRIN1 at 71122) sit 11 and 10 places later than that order predicts, so the 1980 order differs. The cells' current values could anchor an alignment: the first holds MY-AUTOLOAD-HANDLER and the fourth GC-DAEMON, as the 1981 order's AUTOLOAD and GC-DAEMON cells would.
+  - A few kernel SUBRs reached by snapped links have no name, e.g. 13567 (probably NTHCDR) and 15671 (MEMQ or the DEFUN& keyword test).
+  - Indicators 076774 and 075166 are unidentified; 075166's values are fixnums, perhaps EXPR-HASH.
+  - The code-usage names are judgments from reading code; each states its reason in the report. FIX (75272) and IFIX (75316) rest on the weakest argument.
+- **Decompiler limits.** Loops (90 entries), lsubr entries and stack-address code are not decompiled. A PROG/GO rendering would cover the loops. Macros whose argument is a destructured list (such as DEFINE-MACRO's `(name . args)`) print as `(DEFUN name MACRO (FORM) ...)` instead of DEFMACRO.
 - **TS D2500 versus the 1979 run.** How far does the January 1980 runtime (from `DIRECT;` files) differ from the February 1979 one that Ani ran on?
 - **Not decoded:** `LET QFASL` (Lisp Machine), the XGP print files, and the DIAGRM control-code streams.
