@@ -8,6 +8,7 @@ Reference material for the revival. The large or regenerable parts (`pdf/`, `pag
 | Director Guide, AIM-482B (December 1979) | `pdf/AIM-482b.pdf`, OCR text in `text/AIM-482b.txt` | Later revision, 104 pages; for seeing what changed. |
 | Thesis, AI-TR-540 (August 1979) | `C:\Users\toont\Documents\MIT-AI-Lab\AITR-540 (1).pdf`, OCR text in `text/AITR-540.txt` | 323 pages. PDF page *n* is thesis page *n*. The OCR here, done with Windows' built-in engine, is much cleaner than the text layer in the PDF. |
 | The film, "Cinderella 1978" | `G:\My Drive\Old films, videos, and animations\Cinderella 1978.mp4` | 2:36, 1080×1080, 30 fps. One frame per second in `film/frames/` (`tNNN.jpg` is second NNN−1). `film/contact-sheet.jpg` shows all of them. |
+| The thesis's flipbook | `flipbook/` (see its README) | All 574 frames printed in AI-TR-540's page corners, registered: one complete run of the film, not the same run as the surviving film. `contact-sheet.png`, `flipbook.gif` and `frames.json` are in git; `frames/` and `flipbook.mp4` are rebuilt by `python -I tools/flipbook.py`. |
 
 OCR text files mark each page with a line `===== pNNN`.
 
