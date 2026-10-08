@@ -30,9 +30,9 @@
   - `:self` is the name the message was sent to, as in 1978, not the actor itself;
   - variable demons come from `ODIREC`, verbatim;
   - database demons (virtual items, and actions on memorizing) are rebuilt from the 1978 guide;
-  - "recall an item matching" quotes the request it remembers, as `SOME 666` already does for "recall each item matching".
-- **Phase 3, mostly done (8 October).** Pass 1 reproduces `CP 29`: run on `CINDY`, it makes the same 102 choices, with the same names (`node tools/run-pass1.mjs`; about 70 seconds).
-  - Open: the saved list's order differs from `CP 29` in 26 of 102 places. Ani goes through the prince's elements, and some of the fairy godmother's, in a different order. No choice changes.
+  - "recall an item matching" quotes the request it remembers, as `SOME 666` already does for "recall each item matching";
+  - `INTERSECT` keeps its second set's order, which decides the order Ani makes her choices in (the 1980 one keeps the first's).
+- **Phase 3, mostly done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs`; about 75 seconds).
   - Open: the glass-box list of choice points. The data is ready: `--save-all` writes every choice point with its suggestions, conflicts and postponements, as `RUN24 2` does, to `reports/pass1-reasons.txt`.
 - **Next, Phase 4:** pass 2, with `RUN`.
 

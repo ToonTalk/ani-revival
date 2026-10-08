@@ -7,13 +7,16 @@
 ;;; written on 14 September 1978. Around 21 November 1978 Ken rewrote Director (the
 ;;; second Guide, AIM-482B, says "much of Director has been rewritten" and demons
 ;;; "have been eliminated"), and the Director files that survived (DRECT, SOME 666,
-;;; OBJECT 401) are that rewrite as of 8 January 1979. Three things Ani relies on
+;;; OBJECT 401) are that rewrite as of 8 January 1979. Four things Ani relies on
 ;;; changed, and this file puts them back:
 ;;;
-;;;  1. :self is the receiver's name, as in 1978.
+;;;  1. :self is the name a message was sent to, as in 1978.
 ;;;  2. Variable demons: Ken's own bridge, ODIREC 2 (22 November 1978), verbatim.
 ;;;  3. Database demons: virtual items and actions on memorizing, rebuilt from the
 ;;;     1978 Guide, since no bridge for them survives.
+;;;  4. INTERSECT's order, which decides the order Ani makes her choices in.
+;;;
+;;; With them, pass 1 writes CP 29 exactly: the same 102 choices, in the same order.
 ;;;
 ;;; Load it after (director '(ani direct)) and before any of Ani's files.
 
@@ -251,3 +254,24 @@
 	  (cond ((funcall method-predicate (first i))
 		 (let ((:message (first i)))
 		      (push (run-method database-method-name) results)))))))
+
+;;; -------------------------------------------------------------- 4. INTERSECT
+
+;; (intersect a b): the members of a that b also has, in b's order. The 1980
+;; INTERSECT (TS D2500) keeps a's order, but CP 29 shows 1978's. The postponer
+;; (POSTPO) takes (first (intersect choices unmade-but-needed-choice-points)), the
+;; choice most recently found to be needed. With b's order, Ani works through the
+;; prince's and the fairy godmother's dynamics from speed to path jaggedness, as
+;; CP 29's relative choice points (named after whoever first needed them, and
+;; listed newest first) record; with a's order, the other way round. The members
+;; are a's own, since CHOCHO removes the chosen one from the choices with DELQ.
+(defun intersect n
+  (repeatedly-apply-binary-function 'intersect-two (listify n)))
+
+(defun intersect-two (a b)
+  (do ((l b (cdr l))
+       (result nil))
+      ((null l) (nreverse result))
+      (let ((in-a (member (car l) a)))
+	   (and in-a (not (memq (car in-a) result))
+		(setq result (cons (car in-a) result))))))

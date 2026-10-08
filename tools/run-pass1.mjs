@@ -70,6 +70,10 @@ if (ok) {
       const theirs = choicesOfItsFile(path);
       const c = compareChoices(theirs, ours);
       console.log(`\nagainst ${label}: ${c.same} of ${theirs.size} choices the same; ${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra (we made ${ours.size})`);
+      const a = [...theirs.keys()];
+      const b = [...ours.keys()];
+      const inPlace = a.filter((k, i) => b[i] === k).length;
+      console.log(`  in the same place in the file: ${inPlace} of ${a.length}`);
       if (process.argv.includes("--diff")) {
         for (const [k, a, b] of c.differ) console.log(`  ${k}: ${a} then, ${b} now`);
         for (const [k, a] of c.onlyA) console.log(`  missing ${k} = ${a}`);
