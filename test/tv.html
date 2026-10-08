@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TV turtle in the browser</title>
+<style>
+  :root { --bg: #fff; --fg: #1a1a1a; --ok: #146c2e; --bad: #b3261e; --frame: #888; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161616; --fg: #e8e8e8; --ok: #6ccf8a; --bad: #ff8a80; --frame: #555; } }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.5 ui-monospace, Consolas, monospace; margin: 16px; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+  canvas { border: 1px solid var(--frame); image-rendering: pixelated; max-width: 100%; display: block; margin: 8px 0 16px; }
+</style>
+</head>
+<body>
+<h1>LLOGO's TV turtle in the browser</h1>
+<p>The built-in TVRTLE and COLORT (<code>src/tv/</code>) drawing through the Canvas renderer, with no Node APIs.</p>
+<h2>Knight TV (black and white)</h2>
+<canvas id="bw"></canvas>
+<h2>Color frame buffer</h2>
+<canvas id="color"></canvas>
+<pre id="out">running…</pre>
+<script type="module">
+  import { createLisp } from "../src/maclisp/index.js";
+  import { ItsFileSystem } from "../src/its/fs.js";
+  import { installStubs } from "../src/its/stubs.js";
+  import { attachCanvas, pictureArea } from "../src/tv/canvas.js";
+
+  function turtleLisp(file) {
+    const fs = new ItsFileSystem();
+    installStubs(fs);
+    const L = createLisp({ fs });
+    L.evalString(`(load '|ai:llogo;${file} newio|)`);
+    return L;
+  }
+  const lines = [];
+  let failures = 0;
+  const check = (what, ok) => {
+    if (!ok) failures++;
+    lines.push(`<span class="${ok ? "ok" : "bad"}">${ok ? "ok  " : "FAIL"}</span> ${what}`);
+  };
+  try {
+    // black and white: squares turning, a circle, and a window copied with XOR
+    const bw = turtleLisp("tvrtle");
+    attachCanvas(bw.tvDisplay, document.getElementById("bw"), { scale: 2, crop: () => pictureArea(bw.tv, 4) });
+    bw.evalString(`(startdisplay) (hideturtle)
+      (do ((i 0 (1+ i))) ((= i 12)) (do ((j 0 (1+ j))) ((= j 4)) (forward 150) (right 90)) (right 30))
+      (penup) (setxy -300 300) (pendown) (circle 120)
+      (setq :windowoutline nil) (makewindow 'ring -300 300 130)
+      (xorwindow 'ring 300 300) (xorwindow 'ring 300 -300)`);
+    check("TVRTLE loads and draws", bw.tvDisplay.count() > 500);
+    // color: the palette, with a star in each color
+    const co = turtleLisp("colort");
+    attachCanvas(co.tvDisplay, document.getElementById("color"), { scale: 1, crop: () => pictureArea(co.tv, 2) });
+    co.evalString(`(startdisplay) (hideturtle) (tvsize 550 413)
+      (do ((colors '(red orange yellow green cyan blue purple magenta pink gold) (cdr colors))
+           (x -610 (+ x 130)))
+          ((null colors))
+          (penup) (setxy x -40) (setheading 18) (pendown) (pencolor (car colors))
+          (do ((i 0 (1+ i))) ((= i 5)) (forward 110) (right 144)))`);
+    check("COLORT loads and draws in ten colors", new Set(co.tvDisplay.pixels).size === 11);
+  } catch (e) {
+    failures++;
+    lines.push(`<span class="bad">error</span> ${e.message}`);
+  }
+  lines.push("", failures ? `<span class="bad">${failures} failed</span>` : `<span class="ok">all passed</span>`);
+  document.getElementById("out").innerHTML = lines.join("\n");
+  document.title = failures ? "FAIL" : "PASS";
+</script>
+</body>
+</html>

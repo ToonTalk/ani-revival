@@ -157,6 +157,10 @@ export class ItsFileSystem {
     }
     if (name.fn2 === "FASL" && !this.stubs.has(`${name.dir};${name.fn1}`)) return null; // no runnable FASLs here
     const entry = this.find(name);
+    if (!entry && this.stubs.has(`${name.dir};${name.fn1}`)) {
+      // a file replaced by built-ins exists under whatever second name is asked for
+      return { dev: "DSK", dir: name.dir, fn1: name.fn1, fn2: name.fn2 };
+    }
     return entry ? { dev: "DSK", dir: entry.dir, fn1: entry.fn1, fn2: entry.fn2 } : null;
   }
 

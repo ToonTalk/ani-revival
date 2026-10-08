@@ -314,9 +314,12 @@
 ;; evaluated when the generated code runs. evidence: exp (SOME's (make) macro
 ;; method generates (ask :self make an instance named nil copying ,(comma (ask
 ;; :self recall your variables-to-copy-upon-creation))), and its compiled normal
-;; version, SOMETHING-MAKE-26, evaluates that inner ask at run time).
+;; version, SOMETHING-MAKE-26, evaluates that inner ask at run time). The form
+;; is built as a quote is, so commas inside it are evaluated now, as in ODIREC's
+;; ,(comma (comma :new-value)). evidence: 1980 (decompiled with high confidence:
+;; `(LIST 'DIRECTOR-SYMBOL-FOR-EVAL ,(QUOTE-ALLOWING-EVAL-AND-UNPACK form))).
 (define-macro comma (form)
-  '(list 'director-symbol-for-eval (quote ,form)))
+  '(list 'director-symbol-for-eval ,(quote-allowing-eval-and-unpack form)))
 
 ;; (quote-if-need-be x): x itself if it is an atom, otherwise x built as a quote
 ;; is, so (quote-if-need-be ,amount) is just amount. evidence: 1980 compiled code

@@ -1,6 +1,8 @@
 // Files the 1979 programs load that we replace with built-in behavior, and the
 // lost KEN1; files that have no reconstruction yet.
 
+import { installTvTurtle } from "../tv/tvrtle.js";
+
 export function installStubs(fs) {
   const feature = (name) => (L) => L.features.add(name);
 
@@ -14,6 +16,11 @@ export function installStubs(fs) {
 
   // KEN1;REAMAC: Director's read macros are built into the reader.
   fs.addStub("KEN1", "REAMAC", { note: "Director read macros are built into the reader", onLoad: feature("HENRYS-READ-MACROS") });
+
+  // LLOGO's TV turtle, black and white (TVRTLE) and color (COLORT), under any
+  // second name (KEN1;DRECT loads |ai:llogo;tvrtle newio|): built in, src/tv/.
+  fs.addStub("LLOGO", "TVRTLE", { note: "LLOGO's TV turtle; built in (src/tv)", onLoad: (L) => installTvTurtle(L, { color: false }) });
+  fs.addStub("LLOGO", "COLORT", { note: "LLOGO's color TV turtle; built in (src/tv)", onLoad: (L) => installTvTurtle(L, { color: true }) });
 }
 
 // The lost KEN1; files, as the 1979 tags table lists them. Until a file is
