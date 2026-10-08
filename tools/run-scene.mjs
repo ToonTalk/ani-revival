@@ -2,10 +2,15 @@
 // program (written by tools/run-pass2.mjs into reports/pass2/), film it, and save
 // where each character ended up (KEN1;INTRO POSIT and so on, which pass 2 loads to
 // plan the next scene). The position file is copied to reports/pass2/.
-// Usage: node tools/run-scene.mjs [scene] [--frames n] [--fps n] [--no-backtrace]
+// Usage: node tools/run-scene.mjs [scene] [--frames n] [--fps n] [--png] [--no-backtrace]
+//   --png  photograph each frame as the 1978 film was shot: after each new frame
+//          the movie evaluates its after-new-frame-made, which here calls CLICK, the
+//          camera (lost; ours saves the TV picture), into reports/film/<scene>/NNN.png.
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { encodePNG } from "../src/tv/png.js";
+import { pictureArea } from "../src/tv/canvas.js";
 
 const args = process.argv.slice(2);
 const scene = args.find((a, i) => !a.startsWith("--") && !/^--/.test(args[i - 1] || "")) || "introduction";
@@ -25,6 +30,20 @@ L.breakHandler = (tag) => {
   e.lispBacktrace = (L.formStack || []).slice(-4000).reverse();
   throw e;
 };
+// The camera. ANINIT's after-new-frame-made calls (click) once the frame is on the
+// screen; the frames are numbered from 0 as the movie numbers them.
+const png = args.includes("--png");
+const filmDir = `reports/film/${scene}`;
+if (png) {
+  rmSync(filmDir, { recursive: true, force: true });
+  mkdirSync(filmDir, { recursive: true });
+  let shot = 0;
+  L.defsubr("CLICK", () => {
+    const img = L.tvDisplay.toRGBA({ crop: pictureArea(L.tv, 0) });
+    writeFileSync(`${filmDir}/${String(shot++).padStart(3, "0")}.png`, encodePNG(img));
+    return L.T;
+  });
+}
 const isSend = (f) => /^\((ASK|ASK1|ASK-EACH|DO-AS-IF-YOU-WERE|DEFINE) /.test(L.print(f));
 function step(what, src) {
   const t0 = Date.now();
@@ -53,6 +72,10 @@ const ok =
   step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
   step("(cs): start the TV display", "(cs)") &&
   step("load ANINIT (Director extended to run Ani's scenes)", "(load '|ken;aninit >|)") &&
+  // ANINIT filmed at 550 by 413 dots ((tvsize 550 413) before each click), and the
+  // thesis's flipbook has those proportions; the size changes how far characters go.
+  step("(tvsize 550 413): the picture the film was made at", "(tvsize 550 413)") &&
+  (!png || step("the camera: a click after each new frame", "(ask ani-movie set your after-new-frame-made to (click))")) &&
   step(`(start '${scene} ${fps})`, `(start '${scene} ${fps})`) &&
   step(`(m ${frames}): film the scene`, `(m ${frames})`) &&
   step("save the positions", `(save-positions '${scene} '((ken1) ,(get '${scene} 'movie-name) posit))`);
@@ -60,6 +83,20 @@ const ok =
 const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 3000 characters):\n" + out.slice(-3000));
 if (ok) {
+  // When each subscene began and ended, in frames (the movie notes each one), and how
+  // Ani's estimate compared: to set beside the flipbook's page ranges.
+  const timings = L.evalString(`(let ((movie (ask movie recall your current-movie)))
+     (mapcar (function (lambda (s) (list s (ask ,movie recall your (beginning-of ,s))
+                                           (ask ,movie recall your (end-of ,s))
+                                           (ask ,s recall your running-time))))
+             (ask ${scene} recall your subscenes)))`);
+  console.log(`\nframes filmed: ${L.print(L.evalString(`(ask ,(ask movie recall your current-movie) recall your frame-count)`))}`);
+  console.log("subscene                                  begins  ends  frames  estimate (s)");
+  for (const [s, b, e, est] of L.toArray(timings).map((x) => L.toArray(x))) {
+    const n = (x) => (typeof x === "number" ? String(x) : "-");
+    const len = typeof b === "number" && typeof e === "number" ? String(e - b) : "-";
+    console.log(`${L.print(s).toLowerCase().padEnd(42)}${n(b).padStart(6)}${n(e).padStart(6)}${len.padStart(8)}  ${typeof est === "number" ? est.toFixed(2) : "-"}`);
+  }
   const name = L.print(L.evalString(`(get '${scene} 'movie-name)`)).toLowerCase();
   const e = fs.find({ dir: "KEN1", fn1: name.toUpperCase(), fn2: "POSIT" });
   if (e) {

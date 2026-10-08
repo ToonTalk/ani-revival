@@ -39,25 +39,33 @@
 - **Phase 4, done in outline (8 October).** All five scenes are planned by Ani and filmed by Director, each scene planned from where the last one left the characters:
   - `node tools/run-pass2.mjs <scene>` plans a scene with `RUN` and saves its program, summary and printout (`KEN;KEPT APART`, `KEN1;KEPT MINI`, `KEN1;KEPT PRINT`), copied to `reports/pass2/`.
   - `node tools/run-scene.mjs <scene>` films the program with `ANINIT` and saves where the characters ended up (`KEN1;INTRO POSIT`, `KEN1;KA POSIT`).
-  - **The introduction:** five subscenes, estimated at 42.2 seconds (the thesis: 43.3 estimated, 42 real); 203 frames.
-  - **Kept apart:** the three subscenes of thesis pp. 66–67. Subscene 1 has the values Appendix VI prints: the cut and its reason, the locations, the plan, 1.53 seconds. Subscene 2 stands guard six times, "originally planned ... only four", stretched by 1.97; subscene 3 is the emotional changes, a parasite on subscene 2. 188 frames.
-  - **No longer kept apart:** one subscene, the method the thesis names (p. 68): the fairy godmother goes to Cinderella and takes her to the Prince while the stepmother does nothing; 3.98 seconds, 18 frames.
-  - **The meeting:** the seven subscenes of pp. 69–70, in order: the others exit; Cinderella and the Prince turn in turn; she accompanies him; she moves to him after a cut; the same two with the roles swapped, again with a cut; the joy changes, a parasite on the sixth. 216 frames.
-  - **Justice:** one subscene, as on p. 71: the stepmother moves near the lovers and turns to each, they come into contact and part four times, and she slows down. 107 frames.
+  - Frame counts are at 4 frames a second on a 550 by 413 picture, as `ANINIT` filmed (Phase 5).
+  - **The introduction:** five subscenes, estimated at 42.2 seconds (the thesis: 43.3 estimated, 42 real); 192 frames.
+  - **Kept apart:** the three subscenes of thesis pp. 66–67. Subscene 1 has the values Appendix VI prints: the cut and its reason, the locations, the plan, 1.53 seconds. Subscene 2 stands guard six times, "originally planned ... only four", stretched by 1.97; subscene 3 is the emotional changes, a parasite on subscene 2. 116 frames: as in the flipbook, the film stops when subscene 3 ends, with the guarding still going.
+  - **No longer kept apart:** one subscene, the method the thesis names (p. 68): the fairy godmother goes to Cinderella and takes her to the Prince while the stepmother does nothing; 3.98 seconds, 17 frames.
+  - **The meeting:** the seven subscenes of pp. 69–70, in order: the others exit; Cinderella and the Prince turn in turn; she accompanies him; she moves to him after a cut; the same two with the roles swapped, again with a cut; the joy changes, a parasite on the sixth. 179 frames.
+  - **Justice:** one subscene, as on p. 71: the stepmother moves near the lovers and turns to each, they come into contact and part four times, and she slows down. 84 frames.
   - Appendix III: pass 2 "begins with 418 actors and creates 154 new ones (not including temporary ones)". With Ani's eighteen files, `CINDY` and `CP` loaded we begin with 343, and planning the five scenes in one job, as `RUN` allows, leaves 147 more at the end.
   - What the bridge needed for this, each with its evidence in `bridge.lisp`:
     - "make copy" makes an independent twin that differs only in name, as the 1978 guide says. This needed `COPY` as `TS D2500` has it: it copies an actor's methods and so its variables. Subscenes save a copy before planning and are restored from it when they must stretch.
     - "forget your" takes patterns such as `(actions-of ?)` (1978 guide).
     - Saves list variables oldest first, without the `(SET YOUR NIL TO NIL)` that `SOME 666` adds, as Appendix VI does.
-    - The universe's list of actors with something planned stays true while they tick (1978 guide), so the film stops when all is done.
     - Two places where compiled 1978 code read `NIL` as 0, checking no types: `INTERF`'s quadrants and `ACTION`'s elapsed time.
   - Open:
-    - Appendix VI gives Cinderella high speed in subscene 1; ours is low (times 2.0). The 1.53 s estimates agree, which points to low at estimate time, so in 1978 it became high later. The only code that sets it high is the guarding's `prisoner-special-dynamics`, for subscene 2. So in 1978 her subscene 2 dynamics may have been her subscene 1 dynamics.
-    - Subscene 2 runs 45.5 s against our estimate of 28.2; the thesis has 30 and 32.
+    - Appendix VI gives Cinderella high speed in subscene 1; ours is low (times 2.0). The 1.53 s estimates agree, which points to low at estimate time, so in 1978 it became high later. The only code that sets it high is the guarding's `prisoner-special-dynamics`, for subscene 2. So in 1978 her subscene 2 dynamics may have been her subscene 1 dynamics. The flipbook's subscene 1 moves as ours does, though.
     - Appendix VI numbers her dynamics `-26`; ours are `-7`. The counter runs across a whole Ani job, and `RUN` cleans up "from before" so that scenes can follow each other in one job. Planned after our introduction in one job, they are `-28`: 1978's introduction used two numbers fewer.
     - Within subscene 1 the locations come in another order than Appendix VI's.
     - The introduction has a fifth, empty subscene; the thesis describes four.
-  - Next, Phase 5: draw the frames, compare them with the YouTube film and the thesis's flipbook, and look into the open items above.
+- **Phase 5, under way.** The film is drawn and set beside the thesis's flipbook (`reports/film/`, with its README):
+  - `node tools/run-scene.mjs <scene> --png` photographs each frame as `ANINIT` did, on a 550 by 413 picture: after each new frame the movie evaluates its `after-new-frame-made`, which calls `(click)`, the camera. `MOVIE 153` has no such variable, so the bridge has its frame handler evaluate it again; our `CLICK` saves the TV picture.
+  - `python -I tools/make-film.py` joins the frames into `reports/film/cinderella.mp4`: 588 frames, 2 minutes 27 seconds at 4 frames a second. The flipbook has 574.
+  - `python -I tools/compare-flipbook.py` lays our frames over the flipbook's, scene by scene.
+  - **Kept apart** matches closely from start to finish, and its subscenes begin on the same frames (4 and 61).
+  - **The introduction's** first 61 frames match exactly, and the stepmother's pushing then drifts by about a shape's width. At the end our couple leaves to the upper right, as in the YouTube film, where the flipbook's goes to the upper left.
+  - **The meeting** matches closely, and its fourth to sixth subscenes begin on the same frames (127, 145, 163). After each of its two cuts ours shows the new places one frame later.
+  - **No longer kept apart** and **justice** have the same action, shifted a little.
+  - The flipbook's timing settled two things. The picture is 550 by 413: at the TV's full size the introduction ran 15 frames longer. And the universe empties its list of actors while they tick, so a check made during a tick can stop the film early. That is what happened in 1978: Kept Apart ends 113 frames in, just after its third subscene, with the stepmother still standing guard. Keeping the list complete during the tick, as the 1978 guide describes it, ran Kept Apart to 188 frames.
+  - Next: color, as the film was shot (`ANINIT`'s `running-color` with `POLY`'s 1978 `MANY-POLYS`, kept in a comment), compared with the YouTube film; then the drift.
 
 ## In brief
 

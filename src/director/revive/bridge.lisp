@@ -107,28 +107,27 @@
 (ask something set your universe to default-universe)
 
 ;; The universe's tick: do what is planned for the universe itself, then tick each
-;; actor that has something planned. The 1978 Guide: actors-to-run-next "is kept by a
-;; universe and should be a list of all actors in that universe with anything
-;; planned" (AIM-482 p. 46), and ACTION counts on it, stopping the film when no
-;; subscene is running and the list is empty ("stop film if nothing running"). SOME
-;; 666 empties the list and ticks the actors that were on it inside an UNWIND-PROTECT
-;; whose cleanup puts the old list back, every time; so an actor that first plans
-;; something during a tick (each activity a subscene starts) is dropped, and the list
-;; never empties. SOME 1005 (August 1979, tape 9004336) drops the cleanup, but the
-;; list is still empty while the actors tick, and a subscene checking it then stops
-;; the film with actors yet to tick: Kept Apart stopped at 29 seconds with its second
-;; subscene unfinished (it "really took 32 seconds", thesis p. 67). So each actor
-;; leaves the list as its tick comes, and is back on it if it plans more.
+;; actor that has something planned. SOME 666 does this inside an UNWIND-PROTECT
+;; whose cleanup sets actors-to-run-next back to the list it started with, every
+;; time; so an actor that first plans something during a tick (each activity a
+;; subscene starts) is dropped, and the list never empties, though ACTION stops the
+;; film when it does ("stop film if nothing running"). By August 1979 (SOME 1005,
+;; tape 9004336) the clock's tick is just this, without the cleanup.
+;;
+;; The list is empty while the actors tick, so a subscene that checks it then can
+;; stop the film with actors still to tick. That is what the 1978 film did: in the
+;; thesis's flipbook Kept Apart ends 113 frames in (lower left, pages 84-310), just
+;; after its third subscene, with the stepmother still standing guard; and its
+;; second and third subscenes start at frames 4 and 61, as ours do. (Keeping the
+;; list true during the tick, as the 1978 Guide describes it, "a list of all actors
+;; in that universe with anything planned", runs Kept Apart to 188 frames.)
 (let ((:replace-old-methods t))
      (define-extension-method (tick) universe
       (help-comments: |besides doing a normal tick I ask each of my actors-to-run-next to tick|)
       (ask-old :self tick) ;;do anything planned too
-      (mapc (function
-	     (lambda (actor)
-		     (ask :self set your actors-to-run-next to
-			  ,(delete actor (ask :self recall your actors-to-run-next)))
-		     (ask ,actor tick)))
-	    (append (ask :self recall your actors-to-run-next) nil))))
+      (let ((actors-to-run (ask :self recall your actors-to-run-next)))
+	   (ask :self set your actors-to-run-next to nil)
+	   (ask-each ,actors-to-run tick))))
 
 ;; ACTION (October 1978) calls OBJECT's do-set-turtle-gradually with the performer
 ;; as well as the planner: (planner performer x y heading followup message). OBJECT
@@ -228,6 +227,23 @@
 			  (t 'lower))
 		    (cond ((and (numberp (second xy-position)) (> (second xy-position) 0.0)) 'right)
 			  (t 'left)))))))
+
+;; ANINIT (October 1978) films in color by giving the movie a form to evaluate after
+;; each new frame is made: show the frame at 550 by 413 dots and click the camera
+;; ("is saved on film instead"). MOVIE 153 (January 1979) has no such variable: each
+;; new frame goes to a frame handler, which redisplays the screen and stores the
+;; frame. So once MOVIE is loaded, the frame handler also evaluates the movie's
+;; after-new-frame-made, with :self the movie, as the 1978 movie did. (MOVIE is still
+;; loading then, with :insert-methods-at-end bound to T, which would put the new
+;; method behind the old one.)
+(defun run-after-new-frame-made-too ()
+  (let ((:insert-methods-at-end nil))
+       (define-extension-method (just made frame number ?frame-number for ?movie) frame-handler
+	(ask-old :self just made frame number ,frame-number for ,movie)
+	(let ((form (ask ,movie recall your after-new-frame-made)))
+	     (and form (let ((:self movie)) (eval form)))))))
+
+(+after-load '|ken;movie >| '(run-after-new-frame-made-too))
 
 ;; ACTION's subtract-elapsed-from-estimated-time, for a subscene that has not begun,
 ;; subtracts NIL from a frame count. That happens to each parasite: when any subscene
