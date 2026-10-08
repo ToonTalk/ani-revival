@@ -33,6 +33,7 @@
 (defun devariablize-pattern (pattern)
   (cond ((pattern-variable? pattern) (implode (list (getchar pattern 1))))
 	((atom pattern) pattern)
+	((eq (car pattern) 'director-symbol-for-quoted-pattern) pattern)
 	((memq (car pattern) '(director-symbol-for-and-pattern director-symbol-for-or-pattern))
 	 (cons (car pattern) (mapcar 'devariablize-pattern (cdr pattern))))
 	((eq (car pattern) 'director-symbol-for-braces) pattern)
@@ -55,6 +56,7 @@
 	 (let ((v (variable-name p)))
 	      (and v (not (memq v variables)) (push v variables))))
 	((atom p) nil)
+	((eq (car p) 'director-symbol-for-quoted-pattern) nil)
 	(t (find-variables-1 (car p)) (find-variables-1 (cdr p)))))
 
 ;; (binding-part-of-pattern pattern function [ignored]): the method's definition, a
@@ -88,8 +90,13 @@
   (let ((result (match-1 pattern x (list t))))
        result))
 
+;; (director-symbol-for-quoted-pattern x) matches x itself, literally: no ? or {...}
+;; inside it is special. evidence: SOME installs methods with such patterns for
+;; messages that themselves contain patterns ("recall each item matching ...").
 (defun match-1 (p x bindings)
   (cond ((null bindings) nil)
+	((and (not (atom p)) (eq (car p) 'director-symbol-for-quoted-pattern))
+	 (cond ((equal (cadr p) x) bindings)))
 	((pattern-variable? p)
 	 (cond ((eq (getchar p 1) '%) (bind-match-variable p x bindings))
 	       (t (bind-match-variable p x bindings))))
