@@ -1,4 +1,4 @@
-"""Join the frames Director filmed into one film: reports/film/cinderella.mp4.
+"""Join the frames Director filmed into one film: reports/film/cinderella.mp4 (or -color.mp4).
 
 tools/run-scene.mjs --png photographs each frame of a scene into reports/film/<scene>/NNN.png,
 as Ken's camera did (ANINIT clicked it after each new frame). This plays the five scenes in
@@ -8,6 +8,7 @@ characters are placed, which the thesis's flipbook also shows at each cut betwee
 
 Usage (run with python -I):
     python -I tools/make-film.py              the black-and-white film (reports/film/<scene>/)
+    python -I tools/make-film.py --color      the color film (reports/film/<scene>-color/, from run-scene.mjs --color)
     python -I tools/make-film.py --fps 8      faster
 """
 
@@ -60,11 +61,13 @@ def captioned(img, text):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--fps", type=float, default=4.0)
-    ap.add_argument("--out", default=os.path.join(FILM, "cinderella.mp4"))
+    ap.add_argument("--color", action="store_true")
+    ap.add_argument("--out", default=None)
     args = ap.parse_args()
+    out = args.out or os.path.join(FILM, "cinderella-color.mp4" if args.color else "cinderella.mp4")
     frames = []
     for scene, title in SCENES:
-        folder = os.path.join(FILM, scene)
+        folder = os.path.join(FILM, scene + ("-color" if args.color else ""))
         names = sorted(n for n in os.listdir(folder) if n.endswith(".png"))
         for n in names:
             frames.append(captioned(read_rgb(os.path.join(folder, n)), f"{title}   frame {int(n[:3])}"))
@@ -72,7 +75,7 @@ def main():
     h, w = frames[0].shape[:2]
     cmd = [fb.FFMPEG, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}",
            "-framerate", str(args.fps), "-i", "-"] + fb._video_codec() + ["-pix_fmt", "yuv420p", "-r", "24",
-                                                                         "-movflags", "+faststart", args.out]
+                                                                         "-movflags", "+faststart", out]
     proc = subprocess.Popen(cmd, stdin=subprocess.PIPE)
     for img in frames:
         proc.stdin.write(np.ascontiguousarray(img).tobytes())
@@ -80,8 +83,8 @@ def main():
     if proc.wait():
         raise RuntimeError("ffmpeg failed")
     secs = len(frames) / args.fps
-    print(f"wrote {os.path.relpath(args.out, ROOT)}: {len(frames)} frames, {secs:.0f} s at {args.fps:g} fps, "
-          f"{os.path.getsize(args.out) // 1024} KB")
+    print(f"wrote {os.path.relpath(out, ROOT)}: {len(frames)} frames, {secs:.0f} s at {args.fps:g} fps, "
+          f"{os.path.getsize(out) // 1024} KB")
 
 
 if __name__ == "__main__":

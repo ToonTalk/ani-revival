@@ -245,6 +245,54 @@
 
 (+after-load '|ken;movie >| '(run-after-new-frame-made-too))
 
+;; SCREEN's "silent running" and "normal running", which ANINIT's color filming sends
+;; around each click. They are the first two methods of KEN;ODIREC 2 (22 November
+;; 1978), before its demon methods, and are copied here unchanged; SCREEN 86 has
+;; neither.
+(defun define-silent-and-normal-running ()
+  (let ((:insert-methods-at-end nil))
+       (define-method (silent running) screen
+	(help-comments: |do everything but dont let you see it until normal running is restored|)
+	(ask :self set your mode to silent))
+       (define-method (normal running) screen
+	(help-comments: |restore normal running and redisplay the screen|)
+	(ask :self set your mode to normal)
+	(ask :self wipe))))
+
+(+after-load '|ken;screen >| '(define-silent-and-normal-running))
+
+;; MANY-POLYS. ANINIT's running-color, which set up the color filming, makes the
+;; characters polys of this kind: "(ask director-character set your parent to
+;; many-polys) ;;sorry about that", then "(ask cinderella set your offset to 20.0)
+;; ;;since a star is denser" and "make your parts". POLY 29 (January 1979) keeps the
+;; definition only in a comment, as the "old way of doing parts-whole": each part is
+;; a copy of the poly OFFSET dots smaller than the last, down to nothing, drawn with
+;; it, so on the color screen the shape looks filled. Defined here, as that comment
+;; has it, once POLY is loaded.
+(defun define-many-polys ()
+  (let ((:insert-methods-at-end nil))
+       (define many-polys poly
+	(set your size to 100)
+	(set your angle to 60)
+	(set your offset to 10.0)
+	(extend behavior when receiving (display) by doing
+	 (let ((state (ask :self recall your state))
+	       (parts (ask :self recall your parts)))
+	      (ask :self display) ;;display myself
+	      (ask-each ,parts do the following: (set your state to ,state) (display))))
+	(do when receiving (make your parts)
+	 (let ((offset (float (ask :self recall your offset)))
+	       (size (ask :self recall your size)))
+	      (do ((size (-$ (float size) offset) (-$ size offset))
+		   (polys nil))
+		  ((< size 0.0) (ask :self set your parts to ,polys))
+		  (let ((poly (ask :self make copy ,(append-atoms :self '- (gen-number :self)))))
+		       (ask ,poly set your parent to poly) ;;should be a normal poly
+		       (push poly polys)
+		       (ask ,poly set your size to ,size))))))))
+
+(+after-load '|ken;poly >| '(define-many-polys))
+
 ;; ACTION's subtract-elapsed-from-estimated-time, for a subscene that has not begun,
 ;; subtracts NIL from a frame count. That happens to each parasite: when any subscene
 ;; ends, every subscene of the scene is told, and each tells its own parasites that

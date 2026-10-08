@@ -19,6 +19,8 @@ Outputs, in reports/film/compare/:
 Usage (run with python -I):
     python -I tools/compare-flipbook.py                 all five scenes
     python -I tools/compare-flipbook.py kept-apart      one of them
+    python -I tools/compare-flipbook.py --suffix -pdp10 introduction
+                                                        frames from reports/film/introduction-pdp10/
 """
 
 import os
@@ -61,9 +63,12 @@ def flipbook_frames(title):
     return out
 
 
+SUFFIX = ""
+
+
 def our_frames(scene):
     """Our frames of a scene, in order: the TV picture, True where something is drawn."""
-    folder = os.path.join(FILM, scene)
+    folder = os.path.join(FILM, scene + SUFFIX)
     names = sorted(n for n in os.listdir(folder) if n.endswith(".png"))
     frames = []
     for n in names:
@@ -159,10 +164,10 @@ def compare(scene, title, report):
         small = img[:th * 2:2, :tw * 2:2]
         y, x = 6 + (i // cols) * (th + 6), 6 + (i % cols) * (tw + 6)
         sheet[y:y + th, x:x + tw] = small
-    write_png_rgb(os.path.join(OUT, f"{scene}.png"), sheet)
+    write_png_rgb(os.path.join(OUT, f"{scene}{SUFFIX}.png"), sheet)
     # video
     h, w = frames[0].shape[:2]
-    mp4 = os.path.join(OUT, f"{scene}.mp4")
+    mp4 = os.path.join(OUT, f"{scene}{SUFFIX}.mp4")
     cmd = [fb.FFMPEG, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{w}x{h}",
            "-framerate", str(FPS), "-i", "-"] + fb._video_codec() + ["-pix_fmt", "yuv420p", "-r", "25",
                                                                     "-movflags", "+faststart", mp4]
@@ -172,16 +177,22 @@ def compare(scene, title, report):
     proc.stdin.close()
     if proc.wait():
         raise RuntimeError("ffmpeg failed")
-    print(f"{scene}: {len(frames)} overlays -> {os.path.relpath(mp4, ROOT)}, {os.path.relpath(os.path.join(OUT, scene + '.png'), ROOT)}")
+    print(f"{scene}{SUFFIX}: {len(frames)} overlays -> {os.path.relpath(mp4, ROOT)}")
 
 
 def main():
-    wanted = sys.argv[1:] or [s for s, _ in SCENES]
+    global SUFFIX
+    argv = sys.argv[1:]
+    if "--suffix" in argv:
+        i = argv.index("--suffix")
+        SUFFIX = argv[i + 1]
+        del argv[i:i + 2]
+    wanted = argv or [s for s, _ in SCENES]
     report = []
     for scene, title in SCENES:
         if scene in wanted:
             compare(scene, title, report)
-    with open(os.path.join(OUT, "timing.txt"), "w", encoding="utf8") as f:
+    with open(os.path.join(OUT, f"timing{SUFFIX}.txt"), "w", encoding="utf8") as f:
         f.write("\n".join(report) + "\n")
     print("\n".join(report))
 

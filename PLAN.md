@@ -65,7 +65,8 @@
   - **The meeting** matches closely, and its fourth to sixth subscenes begin on the same frames (127, 145, 163). After each of its two cuts ours shows the new places one frame later.
   - **No longer kept apart** and **justice** have the same action, shifted a little.
   - The flipbook's timing settled two things. The picture is 550 by 413: at the TV's full size the introduction ran 15 frames longer. And the universe empties its list of actors while they tick, so a check made during a tick can stop the film early. That is what happened in 1978: Kept Apart ends 113 frames in, just after its third subscene, with the stepmother still standing guard. Keeping the list complete during the tick, as the 1978 guide describes it, ran Kept Apart to 188 frames.
-  - Next: color, as the film was shot (`ANINIT`'s `running-color` with `POLY`'s 1978 `MANY-POLYS`, kept in a comment), compared with the YouTube film; then the drift.
+  - **Color**, as the film was shot: `run-scene.mjs <scene> --color` and `make-film.py --color` make `reports/film/cinderella-color.mp4`. Cinderella is a green star, the stepmother red, the Prince yellow and the fairy godmother orange, each drawn as nested outlines, as in the YouTube film. That needed `POLY`'s 1978 `MANY-POLYS`, kept in a comment in `POLY 29`, and `SCREEN`'s "silent running" and "normal running" from `ODIREC 2`; the bridge supplies them. The YouTube film is a different run, but where its scenes run as long as ours the staging is much the same (Kept Apart at 12 seconds, for example).
+  - The drift: in the introduction the stepmother's fourth push starts a frame or two later than in 1978 (overlay frames 56–67). Nothing in the movement code is random. Rounding every flonum to the PDP-10's 27-bit fraction (`run-scene.mjs --pdp10`) changes no frame, so it isn't float precision in the Lisp code. The likeliest place is `OBJECT 401`, the January 1979 object code; the 1978 one Ani's film used is lost.
 
 ## In brief
 

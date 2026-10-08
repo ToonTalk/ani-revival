@@ -29,10 +29,26 @@ export class Cons {
   }
 }
 
+// MacLisp's flonums were PDP-10 single-precision words: a sign, an 8-bit exponent and
+// a 27-bit fraction. With Flonum.pdp10 set, each flonum is rounded to that precision
+// as it is made (arithmetic, the reader, the TV turtle), so that comparisons come out
+// as they did on the PDP-10.
 export class Flonum {
   constructor(value) {
-    this.value = value;
+    this.value = Flonum.pdp10 ? pdp10Single(value) : value;
   }
+}
+Flonum.pdp10 = false;
+
+// x rounded to 27 significant bits, halves up (the PDP-10's rounding instructions
+// add half a unit to the two's-complement fraction and truncate).
+export function pdp10Single(x) {
+  if (x === 0 || !Number.isFinite(x)) return x;
+  let e = Math.floor(Math.log2(Math.abs(x)));
+  if (2 ** e > Math.abs(x)) e--;
+  else if (2 ** (e + 1) <= Math.abs(x)) e++;
+  const scale = 2 ** (26 - e);
+  return Math.floor(x * scale + 0.5) / scale;
 }
 
 // A built-in function. kind is "subr" (fixed arguments, evaluated), "lsubr"
