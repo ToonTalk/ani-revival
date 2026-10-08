@@ -88,13 +88,14 @@ export class ItsFileSystem {
     return { dev, dir, fn1: parts[0] ? trunc(parts[0]) : null, fn2: parts[1] ? trunc(parts[1]) : null };
   }
 
-  // Fill in missing parts from defaults.
+  // Fill in missing parts from defaults. "*" means unspecified, in either.
   merge(name, defaults = {}) {
+    const pick = (...xs) => xs.find((x) => x && x !== "*") || null;
     return {
-      dev: name.dev || defaults.dev || "DSK",
-      dir: name.dir || defaults.dir || this.defaultDir,
-      fn1: name.fn1 || defaults.fn1 || null,
-      fn2: name.fn2 || defaults.fn2 || ">",
+      dev: pick(name.dev, defaults.dev) || "DSK",
+      dir: pick(name.dir, defaults.dir) || this.defaultDir,
+      fn1: pick(name.fn1, defaults.fn1),
+      fn2: pick(name.fn2, defaults.fn2) || ">",
     };
   }
 

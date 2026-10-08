@@ -45,6 +45,56 @@
 (defun test-part-of-pattern n
   (list 'lambda '(message) (list 'match (list 'quote (arg 1)) 'message)))
 
+;; (any-variables-in-pattern? pattern): does it contain a ?variable, a %variable,
+;; or a {...}? evidence: tags (CMATCH: define-form any-variables-in-pattern?).
+(defun any-variables-in-pattern? (pattern)
+  (cond ((pattern-variable? pattern) t)
+	((atom pattern) nil)
+	((memq (car pattern) '(director-symbol-for-and-pattern director-symbol-for-or-pattern
+			       director-symbol-for-braces director-symbol-for-quoted-pattern))
+	 t)
+	(t (or (any-variables-in-pattern? (car pattern))
+	       (any-variables-in-pattern? (cdr pattern))))))
+
+;; (non-trivial-pattern? x): is x a pattern rather than a constant? Used by CHAR's
+;; put-suggestion-in-source ("the element is really a pattern for if-needed demon").
+;; Defined in no surviving file and not in TS D2500; rebuilt from that use.
+(defun non-trivial-pattern? (x)
+  (any-variables-in-pattern? x))
+
+;; (predicate-of-pattern pattern [flag]): as test-part-of-pattern.
+;; evidence: 1980 (MATCH-SAFE-DELETE calls it with the pattern and T).
+(defun predicate-of-pattern n
+  (test-part-of-pattern (arg 1)))
+
+;;; Lists filtered by a pattern. evidence: 1980 compiled code, decompiled:
+;;; MATCH-SAFE-DELETE = (nreverse (match-safe-delete-1 (predicate-of-pattern p t) l nil));
+;;; MATCH-SAFE-DELETE-1 conses each element the predicate rejects onto the result;
+;;; MATCH-MEMBER = (match-member-1 (test-part-of-pattern p) l), the tail from the
+;;; first match; MATCH-DELETE calls MATCH-SAFE-DELETE and then a kernel routine on
+;;; the original list and the result, here taken to copy the result into the list.
+
+(defun match-safe-delete (pattern l)
+  (nreverse (match-safe-delete-1 (predicate-of-pattern pattern t) l nil)))
+
+(defun match-safe-delete-1 (predicate l result)
+  (cond ((null l) result)
+	((funcall predicate (car l)) (match-safe-delete-1 predicate (cdr l) result))
+	(t (match-safe-delete-1 predicate (cdr l) (cons (car l) result)))))
+
+(defun match-delete (pattern l)
+  (let ((remaining (match-safe-delete pattern l)))
+       (cond (remaining (rplaca l (car remaining))
+			(rplacd l (cdr remaining))))))
+
+(defun match-member (pattern l)
+  (match-member-1 (test-part-of-pattern pattern) l))
+
+(defun match-member-1 (predicate l)
+  (cond ((null l) nil)
+	((funcall predicate (car l)) l)
+	(t (match-member-1 predicate (cdr l)))))
+
 ;; (find-variables-in-pattern pattern): its variable names, last first.
 (defun find-variables-in-pattern (pattern)
   (let ((variables nil))

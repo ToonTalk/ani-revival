@@ -150,7 +150,7 @@ function walkData(x, file, line) {
     walkCode(x.cdr.car, file, lineOf(x, line));
     return;
   }
-  if (isSym(head, "DIRECTOR-SYMBOL-FOR-VALUE")) return;
+  if (isSym(head, "DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL")) return;
   for (const item of toArray(x)) walkData(item, file, lineOf(x, line));
 }
 
@@ -272,7 +272,7 @@ function walkCode(x, file, line) {
     case "DIRECTOR-SYMBOL-FOR-UNPACK":
       walkCode(a[1], file, line);
       return;
-    case "DIRECTOR-SYMBOL-FOR-VALUE":
+    case "DIRECTOR-SYMBOL-FOR-POSTPONED-EVAL":
       return;
     case "FUNCTION":
       if (a[1] instanceof Sym) addCall(a[1], file, line);

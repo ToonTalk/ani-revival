@@ -154,7 +154,7 @@ export function install(L) {
     return fs().toNamelist(L, t);
   });
   d("MERGEF", (spec, defaults) => {
-    const n = fs().merge(fs().parse(spec), defaults === undefined || defaults === NIL ? { dir: fs().defaultDir } : fs().merge(fs().parse(defaults)));
+    const n = fs().merge(fs().parse(spec), defaults === undefined || defaults === NIL ? { dir: fs().defaultDir } : fs().parse(defaults));
     return fs().toNamelist(L, n);
   });
   d("NAMELIST", (spec) => fs().toNamelist(L, fs().merge(fs().parse(spec), { dir: fs().defaultDir })));
@@ -163,6 +163,12 @@ export function install(L) {
     return L.intern(`${n.dev}:${n.dir};${n.fn1} ${n.fn2}`);
   });
   d("TRUENAME", (f) => (f instanceof LispFile ? fs().toNamelist(L, f.name) : NIL));
+  // An interpreter extension for the reconstructed MACROS: is the file named by
+  // spec (its directory and first name) being loaded right now?
+  d("+LOADING-FILE-P", (spec) => {
+    const n = fs().merge(fs().parse(spec), { dir: fs().defaultDir });
+    return L.truth(L.loadStack.some((s) => typeof s.name === "object" && s.name.dir === n.dir && s.name.fn1 === n.fn1));
+  });
   d("LOAD", (spec) => L.load(spec));
   sp("FASLOAD", function (args) {
     return this.load(args);

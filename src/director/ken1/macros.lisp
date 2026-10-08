@@ -147,12 +147,21 @@
 (define-macro actor-of (name . options)
   '(actor-of-1 ,name (quote ,(car options))))
 
+;; An actor is never autoloaded from a file that is being loaded right now: KEN;CINDY
+;; gives its own actors ACTOR-LOAD properties, so while it defines them, eval-define's
+;; (actor-of name t) would otherwise load CINDY again inside itself, which DRECT's
+;; director-load treats as an error ("trying to load ... within itself").
 (defun actor-of-1 (x option)
   (cond ((null x) nil)
 	((actorp x) x)
 	((general-get x 'actor 'non-atomic-actors))
 	((eq option 'dont-autoload) nil)
+	((actor-load-file-being-loaded? x) nil)
 	(t (actor-autoload x option))))
+
+(defun actor-load-file-being-loaded? (x)
+  (let ((file (cond ((atom x) (get x 'actor-load)) (t (get (car x) 'actor-load)))))
+       (and file (+loading-file-p file))))
 
 ;; (parent-of actor [option]): the parent actor, from the value cell of the first
 ;; method, "recall your parent". evidence: 1980 (a macro); drect (add-to-actor
@@ -337,7 +346,10 @@
 (define-macro define-receiver (pattern actor . body)
   '(define-method ,pattern ,actor !,body))
 
-(define-macro define-receive (pattern actor . body)
+;; (define-receive pattern (body...) actor): an older form, with the body as one
+;; list and the actor last. evidence: uses (SCENE, CONVEY: (define-receive (yield
+;; most current value of ?element) ((cond ...)) subscene)).
+(define-macro define-receive (pattern body actor)
   '(define-method ,pattern ,actor !,body))
 
 (define-macro define-extension-receiver (pattern actor . body)

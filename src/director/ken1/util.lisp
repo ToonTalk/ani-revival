@@ -208,7 +208,13 @@
 (defun generate-symbol (prefix)
   (intern-append-atoms prefix '- (gen-number prefix)))
 
-(defun internedp (s) (+internedp s))
+;; (internedp x): is the symbol x on the obarray? Anything that is not a symbol
+;; counts as interned. evidence: TS D2500, INTERNEDP returns T at once when its
+;; argument is not a symbol, so SOME's make tells a parent about offspring with
+;; non-atomic names such as (choice-point-of cinderella speed).
+(defun internedp (s)
+  (cond ((symbolp s) (+internedp s))
+	(t t)))
 
 (defun eval-in-env (variables values form)
   (progv variables values (eval form)))
