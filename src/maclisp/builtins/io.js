@@ -165,6 +165,15 @@ export function install(L) {
   d("TRUENAME", (f) => (f instanceof LispFile ? fs().toNamelist(L, f.name) : NIL));
   // An interpreter extension for the reconstructed MACROS: is the file named by
   // spec (its directory and first name) being loaded right now?
+  // (+after-load spec form): evaluate form each time the file named by spec (its
+  // directory and first name) has been loaded, and now if it already has been.
+  d("+AFTER-LOAD", (spec, form) => {
+    const n = fs().merge(fs().parse(spec), { dir: fs().defaultDir });
+    const key = `${n.dir};${n.fn1}`;
+    (L.afterLoad = L.afterLoad || []).push({ key, form });
+    if (L.loadedFiles && L.loadedFiles.has(key)) L.eval(form);
+    return T;
+  });
   d("+LOADING-FILE-P", (spec) => {
     const n = fs().merge(fs().parse(spec), { dir: fs().defaultDir });
     return L.truth(L.loadStack.some((s) => typeof s.name === "object" && s.name.dir === n.dir && s.name.fn1 === n.fn1));

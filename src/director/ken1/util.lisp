@@ -131,9 +131,39 @@
   (cond ((zerop n) (cons x (cdr l)))
 	(t (cons (car l) (replace-nth (1- n) (cdr l) x)))))
 
-;; (copy x): a copy of the list structure. VERIFY: depth.
+;; (copy tree [user-alist alist atomic-alist]): a copy of tree. A part found (EQ) in
+;; user-alist becomes its value there; a list is copied once, so the copy shares what
+;; tree shares; an interned symbol or a number stays; an uninterned symbol is copied
+;; too, with a copy of its value and of its property list. An actor's methods are
+;; uninterned symbols that hold the methods' bodies, its variables among them, so a
+;; copy of an actor gets methods and variables of its own; SOME's "make copy" relies
+;; on that, as does SCENE, restoring a subscene from the copy it saved before
+;; planning ("save a copy incase I have to be redone"). evidence: TS D2500 (COPY,
+;; an LSUBR (TREE &OPTIONAL (*USER-ALIST* NIL) (*ALIST* NIL) (*ATOMIC-ALIST* NIL))
+;; that binds the three and calls COPY-1, whose compiled code is followed here).
 (defun copy n
-  (subst nil nil (arg 1)))
+  (let ((*user-alist* (cond ((> n 1) (arg 2))))
+	(*alist* (cond ((> n 2) (arg 3))))
+	(*atomic-alist* (cond ((> n 3) (arg 4)))))
+       (copy-1 (arg 1))))
+
+(defun copy-1 (x)
+  (cond ((cdr (assq x *user-alist*)))
+	((atom x)
+	 (cond ((cdr (assq x *atomic-alist*)))
+	       ((internedp x) x)
+	       (t (let ((new (copysymbol x nil)))
+		       (setq *atomic-alist* (cons (cons x new) *atomic-alist*))
+		       (and (boundp x)
+			    (set new (copy (symeval x) *user-alist* nil *atomic-alist*)))
+		       (setplist new (copy (plist x) *user-alist* nil *atomic-alist*))
+		       new))))
+	((cdr (assq x *alist*)))
+	(t (let ((new (ncons nil)))
+		(setq *alist* (cons (cons x new) *alist*))
+		(rplaca new (copy-1 (car x)))
+		(rplacd new (copy-1 (cdr x)))
+		new))))
 
 ;; (repeatedly-apply-binary-function f l): (f (f (f l1 l2) l3) ...). evidence: 1980
 ;; (it applies f to the first two at once, so one element gives (f l1 nil)).

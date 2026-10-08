@@ -7,11 +7,17 @@
 //   scene is introduction (the default), kept-apart, no-longer-kept-apart,
 //   meeting or justice.
 import { createLisp } from "../src/maclisp/index.js";
-import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 
 const scene = process.argv.slice(2).find((a) => !a.startsWith("--")) || "introduction";
+// Each scene's file names (KEN;RUN's defprops): the program is KEN;<fn1> <fn2>, the
+// summary KEN1;<fn1> MINI and the printout KEN1;<fn1> PRINT.
+const fileNames = { introduction: "INTROD UCTION", "kept-apart": "KEPT APART", "no-longer-kept-apart": "NO LONGER", meeting: "MEET ING", justice: "JUST ICE" };
+const ownFn1 = (fileNames[scene] || "").split(" ")[0];
 const fs = makeProjectFileSystem();
+// positions saved by earlier scenes (KEN1;INTRO POSIT, ...), but not what this run writes
+mountRunOutputs(fs, undefined, [`KEN;${fileNames[scene]}`, `KEN1;${ownFn1} MINI`, `KEN1;${ownFn1} PRINT`]);
 const L = createLisp({ fs });
 L.formStack = process.argv.includes("--no-backtrace") ? null : [];
 L.backtraceDepth = 4000;

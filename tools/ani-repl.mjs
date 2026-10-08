@@ -1,12 +1,16 @@
 // Boot Director and Ani's pass 1 setup, then evaluate Lisp expressions given on
 // the command line (or read them from a file with --file), printing each result.
 // Usage: node tools/ani-repl.mjs [--no-init] [--z] "(expr)" ...
+//        node tools/ani-repl.mjs --pass2 "(run 'kept-apart)" "(expr)" ...
+//   --pass2 sets up as pass 2 does (TV display, KEN;RUN, the files earlier runs wrote).
 import { readFileSync } from "node:fs";
 import { createLisp } from "../src/maclisp/index.js";
-import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 
 const args = process.argv.slice(2);
 const fs = makeProjectFileSystem();
+const pass2 = args.includes("--pass2");
+if (pass2) mountRunOutputs(fs);
 const L = createLisp({ fs });
 L.formStack = [];
 L.breakHandler = (tag) => {
@@ -29,8 +33,13 @@ L.load(L.intern("KEN;LOAD >"));
 L.evalString("(setq :print-load-messages nil)");
 L.evalString("(director '(ani direct))");
 if (!args.includes("--no-bridge")) L.evalString("(load '|revive;bridge >|)");
-L.evalString("(load '|ken;datest >|)");
-if (!args.includes("--no-init")) L.evalString("(init nil)");
+if (pass2) {
+  L.evalString("(cs)");
+  L.evalString("(load '|ken;run >|)");
+} else {
+  L.evalString("(load '|ken;datest >|)");
+  if (!args.includes("--no-init")) L.evalString("(init nil)");
+}
 if (args.includes("--z")) L.evalString("(z)");
 const exprs = [];
 for (let i = 0; i < args.length; i++) {

@@ -485,7 +485,20 @@ export class Lisp {
       if (file.stub.onLoad) file.stub.onLoad(this);
       return this.T;
     }
-    return this.loadText(file.text, file.truename);
+    const result = this.loadText(file.text, file.truename);
+    this.runAfterLoad(file.truename);
+    return result;
+  }
+
+  // Forms to evaluate each time a file has been loaded, kept by directory and first
+  // name: (+after-load file form) adds one (an interpreter extension, for REVIVE;
+  // files that adjust what a lazily loaded file defines).
+  runAfterLoad(name) {
+    if (!name || typeof name !== "object") return;
+    this.loadedFiles = this.loadedFiles || new Set();
+    const key = `${name.dir};${name.fn1}`;
+    this.loadedFiles.add(key);
+    for (const hook of this.afterLoad || []) if (hook.key === key) this.eval(hook.form);
   }
 
   // name is a parsed ITS name ({ dir, fn1, fn2 }) or a string.

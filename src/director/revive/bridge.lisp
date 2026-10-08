@@ -11,7 +11,9 @@
 ;;; changed, and this file puts them back:
 ;;;
 ;;;  1. :self is the name a message was sent to, as in 1978.
-;;;  2. Variable demons: Ken's own bridge, ODIREC 2 (22 November 1978), verbatim.
+;;;  2. Variable demons, kept in variables as the 1978 Guide says, so that a save
+;;;     keeps them; Ken's own bridge, ODIREC 2 (22 November 1978), says how a set
+;;;     uses their answer.
 ;;;  3. Database demons: virtual items and actions on memorizing, rebuilt from the
 ;;;     1978 Guide, since no bridge for them survives.
 ;;;  4. INTERSECT's order, which decides the order Ani makes her choices in.
@@ -77,10 +79,6 @@
 			     (ask1 :ask-each-target ,(ask-message message) nil)))
 	   ,(ask-target targets)))
 
-(define-macro do-as-if-you-were (actor receiver . message)
-  '(let ((:self (self-name ,(ask-target receiver)))
-	 (:message ,(ask-message message)))
-	(cases (actor-of ,(ask-target actor)))))
 
 ;; DRECT's place-actor-on-name files an actor under a name. SOME hands it :self to
 ;; make a synonym, (synonym-for :self name), or to rename an actor (remob); given
@@ -88,17 +86,198 @@
 (defun place-actor-on-name (actor name)
   (general-putprop name (actor-object actor) 'actor 'non-atomic-actors))
 
-;; SOME 666's "make copy", which copies the actor :self stands for. (It copied :self
-;; itself, the actor in 1979; a copy of a name, displacing the new actor, ruins it.
-;; SUBSCENE's "send yourself to director via" saves each subscene this way.)
+;; SOME 666's internal-recall-your-normal-variable, which gives an actor its own
+;; list of variables, now put in front of its methods, as SOME's memorize and its
+;; "set your" for private variables already do ("so these go up front"). Files that
+;; actors autoload from are read with :insert-methods-at-end bound to T (DRECT's
+;; director-load), and Something keeps the general method among its own, so a list
+;; made for Something while a file loads went behind it and was never found again:
+;; SOME's own (ask something set your universe to default-universe) was lost, and
+;; Director's movies filmed nothing. That setting is made again here.
+(let ((:replace-old-methods t))
+     (define-method (internal-recall-your-normal-variable) something
+      ;;if I get here then the guy doesn't have any normal variables yet so make them as follows
+      (let ((the-alist (list nil))
+	    (:insert-methods-at-end nil))
+	   (ask :self do only for yourself when receiving
+		(internal-recall-your-normal-variable)
+		(director-symbol-for-value ,the-alist))
+	   the-alist)))
+
+(ask something set your universe to default-universe)
+
+;; The universe's tick: do what is planned for the universe itself, then tick each
+;; actor that has something planned. The 1978 Guide: actors-to-run-next "is kept by a
+;; universe and should be a list of all actors in that universe with anything
+;; planned" (AIM-482 p. 46), and ACTION counts on it, stopping the film when no
+;; subscene is running and the list is empty ("stop film if nothing running"). SOME
+;; 666 empties the list and ticks the actors that were on it inside an UNWIND-PROTECT
+;; whose cleanup puts the old list back, every time; so an actor that first plans
+;; something during a tick (each activity a subscene starts) is dropped, and the list
+;; never empties. SOME 1005 (August 1979, tape 9004336) drops the cleanup, but the
+;; list is still empty while the actors tick, and a subscene checking it then stops
+;; the film with actors yet to tick: Kept Apart stopped at 29 seconds with its second
+;; subscene unfinished (it "really took 32 seconds", thesis p. 67). So each actor
+;; leaves the list as its tick comes, and is back on it if it plans more.
+(let ((:replace-old-methods t))
+     (define-extension-method (tick) universe
+      (help-comments: |besides doing a normal tick I ask each of my actors-to-run-next to tick|)
+      (ask-old :self tick) ;;do anything planned too
+      (mapc (function
+	     (lambda (actor)
+		     (ask :self set your actors-to-run-next to
+			  ,(delete actor (ask :self recall your actors-to-run-next)))
+		     (ask ,actor tick)))
+	    (append (ask :self recall your actors-to-run-next) nil))))
+
+;; ACTION (October 1978) calls OBJECT's do-set-turtle-gradually with the performer
+;; as well as the planner: (planner performer x y heading followup message). OBJECT
+;; 401 (January 1979) has (planner x y heading followup message), the performer
+;; being :self ("typically the planner and the object performing are the same but
+;; Ani needs it otherwise"). After OBJECT loads, the old call is accepted too.
+(+after-load '|ken;object >|
+  '(progn
+    (putprop 'do-set-turtle-gradually (get 'do-set-turtle-gradually 'expr) 'object-401-expr)
+    (defun do-set-turtle-gradually n
+      (cond ((= n 7)
+	     (let ((:self (arg 2)))
+		  (funcall (get 'do-set-turtle-gradually 'object-401-expr)
+			   (arg 1) (arg 3) (arg 4) (arg 5) (arg 6) (arg 7))))
+	    (t (apply (get 'do-set-turtle-gradually 'object-401-expr) (listify n)))))))
+
+;; "forget your ?variable". SOME 666 removes the methods that recall and set the
+;; variable, which is where private variables (things-to-do-next, offspring, ...)
+;; live; ordinary variables are in the actor's own list (internal-recall-your-
+;; normal-variable) and stayed. So a plan never forgot its to-do-when-over, and
+;; ACTION's "clean up since just finished" ran it again and again. As SOME 1005
+;; (August 1979) does, the variable is also taken out of the actor's own list.
+;;
+;; The 1978 Guide also forgets by pattern: "If variable-pattern is a list containing
+;; question marks then all those variables which match are forgotten" (AIM-482 p.
+;; 17). SOME 666 has no such case, and Ani relies on it: a subscene saved for
+;; Director first forgets (actions-of ?), (distance-between ? ?) and (time-estimates-
+;; for ?) (SCENE's "send yourself to director via"), and a subscene asked to stretch
+;; makes the next one forget the (location-of ?) and (distance-between ? ?) it told
+;; it (SCENE's extend-last-actions-of).
+(defun has-question-mark? (pattern)
+  (cond ((symbolp pattern) (= (getcharn pattern 1) #(getcharn '? 1)))
+	((atom pattern) nil)
+	(t (or (has-question-mark? (car pattern)) (has-question-mark? (cdr pattern))))))
+
+(let ((:replace-old-methods t))
+     (define-method (forget your ?variable) something
+      (help-comments:
+       |forget I ever heard about VARIABLE, if it is "?" then I forget all my variables|)
+      (cond ((eq variable '?) ;;clears all
+	     (do ((i (ask :self list all your variable names) (rest i)))
+		 ((null i))
+		 (let ((variable-name (first i)))
+		      (cond ((memq variable-name '(parent name))) ;;leave it alone
+			    ((= (getcharn variable-name 1) #(getcharn '? 1)))
+			    ((= (getcharn variable-name 1) #(getcharn '% 1)))
+			    (t (ask :self forget your ,variable-name))))))
+	    ((and (not (atom variable)) (has-question-mark? variable))
+	     (mapc (function (lambda (variable-name)
+				     (and (not (atom variable-name))
+					  (match variable-name variable)
+					  (ask :self forget your ,variable-name))))
+		   (ask :self list all your variable names)))
+	    (t (let ((own-variables (ask :self internal-recall-your-normal-variable)))
+		    (let ((pair (assoc variable (cdr own-variables))))
+			 (and pair (delq pair own-variables))))
+	       (ask :self remove clause for recall your ,variable)
+	       (ask :self remove clause for set your ,variable to anything)))
+      no-value))
+
+;; DRECT's collect-all-variable-names, which "list all your variable names" and a save
+;; use, gives an actor's own variables newest first, after a NIL: SOME 666 heads the
+;; actor's list of variables with NIL, and the car of NIL is NIL, so every saved
+;; actor ended (SET YOUR NIL TO NIL). Ani's saves in Appendix VI list them oldest
+;; first, the special dynamics in exactly the reverse of DRECT's order, and have no
+;; NIL; so here.
+(define-form (collect-all-variable-names actor (methods nil) (answer nil))
+ (do ((i (or methods (methods-of actor)) (rest i)))
+     ((null i)
+      (append (nreverse answer)
+	      (mapcar 'car (rest (ask :self internal-recall-your-normal-variable)))))
+     (let ((method-name (first i)))
+	  (cond ((atom method-name)
+		 (let (((first second variable-name . rest)
+			(method-pattern method-name)))
+		      (cond ((and (eq first 'recall) (eq second 'your) (null rest))
+			     (push variable-name answer)))))
+		(t (return (collect-all-variable-names actor (rest method-name) answer)))))))
+
+;; INTERF's quadrant-of-xy, given a symbolic position such as (symbolic-position
+;; (good-distance-from (current-goal-of prince))), compares (third xy), NIL, and
+;; (second xy), a list, with 0.0. Interpreted MacLisp would stop there, but Ani ran
+;; INTERF compiled (INTERF FASL, 14 October 1978), and its compiled code (reports/
+;; fasl/code) loads the word each pointer points at and tests its sign, checking no
+;; types: NIL is location 0, which holds 0, so "lower"; a list's word holds its car's
+;; address, and Ani's own atoms lie high in memory (user atoms are at 6xxxxx-7xxxxx
+;; octal in the 1980 dump), so it reads as negative: "left". So a coordinate that
+;; is not a number counts as not above, and not right of, the middle. Pass 2 meets
+;; this in Kept Apart, when the stepmother stands guard and the Prince, still on
+;; his way somewhere, is to move far from both.
+(+after-load '|ken;interf >|
+  '(defun quadrant-of-xy (xy-position)
+     (cond ((eq (first xy-position) 'missing-location-of)
+	    (shouldnt-happen 'quadrant-of-xy
+			     '(,xy-position not a good position)))
+	   (t (list (cond ((and (numberp (third xy-position)) (> (third xy-position) 0.0)) 'upper)
+			  (t 'lower))
+		    (cond ((and (numberp (second xy-position)) (> (second xy-position) 0.0)) 'right)
+			  (t 'left)))))))
+
+;; ACTION's subtract-elapsed-from-estimated-time, for a subscene that has not begun,
+;; subtracts NIL from a frame count. That happens to each parasite: when any subscene
+;; ends, every subscene of the scene is told, and each tells its own parasites that
+;; they have ended ("note that ?event happened" asks the receiver's parasites, not
+;; those of the subscene that ended), so in Kept Apart the end of subscene 1 reaches
+;; subscene 3 before it begins. Director ran ACTION compiled (ACTION FASL), whose
+;; code subtracts the words the two pointers point at, checking no types (reports/
+;; fasl/code: MOVE TT,@(P) then SUB TT,(A)); NIL is location 0, which holds 0. So a
+;; subscene that has not begun counts as beginning at frame 0. (The error recorded
+;; is overwritten when the subscene really ends.)
+(defun subtract-elapsed-from-estimated-time-as-compiled (subscene movie)
+  (let ((elapsed (//$ (float (- (number-as-compiled (ask ,movie recall your (end-of ,subscene)))
+				(number-as-compiled (ask ,movie recall your (beginning-of ,subscene)))))
+		      (float (ask ,movie recall your frames-per-second))))
+	(estimated (ask ,subscene recall your running-time)))
+       (cond (estimated (list (-$ elapsed estimated) 'out 'of elapsed 'seconds))
+	     (t 'no-estimate-found-so-cant))))
+
+;; What compiled fixnum arithmetic sees: NIL as 0. (Other non-numbers do not arise.)
+(defun number-as-compiled (x)
+  (cond ((numberp x) x)
+	((null x) 0)
+	(t (shouldnt-happen 'number-as-compiled (list x 'is 'not 'a 'number)))))
+
+(+after-load '|ken;action >|
+  '(putprop 'subtract-elapsed-from-estimated-time
+	    (get 'subtract-elapsed-from-estimated-time-as-compiled 'expr)
+	    'expr))
+
+;; "make copy". The 1978 Guide: "The only differences between the new actor
+;; -sibling- and the recipient are their names and that the newly created actor has
+;; no offspring", and "if you change a twin its sibling is not affected" (AIM-482 p.
+;; 9). SCENE relies on both: each subscene saves a copy of itself before planning
+;; and is restored from it if it must stretch, and is saved for Director through a
+;; copy it renames and prunes. SOME 666 copies :self, the actor in 1979 (a copy of
+;; a name, displacing the new actor, ruins it), and replaces the name wherever it
+;; occurs (EQ) in the copy; in 1979 that was only the name, but a 1978 :self also
+;; ends up in the actor's variables, (placed by ,:self) in a location and
+;; (special-dynamics-of cinderella in ,subscene) in an action, which a save then
+;; wrote with (director-subscene-of kept-apart 3) in them. So the copy is the
+;; actor's, made by COPY (which gives it methods and variables of its own), and only
+;; its name and offspring are changed.
 (let ((:replace-old-methods t))
      (define-method (make copy ?sibling) something
       (help-comments: |make an identical copy of myself except for its name and offspring|)
-      ;;this copies by copying the plist and changing its offspring
       (ask :self ask your parent to make ,sibling) ;;makes one for parent's sake
-      (displace (actor-of sibling) ;;then clobbers it with a copy with the follow substs
-		(let ((name (name-of :self)))
-		     (copy (actor-object :self) '((,name !,sibling)))))
+      (displace (actor-of sibling) (copy (actor-object :self)))
+      (ask ,sibling set your name to ,sibling)
+      (ask ,sibling forget your offspring)
       sibling))
 
 ;; SOME 666's is-any-ancestor-of, comparing actors whether given as names or not,
@@ -110,27 +289,114 @@
 
 ;;; -------------------------------------------------------------- 2. variable demons
 
-;; From KEN;ODIREC 2, which follows two SCREEN methods with ";;;now for stuff to
-;; make the new scheme compatible with old demon scheme". Nothing on the tapes
-;; loads ODIREC, so the two methods are copied here unchanged. The 1978 Guide:
-;; when a variable is recalled, the forms in (variable actions-if-recalling) are
-;; evaluated and the last one's value is the answer; :old-value holds the
-;; variable's own value. When it is set or changed, the forms in (variable
-;; actions-if-changing) run with :new-value bound to the new value.
+;; The 1978 Guide ("Demons for Variables", AIM-482 pp. 18-19): a variable's demons
+;; are kept in a variable named by it and actions-if-recalling or actions-if-
+;; changing, and "such variables can be created, modified and inspected using the
+;; normal variable messages". When the variable is recalled, each demon is evaluated
+;; with :old-value bound to the variable's value, and the last one's value is the
+;; answer. When it is set or changed, the demons are evaluated with :new-value bound
+;; to the new value.
+;;
+;; Ken's own bridge, KEN;ODIREC 2 (22 November 1978, ";;;now for stuff to make the
+;; new scheme compatible with old demon scheme"), made each demon an extension of
+;; the recall or set method instead. That runs Ani's demons as they ran, and this
+;; file used it at first, but the demons are then methods, not variables: forgetting
+;; one (ACTION's wait lists forget theirs when they empty) leaves it, and a save runs
+;; it and drops it, since DRECT's definize-actor saves the value of each variable an
+;; actor has a recall method for. Ani counts on a saved demon reaching Director:
+;; DISPLY's move-character-in-place-guarded gives a character kept away from a guard
+;; a demon that sets its speed when the film first asks for it, from where the
+;; character is then ("set speed so that it takes" the Prince the subscene's running
+;; time "to go to" a place far from both; INTERF measures the distance "in director",
+;; with no subscene). In Ani, where that place is still symbolic, it cannot run. So
+;; the demons are kept as the Guide says, and SOME 666's general recall and set run
+;; them.
+;;
+;; ODIREC 2 shows how the old scheme finished a set: the variable is set, the demons
+;; run, and it is set to the last one's value unless that is no-value ("set it just
+;; to be compatible with old"). Ani's demons are written for that: ACTION's wait
+;; list demon answers :new-value, "otherwise dont change the wait-list", and DICHAR's
+;; special-dynamics demon answers :new-value too.
 
-(define-macro-method (add ?demon to your list of (?variable actions-if-recalling)) something
- '(ask ,:self extend behavior when receiving (recall your ,variable) by doing
-       (let ((:old-value (ask ,:self recall your ,variable)))
-	   ,demon)))
+;; Only the variables that have had demons look for them. A symbol keeps the kinds on
+;; its property list; a list such as (speed factor) is kept in *variables-with-demons*.
+(setq *variables-with-demons* nil)
 
-(define-macro-method (add ?demon to your list of (?variable actions-if-changing)) something
- '(ask ,:self extend behavior when receiving ({or set change} your ,variable to ?:new-value)
-       by doing
-       (ask ,:self set your ,variable to ,(comma (comma :new-value)))
-       ;;set it just to be compatible with old
-       (let ((result ,demon))
-	    (cond ((eq result no-value) :new-value)
-		  (t (ask ,:self set your ,variable to ,(comma (comma result))))))))
+(defun note-variable-demons (variable kind)
+  (cond ((symbolp variable)
+	 (or (memq kind (get variable 'demon-kinds))
+	     (putprop variable (cons kind (get variable 'demon-kinds)) 'demon-kinds)))
+	(t (let ((entry (assoc variable *variables-with-demons*)))
+		(cond ((null entry)
+		       (setq *variables-with-demons*
+			     (cons (list variable kind) *variables-with-demons*)))
+		      ((not (memq kind (rest entry)))
+		       (rplacd entry (cons kind (rest entry)))))))))
+
+(defun may-have-demons? (variable kind)
+  (cond ((symbolp variable) (memq kind (get variable 'demon-kinds)))
+	((atom variable) nil)
+	(t (memq kind (rest (assoc variable *variables-with-demons*))))))
+
+;; Each demon is evaluated in turn; the last one's value is the answer.
+(defun evaluate-demons (demons)
+  (do ((d demons (rest d))
+       (result nil (eval (first d))))
+      ((null d) result)))
+
+(defun run-recalling-demons (variable :old-value)
+  (let ((demons (ask :self recall your (,variable actions-if-recalling))))
+       (cond (demons (evaluate-demons demons))
+	     (t :old-value))))
+
+(defun run-changing-demons (variable :new-value)
+  (let ((demons (ask :self recall your (,variable actions-if-changing))))
+       (cond ((null demons) :new-value)
+	     (t (let ((result (evaluate-demons demons)))
+		     (cond ((eq result no-value) :new-value)
+			   (t (set-variable-of-self variable result)
+			      result)))))))
+
+;; SOME 666's "set your ?variable to ?value", without its demons.
+(defun set-variable-of-self (variable value)
+  (let ((non-inheritable (member variable (ask :self recall your private-variable-names))))
+       (cond (non-inheritable
+	      (let ((:replace-old-methods t) ;;try to reuse old guys otherwise
+		    (:insert-methods-at-end nil)) ;;be sure they go up front
+		   (let ((recall-method-name
+			  (ask :self do only for yourself when receiving
+			       (recall your ,variable)
+			       ;;dont need internal-recall-your
+			       (director-symbol-for-value ,value))))
+			(ask :self do only for yourself when receiving
+			     (set your ,variable to ?the-new-value)
+			     (set-director-symbol-for-value ,recall-method-name
+							    the-new-value)))))
+	     (t (maintain-value-assoc-list (ask :self internal-recall-your-normal-variable)
+					   variable
+					   value)))))
+
+;; SOME 666's general set and recall, running the demons.
+(let ((:replace-old-methods t))
+     (define-method (set your ?variable to ?value) something
+      (help-comments: |when asked "recall your" VARIABLE return VALUE|)
+      (set-variable-of-self variable value)
+      (and (not (atom variable))
+	   (memq (second variable) '(actions-if-recalling actions-if-changing))
+	   (null (rest (rest variable)))
+	   (note-variable-demons (first variable) (second variable)))
+      (cond ((may-have-demons? variable 'actions-if-changing)
+	     (run-changing-demons variable value))
+	    (t value)))
+     (define-method (recall your ?variable) something
+      (help-comments: |recall the value of my VARIABLE|)
+      (let ((value (do ((actor :self (parent-of actor t)))
+		       ((null actor) nil) ;;nil is default value for no value found
+		       (let ((pair (assoc variable (ask ,actor internal-recall-your-normal-variable))))
+			    (and pair (return (rest pair)))))))
+	   (cond ((may-have-demons? variable 'actions-if-recalling)
+		  (run-recalling-demons variable value))
+		 (t value)))))
 
 ;;; -------------------------------------------------------------- 3. database demons
 

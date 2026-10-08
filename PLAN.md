@@ -28,14 +28,32 @@
   - LLOGO's TV turtle is ported from its public source (`src/tv/`). Director's own demos run unchanged: `test-director` from `KEN;DUMP`, `OBJECT` and `POLY`, `SCREEN` and `MOVIE` filming the guide's example, and `ANINIT`'s color cast. See `reports/TV-TURTLE.md` and the frames in `reports/tv/`. The 1977 `ANIMA` scenes haven't been tried.
 - **The tape caught Director in the middle of a rewrite.** You rewrote Director around 21 November 1978 (the second guide: "much of Director has been rewritten", and demons "have been eliminated"). Ani's code is older; `CP 29` was written in September 1978 by the old Director. The surviving Director (`DRECT`, `SOME 666`, `OBJECT 401`, all January 1979) is the new one. Your own `ODIREC 2` (22 November 1978) bridges part of the gap. `src/director/revive/bridge.lisp` (loaded as `REVIVE;BRIDGE`) restores the rest, each change argued from the 1978 guide, the compiled 1978 Ani files and `CP 29`:
   - `:self` is the name the message was sent to, as in 1978, not the actor itself;
-  - variable demons come from `ODIREC`, verbatim;
+  - variable demons are kept in variables, as the 1978 guide says, so that a save keeps them; `ODIREC` says how a set uses their answer;
   - database demons (virtual items, and actions on memorizing) are rebuilt from the 1978 guide;
   - "recall an item matching" quotes the request it remembers, as `SOME 666` already does for "recall each item matching";
-  - `INTERSECT` keeps its second set's order, which decides the order Ani makes her choices in (the 1980 one keeps the first's).
-- **Phase 3, done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs`; about 75 seconds).
+  - `INTERSECT` keeps its second set's order, which decides the order Ani makes her choices in (the 1980 one keeps the first's);
+  - pass 2 and filming needed more, listed under Phase 4.
+- **Phase 3, done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs --no-backtrace`; about 20 seconds).
   - The glass box is `app/pass1.html` (open it directly, or at `http://localhost:8379/app/pass1.html`). It shows every choice point and its value, and for any one of them each attempt Ani made, why it postponed, the suggestion it kept, the conflicts it settled, and the suggestions it rejected. A timeline draws all 836 attempts. The stepmother's speed is shown beside the thesis's own account of it (pages 20–23), and they agree.
   - `node tools/run-pass1.mjs --glass-box` regenerates the data and the page.
-- **Next, Phase 4:** pass 2, with `RUN`.
+- **Phase 4, under way.** Two of the five scenes are planned by Ani and filmed by Director, each scene planned from where the last one left the characters:
+  - `node tools/run-pass2.mjs <scene>` plans a scene with `RUN` and saves its program, summary and printout (`KEN;KEPT APART`, `KEN1;KEPT MINI`, `KEN1;KEPT PRINT`), copied to `reports/pass2/`.
+  - `node tools/run-scene.mjs <scene>` films the program with `ANINIT` and saves where the characters ended up (`KEN1;INTRO POSIT`, `KEN1;KA POSIT`).
+  - **The introduction:** five subscenes, estimated at 42.2 seconds (the thesis: 43.3 estimated, 42 real); 203 frames.
+  - **Kept apart:** the three subscenes of thesis pp. 66–67. Subscene 1 has the values Appendix VI prints: the cut and its reason, the locations, the plan, 1.53 seconds. Subscene 2 stands guard six times, "originally planned ... only four", stretched by 1.97; subscene 3 is the emotional changes, a parasite on subscene 2. 188 frames.
+  - What the bridge needed for this, each with its evidence in `bridge.lisp`:
+    - "make copy" makes an independent twin that differs only in name, as the 1978 guide says. This needed `COPY` as `TS D2500` has it: it copies an actor's methods and so its variables. Subscenes save a copy before planning and are restored from it when they must stretch.
+    - "forget your" takes patterns such as `(actions-of ?)` (1978 guide).
+    - Saves list variables oldest first, without the `(SET YOUR NIL TO NIL)` that `SOME 666` adds, as Appendix VI does.
+    - The universe's list of actors with something planned stays true while they tick (1978 guide), so the film stops when all is done.
+    - Two places where compiled 1978 code read `NIL` as 0, checking no types: `INTERF`'s quadrants and `ACTION`'s elapsed time.
+  - Open:
+    - Appendix VI gives Cinderella high speed in subscene 1; ours is low (times 2.0). The 1.53 s estimates agree, which points to low at estimate time, so in 1978 it became high later. The only code that sets it high is the guarding's `prisoner-special-dynamics`, for subscene 2. So in 1978 her subscene 2 dynamics may have been her subscene 1 dynamics.
+    - Subscene 2 runs 45.5 s against our estimate of 28.2; the thesis has 30 and 32.
+    - Appendix VI numbers her dynamics `-26`; ours are `-7`. The counter runs across a whole Ani job, and `RUN` cleans up "from before" so that scenes can follow each other in one job. That fits 19 numbers used first, where our introduction uses 21.
+    - Within subscene 1 the locations come in another order than Appendix VI's.
+    - The introduction has a fifth, empty subscene; the thesis describes four.
+  - Next: no longer kept apart (it reads `KEN1;KEPT MINI` and `KEN1;KA POSIT`), the meeting and justice; then Appendix III's actor counts and Chapter II's plans.
 
 ## In brief
 

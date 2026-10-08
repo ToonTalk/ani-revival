@@ -58,3 +58,20 @@ export function makeProjectFileSystem(root = process.cwd()) {
   installLostFilePlaceholders(fs);
   return fs;
 }
+
+// Mount the files our runs wrote (reports/pass2/: ken-introd.uction is
+// KEN;INTROD UCTION, ken1-intro.posit is KEN1;INTRO POSIT, ...), so that each
+// step of the film's making can read what the earlier ones wrote, as on ITS.
+// except: names ("KEN1;KEPT MINI") the coming run writes itself, left out so that
+// it starts without them, as it did on ITS (RUN moved each summary to AR9 when it
+// had saved it, and a save appends to a summary that is there).
+export function mountRunOutputs(fs, folder = join(process.cwd(), "reports", "pass2"), except = []) {
+  if (!existsSync(folder)) return;
+  for (const f of readdirSync(folder)) {
+    const m = /^(ken1?)-([a-z0-9]+)\.([a-z0-9]+)$/.exec(f);
+    if (!m) continue;
+    if (except.includes(`${m[1]};${m[2]} ${m[3]}`.toUpperCase())) continue;
+    const p = join(folder, f);
+    fs.addFile(m[1].toUpperCase(), m[2].toUpperCase(), m[3].toUpperCase(), { getText: () => readFileSync(p, "utf8"), origin: "written by our run", path: p });
+  }
+}

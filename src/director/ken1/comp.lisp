@@ -7,9 +7,13 @@
 ;;;   actor; here it prints the actor's definition (DRECT's definize-actor).
 ;;;   defunize, used by OBJECT; here it returns its argument.
 
+;; The actor is given as itself or by a name (the :self of the 1978 bridge); the
+;; definition names it by its own name, which for a copy renamed with "set your
+;; name to" is the new one (SUBSCENE saves (subscene-of kept-apart 1) that way, as
+;; the thesis prints it, Appendix VI).
 (defun compile-and-print-actor n
   (let ((actor (arg 1)) (file (cond ((> n 1) (arg 2)))))
-       (save-by-printing (definize-actor actor) file)))
+       (save-by-printing (definize-actor (actor-object actor)) file)))
 
 (defun defunize n (arg 1))
 

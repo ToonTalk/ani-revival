@@ -192,7 +192,9 @@
        (let ((parent (and object (cadr (symeval (caddr object))))))
 	    (and parent (actor-of-1 parent option)))))
 
-;; (name-of actor): the value of its "recall your name" method; a name is its own name.
+;; (name-of actor): the value of its "recall your name" method; a name is its own
+;; name. (SOME's unmake removes the actor filed under (name-of :self), so with :self
+;; the name a message was sent to, unmaking a renamed copy removes the copy.)
 (defun name-of (actor)
   (cond ((not (actorp actor)) actor)
 	(t (name-of-methods (methods-of actor)))))
@@ -342,13 +344,16 @@
 (define-macro example-of (form) form)
 (define-macro compile-using (actor form) form)
 
-;; (do-as-if-you-were actor receiver word ...): have the receiver handle the
-;; message with the given actor's methods, as if it were that actor.
-;; evidence: uses (SCENE, ACTION, PLACE, DISPLY, ...).
+;; (do-as-if-you-were actor receiver word ...): send the message to the receiver.
+;; The first argument tells Director's compiler what kind of actor the receiver is,
+;; so that it can compile the transmission ahead of time; interpreting, it is not
+;; used. Defined in no surviving file and not in TS D2500; rebuilt from its uses
+;; and their comments: CHOMET's "(do-as-if-you-were task ;;so that task is used as
+;; the target in compiling", INTERF's "character ;;sample target", ELEMNT's
+;; "something ;;compile normally but ask yourself:". ACTION and PLACE give
+;; CHARACTER for a receiver that is a DIRECTOR-CHARACTER, which CHARACTER is not.
 (define-macro do-as-if-you-were (actor receiver . message)
-  '(let ((:self (self-name (actor-of ,(ask-target receiver))))
-	 (:message ,(ask-message message)))
-	(cases (actor-of ,(ask-target actor)))))
+  '(ask ,receiver !,message))
 
 ;; (define name parent message ...): make an actor and send it each message; the
 ;; messages are sent as written. (define-or-add-to ...) adds to an existing actor.
