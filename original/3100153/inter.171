@@ -1,0 +1,721 @@
+;think about hal's solution to keeping things closed and how to convert nicely to
+;turtle geometry
+
+;bugs: 
+;with centers no longer remains connected, track it down and fix
+;does heading change hack work, does center interpolate correctly?
+;poly 100 90 and poly 100 (either -90 or 270) loss and in different ways
+
+
+
+;improvements:
+;1) finish up the three.calls bit
+;2) break up fd based on how much it contributes to the whole??????
+
+
+
+(declare (setq ibase 10.))
+
+(declare (*lexpr mw hw sw wf fw shade))
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+
+(declare (special no-value :tvstep))
+
+(or (boundp 'no-value) (setq no-value '?))
+
+(defun make.interpolation n
+       (cond ((= n 3)
+	      (set (arg 1) (interpolate.two.calls (arg 2) (arg 3))))
+	     ((= n 4)
+	      (set (arg 1) (interpolate.three.calls (arg 2) (arg 3) (arg 4))))
+	     (t (break wrong.number.of.args t)))
+       no-value)
+
+(defprop mi make.interpolation expr)
+
+(defun make.centered.interpolation n
+       (cond ((= n 3)
+	      (set (arg 1) (interpolate.two.calls (list 'draw.centered (list 'quote
+									     (arg 2)))
+						  (list 'draw.centered (list 'quote
+									    (arg 3))))))
+	     ((= n 4)
+	      (set (arg 1) (interpolate.three.calls (list 'draw.centered (list 'quote
+									     (arg 2)))
+						    (list 'draw.centered (list 'quote
+									     (arg 3)))
+						    (list 'draw.centered (list 'quote
+									    (arg 4))))))
+	     (t (break wrong.number.of.args t)))
+       no-value)
+
+
+(defprop mci make.centered.interpolation expr)
+
+
+(defun interpolate.two.calls (call1 call2)
+       (interpolate.equiv.programs
+	(equivicalize (squished.display.list call1)
+		      (squished.display.list call2))))
+
+(defun equivicalize (display.list1 display.list2)
+       (fix.headings (cdr display.list1)
+		      (cdr display.list2)
+		      (car display.list1)
+		      (car display.list2)))
+
+
+(declare (special noisy?))
+(setq noisy? t)
+
+
+(defun fix.headings (:display.list1 :display.list2 :alist1 :alist2)
+       ((lambda (:heading.change1 :heading.change2 :equal.displacements?)
+		(cond ((= :heading.change1 :heading.change2)
+		       (fix.length :display.list1 :display.list2
+				      :alist1 1 :alist2 1))
+		      (:equal.displacements?
+		       ((lambda (:gcd)
+				(fix.length
+				 (copy.list :display.list1
+					    (// :heading.change2 :gcd))
+				 (copy.list :display.list2
+					    (// :heading.change1 :gcd))
+				 :alist1
+				 (// :heading.change2 :gcd)
+				 :alist2
+				 (// :heading.change1 :gcd)))
+			(gcd :heading.change1 :heading.change2)))
+		      (t (and noisy?
+			      (print
+			       '(one of the calls is not state transparent so shouldnt
+				 expect closed curves)))
+			  (fix.length :display.list1 :display.list2
+				      :alist1 1 :alist2 1))))
+	(fix (cdr (assq 'heading.change :alist1)))
+	(fix (cdr (assq 'heading.change :alist2)))
+	(and (about.equal (cdr (assq 'x.displacement :alist1))
+			  (cdr (assq 'x.displacement :alist2)))
+	     (about.equal (cdr (assq 'y.displacement :alist1))
+			  (cdr (assq 'y.displacement :alist2))))))
+
+
+(defun fix.length (display.list1 display.list2 :alist1 :copied1 :alist2 :copied2)
+       ((lambda (length.list1 length.list2)
+		((lambda (:gcd)
+			 (make.operations.correspond
+				(fatten.up display.list1
+					   (// length.list2 :gcd))
+				(fatten.up display.list2
+					   (// length.list1 :gcd))
+				:alist1
+				:alist2))
+		 (gcd length.list1 length.list2)))		
+	(- (length display.list1) (* (cdr (assq 'number.of.invisiblies :alist1))
+				     :copied1))
+	(- (length display.list2) (* (cdr (assq 'number.of.invisiblies :alist2))
+				     :copied2))))
+
+
+(defun make.operations.correspond (:display.list1 :display.list2 :alist1 :alist2)
+       (do ((one :display.list1 (cdr one))
+	    (two :display.list2 (cdr two))
+	    (new.one nil)
+	    (new.two nil))
+	   ((and (null one) (null two))
+	    (cons (nreverse new.one) (nreverse new.two)))
+	   (cond ((eq (caar one) (caar two))
+		  (setq new.one (cons (car one) new.one))
+		  (setq new.two (cons (car two) new.two)))
+		 ((eq (caar one) 'invisibly)
+		  (setq new.one (cons (car one) new.one))
+		  (setq new.two (cons (dummy.invisibly) new.two))
+		  (setq two (cons 'dummy two)))
+		 ((eq (caar two) 'invisibly)
+		  (setq new.two (cons (car two) new.two))
+		  (setq new.one (cons (dummy.invisibly) new.one))
+		  (setq one (cons 'dummy one)))
+		 ((and (eq (caar one) 'forward)
+		       (eq (caar two) 'right))
+		  (setq new.one (cons (car one) new.one))
+		  (setq new.two (cons '(forward 0.0) new.two))
+		  (setq two (cons 'dummy two)))
+		 ((and (eq (caar one) 'right)
+		       (eq (caar two) 'forward))
+		  (setq new.two (cons (car two) new.two))
+		  (setq new.one (cons '(forward 0.0) new.one))
+		  (setq one (cons 'dummy one)))
+		 ((and (null one)
+		       (null (cdr two)))
+		  (setq new.one (cons (list (caar two) 0.0) new.one))
+		  (setq new.two (cons (car two) new.two)))
+		 ((and (null two)
+		       (null (cdr one)))
+		  (setq new.two (cons (list (caar one) 0.0) new.two))
+		  (setq new.one (cons (car one) new.one)))
+		 (t (break bad-args-to-make.commmands.correspond t)))))
+		  
+
+
+(defun fatten.up (display.list expansion.factor)
+       (do ((i display.list (cddr i))
+	    (ans nil))
+	   ((null i) ans)
+	   (cond ((eq (caar i) 'invisibly)
+		  (setq ans (append ans (list (car i))))
+		  (setq i (cons 'dummy i)))
+		 ((eq (car (cadr i)) 'invisibly)
+		  (setq ans
+			(append ans
+				(expand.pair (car i) (caddr i) expansion.factor
+					     (cadr i))))
+		  (setq i (cdr i)))
+		 (t (setq ans
+			(append ans
+				(expand.pair (car i)
+					     (cadr i)
+					     expansion.factor
+					     nil)))))))
+
+(defun expand.pair (line1 line2 factor insert)
+       (cond ((oddp factor)
+	      (append (expand.line (list (car line1)
+					 (//$ (cadr line1) (float (// (1+ factor) 2))))
+				   (// factor 2))
+		      (and insert (list insert))
+		      (expand.line (and line2
+					(list (car line2)
+					      (//$ (cadr line2)
+						   (float (// (1+ factor) 2)))))
+					(// factor 2))))
+	     (t (append (expand.line (list (car line1)
+					   (//$ (cadr line1) (float (// factor 2))))
+				     (// (1- factor) 2))
+			(cons.insert (car line1))
+			(and insert (list insert))
+			(expand.line (and line2
+					  (list (car line2)
+						(//$ (cadr line2)
+						     (float (// factor 2)))))
+				     (// (1- factor) 2))))))
+
+(defun expand.line (new.line number.of.inserts)
+   (cond (new.line
+	  (do ((i number.of.inserts (1- i))
+	       (insert (cond ((eq (car new.line) 'forward)
+			      '(right 0.0))
+			     ((eq (car new.line) 'right)
+			      '(forward 0.0))
+			     (t (break bad.display.list t))))
+	       (ans (list new.line)))
+	      ((= i 0) ans)
+	      (setq ans (cons new.line
+			      (cons insert ans)))))))
+	 
+	   
+(defun cons.insert (operation)
+       (cond ((eq operation 'forward) '((right 0.0) (forward 0.0)))
+	     ((eq operation 'right) '((forward 0.0) (right 0.0)))
+	     (t (break bad.display.list t))))
+				   
+
+(declare (special :tolerance))
+
+(setq :tolerance .1)
+
+(declare (flonum flonum1 flonum2 :tolerance))
+
+(defun about.equal (flonum1 flonum2)
+       (< (abs (-$ flonum1 flonum2)) :tolerance))
+
+(defun copy.list (list number.of.copies)
+       (do ((i number.of.copies (1- i))
+	    (ans nil))
+	   ((= i 0) (apply 'append ans))
+	   (setq ans (cons list ans))))
+
+;(defun lput (x list)
+;       ((lambda (last.of.list)
+;		(cond (last.of.list (rplacd last.of.list (list x))
+;				    list)
+;		      (list x)))
+;	(last list)))
+
+
+
+
+;note that equiv.programs may have differences in starting or ending operations
+;and in invisiblies however, it is at most one difference in length and always
+;rights and forwards alternating with occasional invisiblies
+
+
+ (defun interpolate.equiv.programs (source+destination)
+       (interpolate.equiv.programs1 (car source+destination)
+				    (cdr source+destination)))
+
+(defun interpolate.equiv.programs1 (first.program second.program)
+       (do ((first first.program (cdr first))
+	    (second second.program (cdr second))
+	    (ans nil))
+	   ((and (null first)
+		 (null second))
+	    (cons 'lambda
+		  (cons '(interpolationamount)
+			 (nreverse ans))))
+	   (cond ((and (eq (caar first) 'invisibly)
+		       (eq (caar second) 'invisibly))
+		  (setq ans (cons (interpolate.invisiblies (car first) (car second))
+					 ans)))
+		 ((eq (caar first) (caar second))
+		  (setq ans (cons (slow.change (car first) (car second))
+				  ans)))
+		 (t (break non-equiv-programs t)))))
+
+(defun slow.change (line1 line2)
+       (list  (car line1)
+	      (list '+$
+		    (cadr line1)
+		    (list '*$ 'interpolationamount
+			  (-$ (cadr line2) (cadr line1))))))
+
+(defun interpolate.invisiblies (line1 line2)
+	     (list 'invisibly
+		   (slow.change (cadr line1)
+				(cadr line2))
+		   (slow.change (caddr line1)
+				(caddr line2))
+		   (slow.change (cadddr line1)
+				(cadddr line2))))
+
+(defun dummy.invisibly nil
+       '(invisibly
+	     (right 0.0)
+	     (forward 0.0)
+	     (right 0.0)))
+				    
+(declare (special int ))
+
+
+(defun sl n
+(cond ((> n 1)
+       (straight.line (arg 1) (arg 2) (arg 3) (arg 4)
+		      (cond ((> n 4) (arg 5.)))
+		      (cond ((> n 5) (arg 6)))
+		      (cond ((> n 6) (arg 7)))))
+      (t '(int begin end inc (center? nil)(color1 nil) (color2 nil)))))
+			    
+
+
+
+(defun straight.line (int begin end inc center? color1 color2)
+       (do ((amount (float begin) (+$ (float inc) amount))
+	    (start (here))
+	    (tempcolors)
+	    (colors (and color1 color2
+			 (make.color.interpolation color1 color2
+					    (min
+					     (1+ (fix
+						 (//$ (-$ (float end)
+							  (float begin))
+						      (float inc))))
+					     15)))))
+	   ((> amount (float end)) no-value)
+	   (cond (tempcolors (pc (car tempcolors))
+			     (setq tempcolors (cdr tempcolors)))
+		 (colors (pc (car colors))
+			 (setq tempcolors (cdr colors))))
+	   (cond (center?
+		  (draw.centered
+		   (list int amount)
+		   nil))
+		 (t (funcall int amount)))
+	   (pu) (sett start) (pd)))
+
+(defun slt n
+(cond ((> n 1)
+       (straight.line.table
+	(arg 1)
+	(arg 2)
+	(arg 3)
+	(arg 4)
+	(arg 5)
+	(cond ((> n 5) (arg 6))
+	      (t (arg 5)))
+	(cond ((> n 6) (arg 7))
+	      (t .8))
+	(cond ((> n 7) (arg 8)))
+	(cond ((> n 8) (arg 9)))))
+      (t 
+	  '(Int begin end inc columns (rows default=columns)
+	    (percentage.filled .8)
+	    (color1 nil) (color2 nil)))))
+	      
+(defun straight.line.table
+       (int begin end inc columns rows percentage.filled color1 color2)
+       (cs)
+       (useturtle 'logoturtle)
+    ((lambda (xdist ydist)
+       (do ((amount (float begin) (+$ (float inc) amount))
+	    (currentcolumn 1 (1+ currentcolumn))
+	    (tempcolors)
+	    (colors (and color1 color2
+			 (make.color.interpolation color1 color2
+					    (min
+					     (1+ (fix
+						 (//$ (-$ (float end)
+							  (float begin))
+						      (float inc))))
+					     15.))))	    
+	    (start (list (-$ xdist (//$ (car (turtlesize)) 2.0))
+			 (-$ (//$ (cadr (turtlesize)) 2.0) ydist)
+			 0.0)
+		   (here))
+	    (max.size (*$ (max xdist ydist) .5 percentage.filled)))
+	   ((> amount (float end)) no-value)
+	   (pu)
+	   (sett start)
+	   (pd)
+	   (cond (tempcolors (pencolor (car tempcolors))
+			     (setq tempcolors (cdr tempcolors)))
+		 (colors (pencolor (car colors))
+			 (setq tempcolors (cdr colors))))
+	   (cond ((not (zerop percentage.filled))
+		  (draw.centered
+			 (list int amount)
+			 max.size))
+		 (t (funcall int amount)))
+	   (pu)
+	   (cond ((= currentcolumn columns)
+		  (setq currentcolumn 0)
+		  (dely (-$ ydist))
+		  (setx (-$ xdist (//$ (car (turtlesize)) 2.0))))
+		 (t (delx xdist)))
+	   (pd)))
+     (//$ (car (turtlesize)) (float (1+ columns)))
+     (//$ (cadr (turtlesize)) (float (1+ rows)))))
+
+(defun slm n
+(cond ((> n 1)
+       (straight.line.movie
+	(arg 1)
+	(arg 2)
+	(arg 3)
+	(arg 4)
+	(cond ((> n 4) (arg 5.))
+	      (t 1.0))
+	(cond ((> n 5) (arg 6.))
+	      (t .8))
+	(cond ((> n 6) (arg 7)))
+	(cond ((> n 7) (arg 8)))))
+      (t '(int begin end inc (pause 1) (percentage.of.screen .8)
+	    (color1 nil) (color2 nil)))))
+	      
+(defun straight.line.movie (int begin end inc pause percentage.of.screen color1 color2)
+       (do ((amount (float begin) (+$ (float inc) amount))
+	    (start (here))
+	    	    (tempcolors)
+	    (colors (and color1 color2
+			 (make.color.interpolation color1 color2
+					    (min
+					     (1+ (fix
+						 (//$ (-$ (float end)
+							  (float begin))
+						      (float inc))))
+					     15.)))))
+	   ((> amount (float end)) no-value)
+	   (cond ((minusp pause))
+		 (t (sleep pause)
+		    (wipe)))
+	   (cond (tempcolors (pencolor (car tempcolors))
+			     (setq tempcolors (cdr tempcolors)))
+		 (colors (pencolor (car colors))
+			 (setq tempcolors (cdr colors))))
+	   (cond ((zerop percentage.of.screen)
+		  (funcall int amount))
+		 (t (draw.centered
+		     (list int amount)
+		     (*$ (cadr (turtlesize)) percentage.of.screen .5))))
+	   (pu) (sett start)(pd)))
+		 
+(defprop msm make.super.movie expr)
+
+(declare (special *last.patterns*))
+
+(defun make.super.movie (int begin end inc pattern1 pattern2 size last.pat?)
+       (do ((amount (float begin) (+$ (float inc) amount))
+	    (start (here))
+	    (ans nil)
+	    (patterns (cond (last.pat? *last.patterns*)
+			    (t (setq *last.patterns*
+				     (interpolate.patterns pattern1 pattern2
+							   size size
+							   (1+
+							    (fix
+							     (//$
+							      (-$
+							       (float end)
+							       (float begin))
+							      (float inc))))))))
+		      (cdr patterns)))
+	   ((> amount (float end)) (reverse ans))
+	   (wipe)
+	   (pd)
+	   (draw.centered (list int amount)
+			  size)
+	   (and pattern1 (super.shade (car patterns) size))
+	   (sw 'temp2)
+	   (mw (car (setq ans (cons (gensym) ans))) size)
+	   (pu) (sett start)))
+
+
+(or (getl 'draw.poly '(expr subr))
+    (defprop draw.poly (poly fasl dsk ken) autoload))
+
+	     
+(defun interpcolor (color1 color2 init final inc wait)
+       (do ((blue1 (bluepart color1))
+	    (blue2 (bluepart color2))
+	    (green1 (greenpart color1))
+	    (green2 (greenpart color2))
+	    (red1 (redpart color1))
+	    (red2 (redpart color2))
+	    (amount init (plus amount inc)))
+	   ((greaterp amount final) 'done)
+	   (makecolor 'foo
+		      (plus red1 (times amount
+					      (-$ red2 red1)))
+		      (plus green1 (times amount
+					    (-$ green2 green1)))
+		      (plus blue1 (times amount
+					    (-$ blue2 blue1))))
+	   (sleep wait)
+	   (erc 'foo)))
+
+
+(defprop mcolori make.color.interpolation expr)
+
+(defun make.color.interpolation (color1 color2 number)
+       (do ((blue1 (bluepart color1))
+	    (blue2 (bluepart color2))
+	    (green1 (greenpart color1))
+	    (green2 (greenpart color2))
+	    (red1 (redpart color1))
+	    (red2 (redpart color2))
+	    (amount 0.0 (+$ amount (//$ (float (1- number)))))
+	    (i number (1- i))
+	    (ans nil))
+	   ((= i 0) (reverse ans))
+	   (makecolor (car (setq ans (cons (gensym) ans)))
+		      (+$ red1 (*$ amount (-$ red2 red1)))
+		      (+$ green1 (*$ amount (-$ green2 green1)))
+		      (+$ blue1 (*$ amount (-$ blue2 blue1))))))
+
+;what follows is for interpolation windows
+
+(defprop ip interpolate.patterns expr)
+
+
+(defun interpolate.patterns (pattern1 pattern2 xdimension ydimension number)
+       ((lambda (window1 window2)
+		(sw window1)
+		(xw window2)
+		(mw 'difference xdimension ydimension)
+		(hw 'difference)
+		(sw window1)
+		(do ((pats (fade 'difference number) (cdr pats))
+		     (ans nil))
+		    ((null pats) (reverse ans))
+		    (xw (car pats))
+		    (mw (car (setq ans (cons (gensym) ans)))
+			xdimension
+			ydimension)
+		    (xw (car pats))))
+	(window.of.pattern (gensym) pattern1 xdimension ydimension)
+	(window.of.pattern (gensym) pattern2 xdimension ydimension)))		
+
+
+(defun window.of.pattern (name pattern xdimension ydimension)
+       (erd)
+       (fw xdimension ydimension)
+       (eru)
+       (wf xdimension ydimension)
+       (shade pattern)
+       (wf xdimension ydimension)
+       (mw name xdimension ydimension)
+       (erd)
+       (fw xdimension ydimension)
+       (eru)
+       name)
+
+(defprop dp display.patterns expr)
+
+
+
+(defun dp2 (patterns size inc)
+       (cond (patterns
+	      (pu)
+	      (circle size)
+	      (circle (+ size inc))
+	      (fd (+ size (// inc 2)))
+	      (shade (car patterns))
+	      (home)
+	      (setq ans (cons (mw (gensym) (+ inc size)) ans))
+	      (sleep 1)
+	      (cs)
+	      (dp2 (cdr patterns) (+ inc size) inc))))
+
+(defun display.patterns (patterns size inc)
+       (cond (patterns
+	      (pu)
+	      (circle size)
+	      (circle (+ size inc))
+	      (fd (+ size (// inc 2)))
+	      (shade (car patterns))
+	      (home)
+	      (display.patterns (cdr patterns) (+ inc size) inc))))
+
+
+
+(defun super.shade (pattern size)
+       (mw 'temp2 size)
+       (wf size)
+       (pu)
+       (fd (difference size :tvstep))
+       (shade)
+       (bk (difference size :tvstep))
+       (hw 'temp2)
+       (mw 'temp size)
+       (hw 'temp)
+       (shade pattern)
+       (hw 'temp)
+       (wf size))       
+       
+
+
+(defun fade (window number)
+       (do ((i number (1- i))
+	    (ans (list window))
+	    (newwindow (copywindow window (gensym)) (copywindow newwindow (gensym))))
+	   ((= i 0) (reverse ans))
+	   (zeropartofwindow newwindow 1 i)
+	   (setq ans (cons newwindow ans))))
+
+
+(defun seefade (windows delay)
+       (do ((i windows (cdr i)))
+	   ((Null i) '?)
+	   (xw (car i))
+	   (sleep delay)
+	   (xw (car i))))
+
+(defun seedx (finalwindow fadewindows delay)
+       (sw finalwindow)
+       (seefade fadewindows delay))
+
+
+(defun copywindow (window newname)
+       ((lambda (windowprop newname1 newname2)
+		(putprop newname (list newname1 newname2) 'window)
+		(copyarray (car windowprop) newname1)
+		(copyarray (cadr windowprop) newname2)
+		newname)
+	(get window 'window)
+	(gensym)
+	(gensym)))
+
+
+(defun copyarray (thearray newname)
+       (apply 'array (cons newname (arraydims thearray)))
+       (fillarray newname thearray))	   
+
+
+
+(defun zeropartofwindow (window number outof)
+       (zeropartofarray (get (cadr (get window 'window)) 'array) number outof))
+
+(defprop zw zeropartofwindow expr)
+
+(defun zeropartofarray (thearray number outof)
+       (do ((location (1- (cadr (arraydims thearray))) (1- location)))
+	   ((< location 0) '?)
+	   (store (arraycall fixnum thearray location)
+		  (zeropartofword (arraycall fixnum thearray location) number outof))))
+
+(defun zeropartofword (word number outof)
+       (do ((i 0 (1+ i))
+	    (rotword word (rot rotword 1))
+	    (kill? (< (random outof) number) (< (random outof) number)))
+	   ((= i 36.) rotword)
+	   (cond (kill?  (setq rotword (lsh (lsh rotword 1) -1))))))
+		 
+
+(defprop ipal interpolate.palette expr)
+
+(defun interpolate.palette (:color.interpolations)
+       (do ((i :color.interpolations (cdr i))
+	    (new.cis nil)
+	    (n 0 (1+ n)))
+	   ((or (= n 16)
+		(null i)) (nreverse new.cis))
+	   (makepalette n (caar i))
+	   (setq new.cis (cons (append (cdr (car i)) (list (caar i)))
+			       new.cis))))
+
+(defprop mpi make.palette.interpolation expr)
+
+(defun make.palette.interpolation (:colors :number)
+       (do ((i :colors (cdr i))
+	    (n 0 (1+ n))
+	    (ans nil))
+	   ((or (= n 16)
+		(null i)) (nreverse ans))
+	   (setq ans (cons (make.color.interpolation (palette n) (car i) :number)
+			   ans))))
+
+(defun make.palette.rotation (:number)
+       (do ((n 0 (1+ n))
+	    (ans nil))
+	   ((= n 15) (nreverse ans))
+	   (setq ans (cons (make.color.interpolation (palette n)
+						     (palette (\ (1+ n) 15))
+						     :number)
+			   ans))))
+
+(defun ROTATE.PALETTE (NUMBER PAUSE)
+       (do ((n 0 (\ (1+ n) 15))
+	    (NAME (GENSYM))
+	    (AMOUNT (//$ (FLOAT NUMBER)))
+	    (ans nil))
+	   (NIL)
+	   (makecolor NAME
+	   (+$ (RP N) (*$ amount (-$ (RP (1+ N)) (RP N))))
+	   (+$ (GP N) (*$ amount (-$ (GP (1+ N)) (GP N))))
+	   (+$ (BP N) (*$ amount (-$ (BP (1+ N)) (BP N)))))
+	   (MAKEPALETTE N NAME)))
+(PROGN
+(DEFUN RP (N) (REDPART (PALETTE (\ N 15))))
+(DEFUN BP (N) (BLUEPART (PALETTE (\ N 15))))
+(DEFUN GP (N) (GREENPART (PALETTE (\ N 15)))))
+
+
+(DEFUN VL (X Y) 269488144.)
+
+(defun scircs (windows colors)
+       (pc (car colors))
+       (sw (car windows))
+       (scircs (cdr windows) (cdr colors)))
+
+

@@ -1,0 +1,50 @@
+;; -*-lisp -*-
+;;this is a test of diagrm >
+
+
+
+(defun demo (from to)
+       (and (= from 1) (ask diagram make ,(ask diagram recall your default-diagram)))
+       (do ((i (nth-rest (1- from)
+			 '((define ani boxed-text)
+			   (define director boxed-text)
+			   (define ani-to-director link 
+				   (label link from ani to director with |written in|))
+			   (define ani-to-director-2 link 
+				   (label link from ani to director with |programs in|))
+			   (define ca boxed-text
+				   (set your text to |Computer Animation|))
+			   (define ed boxed-text
+				   (set your text to |Education|))
+			   (define director-to-ca link
+				   (label link from director to ca with |used for|))
+			   (define director-to-ed link
+				   (label link from director to ed with |used for|))
+			   (define ani-to-ca link
+				   (label link from ani to ca with |makes|))))
+	       (rest i))
+	    (count (- to from) (1- count)))
+	   ((= count 0))
+	   (type '(evaling ,(first i)))
+	   (eval (first i))))
+
+(define-form (d10)
+ (link ani |programs in| director)
+ (link ani |written in| director)
+ (link director |used for| |Computer Animation|)
+ (link director |used for| |Education|)
+ (link ani |makes| |Computer Animation|))
+
+(define-form (chmeth)
+ (link |Film Description| |is abstraction of| |The Fairy Tale|)
+ (link |Film Description| |results in| |The Film|)
+ (link |The Film| |is an interpretation of| |The Fairy Tale|)) 
+
+
+(define-form (chcho)
+ (link |Gather Suggestions| |some found| |Combine Suggestions|)
+ (link |Combine Suggestions| |not good enough| |Gather Suggestions|)
+ (link |Combine Suggestions| |conflicts found| |Resovle Conflicts|)
+ (link |Resovle Conflicts| |compromise or reject| |Choose Value|)
+ (link |Combine Suggestions| |OK| |Choose Value|)
+ (link |Resovle Conflicts| |need more information| |Gather Suggestions|))

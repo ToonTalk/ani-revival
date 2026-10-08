@@ -1,0 +1,413 @@
+;;  -*-lisp-*-
+;; this section of dani is for collecting and combining suggestions for establishing
+;;personality, emotional states, and relationships
+
+(defcomment sugest) ;;for tags
+
+(include |ai:ken;declare >|)
+
+;;task is (task: description (personality cinderella)
+;;		for-who cinderella
+;;		source initial-description)
+;;and comes in three flavors establish, convey and display
+
+
+(define-function establish-suggestions (task scene)
+ (let ((character (get task 'for-who))
+       (description-type (first (get task 'description)))
+       (description (get task 'description)))
+      (cond ((eq description-type 'personality)
+	     (establish-personality-suggestions
+	      (ask ,character collect items memorized matching
+		   (description: type personality
+				 descriptor ?
+				 source ?))
+	      scene character))
+	    ((eq description-type 'relationship)
+	     (establish-relationship-suggestions		  
+	     (ask ,character collect items memorized matching
+		  (description: type ?
+				descriptor ?
+				source ?))
+	     scene character))
+	    ((eq description-type 'emotional-state)
+	     (combine-emotional-state-suggestions
+	      (mapcan
+	       (function
+		(lambda (emotional-state)
+			(ask-if-exists
+			 ,(first emotional-state) collect items memorized matching
+			 (suggestion: element (establish (,description-type
+							  ,character
+							  ,emotional-state))
+				      value ?
+				      strength ?
+				      source ?))))
+	       (let ((emotional-states (third description)))
+		    (cond ((eq (first emotional-states) 'and) (rest emotional-states))
+			  (t (list emotional-states)))))
+	      scene))
+	    (t (warning 'establish-suggestions
+			'(the task ,task is not understood in ,scene scene))))))
+
+
+(define-function establish-personality-suggestions (descriptions scene character)
+ (distill-suggestions
+  (mapcan 
+   (function
+    (lambda (description)
+	    (ask ,(get description 'descriptor)
+		 collect items memorized matching
+		 (suggestion: element (establish ,character ,(get description 'descriptor))
+			      value ?
+			      strength ?
+			      source ?))))
+   descriptions)
+  scene))
+
+
+(define-function establish-relationship-suggestions (descriptions scene relationship)
+ (distill-suggestions
+  (let ((character1 (second relationship))
+	(character2 (third relationship)))
+       (mapcan 
+	(function
+	 (lambda (description)
+		 (ask ,(get description 'descriptor)
+		      collect items memorized matching
+		      (suggestion: element (establish (,(get description 'descriptor)
+						       ,character1
+						       ,character2))
+				   value ?
+				   strength ?
+				   source ?))))
+	descriptions))
+    scene))
+
+
+;;this takes a list of suggestions and especially notes any multiple suggestions and conflicts
+;;this once filtered-out non-multiple suggestions but that got flushed maybe this should too
+
+(define-function distill-suggestions (suggestions scene)
+ (find-related-suggestions (instaniate-convey-suggestions suggestions scene) scene))
+
+
+
+;;this returns non-multiple-suggestions (ie suggestions with nothng in common with others)
+
+(define-function find-related-suggestions (suggestions scene)
+ (do ((s suggestions (rest s))
+      (multiples nil)
+      (non-multiples nil)
+      (relationship nil))
+     ((null s) non-multiples)
+     (cond ((memq (first s) multiples))
+	   ((do ((rest (rest s) (rest rest))
+		 (canidate (first s))
+		 (identicals nil)
+		 (neighbors nil)
+		 (opposites nil)
+		 (specializations nil)
+		 (generalizations nil))
+		((null rest)
+		 (setq multiples (append identicals neighbors multiples))
+		 ;;only those that need not be rechecked are added to multiples
+		 (record-multiple-suggestions scene
+					      canidate
+					      identicals
+					      neighbors
+					      opposites
+					      specializations
+					      generalizations))
+		(setq relationship (suggestion-relationship canidate (first rest)))
+		(cond ((eq relationship 'identical)
+		       (setq identicals (cons (first rest) identicals)))
+		      ((eq relationship 'neighbors)
+		       (setq neighbors (cons (first rest) neighbors)))
+		      ((eq relationship 'opposites)
+		       (setq opposites (cons (first rest) opposites)))
+		      ((eq relationship 'specialization)
+		       (setq specializations (cons (first rest) specializations)))
+		      ((eq relationship 'generalization)
+		       (setq generalizations (cons (first rest) generalizations)))
+		      ((memq relationship
+			     '(incompatible-descriptors different-actors nil))
+		       (setq non-multiples (cons (first s) non-multiples)))
+		      (t (shouldnt-happen
+			  'find-related-suggestions
+			  '(,relationship is an unrecognized relationship between 
+					  ,canidate and ,(first rest))))))))))
+
+
+(define-function suggestion-relationship (suggestion1 suggestion2)
+ (let ((method1 (get suggestion1 'value))
+       (method2 (get suggestion2 'value)))
+      (cond ((eq-many (first method1) (first method2) 'method:) 
+	     (cond ((eq-many (get method1 'type) (get method2 'type) 'convey)
+		    (convey-relationship (get method1 'value) (get method2 'value)))
+		   ((eq-many (get method1 'type) (get method2 'type) 'display)
+		    (display-relationship (get method1 'value)
+					  ;;doesnt happen
+					  ;;anymore since changed: and change: are
+					  ;;handled special should they?
+					  (get method2 'value)))))
+	    (t (shouldnt-happen 'suggestion-relationship
+				'(,suggestion1 not recognized as a method:))))))
+
+;;methods format is:
+;; (method: type convey
+;;          value (helps cinderella other)
+;;	    best-when ((in-danger other) (descriptor other weak)))
+
+(define-function convey-relationship (convey1 convey2)
+ (cond ((eq (first convey1) (first convey2)) ;same actor
+	(descriptor-relationship (second convey1) (second convey2)))
+       (t 'different-actors)))
+
+
+
+;;checks if the descriptors are either the same, neighbors, opposites or ancester/descendant
+
+(define-function descriptor-relationship (descriptor1 descriptor2)
+ (cond ((eq descriptor1 descriptor2) 'identical)
+       ((neighbors? descriptor1 descriptor2) 'neighbors)
+       ((opposites? descriptor1 descriptor2) 'opposites)
+       ((ancestor-of? descriptor1 descriptor2) 'generalization)
+       ((ancestor-of? descriptor2 descriptor1) 'specialization)
+       (t 'incompatible-descriptors))) ;;the default
+
+(define-function neighbors? (descriptor1 descriptor2)
+ (and (exists? descriptor1)
+      (memq descriptor2 (ask ,descriptor1 recall your neighbors))))
+
+(define-function opposites? (descriptor1 descriptor2)
+ (and (exists? descriptor1)
+      (memq descriptor2 (ask ,descriptor1 recall your opposites))))
+
+(define-function ancestor-of? (descriptor1 descriptor2)
+ (and (exists? descriptor1)
+      (ask ,descriptor1 are you a ,descriptor2)))
+
+
+(define-function record-multiple-suggestions 
+ (scene suggestion identicals neighbors opposites specializations generalizations)
+
+ (record-suggestions-with-relationship scene suggestion 'identical identicals)
+ (record-suggestions-with-relationship scene suggestion 'neighbors neighbors)
+ (record-suggestions-with-relationship scene suggestion 'opposites opposites)
+ (record-suggestions-with-relationship scene suggestion 'specializations specializations)
+ (record-suggestions-with-relationship scene suggestion 'generalizations generalizations)
+ (or identicals neighbors opposites specializations generalizations
+     (record-suggestions-with-relationship scene suggestion 'unique nil)))
+
+
+(define-function record-suggestions-with-relationship 
+		 (scene suggestion relationship other-suggestions)
+ (cond ((or (eq relationship 'unique) other-suggestions)
+	(ask ,scene memorize
+	     (related-suggestions: main-suggestion ,suggestion
+				   relationship ,relationship
+				   others ,other-suggestions)))))
+
+
+(define-function combine-emotional-state-suggestions (suggestions scene)
+ (do ((s suggestions (rest s))
+      (alist nil))
+     ((null s)
+      (mapc
+       (function
+	(lambda (pair)
+		(record+combine-suggestions (rest pair) ;;the like suggestions
+					    (first (first pair)) ;;the display type
+					    scene)))
+       alist))
+     (let ((suggestion (first s))
+	   (method (get (first s) 'value)))
+	  (cond ((eq (get method 'type) 'display-value-change)
+		 (let ((display-type '(,(first (get method 'value))
+				       ,(get (get method 'value) 'element))))
+		      (let ((in-alist (assoc display-type alist)))
+			   (cond (in-alist (splice-on-end suggestion in-alist))
+				 (t (setq alist
+					  (cons (list display-type suggestion) alist)))))))
+		 (t (warning 'combine-emotional-state-suggestions
+			    '(cant handle suggestions such as ,suggestion yet)))))))
+
+
+(define-function instaniate-convey-suggestions (suggestions scene)
+ ;;this fills in the blanks in convey methods
+ (do ((i suggestions (rest i))
+      (good-ones nil))
+     ((null i) good-ones)
+     (let ((suggestion (first i)))
+	  (let ((method (get suggestion 'value)))
+	       (cond ((eq (get method 'type) 'convey)
+		      (let ((value (get method 'value)))
+			   (cond ((eq (first value) 'bind)
+				  (let
+				   ((new-method (bind-convey-method method
+								    (second value)
+								    (third value)
+								    scene)))
+				  (cond (new-method
+					 (push (replaceprop suggestion new-method 'value)
+					       good-ones))))) ;;so add the modified suggestion 
+				 (t (push suggestion good-ones)))))
+		      (t (shouldnt-happen
+			  'instaniate-convey-methods
+			  '(the ,suggestion method is not a convey type))))))))
+
+
+(define-function bind-convey-method (method bindings value scene)
+ ;;the reason method is here is so that binding can potentionally add prerequisite or best-when
+ (let ((values (come-up-with-values (mapcar 'cadr bindings) scene)))
+      (cond ((equal '(no such character exists) values) nil) ;;no need to make a warning
+	    (values
+	     (replaceprop method
+			  (eval-in-env (mapcar 'car bindings)
+				       values
+				       (quote-allowing-eval-and-unpack value))
+			  'value))
+	    (t (warning 'bind-convey-method
+			'(|cant come up with a value in/
+| ,bindings))
+	       nil))))
+
+(define-function come-up-with-values (forms scene)
+ (do ((i forms (rest i))
+      (values nil))
+     ((null i) (nreverse values))
+     (let ((value (funcall (first (first i)) (second (first i)) scene)))
+	  (cond ((equal value '(no such character exists)) (return value))
+		(value (push value values))
+		(t (return nil)))))) ;;cant come up with values
+
+
+(define-function activity-that-satisfies (condition scene)
+ (ask ,(first condition)
+      recall an item matching (activity-satisfying ,condition in ,scene is ?answer)
+      then answer))
+
+
+(define-function character-that-satisfies (condition scene)
+ (ask ,(first condition)
+      recall an item matching (character-satisfying ,condition in ,scene is ?answer)
+      then answer))
+
+(define-function object-that-satisfies (condition scene)
+ (ask ,(first condition)
+      recall an item matching (object-satisfying ,condition in ,scene is ?answer)
+      then answer))
+
+(define-function event-that-satisfies (condition scene)
+ (ask ,(first condition)
+      recall an item matching (event-satisfying ,condition in ,scene is ?answer)
+      then answer))
+
+;;now for stuff to come up with values
+
+(define generator something)
+
+(define activity-generator generator)
+
+(define wanted-by-x-and-not-want-to-do-by-y activity-generator)
+
+(define wants-to-do activity-generator)
+
+(define character-generator generator)
+
+(define is-not character-generator ;;any sibling who meets the extra-conditions
+ (add (if-asked-about
+        (character-satisfying (is-not ?character ?extra-conditions) in ?scene is ?)
+       '(character-satisfying (is-not ,character ,extra-conditions) in ,scene is
+			      ,(first-sibling-that-satisfies extra-conditions
+							     character
+							     scene)))
+      to your list of (character-satisfying if-recalling-items)))
+
+(define-function first-sibling-that-satisfies (condition character scene)
+ ;;of course first is a stupid way of doing it (should really take many things into account)
+ (do ((siblings (ask ,character recall your siblings) (rest siblings)))
+     ((null siblings) '(no such character exists))
+     (let ((sibling (first siblings)))
+	  (cond ((and (ask ,sibling recall if any items match
+			   (scene-participation: scene ,scene
+						 task ?)) ;;is part of the scene
+		      (or (null condition) ;;easy to pass the null condition
+			  (apply (first condition) '(,sibling !,(rest condition)))))
+		 (return sibling))))))
+
+
+(define stranger-of character-generator
+ ;;this uses the simple-minded idea that if there is no relationship then they are strangers
+ (add (if-asked-about
+       (character-satisfying (stranger-of ?character ?extra-conditions) in ?scene is ?)
+       '(character-satisfying (stranger-of ,character ,extra-conditions) in ,scene is 
+			      ,(first-sibling-that-is-not-related character)))
+      to your list of (character-satisfying if-recalling-items)))
+
+(define-function first-sibling-that-is-not-related (character)
+ (do ((i (ask ,character recall your siblings) (rest i)))
+     ((null i) '(no such character exists))
+     (and (not (exists? '(relationship-of ,character ,(first i))))
+	  (not (exists? '(relationship-of ,(first i) ,character)))
+	  (return (first i)))))
+
+
+(define friend-of character-generator
+ (add (if-asked-about
+       (character-satisfying (friend-of ?character ?extra-conditions) in ?scene is ?)
+       '(character-satisfying (friend-of ,character ,extra-conditions) in ,scene is 
+			      ,(first-sibling-that-satisfies-relationship character 'likes)))
+       ;;either if likes or loves another
+      to your list of (character-satisfying if-recalling-items)))
+
+(define-function first-sibling-that-satisfies-relationship (character relationship)
+ (do ((i (ask ,character recall your siblings) (rest i)))
+     ((null i) '(no such character exists))
+     (and (ask ,relationship
+	       recall if any items match (status-of (,relationship ,character ,(first i)) met))
+	  (return (first i)))))
+
+
+(define enemy-of character-generator
+ (add (if-asked-about
+       (character-satisfying (enemy-of ?character ?extra-conditions) in ?scene is ?)
+       '(character-satisfying (enemy-of ,character ,extra-conditions) in ,scene is 
+			      ,(first-sibling-that-is-or-does 'hates character)))
+       ;;either hates it or is hated by
+      to your list of (character-satisfying if-recalling-items)))
+
+(define-function first-sibling-that-is-or-does (descriptor character)
+ (do ((i (ask ,character recall your siblings) (rest i)))
+     ((null i) '(no such character exists))
+     (let ((sibling (first i)))
+	  (cond ((or (ask-if-exists
+		      (relationship-of ,character ,sibling)
+		      recall if any items match (description: type ?
+							      descriptor ,descriptor
+							      %))
+		     (ask-if-exists
+		      (relationship-of  ,sibling ,character)
+		      recall if any items match (description: type ?
+							      descriptor ,descriptor
+							      %)))
+		 (return sibling))))))
+
+
+(define object-generator generator)
+
+(define not-owned-by object-generator)
+
+(define is-described-as object-generator)
+
+(define event-generator generator)
+
+(define is-considered-bad-by event-generator)
+
+
+(define-function destroy-scene-suggestions nil
+ (ask scene ask each of your offspring to ask each of your tasks to forget items matching (%))
+ no-value)
+
+

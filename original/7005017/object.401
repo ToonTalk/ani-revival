@@ -1,0 +1,821 @@
+;; -*-lisp-*-
+;;this file defines object the graphic turtle-like entity in director
+
+(include |ai:ken;declar >|)
+
+(defcomment object) ;;for tags
+
+(define object something
+ (set your size to 100.0)
+ (set your colors to (white))
+ (set your speed to 100.0)
+ (set your rotational-speed to 30.0)
+ (set your growth-speed to 100.0)
+ (set your revolution-speed to 100.0)
+ (set your draw-mode to (pendown))
+ (set your erase-mode to (eraserdown))
+ (set your pen-state to (penup))
+ (set your state to (0.0 0.0 0.0))
+ (set your erasability to t)
+ (set your (fd speed-name) to speed)
+ (set your (forward speed-name) to speed)
+ (set your (bk speed-name) to speed)
+ (set your (back speed-name) to speed)
+ (set your (rt speed-name) to rotational-speed)
+ (set your (right speed-name) to rotational-speed)
+ (set your (lt speed-name) to rotational-speed)
+ (set your (left speed-name) to rotational-speed)
+ (set your (right-revolve speed-name) to revolution-speed)
+ (set your (left-revolve speed-name) to revolution-speed)
+ (set your (grow speed-name) to growth-speed)
+ (set your (shrink speed-name) to growth-speed)
+ (set your (delx speed-name) to speed)
+ (set your (dely speed-name) to speed)
+ (set your fraction-of-whole to 1.0) ;;typical object is the size of its whole
+ (set your direction-from-center to 0.0) ;;straight up from center
+ (set your fractional-distance-from-center to 0.0) ;;at center
+ (set your relative-heading to 0.0) ;;parts head same way as whole
+ (set your variables-to-copy-upon-creation to (state visibility))) ;;the others added later
+
+
+(define-method (set your xcor to ?new-xcor) object
+ (ask :self set your state to (,new-xcor !,(rest (ask :self recall your state))))
+ new-xcor)
+
+(define-method (set your ycor-to ?new-ycor) object
+ (let (((xcor nil heading) (ask :self recall your state)))
+      (ask :self set your state to (,xcor ,new-ycor ,heading)))
+ new-ycor)
+      
+(define-method (set your heading to ?new-heading) object
+ (let (((xcor ycor nil) (ask :self recall your state)))
+      (ask :self set your state to (,xcor ,ycor ,new-heading)))
+ new-heading)
+
+(define-method (set your position to ?new-position) object
+ (ask :self set your state to (!,new-position ,(ask :self recall your heading)))
+ new-position)
+
+(define-method (recall your xcor) object
+ (first (ask :self recall your state)))
+
+(define-method (recall your ycor) object
+ (second (ask :self recall your state)))
+
+(define-method (recall your position) object
+ (let (((xcor ycor) (ask :self recall your state)))
+      '(,xcor ,ycor)))
+
+(define-method (recall your heading) object
+ (third (ask :self recall your state)))
+
+(define-method (recall your draw-procedure-body) object
+ (let ((draw-procedure-name (ask :self recall your draw-procedure)))
+      (let ((draw-procedure (second (getl draw-procedure-name '(expr lexpr)))))
+	   (cond (draw-procedure (defunize draw-procedure-name draw-procedure))))))
+
+(define-method (set your parts to ?new-value) object
+ (cond ((one-long new-value) ;;first one 
+	(ask :self tell each of your parts whenever your state is changed)
+	(ask :self tell each of your parts whenever your size is changed)
+	(ask :self tell each of your parts whenever your visibility is changed)))
+ (ask-old :self set your parts to ,new-value))
+
+(define-method (show) object
+ (help-comments: |Show myself if not already shown and screen is not in "silent" mode|)
+ (ask screen showing ,:self)
+ (ask :self show-2))
+
+(define-method (show-2) object
+ ;;this is split up so that some can just use this guy and not tell the screen
+ (ask :self set your visibility to t)
+ (cond ((eq (ask screen recall your mode) 'silent))
+       (t (ask :self display)))
+ no-value)
+
+(define-method (hide) object
+ (help-comments: |Hide myself unless already hidden|)
+ (ask screen hiding ,:self)
+ (ask :self hide-2))
+
+(define-method (hide-2) object
+ (let ((visibility (ask :self recall your visibility)))
+      (ask :self set your visibility to nil)
+      (cond ((and visibility (not (eq (ask screen recall your mode) 'silent)))
+	     (ask :self erase))))
+ no-value)
+
+(define-method (display) object
+ (ask screen perform turtle actions
+      ,(ask :self recall your draw-mode)
+      (thingup)
+      (setturtle (quote ,(ask :self recall your state)))
+      (thingdown)
+      ,(ask :self recall your how-to-draw)))
+
+(define-method (erase) object ;;the default way of erasing
+ (ask :self erase by redrawing))
+
+(define-method (set your erasability to ?value) object
+ (cond (value (ask :self do when receiving (erase) (ask :self erase by redrawing)))
+       (t (ask :self do when receiving (erase) (ask :self erase by clearing area))))
+ (ask-old :self set your erasability to ,value))
+
+(define-method (erase by redrawing) object
+ (ask screen perform turtle actions
+      ,(ask :self recall your erase-mode)
+      (thingup)
+      (setturtle (quote ,(ask :self recall your state)))
+      (thingdown)
+      ,(ask :self recall your how-to-draw)))
+
+(define-method (erase by clearing area) object
+ (ask screen perform turtle actions
+      (penup)
+      (setturtle (quote ,(ask :self recall your state)))
+      (eraserdown)
+      (fillwindow (plus :tvstep (min (distance-to-nearest-wall)
+				     ,(ask :self recall your size))))))
+
+(define-method (recall your how-to-draw) object
+ ;;this gets updated only when needed (ie when displaying) so that many changes can
+ ;;happen behind your back
+ (let ((how-to-draw (ask-old :self recall your how-to-draw)))
+      (cond (how-to-draw) ;;if known already return it
+	    (t ;;if the appearance has changed then need to recons this
+	     (let ((drawing-form (make-inner-drawer)))
+		  (let (((how-to-get-to-center scale)
+			 (how-to-get-to-center-and-scale drawing-form 1.0)))
+		       (ask :self set your appearance-changed to nil)
+		       (ask :self set your how-to-draw to
+			    (draw-scaled-and-centered
+			     ,(float (ask :self recall your size))
+			     (quote ,drawing-form)
+			     ,scale
+			     (quote ,how-to-get-to-center)
+			     (quote ,(first (ask :self recall your colors)))
+			     (quote ,(ask :self recall your center-offset))))))))))
+
+(define-form (draw-scaled-and-centered
+	       size drawing-form scale how-to-get-to-center pen-color center-offset)
+ (let ((scale-factor (*$ size scale)))
+      (unwind-protect
+       (progn
+	(thingup)
+	(eval center-offset)
+	(scale scale-factor)
+	(let ((center-state (here)))
+	     (eval how-to-get-to-center)
+	     (pencolor pen-color)
+	     (thingdown)
+	     (eval drawing-form)
+	     (thingup)
+	     (setturtle center-state)))
+       (scale (//$ scale-factor)))))
+
+(define-method (set your size to ?new-size) object
+ ;;can just change the appropriate part of the how-to-draw
+ (let ((how-to-draw (ask :self recall your how-to-draw))
+       (visibility (ask :self recall your visibility)))
+      (and visibility (ask :self hide))
+      ;;while how-to-draw will do this too, this way parts/wholes works better
+      (ask :self set your appearance-changed to t)
+      (and how-to-draw
+	   (ask :self set your how-to-draw to
+		,(replace-nth 1 how-to-draw (float new-size))))
+      (ask-old :self set your size to ,new-size)
+      (and visibility (ask :self show))
+      new-size))
+
+(define-method (set your colors to ?new-colors) object
+ ;;can just change the appropriate part of the how-to-draw
+ (let ((how-to-draw (ask :self recall your how-to-draw)))
+      (ask :self set your appearance-changed to t)
+      (and how-to-draw
+	   (ask :self set your how-to-draw to
+		,(replace-nth 5 how-to-draw '(quote ,(first new-colors)))))
+      (ask-old :self set your colors to ,new-colors)))
+
+(define-method (set your center-offset to ?new-center-offset) object
+ ;;can just change the appropriate part of the how-to-draw
+ (let ((how-to-draw (ask :self recall your how-to-draw)))
+      (ask :self set your appearance-changed to t)
+      (and how-to-draw
+	   (ask :self set your how-to-draw to
+		,(replace-nth 6 how-to-draw '(quote ,new-center-offset))))
+      (ask-old :self set your center-offset to ,new-center-offset)))
+
+(define-method (set your how-to-draw to ?new-value) object
+ (cond ((ask :self recall your visibility)
+	(ask :self hide)
+	(ask :self set your appearance-changed to t)
+	;;should have been set by others but just in case can't hurt to reset it
+	(ask-old :self set your how-to-draw to ,new-value)	
+	(ask :self show)
+	new-value)
+       (t (ask :self set your appearance-changed to t)
+	  (ask-old :self set your how-to-draw to ,new-value))))
+
+
+(define-method-helper (make-inner-drawer) object
+ (let ((draw-procedure (ask :self recall your draw-procedure)))
+      (cond (draw-procedure
+	     (cons
+	      draw-procedure
+	      (mapcar
+	       (function (lambda (arg)
+				 (cond ((or (atom arg) (rest arg)) ;;not one-long list
+					'(quote ,(ask :self recall your ,arg)))
+				       (t '(quote ,(ask :self recall your ,(first arg)))))))
+	       (ask :self recall your drawing-args))))
+	    (t nil)))) ;;restore the scale
+
+
+(define-macro-method ({and ?command {or fd forward bk back rt right lt left}} ?amount)
+ object
+ (help-comments:
+  |move forward or back or turn left or right respectively whatever the "amount" is|)
+  '(ask ,:self run ,command ,amount))
+
+(define-method (right-revolve ?amount) object
+ (help-comments:
+  |Revolve clockwise about my "revolution-center" if there is none then same as right amount|)
+  (right-revolve amount))
+
+(define-method (left-revolve ?amount) object
+ (help-comments:
+  |Revolve counter-clockwise about my "revolution-center" if none then same as left amount|)
+  (right-revolve (minus amount)))
+
+(define-macro-method (grow ?amount) object
+ (help-comments: |increase my size by "amount"|)
+ '(ask ,:self increment your size by ,amount))
+
+(define-macro-method (shrink ?amount) object
+ (help-comments: |subtract "amount" from my size|)
+ '(ask ,:self increment your size by `(minus (quote-if-need-be ,amount))))
+
+(define-method {and ?the-whole-message (gradually setturtle ?new-state %followup)} object
+ (help-comments: |gradually move towards "new-state" using my "speed" and "rotational-speed"|)
+ (do-set-turtle-gradually :self (first new-state) (second new-state) (third new-state)
+			  (cond ((eq (first followup) 'then)
+				 (rest followup)))
+			  the-whole-message))
+
+(define-method {and ?the-whole-message (gradually setxy ?x ?y %followup)} object
+ (help-comments:
+  |gradually move to "x" and "y" coordinates using my "speed" and "rotational-speed"|)
+ (do-set-turtle-gradually :self x y (ask :self recall your heading)
+			  (cond ((eq (first followup) 'then)
+				 (rest followup)))
+			  the-whole-message))
+
+(define-method {and ?the-whole-message (gradually setx ?x %followup)} object
+ (help-comments: |gradually move to "x" coordinate using my "speed" and "rotational-speed"|)
+ (let ((state (ask :self recall your state)))
+      (do-set-turtle-gradually :self x (second state) (third state)
+			       (cond ((eq (first followup) 'then)
+				      (rest followup)))
+			       the-whole-message)))
+
+(define-method {and ?the-whole-message (gradually sety ?y %followup)} object
+ (help-comments: |gradually move to "y" coordinate using my "speed" and "rotational-speed"|)
+ (let ((state (ask :self recall your state)))
+      (do-set-turtle-gradually :self (first state) y (third state)
+			       (cond ((eq (first followup) 'then)
+				      (rest followup)))
+			       the-whole-message)))
+
+(define-method {and ?the-whole-message (gradually setheading ?heading %followup)} object
+ (help-comments: |gradually change my heading to "heading" using my "rotational-speed"|)
+ (let ((state (ask :self recall your state)))
+      (do-set-turtle-gradually :self (first state) (second state) heading
+			       (cond ((eq (first followup) 'then)
+				      (rest followup)))
+			       the-whole-message)))
+
+
+(define-method {and ?the-whole-message (gradually delxy ?x ?y %followup)} object
+ (help-comments:
+  |gradually move towards the point "x" steps to the right and up "y" steps using my "speed"|)
+ (do-delxy-gradually :self x y
+		     (cond ((eq (first followup) 'then)
+			    (rest followup)))
+		     the-whole-message))
+
+(define-method (prepare to mix colors with ?colors) object
+ (help-comments:
+  |set up a variable called "color-mix" which controls the fraction of the original colors|
+  |and the "colors" that my current colors are -- so setting color-mix to .5 is 50-50|)
+ (ask :self do when receiving (set your color-mix to ?new-value)
+  (let ((old-colors (ask :self recall your colors)))
+       (ask :self set your colors to
+	    ,(comma (mix-colors old-colors
+				(color-differences old-colors (quote ,colors))
+				new-value)))
+       (ask-old :self set your color-mix to ,(comma new-value)))))
+
+
+(define-method (change your colors to ?colors in ?number ticks) object
+ (help-comments: |prepare to mix current colors with "colors" and|
+		 |gradually change my colors to "colors" doing 1/"number" of it on each tick|)
+ (ask :self prepare to mix colors with ,colors)
+ (ask :self set your (color-mix speed) to ,(//$ (float number)))
+ (ask :self gradually increment your color-mix by 1.0))
+
+
+(define-method {and ?the-whole-message
+		     (gradually {or set change} your ?variable to ?value %followup)} object
+ (help-comments:
+  |gradually change the value of "variable" to "value" using my ("variable" speed)|)
+ (gradually-change-value :self variable value
+			 (cond ((eq (first followup) 'then)
+				(rest followup)))
+			 the-whole-message))
+
+
+(define-method {and ?the-whole-message
+		      (gradually increment your ?variable by ?amount %followup)} object
+ (help-comments:
+  |gradually increase the value of "variable" by "amount" at my ("variable" speed)|)
+ (gradually-increment-value :self variable amount
+			    (cond ((eq (first followup) 'then)
+				   (rest followup)))
+			    the-whole-message))
+
+(define-method {and ?the-whole-message (gradually ?command ?amount %followup)} object
+ (help-comments:
+  |gradually do whatever the "command" is using the speed called ("command" speed-name)|)
+ (do-gradually :self command amount (cond ((eq (first followup) 'then)
+						 (rest followup)))
+	       the-whole-message))
+
+(define-method (yield distance to (?x ?y %)) object
+ (help-comments: |return the distance I am from the point at "x" and "y"|)
+ (setturtle (ask :self recall your state))
+ (range x y))
+
+
+(define-method (yield heading to (?x ?y %)) object
+ (help-comments:
+  |return the heading I would need to face someone at "x" and "y" coordinates|)
+ (setturtle (ask :self recall your state))
+ (bearing x y))
+
+(define-method (yield heading from (?x ?y %)) object
+ (help-comments: |return the heading someone at "x" and "y" would need to face towards me|)
+ (setxy x y)
+ (bearing (ask :self recall your state)))
+
+(define-method (set your state to ?new-state) object
+ (help-comments:
+  |change my x and y coordinates and heading according to value of "new-state"|)
+ (let ((visible? (ask :self recall your visibility)))
+      (cond (visible? (ask :self hide)))
+      (ask :self set your state-changed to t)
+      ;;in case a new apparance is asked for
+      (ask-old :self set your state to ,new-state)
+      (cond (visible? (ask :self show)))))
+
+(define-macro-method (setturtle ?new-state) object
+ (help-comments: |move to x and y coordinates and heading of "new-state"|)
+ '(ask ,:self set your state to ,new-state))
+
+
+(define-macro-method (setheading ?new-heading) object
+ (help-comments: |change my heading to "new-heading"|)
+ '(ask ,:self set your heading to ,new-heading))
+
+
+(define-method ({and ?command {or setxy delxy}} ?x ?y) object
+ (help-comments: |move to "x" and "y" if setxy or move over "x" and up "y" if delxy|)
+ (ask :self run ,command ,x ,y))
+
+(define-method ({and ?command {or delx dely setx sety}} ?amount) object
+ (help-comments: |move accordingly|)
+ (ask :self run ,command ,amount))
+
+(define-method (run %action) object
+ (help-comments: |run the turtle commands in "action"|)
+ (let ((visible (ask :self recall your visibility)))
+      (and visible (ask :self hide))
+      (penup)
+      (setturtle (ask :self recall your state))
+      (eval (ask :self recall your pen-state))
+      (eval action)
+      (ask :self set your state to (,:xcor ,:ycor ,:heading))
+      (and visible (ask :self show))))
+
+(define-macro-method
+ ({and ?command {or pu pd penup pendown eraserdown erd xd xordown xu xorup}})
+ object
+ (help-comments: |change the pen accordingly so that I leave (or stop leaving) a trail|)
+  '(ask ,:self set your pen-state to (,command)))
+
+(define-method (redisplay) object
+ (help-comments: |if visible then erase myself and redraw|)
+ (cond ((ask :self recall your visibility) ;;if visible then
+	(ask :self erase)
+	(ask :self display))))
+
+(define-method (create new appearance) object
+  (let ((current-appearance (ask :self recall your current-appearance))
+	(current-appearance-and-state (ask :self recall your current-appearance-and-state))
+	(state-changed (ask :self recall your state-changed)))
+	(let ((appearance-changed (or (null current-appearance)
+				      (ask :self recall your appearance-changed))))
+	     (cond (appearance-changed
+		    ;;if the appearance has changed or this its first appearance
+		    (setq current-appearance
+			  (ask :self make an instance named nil copying (how-to-draw)))
+		    (ask :self set your current-appearance to ,current-appearance)
+		    (ask :self set your appearance-changed to nil)))
+	     (cond ((or appearance-changed state-changed)
+		    (ask :self set your state-changed to nil)
+		    (setq current-appearance-and-state
+			  (ask :self set your current-appearance-and-state to
+				     ,(ask ,current-appearance
+					   make an instance named nil copying (state))))))
+	     current-appearance-and-state)))
+
+
+(define-method (when drawing use ?draw-procedure of %draw-args) object
+ (help-comments:
+  |learn how to draw myself using "draw-procedure" of my variables in "draw-args"|)
+ (ask :self set your draw-procedure to ,draw-procedure)
+ (let (((shape-args non-shape-args) (seperate-shape-args draw-args)))
+      (let ((appearance-variables (union '(how-to-draw colors center-offset) non-shape-args)))
+	   (ask :self set your drawing-args to ,shape-args)
+	   (ask :self set your non-shape-drawing-args to ,non-shape-args)
+	   (ask :self set your appearance-variables to ,appearance-variables)
+	   (ask :self set your variables-to-copy-upon-creation to
+		,(union appearance-variables
+			(ask :self recall your variables-to-copy-upon-creation))))
+      (mapc
+       (function
+	(lambda (shape-arg)
+		(cond ((eq shape-arg 'size)) ;;already handled above
+		      (t (ask :self do when receiving (set your ,shape-arg to ?new-value)
+			      (ask :self set your how-to-draw to nil) ;;no longer valid
+			      (ask-old :self set your ,shape-arg to ,(comma new-value)))))))
+       shape-args)
+      (mapc
+       (function
+	(lambda (non-shape-arg)
+		(ask :self do when receiving (set your ,non-shape-arg to ?new-value)
+		     (let ((how-to-draw (ask :self recall your how-to-draw)))
+			  (ask :self set your appearance-changed to t)
+			  (and how-to-draw
+			       (ask :self set your how-to-draw to
+				    ,(comma (replace-nth 2 how-to-draw (make-inner-drawer))))))
+		     (ask-old :self set your ,non-shape-arg to ,(comma new-value)))))
+       non-shape-args))
+ no-value)
+
+(define-form (seperate-shape-args draw-args)
+ ;;the non shape args (those that can not influence the shape, eg color) are one-long lists
+ (do ((i draw-args (rest i))
+      (shape-args nil)
+      (non-shape-args nil))
+     ((null i) (list (nreverse shape-args) (nreverse non-shape-args)))
+     (cond ((atom (first i)) (push (first i) shape-args))
+	   ((one-long (first i)) (push (first (first i)) non-shape-args))
+	   (t (push (first i) shape-args)))))
+
+(define-method (become part of ?whole) object
+ (help-comments:
+  |become a part of "whole" so that|
+  |if it changes its size, position, visibility, or heading ":self" is told about it|
+  |and ":self" reacts to such changes a straight-forward way|)
+ ;;default behavior for an object to become part of another
+ (ask :self set your whole to ,whole)
+ (ask :self do when receiving (notice that state of ,whole is now ?new-state)
+      (ask :self recompute your state))
+ (ask :self do when receiving (notice that size of ,whole is now ?new-size) 
+      (ask :self recompute your size and state))
+ (ask :self do when receiving (notice that visibility of ,whole is now ?new-value)
+      (cond (new-value (ask :self show))
+	    (t (ask :self hide))))
+ (ask :self do when receiving (show) (ask :self show-2))
+ (ask :self do when receiving (hide) (ask :self hide-2))
+ (ask ,whole add ,(name-of :self) to your list of parts))
+
+
+(define-method (set your {and ?part-variable 
+					{or fraction-of-whole direction-from-center
+					    fractional-distance-from-center relative-heading}}
+			      to ?new-value) object
+;;these guys are specially handled for now
+ (ask :self recompute your size and state)
+ (ask-old :self set your ,part-variable to ,new-value))
+
+(define-method (recompute your size and state) object
+ (ask :self recompute your state)
+ (ask :self set your size to
+      ,(times (ask :self recall your fraction-of-whole)
+	      (ask :self ask your whole to recall your size))))
+
+(define-method (recompute your state) object
+ ;;moves from center of whole by turning and going forward 
+ (let ((whole (ask :self recall your whole)))
+      (let (((whole-x whole-y whole-heading) (ask ,whole recall your state)))
+	   (penup)
+	   (setxy whole-x whole-y)
+	   (setheading whole-heading)
+	   (right (ask :self recall your direction-from-center))
+	   (forward (times (ask ,whole recall your size)
+			   (ask :self recall your fractional-distance-from-center)))
+	   (setheading (plus (ask :self recall your relative-heading)
+			     whole-heading))
+	   (ask :self set your state to (,:xcor ,:ycor ,:heading)))))
+
+(define-method (make interpolation to ?another-object) object
+ (help-comments: |make an interpolation named (interpolation "name" to "another-object")|
+		 |which initially is the average appearance of the me and "another-object"|
+		 |and is controlable with its variable called "amount"|)
+ (ask :self make (interpolation ,(name-of :self) to ,another-object)
+      interpolation to ,another-object))
+
+(define-method (make ?interpolation-name interpolation to ?another-object) object
+ (help-comments:
+  |create an interpolation from me to "another-object" named "interpolation-name"|
+  |which initially is the average appearance of the me and "another-object"|
+  |and is controlable with its variable called "amount"|)
+  (let ((interpolation-drawer (append-atoms 'draw- interpolation-name))
+	(to-draw-self (ask :self recall your how-to-draw))
+	(to-draw-other (ask ,another-object recall your how-to-draw)))
+       ;;it is important for gc that interpolation-drawer not be interned
+       (putprop interpolation-drawer
+		'(lambda (size amount colors color-change-frequency)
+			 (display-interpolation (float amount)
+						colors
+						color-change-frequency
+						(quote
+						 ,(interpolate-two-calls to-draw-self
+									 to-draw-other))))
+		'expr)
+       (ask interpolation make ,interpolation-name)
+       (ask ,interpolation-name set your size to
+	    ,(integer-average '(,(ask :self recall your size)
+				,(ask ,another-object recall your size))))
+       (ask ,interpolation-name when drawing use ,interpolation-drawer
+	    of size amount (colors) (color-change-frequency))
+       interpolation-name))
+
+(define-method (unmake) object
+ (help-comments: |do the same thing as Something but also hide first|)
+ (and (ask :self recall your visibility) (ask :self hide))
+ (ask-old :self unmake))
+
+(define-method (make copy ?sibling) object
+ ;;if visible need to tel the screen about it
+ (ask-old :self make copy ,sibling)
+ (and (ask :self recall your visibility)
+      (ask screen add ,sibling to your list of visible-objects))
+ sibling)
+
+
+(define-method (save %file-name) object
+ (help-comments:
+  |do same thing as Something but also save away the draw-procedure if necessary|)
+ (let ((visible? (ask :self recall your visibility)))
+      (and visible? (ask :self hide)) ;;dont want it to think its visible
+      (let ((compilation (ask-old :self save !,file-name))
+	    (draw-procedure (ask :self recall your draw-procedure-body)))
+	   (and visible? (ask :self show))
+	   (cond (file-name
+		  (let ((file-object (open file-name 'append)))
+		       (dicks-print draw-procedure file-object)
+		       (close file-object)))				
+		 (t (append compilation (list draw-procedure)))))))
+
+(define-method (note that I {or finished started} %) object
+ ;;as in (note that I finished forward 250.0)
+		 no-value)
+
+
+(define-method-helper (right-revolve amount) object
+ (let ((revolution-center (ask :self recall your revolution-center)))
+      (cond (revolution-center
+	     (setturtle (ask :self recall your state))
+	     (revolve-object amount
+			     (bearing revolution-center)
+			     (range revolution-center)))
+	    (t (ask :self right ,amount)))))
+
+
+(define-method-helper (revolve-object amount heading distance) object
+ (ask :self
+      run let ((begin-state (here)))
+              (thingup)
+	      (setheading ,heading)
+	      (forward ,distance)
+	      (right ,amount)
+	      (back ,distance)
+	      (setheading (plus ,amount (third begin-state)))
+	      (let ((end-state (here)))
+		   (setturtle begin-state)
+		   (thingdown)
+		   (setturtle end-state))))
+
+
+(define-method-helper (gradually-change-value
+		       planner variable goal-value follow-up the-message) object
+ (let ((speed (quotient
+	       (or (ask :self recall your (,variable speed))
+		   1.0) ;;all variable speeds default to 1.0
+	       :frames-per-second))
+       (follow-up (maintain-followup planner follow-up the-message))
+       (distance-to-go (difference goal-value (or (ask :self recall your ,variable) 0.0))))
+      (cond ((minusp distance-to-go) (setq speed (minus speed))))
+      (cond ((not (< (abs speed) (abs distance-to-go)))
+	     (ask :self set your ,variable to ,goal-value) ;;finished
+	     (ask ,planner !,follow-up))
+	    (t (ask :self increment your ,variable by ,speed)
+	       (ask ,planner plan next
+		    gradually set your ,variable to ,goal-value then !,follow-up)))
+      no-value))
+
+(define-method-helper (gradually-increment-value
+		       planner variable increase follow-up the-message) object
+ (let ((speed (quotient
+	       (or (ask :self recall your (,variable speed))
+		   1.0) ;;all variable speeds default to 1.0
+	       :frames-per-second))
+       (follow-up (maintain-followup planner follow-up the-message)))
+      (cond ((not (lessp speed (abs increase)))
+	     (ask :self increment your ,variable by ,increase) ;;finished
+	     (ask ,planner !,follow-up))
+	    ((minusp increase)
+	     (ask :self increment your ,variable by ,(minus speed))
+	     (ask ,planner plan next
+		    gradually increment your ,variable by
+		    ,(plus increase speed) then !,follow-up))
+	    (t (ask :self increment your ,variable by ,speed)
+	       (ask ,planner plan next
+		    gradually increment your ,variable by
+		    ,(difference increase speed) then !,follow-up)))
+      no-value))
+
+(define-method-helper (do-gradually planner command amount followup the-message) object
+ (let ((speed-name (ask :self recall your (,command speed-name))))
+      (let ((speed (quotient
+		    (cond ((ask :self recall your ,speed-name))
+			  (t (warning
+			      'do-gradually
+			      '(no speed of ,(name-of :self)
+				   given for ,command 99999999 assumed))
+			     99999999))
+		    :frames-per-second)))
+	   (setq followup (maintain-followup planner followup the-message))
+	   (cond ((not (lessp speed (abs amount)))
+		  (ask :self ,command ,amount)
+		  (ask ,planner !,followup))
+		 ((minusp amount)
+		  (ask :self ,command ,(minus speed))
+		  (ask ,planner plan next
+		       gradually ,command ,(plus amount speed) then !,followup))
+		 (t (ask :self ,command ,speed)
+		    (ask ,planner plan next
+			 gradually ,command ,(difference amount speed) then !,followup)))))
+ no-value)
+
+(define-method-helper (maintain-followup planner followup the-message) object
+ (cond ((null followup)
+	(ask ,planner note that I started !,the-message) ;;note that it has begun
+	'(note that I finished !,the-message)) ;;the next followup is to say its finished
+       (t followup)))
+
+(define-method-helper (do-delxy-gradually planner x y followup the-message) object
+ (let ((speed (//$ (float (ask :self recall your speed)) (float :frames-per-second))))
+      (setq followup (maintain-followup planner followup the-message))
+      (penup)
+      (setturtle (ask :self recall your state))
+      (let ((goal-x (plus x :xcor))
+	    (goal-y (plus y :ycor)))
+	   (let ((temp-turn (difference (bearing goal-x goal-y) :heading)) ;; to go forward
+		 (distance (float (range goal-x goal-y))))
+		(cond ((not (< speed distance)) ;;just about to finish
+		       (ask :self delxy ,x ,y)
+		       (ask ,planner !,followup))
+		      (t (ask :self
+			      run do-the-following:
+				 (right ,temp-turn)
+				 (forward ,speed)
+				 (left ,temp-turn))
+			 (ask ,planner plan next gradually
+			      delxy ,(difference goal-x :xcor) ,(difference goal-y :ycor)
+			      then !,followup)))))))
+
+(define-method-helper (do-set-turtle-gradually planner x y heading followup the-message) object
+ ;;typically the planner and the object performing are the same but Ani needs it otherwise
+ (let ((speed (//$ (float (ask :self recall your speed))
+		   (float :frames-per-second)
+		   (float :ticks-per-frame)))
+       (rotational-speed (//$ (float (ask :self recall your rotational-speed))
+			      (float :frames-per-second)
+			      (float :ticks-per-frame)))
+       (message-with-followup (cond ((null followup)
+				     '(!,the-message then
+						     !,(setq followup
+							    (maintain-followup planner
+									       followup
+									       the-message))))
+				    (t the-message)))) ;;otherwise has followup already
+      (penup)
+      (setturtle (ask :self recall your state))
+      (let ((temp-turn (difference (bearing x y) :heading)) ;;this is to go forward
+	    (turn (make-it-less-than-180 (difference heading :heading)))
+	    (distance (float (range x y))))
+	   (let ((rotational-speed-signed-by-turn
+		  (cond ((minusp turn) (minus rotational-speed))
+			(t rotational-speed))))
+		(cond ((and (not (< speed distance)) (not (< rotational-speed (abs turn))))
+		       (ask :self 
+			    run do-the-following:
+			       (right ,temp-turn)
+			       (forward ,distance) ;;just do what little is left
+			       (right ,(difference turn temp-turn)))
+		       (ask ,planner !,followup))
+		      ((not (< speed distance)) ;;some turning left to be done
+		       (ask :self
+			    run do-the-following:
+			       (right ,temp-turn)
+			       (forward ,distance)
+			       (right ,(difference rotational-speed-signed-by-turn temp-turn)))
+		       (ask ,planner plan next !,message-with-followup))
+		      ((not (< rotational-speed (abs turn)))
+		       ;;some going forward left to be done
+		       (ask :self
+			    run do-the-following:
+			       (right ,temp-turn)
+			       (forward ,speed)
+			       (right ,(difference turn temp-turn)))
+		       (ask ,planner plan next !,message-with-followup))
+		      (t (ask :self
+			      run do-the-following: ;;both turning and moving left to do
+				 (right ,temp-turn) 
+				 (forward ,speed)
+				 (right
+				  ,(difference rotational-speed-signed-by-turn temp-turn)))
+			 (ask ,planner plan next !,message-with-followup)))))))
+
+
+(define interpolation object
+ (set your color-change-frequency to 99999999) ;;default never change the color
+ (set your amount to .5)) ;;initially it is by default half of each
+
+(define window object
+ (set your window to no-window-set)
+ (set your appearance-variables to (state window))
+ (do when receiving ({or erase display})
+	  (penup)
+	  (setturtle (ask :self recall your state))
+	  (xorwindow (ask :self recall your window) :xcor :ycor))
+ (do when receiving (set your window to ?new-window) 
+	 (let ((visibility (ask :self recall your visibility)))
+	      (cond (visibility (ask :self hide)))
+	      (ask-old :self set your window to ,new-window)
+	      (cond (visibility (ask :self show))))))
+
+(define text object
+ (set your text to |No text given|) ;;provide a default text
+ (set your font to tvfont) ;;default font is this one
+ (set your length to 0.0)
+ (set your appearance-variables to (text font))) ;;for movies
+
+(define-method ({and ?message {or display erase}}) text
+ (penup) 
+ (setturtle (ask :self recall your state));;move the turtle to state
+ (left 90)
+ (forward (*$ (ask :self recall your length) :tvstep .5))
+ (right 90)
+ (dely (*$ (or (get (ask :self recall your font) 'height)
+	       (let ((font-file (get (ask :self recall your font) 'font-autoload-file)))
+		    (cond (font-file
+			   (director-load font-file
+					  '(to load in ,(ask :self recall your font))))
+			  (t (shouldnt-happen
+			      'text
+			      '(|dont know where to find winfon file for|
+				,(ask :self recall your font)))))
+		    (get (ask :self recall your font) 'height)))
+	   :tvstep .5)) ;;center vertically
+ (cond ((status features color)
+	(cond ((eq message 'erase) (pencolor :erasercolor))
+	      ;;since there is no xor in color
+	      (t (pencolor (first (ask :self recall your colors)))))))
+ (fontprinc (ask :self recall your text) ;;font print the text
+	    (ask :self recall your font)))
+
+(define-method (set your {and ?visible-variable {or text font}} to ?new-value) text
+ (let ((visibility (ask :self recall your visibility)))
+      (and visibility (ask :self hide))
+      (ask-old :self set your ,visible-variable to ,new-value)
+      (and visibility (ask :self show)))
+ (ask :self set your length to
+      ,(fwuse-text-length (ask :self recall your text)
+			  (ask :self recall your font)))
+ new-value)
+
+

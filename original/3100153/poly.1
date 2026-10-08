@@ -1,0 +1,31 @@
+;fill this up with other "drawings" later
+
+(declare (setq ibase 10.))
+
+(declare (*lexpr mw hw sw wf fw shade))
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+
+(defun poly1 (:size :angle :begin.heading)
+		(forward :size)
+       		(right :angle)
+		(cond ((= :begin.heading (heading)))
+		      (t (poly1 :size :angle :begin.heading))))
+
+
+(defun draw.poly (:size :angle)
+       (poly1 :size :angle (heading)))
+
+

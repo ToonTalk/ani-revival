@@ -1,0 +1,231 @@
+ -*-text-*-
+.dv xgp
+.de define_comment  does nothing is for comments that tags will know about
+.em
+.
+.define_comment rbasic for tags
+.eq set sr
+.eq break br
+.eq space sp
+.eq vertical_position vp
+.eq source so
+.eq define de
+.eq append_macro am
+.eq add_to_macro am
+.eq end_macro em
+.eq line_space ls
+.eq line_spacing ls
+.eq save_environment es
+.eq environment ev
+.eq font_select fs
+.eq select_font fs
+.eq fill fi
+.eq nofill nf
+.eq set_number nr
+.eq number_default nd
+.eq string_default sd
+.eq set_vertical vx
+.eq push_number nv
+.eq push_string sv
+.eq indent in
+.eq right_indent ir
+.eq font fo
+.eq new_page bp
+.eq principle_font pf
+.eq else ef
+.eq line_length ll
+.eq page_length pl
+.eq temporarily_indent ti
+.eq need ne
+.eq write_line wl
+.eq write_file wf
+.eq type tm
+.eq substring sb
+.eq string_index si
+.eq string_length sl
+.eq string_compare sc
+.eq set_vertical_trap st
+.eq set_trap st
+.eq horizontal_space hs
+.eq even_offset eo
+.eq odd_offset oo
+.eq line_length ll
+.eq remove_trap rt
+.eq resume_spacing rs
+.eq translate tr
+.eq translate_character tc
+.set r \*
+.set n \0
+.set i \1
+.set t \2
+.set l \3
+.set s \4
+.set_number normal_font 0
+.set_number line_font 0
+.set_number italics_font 1
+.set_number italic_font 1
+.set_number title_font 2
+.set_number big_font 2
+.set_number lisp_font 3
+.set_number small_font 4
+.set_number fnfont 4
+.set_number footnote_font 4
+.set small_picture_font D 
+.set medium_picture_font E
+.set big_picture_font F
+.set si \4
+.set_number footnote_italic_font 4
+.set_number footnote_bold_font 4
+.font 4 27vr
+.number_default times_fonts 0
+.number_default baskerville_fonts 0
+.number_default normal_fonts 0 don't know their name
+.number_default small_fonts 0
+.number_default crazy_fonts 0
+.number_default picture_fonts 0
+.if times_fonts+baskerville_fonts+normal_fonts+crazy_fonts+small_fonts==0
+.number_default gothic_fonts 1
+.else
+.set_number gothic_fonts 0
+.end
+.font 3 ken;30flsp kst (c) {ai:ken;30flsp kst}
+.if times_fonts
+.font 0 fonts2;11tr kst 
+.font 1 fonts2;11ti kst 
+.font 2 fonts2;times 14bold {AI:xfont;times 14bold}
+.end
+.if baskerville_fonts
+.font 0 fonts1;baxl30 (n)
+.font 1 fonts1;baxi30
+.font 2 fonts1;baxl40 (c)
+.end
+.if gothic_fonts
+.font 0 31vg (n)
+.font 1 31vgi
+.font 2 40vgl (c)
+.end
+.if normal_fonts
+.font 0 30vr (n)
+.font 1 30vri
+.font 2 37vrb (c)
+.end
+.if small_fonts
+.font 0 25vg (n)
+.font 1 25vgi
+.font 2 31vgb (c)
+.end
+.if crazy_fonts I often change the following used for crazy stuff
+.font 7 fonts1;baxl40
+.font 8 43vxms
+.font 9 36vbee
+.end
+.if picture_fonts
+.font D fonts2;turt1 {ai:fonts2;turt1 kst}so that mc knows where it is
+.font E fonts2;turt2 {ai:fonts2;turt2 kst}
+.font F fonts2;turt3 {ai:fonts2;turt3 kst}
+.end
+.number_default spooling 0 am not unless explictly say otherwise
+.if spooling i.e using the gould spooler (:gpl)
+.even_offset +.125i until the spooler does this right
+.odd_offset +.125i
+.end
+.number_default full_fonts 1
+.if full_fonts
+.set b \5
+.set sb \5
+.set_number bold_font 5
+.if times_fonts
+.font 5 ken1;11tb kst
+.end
+.if baskerville_fonts
+.font 5 fonts1;baxb30 (c)
+.end
+.if gothic_fonts
+.font 5 fonts;31vgb (c)
+.end
+.if normal_fonts
+.font 5 fonts;30vrb (c)
+.end
+.if small_fonts
+.font 5 fonts;25vgb (c)
+.end
+.else I can't use the fonts I want because the xgp 11 can't hold them all
+.set b \0
+.set sb \1
+.set si \1
+.set_number bold_font 0
+.end
+.font_select normal_font  this is the default
+.line_space 1.618  if its good enough for mother nature its ...
+.set center_heading  
+.indent 1i this put R into a loop starting up new pages
+.source r; r macros
+.
+.define center
+.break
+.if nargs>1
+\\\0\
+.else
+\\0
+.end
+.em
+
+.define narrow
+.indent \0
+.right_indent \0
+.em
+
+.
+.define begin_environment
+.begin new_env
+.push_number font
+.push_number fill
+.push_number ls
+.push_number pfont
+.push_number indent
+.push_number rindent
+.set_number indent \margin_offset
+.fill
+.font_select normal_font good default
+.em
+.
+.eq begin_env begin_environment
+.define end_environment
+.end
+.em
+.eq end_env end_environment
+
+.define New_paragraph
+.space .618
+.need 3l  should be enough room for at least three lines
+.temporarily_indent +5  indent the next line 5 spaces
+.em
+
+.define italics
+.if \font==small_font | \font==footnote_bold_font
+ if the current font is small then use small italics
+.if spooling
+si\0\*
+.else
+.underline "\0"
+.end
+.else
+.if \font==\italic_font already in italic then use normal_font underlined
+n\\0\\*
+.else  use normal italics
+i\0\*
+.end
+.end
+.em
+.
+.define lisp_font
+l\0\r
+.em
+.
+.define bold_font
+b\0\r
+.em
+.
+.define underline
+\\0\
+.em

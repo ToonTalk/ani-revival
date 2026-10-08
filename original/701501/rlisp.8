@@ -1,0 +1,40 @@
+ -*-text-*-
+this file contains R macros useful for papers with Lisp code in them
+.define begin_lisp_region  makes ; useable so file can be read by both lisp and R
+.cc . ;  treat a ; like a . in the beginning of a line
+.em
+
+.define end_lisp_region
+.nc ;   restore original definition of ;
+.em
+
+.define read_lisp_file
+.begin_lisp_region
+.source \0
+.end_lisp_region
+.em
+
+.define gobble_up  this throws away everything until end_of_gobbling from the R output
+\.define gobbling_up_macro end_of_gobbling terminated by end_of_gobbling
+.em
+
+.define begin_lisp
+ this should skip a line, set the font to lisp and turn off fill mode
+.break
+.begin_env
+.line_space 1
+.nofill
+.font_select lisp_font
+.keep end_lisp
+.em
+
+.define end_lisp
+.end_keep
+.space 1
+.end_env
+.em
+.
+.define com
+ for comments in lisp code
+;\\small_font \0 \r
+.em

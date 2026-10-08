@@ -1,0 +1,110 @@
+ (defun setup nil
+       (tvsize 500 300)
+       (turtlesize 300)
+	(ht)(pu)(setq *right-margin* 0))
+
+(defun demo (code text)
+(wipe)
+(sw text)
+(eval code))
+
+(setq s1 '(progn (ask rocket (only change your size to 50))
+	   (ask rocket (make fred))))
+
+(setq d1 '(demo '(ask fred (show)) '|ASK FRED (SHOW)|))
+
+(setq d2 '(demo '(ask fred (appear forward 50)) '|ASK FRED (APPEAR FORWARD 50)| ))
+
+(SETQ D3 '(DEMO '(ASK FRED (APPEAR LEFT 120)) '|ASK FRED (APPEAR LEFT 120)|))
+
+(SETQ D4 '(DEMO '(ASK FRED (FORWARD 75)) '|ASK FRED (FORWARD 75)|))
+
+(setq s4 '(ask rocket (change your speed to 25)))
+
+(setq s5 '(ask fred (change your speed to 50)))
+
+(SETQ D5 '(DEMO '(ASK FRED (DO ALL PLANNED FOR NEXT TICK WITH UNIVERSE-1))
+'|ASK FRED (DO ALL PLANNED FOR/
+     NEXT TICK WITH UNIVERSE-1)|))
+
+(SETQ D6 '(DEMO '(ASK FRED (GROW 10)) '|ASK FRED (GROW 10)|))
+
+
+(SETQ D7 '(DEMO '(ASK FRED (APPEAR BACK 50))
+	   	'|ASK FRED (APPEAR BACK 50)|))
+
+(SETQ S8
+'(progn (define.rocket)
+  (ASK ROCKET '(IF RECEIVE SHOOT missle with SPEED ?SPEED to go ?DISTANCE
+	       THEN DO.THE.FOLLOWING:
+		(ASK ROCKET (MAKE MISSLE))
+		(ASK MISSLE (change your SPEED to :?SPEED))
+		(ASK MISSLE (change your SIZE to (QUOTIENT
+					    (ASK :SELF (recall your SIZE))
+					    4)))
+		(ASK MISSLE (SETT (ASK :SELF (recall your here))))
+		(ASK MISSLE (SHOW))
+		(ASK MISSLE (plan: FORWARD :?DISTANCE then: hide next))))))
+
+(SETQ D8 '(DEMO '(progn(ASK FRED (SHOOT MISSLE WITH SPEED 100 TO GO 200))
+		  (ask universe (run for 5 ticks)))
+'|ASK FRED (SHOOT MISSLE     /
+     WITH SPEED 100 TO GO 200)|))
+
+(SETQ S9 '(PROGN (ASK FLOWER (MAKE SALLY))
+	         (ask sally (delx -200))
+	         (ASK SALLY (change your size to 70))))
+
+(SETQ D9 '(DEMO '(ASK SALLY (SHOW))
+	        '|ASK SALLY (SHOW)|))
+(setq s10
+      '(progn
+	(define.flower)
+	(ask flower (make sally))
+	(ask sally (delx -200))
+	(clip)
+	(ask sally (change your size to 70))
+	(ask sally (change your growth.speed to 10))
+	(ask flower '(if receive sway ?degrees degrees ?number times then
+		      do.the.following:
+		       (cond ((zerop (\ :?number 2))
+			      (ask :self (plan: appear rt :?degrees next)))
+			     (t (ask :self (plan: appear lt :?degrees next))))
+		      (and (greaterp :?number 0)
+			   (ask :self (plan: sway :?degrees degrees (1- :?number) times
+	   					 next)))))
+	(ask sally (show))
+	(ask sally (Plan: sway 10 degrees 12 times next))
+	(ask rocket (make fred))
+	(ask fred (change your size to 60))
+	(ask fred (change your growth.speed to 10))
+	(ask fred (change your speed to 30))
+	(clip)
+	(ask fred (change your rotational.speed to 25))
+	(ask fred (sett '(-22 38 240)))
+	(ask fred (show))
+	(ask fred (plan: shoot missle with speed 50 to go 200 next))
+	(ask fred (plan: forward 300 after 1 ticks))
+	(ask fred (plan: right 90 then: shrink 40 after 2 ticks))
+	(ask sally (plan: grow 30 after 6 ticks))
+	(ask movie (make attack 12 ticks long in universe))))
+
+
+
+(setq d10 '(demo '(progn (ask attack (begin))
+		   (ask attack (show)))
+	        '|ASK ATTACK (SHOW)|))
+        
+
+	     
+
+(defun make-text-windows nil
+       (mapc 'make-text-window (list d1 d2 d3 d4 d5 d6 d7 d8 d9 d10)))
+
+(defun make-text-window (demo)
+       ((lambda (text)
+		(fontcs)
+		(fontprint text '25fg)
+		(mw text))
+	(eval (caddr demo))))
+

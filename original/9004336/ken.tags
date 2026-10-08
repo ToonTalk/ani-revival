@@ -1,0 +1,1812 @@
+DSK: KEN; TV2R >
+01123,LISP
+(defcomment tv2r)±834
+(defmacro eval-while-gagged ²880
+(define-form (tv2r file (xgp-arglist nil)³099
+(define-form (tv2r-internal FILE RECTANGLE)³308
+(define-form (tv2r-list (xgp-arglist)³714
+(define-form (tv2r-list-internal RECTANGLE)³967
+(define-form (tv2r-PRINT-CHARACTERS LEFT-X RIGHT-X TOP-Y BOTTOM-Y where tyo-f princ-f terpri-f)´897
+(define-form (tv2r-PRINT-LINE START-X LINE-Y STOP-X file-object tyo-f princ-f)µ218
+(define-form (tv2r-RUN-OUT RUN-TYPE RUN-LENGTH file-object tyo-f princ-f)¶076
+(define-form (tv2r-TYO xgp-character file-object tyo-f)¶734
+(define-form (tv2r-terpri-to-list list)·151
+(define-form (tv2r-princ-to-list thing list)·260
+(define-form (tv2r-tyo-to-list ascii list)·377
+(define-form (tv2r-merge-picture-lists list-of-list-of-lists file)·495
+(define-form (tv2r-merge-picture-lists-horizontally list-of-lists file-object)¸007
+(define-form (tv2r-print-til-carriage-return list file-object)¸498
+(define-form (tv2r-big x-dimension y-dimension redisplay-form file)¸802
+(define-form (tv2r-normalize-coordinate coordinate max)±0378
+
+AI: KEN1; COMP >
+01739,LISP
+(defcomment comp)±89
+(define-form (compile-director (want-to-make-help-files nil)´34
+(define-form (compile-files director-files (want-to-make-help-files nil)·39
+(define-form (director-compile director-file (lisp-file-object)±042
+(define-form (compile-file director-file (lisp-file-object)±440
+(define-form (rename-fasl-file file-name)´018
+(define-form (open-append-if-exists file-name)´349
+(define-form (open-out-or-append file-name)´452
+(define-form (read-and-print-forms source-file-object output-file-object)´621
+(define-form (close-auxillary-files)¶082
+(define-function compile-and-print-actor ¶311
+(define-form (compile-actor actor (file-object)¶469
+(define-form (compile-normal-actor actor name)·682
+(define-form (compile-compiled-actor actor name)¸493
+(define-form (print-or-return thing file-object)¹539
+(define-form (quote-specially-any-actors list)¹865
+(define-form (quote-specially-any-actors-1 list)±0021
+(define-form (contains-any-actors list)±0245
+(define-form (replace-actors-with-print-forms form)±0443
+(define-form (save-help-on-file name help)±0705
+(define-form (defunize function-name lambda-expressionî±0995
+(define-form (save-methods actor-name actor new-actor)±1368
+(define-form (compile-method method actor)±2366
+(define-form (compile-internal-recall-your-variable-method name method)±4134
+(define-form (remove-from-alist alist bad-indicators)±4750
+(define-form (remove-synonyms-from-alist name alist non-atomic-alist)±5047
+(define-form (save-property thing indicator (file-object)±5707
+(define-form (compile-transmissions-in-method *method-being-run body actor)±5918
+(define-form (lispify-all-transmissions body actor)±6085
+
+AI: KEN; LOAD >
+00273,LISP
+(defun defcomment ±44
+(defcomment load)²17
+(defun director µ88
+(defun read-basic-system-tags ²160
+(defun read-direct-tags ²309
+(defun read-ani-tags ²571
+(defun read-tags ²863
+(defun rom ³850
+(defun mo ³930
+(defun pv ´020
+
+AI: KEN; DUMP >
+00200,LISP
+(defcomment dump)¶8
+(define-form (dump-director (file-name '|ken1;second:direct >|) (test-director? t))î²27
+(define-form (test-director (face-file 'compiled)²584
+
+AI: KEN; DECLA2 >
+00111,LISP
+(defcomment decla2)³98
+(defcomment *lexpr)¹15
+(defcomment special)±700
+
+AI: KEN; LISP >
+00560,LISP
+(defun (if-for-maclisp macro)³91
+(defun (if-for-lispm macro)´82
+(defun (if-for-maclisp-else-lispm macro)µ45
+(defun load-printer ¸54
+(defun dicks-print ±366
+(defun dicks-prin1 ±553
+(defun dicks-princ ±740
+(defun dicks-miserly-print ²175
+(defun go-slow ²995
+(defun go-fast ³216
+(defun snap-uuolinks ³401
+(defun (set-variable macro)³463
+(defun (s macro)³904
+(defun load-macro-files ³994
+(defun control-t ´532
+(defun e ´701
+(defun enter-specific-inf-editor ´905
+(defun my-default-tty-return µ268
+
+AI: KEN1; REAMAC >
+00571,LISP
+(defun defcomment ²85
+(defcomment reamac)³22
+(defun director-symbol-for-unpack ²097
+(defun excl-macro ²338
+(define-read-macro-function |!-read-macro|²714
+(defun comma-macro ³071
+(define-read-macro-function |,-read-macro|³282
+(defun quote-allowing-eval-and-unpack ³647
+(defun quote-allowing-eval-and-unpack-1 ´559
+(DEFUN CONTAINS-EVAL-OR-UNPACK ·228
+(defun (read-macro-quote macro)¸008
+(define-read-macro-function |'-read-macro|¸279
+(defun director-quote-read-macro ¸437
+(defun director-quote-read-macro ¹189
+
+AI: KEN1; READIR >
+00700,LISP
+(defcomment readir)±87
+(define-read-macro-function |~-read-macro|³65
+(defun atsign-reader ´25
+(defun (read-macro-ask macro)±014
+(defun (read-macro-ask /#grind-fn)±307
+(defun (director-symbol-for-actor ggrind-fn)³343
+(defun (displaced-transmission-macro ggrind-fn)´199
+(defun inverted-quote-macro ´419
+(define-read-macro-function |`-read-macro|´651
+(defun read-until ´755
+(defun read-form-checking-for µ167
+(defun curly-bracketed-list ¶179
+(define-read-macro-function |{-read-macro|¶654
+(defun read-and-expand ¶804
+(defun expand-abbreviation ¶928
+(defun expand-abbreviation-error ·184
+(define-read-macro-function |@-read-macro|·627
+
+AI: KEN1; MACROS >
+07079,LISP
+(defmacro read-quote-allowing-eval-and-unpack ²14
+(defcomment macros)¹81
+(defun *append-atoms ±149
+(defmacro first ±258
+(defmacro second ±303
+(defmacro third ±350
+(defmacro fourth ±399
+(defmacro rest ±450
+(defmacro define-macro ±529
+(defmacro define-macro ±667
+(defmacro define-simple-macro ²243
+(defmacro define-simple-macro ²401
+(define-simple-macro (progn-compile . forms)²518
+(define-macro (define-method-helper form *compilation-target . body)²864
+(define-macro (define-form (function-name . arg-list)³260
+(defun make-arg-list-compatible-with-extended-lambda ³464
+(define-macro (define-function name . rest)´344
+(define-macro (quoted? form)´459
+(define-simple-macro (last-element list)µ733
+(defmacro inside-the-compiler ¶053
+(defmacro inside-the-compiler ¶119
+(define-simple-macro (compile-actors)¶204
+(define-macro (define actor-name parent . code)¶311
+(define-macro (define-or-add-to actor-name parent . code)¶509
+(define-function define-1 ¶668
+(define-macro (define-receiver pattern actor comment-or-body . rest-of-receive)·098
+(define-macro (define-method pattern name comment-or-body . rest-of-receive)·362
+(define-macro (define-primitive-method pattern name comment-or-body . rest-of-receive)·639
+(define-macro (define-macro-method pattern name comment-or-body . rest-of-receive)·918
+(define-form (general-define-receiver inserter pattern name comment-or-body rest-of-receive)¸140
+(define-form (store-away-help-for actor pattern comment)¹165
+(define-macro (define-receive pattern rest-of-receive actor)¹556
+(define-form (compile-using-ask-each list-of-actors message compilation-target)±0465
+(define-macro (ask-each list-of-actors . message)±0701
+(defun (tell-each macro)±0867
+(define-macro (ask-if-exists possible-actor . message)±1018
+(define-macro (uncompiled-ask-if-exists possible-actor . message)±1262
+(define-macro (ask-if-understood actor . message)±1484
+(define-macro (ask-old-if-understood actor . message)±1628
+(define-macro (ask-if-can actor . message)±1754
+(define-macro (uncompiled-ask-if-can actor . message)±1917
+(define-macro (ask-all non-atomic-actor . message)±2473
+(define-macro (compiler-mapset bindings)±3597
+(define-macro (example-of transmission compilation-target)±3830
+(defun (a macro)±4234
+(define-simple-macro (uncompiled-ask target . message)±4359
+(define-macro (setq-if-unbound variable value)±4473
+(define-macro (compile-using compilation-target transmission)±4650
+(define-form (plain-displace old new)±5249
+(define-macro (define-transmission-macro transmission body)±5489
+(define-macro (define-transmission-macro transmission body)±5589
+(define-transmission-macro (ask target . message)±6191
+(macro displaced-transmission-macro ±6276
+(define-form (displaced-transmission form)±6361
+(define-transmission-macro (tell target . message)±6757
+(define-macro (do-old-behavior)±6850
+(define-transmission-macro (ask-old target . message)±6946
+(define-form (ask-macro target-form message-form (compilation-target)±7055
+(define-macro (actor-let bindings . body)±8611
+(define-macro (actor-push name)±9132
+(define-macro (actor-pop)±9236
+(define-macro (quote-if-need-be item)±9333
+(define-macro (comma form)±9445
+(define-macro (actorp thing)±9560
+(define-macro (actor-eq actor-1 actor-2)±9676
+(define-macro (actor-of actor . error?)±9760
+(define-form (get-or-autoload-non-atomic-actor actor error)²0568
+(define-form (get-or-autoload-actor actor error)²0730
+(define-function get-actor ²0816
+(define-macro (internal-recall-your-variable-of actor)²1080
+(define-macro (parent-of actor)²1275
+(define-macro (change-parent-of actor parent)²1407
+(define-simple-macro (invisible-methods-of actor)²1502
+(define-macro (set-invisible-methods-of actor methods)²1580
+(define-simple-macro (methods-of actor)²1666
+(define-macro (run-with-method-invisible code actor method)²1754
+(define-simple-macro (definedp function-name)²2165
+(define-simple-macro (definedp function-name)²2276
+(define-simple-macro (get-interpretive-definition function-name)²2409
+(define-simple-macro (get-interpretive-definition function-name)²2506
+(define-macro (macro-definition macro-name)²3016
+(define-macro (macro-definition macro-name)²3090
+(define-macro (methodp method)²3648
+(define-macro (normal-method? method)²3805
+(define-macro (value-method? method)²3885
+(define-macro (macro-method? method)²3964
+(define-macro (method-selector? method)²4046
+(define-simple-macro (method-type method)²4133
+(define-simple-macro (body-of-method method)²4201
+(define-macro (set-body-of-method method new-action)²4278
+(define-simple-macro (method-pattern-predicate method)²4377
+(define-simple-macro (method-selector-continuation method)²4520
+(define-form (method-pattern method)²4653
+(define-simple-macro (method-alist method)²4834
+(define-macro (invoke-method method)²4923
+(define-simple-macro (invoke-method method)²5057
+(define-macro (invoke-macro-method method)²5126
+(define-macro (invoke-method-selector method message)²5254
+(define-macro (invoke-method-selector method message)²5417
+(define-macro (method-applicable? method message . actor)²5511
+(define-form (method-if-not-hidden method)²5965
+(define-macro (director-mapcar function . lists)²6100
+(define-macro (director-mapcan function . lists)²6974
+(define-macro (nth-replace-impure position list thing)²7901
+(define-macro (replace-second list item)²8138
+(define-macro (replace-third list item)²8254
+(define-simple-macro (one-long list)²8381
+(define-simple-macro (two-long list)²8471
+(define-simple-macro (three-long list)²8576
+(define-macro (let-files bindings . body)²8887
+(define-simple-macro (top-level-copy x)²9545
+(define-macro (eq-many first-value . values)²9613
+(define-macro (eq-first list x)²9817
+(define-macro (eq-first-character symbol letter)²9943
+(define-macro (eq-first-character symbol letter)³0076
+(defmacro append-atoms ³0154
+(defmacro intern-append-atoms ³0470
+(defmacro printer-explode ³0877
+(defmacro printer-explode ³0937
+(define-macro (functionify some-code)³1108
+(DEFINE-MACRO (REPEAT ITERATIONS . BODY)³1369
+(define-simple-macro (flonum-equal x y)³1959
+(define-simple-macro (ROUND FLONUM)³2048
+(defmacro average ³2103
+(defmacro average$ ³2183
+(define-macro (define-alias new-name old-name)³2291
+(DEFINE-ALIAS REPLACE-FIRST ³2436
+(DEFINE-ALIAS REPLACE-REST ³2474
+(define-alias nth-rest ³2508
+(define-alias do-the-following ³2550
+(defmacro probef ³2592
+(defmacro filep ³2638
+(defmacro sfap ³2704
+(define-alias script ³2738
+(defun (squid macro)³2878
+(defun (quote-sharp-comma macro)³3121
+(define-macro (quote-sharp-comma form)³3393
+(define-form (method-position method actor)³3508
+(define-macro (method-at-position (method-pattern-predicate count)³4140
+(define-form (*method-at-position method-pattern-predicate the-count actor)³4378
+(defun full-print-mode ³5374
+(defun (macroexpanded /#grind-fn)³5686
+
+AI: KEN1; DRECT >
+03703,LISP
+(defcomment drect)²19
+(define-form (initialize-director)³79
+(defun run-color ²316
+(defun dummy-turtle ²395
+(defun ask1 ²541
+(define-form (ask-old1 myself *message)²689
+(defun actors-that-match ²789
+(defun exists? ²927
+(defun undefined-actor ³152
+(defun actor-not-defined ³339
+(defun not-understood-message ´204
+(defun message-not-understood ´308
+(defun recoverable-bad-message ´468
+(define-form (cases myself)µ274
+(define-synonym super-quick-compiled-ask µ503
+(define-form (quick-compiled-ask method compilation-target)µ615
+(define-form (compiled-ask matching-methods compilation-target)¶050
+(define-form (run-method *method-being-run)¶360
+(define-form (original-run-method *method-being-run)¶663
+(define-form (method-that-matches methods message)·012
+(define-form (method-that-matches-just-actor actor message)·980
+(define-form (method-that-matches-until-stop actor methods message stop-actor)¸151
+(define-form (select-winning-method methods message)¹284
+(define-form (humanify-method method)¹534
+(define-form (extract-the-action action-lambda-expression)±0578
+(define-form (insert-method pattern action actor)±0909
+(define-form (insert-macro-method pattern action actor)±1196
+(define-form (insert-method-in-actor method actor)±1328
+(define-form (make-normal-method pattern action (actor)±1787
+(define-form (make-macro-method pattern action actor)±2751
+(define-form (make-and-define-macro pattern action macro-name)±3262
+(define-form (normalize-macro-method pattern action)±3846
+(define-form (add-to-method-alist method indicator value)±4218
+(define-form (method-property method indicator)±4678
+(define-form (define-method-body variables action pattern)±4791
+(define-form (add-to-actor method actor)±5061
+(define-form (replace-equivalent-method new-method methods method-pattern)±5431
+(define-form (remove-current-method)±5903
+(define-form (remove-method method actor)±5992
+(define-form (compiled-actor? actor)±6079
+(define-form (make-actor parent (name)±6271
+(define-form (name-or-actor-of actor)±6706
+(define-form (recycle-old-actor old-actor new-actor)±6914
+(define-form (assq-assoc thing alists)±7001
+(define-form (make-internal-variables actor new-pair)±7154
+(define-form (substitute-in-alist alist substitution-alist)±7423
+(define-form (put-dependent-compiled-transmissions compilation-target compiled-transmissions)±8109
+(define-function place-actor-on-name ±8318
+(define-function general-putprop ±8565
+(define-form (general-get where atomic-indicator non-atomic-indicator)±9004
+(define-form (remove-actor-from-name name)±9189
+(define-form (general-remprop where atomic-indicator non-atomic-indicator)±9319
+(define-function synonym-for ±9469
+(define-synonym eval-define-1 ±9576
+(define-form (eval-define name parent code (clobber-old t)±9689
+(define-form (humanify-actor actor)²0174
+(define-form (cheating-name-of actor)²0929
+(define-function princ-or-print ²1512
+(define-function definize-actor ²1761
+(define-form (save-by-printing thing file-names)²2208
+(defun actor-autoload ²3108
+(define-form (director-load-and-return-actors file (comment)²4063
+(define-synonym dload ²4124
+(define-form (director-load file (comment)²4184
+(defun full-file-name ²5859
+(define-form (full-file-name-1 file last-names)²5961
+(define-form (set-file-name-2 filename fn2)²6496
+(define-form (set-file-name-2 filename fn2)²6578
+(defun my-autoload-handler ²6650
+(define-synonym nothing-more-to-do ²7779
+(define-form (reap-symbols-in-actor actor)²7931
+(defun reset-compiler ²8637
+(defun compiler-switch ²8810
+(defun compiler-switch ²9236
+
+AI: KEN1; INCOMP >
+00883,LISP
+(defcomment incomp)·8
+(define-form (lispify-transmissionî²83
+(define-form (make-compiled-transmission target-formî±824
+(define-form (make-normal-compiled-transmission matching-methodsî²583
+(define-form (body-of-compiled-transmission matching-methods compilation-target)³702
+(define-form (expand-method-macro macro-method original-target-form message-form)´148
+(defcomment ;;the ´243
+(define-form (all-matching-methods actor message-pattern ask-old?)´519
+(define-macro (check-out-this-method)´928
+(define-form (all-matching-methods-1 actor methods message-patternî¶085
+(define-form (could-method-apply? method-pattern message-pattern)¶801
+(define-form (null-or-unpack thing)¸753
+(define-form (patternify message)¸830
+(define-form (print-form-of-actor name)¹346
+(define-form (print-form-of-method method actor name)¹560
+
+AI: KEN1; PROP >
+00903,LISP
+(defcomment prop)±09
+(define-function place-property ±52
+(define-function place-property1 ·22
+(define-function create-property ±642
+(define-function replace-each-value ±861
+(define-function find-right-length-variables ²076
+(define-function add-to-position-in-list ²288
+(define-function simple-get ²618
+(define-function simple-get-list ²718
+(define-function simple-get-list-plus ³028
+(define-function get-property ³356
+(define-function get-property-list ³460
+(define-function get-property-list1 ³679
+(define-function get-property-all ³911
+(define-function get-property-all1 ´134
+(define-function simple-get-property-all ´443
+(define-function remove-property ´756
+(define-function remove-property1 µ094
+(define-function do-to-variable-plists ·108
+(define-function apply-to-name-values ·603
+(define-function collect-all-names ¸013
+
+AI: KEN1; UTIL >
+03193,LISP
+(defcomment util)±02
+(define-function fractional-part ±49
+(define-function truncate ²32
+(define-function atom-rest ²95
+(define-function safe-delete ³76
+(define-form (first-atom list)µ78
+(define-function occurences-of ¶80
+(define-form (maintain-value-assoc-list alist variable value)¹46
+(define-form (maintain-alist alist thing value)±216
+(define-form (copy-alist alist)±530
+(define-form (shouldnt-happen complainee complaintî±665
+(define-function read-error ±903
+(define-function warning ²235
+(define-function shut-up ²699
+(define-function unshut-up ³003
+(define-form (type thing (file-object)³151
+(define-function ? ³319
+(define-function ask-if ³390
+(define-function ask-if ³653
+(define-form (print-without-parens list (file-object)³755
+(define-form (princ-without-parens list (file-object)³890
+(define-form (princ+blank x (file-object)´024
+(define-function eval-in-env ´121
+(define-form (copy tree (*user-alist* nil)´327
+(DEFUN COPY-1 ´586
+(define-function replace-nth µ482
+(define-form (second-to-last-cons list)µ910
+(define-form (insert-second-to-last element list)¶067
+(define-form (butlast list)¶259
+(define-form (atoms-in-list list)¶465
+(define-function up-til ¶817
+(define-function associate ·089
+(define-function repeatedly-apply-binary-function ·394
+(define-function intersect ·629
+(define-function intersect-two ·730
+(define-function union ·980
+(define-function union-two ¸071
+(define-function set-minus ¸310
+(define-function maximum-in-set ¸497
+(define-function minimum-in-set ¸745
+(define-function every-other ¸990
+(define-function middle-element ¹196
+(define-function splice-on-end ¹274
+(define-function splice-in-second ¹467
+(define-function splice-in-third ¹567
+(define-function remove-first ¹664
+(define-function cons-if-non-nil ¹961
+(define-function value-or-nil ±0065
+(define-function addto ±0142
+(define-function cons-if-not-member ±0297
+(define-function car-if-list ±0411
+(define-function atom-if-only-one ±0521
+(define-function repeat-list ±0625
+(define-function repeat-append ±0759
+(define-function in-range ±0892
+(define-function make-the-sign-as ±1031
+(define-form (first-is looking-for thing)±1165
+(define-form (thing-whose-first-is looking-for thing)±1404
+(define-form (circular-list-of x)±1624
+(define-form (internedp symbol)±1765
+(define-form (internedp symbol)±1937
+(define-function integer-average ±2525
+(define-function replaceprop ±2648
+(define-form (equal-get thing indicator)±3063
+(define-form (generate-symbol name)±3405
+(define-function gen-number ±3517
+(define-function move-file ±3857
+(define-synonym two-arg-no-op ±4427
+(define-synonym one-arg-no-op ±4521
+(define-function no-op ±4554
+(define-synonym meb ±4706
+(define-function macro-expand-body ±4763
+(define-synonym me ±4864
+(define-function macro-expand-form ±4921
+(define-function list-beginning-with ±6119
+(define-form (reap-symbol symbol (be-careful t)±6486
+(defun make-string-stream ±7130
+(defun string-stream-handler ±7372
+(defun extend-string ±7773
+(defun string-tyi ±7948
+(defun string-untyi ±8209
+
+AI: KEN1; CMATCH >
+02145,LISP
+(defcomment cmatch)¶8
+(define-form (test-part-of-pattern pattern (define-predicate?)±44
+(define-form (predicate-of-pattern pattern (devariablized-pattern? nil)¸91
+(defmacro number-of-args-nil ±575
+(define-form (test-part-of-pattern-1 object pattern top-level? atom-test?)±794
+(define-form (devariablize-pattern pattern)´573
+(define-form (any-variables-in-pattern? pattern)µ466
+(define-function all-atoms µ730
+(define-function action-function-of-pattern µ887
+(define-function binding-part-of-pattern ¶064
+(defun binding-part-of-pattern-1 ¶506
+(define-function first-atom-beginning-with-? ·926
+(define-form (super-member structure list (protectors nil)¸277
+(define-function super-member1 ¸484
+(define-function find-variables-in-pattern ¸939
+(define-function cdr-of-object ¹859
+(define-function car-of-object ±0344
+(define-function match-member ±0978
+(define-function match-member-1 ±1084
+(define-function match-delete ±1283
+(define-function match-safe-delete ±1455
+(define-function match-safe-delete-1 ±1659
+(defcomment ccases)±1932
+(define-form (compile-cases-cleverly methods actor (message-pattern)±2178
+(define-form (generate-pattern-positions methods pattern-obtainer actor message-pattern)±3691
+(define-form (extractor-of-difference message-pattern (extraction 'thing)±4342
+(define-form (lambdafy-if-need-be form)±5008
+(define-form (only-one-? message-pattern)±5161
+(define-form (count-occurences-eq thing structure)±5377
+(define-form (avoid-tests-in-pattern pattern message-pattern)±5676
+(define-function test-part-for-patterns ±7494
+(define-function test-?-patterns ±8301
+(define-function test-rest-patterns ±8648
+(define-function combine-copies-and-reverse ±9421
+(define-form (group-by-first patterns+positions)±9890
+(define-function apply-and-pattern-hack ²1575
+(define-function apply-and-pattern-hack-1 ²1725
+(define-function add-to-a-list ²2263
+(define-function add-to-each-a-list ²2968
+(define-function start-afresh-and-protect-old ²3238
+(defcomment match)²3531
+(defun match ²4135
+(defun handle-restriction ²6331
+
+AI: KEN; SOME >
+09117,LISP
+(defcomment some)±09
+(define-or-add-to something ±183
+(define-method (macro expand when receiving ?pattern %form)±297
+(define-method (recall your siblings)±475
+(define-method (recall your descendants)±665
+(define-method (recall your childless-descendants)±807
+(define-method-helper (childless-descendants-of actor)±965
+(define-method-helper (descendants-of-including-self actor)²293
+(define-primitive-method (recall your parent)²632
+(define-method (set your parent to ?new-parent)²715
+(define-method (set your whole to ?new-whole)³101
+(define-primitive-method (set your ?variable to ?value)³659
+(define-method-helper (set-variable-to-value variable value)³842
+(define-form (add-variable-pair-to-actor variable alists new-pair)´633
+(define-primitive-method (recall your ?variable)µ020
+(define-form (recall-value-of-variable variable)µ176
+(define-form (look-up-variable-in-actor variable actor)µ460
+(define-method-helper (name-of actor)µ768
+(define-method (forget your ?variable)µ853
+(define-method-helper (forget-your-variable variable alists synonyms?)¶071
+(define-method (forget everything)¶663
+(define-method (consider ?synonyms synonyms)·062
+(define-form (value-of-synonyms synonyms)·792
+(define-method (consider ?names components of ?variable)¸714
+(define-method-helper (recall-value-of-element element variable names)¹607
+(define-method-helper (set-value-of-element element value-of-element variable the-names)±0009
+(define-method-helper (set-each-component components values components-method)±0887
+(define-method (when representing ?pattern-for-variables use an array of size ?size)±1162
+(define-method (do only for yourself when receiving ?pattern %action)±2088
+(define-macro-method (change your ?variable to ?value)±2424
+(define-macro-method (to %message)±2579
+(define-macro-method (increment your ?variable by ?amount)±2732
+(define-macro-method (multiply your ?variable by ?factor)±3040
+(define-macro-method (add ?value to your list of ?list-name)±3368
+(define-macro-method (add ?value to your list of ?variable regardless)±3674
+(define-macro-method (remove ?element from your list of ?list-name)±4022
+(define-method (list all your variable names)±4290
+(define-method (recall each of your ?variable-pattern)±4493
+(define-method (make an instance named ?name copying ?variables-to-copy)±5005
+(define-macro-method (make)±5648
+(define-method (make ?name)±5786
+(define-method (make up a name)±7378
+(define-method (make up an uninterned name)±7616
+(define-method (if new make ?name)±7842
+(define-method (clone)±8057
+(define-method (clone and name it ?name)±8224
+(define-method-helper (clone-actor list-of-name)±8396
+(define-method-helper (copy-internal-variable-alist alists new-actor)±9063
+(define-method (make synonym ?name)±9706
+(define-method (absorb your parts)±9940
+(define-method (remob)²0361
+(define-method (disembody)²0715
+(define-method (unmake)²1365
+(define-form (protected-actor-but-ok name)²2676
+(define-method (memorize ?item)²2981
+(define-method (forget item ?item)²3163
+(define-method (recall all possible items matching ?)²3401
+(define-macro-method (recall an item matching ?pattern then %action)²3735
+(define-macro-method (recall each item matching ?pattern then %action)²3974
+(define-form (make-keep-sending-type-body sending-function pattern action)²4226
+(define-method-helper (keep-sending-items-til-match pattern database-method actor)²4848
+(define-form (run-first-to-match items method method-predicate)²5505
+(define-form (run-first-thats-equal items method method-pattern)²5774
+(define-method-helper (keep-sending-items-collecting-all pattern database-method actor)²6060
+(define-method (collect items memorized matching ?pattern)²6905
+(define-method (forget items matching ?pattern)²7151
+(define-method (tick)²7377
+(define-method (plan after receiving ?event-pattern to ?message-form)²7748
+(define-macro-method (do {or at in} ? ? %)²9004
+(define-macro-method ({memq ?action '(plan gradually repeat ask broadcast)²9250
+(define-macro-method (sequentially (plan next %message)²9375
+(define-method (sequentially (plan after ?number ?units %message)²9684
+(define-form (message-with-followup message followup)³0819
+(define-method (stop everything)³0934
+(define-method (wait for %signal)³1257
+(define-macro-method (sequentially (concurrently %actions)³1721
+(define-method (concurrently %messages)³2417
+(define-method (do the following %messages)³2513
+(define-method-helper (body-of-do-the-following messages)³2749
+(define-macro-method (sequentially (repeat ?message forever)³2978
+(define-method (sequentially (repeat ?message ?number times)³3363
+(define-method (sequentiallyî³3760
+(define-method (sequentially (do at speed ?speed {or set change} your ?variable to ?value)³4040
+(define-method (sequentially (do in ?number ?units %action ?amount)³4402
+(define-method (sequentially (do at speed ?speed %action ?amount)³4724
+(define-method-helper (do-at-speed speed-in-ticks action amount followup)³5028
+(define-method (sequentially (gradually ask ?other {or set change} your ?variable to ?value)³5280
+(define-method (sequentially (gradually {or set change} your ?variable to ?value)³5471
+(define-method-helper (set-gradually planner doer variable value speed followup the-message)³5831
+(define-method-helper (set-gradually-list planner doer variable value followup)³6277
+(define-method-helper (set-gradually-numberî³7191
+(define-method (sequentially (gradually ask ?other %action ?amount)³8137
+(define-method (sequentially (gradually %action ?amount)³8272
+(define-method-helper (do-gradually planner doer action amount followup)³8559
+(define-method-helper (do-gradually-list planner doer action amount followup)³8968
+(define-method-helper (do-gradually-number planner doer action amount followup)³9959
+(define-method-helper (do-gradually-at-speed speed planner doer action amount followup)´0817
+(define-method-helper (do-gradually-at-rate rate planner doer action amount followup)´1461
+(define-method-helper (number-of-ticks number units)´2099
+(define-method-helper (speed-in-ticks speed-per-second)´2763
+(define-method-helper (rate-in-ticks rate-per-second)´3028
+(define-method-helper (length-in-frames length units)´3433
+(define-method-helper (length-in-seconds length units)´4104
+(define-method (sequentially (broadcast or ask your ?others-name %message)´4828
+(define-method (sequentially (broadcast to your ?others-name %message)´5476
+(define-method (sequentially (ask your ?variable %message)´6231
+(define-method (sequentially (ask each of your ?variable %message)´6712
+(define-method (sequentially (ask each of ?others %message)´7111
+(define-method (sequentially (ask ?another %message)´7419
+(define-method (sequentially %actions)´7697
+(define-method (keep doing until ?predicate %message)´8210
+(define-method (are you {or a an} ?type)´8529
+(define-function is-any-ancestor-of ´8809
+(define-method (find ancestor matching ?name-pattern)´9008
+(define-primitive-method (recall internal method for %message)´9381
+(define-primitive-method (recall method for %message)´9588
+(define-primitive-method (remove method for %message)´9914
+(define-method (trace %pattern+action)µ0120
+(define-method (untrace ?pattern)µ0407
+(define-method (untrace)µ0556
+(define-method (constrain your ?variable to equal ?function of ?others-variable of ?other)µ0865
+(define-method (tell each of your ?others whenever your ?variable is changed)µ1265
+(define-method-helper (tell-others-new-value variable new-value groups-name)µ1853
+(define-method (tell your ?other whenever your ?variable is changed)µ2039
+(define-method-helper (tell-other-new-value variable new-value groups-name)µ2528
+(define-primitive-method (notice that ? of ? is now ?)µ2685
+(define-method (print {memq ?option '(memory variables script database all)µ2807
+(define-method (print {memq ?option '(memory variables script database all)µ3140
+(define-method (print)µ3315
+(define-method (print your ?variable)µ3428
+(defcomment print)µ3645
+(define-method-helper (fancy-print option (file-name)µ3771
+(define-method-helper (fancy-print-script file-object)µ4842
+(define-method-helper (fancy-print-memory file-object)µ5637
+(define-form (collect-all-variable-names actor)µ6043
+(define-method-helper (fancy-print-variables file-object)µ6321
+(define-form (print-name-value name value synonyms file-object)µ7038
+(define-method (compare yourself with ?other)µ7392
+(define-method (compile message %message)µ8454
+(define-method (save %file-names)µ8710
+(define-method (help %pattern)µ8914
+(define-method (warning %some-warning)¶0159
+(define-method (should not happen %warning)¶0297
+(define-simple-macro (add-help-to-actor actor pattern comment)¶0850
+(define-method-helper (*add-help-to-actor actor pattern comment)¶0971
+(define clock ¶1402
+(define-method (tick)¶1575
+(define-method (run for ?number ?units)¶1926
+(define default-clock ¶2245
+
+AI: KEN1; TURMAC >
+00561,LISP
+(defmacro $xcor ²04
+(defmacro $ycor ²33
+(defmacro $heading ²65
+(defmacro penstate ³00
+(defmacro eraserstate ³39
+(defmacro xorstate ³78
+(defun $xcor µ08
+(defun $ycor µ96
+(defun $heading ¶87
+(defun here ·33
+(defun setxy ¸41
+(defun delx ¹38
+(defun dely ±059
+(defun penstate ±184
+(defun range ±232
+(defun bearing ±692
+(defun setturtle ²839
+(defun here ²946
+(defun pencolor ³012
+(defun eraserstate ³045
+(defun turtlesize ³074
+(defun fillwindow ³133
+(defun xcor ³161
+(defun ycor ³181
+
+AI: KEN1; TUTIL >
+01482,LISP
+(defcomment tutil)±17
+(define-function color-differences ²11
+(define-function mix-colors ·18
+(define-function pencolor-rgb ±265
+(define-function fix-heading ±662
+(define-function distance-to-nearest-wall ±749
+(define-form (director-setturtle state)±961
+(define-function thingup ²344
+(define-function thingdown ²591
+(define-form (thingup)²680
+(define-form (thingdown)²742
+(define-function xor-point ²809
+(define-form (draw-arc size angle)²885
+(define-function right-tri ³044
+(define-form (draw-rectangle height width)³375
+(define-function eq-tri ³473
+(define-form (draw-poly distance turnage (number-of-sides)³652
+(define-form (sides-in-poly turnage)³925
+(define-form (draw-color-poly size angle colors (number-of-sides)´040
+(define-function petals ´386
+(define-function petal ´721
+(define-form (draw-flower size-in-turtle-steps n color-list (shade-pattern)µ141
+(define-function draw-rocket µ558
+(define-form (draw-arrow from-position to-position head-size)µ989
+(define-function draw-arrow-to ¶255
+(define-function draw-labeled-arrow ¶804
+(defun show-text-horizontally ¸380
+(defun draw-arrow-head ¸748
+(define-function mark-centered ¸963
+(define-function are-vectors-crossing? ¹150
+(define-function is-other-end-between-others? ¹392
+(define-form (state-equal state-1 state-2)¹999
+(DEFUN OUT-OF-BOUNDS? ±0350
+(define-function director-startdisplay ±0693
+(define-synonym dsd ±1032
+
+AI: KEN1; TRACE >
+00728,LISP
+(defcomment trace)¹9
+(define tracer ±28
+(define-method (message ? beginning)±78
+(define-method (message ? returning ?result)²60
+(define-method (make)³22
+(define-method (unmake)´80
+(define-method (untrace all)·92
+(define-function director-trace ¸85
+(define-function director-trace-1 ±178
+(define-function make-tracer-of ±948
+(define-function director-untrace ²319
+(define-function director-untrace-all ²689
+(define-function replace-traced-run-method ²838
+(define-function restore-run-method ³043
+(define-function restore-run-method ³245
+(define-form (traced-run-method *method-being-run)³358
+(define-function print-entry ³857
+(define-function print-exit ´100
+
+AI: KEN; PERFOR >
+05253,LISP
+(defcomment perfor)±85
+(define performer ²18
+(define the-cast ²016
+(define-method (make ?)²272
+(define-method (recall your draw-procedure-body)²529
+(define-method (show)²794
+(define-method (just show)³150
+(define-method (show all)³336
+(define-method (hide)³439
+(define-method (just hide)³731
+(define-method (hide all)³888
+(define-method (redisplay)³996
+(define-method (display)´176
+(define-method (erase)´556
+(define-method (set your erasability to ?value)´990
+(define-method (erase by clearing area)µ186
+(define-method (recall your ({and ?act {or display erase}} actions)µ486
+(define-method (recall your how-to-draw)µ821
+(define-form (draw-scaled-and-centered size drawing-form scale-factor how-to-get-to-centerî·365
+(define-method (recall your absolute-size)·795
+(define-method (recompute your absolute-size since ? is now ?whole-size)¸240
+(define-method (notice that ?whole has grown by ?factor)¸452
+(define-method (set your size to ?new-size)¸932
+(define-method (set your absolute-size to ?new-size)¹274
+(define-method (set your how-to-draw to ?new-value)±0163
+(define-method (set your colors to ?new-colors)±0561
+(define-method (set your validity-of-how-to-draw to ?new-value)±0914
+(define-method-helper (make-inner-drawer)±1190
+(define-method {and ±1633
+(define-macro-method (grow ?amount)±1871
+(define-macro-method ({or grow shrink} by factor ?factor)±2040
+(define-macro-method (shrink ?amount)±2188
+(define-method (prepare to mix colors with ?colors)±2381
+(define-method (sequentially (do in ?number ?units {or change set} your colors to ?colors)±2981
+(define-method (yield distance to (?x ?y %)±3549
+(define-method (yield heading to (?x ?y %)±3751
+(define-method (yield heading from (?x ?y %)±3980
+(define-method (recall your state)±4189
+(define-method (recompute your state since ?whole is now ?whole-state)±4543
+(define-method (notice that state of ?whole is now ?whole-state)±4660
+(define-method-helper (recompute-state whole whole-state)±4770
+(define-method-helper (recompute-relative-state new-state whole whole-state)±5348
+(define-method (set your state to ?new-state)±5969
+(define-macro-method (setturtle ?new-state)±6865
+(define-macro-method (setheading ?new-heading)±7047
+(define-method {and ±7187
+(define-method (move left ?amount)±7383
+(define-method (move right ?amount)±7560
+(define-method (move up ?amount)±7722
+(define-method (move down ?amount)±7879
+(define-method (move {memq ?direction '(forward back)±8076
+(define-method (turn {memq ?direction '(right left)±8246
+(define-method {and ±8385
+(define-method (run ?action)±8532
+(define-method-helper (run-lisp-for-performer action)±8690
+(define-method (set your pen-type to ?new-pen-type)±9433
+(define-method (pen up)±9576
+(define-method (pen down)±9735
+(define-method (redisplay)²0190
+(define-method (create new appearance)²0412
+(define-method (fuse your parts)²1485
+(define-form (fuse-parts parts whole-absolute-size)²2370
+(define-method-helper (generate-appearance-code-for-part part whole-absolute-size)²2654
+(define-form (reverse-display-list turtle-commands)²4061
+(define-method (when drawing use ?draw-procedure of %draw-args)²4420
+(define-form (seperate-shape-args draw-args)²5994
+(define-method (when drawing do %messages)²6454
+(define-method (set your whole to ?whole)²7642
+(define-method (make ?interpolation-name interpolation to ?another-performer)²8953
+(define-form (draw-form how-to-draw)³0184
+(define-method (unmake)³0299
+(define-method (save ?file-name)³0539
+(define appearance ³1420
+(define-method (compile as function)³1546
+(define-method (make appearance of ?performer)³2197
+(define-method-helper (appearance-setup-erase)³2753
+(define-method-helper (appearance-setup-draw)³2922
+(define-method (make an instance at ?state)³3088
+(define interpolation ³3265
+(define the-turtle ³3447
+(define-method (perform %actions)³3581
+(defcomment stage)³4159
+(define stage ³4352
+(define-method (recall your width)³4611
+(define-method (recall your height)³4676
+(define-method (recall your height-of-screen)³4752
+(define-method (recall your width-of-screen)³4853
+(define-method (set your height to ?)³4946
+(define-method (set your width to ?)³5109
+(define-method (save stage)³5264
+(define-method (wipe)³5371
+(define-form (director-wipe)³5619
+(define-synonym dwipe ³5666
+(define-method (clear)³5706
+(define-method-helper (director-clear-stage)³5862
+(define-synonym dcs ³6182
+(define-method (start display)³6237
+(define-method (restart display)³6453
+(define-method-helper (restore-stage-to-normal nil nil)³6794
+(define-method-helper (hide-all-stage-activities nil nil)³7094
+(define the-trails ³7185
+(define-method (set your visibility to nil)³7242
+(define-method (moving from ?old-position to ?new-position with ?penstate)³7428
+(define-method ({or display redisplay})³7768
+(define-method (erase)³7852
+(define-method (create new appearance)³7924
+(define trail-appearance ³8272
+(define-method (compile as function)³8323
+(define-method (erase)³8434
+(define-method-helper (the-compiler-isnt-compiling-the-first-helper-right)³8543
+
+AI: KEN; MOVIE >
+01628,LISP
+(defcomment movie)±32
+(define movie ±61
+(define-method (film the next ?length ?units)µ92
+(define-method (film secretly the next ?length ?units)²322
+(define-method (store away the frame number ?number)²722
+(define-method (stop filming)²841
+(define-method (record ?event)²920
+(define-method (project)³044
+(define-method (project frames ?begin to ?end showing every ?so-many)³254
+(define-method (project frames ?begin to ?end)³516
+(define-method (project starting at frame ?begin showing every ?so-many)³781
+(define-method (project showing every ?so-many)´040
+(define-method (project frame ?number)´281
+(define-method-helper (show-movie first-frame last-frame skip-every)´683
+(define-method-helper (show-normal-movie first-frame last-frame skip-every)µ153
+(define-form (erase+draw-frame previous-frame current-frame speed last-runtime)¶488
+(define-method-helper (run-frame current-appearances speed last-runtime action)¶903
+(define-form (put-in-wholine x)·177
+(define-method (print frames ?begin to ?end)·280
+(define-method (compile ?file-name)·590
+(define-form (print-the-movie-arrayî¹463
+(define-method-helper (save-copy-of-the-movie movie file-name)±0148
+(define-synonym eof ±0540
+(define-method-helper (eval-on-frame movie form frame-number)±0619
+(define-synonym dmaao ±1030
+(define-method-helper (display-movie-all-at-onceî±1109
+(define frame-handler ±1943
+(define-method (just made frame number ?frame-number for ?movie)±2021
+(define just-store-away-frame ±2371
+(define-method (just made frame number ?frame-number for ?movie)±2453
+
+AI: KEN1; CMOVIE >
+00197,LISP
+(defcomment cmovie)¹7
+(define-synonym pcm ²55
+(define-form (project-compiled-movie (movie-name (first *compiled-movies)³85
+(defun run-compiled-frame ±880
+
+AI: KEN; POLY >
+00955,LISP
+(defcomment poly)±46
+(define rocket ±67
+(define poly ³23
+(define color-poly µ46
+(define flower ·80
+(define window ±208
+(define text ±739
+(define-method ({or display erase})²002
+(define-method-helper (display-or-erase-text state length font string text-actor)²356
+(define-method (set your {or string font} to ?new-value)³140
+(define-method (recall your width)³502
+(define-method (recall your height)³634
+(define font ´015
+(define-method (recall your (length-for ?string)´077
+(define-method-helper (raster-to-relative-to-the-cast raster-size)´276
+(define-method (recall your height)´405
+(define times-roman-font ´505
+(define tvfont ´529
+(define tr12b ´589
+(define tr18 ´649
+(define font-series ´716
+(define-method (recall your (font-of-size ?size)´828
+(define-method (set your fonts to ?new-fonts)µ349
+(define-method (set your size to ?new-size)µ646
+(define times-roman µ794
+
+AI: KEN; MRMACH >
+00262,LISP
+(defcomment mrmach)±20
+(define (mr machine)±55
+(define rectangle ³79
+(define body µ11
+(define arms ¶32
+(define left-arm ¶95
+(define right-arm ¸28
+(define legs ¹54
+(define left-leg ±017
+(define right-leg ±150
+
+AI: KEN; FACE >
+00312,LISP
+(defcomment face)±18
+(define face ±46
+(define triangle ±77
+(define nose ²23
+(define circle ³19
+(define line ´61
+(define horizontal-line µ20
+(define mouth µ61
+(define eyes ¶62
+(define left-eye ·20
+(define right-eye ¸17
+(define square ¹42
+(define head ¹87
+
+AI: KEN1; COLIDE >
+00279,LISP
+(defcomment colide)±10
+(defun report-collisions ±49
+(defun report-collisions-within ¶29
+(defun objects-in-space ±542
+(defun split-space-in-four ²032
+(defun check-collisions ²755
+(defun colliding? ³115
+(defun integer-square ³455
+
+AI: KEN1; DLIST >
+01459,LISP
+(defcomment dlist)²53
+(define-function display-package µ73
+(define-function position-list ±168
+(define-function squished-display-package ±653
+(define-function squish ²066
+(define-function how-to-get-to-center ³291
+(define-function how-to-get-to-center-and-scale ³406
+(define-form (draw-centered call (max-radius)³868
+(define-function scale-call-simple ´259
+(define-function scale-call ´412
+(define-function negative-eval ´509
+(define-function find-extreme-and-center ´611
+(define-function find-center ´782
+(define-function compute-center ´872
+(define-function compute-extreme µ372
+(define-function fancy-forward µ902
+(define-synonym fancy-fd ¶479
+(define-function fancy-right ¶526
+(define-synonym fancy-rt ¶819
+(define-function fancy-back ¶863
+(define-synonym fancy-bk ¶938
+(define-function fancy-left ¶981
+(define-synonym fancy-lt ·048
+(define-function fancy-penup ·092
+(define-synonym fancy-pu ·247
+(define-function fancy-pendown ·294
+(define-synonym fancy-pd ·704
+(define-function make-it-less-than-180 ·761
+(define-function here-without-mod ·937
+(defmacro run-invisibly ¸003
+(define-function rt-fd-rt ¸086
+(define-form (move-and-bind old-name new-name new-definition)¸413
+(define-form (move-and-bind old-name new-name new-definition)¸613
+(define-function move-and-bind-tvrtle-stuff ¸801
+(define-function unfancify ¹084
+(define-function fancify ¹429
+
+AI: KEN1; FWUSE >
+00593,LISP
+(defun fontmark ±591
+(defun fonttyo ²317
+(define-function try-to-autoload-font ³349
+(defun fwuse-slashified? ³778
+(define-function fontprintcentered ´135
+(define-function fwuse-text-length ´467
+(defun fwuse-delx-in-tvsteps ´858
+(defun fwuse-dely-in-tvsteps ´970
+(defun fontcs µ120
+(defun fonthome µ185
+(defun fwuse-left-margin µ281
+(defun fwuse-right-margin µ395
+(defun fwuse-top-margin µ504
+(defun fwuse-bottom-margin µ621
+(defun fontterpri µ793
+(define-function fontprinc ¶306
+(defun fontprin1 ¶808
+(defun fontprint ·356
+
+AI: KEN1; FWMAKE >
+00308,LISP
+(defun windowize ¶58
+(defun fwmake-read-and-display ²363
+(defun fwmake-read-heading ³020
+(defun fwmake-read-char-heading ³864
+(defun write-font µ018
+(defun fwmake-write-font1 µ143
+(defun fwmake-print-defprop µ935
+(defun fwmake-store-props-of-each-char ¶250
+
+DSK: KEN; BOX >
+02773,LISP
+(defcomment box)¹1
+(define-form (test-boxes)±73
+(define box ·25
+(define-method (recall your font)¹91
+(define-method (recall your ({or top bottom} {or left right})±114
+(define-method (recall your {or width height})±223
+(define-method (make ?name-of-box)±319
+(define-method (set your size to ?new-size)²183
+(define-method (set your font to ?new-font)²579
+(define-method (set your {or horizontal-links vertical-links} to ?)²960
+(define-method (insert ?link-end on ?which side)³210
+(define-form (insert-link link links scanning-clockwise)´069
+(define-method-helper (predicate-of-angle-to-other-end point-1 point-2 predicate)´432
+(define-form (other-end-more-to-the-right angle-1 angle-2)´757
+(define-form (other-end-more-to-the-left angle-1 angle-2)´883
+(define-form (more-right angle-1 angle-2)´977
+(define-form (angle-from position-1 position-2)µ134
+(define-method (set your state to ?new-state)µ269
+(define-method (set your (links {and ?top-bottom {or top bottom}})µ696
+(define-method (set your (links {and ?left-right {or left right}})¶144
+(define rectangular-frame ¶550
+(define-method (recall your (top left)·098
+(define-method (recall your (bottom left)·328
+(define-method (recall your (top right)·556
+(define-method (recall your (bottom right)·787
+(define-method (set your horizontal-links to ?new-number)¸033
+(define-method (set your vertical-links to ?new-number)¸219
+(define-method (recall your minimum-width)¸394
+(define-method (recall your minimum-height)¸571
+(define-method (set your text-height to ?height)¸751
+(define-method (set your text-width to ?width)¸985
+(define-method (recompute dimensions for ?string of ?font)¹228
+(define-method (set your {or width height} to ?new-value)¹474
+(define link ±0597
+(define-method (make ?)±0835
+(define-method (go from ?side-1 of ?box-1 to ?side-2 of ?box-2)±1574
+(define-method (recall your font)±2176
+(define-method (set your text to ?new-text)±2282
+(define-method (set your visible-parts to ?visible-parts)±2428
+(define-method (recall your position)±2684
+(define link-label ±3875
+(define-method (recall your state)±3918
+(define-method (display)±4018
+(define point ±4239
+(define arrow-point ±4313
+(define-method (set your state to ?new-state)±4368
+(define default-arrow-point ±4739
+(define link-point ±4774
+(define-method (set your state to ?new-state)±4912
+(define link-point-source ±5280
+(define-method (recall your other-end)±5333
+(define link-point-sink ±5426
+(define-method (recall your other-end)±5479
+(define arrow ±5562
+(define-method (recall your head-size)±5738
+(define-method (recall your position)±5850
+(define-method (display)±6085
+(define-method (erase)±6324
+
+DSK: KEN; DIAGRM >
+04030,LISP
+(defcomment diagrm)±43
+(define diagram ±74
+(define-extension-receiver (unmake)µ74
+(define diagram-1 ·23
+(define-receiver (initialize everything)·75
+(define-receiver (just made a new boxed-text called ?name)±997
+(define-receiver (just made new link called ?name)²291
+(define-receiver (redraw)²499
+(define-receiver (just unmade a box called ?name)²733
+(define-receiver (redo all links)²859
+(define-receiver (show)²956
+(define (diagram-of 1 boxes)³133
+(define-receiver (place your boxes)³316
+(define-function screen-horizontal? ³513
+(define (diagram-of 2 boxes)³595
+(define-receiver (place your boxes)´016
+(define-function most-links-coming-out ´724
+(define-function number-of-links-leaving µ260
+(define (diagram-of 3 boxes)µ505
+(define-receiver (place your boxes)¶030
+(define (diagram-of 4 boxes)¶541
+(define-receiver (place your boxes)¶769
+(define-function place-four-boxes ·067
+(define-function place-boxes-any-where ¸390
+(define-function place-four-boxes-1 ¸690
+(define-function place-much-linked-close-or-little-linked-far ¹613
+(define-function not-linked-to ±0245
+(define-function most-linked-to ±0602
+(define-function number-of-occurences ±1134
+(define-function number-of-occurences-1 ±1299
+(define-function stuff-boxes-into-array-by-number-of-links ±1493
+(define-function unlinked-pairs-of-boxes ±2078
+(define-function sort-boxes-by-size ±2634
+(define-receiver (fix a crossing)±2840
+(define-function link-that-crosses ±3125
+(define-function handle-crossing ±3302
+(define boxed-text ±4053
+(define-function recompute-box-center ±7352
+(define-function stretch-box-if-too-many ±7639
+(define-extension-receiver (make ?name)±8374
+(define-extension-receiver (unmake)±8574
+(define-receiver (trade places with ?other)±8704
+(define-function lesser-xcor ±9244
+(define-function lesser-ycor ±9562
+(define-form (label-alphalessp link-1 link-2)±9896
+(define-receiver (place yourself at one of ?locations-left)²0048
+(define-function change-towards-zero ²0381
+(define-form (unoccupied-far-corner-from some-place)²0531
+(define-function close-corner-from ²0983
+(define-form (unoccupied-close-corner-from some-place)²1209
+(define-form (corner-if-not-occupied some-place relative-place)²1693
+(define-form (horizontal-space?)²1929
+(define-receiver (place yourself at ?place)²2023
+(define-extension-receiver (display)²2652
+(define-extension-receiver (erase)²2888
+(define-function draw-rectangle ²3118
+(define-receiver (reconnect all links)²3523
+(define-receiver (forget all connections)²3807
+(define-receiver (connect to ?other by ?link)²4046
+(define-receiver (what connection is ?link)²4386
+(define-receiver (make a new connection from ?self-link to ?other-link)²4822
+(define-receiver (yield position of my link ?link with ?other by ?connection-type)²6098
+(define-function determine-label-position ²7533
+(define-function fraction-in-list ²8303
+(define-function rank-in-list ²8652
+(define position ²8863
+(define screen-position ²8901
+(define (screen-position center center)²9199
+(define (screen-position center left)²9295
+(define (screen-position center right)²9392
+(define (screen-position upper center)²9488
+(define (screen-position lower center)²9584
+(define (screen-position lower left)²9679
+(define (screen-position upper left)²9774
+(define (screen-position lower right)²9869
+(define (screen-position upper right)²9964
+(define corner ³0036
+(define (corner lower left)³0565
+(define (corner lower right)³0769
+(define (corner upper left)³0971
+(define (corner upper right)³1175
+(define link ³1363
+(define-receiver ({or display erase})³2164
+(define-receiver (label link from ?from to ?to with ?label)³3550
+(define-function princ-type-append-atoms ³3911
+(define-receiver (do you cross with ?other-link)³4035
+(define-synonym nss ³4198
+(define-function new-screen-size ³4251
+(defun (z fast-turtle-handler)³4619
+(define-macro link ³4781
+
+AI: KEN1; INSTAN >
+01272,LISP
+(defcomment instan)±64
+(define instant-performer ³18
+(define fast-turtle ´92
+(define-synonym instant ±146
+(define-method-helper (top-level-loop (reset-command-list nil)±227
+(defun read-character ²902
+(defmacro define-fast-turtle-handler ³300
+(define-fast-turtle-handler f ³499
+(define-fast-turtle-handler b ³671
+(define-fast-turtle-handler r ³835
+(define-fast-turtle-handler l ´006
+(define-fast-turtle-handler ||´180
+(define-fast-turtle-handler ||´434
+(define-fast-turtle-handler |ï|´567
+(define-fast-turtle-handler s µ677
+(define-fast-turtle-handler h µ788
+(define-fast-turtle-handler = µ899
+(define-fast-turtle-handler g ¶053
+(define-fast-turtle-handler n ¶943
+(defun collapse ¸222
+(define-fast-turtle-handler t ¸846
+(defun make-user-defined-character ¹421
+(define-form (repeatedly-run-command-list repeat-count command-list collapsed-command-list)¹809
+(define-fast-turtle-handler c ±0316
+(define-fast-turtle-handler w ±0566
+(define-fast-turtle-handler ? ±0709
+(define-fast-turtle-handler o ±1247
+(define-fast-turtle-handler p ±1763
+(define-fast-turtle-handler d ±2048
+(define-fast-turtle-handler u ±2230
+(defun print-help-for-character ±2556
+(defun terpri+princ ±3236
+
+AI: KEN1; INTER >
+00795,LISP
+(defcomment inter)³71
+(define-function make-interpolation ´22
+(define-synonym mi ·07
+(define-function interpolate-two-calls ·69
+(defun equivicalize ¹37
+(defun fix-headings ±330
+(defun fix-length ²497
+(defun make-operations-correspond ³298
+(defun make-operations-correspond-1 ³635
+(defun fatten-up µ370
+(defun expand-pair µ792
+(defun expand-line ¶458
+(defun cons-insert ¶868
+(defun about-equal ·179
+(defun interpolate-equiv-programs ·466
+(defun slow-change ·863
+(define-function display-interpolation ¸096
+(define-function  sl ¸798
+(defun straight-line ¹024
+(define-function slt ¹468
+(defun straight-line-table ¹878
+(define-function slm ±1186
+(defun straight-line-movie ±1564
+(defun make-color-interpolation ±2541
+
+AI: KEN1; RDTAGS >
+00429,LISP
+(defcomment rdtags)¸3
+(define-function read-emacs-tags ²266
+(defun autoload-name ³293
+(defun read-tags-file-name ³469
+(defun read-language-name ³575
+(defun read-defun-lines ³754
+(defun fix-function-name µ556
+(defun read-to-cr µ841
+(defun skip-rest-of-file µ939
+(defun throw-away-until ¶111
+(defun read-ending-with ¶345
+(defun flush-spaces ¶677
+(defun tyipeek-eof ¶864
+
+DSK: KEN1; RMACS >
+00287,R
+.de define_comment ´2
+.define_comment rbasic ±31
+.define center³733
+.define narrow³809
+.define begin_environment³879
+.define end_environment´163
+.define New_paragraph´229
+.define italics´382
+.define lisp_font´727
+.define underline´765
+
+DSK: KEN1; FANCY >
+01010,R
+.define_comment fancy ²07
+.define define_paper_title ¶74
+.define final_copy¸65
+.define photo_offset±161
+.define define_chapter±385
+.define define_section±455
+.define define_subsection±512
+.define New_paragraph±566
+.define paper_title³276
+.define begin_bib³407
+.define end_bib³476
+.define bib_entry³513
+.define end_entry³567
+.define begin_list³606
+.define next_element³732
+.define begin_table_of_figures³918
+.define figure_table´130
+.define begin_figure´368
+.define end_figure´555
+.define begin_sayingµ048
+.define end_sayingµ224
+.define narrowµ363
+.define define_chapter µ554
+.define define_appendix µ684
+.define chapter_or_appendixµ839
+.define define_sectionµ916
+.define define_subsection¶198
+.define define_subsubsection¶325
+.define stringify ¶488
+.define cleanup_string ¶739
+.define any_such_characters_in·266
+.define substitute ·799
+.define subst_once¸380
+.define show_picture¹139
+.define set_margins¹657
+
+DSK: KEN1; RLISP >
+00208,R
+.define begin_lisp_region ±11
+.define end_lisp_region²57
+.define read_lisp_file³32
+.define gobble_up ´11
+.define begin_lispµ83
+.define end_lisp·66
+.define com¸18
+
+DSK: KEN1; FDREF >
+00140,R
+.define_comment fdref ±08
+.define make_reference´24
+.define reference_file±528
+.define refer_to±678
+
+DSK: KEN1; LETTER MACROS
+00154,R
+.define begin_address¸5
+.define end_address±54
+.define begin_text²15
+.define end_text²54
+.define yours²92
+
+DSK: KEN1; GUIDE >
+06146,R
+.define_chapter "The ±018
+.define_chapter "An ²430
+.define_chapter "What µ032
+.define_section "Creation ·929
+.define_pattern "MAKE ·979
+.define_pattern "MAKE"¸712
+.define_pattern "IF ¹605
+.define_pattern "MAKE ¹971
+.define_pattern "MAKE ±0315
+.define_pattern "CLONE"±0637
+.define_pattern "CLONE ±1202
+.define_pattern "MAKE ±1364
+.define_section "Defining ±1933
+.define_pattern "DO ±1978
+.define_pattern "DO ±2998
+.define_section Printing±3312
+.define_pattern "PRINT ±3337
+.define_pattern "PRINT ±3683
+.define_pattern "PRINT ±3960
+.define_pattern "SAVE ±4483
+.define_pattern "HELP ±5254
+.define_pattern "RECALL ±5686
+.define_pattern "RECALL ±6068
+.define_pattern "REMOVE ±6306
+.define_section Tracing±6472
+.define_pattern "TRACE ±6497
+.define_pattern "UNTRACE ±7630
+.define_section "Memory ±7980
+.define_subsection Variables±8448
+.define_pattern "SET ±8706
+.define_pattern "RECALL ±9211
+.define_pattern "RECALL ±9908
+.define_pattern "INCREMENT ²0765
+.define_pattern "MULTIPLY ²2109
+.define_pattern "ADD ²2306
+.define_pattern "ADD ²2789
+.define_pattern "REMOVE ²3024
+.define_pattern "CONSIDER ²3311
+.define_pattern "CONSIDER ²4613
+.define_pattern "CONSTRAIN ²5627
+.define_pattern "LIST ²6501
+.define_pattern "FORGET ²6778
+.define_pattern "FORGET ²7199
+.define_subsection "Relational ²7374
+.define_pattern "MEMORIZE ²7794
+.define_pattern "RECALL ²8255
+.define_pattern "RECALL ²8750
+.define_pattern "COLLECT ²9659
+.define_pattern "FORGET ³0461
+.define_section "Plans ³1017
+.define_pattern "PLAN ³1366
+.define_pattern "PLAN ³1495
+.define_pattern "PLAN ³2512
+.define_pattern "TICK"³3318
+.define_pattern "GRADUALLY ³3830
+.define_pattern "GRADUALLY ³7221
+.define_pattern "DO ³9159
+.define_pattern "DO ³9997
+.define_pattern "ASK ´0394
+.define_pattern "SEQUENTIALLY ´1622
+.define_pattern "CONCURRENTLY ´2067
+.define_pattern "REPEAT ´4465
+.define_pattern "REPEAT ´5004
+.define_pattern "STOP ´5627
+.define_pattern "WAIT ´5904
+.define_section "Broadcasting ´6911
+.define_pattern "ASK ´7094
+.define_pattern "ASK ´7709
+.define_pattern "BROADCAST ´8808
+.define_pattern "BROADCAST ´9361
+.define_pattern "KEEP ´9826
+.define_section "Variables µ0209
+.define_special_variable "name" µ0747
+.define_special_variable "parent" µ0864
+.define_special_variable "offspring" µ1223
+.define_special_variable "private-variable-names" µ1436
+.define_special_variable "siblings" µ1774
+.define_special_variable "descendants" µ1896
+.define_special_variable "childless-descendants" µ2030
+.define_special_variable "clock" µ2157
+.define_special_variable "things-to-do-next" µ2387
+.define_special_variable "default-speed" µ2647
+.define_section "How µ2980
+.define_chapter "What ¶1534
+.define_section "Creation ¶1943
+.define_pattern "WHEN ¶2781
+.define_pattern "WHEN ¶5062
+.define_section "Showing ¶7952
+.define_pattern "SHOW"¶7987
+.define_pattern "HIDE"¶8137
+.define_pattern "SHOW ¶8285
+.define_pattern "HIDE ¶8395
+.define_section "Moving ¶8487
+.define_subsection "Moving"¶9459
+.define_pattern "MOVE ¶9483
+.define_pattern_simple "MOVE ¶9537
+.define_pattern "MOVE ·0085
+.define_pattern_simple "MOVE ·0137
+.define_pattern "MOVE ·0309
+.define_pattern_simple "MOVE ·0358
+.define_subsection "Turning"·0464
+.define_pattern "TURN ·0488
+.define_pattern "TURN ·0674
+.define_subsection "Coordinate ·0832
+.define_pattern "SET ·1390
+.define_pattern_simple "SET ·1466
+.define_pattern_simple "SET ·1525
+.define_pattern_simple "SET ·1584
+.define_pattern "SET ·1647
+.define_section "Growing ·1879
+.define_pattern "GROW ·2038
+.define_pattern "SHRINK ·2269
+.define_pattern "{or ·2369
+.define_section "Parts ·2636
+.define_pattern "SET ·3237
+.define_pattern "ABSORB ·5099
+.define_pattern "FUSE ·6152
+.define_section "What ¸0599
+.define_section "Logo ¸1432
+.define_pattern "RUN ¸1947
+.define_section "Pens"¸2408
+.define_pattern "PEN ¸2794
+.define_pattern "PEN ¸2882
+.define_section "Special ¸3037
+.define_special_variable "erasability" ¸3886
+.define_special_variable "default-whole" ¸4268
+.define_special_variable "standardize-size?" ¸4402
+.define_special_variable "standardize-center?" ¸4690
+.define_special_variable "draw-mode" ¸4840
+.define_special_variable "erase-mode" ¸4891
+.define_special_variable "pen-type" ¸5622
+.define_special_variable "variables-to-copy-upon-creation" ¸6034
+.define_section "Colors"¸6429
+.define_pattern "DO ¸6919
+.define_pattern "PREPARE ¸7420
+.define_section "Interpolation"¸8585
+.define_pattern "MAKE ¸8813
+.define_section "Appearance ¹0816
+.define_section "Non-Standard ¹2007
+.define_chapter "What ¹4996
+.define_pattern "WIPE"¹5460
+.define_pattern "CLEAR"¹5752
+.define_special_variable "height" ¹5928
+.define_special_variable "width" ¹5966
+.define_special_variable "mode" ¹6250
+.define_chapter "What ¹6973
+.define_pattern "RUN ¹7704
+.define_special_variable "frames-per-second" ¹8670
+.define_special_variable "ticks-per-frame" ¹9167
+.define_special_variable "actors-to-run-next" ¹9448
+.define_chapter "What ¹9611
+.define_pattern "FILM ¹9954
+.define_pattern "FILM ±00523
+.define_pattern_simple "PROJECT"±01073
+.define_pattern_simple "PROJECT ±01167
+.define_pattern_simple "PROJECT ±01337
+.define_pattern_simple "PROJECT ±01453
+.define_pattern_simple "PROJECT ±01629
+.define_pattern_simple "PROJECT ±01774
+.define_special_variable "speed" ±01871
+.define_special_variable "new-frame-action" ±02489
+.define_special_variable "stage-mode" ±03266
+.define_special_variable "new-frame-handler" ±03617
+.define_pattern "COMPILE ±04392
+.define_chapter "A ±05213
+.define_chapter "Compiling"±06878
+.define_chapter "Odds ±15032
+.define_section Debugging±15068
+.define_section "Complete ±16512
+.define_section "Global ±18214
+.define_section "Useful ±20310
+.define_section "Why ±22798
+.define_section "How ±26609
+.define_section "Why ±29885
+.define_section "Getting ±30059
+.define_chapter Bibliography±31814
+
+DSK: KEN1; THEMAC >
+00530,R
+.define_comment themac ³19
+.de head_foot_lines±696
+.define_paper_title "Creation ²200
+.define show_a_frame²596
+.define begin_table_of_contents³484
+.define begin_table_of_figures³617
+.define define_chapter_title³655
+.define define_appendix_title³874
+.define general_define_title´094
+.define_\1 \0´832
+.define chapter_or_appendix´869
+.define_paper_title "\string_version"µ242
+.define define_sectionµ572
+.define define_subsectionµ892
+.define define_subsubsection¶129
+
+DSK: KEN1; THESIS >
+00266,R
+.define_comment thesis ±25
+.define so²16
+.define define_chapter_title µ58
+.define_chapter "\0"¶25
+.define define_appendix_title¶64
+.define_appendix "\0"¶88
+.define read_chapter·18
+.define_paper_title "Creation ±537
+
+DSK: KEN1; THFRM >
+00122,R
+.define_comment thfrm ±33
+.define where_scene_is±821
+.define file_name_of_frame²365
+
+DSK: KEN1; CHINTR >
+00956,R
+.define_comment chintr µ4
+.define_chapter_title "Introduction"±01
+.define_section "What_Ani_Does"´619
+.define_section "What_Ani_Does_Not_Do"±0799
+.define_section "How_Ani_Makes_Films"±2657
+.define_subsection "Choosing_a_Speed_for_the_Stepmother"±3677
+.define_subsection "A_Detailed_Look_at_a_Small_Piece_of_Ani"±8095
+.define_subsection "The_Mechanisms_Involved"³4380
+.define_subsection "Examples_of_the_Elaboration_of_a_Scene"´0866
+.define_section "The_Utility_of_Actors_for_AI"´6577
+.define_section "Ani_as_a_Computational_Model_of_Creativity"´9528
+.define_section "Other_Systems_that_Create_Aesthetic_Objects"µ1519
+.define_subsection "Talespin"µ1913
+.define_subsection "Lenat's_Artificial_Mathematician"µ6372
+.define_subsection "A_Digression_into_Aesthetics_and_Mathematics"µ9888
+.define_section "Animation_--_What_is_it?"¶2069
+.define_section "Ani_and_Computer_Graphics/Animation"¶7520
+
+DSK: KEN1; CHFD >
+00398,R
+.define_comment chfd µ3
+.define_chapter_title "Film_Descriptions"±05
+.define_section "The_Kinds_of_Films_Ani_Makes"µ77
+.define_section "Film_Descriptions_in_General"µ098
+.define_section "Film_Descriptions_as_Programs"¹173
+.define_section "What_the_Words_in_the_Film_Description_Mean"±3878
+.define_section "What_Ani_Turns_the_Film_Description_into"²1477
+
+DSK: KEN1; CHSUG >
+00406,R
+.define_comment chsug µ3
+.define_chapter_title "Suggestions"¹9
+.define_section "What_Suggestions_are"·61
+.define_section "The_Representation_of_Suggestions"²171
+.define_section "Value_Suggestion_Sources"³971
+.define_section "Combining_Value_Suggestions"¹945
+.define_section "Method_Suggestion_Sources"±3202
+.define_section "Relating_Method_Suggestions"±8356
+
+DSK: KEN1; CHCHO >
+00265,R
+.define_chapter_title "Choosing_Values"·1
+.define_section "What_is_a_Value?"¶55
+.define_section "How_a_Value_is_Chosen"´428
+.define_section "How_Conflicts_are_Resolved"·902
+.define_section "Postponement_and_the_Focus"±0409
+
+DSK: KEN1; CHMETH >
+00277,R
+.define_chapter_title "Choosing_Methods"·1
+.define_section "What_is_a_Method"´92
+.define_section "How_a_Method_is_Chosen"´357
+.define_section "How_a_Method_is_Elaborated"¸931
+.define_section "How_Multiple_Activities_are_Ordered"±4608
+
+DSK: KEN1; CHMAKE >
+00357,R
+.define_comment chmake µ4
+.define_chapter_title "The_Making_of_the_Cinderella_Film"±22
+.define_section "The_Introduction_Scene"¹22
+.define_section "The_Kept_Apart_Scene"¶722
+.define_section "The_No_Longer_Kept_Apart_Scene"±0477
+.define_section "The_Meeting_Scene"±2105
+.define_section "The_Justice_Scene"±4872
+
+DSK: KEN1; APRUN >
+00302,R
+.define_comment aprun µ3
+.define_appendix_title "The_Running_of_the_Cinderella_Film" ±24
+.define_section "The_Simulation_of_Ani's_Characters"±980
+.define_section "Running_Activities_in_Parallel"¶079
+.define_section "The_Interface_between_Ani_and_Director"¹759
+
+DSK: KEN1; CHUSE >
+00454,R
+.define_comment chuse µ3
+.define_chapter_title "Applications_of_Ani"±07
+.define_section "Ani_and_Animation"¸33
+.define_subsection "Animation_as_Art"±266
+.define_subsection "Animation_as_Entertainment"²773
+.define_subsection "Animation_as_a_Language"´274
+.define_section "Ani_and_Education"¶308
+.define_section "Illustrating_Programs"·899
+.define_section "Ani_as_a_Tool_of_a_Perceptual_Psychologist"±1827
+
+AI: KEN1; CHWHER >
+00270,R
+.define_comment chwher µ4
+.define_chapter_title "Where_Ani's_Suggestions_Come_From"±22
+.define_section "Ethological_Sources"±796
+.define_section "Perceptual_Sources"´198
+.define_section "Social_Conventions_and_Common_Sense"¸747
+
+DSK: KEN1; CHIMP >
+01231,R
+.define_chapter_title "Improvements_and_Extensions"¸4
+.define_section "Making_Ani_Do_More"·57
+.define_subsection "Adding_Appearances_to_Ani"±400
+.define_subsection "Changing_Appearances"µ148
+.define_subsection "Changing_Descriptions"¸680
+.define_subsection "Controlling_the_Camera"±1320
+.define_subsection "Extending_her_Domain_of_Expertise"±5674
+.define_subsection "Figurative_Animation"±9899
+.define_subsection "Non-Narrative_Animation"²2609
+.define_subsection "Sound_or_Dialogs"²5668
+.define_section "Making_Ani_Do_Better"²7360
+.define_subsection "A_Bigger_Knowledge_Base"²7774
+.define_subsection "A_Better_Knowledge_Base"³0563
+.define_subsection "Attending_to_Myriad_Details"³4058
+.define_section "How_Ani_Evolves"³8911
+.define_section "Critics_and_Criticism"´2435
+.define_section "Self-Generated_Film_Descriptions"´6364
+.define_subsection "Describing_the_Characters"´7090
+.define_subsection "Describing_the_Scenes"´7921
+.define_subsection "Describing_the_Style_and_Length"´8660
+.define_section "Incorporating_a_General_Theory_of_Aesthetics"´9756
+.define_section "Making_Ani_Smarter"µ3418
+.define_section "Where_All_This_Might_Ultimately_Lead"µ6458
+
+DSK: KEN1; CHDIS >
+01369,R
+.define_chapter_title "Discussion"¶4
+.define_comment chdis ¸8
+.define_section "Ani_and_Creativity"µ27
+.define_subsection "Relying_Upon_Knowledge_Rather_than_Simulation"±423
+.define_subsection "Who_Made_the_Cinderella_Film?"³331
+.define_subsection "Implications_of_Accepting_Ani_as_Creative"¶047
+.define_subsection "Objections_to_the_Notion_that_Ani_is_Creative"·763
+.define_subsubsection "Ani_Can_Only_Follow_Rules"¸854
+.define_subsubsection "Creativity_and_Randomness"±1425
+.define_subsubsection "Can't_Be_Original_or_Surprising"±9069
+.define_subsubsection "Ani_is_too_Limited_--_too_Simple-Minded"²1538
+.define_subsubsection "Ani's_Films_Are_Not_Good_Enough"²3793
+.define_subsubsection "Ani_is_Not_Intuitive"²5496
+.define_section "Ani_and_Aesthetics"²8358
+.define_subsection "What_Aesthetics_is"²8399
+.define_subsection "Objections_to_Ani_as_a_Model_of_Aesthetics"³4593
+.define_subsubsection "Lack_of_Perception"³6230
+.define_subsubsection "Lack_of_Feelings"³8325
+.define_subsubsection "Ani_Can't_Know_Enough"´2857
+.define_subsubsection "Everyone_Sees_Differently"´6983
+.define_subsubsection "But_the_Films_Must_Be_Mechanical"´9421
+.define_subsubsection "But_the_Films_Must_Be_Predictable"µ2674
+.define_section "Ani_and_Style"µ4517
+.define_section "Ani_Seen_from_Many_Perspectives"µ8085
+
+DSK: KEN1; APSTAT >
+00090,R
+.define_appendix_title "Time_and_Memory_Statistics"±43
+
+DSK: KEN1; APDES >
+00121,R
+.define_comment apdes µ5
+.define_appendix_title "Descriptors_as_They_Look_in_Ani"±22
+
+DSK: KEN1; APREP >
+00119,R
+.define_appendix_title "Representation_of_Suggestions"¸5
+.define_comment aprep ±09
+
+DSK: KEN1; APCIND >
+00123,R
+.define_comment apcind ¹2
+.define_appendix_title "The_Cinderella_Film_Description"±59
+
+DSK: KEN1; APCODE >
+00116,R
+.define_appendix_title "Some_Code_Written_by_Ani"¸0
+.define_comment apcode ±05
+
+AI: KEN1; APDIAG >
+00092,R
+.define_appendix_title "A_Knowledgeable_Diagram_Maker"±09
+
+DSK: KEN1; CHOTH >
+00360,R
+.define_comment choth ·7
+.define_chapter_title "Other_Research"±26
+.define_section "Systems_that_Envision"µ316
+.define_section "Aesthetic_Systems"·093
+.define_section "Societies_of_Experts"±1746
+.define_section "Relationship_to_other_Computer_Graphics_Systems"±5097
+.define_section "Animation_and_other_Arts"±9035
+
+AI: KEN1; APART >
+00356,R
+.define_appendix_title "An_Essay_on_Art_and_Ani" ±04
+.define_section "Expression_Theory"±842
+.define_subsection "Is_It_Art?"²625
+.define_subsection "Who_is_the_Artist?"³283
+.define_subsection "What_is_the_Art_Object?"·924
+.define_subsection "Whose_Emotions_and_Feelings?"±0348
+.define_section "Summing_Up"±4498
+
+AI: KEN; IJCAI >
+00666,R
+.define_comment ijcai ¹6
+.define_paper_title "Making ±35
+.define_chapter "Introduction"²49
+.define_chapter "An ³740
+.define_chapter "The ¸787
+.define_section "Suggestions"¹196
+.define_section "Choice ¹779
+.define_section "Conflict ±0320
+.define_section "Postponement"±1222
+.define_section "Focus"±2817
+.define_section "Minimization ±3344
+.define_chapter "Relationship ±4429
+.define_section "Meehan's ±4609
+.define_section "Lenat's ±7078
+.define_chapter "Discussion"±9761
+.define_section "Generality"±9791
+.define_section "What ²1309
+.define_section "Where ²2299
+.define_chapter "Bibliography"²3482
+
+DSK: KEN1; BIB >
+00099,R
+.define_comment bib ±25
+.define_appendix_title "Bibliography"±73
+
+AI: KEN; R2XGP >
+00125,R
+.define read_picture±013
+.define hs_one ±873
+.define hs_two ±934
+.define hs_three ²005
+

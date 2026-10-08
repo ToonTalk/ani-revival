@@ -1,0 +1,199 @@
+;;;  -*-lisp-*-
+;;this defines some of the actors in ani that define elements and values and comparisons
+
+(include |ai:ken;declar >|)
+
+(defcomment element) ;this is for tags to find file name
+
+(define element something ;;default of an element
+ (set your possible-values to nil)
+ (do when receiving (pass on to value description ?message)
+     (ask :self ask your value-description
+	  to ask your relative-value-description to !,message))
+ (do when receiving (yield a value that is ?) nil)
+ (do when receiving {and ?the-message (combine suggestions %)}
+     (ask :self ask your value-description to !,the-message))
+ (do when receiving {and ?the-message (yield relationship ? ?)}
+     (ask :self ask your value-description to !,the-message))
+ (do when receiving {and ?the-message (compromise ? in ? and ? in ?)}
+     (ask :self ask your value-description to !,the-message)))
+
+;this is where I will keep general info about movement elements such as that
+;that they have three values, high, medium and low etc
+
+(define movement-element element
+ (set your value-description to three-values-and-not)
+ (set your possible-values to (high medium low))
+ (do when receiving (modify suggestion ? ? ? for ?)
+	  ;;default action is not to modify it, tends-to-avoid and attracted use this
+	  nil)
+ (do when receiving (yield a value that is ?three-value)
+     three-value)) ;;default is high medium or low so fine
+
+(define relative-element element
+	(set your value-description to relative-value))
+
+(define normal-movement-element movement-element) ;;these tend to be three valued and
+						  ;;different from movement-tendency-element
+(define relative-location relative-element)
+
+(define relative-vertical-position relative-location)
+
+(define relative-horizontal-position relative-location)
+
+(define relative-movement-element relative-element)
+
+(define speed normal-movement-element
+	(set your relative-element to relative-speed))
+
+(define relative-speed relative-movement-element)
+
+(define activity-level normal-movement-element
+	(set your relative-element to relative-activity-level))
+
+(define relative-activity-level relative-movement-element)
+
+(define rhythmic-level normal-movement-element
+	(set your relative-element to relative-rhythmic-level))
+
+(define relative-rhythmic-level relative-movement-element)
+
+(define acceleration normal-movement-element
+	(set your relative-element to relative-acceleration))
+
+(define relative-acceleration relative-movement-element)
+
+(define repetiveness normal-movement-element
+	(set your relative-element to relative-repetiveness))
+
+(define relative-repetiveness relative-movement-element)
+
+(define deliberateness normal-movement-element
+	(set your relative-element to relative-deliberateness))
+
+(define relative-deliberateness relative-movement-element)
+
+(define path-length normal-movement-element
+ (set your possible-values to (short medium long))
+ (set your relative-element to relative-path-length)
+ (do when receiving (yield a value that is ?three-value)
+     (cond ((eq three-value 'high) 'long)
+	   ((eq three-value 'medium) 'medium)
+	   ((eq three-value 'low) 'short))))
+
+(define relative-path-length relative-movement-element)
+
+(define path-curvature normal-movement-element
+	(set your relative-element to relative-path-curvature))
+
+(define relative-path-curvature relative-movement-element)
+
+(define path-jaggedness normal-movement-element
+	(set your relative-element to relative-path-jaggedness))
+
+(define relative-path-jaggedness relative-movement-element)
+
+(define movement-tendency-element movement-element
+ (set your value-description to three-values-with-sign)
+ (set your possible-values to ((positive high) (positive medium) (positive low)
+			       (negative high) (negative medium) (negative low))))
+
+(define attraction-towards-strangers movement-tendency-element)
+
+(define attraction-towards-enemies movement-tendency-element)
+
+(define attraction-towards-friends movement-tendency-element)
+
+(define comparison something)
+
+(define character-comparison comparison
+ (do when receiving (collect suggestions for ?relative-element)
+     (collect-relationship-and-comparison-suggestions relative-element :self))
+ (do when receiving (collect relative suggestions)
+     (mapc
+      (function
+       (lambda (element)
+	       (ask :self collect suggestions for ,element)))	
+      (ask relative-element recall your childless-descendants)))
+ (extend behavior when receiving (make ?instance) by doing
+	 (ask :self make ,instance) ;; make it as usual 
+	 (ask ,instance make synonym
+	      (,(first instance) ,(third instance) ,(second instance))))
+ (do when receiving (yield your relative choice point of ?relative-element)
+     (ask relative-choice-point
+	  if new make (relative-choice-point-of ,(rest :self) ,relative-element)))
+ (do when receiving (print comparisons)
+     (print (ask :self recall your name))
+     (dicks-print (ask :self collect items memorized matching
+		       (comparison: finding ?
+				    descriptor ?
+				    descriptor-type ?)))
+     (dicks-print (ask :self collect items memorized matching (comparison-summary: %)))))
+
+(define value something)
+
+(define three-value value
+ (do when receiving
+     (are you {memq ?relation '(same-as different-from greater-than less-than)} ?value)
+     ;;eg (are you greater-than short)
+     (do-as-if-you-were	 ;;since it depends upon which three-rank gets question
+      something ;;compile normally but ask yourself:
+      :self ask your three-value-rank to
+      are you ,relation
+      ,(cond ((and value (atom value))
+	      (ask ,value recall your three-value-rank))
+	     ((eq (first value) 'not)
+	      '(not ,(ask ,(second value) recall your three-value-rank)))
+	     (t (shouldnt-happen 'three-value
+				 '(,value not three-value-and-not)))))))
+
+ 
+(define three-rank something
+ (do when receiving (are you same-as ?value)
+     (equal value :self))
+ (do when receiving (are you different-from ?value)
+     (not (equal value :self)))
+ (do when receiving (recall your three-value-rank)
+     :self))
+
+(define top three-rank
+ (do when receiving (are you greater-than ?value)
+     (not (equal value :self)))
+ (do when receiving (are you less-than ?)
+     nil))
+
+(define middle three-rank
+ (do when receiving (are you greater-than ?value)
+     (cond ((eq value 'bottom))
+	   ((member value '((not top) (not middle))) 'bottom)))
+ (do when receiving(are you less-than ?value)
+     (cond ((eq value 'top))
+	   ((member value '((not low) (not middle))) 'top))))
+
+(define bottom three-rank
+ (do when receiving (are you greater-than ?)
+     nil)
+ (do when receiving (are you less-than ?value)
+     (not (equal value :self))))
+
+(define high three-value
+	(set your three-value-rank to top)
+	(set your opposite to low))
+
+(define medium three-value
+	(set your three-value-rank to middle)
+	(set your opposite to medium))
+
+(define low three-value
+	(set your three-value-rank to bottom)
+	(set your opposite to high))
+
+(define long three-value
+	(set your three-value-rank to top)
+	(set your opposite to short))
+
+(define short three-value
+	(set your three-value-rank to bottom)
+	(set your opposite to long))
+
+(compile-actors)

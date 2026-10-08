@@ -1,0 +1,269 @@
+;; -*-lisp-*-
+
+(include |ai:ken;declar >|)
+
+;;this section handles the recording and reshowing of "movies"
+
+(defcomment movie);;for tags
+
+(define movie something
+ (set your speed to 999999) ;frames per second (i.e default is to go as fast as possible)
+ (set your ticks-per-frame to 1)
+ (set your frames-per-second to 1)
+ (set your new-frame-action to erase-old) ;;by default erase old rather than clearscreen 
+ (set your new-frame-handler to frame-handler)
+ (set your screen-mode to silent) ;;screen is silent but we wipe by default
+ (set your frame-count to 0))
+
+(define-method (film the next ?length ticks) movie
+ (help-comments: |have all the actors with anything planned run for the next "length" ticks|
+		 |recording it as it goes for later projection|)
+ ;;this no longer asks the universe to run because I must store away the frame after
+ ;;everything has changed, not any old time during the frame
+  (ask movie set your current-movie to ,(name-of :self))
+  (let ((screen-mode (ask screen recall your mode)))
+       (unwind-protect
+	(progn
+	 (ask screen set your mode to ,(ask :self recall your screen-mode))
+	 (do ((time 0 (1+ time))
+	      (frame-number (ask :self recall your frame-count))
+	      (universe (ask :self recall your universe))
+	      (new-frame-handler (ask :self recall your new-frame-handler))
+	      (:ticks-per-frame (ask :self recall your ticks-per-frame))
+	      (:frames-per-second (ask :self recall your frames-per-second))
+	      (stopped? nil (ask :self recall your stopped?)))
+	     ((or stopped? (> time length)
+		  (null (ask ,universe recall your actors-to-run-next)))
+	      frame-number)
+	     (cond ((= (\ time :ticks-per-frame) 0)
+		    (put-in-wholine frame-number)
+		    (compile-using frame-handler
+				   (ask ,new-frame-handler
+					just made frame number ,frame-number for ,:self))
+		    (ask :self set your frame-count to ,frame-number)
+		    (setq frame-number (1+ frame-number))))
+	     (compile-using universe (ask ,universe tick))))
+	(ask screen set your mode to ,screen-mode)))) ;;restore the screen to normal
+
+(define-method (film secretly the next ?length ticks) movie
+ (help-comments: |have all the actors with anything planned run for the next "length" ticks|
+		 |recording it as it goes for later projection|
+		 |however I don't change the screen while doing this (it runs in silent mode)|)
+ (ask :self set your new-frame-handler to just-store-away-frame)
+ (ask :self film the next ,length ticks))
+
+(define-method (store away the frame number ?number) movie
+ (ask :self set your (frame ,number) to ,(or (ask screen save screen) '(nil))))
+
+(define-method (stop filming) movie
+ (ask :self set your stopped? to t))
+
+(define-method (record ?event) movie
+ (ask :self memorize (happened ,event at frame ,(ask :self recall your frame-count))))
+
+(define-method (project) movie
+ (help-comments:
+  |show all my frames at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie 0 999999999 1))
+
+(define-method (project frames ?begin to ?end showing every ?so-many) movie
+ (help-comments:
+  |show my frames from "begin" to "end" (in that order) showing every "so-many"th frame|
+  |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin end so-many))
+
+
+(define-method (project frames ?begin to ?end) movie
+ (help-comments: |show all my frames from frame number "begin" to "end" (in that order)|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin end 1))
+
+(define-method (project starting at frame ?begin showing every ?so-many) movie
+ (help-comments: |start to show myself at frame number "begin" showing every "so-many"th frame|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin 999999999 so-many))
+
+(define-method (project showing every ?so-many) movie
+ (help-comments: |start to show myself at frame number 0 showing every "so-many"th frame|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie 0 999999999 so-many))
+ 
+(define-method (project frame ?number) movie
+ (help-comments: |clear the screen and show frame number "number"|)
+ (show-movie number number 999999999))
+
+(define-method-helper (show-movie first-frame last-frame skip-every) movie
+ (cond ((ask :self recall your compiled?)
+	(project-compiled-movie (name-of :self)
+				first-frame
+				(min last-frame (1- (ask :self recall your frame-count)))
+				skip-every
+				(ask :self recall your speed)
+				(ask :self recall your new-frame-action)))
+       (t (show-normal-movie first-frame last-frame skip-every))))
+
+(define-method-helper (show-normal-movie first-frame last-frame skip-every) movie
+ (wipe)
+ (let ((increment (cond ((< first-frame last-frame) skip-every)
+			(t (- skip-every)))))
+      (do ((frame-number first-frame (+ frame-number increment))
+	   (last-runtime (runtime) (runtime))
+	   (begin-time (runtime))
+	   (speed (//$ (float (ask :self recall your speed))))
+	   (new-frame-action (ask :self recall your new-frame-action))
+	   (last-frame (min last-frame (ask :self recall your frame-count)))
+	   (frame nil (ask :self recall your (frame ,frame-number)))
+	   (previous-frame nil frame))
+	  ((cond ((> increment 0) (> frame-number last-frame))
+		 (t (< frame-number last-frame)))
+	   '(,(//$ (float (- (runtime) begin-time)) 1000000.0) cpu seconds))
+	  (put-in-wholine frame-number)
+	  (cond ((null frame)) ;;do nothing if the frame was never made (worse than empty)
+		((eq new-frame-action 'erase-old)
+		 (erase+draw-frame previous-frame frame speed last-runtime))
+		((eq (first new-frame-action) 'erase-previous) ;;eg (erase-previous 27)
+		 (erase+draw-frame
+		  (ask :self recall your (frame ,(- frame-number (second new-frame-action))))
+		  frame speed last-runtime))
+		(t (eval new-frame-action)
+		   (run-frame frame speed last-runtime '(display)))))))
+
+(define-form (erase+draw-frame previous-frame current-frame speed last-runtime)
+ (eraserdown)
+ (and previous-frame
+      (run-frame (set-minus previous-frame current-frame)
+		 ;;dont need to erase those in both
+		 -999.9 last-runtime '(erase)))
+ (pendown)
+ (run-frame (set-minus current-frame previous-frame)
+	    ;;dont need to draw those already there
+	    speed
+	    last-runtime
+	    '(display)))
+
+(define-method-helper (run-frame current-appearances speed last-runtime action) movie
+       (mapc (function (lambda (current-appearance)
+			       (and current-appearance (ask ,current-appearance !,action))))
+	     current-appearances)
+       (sleep (-$ speed (//$ (float (- (runtime) last-runtime)) 1000000.0))))
+
+(define-form (put-in-wholine x)
+       (sstatus who3 (append-atoms 'f= x))
+       x)
+
+(define-method (print frames ?begin to ?end) movie
+ (help-comments: |print out the appearances of each actor on each frame from "begin" to "end"|)
+  (do ((i begin (1+ i)))
+      ((> i end))
+      (ask :self ask each of your (frame ,i) to print memory)
+      (terpri) (princ '|End of frame number |) (princ i)))
+
+
+(define-method (smart compile %file-name) movie
+ (help-comments:
+  |write out to "file-name" Lisp code that can be compiled|
+  |which can be projected much more quickly especially if sent to the COMPLR|)
+ (save-copy-of-the-movie :self file-name)
+ (let-files ;;like let but does the right thing with files
+  ((file-object (open file-name 'append))
+   (movie-name (let ((name (name-of :self)))
+		    (cond ((null name) 'unnamed-movie)
+			  ((atom name) name)
+			  (t (append-atoms name))))) ;;atomize list
+   (original-mode (ask screen recall your mode)))
+  (unwind-protect
+   (progn
+    (ask screen set your mode to (silent-but-tell turtle-command-holder))
+    ;;this will make screen send off the lisp to turtle-command-holder
+    (do ((compiled-appearances nil)
+	 (frames nil)
+	 (*nopoint nil) ;so that printed code has periods to be base 10.
+	 (frame-count (ask ,:self recall your frame-count))
+	 (frame-number 0 (1+ frame-number)))
+	((= frame-number frame-count)
+	 (print-the-movie-array frames movie-name frame-number file-object))
+	(do ((appearances (ask ,:self recall your (frame ,frame-number)) (rest appearances))
+	     (frame))
+	    ((null appearances) (push frame frames))
+	    (push (cond ((second (assq (first appearances) compiled-appearances)))
+			(t (let ((appearance-name
+				  (intern-append-atoms movie-name '- (gen-number movie-name))))
+				(compile-appearance (first appearances)
+						    appearance-name file-object)
+				(push (list (first appearances) appearance-name)
+				      compiled-appearances)
+				appearance-name)))
+		  frame))))
+   (ask screen set your mode to ,original-mode))))
+
+(define-method-helper (compile-appearance appearance appearance-name file-object) movie
+ (ask turtle-command-holder set your turtle-commands to nil)
+ ;;screen is in a mode where this will cause the lisp to go the turtle-command-holder
+ (compile-using object (ask ,appearance display))
+ (let ((display-code (ask turtle-command-holder recall your turtle-commands)))
+      (ask turtle-command-holder set your turtle-commands to nil)
+      (compile-using object (ask ,appearance erase))
+      (let ((erase-code (ask turtle-command-holder recall your turtle-commands)))
+	   (cond ((and (one-long display-code)
+		       (one-long erase-code)
+		       (equal (rest (rest (first display-code)))
+			      (rest (rest (first erase-code)))))
+		  (print '(defun ,appearance-name (penmode)
+				 (funcall penmode)
+				 !,(rest (rest (first display-code))))
+			 file-object))
+		 (t (print '(defun ,appearance-name (penmode)
+				   (cond ((equal penmode 'pendown) !,(nreverse display-code))
+					 ((equal penmode 'eraserdown) !,(nreverse erase-code))
+					 (t (compiled-appearance-error penmode))))
+			   file-object))))))
+
+
+(define-form (print-the-movie-array frames movie-name frame-number file-object) 
+ (print '(array ,movie-name t ,frame-number) file-object)
+ (print '(fillarray (quote ,movie-name) (quote ,(nreverse frames))) file-object)
+ (print '(cond ((boundp ':compiled-movies)
+		(setq :compiled-movies (cons (quote ,movie-name) :compiled-movies)))
+	       (t (setq :compiled-movies (quote (,movie-name)))))
+	file-object))
+
+(define-method-helper (save-copy-of-the-movie movie file-name) movie
+ (let ((compile-copy (ask ,movie make copy (to-be-compiled ,(name-of movie)))))
+      (ask ,compile-copy forget your (frame ?))
+      (ask ,compile-copy set your compiled? to should-be)
+      (ask ,compile-copy set your name to ,(name-of movie));;lies about its name to the file
+      (ask ,compile-copy save !,file-name)
+      (ask ,compile-copy set your name to ,compile-copy) ;;gets its real name back to be killed
+      (ask ,compile-copy unmake)))
+
+(define-synonym eof eval-on-frame)
+
+(define-method-helper (eval-on-frame movie form frame-number) movie
+ (let ((frame-handler (ask ,movie recall your new-frame-handler)))
+      (cond (frame-handler 
+	     (ask ,frame-handler do when receiving
+		  (just made frame number ,frame-number for ?movie)
+		  ,form
+		  (compile-using frame-handler
+			    (ask-old :self just made frame number ,frame-number for ,movie))))
+	    (t (warning 'eval-on-frame '(,movie is not a movie))))))
+
+(define frame-handler something)
+
+(define-method (just made frame number ?frame-number for ?movie) frame-handler
+ (let ((original-mode (ask screen recall your mode)))
+      (cond ((not (eq original-mode 'normal))
+	     (ask screen set your mode to normal)
+	     (ask screen wipe)
+	     (ask screen set your mode to ,original-mode))))
+ (compile-using movie (ask ,movie store away the frame number ,frame-number)))
+
+(define just-store-away-frame frame-handler)
+
+(define-method (just made frame number ?frame-number for ?movie) just-store-away-frame
+ (compile-using movie (ask ,movie store away the frame number ,frame-number)))
+
+
+(define turtle-command-holder something)
+
+(compile-actors)

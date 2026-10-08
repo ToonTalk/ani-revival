@@ -1,0 +1,188 @@
+;;-*-lisp-*-
+
+(comment)
+
+(load '|ai:ken; gcdemn fasl|)
+;;mine doesn't check if its a tv and set the who line since that made the job ask for the tty
+(setq gctwa t) ;;I make lots of them (truely worthless atoms)
+(setq alloc-mark-ratio .75) ;;rather gc a bit more than get so bloated
+(setq ^w t)
+
+;;since this is my maclisp init I know I'm in maclisp
+
+(defun (if-for-maclisp macro) (x)
+ (cons 'progn (cons (quote (quote compile)) (cdr x))))
+
+(defun (if-for-lispm macro) (nil)
+       nil)
+
+(defun (if-for-maclisp-else-lispm macro) (x)
+ (cadr x))
+
+(cond ((not (status features complr))
+	    (sstatus who1 42. '% 118. 0) ;;initializes and sets the wholine form baker;gcdemn
+	    (sstatus gcwho 3)))
+
+(declare (special prinmode /#checkrecursion) ;;this is for dick's printer
+	 (*lexpr /#print /#prin1 /#princ))
+
+(defun load-printer nil
+ (load '((liblsp) /#print fasl))
+ (setq prin1 '/#prin1)
+ (sstatus features dicks-printer)
+ (remprop 'do '/#grind-fn) ;;since i never use tags i don't need this
+ (remprop 'prog '/#grind-fn)
+ (sstatus ttyint 19. '/#printabort) ;;makes ^s abort the printing
+ (setq /#checkrecursion nil)) ;;I shouldn't have any circular lists
+
+(cond ((and (boundp '*dont-want-dicks-printer) *dont-want-dicks-printer))
+       ;;don't need it while compiling for example
+      (t (load-printer)))
+
+(defun dicks-print n
+       (cond ((= n 1) (/#print (arg 1)))
+	     ((= n 2) (/#print (arg 1) (arg 2)))
+	     (t ((lambda (prinmode)
+			 (/#print (arg 1) (arg 2)))
+		 (arg 3)))))
+
+(defun dicks-prin1 n
+       (cond ((= n 1) (/#prin1 (arg 1)))
+	     ((= n 2) (/#prin1 (arg 1) (arg 2)))
+	     (t ((lambda (prinmode)
+			 (/#prin1 (arg 1) (arg 2)))
+		 (arg 3)))))
+
+(defun dicks-princ n
+       (cond ((= n 1) (/#princ (arg 1)))
+	     ((= n 2) (/#princ (arg 1) (arg 2)))
+	     (t ((lambda (prinmode)
+			 (/#princ (arg 1) (arg 2)))
+		 (arg 3)))))
+
+(declare (special /#1fn-template /#11level-miser-template
+		  /#1default-symbol-car-grind-template /#11level-tblock-template
+		  /#1default-non-symbol-car-grind-template /#11level-tblock-template))
+
+(declare (special *what-to-show))
+
+(defun dicks-miserly-print (thing &optional file)
+ (let ((/#1fn-template /#11level-miser-template)
+       (/#1default-symbol-car-grind-template /#11level-tblock-template)
+       (/#1default-non-symbol-car-grind-template /#11level-tblock-template)
+       (*what-to-show 'completely-original)) ;;expanded macros print as they should
+      (dicks-print thing file)))
+
+(defprop top ((dsk liblsp) stack) autoload)
+
+(defprop bot ((dsk liblsp) stack) autoload)
+
+(defprop time-function ((dsk liblsp) timer) autoload)
+(defprop untime ((dsk liblsp) timer) autoload) ;;files sometimes do this first
+
+(defprop apropos ((dsk liblsp) apropo) autoload)
+
+(defprop ap apropos expr)
+
+(defprop cs (tvrtle newio ai llogo) autoload)
+(defprop clearscreen (tvrtle newio ai llogo) autoload)
+
+(setq pure 2) ;;needed for uuolink hack
+
+(defun go-slow n
+ ;;with a nil arg nouuo is nil
+       (snap-uuolinks) ;;break any uuo links so that compiled code will call new stuff
+       (*rset t)
+       (cond ((= n 1) (nouuo (arg 1)))
+	     (t (nouuo t))))
+
+(defun go-fast n
+       (cond ((= n 1) (snap-uuolinks))) ;;with arg break links 
+       (*rset (nouuo nil))) ;;but in either case go fast
+
+(defprop bug snap-uuolinks expr)
+
+(defun snap-uuolinks nil
+       (sstatus uuolinks))
+
+(defun (set-variable macro) (**macro-call**)
+ ;;this is intended only for top-level use rather than setq to warn about mistypings and
+ ;;tell what old value was
+ (let (((variable value) (cdr **macro-call**)))
+      (cond ((boundp variable)
+	     (princ '|;the old value of |) (princ variable)
+	     (princ '| was |) (princ (symeval variable)))
+	    (t (princ '|;no previous value of |) (princ variable)))
+      (list 'setq variable value)))
+
+(defun (s macro) (**macro-call**)
+ (cons 'set-variable (cdr **macro-call**)))
+
+(defun load-macro-files nil
+ (cond ((not (status feature macro-files-loaded))
+	(array original-readtable readtable) ;;copy the readtable
+	(load '|ai:ken1;reamac|)
+	(load '|ai:ken1;macros|)
+	(sstatus feature macro-files-loaded))))
+
+(load-macro-files)
+
+;;too often it reverse the letters of the emacs ^t in emacs and so i wont start it this way
+
+(sstatus ttyint 20. 'control-t) ;;makes ^t load in emasc from the first
+
+(declare (special tty-yanked-flag *time-i-left-here job-msg-file 
+		  tty-return-prompt? tty-return-prompter))
+
+(defun control-t (nil nil)
+ (and (> (listen) 0) (tyi tyi)) ;;gobble up the control-t if there
+ (setq *time-I-left-here (time)) ;;so it knows how long I've been gone
+ (e))
+
+(defun e nil ;;this creates a rover named e or gobbles up any job named e
+       (enter-specific-inf-editor 'e))
+
+(declare (coutput (read))) ;;since inf-edit is macro of JLK
+
+(defun enter-specific-inf-editor (x)
+ (load '|liblsp;lispt|)
+ (sstatus ttyint 20. 'control-t) ;;restore my ^t
+ (setq *time-I-left-here (time)) ;;so it knows how long I've been gone
+ (inf-edit e))
+
+(setq SEND-*VALUE-TO-DDT? 'yes) ;;so that if emacs valrets something it gets passed on up
+
+(setq default-tty-return-list '((my-default-tty-return ttyretarg)))
+
+(defun my-default-tty-return (x)
+   (cond ((null tty-yanked-flag)
+;;	  (cursorpos 'C job-msg-file) ;;this especially I found annoying
+	  (terpri)
+	  (cond ((status features director) (princ '|;Welcome back to Director |))
+		((status features ani) (princ '|;Ani welcomes you back |))
+		(t (princ '|;You're back to Lisp |)))
+	  (princ
+	   (list '|haven't seen you for| (fix (-$ (time) *time-I-left-here)) '|seconds|))
+	  (terpri)))
+;;	  (funcall (if (status feature MACSYMA) 'print-console-msg 'princt)
+;;		   (if tty-return-msg tty-return-msg
+;;		       (if (status feature MACSYMA) '|(MACSYMA)|
+;;			   '|(LISP)|))
+;;		   job-msg-file)
+   (force-output job-msg-file)
+   (cond (tty-return-prompt? (funcall tty-return-prompter x)))
+   (setq tty-return-prompt? t)
+   T)
+
+(setq default-return-to-ddt-list '((progn (setq *time-I-left-here (time)) (LISPT-^Z)) 
+				   (progn (setq *time-I-left-here (time)) (DDT-return))))
+
+(setq *e 2.71828)
+
+(crunit ken)
+
+(SETQ NOUUO T)
+(SETQ BASE 10. IBASE 10.)
+(setq *nopoint t)
+(*RSET T)
+(SETQ ^W NIL)

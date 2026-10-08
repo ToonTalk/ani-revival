@@ -1,0 +1,155 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment glosug);;for tags
+
+(define global-descriptor something
+ (do when receiving (yield suggestions for ?) nil));;good default
+
+
+(define (energy level) global-descriptor
+ (do when receiving (yield suggestions for ?choice-point)
+     (let ((element-name (ask ,choice-point recall your element-name))
+	   (element (ask ,choice-point recall your element))
+	   (energy-level (ask :self recall your level)))
+	  (cond ((ask ,element-name are you a normal-movement-element)
+		 (let ((value
+			(uncompiled-ask ,element-name yield a value that is ,energy-level)))
+		      (and value
+			   '(suggestion: element ,element
+					 value ,value
+					 strength medium
+					 source ,:self))))))))
+
+(define (flashiness level) global-descriptor
+ (do when receiving (yield suggestions for ?choice-point)
+     (let ((element-name (ask ,choice-point recall your element-name))
+	   (element (ask ,choice-point recall your element))
+	   (flashiness-level (ask :self recall your level)))
+	  (cond ((ask ,element-name are you a normal-movement-element)
+		 (let ((value
+			(uncompiled-ask ,element-name
+					yield a value that is ,flashiness-level)))
+		      (and value
+			   '(suggestion: element ,element
+					 value ,value
+					 strength medium
+					 source ,:self))))
+		;;size is also bigger is flashier
+		;;color is many and bright is flashier etc.
+		))))
+
+(define (variety level)	global-descriptor
+ (do when receiving (yield suggestions for ?choice-point)
+     (let ((element-name (ask ,choice-point recall your element-name))
+	   (element (ask ,choice-point recall your element)))
+	  (let ((possible-values (ask ,element-name recall your possible-values)))
+	       (and possible-values
+		    (let ((value (pick-value-with-variety (ask :self recall your level)
+							  possible-values
+							  element-name)))
+			 '(suggestion: element ,element
+				       value ,value
+				       strength low
+				       source ,:self)))))))
+
+
+;;the following could also determine how strongly this value is being suggeted depending
+;;upon the distribution of usage counts.
+
+(define-function pick-value-with-variety (variety-level possible-values element-name)
+;;this picks a value as follows
+;;if variety level is high it picks the least chosen value or the first one if a tie
+;;if variety level is low it picks the most chosen value or the first
+;;if variety level is medium it picks the middle-most chosen one
+ (let ((count-value-pairs (count-of-each possible-values element-name)))
+      (cond ((eq variety-level 'high)
+	     (second (first (sortcar count-value-pairs '>))))
+	    ((eq variety-level 'low)
+	     (second (first (sortcar count-value-pairs '<))))
+	    ((eq variety-level 'medium)
+	     (second (middle-element (sortcar count-value-pairs '>))))
+	    (t (shouldnt-happen 'pick-value-with-variety
+				'(,variety-level is not a good variety level))))))
+
+
+(define-function count-of-each (values element-name)
+ (mapcar
+  (function (lambda (value)
+		    (list
+		     (or (ask ,element-name recall your (count-for ,value))
+			 0)
+		     value)))
+  values))
+
+
+(define (originality level) global-descriptor
+;;this should also have some interaction with the stereotypicality of a suggestion
+ (do when receiving (yield suggestions for ?choice-point)
+     (let ((element-name (ask ,choice-point recall your element-name))
+	   (element (ask ,choice-point recall your element)))
+	  (let ((previous-values (ask ,choice-point recall your previous-choices))
+		(possible-values (ask ,element-name recall your possible-values)))
+	       (and previous-values
+		    possible-values
+		    (let ((value (pick-value-with-originality (ask :self recall your level)
+							      previous-values
+							      possible-values
+							      element-name)))
+			 (and value
+			      '(suggestion: element ,element
+					    value ,value
+					    strength low
+					    source ,:self))))))))
+
+(define-function pick-value-with-originality
+		 (level previous-values possible-values element-name)
+ ;;if the level is low this will pick among previous-values
+ ;;if its high then pick amoung (set-minus possible-values previous-values) 
+ ;;actually it is fancier since previous values may have copies
+ ;;it lets variety-level do the picking
+ (cond ((eq level 'low)
+	(pick-value-with-variety (ask film ask your current-film to
+				      recall your (variety level))
+				 previous-values
+				 element-name))
+      ((eq level 'high)
+       (pick-value-with-variety (ask film ask your current-film to recall your (variety level))
+				(least-common-elements
+				 (append possible-values previous-values))
+				element-name))
+      ((eq level 'medium) nil))) ;;dont pick any ol' thing
+
+
+(define-function least-common-elements (list)
+;;this returns those elements in the list whose frequency is the least
+ (do ((i list (rest i))
+      (alist nil))
+     ((null i) (pull-out-smallest-values alist))
+     (let ((pair (assoc (first i) alist)))
+	  (cond (pair (replace-rest pair (1+ (rest pair))))
+		(t (setq alist (cons (cons (first i) 1) alist)))))))
+
+
+(define-function pull-out-smallest-values (alist)
+ (do ((i (rest alist) (rest i))
+      (best-so-far (list (first alist))))
+     ((null i) (mapcar 'car best-so-far))
+     (let ((best-count (rest (first best-so-far)))
+	   (current-count (rest (first i))))
+	  (cond ((= best-count current-count)
+		 (setq best-so-far (cons (first i) best-so-far)))
+		((> best-count current-count)
+		 (setq best-so-far (list (first i))))))))
+	       
+(define (coherence level) global-descriptor)
+
+(define (obviousness level) global-descriptor)
+
+(define (rhythm level) global-descriptor)
+
+(define (complexity level) global-descriptor)
+
+
+

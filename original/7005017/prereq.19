@@ -1,0 +1,138 @@
+;; -*- lisp -*-
+;;this is the part of ani for hacking prerequisites and best-when
+
+(include |ai:ken;declare >| )
+
+(defcomment prereq) ;;for tags
+
+(define prerequisite something)
+
+(declare (special status))
+
+(define not prerequisite
+ (add (if-asked-about
+       (status-of (not ?some-prerequisite) ?)
+       ;;the status can be either 'met 'not-met or 'dont-know
+       '(status-of (not ,some-prerequisite)
+		   ,(ask ,(first some-prerequisite) recall an item matching
+			 (status-of ,some-prerequisite ?status) then
+			 (cond ((eq status 'met) 'not-met)
+			       ((eq status 'not-met) 'met)
+			       (t status)))))
+      to your list of (status-of if-recalling-items)))
+
+(declare (unspecial status))
+
+
+(define faster prerequisite
+ (add (if-asked-about
+       (status-of (faster ?a ?b) ?)
+       ;;this once used the relative-choice-point but they are not as good as the absolute ones
+       '(status-of (faster ,a ,b)
+		   ,(let ((a-speed
+			   (ask (choice-point-of ,a speed) recall your current-choice))
+			  (b-speed
+			   (ask (choice-point-of ,b speed) recall your current-choice)))
+			 (cond ((and a-speed b-speed)
+				(cond ((three-value-greaterp a-speed b-speed) 'met)
+				      ((three-value-greaterp b-speed a-speed) 'not-met)))))))
+      to your list of (status-of if-recalling-items)))
+
+(define stronger prerequisite ;;this applies only to physical (not personality) strength 
+ (add (if-asked-about
+       (status-of (stronger ?a ?b) ?)
+       ;;this is a crude approximation assumes that if explicitly strong or weak then...
+       '(status-of (stronger ,a ,b)
+		   ,(cond ((meet-description-of a 'strong 'physical)
+			   (cond ((meet-description-of b 'strong 'physical) 'dont-know)
+				 ;;could be
+				 (t 'met))) ;;could be wrong but good guess
+				 ((meet-description-of b 'strong 'physical) 'not-met)
+				 ((meet-description-of a 'weak 'physical)
+				 (cond ((meet-description-of b 'weak 'physical) 'dont-know)
+				       (t 'not-met)))
+				 ((meet-description-of b 'weak 'physical) 'met))))
+      to your list of (status-of if-recalling-items)))
+
+(define-function meet-description-of (character descriptor type)
+ (ask ,character recall if any items match (description: type ,type
+							 descriptor ,descriptor
+							 %)))
+
+(define bigger prerequisite) ;;for now just a dummy
+
+(define pen-down-for prerequisite) ;;dummy too
+
+(define on-stage prerequisite)
+
+(define-receiver
+ (yield undoing suggestions for {and ?task (convey (undoes ?who (on-stage ?character)))})
+ on-stage
+ '((suggestion: element ,task
+		value (method: type display
+			       value (chases-to ,who ,character
+						(small-distance-from-and-offstage
+						 (vicinity-of ,character)))
+			       best-when ((dominates ,who ,character)))
+		strength high
+		source onstage)))
+
+(define can-move prerequisite)
+
+(define-receiver
+ (yield undoing suggestions for
+	{and ?task (convey (undoes ?who (can-move ?character ?place)))})
+ can-move
+ '((suggestion: element ,task
+		value (method: type display
+			       value (makes-fence ,who
+						  (between (vicinity-of ,character)
+							   ,place)))
+		strength high
+		source can-move)
+   (suggestion: element ,task
+		value (method: type display
+			       value (stands-guard ,who ,character
+						   (away-from (vicinity-of ,character)
+							      ,place)))
+		strength high
+		source can-move)
+   (suggestion: element ,task
+		value (method: type convey
+			       value (kills ,who ,character)
+			       best-when ((dominates ,who ,character)
+					  (hates ,who ,character)
+					  (evil ,who)))
+		strength high
+		source can-move)))
+
+
+(define likes prerequisite
+ (add (if-asked-about
+       (status-of (likes ?a ?b) ?)
+       '(status-of (likes ,a ,b)
+		   ,(let ((relationship '(relationship-of ,a ,b)))
+			 (cond ((meet-description-of relationship 'likes '?) 'met)
+			       ((meet-description-of relationship 'loves '?) 'met)
+			       ((meet-description-of relationship 'hates '?) 'not-met)
+			       ((meet-description-of relationship 'dislikes '?) 'not-met)
+			       (t 'dont-know)))))
+      to your list of (status-of if-recalling-items)))
+
+(define dummy-prerequisite prerequisite ;;until real definition is added
+ (add (if-asked-about (status-of ?prerequisite ?) '(status ,prerequisite dont-know))
+      to your list of (status-of if-recalling-items)))
+
+(define difficult dummy-prerequisite)
+
+(define owned-by dummy-prerequisite)
+
+(define kind-of dummy-prerequisite)
+
+(define enemies dummy-prerequisite)
+
+(define friends dummy-prerequisite)
+
+(define strangers dummy-prerequisite)
+
+(define in-danger dummy-prerequisite)

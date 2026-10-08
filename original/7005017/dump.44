@@ -1,0 +1,81 @@
+;; -*- lisp -*-
+
+(include |ai:ken;declare >|)
+
+(defcomment dump) ;;for tags
+
+(define-form (dump-director (file-name |ken1;second:direct >|) (test-director? t))
+;;i use this to dump out director after loading obtest file
+       (and test-director? (test-director))
+       (remprop 'test-director 'expr) ;;dont need it in the dumped version
+       (nouuo nil)
+       (*rset t)
+       (shut-up 'lispify-transmission)
+       ;;makes sense mostly when debugging compiler or if in the compiler
+       (ask-if-exists pent print script) ;;to load in the printer
+       (ask-if-exists pent unmake)
+       (ask-if-exists star unmake)
+       (ask-if-exists scenery unmake)
+       (ask-if-exists test-movie unmake)
+       (let ((a 1)) a) ;;to be sure let is loaded in
+       (clearscreen)
+       (SPLITSCREEN NIL)
+       (MAP-TV-CORE NIL) ;;this is from savedisplay so that it sees if new tv then dumped
+       (sstatus flush t) ;;so that the Lisp need not be dumped with it
+       (type '|remember to update lisp;lock >|)
+       (princ (status lispversion))
+       (SUSPEND '|:CLEAR/
+ : ----- YOU'RE IN DDT ------ /
+ | file-name)
+ ;;now I'm back in the dumped lisp
+       (cond ((= (status ttytype tyo) 5.) ;;on a tv
+	      (MAP-TV-CORE T) ;;restore tv map
+	      (SPLITSCREEN :ECHOLINES)
+	      (SSTATUS TTYINT 11. NIL) ;;dunno why but was in savedisplay
+	      (director-wipe)
+	      (apply 'crunit (list (status uname)))
+	      (SSTATUS GCTIME 0) ;;so that gc statistics are sensible (suggested by lisp news)
+	      (sstatus who1 42. '% 118. 0) ;;initializes and sets the wholine form baker;gcdemn
+	      (sstatus gcwho 3) ;;so that gc temporally shows itself
+	      (clearscreen)
+	      (cursorpos 'c) ;;clear the bottom part
+	      (remprop 'dump-director 'expr) ;;dont need it anymore why waste space
+	      (and (probef '|Ken1;direct stats|)
+		   (not (eq (status uname) 'ken)) ;;and not me
+		   (let ((file (open '|Ken1;direct stats| 'append)))
+			(print '(,(status uname) on ,(status date)) file)
+			(close file)))
+	      (princ '|Welcome to Director --- Version # |)
+	      (princ (third (probef '|ai:ken1;direct >|)))
+	      (princ '|    (for help type (?))|)
+	      (and (status jcl)
+		   (director-load (mergef (namelist (implode (status jcl)))
+					  '((* ,(status uname)) ,(status uname) direct)))))
+	     (t (type '(you are not on a tv so dont use this dumped out Director))
+		(type '(instead type |:lisp ken;direct|)) and dont use any tv display stuff)))
+
+
+;;this is just a quick and simple test to make sure that turt part of director is working
+
+(define-form (test-director)
+ (ask screen clear)
+ (define pent poly
+	 (set your angle to 72)
+	 (show)
+	 (plan next gradually grow 200)
+	 (plan next gradually rt 60))
+ (define star poly
+	 (set your angle to 144)
+	 (set your size to 400)
+	 (show)
+	 (plan next gradually shrink 200)
+	 (plan next gradually left 60))
+ (define scenery poly
+	 (set your angle to 10)
+	 (set your size to 400)
+	 (show)) ;;frame it with a large circle
+ (define test-movie movie
+	 (set your frames-per-second to 2)
+	 (film the next 4 ticks)
+	 (project)))
+

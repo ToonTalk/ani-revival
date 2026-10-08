@@ -1,0 +1,29 @@
+;; -*- Lisp -*- is what is in this file
+
+
+(define snowflake performer)
+
+(define-method (snow ?size) snowflake
+ (repeat 3 (ask myself move forward ,size) (ask myself turn right 120))
+ no-value)
+
+(define-method (add ?level levels) snowflake
+ (let ((*replace-old-methods nil)) ;;definitely want duplicates
+      (repeat level (ask myself do when receiving (move forward ?distance)
+			 (script
+			  (let ((distance (times distance .333333)))
+			       (ask-old myself move forward ,distance)
+			       (ask myself turn left 60)
+			       (ask-old myself move forward ,distance)
+			       (ask myself turn right 120)
+			       (ask-old myself move forward ,distance)
+			       (ask myself turn left 60)
+			       (ask-old myself move forward ,distance)))))
+      no-value))
+
+(define-method (remove ?level levels) snowflake
+ (repeat level (ask myself remove method for move forward any-old-thing)))
+
+(define joe snowflake
+	(pen down)
+	(add 2 levels))

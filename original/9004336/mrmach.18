@@ -1,0 +1,62 @@
+;;-*-lisp-*-
+
+;;this is a test of parts/whole stuff in director
+
+(include |ai:ken;declare >|)
+
+(defcomment mrmach) ;;for tags
+
+(define (mr machine) performer)
+
+(cond ((not (exists? 'face)) (director-load'face)))
+
+(ask face become part of (mr machine))
+(ask face set your size to 333) ;;face should be a third of the robot
+(ask face forward 33)
+
+(define rectangle performer
+ (set your width to 100)
+ (set your height to 100)
+ (when drawing use draw-rectangle of height width))
+
+(define body rectangle
+ (set your height to 300)
+ (set your size to 50)
+ (become part of (mr machine))
+ (back 8))
+
+(define arms performer
+ (become part of (mr machine)))
+
+(define left-arm rectangle
+ (set your height to 600)
+ (set your size to 40)
+ (become part of arms)
+ (delx -10)
+ (right 60))
+
+(define right-arm rectangle
+ (set your height to 600)
+ (set your size to 40)
+ (become part of arms)
+ (delx 10)
+ (left 60))
+
+(define legs performer
+ (become part of (mr machine)))
+
+(define left-leg rectangle
+ (set your height to 800)
+ (set your size to 50)
+ (become part of legs)
+ (delx -10)
+ (right 10))
+
+(define right-leg rectangle
+ (set your height to 800)
+ (set your size to 50)
+ (become part of legs)
+ (delx 10)
+ (left 10))
+
+(ask legs back 25)

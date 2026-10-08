@@ -1,0 +1,445 @@
+ -*-text-*- is what is in this file
+.nr small_fonts 1
+.so ken1;fancy
+.define_comment ijcai for tags
+.define_paper_title "Making Aesthetic Choices"
+.photo_offset
+.final_copy
+.so ken;ijcait > the title page
+.define_chapter "Introduction"
+People are often faced with choices that are under-constrained by considerations of utility,
+cost, simplicity and efficiency.
+In many of these cases, one can just choose arbitrarily between those alternatives which
+satisfy the pragmatic constraints.
+There remain many situations where this is inadequate however,
+where instead one wants to select the
+alternative that is the most beautiful, elegant, interesting, or that conforms to a particular
+style.
+Aesthetic considerations are important, sometimes even dominate, in tasks that vary from
+exploring mathematics to designing block diagrams,
+from writing an IJCAI paper to making an animated film.
+.New_paragraph
+An assumption of this paper is that making aesthetic choices is a knowledge
+intensive computational process.
+The interesting questions are what the knowledge is and how it
+is represented, organized, and used.
+These questions are addressed in [1].
+This paper presents a general framework for how knowledge is italics(used)
+to create an aesthetic object 
+(a detailed description of an object such as a film, a story or a proof)
+that is consistent and coherent.
+This means that ideally every choice should be justified by as much relevant knowledge
+combined in as reasonable a manner as possible.
+.New_paragraph
+Aesthetic choices cannot be made independently, since each decision
+italics(constrains) subsequent choices.
+The problem addressed here is really one of italics(generating) a reasonable set of
+constraints rather than trying to find a solution that italics(satisfies) a set of
+constraints.
+The control structure, the order in which choices are made, therefore becomes very important.
+Since early choices constrain the later ones,
+one should be careful that the early constraints are satisfiable and desirable.
+.New_paragraph
+The framework to be presented is based upon the notion of an italics(actor).
+Actors are computational entities that communicate by passing messages.
+Each actor, containing both state and program, has the full power of a digital computer.
+Hewitt and others have argued for the usefulness of actors in the construction of large
+AI systems [2].
+Actors provide a modular and convenient means of implementing systems built on the framework
+about to be presented.
+.New_paragraph
+The model presented here begins with the exploration of a set of related choices.
+Each italics("choice point") starts by gathering up italics(suggestions) by asking
+the elements of its "choice" for suggestions.
+The choice points evaluate the suggestions: combining closely related ones, classifying any
+conflicts, and noting any missing information.
+Many of the choice points typically are unsatisfied: either they don't have enough to go on,
+there are conflicts among the suggestions gathered, or other choices of relevance have yet to
+be made.
+The unsatisfied ones ask permission
+to italics(postpone) themselves until more has been decided, while the satisfied
+ones make their choices based on the suggestions gathered.
+Permission to postpone is granted depending upon the reason for desiring postponement, the
+state of other choice points, and whether the choice
+in question is part of the italics(focus) of the object being created.
+The hope is that when the choice point is awakened more information (or constraints) will be
+available and the choice will be easier.
+If permission to postpone is refused, then more effort is expended
+despite the difficulty (e.g., more suggestions are gathered or conflicts are resolved).
+If no more progress is possible then a choice is made based upon what has been discovered
+and its justification is recorded.
+.define_chapter "An Example"
+Before discussing what is meant by "suggestions", "postponement", "choice points", and "focus"
+we consider an example.
+As part of my doctoral research I implemented a system called "Ani" which creates simple
+computer animation in response to high-level incomplete descriptions ([3] and
+[1]).
+The user describes the personalities of the characters (e.g., shy),
+their physical characteristics (e.g., ugly, powerful),
+the relationship between the characters (e.g., hates),
+and their interactions (e.g., one prevents another from meeting a third).
+The user also describes the style of film desired (e.g. varied, simple, obvious).
+Ani's job is to decide how the characters should be placed, how they should move, and what
+they should do.
+.New_paragraph
+Ani was given a simple version of the story of Cinderella to animate.
+One of many of Ani's problems is to choose typical speeds for
+Cinderella, her stepmother, the fairy godmother, and the Prince
+which are in keeping with their personalities and physical characteristics.
+The relative speeds of the characters
+should, in turn, be in keeping with the relationships and comparisons of the characters.
+The desired style of the film should also have its influence.
+A simple example of aesthetic choice is the determination of these typical speeds.
+This choice is aesthetic because the character of movement is important in assessing
+the quality of animation, because it is interdependent with other choices, and because
+it is only weakly constrained by pragmatics (i.e., a character can move in a very wide range
+of speeds).
+.New_paragraph
+For the speed of each character a choice point is created.
+Choice points represent the process of exploring a particular choice.
+Each is asked, in quasi parallel, to choose a value.
+The choice point for the speed of the stepmother, for example,
+begins by asking each of the descriptors of the stepmother for suggestions for her speed.
+Only the description "powerful" replies and suggests a high speed.
+The choice point is not happy with just that because there are not enough strong suggestions.
+So it asks permission to be postponed to wait for
+more information to become available and it is granted.
+.New_paragraph
+When the choice point for the stepmother's speed is reawakened, it inspects its record of
+what it did during previous activations.
+It then asks the choice points for the relative speeds between the stepmother
+and the other characters for suggestions.
+These choice points are created in response to this request and each is asked to choose a
+relative speed for the stepmother.
+The relative choice points choose values (e.g., that the stepmother be faster than
+Cinderella because she dominates Cinderella and differs from her),
+but cannot make any concrete suggestions since none of the characters have speeds yet.
+The choice point for the stepmother's speed asks permission to postpone to wait for the
+speeds of the others to be determined and it is granted.
+.New_paragraph
+The choice points for the other characters also ask and are granted permission to postpone.
+This could potentially lead to a deadlock in which the four choice points do nothing but wait
+for the others to make a decision.
+One of the reasons the choice points don't just postpone themselves, but instead ask
+permission first, is to avoid this type of situation.
+A postponement manager keeps track of the situation and will not grant someone permission to
+postpone for the same reason twice.
+A common exception to this is when the choice point is waiting for other choice points
+to finish and at least one of these is making progress.
+In this case, no one is making progress so the postponement manager must refuse permission to
+at least one of the choice points.
+.New_paragraph
+Ani is built upon the principle that as few decisions as possible be determined arbitrarily.
+The decision as to who should be refused permission to postpone has too many consequences to
+be determined by something like who asks first.
+Instead the postponement manager asks the italics(focus), which in this case,
+indicates that conveying the personality of Cinderella is important.
+The choice point for Cinderella's speed is refused permission
+to postpone and the deadlock is broken.
+This means that Cinderella's speed will be based on the description of Cinderella
+and not be constrained to be faster or slower than some other character.
+.New_paragraph
+The choice point for the stepmother's speed finally gets
+suggestions from the relative choice points.
+It discovers conflicts with one of these suggestions
+and the earlier suggestion it had received from "powerful" and postpones again.
+Upon being resumed yet another time the choice point asks the descriptions of the film's style
+for suggestions and receives them from the film's moderate variety level,
+high energy level, and low flashiness.
+Unfortunately they do not all agree and so the choice point postpones one more time.
+.New_paragraph
+When it is reawakened
+it discovers that there are no more sources of suggestions and proceeds with what it has.
+First it attempts to make compromises between the conflicting suggestions and makes one
+that in turn generates a new conflict.
+Excuses are found for rejecting some of the conflicting suggestions.
+The choice point finally picks a high speed for the stepmother and saves away a justification
+for this choice.
+.define_chapter "The Major Mechanisms"
+The model of aesthetic choice presented here consists of
+(a) suggestions (together with a means of gathering, combining, and resolving
+conflicts between them),
+(b) choice points to organize and record progress on choices,
+(c) a means of deciding when to postpone (and resume) work on a choice,
+and (d) a means of focusing upon the more critical elements.
+.define_section "Suggestions"
+Suggestions are like rules, advice, or hypotheses
+that are rejected, modified, combined, and compromised.
+Suggestions differ from facts in that they typically conflict among themselves, are rejected or
+compromised, and possess levels of reliability or strength.
+Suggestions, are often ignored or modified with minor consequences.
+Ani is constantly faced with contradictory suggestions and spends much time
+detecting, classifying, and resolving these conflicts.
+Conflicts need to be resolved either by making compromises or by
+rejecting some of the suggestions.
+To do this sensibly one needs to be able to combine different suggestions and take into
+account their degree of reliability.
+.define_section "Choice Points"
+A choice point represents the exploration of a choice.
+Choice points are represented as "actors"
+because of the need to record partial results and difficulties and because of the variety of
+actions they must be able to perform.
+Each choice point responds to messages asking it to accept suggestions, to
+combine suggestions, and to make choices.
+A choice point maintains in its database records of
+the best suggestions so far and conflicts between suggestions.
+The current best choice is also maintained.
+A choice point decides if a set of suggestions is adequate or if more work needs to be done.
+It also remembers which sources of suggestions (such as character comparisons,
+global film descriptors, and personality descriptions)
+have already been tapped and which ones had any suggestions.
+It remembers which suggestions it has rejected and which conflicts it has resolved.
+A choice point also records the reasons for previous postponements.
+This information is essential for the functioning of postponement.
+When a choice point is awakened, it looks at its last postponement reason and
+checks to see if the reason is still valid.
+If so it asks permission to postpone.
+It might be refused, in which case it either
+proceeds without the missing information, attempts to resolve the conflicts between its
+suggestions, or gathers up new suggestions depending upon what its difficulty was.
+.define_section "Conflict Resolution"
+If a choice point
+finds no conflicting suggestions for a value, the decision is simple and it just picks the
+value suggested.
+More typically there are many suggestions and they don't all agree.
+It is important that these conflicts be resolved as sensibly as possible if there is to be
+any coherence.
+The general approach is to use the heuristic with the strongest criterion of applicability.
+The criteria for making a choice between two conflicting suggestions are
+(a) the strength of the suggestions,
+(b) the degree of compatibility with the other suggestions,
+(c) the extent to which the sources of the conflicting suggestions have other suggestions
+followed,
+and (d) the number and kind of sources of the suggestions.
+If the difference between the conflicting suggestions is great along any of these
+dimensions, the associated rule be used.
+.define_section "Postponement"
+Postponement is an important component in the making of choices that are interdependent.
+One choice adds new constraints that strongly influence later choices.
+Aesthetics only emerges when there is a set of inter-related choices;
+one hesitates to call an isolated atomic choice aesthetic.
+Because of this the order in which subproblems are attacked is very important.
+We want the "easy" choices, the relatively straight-forward choices,
+to be made first because they already have a strong consistent justification.
+We want the choices with the least basis for a decision to be postponed as long as
+possible in the hope that by the time a choice finally has to be made additional constraints
+will have been added.
+Otherwise the choice would have to be made on a relatively arbitrary basis and the consequences
+(the additional constraints), if chosen badly, will cause trouble.
+The choices points which are riddled with conflicts are postponed also,
+but typically not as long as the ones with little basis.
+Additional constraints often make the choice between the conflicting alternatives easier.
+The result of this control strategy is that the final product is more coherent and
+less arbitrary.
+.define_section "Focus"
+The postponement mechanism is designed so that
+the choices with the most justification are made first, followed by those that are
+difficult due to conflicting suggestions, followed by those with the least to go on.
+The order in which postponed choice points are forced to continue is under-determined by
+these criteria.
+The unordered choices could be made in parallel, however the interdependencies between them
+are such that the order of "execution" could adversely affect some of the decisions.
+.New_paragraph
+To help avoid this arbitrariness, we have a structure called the italics(focus) of the
+object being created.
+It describes the parts or aspects that are primary or deserve emphasis (e.g., Cinderella's
+personality, her relationship with her stepmother, the second scene and so on).
+Those choices that relate to the focus (e.g., Cinderella's speed, the relative degree of
+curvature of motion between Cinderella and her stepmother and so on)
+tend to be made first so that they
+are likely to be more self-consistent and effective
+since they are not constrained by the choices yet to be made.
+.New_paragraph
+The goals of this process of choosing is that the arbitrariness of each choice be minimal
+and the coherence of a set of choices be maximal.
+In Ani's filmmaking this means that each choice of any consequence should be
+compatible with the description of the film and Ani's general animation knowledge.
+Arbitrariness is minimized by use of knowledge in the form of suggestions and from the guidance
+of the focus.
+Coherence in this context means that the choices for the relative dynamics of the characters
+be satisfied and that the choices of activities of the characters be self-consistent
+and compatible with the choices of the character dynamics.
+Coherence results from the control structure that postpones troublesome choices and that
+focuses on the relatively more important ones.
+The aesthetics of Ani's films are a result of this striving for coherence, this minimization
+of arbitrariness, and the currently small amount of
+knowledge about animation and emotions that Ani brings to bear.
+The aesthetic principle behind the creation of aesthetic objects is
+that every choice of any consequence should be made
+by bringing together as much relevant knowledge in as sensible a manner as is feasible.
+In the example just discussed,
+the stepmother's speed is high because she is powerful, dominates Cinderella, differs
+from the others and so on.
+.define_chapter "Relationship to Other Work"
+The most illuminating comparisons of this work with others are briefly described below.
+A more complete discussion can be found in [1].
+.define_section "Meehan's Talespin"
+One system that creates objects that are usually judged primarily on an aesthetic basis is
+Meehan's story telling system called "Talespin" [4].
+It makes up fables about talking bears, birds, and so forth.
+Talespin is told the initial conditions (e.g., that the bear is hungry and
+the bird in the tree is sleepy)
+and then spins a tale based upon a high-level simulation of the characters.
+The characters of the story generate plans to satisfy their needs and desires.
+Executing these plans causes the characters to interact forming the
+substance of Talespin's stories.
+The resulting stories are plausible but typically not very interesting or aesthetic
+since there is
+no higher-level structure to the stories, no notion of style or focus,
+and no sense of story aesthetics (e.g. a long
+story about a hungry bear trying to get food will end abruptly if it just happens across some
+food).
+Meehan's research, despite the problem domain,
+is primarily concerned with plans and symbolic simulation, not with aesthetics.
+.New_paragraph
+Talespin is often faced with aesthetic choices: what name to give the bear, where the crow
+should be, what kind of food should be available, and so on.
+These story aspects are aesthetic because
+they are aspects that readers of literature in our culture try to
+interpret as the result of purposeful choices made by the author.
+Not every aspect of a story is aesthetic.
+The number of letters in the name of a bear, the locations of the word "crow" on a printed
+page, and the amount of ink used in a description of food are not typically considered
+aesthetic choices.
+And writers rarely make deliberate choices regarding these aspects.
+.New_paragraph
+Talespin, however, rarely makes deliberate choices for those aspects that are normally
+considered aesthetic.
+Instead it either is told by the user, "chooses" randomly,
+chooses based upon a high-level symbolic simulation of the characters involved, or
+chooses that which will help give the story a particular moral.
+The first two cases are not choice-making at all.
+The third is an interesting alternative to (or supplement of) the model presented herein.
+The difficulty is that simulation is concerned with plausibility, with having the components
+(the characters in the story) behave in a reasonable way.
+Aesthetics, on the other hand, is concerned with creating the world
+that such a simulation occurs in, with determining the rules of interaction, the goals of the
+components, and the initial conditions.
+The moral-fulfilling aspect of Talespin is more relevant to aesthetic choice.
+Unfortunately, it is a small, under-developed part of a large system.
+.define_section "Lenat's Artificial Mathematician"
+One of the more creative AI systems of late is Lenat's AM [5].
+AM starts with very elementary concepts such as sets, composition,
+equality, and heuristics associated with these concepts.
+AM italics(creates) many new concepts, makes conjectures, and
+discovers new aspects of the original concepts.
+He describes his system as one that performs heuristic search within an extremely large space
+of possibilities.
+AM's heurstics propose tasks to perform that are explorations of this space and these are
+placed upon an agenda.
+The tasks on the agenda that are most interesting
+(i.e., have the most good reasons for doing them) are performed first.
+.New_paragraph
+AM is probably the research most related to the work described here.
+This may seem odd since AM's domain is elementary mathematics which is very formal and
+well understood --- almost the antithesis of aesthetics and art.
+Mathematics is formal and good models of it do exist, but, as Lenat points out, the
+italics(exploration) of mathematics, the heurstics that guide one in making conjectures, in
+constructing new concepts, and in evaluating them,
+in other words, the italics(doing) of mathematics is neither formal nor well-understood.
+The problems that Ani and AM address are both weakly specified: making italics(good)
+animation and discovering italics(interesting) mathematics.
+Both systems construct structures out of a very large space of possibilities.
+Since the creations of AM and Ani are not judged as right or wrong ---
+but as interesting or dull, plausible or implausible, good or bad --- aesthetic choice plays a
+crucial role.
+Both AM and Ani are knowledge-oriented,
+in contrast with other approaches which are simulation-based, search-oriented,
+or based upon a few very general pieces of knowledge.
+Both systems spend a considerable portion of their time deciding what to do, in addition to
+doing it.
+.New_paragraph
+There are many differences between the two systems, of course.
+The proposed tasks of AM
+can be viewed as suggestions from various heuristics as to what should be
+explored, however they are not treated as described above
+(e.g., combining, compromising, relating, and so on).
+AM has a focus of attention which tends to keep AM from jumping from topic to topic.
+Ani's focus instead influences the relative priority of the elaboration of the different parts.
+The control structures of the two programs are very different.
+AM keeps executing the most interesting task on its agenda, while Ani jumps from choice to
+choice on the basis of their past difficulties and the focus.
+AM executes its tasks in a fairly straight-forward manner --- Ani works on a choice by
+gathering, combining, and rejecting suggestions, noting and classifying conflicts,
+making compromises, and searching for more suggestions.
+.define_chapter "Discussion"
+.define_section "Generality"
+To some it is plausible that the model of aesthetic choice presented here is applicable to any
+set of choices that are not primarily constrained by pragmatics,
+whether or not there are aesthetic considerations.
+Others think the framework is only
+appropriate for the kinds of choices that Ani makes in creating simple
+films and are skeptical of any claims of generality.
+This issue is separate from the question of how italics(easy) it is to apply the framework
+described here to a particular domain.
+It may be very difficult to apply it, say,
+to the production of oil paintings, not because it is
+a bad framework, but because it is very unclear how to structure the space of choices, what the
+sources of suggestions are, how to come up with the necessary knowledge in a complete and
+detailed enough form and so on.
+.New_paragraph
+Nonetheless, one should be suspicious of claims of generality when something has been applied
+only to one example.
+In progress is another test of the model of aesthetic choice.
+The model is being applied to
+the design of block diagrams that illustrate papers and lectures.
+The problem is to choose locations and dimensions for the boxes, to decide where exactly links
+between boxes should originate and end, where to place labels and in what font, and so on.
+Preliminary results indicate that the notions of suggestions, postponement, and focus have
+their natural places in this application.
+This will be described in detail in a subsequent publication.
+.define_section "What is Missing"
+The framework presented for making aesthetic choices is simple.
+Several components are missing for building high performance systems.
+No means of undoing poor choices is included, for example.
+Also the italics( structure) of the set of choices explored is given to the system,
+while ideally that too should be determined by the system.
+The examples discussed are limited to the selection of a single value for an element of
+a complex description.
+Many aesthetic choices are not the selection of values, but the generation of complex
+descriptions.
+Much of Ani's time, for example, is spent deciding what should happen in the scenes of the
+film.
+The problem is to create a description of activities that should occur in a particular
+portion of a scene.
+While there are many similarities and parallels between this process of choosing activities and
+the selection of values, some special mechanisms were needed for the former.
+These are described in [1].
+.define_section "Where to Go from Here"
+One avenue of future research is to attempt to apply the framework presented here to other
+domains to discover its shortcomings and strengths.
+Part of this involves extensive testing of computer systems like Ani.
+The focus, conflict resolution rules, or postponement criteria can be modified
+and the effects can be observed.
+.New_paragraph
+Another avenue of research is to attempt to fill in the missing components of the framework
+described above.
+The inability to undo previous decisions, for example, can be quite serious.
+The decision making process needs to be able to recognize when things are not right and to
+generate directed criticism to the choice points responsible.
+Choice points need to be extended to take such criticism into account and redo just that
+portion which needs changing.
+.New_paragraph
+Finally, one last avenue of further research is to discover a general theory of
+aesthetics and incorporate it into the model.
+If formal aesthetic judgments can be made about the description and
+justification of a creation, then their discovery and inclusion in a
+model of aesthetic choice is a fascinating possibility.
+.space 
+.center "Bibliography"
+.space .33
+[1] Kahn, K. italics("Creation of Computer Animation from Story  Descriptions"),
+MIT EECS PhD thesis, Jan. 1979 (AI Lab TR in progress)
+.space .33
+[2] Hewitt, C. "Viewing Control Structures as Patterns of
+Passing Messages", Italics("Artif. Intell."), 8:3 (1977) 323-364.
+.space .33
+[3] Kahn, K. "Ani: An Example of Computational Creativity",
+Proceedings of the AISB/GI Conference, Germany, July 1978
+.space .33
+[4] Meehan, J. italics("The Metanovel: Writing Stories by Computer"),
+Yale University Computer Science Research Report 74, Sept 1976
+.space .33
+[5] Lenat, D. italics("AM: An AI Approach to Discovery in Mathematics as Heuristic Search"),
+Stanford AI Laboratory Memo AIM-286, July 1976
+

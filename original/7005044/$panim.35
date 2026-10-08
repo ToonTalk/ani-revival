@@ -1,0 +1,525 @@
+.sec Introduction
+	Some of the recent AI languages are 
+based on a new view of computation sometimes called
+"actor" semantics.  Carl Hewitt's PLASMA foot<Hewitt, C...> and
+Alan Kay's SmallTalk foot<Kay, ...> 
+are the best examples.  The basic idea is to consider each
+entity within the system as something that is usually anthropomorphized as a
+"little person."  Each "little person" or actor" can receive messages asking it to 
+do something, remember something, recall something, or send some messages to other
+actors.  For animation this seems an ideal way to view objects on the screen.  Each
+object is a process that can be arbitrarily smart.  Charlie Brown can be an "actor"
+that can be told to walk, causing him to send the appropriate messages to his arms
+and legs and moving the rest of his body.
+	I have implemented a system in Lisp-Logo foot< AI memo ...>
+which enables one to define
+new objects, new object types, and the kinds of messages
+they can handle.  For example, one can easily create a
+square named "George."  George can be told many kinds of
+things like his size, speed of movement, or speed of rotation.
+George can be asked to do many things, all the things that
+turtles can do 
+(FORWARD, BACK, RIGHT, LEFT, HIDE, SHOW, PENUP etc.)
+plus new
+messages like grow, or change appearance.  George can also
+be taught new things, or can be told to behave in ways other than his defaults.
+George also has a memory, you can tell
+George anything at all, his color, his friends, whatever.
+	One very important thing that George knows (though
+like everything in the system he can be told otherwise) is that
+he is a square.  Presently, "Squares" know a few things, like
+how to draw themselves, or that after rotating 90 degrees
+that they look the same.  Squares in turn know that they
+are "objects."  Objects know how to do the turtle-like things
+mentioned above.  Objects, in turn, know that they are
+"something", things that can receive messages, can pattern match
+those messages, and can perform memory functions.
+"Somethings" know how to learn new responses to new patterns.
+This entire hierarchy is very flexible and modifiable by
+the user.  The basic process is the message is sent to
+some individual, "George", and if George has no patterns
+that match the message, he sends it off to the actor that
+he is a kind of.  They in turn pass the buck, until either
+someone can handle the message, or an error message is generated.
+This is also a very useful default mechanism, if George is
+never told his size he can inherit it from "Square" or "Object".
+	Another feature of this system is the ability to have
+many different actors move on the screen with
+apparent parallelism.  George can race
+against Sally.
+Danny's garden of flowers can be grown.foot<Hillis, D. forthcoming logo working paper?>  
+A stick figure can simultaneously
+move different limbs and change it's facial expression.  
+"Movies" (or a list of display commands)
+can be produced that can be run at any speed the computer
+system is capable of, can be run backward, or single stepped.
+	This system is intended to support the intelligent computer animator
+discussed above and, equally important, to be used by children.  The system is
+hopefully a more powerful and natural means for doing simple programs for animation.
+The powerful ideas of "instances, classes and finding of the correct level of
+generality" and the "little person model of computation"
+are imbedded into the system.
+The hope is that through well-guided use of the system, some of these ideas will become
+more concrete to the children.  Of course, 
+all the usual reasons for teaching Logo to children remain in force (e.g. learning
+by doing, experience with debugging, becoming articulate in describing
+processes, and exposure to and assimilation of powerful ideas).
+The use of the same actor-animation
+system by children and by the computer animator is very important for making the 
+computer animator more accessible and understandable by the children using it.  The
+idea is that if the children who programmed using the actor-animation system found it
+natural and intuitive then its use in the intelligent system would also be clear.
+	This view of programming as collections of actors, or
+a community of "little people", that send and receive messages
+from each other is very powerful.  It is conducive to a modular,
+simple, natural representation of the knowledge needed for the
+application.  Using an actor system one can model intelligence either in the
+conventional way as an individual or as a integrated community of rather limited
+individuals.
+	Another AI aspect of this system is the explicit
+"kind-of" hierarchy of actors.  Each object is told what class
+it is a member of when it is created.  When any object receives
+a message it cannot handle it passes the problem on to the class
+of which it is a member. 
+The important concepts of instantiation, class
+membership, exceptions, placement of knowledge at the best level of 
+generality, and inheritance of properties hopefully will
+flow from the proper use of this aspect of the system.
+.sec An Example 
+.begin single space indent 0 choose lisp
+
+ASK ROCKET '(MAKE FRED)
+
+.BEGIN 
+[fi]
+ASK is the basic message passing command, in this case the message "Make Fred" is
+being sent to the actor "Rocket." "Rocket" does not know how to handle messages
+of this form so passes the message to "Object" who also ignorant of such messages.
+The message is finally sent to "Something" which can match the message with one of
+its patterns and it creates a new actor named "Fred" which is a kind of "Rocket."
+.end
+
+ASK FRED '(SHOW)
+
+.begin
+[fi] 
+Fred is asked to show himself.  He knows nothing about "showing" and askes "Rocket"
+who asks "Object" which can handle the message.  It asks Fred what turtle procedure
+draws him and Fred doesn't know so asks Rocket who answers with the name of a standard
+Lisp (or Logo) procedure.  
+It then asks Fred for his position, heading and size and then invokes
+the Lisp (or Logo) procedure.  There is a option which instructs the system to make and 
+show Lisp-Logo windows to speed up the movements on the screen.
+.end
+
+ASK FRED '(APPEAR FORWARD 200)
+
+.begin
+[fi] 
+"Object" is passed this message via "Fred" and "Rocket" and Fred is asked to
+Hide, then to appear at the place 200 steps forward, and then to show himself.  The
+word "APPEAR" is there to distinguish this type of message from those like "[fl](GO
+FORWARD 300)[fi]" described later.
+.end
+
+ASK FRED '(APPEAR LEFT 120)
+
+.begin
+[fi] 
+Again "Object" handles this type of message and Fred is asked to Hide, then to
+rotate to the left 120 degrees and then to show.
+.end
+
+ASK FRED '(GO FORWARD 300)
+
+.begin
+[fi] 
+This time Fred is told to go forward, so he asked for his speed, which is
+100.  He then is asked to [fl] '(APPEAR FORWARD 100)[fi] and to plan on continuing
+the rest (200) on the next tick of the "clock".
+.end
+
+ASK FRED '(WHAT SPEED ?)
+
+100
+
+.begin
+[fi] 
+In responding to the previous message Fred was asked what his speed was.
+Fred, as is true of all "somethings", has a memory.  This memory is a general
+relational data base and it is also used to save variables of actors.
+The message "What" causes the value found to be returned.
+.end
+
+ASK FRED '(REPLACE SPEED 200) 
+
+.begin
+[fi] 
+Fred is asked to remove any items about speed from his memory and to
+remember the item "[fl](SPEED 200)[fi]".
+.end
+
+ASK FRED '(DO ALL PLANNED FOR NEXT TICK WITH UNIVERSE-1)foot<[fr]To some people
+this wordy style of programming is distasteful.  I could just as well have defined
+the message to be "(TICK UNIVERSE-1)".  It is very important, however, that the
+code be as clear and easy to read as possible.  The difficulty in typing can 
+be overcome by simple human engineering, for example, a special "help" button,
+when pushed, could finish the line to the extent possible saving much typing and 
+misspellings.>
+.begin
+[fi]
+Fred is asked to do all the things that he had planned to do on the next "clock" tick.
+He asks himself what things he had planned then and does them.  In this case the only
+thing that was planned was "[fl](GO FORWARD 200)[fi]" which was left over from earlier.
+Since his speed is now 200 he can do it all and appears forward 200 steps.  "Universe-1"
+is an actor that can be asked for all the other actors that are currently on the 
+screen, so that interactions are possible.  For example, collisions or avoidance can
+be implemented by asking the other actors where they are and maybe where they are
+planning on going.
+.end
+
+ASK FRED '(GROW 50)
+
+.begin
+[fi] 
+Fred is told to grow, which causes a message to be sent to him to hide, then
+to replace his size with his old size plus 50 and finally to reappear again.
+.end
+
+ASK FRED '(BE BACK 150)
+
+.begin
+[fi] 
+Now when Fred is told to do anything a shape that is 50 units bigger moves.
+.end
+
+.begin nofill
+ASK ROCKET '(IF RECEIVE SHOOT ?SPEED ?DISTANCE THEN DO-THE-FOLLOWING:
+		ASK ROCKET '(MAKE MISSLE)
+		ASK MISSLE '(REPLACE SPEED `:SPEED)
+		ASK MISSLE '(REPLACE SIZE `(QUOTIENT
+					    (ASK :SELF '(WHAT SIZE ?))
+					    4))
+		ASK MISSLE '(REPLACE STATE `(ASK :SELF '(STATE)))
+		ASK MISSLE '(SHOW)
+		ASK MISSLE '(GO FORWARD `:DISTANCE)
+		ASK MISSLE '(HIDE))foot<[fr]The character ` is defined to
+be an unquoting macro.  For example, '(a `(plus 2 2)) will evaluate to (a 4)>
+.end
+.begin turn on ""
+[fi] 
+The behavior of any actor in the system can be extended.  The "if receive ..."
+message is matched by "Something" which adds a new receiver to the actor that
+received the message.  In this case, "Rocket" is sent the message asking it
+that if it receives any messages of the form: the word "shoot" followed by
+any two words,foot<If the pattern was SHOOT {NUMBERP ?SPEED}
+{NUMBERP ?DISTANCE} then it
+will match only if the two words following "SHOOT" are numbers.>
+then call the first word ":speed" and the second word ":dist."foot<The : in front
+of the names is a convention necessary to be compatible with Lisp-Logo.>
+Then do the following series of things:
+.begin narrow 5,5 skip single space
+(1) create a rocket named "missle" (it is possible to make the name "missle" local
+to this receiver)
+
+(2) ask the newly created "Missle" to replace its speed with the number that
+was the second word in the message (a fancier version could easily add the rocket's
+present speed with ":speed")
+
+(3) replace the size of the missle with 1/4 of the size of the actor that received the
+message which is always called "self"
+
+(4) replace the state of the missle with the state of the actor receiving the message;
+this way the missle appears where the shooter is, rather than the default which is the
+center of the screen
+
+(5) the missle is asked to show itself
+
+(6) it is told to go forward the third word in the message
+
+(7) and then it is told to hide (a fancier version might explode)
+.end end	
+
+ASK FRED '(SHOOT 300 600)
+
+.begin
+[fi] 
+Fred is given this newly defined type of message and then asks "Rocket" to try to
+handle it.
+It can, and the above procedure is executed with the speed of the missle being 300
+and the distance it is to travel being 600.
+.end
+
+.begin preface 0
+ASK FLOWER '(MAKE SALLY)
+
+ASK SALLY '(REMEMBER SIZE 125)
+
+ASK SALLY '(SHOW)
+.end
+.begin
+[fi] 
+A flower named Sally is created, given a size and asked to show.
+.end
+
+ASK SALLY '(PLAN: (SWAY 10) NEXT)
+
+.begin
+[fi] 
+Flowers can be asked to
+accept "sway" messages which cause them to go left and then right a few degrees.
+The "Plan:" part is the same kind of message that go forward produced.  Sally does
+nothing on receiving this message other than remember to do it with the next tick
+of the "clock."
+.end
+
+.begin preface 0
+ASK FRED '(PLAN: (GO FORWARD 200) AFTER 6 MORE TICKS)
+
+ASK FRED '(PLAN: (SHOOT 400 300) AFTER 2 MORE TICKS)
+
+ASK SALLY '(PLAN: (GROW 50) AFTER 5 MORE TICKS)
+.end
+.begin
+[fi] 
+More events are scheduled, such as Fred is told to begin going forward after he
+receives 6 more ticks
+and then 2 ticks later to shoot a missle and Sally is told to grow after 5 more 
+ticks after the swaying is started.
+.end
+
+ASK MOVIE '(MAKE SHOOTING 20 TICKS LONG IN UNIVERSE-1)
+
+.begin
+[fi] 
+Here "Movie" is asked to make a movie called "Shooting" that is 20 frames long.
+It in turn asks "Universe-1" to run through all the actors with things to planned
+a "tick" message.  It will stop either after 20 ticks or sooner if no more things
+are planned.
+The display commands are remembered by "shooting" in addition to happening, so that
+they can be played back at a speed that is not limited by the time it takes to 
+send all the messages.
+.end
+
+ASK SHOOTING '(SHOW)
+
+.begin
+[fi] 
+"Shooting" is asked to show its record of the running of the display commands it
+remembered when 
+This results in seeing Sally continually swaying while Fred flies towards
+her, shoots a missle, and stops soon after that.  The missle lands at the
+base of Sally the flower and instead of blowing up she grows taller as she
+continues to sway.
+.end
+.end
+.sec How to Grow a Flower Garden
+	In a paper by Danny Hillis called, "Ten Things to do with a
+Better Computer", he has an example of how to grow a garden in an actor-like
+system.foot<Hillis, D. op. cit.>
+He describes a garden in which seeds are born, wait, grow into flowers,
+create new seeds, continue growing and die.
+	In my animation system, his garden can be implemented in a fairly 
+straight-forward manner as follows:
+.begin nofill indent 0 single space preface 0
+
+[fl]TO DEFINE.FLOWER
+[fi];Logo syntax can be used if my system is loaded into Lisp-Logo[fr]
+10 ASK OBJECT '(MAKE FLOWER)
+20 ASK FLOWER '(REMEMBER SIZE 10)
+.begin fill
+[fi];This tells flower to remember that the default size of flowers is 10.
+"Remember" is the standard kind of message for telling any actor
+to remember something[fl]
+.end
+30 ASK FLOWER '(REMEMBER HOW TO DRAW DRAW-FLOWER)
+[fi];This tells flower that the Logo procedure called "draw-flower" 
+;is to be used to draw instances of "Flower."[fr]
+END
+.skip 
+TO DEFINE.SEED
+10 ASK SOMETHING '(MAKE SEED)
+[fi]; Seed is not an Object, since it does not do turtle-like things.[fr]
+20 ASK SEED '(IF RECEIVE ?SEED (START) THEN DO.SEED.THING :SEED)
+[fi];This simply lets seeds take a "start" message and then calls the appropriate procedure.[fl]
+END
+
+TO DO.SEED.THING :SEED
+10 LOCAL A.FLOWER
+[fi];a local name for the flower that seed will spawn is needed[fl]
+20 ASK FLOWER '(MAKE A.FLOWER)
+30 ASK A.FLOWER '(APPEAR RIGHT 90)
+;Flowers are "objects" and so can take any turtle-like command
+40 ASK :A.FLOWER '(APPEAR FORWARD `(100*RANDOM))
+50 ASK :A.FLOWER '(APPEAR LEFT 90)
+60 ASK :A.FLOWER '(PLAN: (SHOW) IN 10 TICKS)
+[fi];The message transmission ASK :A.FLOWER '(SHOW) will occur after ":A.flower"
+;has received 10 "Tick" messages.[fl]
+70 REPEAT 15 (ASK :A.FLOWER '(PLAN: (GROW 10) AFTER 2 MORE TICKS)
+[fi];This schedules the call, 
+;	ASK :A.FLOWER '(GROW 10),
+
+; 15 times, each time 2 ticks after the last.[fl]
+80 ASK SEED '(PLAN: (ASK (SEED (MAKE)) '(START)) THEN)
+.begin fill preface 0 single space
+[fi]; This means at that time create another seed and tell it to start
+at the same time as the last thing scheduled, which was after line 70 was run.
+.end
+90 ASK :A.FLOWER '(PLAN: (HIDE) AFTER 60 MORE TICKS)
+END
+.skip 2
+ASK '(ASK SEED '(MAKE)) '(START)
+[fi];This starts the first seed off which will start the others off later.[fl]
+ASK MOVIE '(MAKE GARDEN 1000)
+.begin fill preface 0 single space 
+[fi]The default universe sends ticks to all the flowers and seed involved, the
+things thay had planned are run, and all display and turtle commands
+are stored in the movie "Garden".[fl]
+.end
+ASK GARDEN '(REMEMBER SPEED 10)
+ASK GARDEN '(SHOW)
+.begin fill single space
+[fi];These two message transmissions result in the movie being shown at 10 frames
+per second. First, a flower appears and grows and and then another starts to grow and
+after a while the first flower disappears and so on.(fn)
+.end
+.end
+.sec Message Passing
+	Message passing is mechanism of communication between two
+actors.  A pattern matching procedure called "Match"
+is used to decode the incoming message. This provides great flexibility in the
+syntax of the messages sent and received, allowing English-like commands.
+	The following is a list of some of the messages that any object in the system can
+receive: 
+.begin single space NARROW 5,5
+(1) The "turtle" commands, i.e. "FORWARD," "BACK," "RIGHT," "LEFT," "HIDE," "SHOW," "PENUP,"
+"PENDOWN,"
+
+(2) The memory messages, "REMEMBER," "WHAT," "REPLACE," and "FORGET" which provide
+a powerful relational memory to each actor.  These are also used to inspect the
+state, speed, size and the like of an object and to update those quantities.
+
+(3) "MAKE" and "UNMAKE" messages which create instances or destroy them respectively
+
+(4) The "RECEIVE" message which enables one to add the ability to receive new kinds
+of messages.
+
+(5) Two kinds of "PRINT" messages which prints out the script or the memory of an
+actor in way designed to be easy to read
+
+(6) A series of structural editing commands for inserting, deleting, and replacing
+receivers or their parts.
+
+(7) "PLAN:" message for scheduling things to do at later times
+
+(8) The "Tick" message for telling an actor to do all that he or she should during
+the smallest quantum of time and providing him or her with access to the names of
+other actors, enabling interactions.
+.end
+.sec Ticks Plans and Movies
+	Using the system, one can write procedures that move
+one object, then another and back again.  It will not, however,
+look as if they are moving simultaneously
+since the interpretation of the commands is slow.  A solution
+is to have a scheduler run things at the appropriate time,
+and then save away the display commands to be run later.  
+These saved-away commands, called a "movie", can be
+run later 
+with the appearance of parallelism.  This was done in earlier
+implementations but the current one expects each actor to
+remember what it will do later.  The "scheduler" or "universe" as it
+is called just sends
+"tick" or "increment the time" messages to all actors it knows
+about.
+Movies can be made or just the code run, depending
+on the message to the "Universe" or "Movie."
+	If one wants an event to be dependent upon the occurrence of another
+event then the appropriate actors must check for the occurrence of the
+event when it receives a tick message.  For example, if Lucy is told to
+scream if Snoopy comes too close then the "Lucy" actor must check to see
+where Snoopy is whenever she receives a tick message.  If Lucy was told to
+scream if anybody came near, she would need to know the names of everybody
+around.  That is why
+name of the current universe comes along with each tick message.  Lucy
+can ask each actor where he or she is.
+	When an actor is told to plan something it always relative to that own
+actor's time.  His or her time is incremented with each tick.  Associate with
+each time are the things that actor plans to do then.  After the actor remembers
+the things planed it tells the current universe that it has things to do and would
+like to receive tick messages.
+	The universe when told to run will send ticks to each actor with things 
+to do.  When an actor has nothing left to do it tells the universe who stops
+sending it ticks.  When the universe has run the number of ticks asked of it or
+there are no more actors with things to do it stops.
+	Conceptually one should think of the screen as an actor that receives
+display messages.  When a movie is being made the screen can send messages asking
+it to remember the display messages it received.  The movie can then be run later
+without sending any messages except those to the display.  
+.sec How does one talk about this?
+	In teaching children to use the animation system one should
+have a consistent vocabulary and set of concepts.
+Are the words "something," "universe," and
+"object" reasonable names for these general entities?  I think
+not, but haven't thought up better ones. How should one talk
+about the difference between "Square", the general square,
+and any instantiation of squares?  Will there often be a
+confusion between the actor "George", his "script", and
+his image on the screen?  Identity becomes very strange
+to talk about, since anything about an actor can be changed,
+what it looks like, how it acts, even what it is a kind of. (Though this
+programming style may be discouraged to avoid this confusion.)
+Only its name is permanent.
+	Explaining the ticks, plans and universes might bring up problems.
+How should one talk about, or think about, many separate
+processes going on in parallel?  I don't really know.
+	This system lends itself very well to the "little man"
+vocabulary.  Each actor is a little person, 
+who knows a few things,
+can be told to do a few things, and can be taught new tricks.
+This little person receives messages and sends them to others.
+This view of programming lends itself very well to a variation of
+playing "turtle."  The children can play games where they are actors
+and pass the messages around.
+.sec Efficiency Issues
+	One may worry that such a system will run too slowly to be
+useful for working with children or for building an intelligent system
+on top of it.  The message passing and matching involved are much
+slower than more traditional mechanisms.  The basic use of 
+hierarchies is slow, since each actor seldom can respond directly
+to a message but needs to pass it on to the class which it is a member.
+	The answer to this objection is standard.  One should let a
+compiler worry about such efficiencies.  I have implemented a few
+macros that when possible replace actor transmissions with the code
+that they would invoke.  I also plan to "compile" patterns in the
+receivers to run faster.  The price for some of these hacks is less flexibility.
+If the transmission "ASK FRED '(APPEAR FORWARD 100)" is replaced by the action part
+of the receiver in Object with "Fred" and "100" instantiated properly,
+then telling Fred's immediate superior a new way to handle "forward"
+message will not affect his behavior if he is "compiled."  
+        There are other efficiency hacks that may be worthwhile, 
+for example, in the memory system for
+the actors.  I plan, however, 
+to follow the principle that the code should be written clearly and
+simply and that efficiency hacks should be below the surface and transparent
+to the user.
+.sec Extensions and Improvements Planned
+	One useful extension would be the addition of primitives
+for joining and breaking apart "Object" actors.  For example,
+one may want to join a triangle actor and a square actor to make
+a house actor.  Or one may want to have a face accept messages
+as well as any of it parts.  A person may get into a car, so that
+temporarily any movement of the car should also change the state of
+the person.  Some progress has been made here, so that simple
+composite objects can be defined but more needs to be done.
+	Another improvement being considered is the ability to handle
+partial messages.  For example, if an object receives a forward message
+without a number as the second word, then instead of the present response
+of printing out an error message,  it should prompt the user with a question
+like, "How much should Fred go forward?"
+	Taking this idea one step further I plan to have a "help" button that
+can be pushed at any time.  If one has typed only part of a message and then
+the help button, then the actor may be able to finish part of all of the message
+for the user.  This feature will hopefully alleviate many of the problems of typing
+long names and messages that make the code more readable.
+
+    

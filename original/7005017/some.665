@@ -1,0 +1,719 @@
+;; -*-lisp-*-
+
+;;the top level node of director system
+
+(include |ai:ken;declare >|)
+
+(defcomment some) ;;for tags
+
+(defun put-receive-methods-in-something nil
+ (putprop (insert-receive '(do once when receiving ?pattern %action)
+			  '((let ((method-name
+				   (insert-receive pattern
+						   '((remove-current-method) !,action)
+						   :self nil)))
+				 (putprop method-name 0 'maximum-matching-methods)
+				 method-name))
+			  :self)
+	  0
+	  'maximum-matching-methods)
+ (putprop (insert-receive '(do only for yourself when receiving ?pattern %action)
+			  '((insert-receive pattern action :self nil t))
+			  :self)
+	  0
+	  'maximum-matching-methods)
+ (putprop (insert-receive '(do when receiving ?pattern %action)
+			  '((insert-receive pattern action :self))
+			  :self)
+	  0
+	  'maximum-matching-methods))
+
+(initialize-something) ;;defined in macros >
+
+(define-or-add-to something nil) ;;this is to be sure its compiled as one actor
+
+(define-method (recall your siblings) something
+ (safe-delete (name-of :self)
+	      (let ((parent (ask :self recall your parent)))
+		   (and parent (ask ,parent recall your offspring)))))
+
+(define-method (recall your descendants) something
+ (mapcan 'descendants-of-including-self (ask :self recall your offspring)))
+
+(define-method (recall your childless-descendants) something
+ (childless-descendants-of :self))
+
+;;now for functions to travel down the hierarchy
+
+(define-method-helper (childless-descendants-of actor) something
+;;this returns the childless descendants of an actor, ie its descendants who have no offspring
+ (let ((offspring (ask ,actor recall your offspring)))
+      (cond (offspring
+	     (mapcan 'childless-descendants-of offspring))
+	    (t (list actor)))))
+
+(define-method-helper (descendants-of-including-self actor) something
+;;this returns the descendants of an actor, ie its offspring, its offsprings offspring, etc.
+ (let ((offspring (ask ,actor recall your offspring)))
+      (cond (offspring
+	     (append (mapcan 'descendants-of-including-self offspring) (list actor)))
+	    (t (list actor)))))
+
+;;this is very handy for saving away since the parents are first (in a file)
+;;the usual order is better for unmaking for the same reason
+
+(define-method (recall your reversed-descendants) something
+ (reverse (ask :self recall your descendants)))
+
+(define-method (recall your reversed-childless-descendants) something
+ (reverse (ask :self recall your childless-descendants)))
+
+(define-method (recall your private-variable-names) something
+ ;;these guys are not inheirited
+ '(offspring things-to-do-next name synonyms))
+
+(define-method (set your parent to ?new-parent) something
+ (let ((:replace-old-methods t))
+      (ask :self do when receiving (recall your parent)
+	   (director-symbol-for-value ,new-parent))
+      new-parent))
+
+(define-method (set your name to ?new-name) something
+ (let ((:replace-old-methods t))
+      (ask :self do when receiving (recall your name)
+	   (director-symbol-for-value ,new-name))
+      new-name))
+
+(define-method (set your ?variable to ?value) something
+ (help-comments: |when asked "recall your" VARIABLE return VALUE|)
+ (let ((non-inheritable (member variable (ask :self recall your private-variable-names))))
+      (cond (non-inheritable
+	      (let ((:replace-old-methods t) ;;try to reuse old guys otherwise
+		    (:insert-methods-at-end nil)) ;;be sure they go up front
+		   (let ((recall-method-name
+			  (ask :self do only for yourself when receiving
+			       (recall your your ,variable)
+			       ;;dont need internal-recall-your
+			       (director-symbol-for-value ,value))))
+			(ask :self do only for yourself when receiving
+			     (set your ,variable to ?the-new-value)
+			     (set-director-symbol-for-value ,recall-method-name
+							    the-new-value)))))
+	    (t (maintain-value-assoc-list (ask :self internal-recall-your-normal-variable)
+					  variable
+					  value))))
+ value)
+
+(define-method (internal-recall-your-normal-variable) something
+ ;;if I get here then the guy doesn't have any normal variables yet so make them as follows
+ (let ((the-alist (list nil)))
+      (ask :self do only for yourself when receiving
+	   (internal-recall-your-normal-variable)
+	   (director-symbol-for-value ,the-alist))
+      the-alist))
+
+(define-method (recall your ?variable) something
+	       (help-comments: |recall the value of my VARIABLE|)
+ (do ((actor :self (parent-of actor t)))
+     ((null actor) nil) ;;nil is default value for no value found
+     (let ((pair (assoc variable (ask ,actor internal-recall-your-normal-variable))))
+	  (and pair (return (rest pair))))))
+
+(define-macro-method (change your ?variable to ?value) something
+ (help-comments: |identical to set your VARIABLE to VALUE|)
+ '(ask ,:self set your ,variable to ,value))
+
+(define-macro-method (to %message) something
+ ;;a little syntatic sugar for those that desire it
+ '(ask ,:self !,message))
+
+;;(define-method (recall your ?variable) something
+;;	       (help-comments: |recall the value of my VARIABLE|)
+;;this gets the value or asks ancestors if none
+;; (recall-variable :self variable))
+
+;;(define-method (recall each of your ?variable-pattern) something
+;; (help-comments:
+;;  |recall all the values of all my variables whose name matches the VARIABLE-PATTERN|) 
+;; (recall-each-variable :self variable-pattern))
+
+(define-macro-method (increment your ?variable by ?amount) something
+		     (help-comments: |add AMOUNT to the value of my VARIABLE|)
+ '(ask ,:self set your ,variable to
+       `(plus (or (ask ,:self recall your ,variable)
+		  0) ;;if variable is new for example
+	      (quote-if-need-be ,amount))))
+
+(define-macro-method (multiply your ?variable by ?factor) something
+ (help-comments: |set VARIABLE to FACTOR times my current value or 1.0 if none|)
+ '(ask ,:self set your ,variable to
+       `(*$ (or (ask ,:self recall your ,variable)
+		1.0) ;;if variable is new for example
+	    (quote-if-need-be ,factor))))
+
+(define-macro-method (add ?value to your list of ?list-name) something
+ (help-comments: |add VALUE to the value of my LIST-NAME if not already there|)
+ '(ask ,:self set your ,list-name to
+       `(cons-if-not-member (quote-if-need-be ,value)
+			    (ask ,:self recall your ,list-name))))
+
+(define-macro-method (add ?value to your list of ?variable regardless) something
+ (help-comments: |add VALUE to the value of my LIST-NAME even if already there|) 
+ ;;this differs from add ? to your list of .. in that duplicates are ok
+ '(ask ,:self set your ,variable to `(cons (quote-if-need-be ,value)
+					   (ask ,:self recall your ,variable))))
+
+(define-macro-method (remove ?value-pattern from your list of ?list-name) something
+ (help-comments: |remove from my LIST-NAME any values that match the VALUE-PATTERN|) 
+ '(ask ,:self set your ,list-name to
+       `(match-safe-delete (quote-if-need-be ,value-pattern)
+			   (ask ,:self recall your ,list-name))))
+
+(define-method (list all your variable names) something
+ (help-comments: |return the names of all my variables (do not include my parent's variables)|)
+ (collect-all-variable-names :self))
+
+(define-method (make an instance named ?name copying ?variables-to-copy) something
+ ;;this returns the actor made and does not place it anywhere
+ ;;they also do not have a name
+ (cond (variables-to-copy
+	(let ((new-actor (make-actor 'something name)))
+	     ;;initially use top node since copying should not trigger demons
+	     (mapc (function (lambda (variable-to-copy)
+				     (ask ,new-actor set your ,variable-to-copy to
+					  ,(ask :self recall your ,variable-to-copy))))
+		   variables-to-copy)
+	     (ask ,new-actor set your parent to ,(or (name-of :self) :self))
+	     new-actor))
+       (t ;;this is just a more efficient version of above
+	(make-actor (or (name-of :self) :self) name))))
+
+(define-macro-method (make) something
+ (help-comments: |return an disembodied name-less instance of myself|)
+ '(ask ,:self make an instance named nil copying
+       ,(comma (ask :self recall your variables-to-copy-upon-creation))))
+
+(define-method (make ?name) something
+	       (help-comments: |make an instance of myself with NAME|)
+ ;;this makes an instance of an actor by initializing all the properties
+ ;;if there is no memory or methods the slot is left empty (not even there sometimes!!)
+ (cond (name
+	(cond ((actor-of name dont-autoload) ;;and one already exists
+	       ;;dont want to use exists since should not autoload it just to unmake it
+	       (and (ask ,name unmake) ;;if protected will return NIL and so this wont happen
+		    (place-actor-on-name
+		     (ask :self make an instance named ,name copying
+			  ,(ask :self recall your variables-to-copy-upon-creation))
+		     name)))
+	      (t (place-actor-on-name
+		  (ask :self make an instance named ,name copying
+		       ,(ask :self recall your variables-to-copy-upon-creation))
+		  name))))
+       (t (shouldnt-happen 'make-instance
+			   '(|cant make an actor named nil sorry|))))
+ (and (internedp name) ;;only if interned should parent know about offspring
+      (ask :self add ,name to your list of offspring))
+ (decompile-all-dependent-selectors name)
+ (update-all-dependent-selectors name '?) ;;if its being remade then much has changed
+ name)
+
+
+(define-method (make uninterned offspring) something
+ (help-comments:
+  |make an instance of myself picking a name which will not known by the reader|)
+ (let ((actors-name (name-of :self)))
+      (ask :self make ,(append-atoms actors-name '- (gen-number actors-name)))))
+
+
+(define-method (make interned offspring) something
+ (help-comments: |make an instance of myself and pick the name|)
+ (let ((actors-name (name-of :self)))
+      (ask :self make ,(intern-append-atoms actors-name '- (gen-number actors-name)))))
+
+(define-method (if new make ?name) something
+ (help-comments: |if no one with that name exists make an instance of myself|) 
+ (cond ((exists? name) name) ;;already exists so do nothing
+       (t (ask :self make ,name))))
+
+(define-method (make copy ?sibling) something
+ (help-comments: |make an identical copy of myself except for its name and offspring|) 
+ ;;this copies by copying the plist and changing its offspring
+ (ask :self ask your parent to make ,sibling) ;;makes one for parent's sake 
+ (displace (actor-of sibling) ;;then clobbers it with a copy with the follow substs
+	   (let ((name (name-of :self)))
+		(copy :self '((,name !,sibling)))))
+ sibling)
+
+(define-method (make synonym ?name) something
+  ;;name is the same actor not even the name is changed
+ (help-comments:  |make another name for myself|)
+ (ask :self add ,name to your list of synonyms)
+ (synonym-for :self name))
+
+(define-method (remob) something
+ ;;renames it to an uninterned name and changes the world accordingly
+ (ask :self ask your parent remove ,(name-of :self) from your list of offspring)
+ (general-remprop (name-of :self) 'actor 'non-atomic-actors)
+ (let ((new-name
+	(ask :self set your name to ,(generate-symbol (or (name-of :self) '|unnamed-actor|)))))
+      (place-actor-on-name :self new-name)
+      new-name))
+
+(define-method (unmake) something
+ (help-comments: |kill myself --- to be used with CARE|) 
+ (let ((name (name-of :self)))
+      (cond ((and
+	      (member name :protected-actors)
+	      (shouldnt-happen
+	       name
+	       '(|You are trying to unmake me and I'm protected so type "p " and I'll ignored this./
+If you really want to kill me then remove my name from the variable :protected-actors/
+and then type "(return t)"|))))
+	    (t (or (eq name 'something) ;;unless something get parent to remove from offspring
+		   (ask :self ask your parent to remove ,name from your list of offspring))
+	       (and (ask :self recall your things-to-do-next)
+		    (ask :self ask your universe
+			 to remove ,name from your list of actors-to-run-next))
+	       (let ((whole (ask :self recall your whole)))
+		    (and whole (ask ,whole remove ,name from your list of parts)))
+	       (ask :self ask each of your parts to unmake)
+	       (ask :self untrace) ;;remove any traces for this guy
+	       (cond ((atom name) (remprop name 'actor))  ;;remove the actor property
+		     (t (remove-property (get (first name) 'non-atomic-actors) (rest name))))
+	       name)))) ;;returns name
+
+(define-method (memorize ?item) something
+ (help-comments: |memorize the ITEM provided|) 
+ (let ((:insert-methods-at-end nil)) ;;so these go up front
+      (let ((collect-method-name
+	     (ask :self do only for yourself ;;will go up the tree myself
+		  when receiving (collect items)
+		  (director-symbol-for-value (,item)))))
+	   (ask :self do only for yourself when receiving (forget item ?item)
+		(replace-second ,collect-method-name
+				(delete item (second ,collect-method-name)))
+		nil) 
+	   (ask :self do only for yourself when receiving (memorize ?item)
+		(replace-second ,collect-method-name
+				(cons-if-not-member item (second ,collect-method-name)))
+		no-value)))
+ no-value)
+
+(define-method (collect items) something
+ ;;default is nil
+	       nil)
+
+(define-method (forget item ?) something
+ (help-comments: |forget the ITEM. also see forget items matching ?pattern|)
+ nil) ;;default
+
+(define-method {and ?the-whole-message (recall an item matching ?pattern then ?action)}
+	       something
+ (let ((new-actor (ask :self make)))
+      (let ((database-method-name (ask ,new-actor do when receiving ,pattern ,action)))
+	   (ask :self do when receiving ,the-whole-message
+		(keep-sending-items-til-match (quote ,database-method-name)
+					      :self))
+	   (ask :self !,the-whole-message))))
+
+(define-method (recall if any items match ?pattern) something
+ (help-comments: |do I or my ancestors remember any item that matches PATTERN? (T or NIL)|) 
+ (ask :self recall an item matching ,pattern then t))
+
+(define-form (keep-sending-items-til-match database-method-name actor)
+      (do ((actor actor (parent-of actor))
+	   (method-predicate (method-pattern-predicate database-method-name)))
+	  ((null actor) nothing-found)
+	  (let ((result
+		 (do ((i (ask ,actor collect items) (rest i)))
+		     ((null i) 'director-symbol-for-nothing-found)
+		     (cond ((funcall method-predicate (first i))
+			    (let ((:message (first i)))
+				 (return (run-method database-method-name))))))))
+	       (cond ((eq result 'director-symbol-for-nothing-found)) ;;keep trying
+		     (t (return result))))))
+
+(define-method {and ?the-whole-message (recall each item matching ?pattern then ?action)}
+	       something
+ (let ((new-actor (ask :self make)))
+      (let ((database-method-name (ask ,new-actor do when receiving ,pattern ,action)))
+	   (ask :self do when receiving (director-symbol-for-quoted-pattern ,the-whole-message)
+		(keep-sending-items-collecting-all (quote ,database-method-name)
+						   :self))
+	   (ask :self !,the-whole-message))))
+
+(define-form (keep-sending-items-collecting-all database-method-name actor)
+ (do ((actor actor (parent-of actor))
+      (method-predicate (method-pattern-predicate database-method-name))
+      (results nil))
+     ((null actor) (nreverse results))
+     (do ((i (ask ,actor collect items) (rest i)))
+	 ((null i))
+	 (cond ((funcall method-predicate (first i))
+		(let ((:message (first i)))
+		     (push (run-method database-method-name) results)))))))
+
+(define-method (collect items memorized matching ?pattern) something
+ (help-comments:
+  |collect all those items memorized by me and my ancestors that match the PATTERN|)
+  (ask :self recall each item matching {and ?the-item ,pattern} then the-item))
+
+
+(define-method (forget items matching ?pattern) something
+ (help-comments: |forget any item memorized that matches PATTERN|) 
+ (ask :self recall each item matching {and ?the-item ,pattern} then
+      (script: (ask :self forget item ,the-item))))
+
+
+(define-macro-method (tick) something
+ (help-comments: |do all the things that are the value of my things-to-do-next|) 
+ '(let ((things (ask ,:self recall your things-to-do-next)))
+       (ask ,:self set your things-to-do-next to nil)
+       (ask ,:self do the following: !`things)
+       things)) ;;returns the things done
+
+(define-method (plan after ?number ticks %message) something
+ (help-comments: |plan to receive MESSAGE after receiving NUMBER tick messages|) 
+ (let ((whats-planned-already (ask :self recall your things-to-do-next))
+       (new-command (cond ((= number 1) message)
+			  (t '(plan after ,(1- number) ticks !,message)))))
+      (cond (whats-planned-already (nconc whats-planned-already (list new-command)))
+	    ;;the nconc serves two functions (1) put it at the end
+	    ;;(2) updates do-stuff-planned dynamically (and automatically)
+	    (t (ask :self set your things-to-do-next to (,new-command))
+	       (let ((universe (ask :self recall your universe))
+		     (name (name-of :self)))
+		    (or (eq name universe)
+			(ask ,universe add ,name to your list of actors-to-run-next))))))
+ no-value)
+
+(define-macro-method (plan next %message) something
+ (help-comments: |plan to do on the next tick the MESSAGE|) 
+ '(ask ,:self plan after 1 ticks !,message))
+
+(define-method (plan after ?number seconds %message) something
+ (help-comments:
+  |plan to send my self the MESSAGE after NUMBER seconds (film time not real time)|)
+ (cond ((= number 0.0) (ask :self !,message))
+       ((lessp number 0.0)
+	(shouldnt-happen 'something
+			 '(cant plan !,message for ,number seconds)))
+       (t
+	(ask :self plan after
+	     ,(max 1 ;;at least one tick away
+		   (round (times (float number) :frames-per-second :ticks-per-frame)))
+	     ticks !,message))))
+
+(define-method (plan after receiving ?event-pattern to ?message-form) something
+ ;;message-form gets evaluated and sent to actor in plan next message when event-patern is met
+ (help-comments: |send myself the value of MESSAGE-FORM|
+		 |the first time I receive a message matching the EVENT-PATTERN|)
+ (ask :self do once when receiving {and ?the-whole-message ,event-pattern}
+      (let ((message ,message-form))
+	   (let ((result (ask-if-understood :self !`the-whole-message)))
+		(and message (ask-old :self !`message))
+		result))))
+
+(define-method (plan after receiving ?event-pattern to always ?message-form) something
+ (help-comments: |always send myself the value of MESSAGE-FORM|
+		 |upon receiving a message matching EVENT-PATTERN|) 
+ (ask :self do when receiving {and ?the-whole-message ,event-pattern}
+      (let ((message ,message-form))
+	   (let ((result (ask-if-understood :self !`the-whole-message)))
+		(and message (ask-old :self !`message))
+		result))))
+
+
+(define-method (repeat ?message forever) something
+ (help-comments:
+  |do the MESSAGE and plan for the next tick to repeat forever the same message|) 
+ ;;cant be a macro too well since will be expanded forever
+ (ask :self !,message)
+ (ask :self plan next repeat ,message forever))
+
+
+(define-method (repeat ?message ?number times every ?so-many ticks %followup) something
+ (help-comments: |wait SO-MANY ticks and then do the MESSAGE and repeat this NUMBER times|) 
+ (ask ,:self !,message)
+ (cond ((> number 1)
+	(ask :self plan after ,so-many ticks repeat ,message 
+	     ,(1- number) times every ,so-many ticks !,followup))
+       (t (cond ((eq (first followup) 'then) 
+		 (ask :self plan after ,so-many ticks !,(rest followup)))))))
+
+(define-method (repeat ?message ?number times %followup) something
+ (help-comments:
+  |do the MESSAGE and plan for the next tick to repeat one less time the MESSAGE|)
+  (cond ((> number 1)
+	 (ask :self !,message)
+	 (ask :self plan next repeat ,message ,(1- number) times !,followup))
+	(t (cond ((eq (first followup) 'then) (ask :self !,(rest followup)))))))
+
+
+;;now for broadcasting and rerouting of messages
+
+(define-macro-method (ask your ?variable %message) something
+ (help-comments: |recall the value of my VARIABLE and then ask it the MESSAGE|)
+ '(ask `(ask ,:self recall your ,variable) !,message))
+
+
+(define-macro-method (ask each of your ?variable %message) something
+ (help-comments: |recall the value of VARIABLE and ask each member of it the MESSAGE|)
+ '(ask-each `(ask ,:self recall your ,variable) !,message))
+
+(define-method (ask each of ?others %message) something
+ (help-comments: |ask each member of the list OTHERS the MESSAGE|) 
+   (ask-each ,others !,message))
+
+(define-macro-method (ask ?another %message) something
+ (help-comments: |ask ANOTHER the MESSAGE|) 
+ '(ask ,another !,message)) ;;useful for planning
+
+
+(define-method (keep doing until ?predicate %message) something
+ (help-comments:
+  |keep sending MESSAGE to myself until the value returned is true of the Lisp PREDICATE|)
+  (do ((result (ask :self !,message) (ask :self !,message)))
+     ((funcall predicate result) result)))
+
+(define-method (do the following: %messages) something
+ (body-of-do-the-following: messages))
+
+(define-method-helper (body-of-do-the-following: messages) something
+ (do ((m messages (rest m))
+      (last-value))
+      ((null m) last-value)
+      (let ((:message (first m)))
+	   (setq last-value (cases :self)))))
+
+
+;;this is where odds and ends in something go
+
+(define-method (are you {or a an} ?type) something ;;an concession to English
+ ;;this finds out if any ancestor is named type
+ (help-comments: |am I or any of my ancestors named TYPE?|)
+  (is-any-ancestor-of :self (actor-of type)))
+ 
+;;now for a few useful utility functions
+
+(define-function is-any-ancestor-of (actor other)
+ (cond ((null actor) nil)
+       ((eq actor other) actor)
+       (actor (is-any-ancestor-of (parent-of actor t) other))))
+
+(define-method {and ?the-whole-message (find ancestor matching ?name-pattern)} something
+ ;;if any ancestor matches the name-pattern
+ (let ((name (name-of :self)))
+      (cond ((eq name 'something) nil) ;;at the top
+	    ((match name name-pattern) :self)
+	    (t (ask :self ask your parent !,the-whole-message)))))
+ 
+(define-method (recall internal {or method clause} for %message) something
+ (help-comments: |returns the internal name of the method that catches the MESSAGE|) 
+  (method-name-that-matches :self message))
+
+(define-method (recall {or method clause} for %message) something
+ (help-comments:
+  |return the pattern and action of the first receive method to catch the MESSAGE|) 
+ ;;returns the method for the message in the format (<pattern> <action-function>)
+(humanify-method (method-name-that-matches :self message)))
+
+(define-method (forget your ?variable) something
+ (help-comments:
+  |forget I ever heard about VARIABLE, if it is "?" then I forget all my variables|) 
+ (cond ((eq variable '?) ;;clears all
+	(do ((i (ask :self list all your variable names) (rest i)))
+	    ((null i))
+	    (let ((variable-name (first i)))
+		 (cond ((memq variable-name '(parent name))) ;;leave it alone
+		       ((= (getcharn variable-name 1) #(getcharn '? 1)))
+		       ((= (getcharn variable-name 1) #(getcharn '% 1)))
+		       (t (ask :self forget your ,variable-name))))))
+       (t (ask :self remove clause for recall your ,variable)
+	  (ask :self remove clause for set your ,variable to anything)))
+ no-value)
+
+(define-method (remove {or method clause} for %message) something
+ (help-comments: |remove the first method of :self that catches the MESSAGE|) 
+ (remove-method-named (method-name-that-matches-just-actor :self (methods-of :self) message)
+		      :self))
+
+(define-method (trace %pattern+action) something
+ (help-comments:
+  |trace any transmission event that matches the first of PATTERNS+ACTION or all if none|
+  |and perform the rest of PATTERNS+ACTION if any|)
+ (director-trace :self (first pattern+action) (rest pattern+action)))
+
+(define-method (untrace ?pattern) something
+ (help-comments: |remove any traces whose pattern matches this PATTERN|) 
+ (director-untrace :self pattern))
+
+(define-method (untrace) something ;;untrace all so ...
+ (help-comments: |remove any trace of a trace on me or my descendants|)
+ (let ((tracer '(tracer-of ,(name-of :self)))) ;;so synonyms work
+      (and (exists? tracer)
+	   (director-untrace-all :self tracer))))
+
+(define-method (transmission ? beginning) something nil) ;;dummy trace message
+
+(define-method (transmission ? returning ?result) something result) ;;also a dummy trace 
+
+(define-method (tell each of your ?others whenever your ?variable is changed) something
+ ;;I think this should be a macro so that it will compile for the guy involved
+ (ask :self ask each of your ,others notice that ,variable of ,(name-of :self) is now
+      ,(ask :self recall your ,variable))
+ (ask :self add ,variable to your list of (variables-depended-upon-by ,others))
+ (ask :self do when receiving (set your ,variable to ?new-value)
+      (ask-old :self set your ,variable to `new-value) ;;do it as normal
+      (tell-others-new-value (quote ,variable) new-value (quote ,others))
+      new-value))
+
+(define-method-helper (tell-others-new-value variable new-value groups-name) something
+ (ask :self ask each of your ,groups-name
+      notice that ,variable of ,(name-of :self) is now ,new-value))
+
+(define-method (tell your ?other whenever your ?variable is changed) something
+ (ask :self ask your ,other to notice that ,variable of ,(name-of :self) is now
+      ,(ask :self recall your ,variable))
+ (ask :self add ,variable to your list of (variables-depended-upon-by ,other))
+ (ask :self do when receiving (set your ,variable to ?new-value)
+      (ask-old :self set your ,variable to `new-value) ;;do it as normal
+      (tell-other-new-value (quote ,variable) new-value (quote ,other))
+      new-value))
+
+(define-method-helper (tell-other-new-value variable new-value groups-name) something
+ (ask :self ask your ,groups-name notice that ,variable of ,(name-of :self) is now ,new-value))
+
+(define-method (notice that ? of ? is now ?) something
+ nil) ;;do nothing by default
+
+(define-method (absorb your parts) something
+ (help-comments: |makes all my parts accessible only through me by name|)
+ (ask :self set your parts to
+      ,(mapcar
+	(function
+	 (lambda (part-name)
+		 (let ((part (ask ,part-name remob)))
+		      (ask :self set your ,part-name to ,part)
+		      ;;its name is uniquized to guarantee only whole can get at it
+		      part)))
+	(ask :self recall your parts)))
+ no-value)
+
+(define-method (print %option) something
+ (help-comments:
+  |print my memory, variables, script or all (assumed if nothing given for OPTION)|)
+  (fancy-print option))
+
+(define-method (compare yourself with ?other) something
+ (help-comments:
+   |Compares :self with OTHER and puts results in (comparsion-between ,:self ,OTHER)|)
+ (let ((name (actor-of :self)))
+      (let ((comparison (ask something make (comparison-between ,name ,other))))
+	   (cond ((exists? other)
+		  (let ((my-variables (ask :self list all your variable names))
+			(others-variables (ask ,other list all your variable names)))
+		       (do ((i (union my-variables others-variables) (rest i)))
+			   ((null i))
+			   (or
+			    (eq (first i) 'name)
+			    (let ((my-value (ask :self recall your ,(first i)))
+				  (others-value (ask ,other recall your ,(first i))))
+				 (cond ((not (equal my-value others-value))
+					(ask ,comparison memorize
+					     (difference: type variable
+							  variable ,(first i)
+							  (,other value) ,others-value
+							  (,name value) ,my-value)))))))))
+		 (t (ask ,comparison memorize
+			 (difference: type existence
+				      who-exists ,name
+				      who-doesnt ,other))))
+	   comparison)))
+
+
+(define-method (compile message %message) something
+ ;;this is a convient way to see how a message would be compiled
+ (help-comments: |return how a transmission of MESSAGE to me would be compiled|)
+ (lispify-transmission :self message (name-of :self) nil))
+
+(define-method (compile %file-name) something
+ (help-comments: |save on FILE-NAME a LOAD-able complete optimized description of myself|)
+ (compile-and-print-actor (name-of :self) file-name))
+
+(define-method (save %file-name) something
+ (help-comments: |save on FILE-NAME a LOAD-able complete unmodified description of myself|)
+ (save-actor-on-file :self file-name))
+
+(define-method (help %pattern) something
+ (help-comments: |describe what I do for all messages that match the PATTERN|
+		 |or all messages if no PATTERN is given|
+		 |to find out just what messages an actor can receive ask it to print script|)
+ (let ((old-crunit (crunit))
+       (help-file '(,:help-storage-place !,(get (name-of :self) 'help-file)))
+       (parent (ask :self recall your parent)))
+      (cond ((cond ((eq (ask :self recall your help-loaded-for) :self))
+		   ((probef help-file)
+		    (director-load help-file '(to get help for ,:self))
+		    (ask :self set your help-loaded-for to ,(name-of :self))
+		    (apply 'crunit old-crunit))) ;;restore crunit
+		    (mapc
+		     (function (lambda (help)
+				       (terpri) (terpri)
+				       (princ (first help)) (princ '| |)
+				       (princ-or-print (second help) nil 'grind)
+				       (princ '| |)
+				       (princ (third help))
+				       (mapc (function (lambda (line)
+							       (type line)))
+					     (nth-rest 3 help))))
+		     (ask :self collect items memorized matching 
+			  (|When receiving| ,(or pattern '?) I %))))
+	    (t (type '|Sorry no help available|)))
+      (cond (parent
+	     (terpri)
+	     (type '(|More help can be gotten by asking my parent| ,parent |for help|)))))
+ no-value)
+
+(define-method (warning %some-warning) something
+ (ask :self memorize ,some-warning)
+ (warning (name-of :self) some-warning))
+
+(define-method (should not happen %warning) something
+ (ask :self memorize ,warning)
+ (shouldnt-happen (name-of :self) warning))
+
+(declare (read)) ;;dont want this in compiled file
+;;and yet can't include in normal place because of boot straping problems
+(ask something set your universe to default-universe)
+
+nil ;;this is a terrible crock but when using compile-file
+    ;; the declare will be copied and the ask will not so then it will read the nil
+
+(defun add-help-to-actor (actor pattern comment)
+ ;;i want this cleverly compiled so that loading help files is quick
+ (ask ,actor memorize (|When receiving| ,pattern I !,comment)))
+
+;;this is the universe of actors with things planned used for interactions of actors
+;;this assumes that things clean up after running schedule 
+
+(define universe something)
+
+(define-extension-method (tick) universe
+ (help-comments: |besides doing a normal tick I ask each of my actors-to-run-next to tick|)
+ (ask-old :self tick) ;;do anything planned too
+ (let ((actors-to-run (ask :self recall your actors-to-run-next)))
+      (unwind-protect
+       (progn (ask :self set your actors-to-run-next to nil)
+	      (ask-each ,actors-to-run tick))
+       (ask :self set your actors-to-run-next to ,actors-to-run))))
+
+(define-method (run for ?number ticks) universe
+ (help-comments: |repeatedly send myself a tick "number" times|)
+ (ask :self tick)
+ (cond ((and (fixp number) (> number 1)) ;;if number is an integer greater than 1
+	(ask :self run for ,(1- number) ticks))))
+
+(define default-universe universe)
+
+(compile-actors)

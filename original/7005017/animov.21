@@ -1,0 +1,90 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+;;this file includes the stuff needed to project ani's movies
+
+(defcomment animov) ;;for tags
+
+(define ani-movie movie
+ (set your new-frame-action to erase-old)
+ (set your frames-per-second to 24)) ;;not really
+	
+(define-receiver (project subscene ?number of ?scene) ani-movie
+ (let ((begin (ask :self recall your (beginning-of (subscene-of ,scene ,number))))
+       (end (ask :self recall your (end-of (subscene-of ,scene ,number)))))
+      (cond ((and begin end (< begin end)) ;;if equal then dummy scene so dont show it
+	     (ask :self project frames ,begin to ,end)
+	     '(,begin ,end))
+	    (t (warning :self
+			'(|dont know enuf about| (subscene-of ,scene ,number)))))))
+
+(declare (special :subscene :begin-frame :end-frame))
+
+(define-receiver (project and after every subscene ?new-subscene-actions) ani-movie
+ (project-each-subscene-of :self new-subscene-actions))
+
+(define-function project-each-subscene-of (movie new-subscene-actions)
+ (do ((subscene-number 1 (1+ subscene-number))
+      (scene (ask ,movie recall your scene-name)))
+     ((> subscene-number 7) 'went-too-far)
+     (let ((:subscene '(subscene-of ,scene ,subscene-number)))
+	  (cond ((ask ,movie recall your (end-of ,:subscene))
+		 (let (((:begin-frame :end-frame)
+			(ask ,movie project subscene ,subscene-number of ,scene)))
+		      (mapc 'eval new-subscene-actions)))
+		(t (return (1- subscene-number)))))))
+
+(define-abbreviation nsa new-subscene-actions)
+
+(define complete-movie something)
+
+(define cindy complete-movie
+ (set your scenes to (intro ka nl me ju)) 
+ (set your new-subscene-actions to ((type-out-subscene-description) (clearscreen))))
+
+(define-receiver (project) complete-movie
+ (clearscreen)
+ (let ((new-subscene-actions (ask :self recall your new-subscene-actions)))
+      (cond (new-subscene-actions (ask :self ask each of your scenes to project
+				      and after every subscene ,new-subscene-actions))
+	    (t (ask :self ask each of your scenes to project)))))
+
+(setq :movies '(intro ka nl me ju)) ;;for debugging etc
+
+(define-function type-out-subscene-description nil
+ (type '(,:subscene just ran from ,:begin-frame to ,:end-frame)))
+
+(define-function init nil
+ (clip)
+ (load-movies))
+
+
+(define-function load-movies nil
+ (director-load '((ken1) intro fasl))
+ (director-load '((ken1) ka fasl))
+ (director-load '((ken1) nl fasl))
+ (director-load '((ken1) me fasl))
+ (director-load '((ken1) ju fasl)))
+
+(define-form (xgp-scene scene frame-start file-name)
+ ;;file-name should not have last name since that is the frame number
+ (tvsize 267 200)
+ (ask ,scene set your new-frame-action to (clearscreen))
+ (do ((i frame-start (+ 2 i)) ;;xgp every other frame
+      (stop (1- (second (arraydims scene)))))
+     ((> i stop))
+     (ask ,scene project frame ,i)
+     (princ i)(princ '/  )
+     (r-xgp (append file-name (list i)))
+     (sleep 3.0))) ;;to give the archive device a chance to keep up with this
+
+
+
+;;(define-form (keep-moving old-file new-file start stop)
+;; (do ((i start (1+ i)))
+;;     ((> i stop))
+;;     (move-file (append old-file (list i)) (append new-file (list i)) t)
+;;     (sleep 3.0)))
+
+

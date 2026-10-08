@@ -1,0 +1,298 @@
+;;  -*-lisp-*-
+;;this is part of dot ani
+;;this defines the character descriptors with suggestions 
+
+(include |ai:ken;declar >|)
+
+(defcomment dscrp) ;;this is for tags to find file name
+
+
+(define character-descriptor descriptor
+ (do when receiving (summarize comparison by type ?comparison)
+     (summarize-comparison-by-type
+      comparison
+      (ask ,comparison collect items memorized matching
+	   (comparison: finding ?
+			descriptor ?
+			descriptor-type ,(ask :self recall your type)))
+      (rest comparison) ;;the constituents
+      (ask :self recall your type)))
+ (do when receiving (summarize comparison ?comparison)
+     (summarize-comparison-by-type
+      comparison
+      (ask ,comparison collect items memorized matching
+	   (comparison: finding ?
+			descriptor ?
+			descriptor-type
+			{or !,(ask character-descriptor
+				   ask each of your offspring to recall your type)}))
+      (rest comparison) ;;constituents
+      'all))
+ (do when receiving (summarize uniqueness by type of ?character)
+     (summarize-uniqueness-by-type
+      character
+      (ask ,character collect items memorized matching
+	   (comparison: finding unique
+			descriptor ?
+			descriptor-type ,(ask :self recall your type)))
+      (ask :self recall your type)))
+ (do when receiving (summarize uniqueness of ?character)
+     (summarize-uniqueness-by-type
+      character
+      (ask ,character collect items memorized matching
+	   (comparison: finding unique
+			descriptor ?
+			descriptor-type ?))
+      'all))
+ (set your usage to (0 out-of 0)))
+
+(define personality-character-descriptor character-descriptor
+	(set your type to personality))
+
+(define physical-character-descriptor character-descriptor
+	(set your type to physical))
+
+(define movement-character-descriptor character-descriptor
+	(set your type to movement))
+
+(define odds+ends-character-descriptor character-descriptor
+	(set your type to role-in-story)) ;only one so far
+
+
+(define shy personality-character-descriptor
+ (process suggestions
+	  (for speed low strength low)
+	  (for attraction-towards-enemies (negative medium) strength high)
+	  (for attraction-towards-strangers (negative high) strength high)
+	  (for attraction-towards-friends (positive low) strength low)
+	  (for (establish ?character shy)
+	       '(method: type convey
+			 value (bind ((other
+				       (character-that-satisfies
+					(stranger-of ,character nil))))
+				     (avoids ,character `other)))
+	       strength 'medium)))
+
+(define hard-working personality-character-descriptor
+ (process suggestions
+	  (for speed (not low) strength medium)
+	  (for activity-level high strength high)
+	  (for rhythmic-level (not low) strength medium)
+	  (for repetiveness high strength high)
+	  (for deliberateness high strength medium)
+	  (for (establish ?character hard-working)
+	       '(method: type convey
+			 value (bind ((task
+				       (activity-that-satisfies
+					(is-described-as (difficult)))))
+				     (does ,character `task)))
+	       strength 'medium)))
+
+(define graceful movement-character-descriptor
+ (process suggestions
+	  (for speed low strength medium)
+	  (for activity-level medium strength low)
+	  (for rhythmic-level high strength medium)
+	  (for deliberateness medium strength low)
+	  (for acceleration low strength medium)
+	  (for path-length long strength high)
+	  (for path-curvature high strength medium)
+	  (for path-jaggedness low strength medium)))
+
+(define friendly personality-character-descriptor
+ (process suggestions
+	  (for activity-level high strength low)
+	  (for deliberateness medium strength low)
+	  (for attraction-to-friends (positive high) strength high)
+	  (for attraction-to-strangers (positive medium) strength medium)
+	  (for attraction-to-enemies (positive low) strength low)
+	  (for (establish ?character friendly)
+	       (or
+		'(method: type convey
+			  value (bind ((other
+					(character-that-satisfies
+					 (friend-of ,character nil))))
+				      (helps ,character `other)))
+		strength 'high
+		'(method: type convey
+			  value (bind ((other
+					(character-that-satisfies
+					 (is-not ,character nil)))) ;;anyone will do
+				      (bind
+				       ((present
+					 (object-that-satisfies
+					  (is-desired-by `other))))
+				       (gives ,character `present `other))))
+		strength 'high
+		'(method: type convey
+			  value (bind ((other
+					(character-that-satisfies
+					 (friend-of ,character nil))))
+				      (accompanys ,character `other)))
+		strength 'medium))))
+
+(define beautiful physical-character-descriptor)  ;maybe should be also personality?
+	
+(define good personality-character-descriptor
+ (process suggestions
+	  (for (establish ?character good)
+	       (or 
+		'(method: type convey
+			  value (bind ((other
+					(character-that-satisfies
+					 (is-not ,character (is-described-as (weak good))))))
+				      (helps ,character `other)))
+		strength 'high
+		'(method: type convey
+			  value (bind ((bad-thing
+					(event-that-satisfies
+					 (is-considered-bad-by ,character nil)))
+					(prevents ,character `bad-thing))))
+		strength 'high))))
+
+(define evil personality-character-descriptor
+ (process suggestions
+	  (for path-jaggedness high strength high)
+	  (for path-curvature low strength low)
+	  (for path-length short strength medium)
+	  (for deliberateness high strength medium)
+	  (for acceleration high strength low)
+	  (for activity-level high strength low)
+	  (for (establish ?character evil)
+	       (or
+		'(method: type convey
+			  value (bind ((bad-thing
+					(event-that-satisfies
+					 (is-considered-bad-by ,character nil))))
+				      (causes ,character `bad-thing)))
+		strength 'high
+		'(method: type convey
+			  value (bind ((other
+					(character-that-satisfies
+					 (enemy-of ,character nil))))
+				      (hurts ,character `other)))
+		strength 'high
+		'(method: type convey
+			  value (bind
+				 ((other
+				   (character-that-satisfies
+				    (enemy-of ,character nil))))
+				 (chases ,character `other)))
+		strength 'medium))))
+
+(define bad personality-character-descriptor);;should get most from its neighbor
+
+(define selfish personality-character-descriptor
+ (process suggestions
+	  (for (establish ?character selfish)
+	       (or
+		'(method: type convey
+			  value (bind
+				 ((object
+				   (object-that-satisfies
+				    (not-owned-by ,character (is-described-as valuable))))
+				  (takes ,character `object))))
+		strength 'medium
+		'(method: type convey
+			  value (bind
+				 ((other
+				   (character-that-satisfies
+				    (is-not ,character nil)))
+				  (object
+				   (object-that-satisfies
+				    (is-described-as valuable))))
+				 (sequence: (requests ,character `other `object)
+					    (refuses ,character `other))))
+		strength 'medium))))
+
+(define kind personality-character-descriptor
+ (process suggestions
+	  (for attraction-towards-friends (positive high) strength high)
+	  (for attraction-towards-strangers (positive medium) strength medium)
+	  (for activity-level high strength low)))
+
+(define shabby physical-character-descriptor)
+
+(define strong personality-character-descriptor
+ (process suggestions
+	  (for path-length long strength medium)
+	  (for deliberateness high strength high)
+	  (for speed high strength medium)
+	  (for acceleration high strength medium)
+	  (for path-jaggedness low strength low)
+	  (for (establish ?character strong)
+	       (or
+		'(method: type convey
+			  value (bind ((object
+					(object-that-satisfies
+					 (is-described-as (heavy)))))
+				      (moves ,character `object)))
+		strength 'high))))
+
+(define physically-strong physical-character-descriptor)
+
+(define magical physical-character-descriptor)
+
+(define determined personality-character-descriptor
+ (process suggestions
+	  (for deliberateness high strength high)
+	  (for path-jaggedness low strength medium)
+	  (for repetiveness high strength high)
+	  (for speed (not low) strength medium)))
+
+(define stubborn personality-character-descriptor)
+
+(define pretty physical-character-descriptor)
+
+(define mean personality-character-descriptor
+ (process suggestions
+	  (for attraction-towards-enemies (negative high) strength high)
+	  (for attraction-towards-strangers (negative medium) strength medium)
+	  (for attraction-towards-friends (positive low) strength low)
+	  (for (establish ?character mean)
+	       (or
+		'(method: type convey
+			  value (bind
+				 ((other
+				   (character-that-satisfies
+				    (enemy-of ,character nil))))
+				 (chases ,character `other)))
+		strength 'medium
+		'(method: type convey
+			  value (bind
+				 ((other
+				   (character-that-satisfies
+				    (enemy-of ,character nil))))
+				 (hurts ,character `other)))
+		strength 'high))))
+
+(define most-important odds+ends-character-descriptor)
+
+(declare (read)) ;;dont want in the file, since is compiled into actors themselves
+
+(progn
+ (ask shy add brazen to your list of opposites)
+ (ask shy add forward to your list of opposites)
+ (ask hard-working add lazy to your list of opposites)
+ (ask hard-working add industrious to your list of neighbors)
+ (ask graceful add clumsy to your list of opposites)
+ (ask graceful add clody to your list of opposites)
+ (ask friendly add unfriendly to your list of opposites)
+ (ask beautiful add ugly to your list of opposites)
+ (ask beautiful add gorgeous to your list of neighbors) ;spelled wrong?
+ (ask good add bad to your list of opposites)
+ (ask good add evil to your list of opposites)
+ (ask bad add evil to your list of neighbors)
+ (ask selfish add stingy to your list of neighbors)
+ (ask selfish add generous to your list of opposites)
+ (ask kind add good to your list of neighbors)
+ (ask shabby add elegant to your list of opposites)
+ (ask shabby add unkempt to your list of neighbors)
+ (ask strong add weak to your list of opposites) 
+ (ask physically-strong add physically-weak to your list of opposites)
+ (ask physically-strong add powerful to your list of neighbors)
+ (ask stubborn add determined to your list of neighbors)
+ (ask most-important add least-important to your list of opposites))
+
+
+(compile-actors)

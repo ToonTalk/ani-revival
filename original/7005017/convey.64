@@ -1,0 +1,256 @@
+;; -*-lisp-*-
+;; this is part of ani that contains the suggestions for conveying things
+
+(include |ai:ken;declare >|)
+
+(defcomment convey)
+
+(define method something)
+
+(define-receive (add prerequisite for ?pattern ?value)
+ ((ask :self add (if-asked-about (prerequisite-of {and ?question ,pattern} ?)
+				 '(prerequisite-of ,question
+						   ,,(list 'quote-if-need-be value)))
+       to your list of (prerequisite-of if-recalling-items)))
+ method)
+
+(define-receive (collect all prerequisites of ?action)
+ ((mapcan
+   (function
+    (lambda (prerequisite-form)
+	    (let ((prerequisite (third prerequisite-form)))
+		 (cond ((eq (first prerequisite) 'prerequisites-of)
+			(ask :self collect all prerequisites of ,(second prerequisite)))
+		       (t (list prerequisite))))))
+   (ask :self collect items memorized matching (prerequisite-of ,action ?))))
+ method)
+
+
+(define-receive (add best-when for ?pattern ?value)
+ ((ask :self add (if-asked-about (best-when-of {and ?question ,pattern} ?)
+				 '(best-when-of ,question
+						,,(list 'quote-if-need-be value)))
+       to your list of (best-when-of if-recalling-items)))
+ method)
+
+(define-receive (collect best-when of ?action)
+ ((mapcan
+   (function
+    (lambda (best-when-form)
+	    (let ((best-when (third best-when-form)))
+		 (cond ((eq (first best-when) 'best-when-of)
+			(ask :self collect best-when of ,(second best-when)))
+		       (t (list best-when))))))
+   (ask :self collect items memorized matching (best-when-of ,action ?))))
+ method)
+
+(define convey-method method)
+
+(define activity convey-method)
+
+(define condition convey-method)
+
+(define action activity)
+
+(define motion activity)
+
+(define does action
+	(add undoes to your list of opposites))
+
+(define moves motion
+ (add stays to your list of opposites)
+ (add prerequisite for (moves ?a ?place) (can-move ,a ,place)))
+
+
+(define meets moves ;;meeting is a special case of moving
+ (add prerequisite for (meets ? ?b) (on-stage ,b))
+ (add prerequisite for (meets ?a ?b) (prerequisites-of (moves ,a (vicinity-of ,b)))))
+
+(define-receiver (yield your first part of (meets ?a ?b)) meets
+ '(method: type display
+	   value (move-small-part-towards ,a (vicinity-of ,b))))
+
+(define-receive (yield suggestions for {and ?task (convey (meets ?who ?other))})
+ ;;could also interact after moving towards but keep it simple for now
+ ('((suggestion: element ,task
+		 value (method: type display
+				value (move-to ,who (vicinity-of ,other)))
+		 strength high
+		 source meets)))
+ meets)
+
+(define pushes meets) ;;gota meet in order to push
+
+(define-receiver (yield suggestions for {and ?task (convey (pushes ?pusher ?pushee))}) pushes
+ '((suggestion: element ,task
+		value (method: type display
+			       value (pushes-around ,pusher ,pushee))
+		strength high
+		source pushes)))
+
+(define hurts meets) ;;gotta meet before you can hurt
+
+(define-receiver (yield suggestions for {and ?task (convey (hurts ?hurter ?hurtee))}) hurts
+ '((suggestion: element ,task
+		value (method: type display
+			       value (move-to-and-hits ,hurter ,hurtee))
+		strength high
+		source hurts)))
+
+(define chases moves)
+
+(define-receiver (yield suggestions for {and ?task (convey (chases ?chaser ?chasee))}) chases
+ '((suggestion: element ,task
+		value (method: type display
+			       value (chases-to ,chaser ,chasee
+						(distance-away-from (vicinity-of ,chasee)
+								    (vicinity-of ,chaser)
+								    .25)))
+		;;a quarter of the screen away
+		strength high
+		source chases)))
+
+
+(define accompanys meets ;;gota meet first so inherit prerequisites etc.
+ (add avoids to your list of opposites))
+
+(define-receiver (yield suggestions for
+			{and ?task (convey (accompanys ?character-1 ?character-2))}) accompanys
+ '((suggestion: element ,task
+		value (method: type display
+			       value (goes-to-and-accompanys ,character-1 ,character-2
+							     (good-distance-from
+							      (vicinity-of ,character-1))))
+		strength high
+		source accompanys)))
+
+(define helps action) ;;for now don't have an suggestions as to how to convey this
+
+
+(define undoes action)
+
+(define-receiver (yield suggestions for {and ?task (convey (undoes ? ?activity))}) undoes
+ (or (ask-if-can ,(first activity) yield undoing suggestions for ,task)
+     (warning 'undoes
+	      '(|don't know how to| !,task))))
+
+(define previously-chosen-action something)
+
+(define from-scene previously-chosen-action)
+
+(define-receiver (yield %anything) from-scene
+ ;;this acts as if the current-choice from that scene were here
+ ;;it uses a substs hack that is a cludge (oh well)
+ (let ((from-scene-clause (list-beginning-with 'from-scene anything)))
+      (cond (from-scene-clause
+	     (let ((new-clause (current-choice-in (second from-scene-clause)
+						  (third from-scene-clause))))
+		  (cond (new-clause
+			 (uncompiled-ask ,(first new-clause)
+					 yield
+					 !,(subst new-clause from-scene-clause anything)))
+			(t (shouldnt-happen
+			    'from-scene
+			    '(cant find current choice in !,from-scene-clause))))))
+	    (t (shouldnt-happen 'from-scene
+				'(cant find from-scene in yield !,anything))))))
+
+(define-function current-choice-in (scene task)
+ (let ((current-choice (ask (choices-made-in ,scene) recall your ,(second task))))
+      (cond ((one-long current-choice) (first current-choice))
+	    (t current-choice))))
+
+(define helps does)
+
+(define prevents activity)
+
+(define-receive (yield suggestions for
+		       {and ?task (convey (prevents ?who (?activity %participents)))})
+ ;;to prevent something you can undo any prerequisite 
+ ((mapcar
+   (function
+    (lambda (prerequisite)
+	    '(suggestion: element ,task
+			  value (method: type convey
+					 value (undoes ,who ,prerequisite))
+			  strength high
+			  source prevents)))
+   (ask ,activity collect all prerequisites of (,activity !,participents))))
+ prevents)
+
+(define avoids prevents)
+
+(define wants action)
+
+;;eg (convey (wants cinderella (meets cinderella prince)))
+
+(define-receive (yield suggestions for
+		       {and ?task (convey (wants ?who (?activity %participents)))})
+ ((let ((first-part-of-act
+	 (ask-if-understood ,activity yield your first part of (,activity !,participents))))
+       '((suggestion: element ,task
+		      value (method: type convey
+				     value (fantasizes ,who (,activity !,participents)))
+		      strength high
+		      source wants)
+	 !,(and first-part-of-act
+		'((suggestion: element ,task
+			       value ,(replaceprop first-part-of-act
+						   '((special-dynamics-package:
+						      who ,who
+						      (speed factor) 2.0 ;;twice normal speed
+						      path-curvature low
+						      deliberateness high
+						      acceleration high))
+						   'special-dynamics-packages)
+			       strength medium
+			       source wants))))))
+ wants)
+
+
+(define gives action
+ (add prerequisite for (gives ?character ? ?present) (have ,character ,present)))
+
+(define getting-it-on meets) ;;gotta meet to get it on
+
+(define-receiver (yield your first part of (getting-it-on ?a ?b)) getting-it-on
+ '(method: type display
+	   value (move-to-each-other ,a ,b)))
+
+(define-receiver (yield suggestions for
+			{and ?task (convey (getting-it-on ?character-1 ?character-2))})
+		 getting-it-on
+ '((suggestion: element ,task
+		value (method: type display
+			       value (alternately-turn ,character-1 ,character-2))
+		strength medium
+		source getting-it-on)
+   (suggestion: element ,task
+		value (method: type display
+			       value (repeatedly-come-in-contact ,character-1 ,character-2))
+		strength high
+		source getting-it-on)))
+
+(define alone condition)
+
+(define-receiver (yield suggestions for {and ?task (convey (alone %characters))}) alone
+ '((suggestion: element ,task
+		value (method: type display
+			       value (exit-by
+				      ,(set-minus (ask character recall your offspring)
+						  characters))
+			       strength high
+			       source alone))))
+
+(define aware condition)
+
+(define-receiver (yield suggestions for {and ?task (convey (aware ?who ?activity))}) aware
+ '((suggestion:
+    element ,task
+    value (method: type display
+		   value (move-near-and-turn ,who ,(participants-of-task activity))
+		   special-dynamics-packages ((special-dynamics-package: who ,who
+									 speed low
+									 deliberateness high))
+		   strength high
+		   source aware))))

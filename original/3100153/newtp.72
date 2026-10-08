@@ -1,0 +1,733 @@
+.sec Introduction and Overview
+	I hope to explore a computational view of aesthetics as exemplified by
+a knowledge-based computer animation system.  The proposed system will have a
+rudimentary aesthetic knowledge base, a knowledge base describing the display
+procedures it has a available, and
+procedures for using these data bases
+to produce computer animated films.  The animation will be produced in an
+actor-based animation language that I am developing concurrent with this research. [Kahn 1976]
+While the main emphasis of this research
+is to contribute to artificial intelligence, contributions to computer graphics
+and to aesthetics are hoped for.  
+To my knowledge there are no knowledge-based
+graphics or animation systems
+and very few based upon an actor model of computation.
+.subsec My view of aesthetics
+	Aesthetics is concerned with what makes a work of art
+beautiful or good.<foot While some of things I will say may apply to music and other
+non-visual arts, this scope of this paper is limited to the aesthetics of the visual arts.>
+The system I plan to implement will be a working model of generative aesthetics.
+The aesthetics knowledge that the system will possess is only a subset of that needed
+for interpretive aesthetics.
+My current view of aesthetics is that it can profitably be broken into the following
+parts:
+.begin narrow 5,5
+1) Structural.  This part is concerned with the overall scheme, structure,
+story or script.
+I have
+few ideas as to how to formalize what makes a story good or bad and intend
+to leave this aspect to the user.
+.break
+2) Emotional.  This is where I see the system being the strongest.  The system will
+know of the moods, feelings and personality that motions, shapes, colors, and their
+interactions and transformations convey.
+.break
+3) Perceptual.  This is the part that is concerned with what looks pleasant or 
+beautiful.  For example, flicker (i.e. alternating dark and light frames) for many
+people is perceptually unpleasant.<foot This example, as are most of the ones in this
+paper, is culturally dependent and can be considered correct only 
+when all else is normal.  These assumptions could easily be overridden
+since any of the other aesthetic aspects (structural, emotional and symbolic) or the
+context may dominated.>
+A more positive example is the observation that people, all else being equal, prefer
+watching color films over their black and white equivalent.  This aspect also includes
+more traditional aesthetic concerns such as composition and balance.  For the most part,
+it is the handling of global interactions of aspects such as the color or shape of 
+each object that determines the perceptual aesthetic.
+.break
+4) Symbolic.  The symbolic 
+aspect of a work of art depends upon a cultural set of associations
+between what an image depicts and other concepts.  I plan to investigate this aspect the
+least since it requires too much real world knowledge to be imbedded into the system.
+.end
+.subsec The kinds of animation I expect the system to produce
+	I intend to limit the kinds of animation that the system will produce (at least
+initially) to narrative, non-representational object oriented films.  That is the system
+will not know anything about the appearance of real-world objects, such as trees, faces,
+etc., but instead will be limited to using only more abstract geometrical objects, such
+as circles, blobs, triangles, spirals, etc..  This limitation is to avoid the need to
+imbed in the system tremendous amounts of knowledge about objects such as eyes which
+the system would need to know how they move, vary,
+express emotions, and are combined with the rest of a face.  Perhaps this limitation
+will prove unnecessary and be removed.
+The restriction to [fi]object[fr] oriented animation
+may or may not be a real restriction depending on whether the system will be able to
+produce other types of films dealing with textures or colors for example.  It may be
+able to by creating a film with only one object, that is a rectangle the size of the
+screen and then manipulate its properties to produce non object-oriented films.  My
+current thinking leans towards narrative animation, because a "story" gives the system
+a lot of structure to work within.  The words "story" and "narrative" should be 
+interpreted in the most general sense of the words.  I do not plan to get involved
+in the problems of having the system understand stories in a natural language.
+Most likely the scripts 
+will be either a small set of assertions in a stylized, restricted
+format or a short program.
+.subsec How I hope to go about this
+	I plan to attack the problem of creating a system capable of producing a wide
+variety of such films in response to simple stories
+by breaking it up into speed, path, size, shape, color and texture of objects,
+debug each part independently and then worry about the interactions. 
+Initially, I intend to concentrate on the first two aspects.
+Eric Martin, an animator,
+has emphasized the dynamics of animation in statements like, "Animation displays
+process" and "movement has as much integrity as drawing".  He gives class exercises
+of producing a film with only one small dot that does not change color or shape or size.
+It is very instructive to see how much can be expressed this way.  The dot's 
+character can be conveyed as happy, burdened, neurotic, frightened or whatever.  Certain
+areas of the space can be characterized simply by the way the dot behaves.  If, 
+for example, the dot
+avoids an area, slowly approaches it and suddenly runs away, one tends to think of the
+area as frightening or dangerous.  
+	When single dot films are mastered, another dot (identical to the first)
+can be added.  Very complex interactions corresponding to friendship, love, hate, fear,
+dominance, rebellion, etc. can be portrayed.  For example, one might ask the system
+to produce a dot movie of a neurotic dot (conveyed by erratic, jerky movements)
+that comes across a
+happy dot (which moves rhythmically in smooth curves with a gentle velocity) 
+and after initial trepidation on
+both their parts, they slowly merge.  The resulting dot is happy but after a while the 
+neurotic personality takes over. 
+	Color could be added to the dots to help give them character.  The happy dot
+might have a bright red color, the neurotic one might be a dark green color
+(or better still,
+change color occasionally).  In same way that I can make dot movies where the motion
+I concentrate on the motion in order to debug my handling and understanding of it, I
+plan to also make color movies.  The problem would be to see what can be conveyed when
+limited to changing the color of a few uniformly colored regions.
+	Shape could also be used to enhance the characterization.  Round objects are
+friendlier than pointed ones, irregular objects stand out more (i.e. have more character)
+than symmetric ones.  (Of course, context can influence this, a square among blobs is
+an oddball).  Shape films could also be explored where a shape could suddenly or
+gradually (using interpolation routines) change into another.
+.subsec Interactions and conflicts
+	The next problem is the interactions of the various aspects of the film.  A slow
+rhythm might have been chosen for a section of the film to emphasize the seriousness of
+the section and yet a character's energetic impulsive dynamics might conflict.  Various
+solutions are possible, if, for example, 
+there are other characters they might be used to
+retain as much as possible of the mood of the slow rhythm and the contrast might even
+enhance the energetic character's personality.  If the slow rhythm is considered 
+important enough, 
+the character's motions could still be put into synchronization with the rhythm.
+Suppose the desired rhythm is simply a three second beat, then the character's motions
+might be modified to be small multiple, e.g. a 1 or 1.5 second beat.
+	Other kinds of conflicts are possible.  The motion of an object may be so
+over bearing as to wash out any desired effects of the colors.  In such situations
+maybe the motion clues should be underplayed or the color changes exaggerated.  
+Conflicts can arise because two rather similar motions are being used to convey
+different personalities.  In such cases the differences between the motions usually
+need to be increased.  This could be done in either of two ways.  Either a difference
+description is generated and each motion is modified to widen that gap.  For example,
+wild joyfulness might call for fast, curvy, irregular motion and neurosis might call
+for fast, straight, irregular motion.  If both these conditions need to be conveyed
+simultaneously (for different individuals) then their difference, in this case
+straight versus curvy,
+would be exaggerated.  The other way such conflicts might be resolved is based on the
+fact that there are often a few different ways of the portraying the same mood or
+personality.  The choice between them could be partially based on the largest difference
+between the two motions. (I know the examples are poor and
+this stuff is not well thought out.)
+.subsec How the system will achieve effects
+	The system needs to know at least one way to achieve each effect it may 
+want to achieve. 
+The descriptions of the means of accomplishing desired effects must be
+manipulable in many ways to facilitate the kinds of solutions to the interaction
+problems just mentioned.  The means/effects descriptions should consist of
+a small set of stereotypical actions,
+each action itself should be described in such a manner that it may be easily modified.  
+The system will need
+to be able to exaggerate or down play any aspect of the action.  In many cases, it will
+need to be able to impose a rhythm upon the stereotype, or to stretch or shorten the
+length of the component actions of the stereotype.
+	The system also needs some knowledge of how to implement the suggestions for
+achieving a desired effect.  As a hypothetical example, lets suppose the 
+system wants to create a character that is simple,
+orderly, and dull.  Associated with each of those adjectives may be a short list of
+suggestions.  Let us just consider the suggestions relating to shape.  Now objects
+will have a list of properties, such as whether an object is closed or not, or the
+number of sides it is composed of, 
+what, if any, axes it is symmetric about, how sparse or busy it is, etc..
+The suggestions for "orderly" might be that the object should be closed, be composed
+of a small number of sides, symmetric (perhaps about both the x and y axis), etc..
+Dull may suggest much the same thing with maybe the additional suggestions that the object
+should be simple, that
+none of its component lines cross, and that a good example of a dull object 
+is a square.  Dull may also
+suggest that the object not be very different from most of the other objects in the
+film.  So at this point the system has a list of desired attributes of the object it
+is about to create.  They may conflict or be redundant.  There may be other restraints
+on the choice, such as the requirement that the
+object contrast significantly with another object
+which has already been determined to be say a pentagon. 
+Another restriction may be that the system is
+being asked to try to be original. This might mean it should
+not make this decision as it did previously
+(which of course it would have to remember having resolved a similar situation
+earlier) or more simply
+it may mean that suggested examples (such as "dull"'s suggestion to use a square)
+be avoided if possible.
+	Once the system has decided that it wants an object, it must find the code to
+realize it.  Suppose it has decided it wants a closed, symmetrical, simple, four-sided
+figure, then it will have to match the desired object against procedures that can draw
+it.  In this case, "Poly" will match since it will be described as drawing closed,
+symmetrical, n-sided objects.  Associated with "Poly" will be information as to how
+to use it to achieve particular aims.  Among this information will be the advice that
+states if you want a simple n-sided figure then call "Poly" with an angle equal to
+360 divided by n.  
+	The above example would indicate that each procedure that draws on the screen
+will need to have machine-understandable 
+specifications.  Hopefully such specifications will be
+simple, a description of the kinds of objects it can draw and advice as to how to
+use it to draw particular objects.  Since I intend to limit the system to simple
+geometrical shapes and a few blobs and squiggles this should not be too complicated.
+In addition to specifications for drawing procedures, it will
+also need specifications of programs that transform, move, or manipulate objects.
+This investigation into the representation and use of the knowledge about display
+procedures is where I hope for significant contributions to computer graphics
+techniques.  Currently, computer graphics is done without the machine having any
+understanding of the procedures that it is executing.  The useful of this self
+understanding is one thing I hope the system will demonstrate.
+.subsec Global Constraints
+	At any point in the decision-making process the system will have
+to make many rather
+arbitrary decisions.  Should it make this object red or orange, should this object
+be a square or a hexagon, should this object follow this trajectory starting from the
+left, right, top or bottom, should this object be medium or large sized?  Sometimes
+the system will be unable to find any reason to choose one over the other.  Hopefully,
+in such cases the choice will be inconsequential.
+More often,
+however, there will be more global considerations that will constrain the system's
+choices.  For
+various reasons, the system may have any of the following constraints to operate under:
+.begin narrow 5,5
+1) variety, that is the choice is restricted, if possible, to those alternatives
+not already chosen for other objects.
+.break
+2) simplicity, this applies at all levels, the shape of the objects and
+their interaction, the composition, the interactions between objects etc..  Many
+theories place a very high value on simplicity or economy that produces complex
+effects.
+.break
+3) originality, to the system that will mean both making decisions that are different
+from past decisions and ignoring, if possible, specific suggestions or examples
+when alternatives exist.
+.break
+4) film length, the choice of motions and interactions of objects will be influenced
+by any constraints as to the desired running time of the film.
+.break
+5) rhythm, a desired rhythm will also influence the dynamics of the film.
+.break
+6) mood, a desired mood will affect the choice of all the parameters.
+.break
+7) contrast or lack therof, often it will be desirable to have an object stand out
+from the others and once its characteristics are determined it places constraints on
+the others.
+.break
+8) tension, often tension can be created by generating expectations by following some
+rule, pattern, or stereotyped sequence and then at the appropriate moment breaking it.
+.break
+9) exaggeration or lack therof, if a scene is to be emphasized then the actions and
+interactions need to be taken to extremes
+.break
+10) coherence, usually coherence of theme, style, mood, etc. gives the work a certain
+maturity or sense of purposefulness.
+.break
+11) obviousness, often effects should be obvious, other times they should be 
+subtle depending upon the audience, the desired affect, etc..
+.end
+.sec Control Structure
+	The basic process the system will be engaged in is making a series of
+decisions to refine or substantiate a structure initially given by the user.  The
+choices the system makes are usually only partially
+constrained by the kinds of considerations just
+listed.  Even when the structure provided by the user is 
+relatively specific the system is still left with basically arbitrary decisions such
+as whether a particular object will 
+be a hexagon or octagon, red or orange, or move slowly
+or very slowly.
+	One can imagine a whole range of strategies for ordering the refinements or
+decisions the system will make.  
+The system could operate in a top-down, breadth-first 
+fashion, refining on each pass
+only that which is necessary.  The advantage here is that coherence will be greater.
+The other extreme, a depth-first exploration would correspond to refining
+one branch down to the level of object specifications and then expanding the next
+branch with the recently added constraints.  The problem with
+this approach is that the elements defined earlier will tend to be arbitrary while the
+later ones might be too constrained, even to the extent that back-up is necessary.
+	My current tendency is towards the former approach where decisions are made
+only when necessary.  With either approach there remain many ordering decisions.  
+Should certain aspects be developed first, such as motion and size, and only after
+they have been developed the other aspects such as shape, color and texture
+be expanded?  Should one character be developed completely
+first based on some ordering of the aspects
+and then the others expanded.
+Or should all the characters' motion be decided simultaneously (or nearly so), and
+then their size, then their shape, etc.?  Should the order vary depending upon the
+structure constructed so far?  
+	It is not even clear if one should think of the space of aspects of the objects
+as an and/or tree.  
+Sometimes the decisions can be fit into a tree.  For example, in deciding the
+color of some friendly object the first node might be whether the color will remain
+constant or vary.  Suppose that constant color is chosen, then the problem may no longer be
+well described by a tree.  The system will then need to construct a set of features of the
+color, for example, its brightness, its position on a scale of cold to warm, its
+naturalness, etc..  The set of features that need to be determined might be provided by the
+position in the tree, but the tree structure may prove to be too restricting.  The system
+may want to postpone certain decisions and yet explore the nodes below it on the tree.
+	This searching through a large space may remind one of earlier artificial
+intelligence programs.  Decision trees were constructed and search heuristics applied
+to solve problems.  The paradigm has subsequently shifted from search-oriented systems
+to knowledge-oriented systems.  Why then am I describing the problem as one of searching
+through a very large space of possible shapes, colors, sizes, and motions for an object
+rather than knowing what to do?  But with aesthetics there are no very well-defined
+goals but there are many possible "solutions."  Knowledge of all sorts is being used
+to make these decisions but the choices are still under-constrained.  The best 
+methodology that I can think of in such cases is to make those decisions first
+that are the
+easiest, the most constrained, or the ones most likely to provide reasonable constraints
+for the rest of the decision process.  It is hoped that there will be little interaction
+between the more specific decisions, so that the color of a friendly object can be chosen
+without regard to its size.  The coherence of the object will be the result of the
+more global constraints and choices. 
+The size and color, for example, of an object need only be based on considerations
+such as that the object is intended to be friendly, undistinguished, that the predominating
+colors in the film be blues and greens, and that the screen is never to get very cluttered.  
+The determination of the size,
+however, need not be based on the color and conversely, so that interactions of the low
+level aspects can be avoided.
+.sec "Numbers, both Real and Random"
+	This may be a minor or incidental point but I hope to avoid as much as possible
+using number, both random ones and garden variety ones.  My objections against numbers
+are partly phenomenlogical, that is they don't feel right; and partly computational, 
+that is much economy can be gained by restricting the system to the following "numbers":
+"a very little bit", "a little bit", "a little", "a medium amount", "a lot", "an awful
+lot".  These "numbers" would be used in the descriptions of motions, sizes, distances,
+and intensities.  The advantages of such numbers is that they make comparisons easier,
+permit assertions to be made about the numbers themselves (such as consistently using 
+the number "an awful lot" will result in a wild, confusing film), enable crude 
+cross-aspect comparisons (hopefully "a little bit" of motion will "correspond" to
+"a little bit" of size), and ease the task of making decisions relative to the context
+("a lot" of size may correspond to a smaller number if all the other objects
+are small or if the entire screen is small).
+Of course, at some stage these numbers will need to be converted to ordinary numbers
+and relatively simple procedures could accomplish this.
+	My objections against random numbers are based on a belief that good art is 
+not arbitrary, but the product of thought.
+One 
+reason I dislike random numbers to produce art 
+is that to my knowledge the only other attempts to
+create picture generating systems relied heavily on random number generators.
+Good art is carefully constructed and thought out, usually each element is there for
+a reason.  A random number generator is as likely to produce a "Mona Lisa" as are
+a million monkeys to type "Hamlet".  This is not to say
+that there are not inconsequential decisions that have to be made that could just as
+well be made by the toss of a coin.  In such cases, however, one can just as easily
+ignore the random number generator and produce as good a film.  Also, I am not saying
+that there is no place for noise in art.  A slightly perturbed square may in some cases
+be more desirable than a perfectly drawn square.  Some very useful texture patterns
+are basically different noise levels.  A drunkard's walk may be disturbed by random
+perturbations.  These uses of randomness, however, are very controlled.  A drunk does
+not walk forward a random amount, then right or left some random angle, and then repeat.
+There is a basic pattern that
+is disturbed but not destroyed by randomness.  If, as in the earlier example,
+the slightly perturbed square is
+desired then there must be a reason, perhaps to make it look more like a square drawn
+by a human in a hurry.  Again in such cases, the random perturbations must be very
+controlled.  Any reliance upon randomness would make it much more difficult to demonstrate
+and test the usefulness of the knowledge in system.
+.sec The Structuring of the Space of Each Aspect of an Object
+	When the system is determining the speed, path, shape, color and texture
+of each object, its task would be greatly simplified if each aspect were properly 
+structured.
+  Intuitive spaces are desirable, so are standardized ones.  The way the
+space is structured or described greatly influences the ease of maneuvering and 
+reasoning within it.
+.subsec Size
+	Size is the easiest aspect to structure.  It can be standardized by using
+something like the greatest inscribed circle, the least circumscribed circle or their
+average.  This way a square of size "a lot" will be roughly the same as a line
+of size "a lot".  This approach contrasts with the way the size of an object is usually
+controlled in computer graphics.  A description of an object is given in terms of its
+coordinates or as horizontal and vertical changes from the last position of a "pen".
+This object can then be scaled.  A 
+standard turtle procedure for drawing,
+say polygons, is one which one controls not the absolute size but only the length of
+each side.  Neither approach facilitates inter-object size comparisons and so is
+inadequate for this task.
+.subsec Speed
+	Here I could borrow from physics and characterize the motion of an object
+during a scene by its velocity and acceleration.  Were I to adhere even more strongly
+to mechanics I would merge speed with path and deal only in velocity vectors.  This
+does not, however, match the way I conceptualize the motion.  Often the speed and path
+need to be modified separately (the path may be right, but the speed too slow,
+for example).  Perhaps since the speed will often change in complex ways 
+as a function of time.  It may also be important to quantize speed and acceleration so
+that motion descriptions do not become too complex.
+.subsec Path
+	Here there are two problems combined; what the position of an object is
+and what course it will take.  The position of an object in a standard turtle program
+is not too easy to control, all one really has is control over where the turtle starts.
+I expect to use some rule of thumb such as consider the position of an object as a
+point that corresponds to the "center of mass" of the object.  The "center of mass" can
+easily be approximated by the average position of all the vertices of the object.  This
+makes it easy to center one object inside another, to have one object circle another, etc..
+Other special points need to be associated with objects, such as a point which an object
+grows or turns about.  Center of mass provides a convenient default.
+	The course or path of the center of the object could be characterized as a
+two dimensional cartesian space or as a list of turtle commands.  While I may use the
+latter I think a richer more structured, more intuitive space is needed.  A path can be
+characterized as either smooth or jagged, long or short, closed or not, symmetrical or
+asymmetrical, etc..
+.subsec Shape
+	I hope that shape and path can share the same descriptive structures.
+.subsec Color
+	From what little I've read it seems that an intensity-hue-saturation space for
+color is more intuitive and closer to our perceptual mechanism (for example, linear
+interpolation between colors appears more linear)
+than a red-green-blue space.  It is difficult to think of colors in terms of how much
+red, green or blue they have.  It is usually easier to think of a color as being so
+bright or intense, as being so saturated (i.e. how much white is in the color), and its
+hue.
+.subsec Texture
+	The textures I plan to have available to the system are few.  One kind would
+simply be different noise levels.  Another would be repeated shapes or simple patterns
+such as turn on every other point, or every other horizontal line.  Certain aspects
+can be characterized such as a texture's intensity (the percentage of points turned on
+in the area), its orientation, its density (i.e. the distance between elements relative
+to their size) or its complexity.  Part of the characterization of a texture built 
+by the repetition of a shape would be the characterization of the shape itself.
+
+.subsec Other aspects of objects
+	There are other aspects of objects that I have not mentioned.  Orientation
+and rotation are important and probably are similar to position and speed.  The line
+that is used to delineate an object can also be controlled for various effects.  The
+line can have varying width or color.  It can be smoothed. (Although the process of
+"de-jagging" that uses the 
+colors between the line color and background color to make the lines look smoother
+is too wasteful
+of colors to be useful with available hardware.)  Dotted and dashed lines are also possible.
+.sec Expectations of the viewer
+	Playing with the viewer's expectations is important.  Little is worse than a
+very predictable film.  Good films create expectations, stretch them, break them at
+crucial moments or satisfy them in unexpected ways.  Expectations create a point of
+focus that can be used to the filmmaker's end.  Many of the expectations are
+dependent upon the sophistication and idiosyncrasies of the viewer.
+Whether the system will be
+capable of playing with expectations or this difficult task will be left to the user who
+created the initial structure is a question that requires more thought.
+.sec Evaluation 
+	There are at least two different aspects of this research that entail tricky
+questions of evaluation.  The first is whether the films the system produces are any
+good and connect in some way to the initial structure that inspired them.  The other
+is concerned with how the system should be evaluated as a contribution to AI, computer
+graphics or aesthetics regardless of the quality of the films.
+.subsec Evaluation of generated films
+	Originally I conceived of the task of the system as the generation of films
+that, in addition to being good, followed the script accurately.  Two different
+experiments could then be used to test this accuracy.  One would be to have the
+viewers describe the film without knowing what its intention was and then comparing
+the viewers' descriptions with the original script.  The other would be to tell the
+script, show the film, and then ask for criticism.  I still plan to carry out these
+experiments, however I don't think they are crucial to the evaluation of the films.
+The feedback from the viewers will hopefully be very useful.  If the responses to
+a group of films is positive, consistent but not what was intended then presumably
+the system could be modified to produce those kinds of films when the effect they
+created is desired and to try something else to produce the kind of film it originally
+intended.  It should be kept in mind, however, that
+the system's main goal is to produce [fi]good[fr] films, not simply films that
+match the script.
+	But how are we to know if the films are any good?  Some very sufficient but
+unnecessary criteria would be, winning an academy award, getting rave reviews from
+critics, or being a great box office hit.  A more likely criterion would be to
+receive favorable criticism from "experts", in particular, human animators.  Failing
+this the evaluation can fall upon the reader.  The thesis is the point, the films
+only the product.  The reader of the thesis is constantly evaluating the research
+and is likely to consider him or herself enough of an expert to judge the films.
+If all this fails there is still one leg of defense to stand on.  The system could
+be an instantiation of a very good model of aesthetic generative behavior and due
+to its limited knowledge produce lousy or childish films.  This argument should
+be avoided since it depends upon faith on the readers' part that ignorance is its only
+flaw.
+.subsec Evaluation of the system itself
+	Were the system to produce award-winning films, I would be very happy, however,
+I would not consider that proof of the system's worth.  It might have produced the film in a
+very [fi]ad hoc[fr] and limited manner.  The quality of the
+reasoning that the system uses to create the films is much more important than the
+final product.  Additionally, I would hope that the system would at least remember
+each major decision it makes and a justification for it.  I do not intend to build
+any self-explanation abilities into the system, but it will remember in an accessible
+form the information that such abilities would depend upon.
+Despite my decision to limit
+the expertise of the system to narrative, object-oriented, non-representational films,
+I would also expect the system to be rather versatile.  It should be able to respond
+to a wide variety of scripts.  It should be able to re-do a film with additional
+constraints. (Such as "make the film a little bit more sedate and calm" or "make it
+shorter and lighter".)
+	Even in the case that the films it produces are lousy, it would not constitute
+proof that the system is lousy.  The system might be based on very sound and general
+principles, its reasoning may be very clear, it may be very versatile, and still
+produce dull, ugly, or silly films.  If this were the case and it seemed plausible
+that its flaws were in the content of its data base, which was 
+either too limited or just 
+plain incorrect, then the system could still be considered a success.  One should
+remember that the primary purpose of implementing such a system is to demonstrate,
+via a working example, a computational view of aesthetics.  To lessen the chance
+that its knowledge base will be inadequate, however, 
+I have been, and intend to continue,
+becoming an expert, i.e. an animator.  Towards
+this end filmmaking is my minor, and I have made several films both in a conventional
+manner and by computer.
+	Another hard question is how to evaluate 
+the construction of a working system in terms of possible 
+contributions to artificial intelligence
+it is likely to make.  What is the general applicability of a system designed to produce
+a very limitted class of animation?
+The problems of exploring a very large space with such poorly defined 
+goals and
+under constrained choices have been not been investigated in AI to my knowledge.  I claim
+that it is an important cognitive activity that occurs in situations other than the one
+discussed here, generating art.  Presumably living one's life is an example.  The goal's
+are poorly defined, part of the problem is generating the goals (as is also probably the
+case with art), and the choices that one has as what to do next are not sufficiently
+constrained by the reality of the situation or one's goals.
+	The following is a list of other ways in which this research [fi]might[fr] contribute
+to AI:
+.begin break narrow 5,5
+1) by providing a computational definition of aesthetics.  While aesthetics is probably not as
+important as other areas being explored by AI researchers such as understanding natural
+language, it is an important consideration in research, design, programming and many other
+endeavors.
+2) by cataloging and structuring knowledge about aesthetics. This
+is important in the same way that structuring the knowledge one has of natural language is.
+.break
+3) by representing and cataloging
+adjectives (such as friendly, sharp, red, etc.).  While the use
+the definitions of adjectives will be generative, hopefully the extension to definitions
+useful for interpreting will not be much different.   
+.break
+4) by providing a better grip on what it means to be creative or original
+.break
+5) by testing Carl Hewitt's actor formalism on a big real problem.  The mapping of the objects
+in my system into actors seems straightforward, 
+and perhaps the experience will help answer
+the question as to how useful actors really are.
+.break
+6) by providing a better grip on how to manipulate, exaggerate, negate or 
+transform stereotypical descriptions.
+.end
+.sec Objections
+	I am well aware that in committing myself to this research I am treading
+dangerous waters.  Computer scientists typically feel that aesthetics, and especially
+animation, have little to do with valid [fi]computer science[fr] research.
+Many objections of a completely different sort 
+are likely from the art world.  A computational view of aesthetics appears to be
+at variance with commonly held views of art as intuitive, imaginative, unpredictable,
+non rule-based, and requiring the creator to have soul, or innate talent.  I think
+that an AI view of these problems would be very enlightening and should be made.
+Hopefully a working system
+will be very useful in meeting these kinds of objections and more.
+.subsec Lack of perceptions
+	The system will be perceptually limited to input from a key-board.  It
+will be blind both to the world and its own films.  One may wonder how such a 
+perceptually-limited system could be expected to produce visual art.  A partial answer
+is that perception is a process of creating symbolic structures from external stimulus
+and therefore the system needs only those symbolic structures and not a perceptual
+mechanism.  Its knowledge base will, to a large extent, be a condensed and simplified
+version of the structures that I have built up over the years as a perceiver.  There
+are historical cases of great artists or musicians who became blind or deaf and yet
+were able to continue producing great works of art or music.  Nonetheless, it is
+quite useful to see what one has produced.  The system will maintain a symbolic
+structure describing the film and its images as it creates them. This structure
+will compensate for most of the perceptual deficiencies of the system.  This will
+not completely compensate however, for there are many cases were the creator did
+not notice some feature or interaction
+until the product was created.  For example, one film I made
+had a very complex shape growing and turning while simultaneously
+the colors were changing
+in subtle ways.  The color changes turned out to be too subtle -- I still have troubles
+convincing people that they are really happening.  The only solution of the need for feedback
+is to rely on a human observer, who gives perceptual criticisms.  The system would then only
+need the ability to take such criticism into account, perhaps by exaggeration of the aspect
+that became washed out and down playing the other components.
+.subsec Everyone sees differently
+Another objection
+to the system is concerned with the perceptions of the viewer.  The objection is that
+each individual perceives a film differently, so it becomes problematic as to
+what model of the viewer the system should have.  Much of the knowledge of the system
+consists of facts such as "red is friendly", "square is dull", "curving, smooth motion
+is happy" etc..  These are culturally-dependent generalizations that occasionally
+fail due to the viewer's idiosyncratic experiences and associations.  There are at least
+two retorts to this objection.  One is that every film or work of art suffers from the
+same problem and yet there is enough of a common ground of associations, perceptions,
+and experiences for the work of art to communicate and affect its viewers.  It is this
+common ground that the system's knowledge will be based.  The other answer to this 
+objection is that 
+it is not inconceivable to build idiosyncratic knowledge-based systems.
+Each viewer could modify the knowledge base according to his or her own feelings and
+associations and then let the system produce the film.  A knowledge based system
+should be very
+capable of conforming to each individual viewer's subjective individualistic
+preferences and personality.
+.subsec A generative theory of aesthetics is not an interpretive theory
+	One may object that the 
+proposed system will exemplify the process of generating art, and as such
+has little to contribute to the process of interpreting, perceiving, enjoying, or
+analyzing art.  This objection may well hold true, it remains to be seen.  It is more likely,
+however, that
+an understanding of generation will contribute greatly to understanding
+perception.  Perhaps much of the knowledge base is used in a similar manner when
+interpreting as when generating.  For example, the fact that "red is warm" may be used both
+in generating "warm" objects and in interpreting red objects as "warm".  Maybe a 
+similar mechanism to that which is used to generate coherent, rhythmical films
+is used to perceive the same features.  Also the system will in some sense be able
+to "interpret" the films it itself makes as organized along certain lines, as using
+certain techniques, as conveying a particular mood, etc..
+	Another defense of approaching the problem via generation rather than 
+interpretation is that its easier and still answers many interesting questions about
+both the representation of knowledge and aesthetics.  This research project is 
+already very ambitious, to expect it to contribute to interpretation is unreasonable.
+.subsec But it will be mechanical and predictable
+	A common criticism of films or art is that 
+they appear too mechanically constructed,
+that they are too predictable.  
+This is an especially common criticism of computer generated
+films.  The motion is too smooth, it has little character.  
+The shapes are too exact, they
+too lack character.  The computer films that are exceptions to this are either driven by
+pseudo-random number generators or by humans.  
+The former are often structureless and lack
+coherence since too many decisions were made by "tossing a coin".  The latter are often
+fine since they avoid being mechanical by having humans graphically communicate the
+motion or shape to the computer.
+	My system will hopefully avoid this difficulty by a process 
+similar to that which
+the human goes through.  The motion it will give objects will typically have character
+and complexity, unless of course it is trying to convey a certain mechanical personality
+to an object.  Basic patterns of motion will be combined and modified to achieve a
+very definite character which are not likely to be mistaken for mechanical motion.
+	Some might complain that being deterministic the system will be too predictable.
+It will be deterministic in the sense that, unless told to behave
+differently, it will produce 
+the same film for the same script.  The system, however, should
+be able to remember the decisions it made in making the first film and, 
+if so instructed, it
+will try to make another that is significantly different from the first.  One may still
+object that the system will still be predictable, if one asks for a warm object it turns
+out red or orange, never black or blue.  The system should be able to inject an
+unexpected or unpredictable element into a film without the use of random number generators.
+It could establish a pattern and then break it at a critical point.  It could decide to use
+one aspect of an object as an odd distinguishing feature.  For example, it might be a
+very pleasant friendly object have a large pointed shape (presumably an unfriendly shape).
+Here it would depend upon the motion, color, line, and texture to override the size and
+shape.  If possible, the system will choose which feature or features to make anomalous for
+a character on some positive basis not only because it is expected 
+that the intended character portrayal
+will not be weakened by the anomalous features.  As in the example of the large pointed
+friendly object, the atypical size and shape for friendly objects may have been chosen
+because the character was supposed to be a strong friendly ally of another object.  
+One of the few well-defined goals of the system will be to have a good reason for every
+choice it made.
+.subsec "Its got no soul, no imagination, no feelings"
+	Many would object that the system could not produce good art since it lacks
+either soul, or imagination or emotions.  Soul is the hardest to contend with since
+I don't really know what it is.  I expect the system will appear to have a rather
+distinct personality as a filmmaker, but does that have anything to do with soul?
+	Imagination is almost as tricky, the system will probably appear to be imaginative,
+to come up with "creative" solutions to problems but some people demand more than
+appearances.  Will it really be creative or simply doing what I told it?  I think the
+question is kind of silly and hopefully it will do both.  There is another sense in
+which the system is imaginative, that is that it will be imagining as best it can what
+the film will look like as it makes it.
+	Some people think that when an artist paints a depressing scene that he or she
+must be feeling depressed while painting it.  It might indeed help to be feeling in a
+particular mood to create a consistent and strong visual representation of it.  The
+system need not "feel", however, to behave the same as people who do.  
+.subsec Once you reduce it to a rule its no longer Art
+	People who say this typically do not understand the computational complexities
+of a procedural system using a knowledge base.  There is probably truth in this
+objection if one thinks of a simple rule, or a few weakly interacting rules.  If the
+process is too simple, too predictable, then indeed it is not likely to producing good
+art.  The system I am proposing, however, will be based on a very large set of
+"rules" that interact in complex ways.
+.subsec Need to understand psychology too well
+	It might be the case that in order to produce good art one needs a very good
+understanding of human psychology.  One must understand what percepts affect people and
+how, what creates
+what kind of expectations etc..  The system will have some knowledge about this but it
+is possible that it will be inadequate.  The system may be too ignorant to
+function properly, then again may be not.  Much of the system's knowledge will be useful
+facts and techniques that are based upon an empirical understanding of human psychology.
+At this point I see no other way to resolve
+the question of whether this will be sufficient
+without actually attempting to build such a system.
+.subsec Art is not well enough understood
+	There are two senses of this objection that may be true.  One is that I don't
+understand art well enough and must be an artist or study art for many years to even
+attempt to form a theory of aesthetics.  I am trying to reduce this deficiency as best
+I can, by reading, by making films, by going to art museums, by talking to animators, etc.
+but it may be that this will prove inadequate.  It is common in AI, however, for researchers
+who are not experts in language, medicine, electronics or perception to still try to
+apply AI to those fields.
+	A more serious problem would be that the other sense of this objection, that 
+[fi]no one[fr]
+knows enough about art, at least in an explicit form, to attempt such a project.  Many
+people believe that the skill to produce art is not understood, some even venture to
+claim that it is not capable of being understood.  If, however, I do manage to create
+a convincing system then I would have made a contribution to the thesis that the knowledge
+involved in producing and appreciating art is symbolic and not very different from the
+other kinds of knowledge that people possess.
+.subsec Good Art combines very many subtle aspects
+	One interpretation of this objection reduces, once again, 
+to the possibility that I don't (or can't)
+know enough
+to tell the system enough to perform adequately.  We'll see.
+	It should be clear, however, that the system will be capable of subtle effects.
+It might make the difference, in say color, between two objects very small, just barely
+perceptible.  Or it may want to subtly create a schizophrenic character by down playing the
+obvious schizophrenic behavior and by avoiding obvious techniques such as quickly changing
+the shape or color of the character.  This last technique could still be used, only subtly
+that is only slowly changing from one shape or color to another that is not very different.
+.sec An Example
+	I need to work through entire scenario, from original script, to first draft, to
+feedback from human, to final version.  I haven't done it yet.
+.skip 5
+<I will move this section to after the introduction>
+.sec Summing up
+	A system has been proposed that I hope will contribute to AI, aesthetics, and
+computer graphics.  The system will be based upon a computational view of generating art
+that emphasizes the need to structure the necessary knowledge so that it can be used
+in a very flexible manner and be easily modified and manipulated by the system.  The emphasis
+will be on the facts, generalizations, rules, and procedures; what they are, how they
+should be represented, how they should be organized, etc..  This is not to say that no
+attention will be devoted to trying to discover very general and powerful principles
+or to heuristics for searching through the very large decision space, only that I consider
+the problem of getting the needed
+knowledge into the system to be more important.  
+	I keep seeing strong analogies between this research and research on natural
+language understanding.  Linguists traditionally were interested primarily in the
+syntax and generation of language.  They lacked a sufficiently powerful view of
+computation to handle adequately problems of semantics and meaning.  When a computational
+view was applied to language by AI researchers the emphasis shifted towards understanding
+and interpretation of language.  Art historians and theoreticians have, for the most part,
+studied the problems of interpretation and criticism of art.  They have failed, or more
+commonly not even tried, to formalize the knowledge or discover the rules behind either
+interpretation or generation of art.  Perhaps, in the same way that a computational view
+of language has aided linguistics and furthered the state of artificial intelligence, a
+computational view of aesthetics will aid in the understanding of art and artificial
+intelligence.
+.skip 4
+	
+
+	Comments very welcome.
+    

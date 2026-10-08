@@ -1,0 +1,150 @@
+;; -*-lisp-*-
+
+;this file implements "magic inks" using the color tv turtle
+;each magic ink regualarly changes its color, including all things that were
+;drawn with it
+;a magic ink has a magic function which is called when ever the alarmclock goes off
+;and it does every magic-ink-tick seconds
+;the magic function typically changes the color of the magic ink that is passed to it
+;and changes the state of the magic ink by putprop onto the magic ink
+;there is also the option of having a special initialization function for magic-functions
+
+
+
+(declare (special magic-ink-tick current-magic-inks useless :colors))
+
+;current-magic-inks are the inks that are poked at by the alarmclock every magic-ink-tick
+
+(setq current-magic-inks nil alarmclock 'change-colors magic-ink-tick 1.0)
+(setq errlist (cons '(magic-freeze) errlist))
+
+;this creates a new magic ink, and calls the appropriate initialization function
+
+(defprop mmi make-magic-ink expr)
+
+(defun make-magic-ink (name magic-function magic-args)
+       (or (memq name :colors) (makecolor name 1 1 1))
+       (putprop name magic-function 'magic-function)
+       (cond ((get magic-function 'initialization-magic)
+	      (funcall (get magic-function 'initialization-magic)
+		       name
+		       magic-args))
+	     (t (putprop name magic-args 'magic-args)))
+       name)
+
+;this in analogous to the pencolor command in color tv turtle
+;i.e. until overridden this ink is to be used
+
+(defprop umi use-magic-ink expr)
+
+(defun use-magic-ink (magic-ink)
+       (cond ((memq magic-ink current-magic-inks))
+	     ((get magic-ink 'magic-function)
+	      (setq current-magic-inks (cons magic-ink current-magic-inks))))
+       (pencolor magic-ink))
+
+;regular clearscreen would neither turn off the alarmclock or reset the current magic inks
+
+(defun magic-cs nil
+       (magic-freeze)
+       (setq current-magic-inks nil)
+       (clearscreen))
+
+;this is the alarmclock function which invokes the approriate magic function of each of 
+;the current magic inks
+
+(defun change-colors (useless)
+       (mapc (function (lambda (magic-ink-name)
+			       (funcall (get magic-ink-name 'magic-function) magic-ink-name)))
+	     current-magic-inks)
+       (cond ((numberp magic-ink-tick) (alarmclock 'time magic-ink-tick))
+	     (t (eval magic-ink-tick))))
+
+;now for a magic function, color-cycle will cycle thru a list of colors
+
+(defprop color-cycle initialize-color-cycle initialization-magic)
+
+;a circular list of colors is kept on the magic inks property list
+
+(defun initialize-color-cycle (name colors)
+       ((lambda (colors-copy)
+		(putprop name (rplacd (last colors-copy) colors-copy) 'magic-colors))
+	(append colors nil)))
+
+;the first color replaces the current one and the pointer into the circle of colors is bumbed
+
+(defun color-cycle (magic-ink)
+       ((lambda (colors)
+		(copy-color (car colors) magic-ink)
+		(replacecolor magic-ink magic-ink)
+		(putprop magic-ink (cdr colors) 'magic-colors))
+	(get magic-ink 'magic-colors)))
+
+;this copies one color into another
+
+(defun copy-color (from-color to-color)
+       (putprop to-color (get from-color 'red) 'red)       
+       (putprop to-color (get from-color 'green) 'green)       
+       (putprop to-color (get from-color 'blue) 'blue))
+
+;turns off the alarm
+(defun magic-freeze nil
+       (alarmclock 'time -1))
+
+;turns the alarm on
+(defun magic-thaw nil
+       (alarmclock 'time magic-ink-tick))
+
+;this uses color-cycle to create many magic inks that are color cycles out of synch with
+;each other
+
+(defun magic-ink-offsets (colors offset number-of-magic-inks)
+       (do ((c colors (append (cdr c) (list (car c))))
+	    (number-left number-of-magic-inks)
+	    (new-magic-ink (gensym) (gensym))
+	    (offset-left offset (1- offset-left))
+	    (new-magic-inks nil))
+	   ((= number-left 0) new-magic-inks)
+	   (cond ((= offset-left 0) (make-magic-ink new-magic-ink 'color-cycle c)
+				    (setq new-magic-inks (cons new-magic-ink new-magic-inks))
+				    (setq offset-left offset)
+				    (setq number-left (1- number-left))))))
+
+(defprop fco magic-ink-offsets expr)
+
+;color-add is a magic-function that on each tick adds or substracts an amount to each
+;of the three primary colors.  its turns around when a beam is completely off or on
+
+(defprop color-add color-add-initialization initialization-magic)
+
+(defun color-add-initialization (name red-green-blue)
+       (putprop name (float (car red-green-blue)) 'magic-red)
+       (putprop name (float (cadr red-green-blue)) 'magic-green)
+       (putprop name (float (caddr red-green-blue)) 'magic-blue))
+
+(defun color-add (magic-ink)
+    ((lambda (red green blue)
+       ((lambda (new-red new-green new-blue)
+		(makecolor magic-ink
+			   (in-color-range new-red)
+			   (in-color-range new-green)
+			   (in-color-range new-blue))
+		(replacecolor magic-ink magic-ink)
+		(cond ((or (> new-red 1.0) (< new-red 0.0))
+		       (putprop magic-ink (-$ red) 'magic-red)))
+		(cond ((or (> new-blue 1.0) (< new-blue 0.0))
+		       (putprop magic-ink (-$ blue) 'magic-blue)))
+		(cond ((or (> new-green 1.0) (< new-green 0.0))
+		       (putprop magic-ink (-$ green) 'magic-green))))
+	(+$ (redpart magic-ink) red)
+	(+$ (greenpart magic-ink) green)
+	(+$ (bluepart magic-ink) blue)))
+     (get magic-ink 'magic-red)
+     (get magic-ink 'magic-green)
+     (get magic-ink 'magic-blue)))
+
+;this is avoid the error from makecolor of out of range for inputs
+(defun in-color-range (color-amount)
+       (cond ((> color-amount 1.0) 1.0)
+	     ((< color-amount 0.0) 0.0)
+	     (t color-amount)))

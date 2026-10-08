@@ -1,0 +1,82 @@
+(declare (genprefix qq)
+	 (special eval-me inside-quasi-quote-macro dont-print/' any-inverse-quotes? ))
+
+
+(or (status feature grindef)
+    (status feature ncomplr)
+    (progn (print '(you must load grindef first) )(ioc g)))
+
+(setq inside-quasi-quote-macro nil)
+(setq eval-me (maknam '(i n t e r n a l - /` - m a c r o)))
+
+
+(defun quasi-quote-macro nil
+       ((lambda (inside-quasi-quote-macro)
+		((lambda (form)
+		 (cond ((atom form) (list (quote quote)  form))
+		       ((eq (car form) eval-me) (cdr form))
+		       (t ((lambda (any-inverse-quotes? ans)
+				   (setq ans (cons-list-exps form))
+				   (cond (any-inverse-quotes? ans)
+					 (t (list (quote quote) form))))
+			   nil nil))))
+			   (read)))
+		 t))
+
+(defun cons-list-exps (list)
+(cons  (quote list)
+      (mapcar (function (lambda (element)
+				(cond ((atom element)
+				       (list (quote quote)
+					     element))
+				      ((eq (car element) eval-me)
+				       (setq any-inverse-quotes? t)
+				       (cdr element))
+				      (t (cons-list-exps element)))))
+	      list)))
+
+
+(defun eval-me-macro nil
+       (cond (inside-quasi-quote-macro (cons eval-me (read)))
+	     (t (tack/`on (read)))))
+
+(setsyntax '/' 'macro 'quasi-quote-macro)
+
+(setsyntax '/` 'macro 'eval-me-macro)
+
+(or (status feature ncomplr)
+    (grindmacro list
+		(quasi-quotify (cdr l))
+		t))
+
+(defun quasi-quotify (l)
+(or (boundp 'dont-print/')
+    (princ '/'))
+((lambda (dont-print/')
+(princ '/()
+       (quasi-quotify1 (cond ((atom l) l)
+			    (t (car l))))
+       (mapcar (function (lambda (element)
+				 (princ '/ )
+				 (quasi-quotify1 element)))
+	       (cdr l))
+(princ '/))
+(ascii 0))
+ t))
+
+
+(defun quasi-quotify1 (element)
+(cond ((atom element)
+       (princ '/`)
+       (pprin element 'code))
+      ((eq (car element) (quote quote))
+       (pprin (cadr element) 'code))
+      ((eq (car element) 'list)
+       (pprin  element 'code))
+      (t (princ '/` )
+	 (pprin element 'code))))
+       
+
+
+
+(defun tack/`on (x) (maknam (cons '/` (explodec x))))

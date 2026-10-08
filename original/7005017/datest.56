@@ -1,0 +1,60 @@
+;;-*-lisp-*-
+;;test file for dot ani
+
+(defun init (:print-load-messages)
+       (setq :load-priorities '(tryout))
+       ;;load in any file whose second name is tryout if exists
+       (director-load 'cindy '(to define the cinderella film))
+       (study-descriptor-use))
+
+(define-function dani-trace nil
+ (ask character trace (? collect suggestions for ?))
+ (ask character trace (? collect ? suggestions for ?))
+ (ask comparison trace (? collect suggestions for ?))
+ (ask character trace (? compare yourself with ?))
+ (ask choice-point trace (? choose a value))
+ (ask film trace (? yield suggestions for ?))
+ no-value)
+
+
+(define-function dani-untrace nil
+ (ask character untrace)
+ (ask comparison untrace)
+ (ask choice-point untrace)
+ (ask film untrace))
+
+(defun z n
+       (cond ((= n 1)
+	      (reset-node-status 'characters-node)
+	      (and (eq (arg 1) 'cp) (reset-choice-points))))
+       (make-choices-until-completed 'characters-node))
+
+(defun cp n
+  (let ((:default-file-object (cond ((= n 1) (open (arg 1) 'out)))))
+       (mapc (function (lambda (cp) (ask ,cp print memory)))
+	     (reverse (ask choice-point recall your childless-descendants)))
+       (and :default-file-object (close :default-file-object))))
+
+(defun save-it-all n ;;not recommended files are at least 60 blocks long
+  (let ((:default-file-object (cond ((= n 1) (open (arg 1) 'out)))))
+       (mapc (function (lambda (cp) (ask ,cp save !,(arg 1))))
+	     (reverse (ask choice-point recall your childless-descendants)))
+       (and :default-file-object (close :default-file-object))))
+
+(defun np n
+ (ask characters-node ask each of your descendants to print memory ,(cond ((= n 1) (arg 1)))))
+
+(defun save-answers (file-name)
+       (let ((file (open file-name 'out)))
+	    (mapc
+	     (function (lambda (choice-point)
+			       (dicks-print
+				'(define ,choice-point ,(ask ,choice-point recall your parent)
+					 (set your current-choice to
+					      ,(ask ,choice-point	
+						    recall your current-choice)))
+				      file)))
+	     (ask choice-point recall your childless-descendants))
+	    (close file)))
+
+

@@ -1,0 +1,162 @@
+;; -*-lisp-*-
+;this includes the definition of a few test performers: poly, rocket and flower
+
+(include |ai:ken;declar >|)
+
+(defcomment poly)
+
+
+(define rocket performer
+	(set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+	(when drawing use draw-rocket of size))
+
+
+(define poly performer
+       (set your angle to 60)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use draw-poly of size angle number-of-sides))
+
+(define color-poly performer
+       (set your angle to 60)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use draw-color-poly of size angle (colors) number-of-sides))
+
+(define flower performer
+       (set your number-of-petals to 3)
+       (set your petal-colors to (white));;eg (green red purple magenta pink orange)
+       (set your shade-pattern to nil)
+       (set your erasability to nil)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use
+	     draw-flower of size number-of-petals (petal-colors) (shade-pattern)))
+
+(define window performer
+ (set your window to no-window-set)
+ (set your appearance-variables to (state window))
+ (do when receiving ({or erase display})
+	  (penup)
+	  (setturtle (ask myself recall your state))
+	  (xorwindow (ask myself recall your window) :xcor :ycor))
+ (do when receiving (set your window to ?new-window) 
+	 (let ((visibility (ask myself recall your visibility)))
+	      (cond (visibility (ask myself hide)))
+	      (do-old-behavior)
+	      (cond (visibility (ask myself show)))
+	      new-window)))
+
+(define text performer
+ (set your string to |No string given|) ;;provide a default string
+ (set your font to tvfont) ;;default font is this one
+ (set your length to 0.0)
+ (set your appearance-variables to (string font))) ;;for movies
+
+(define-method ({or display erase}) text
+ (ask the-turtle perform
+      (display-or-erase-text (quote ,(ask myself recall your state))
+			     ,(ask myself recall your length)
+			     (quote ,(ask myself recall your font))
+			     (quote ,(ask myself recall your string))
+			     (quote ,myself))))
+
+(define-method-helper (display-or-erase-text state length font string text-actor) text
+ (penup)
+ (director-setturtle state) ;;move the turtle to state
+ (left 90)
+ (forward (*$ length :tvstep .5))
+ (right 90)
+ (dely (*$ (or (get font 'height)
+	       (let ((font-file (get font 'font-autoload-file)))
+		    (cond (font-file
+			   (director-load font-file '(to load in ,font)))
+			  (t (shouldnt-happen
+			      'display-or-erase-text
+			      '(|dont know where to find winfon file for| ,font))))
+		    (get font 'height)))
+	   :tvstep .5)) ;;center vertically
+ (cond ((status features color)
+	(cond ((equal *message '(erase)) (pencolor :erasercolor))
+	      ;;since there is no xor in color
+	      (t (pencolor (first (ask ,text-actor recall your colors)))))))
+ (fontprinc string font))
+
+(define-method (set your {or string font} to ?new-value) text
+ (let ((visibility (ask myself recall your visibility)))
+      (and visibility (ask myself hide))
+      (do-old-behavior)
+      (ask myself set your length to
+	   ,(fwuse-text-length (ask myself recall your string)
+			       (ask myself recall your font)))
+      (and visibility (ask myself show)))
+ new-value)
+
+(define-method (recall your width) text
+ (ask myself ask your font recall your (length-for ,(ask myself recall your string))))
+
+(define-method (recall your height) text
+ (ask myself ask your font recall your height))
+
+;(defprop tvfont |plasma;tvfont winfon| font-autoload-file) ;;7 high
+;(defprop tr18 |plasma;tr18 winfon| font-autoload-file)
+;(defprop tr12b |plasma;tr12b winfon| font-autoload-file)
+;(defprop 25vmic |plasma;25vmic winfon| font-autoload-file)
+;(defprop 37vxms |plasma;37vxms winfon| font-autoload-file)
+
+(define font something)
+
+(define-method (recall your (length-for ?string)) font
+ ;;size relative to the-cast
+ (raster-to-relative-to-the-cast (fwuse-text-length string (ask myself recall your name))))
+
+(define-method-helper (raster-to-relative-to-the-cast raster-size) font
+ (*$ raster-size
+     :tvstep
+     (//$ 1000.0 (ask the-cast recall your size))))
+
+(define-method (recall your height) font
+ (raster-to-relative-to-the-cast (ask myself recall your size)))
+
+(define times-roman-font font)
+
+(define tvfont times-roman-font
+ (set your size to 7.0))
+
+(define tr12b times-roman-font
+ (set your size to 12.0))
+
+(define tr18 times-roman-font
+ (set your size to 18.0))
+
+(define font-series something
+ (set your series to times-roman)) ;;good default
+
+(define-method (recall your (font-of-size ?size)) font-series
+ (do ((i (ask myself recall your fonts) (rest i))
+      (last-font nil)
+      (last-size -1.0))
+     ((null i) last-font)
+     (let* ((font (first i))
+	    (font-size (ask ,font recall your size)))
+	   (cond ((> font-size size) ;;is either the guy or just passed him up
+		  (cond ((> (-$ font-size size) (-$ size last-size)) ;;current error worse
+			 (return last-font))
+			(t (return font)))))
+	   (setq last-font font
+		 last-size font-size))))
+
+(define-method (set your fonts to ?new-fonts) font-series
+ ;;makes sure that the fonts are always sorted by size
+ (ask-old myself set your fonts to 
+	  ,(sort new-fonts
+		 (function (lambda (font1 font2)
+				   (< (ask ,font1 recall your size)
+				      (ask ,font2 recall your size)))))))
+
+(define-method (set your size to ?new-size) font-series
+ (ask myself set your font to ,(ask myself recall your (font-of-size ,(float new-size))))
+ (do-old-behavior))
+
+(define times-roman font-series
+ (set your fonts to (tvfont tr12b tr18))
+ (set your size to 7))
+
+(compile-actors)

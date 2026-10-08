@@ -1,0 +1,596 @@
+;;*(pagewidth 64. 64. 0. 0.)
+
+(declare (genprefix \gob)
+	 (fasload goodys)
+	 (fasload #inter)
+	 (macros t)) 
+
+(putprop 'readsent
+	 '(readse fasl dsk gobble)
+	 'autoload) 
+
+(putprop 'write-dict
+	 '(write-dict fasl dsk gobble)
+	 'autoload)
+ 
+
+(setq *any '?)
+(or (boundp 'context-list) (setq  context-list nil) )
+
+(declare (special *any *facts* *record-of-cmatchs*
+ context-list chrct key alist keylist context *watch-contexts*)
+ (*lexpr cmatch cmatch* cmatch*atom cmatch*first gobble*)
+	 (*fexpr  gf gobble)) 
+
+(setq *facts* '(facts temp-facts))
+
+(*defun get* (x flag) ((lambda (u) (and u (cdr u))) 
+		       (get x flag))) 
+
+(declare (special *new-facts-pointers*))
+
+(declare (special *gobble-level*))
+
+(*defun gobble fexpr (x) 
+((lambda (gobble-level1)
+	((lambda (*gobble-level*)
+	 (prog (alist context *new-facts-pointers*)
+	     (setq context (car x) 
+		   context-list 
+		   (cond ((memq context context-list)
+				       context-list)
+			 ((cons context context-list))) 
+		   alist (list (cons '* context)))
+	     (mapc (function accept) (convert (cdr x)))
+	     (and (memq context *facts*)
+		  (or (eq (caadr x) 'time-of)
+		      (and (caadr x) 'point-of-view)
+		      (eq (car (caddr (cadr x))) 'time-of))
+		  (let-time-specialist-think-about-it
+		   context))
+	     (return (cdar alist))))
+	 gobble-level1))
+ 	 (1+ *gobble-level*)))
+
+;;;the gobble-level kruft is to know the
+;;;recursion level of the call to gobble
+
+
+(setq *gobble-level* 0.)
+
+(declare (special who-gobbled))
+
+(*defun gobble* n
+	((lambda (context who-gobbled)
+		 (cond ((or (memq context
+				  *watch-contexts*)
+			    (eq *watch-contexts* '?))
+			(*remark (list 'am/ gobbling
+				       'into
+				       context
+				       'context))
+			(englishify (arg 1.))))
+		 (apply (function gobble)
+			(list context (arg 1.))))
+	 (cond ((= n 1.)  'facts) (t (arg 2.)))
+	 (cond ((boundp 'who-gobbled)
+		who-gobbled)
+	       (t (and (= n 3.) (arg 3.))))))
+
+(*defun wc (contexts) (setq *watch-contexts* contexts))
+ 
+
+(*defun convert (l) 
+       (cond ((atom l) l)
+	     ((memq (car l) '(and or xor))
+	      (make-binary (cdr l) (car l)))
+	     ((mapcar (function convert) l)))) 
+
+(*defun make-binary (list op) 
+       (cond ((null list) nil)
+	     ((null (cdr list)) (convert (car list)))
+	     ((list op
+		    (convert (car list))
+		    (make-binary (cdr list) op))))) 
+
+(setq keylist '(context first second third)) 
+
+(*defun accept (thing) 
+   (cond
+    ((and (eq (car thing) 'time-of)
+	  (memq context *facts*))
+     (look-for-inconsistencies thing context who-gobbled))
+    ((and (eq (car thing) 'point-of-view)
+	  (memq context *facts*))
+     (accept-fact thing))
+    (t (accept1 thing))))
+
+(declare (unspecial who-gobbled))
+
+(*defun accept1 (thing)
+	    (cond (((lambda (u)
+			(and u (cdr u))) (assoc thing alist)))
+		  ((atom thing) thing)
+		  ((eq (car thing) 'quote)
+		   ((lambda (g) (putprop g
+				    (cons context (cadr thing))
+				    'datum)
+			    	(putprop context
+					 (cons g
+					       (get
+						context
+						'quoted-lists))
+					 'quoted-lists)
+			   g)
+	       (intern (gensym))))
+	     ((eq (car (explode (car thing)))
+	        '*)
+	      ((lambda (u) 
+		       (setq alist (cons (cons (car thing) u) alist))
+		       u)
+	       (accept1 (cdr thing))))
+	     ((get (car thing) 'likelihood)
+	      ((lambda (u) (putprop u (car thing) 'likelihood)
+			   u)
+	       (accept1 (cadr thing))))
+	     (t (*save thing (mapcar 'accept1 thing))))) 
+
+(*defun *save (x y) 
+       (prog (id form) 
+	     (setq form (cons context y) 
+		   id (or (present form)
+			  (name-datum form (intern (gensym)))) 
+		   alist (cons (cons x id) alist))
+	     (return id))) 
+
+(declare (unspecial alist context)) 
+
+(macrodef atomify (thing)
+(cond ((numberp thing) (implode (explode thing)))
+      (t thing)))
+
+(*defun name-datum (thing name) 
+       (putprop name thing 'datum)
+       (do ((i thing (cdr i)) (j keylist (cdr j)))
+	   ((null i) name)
+	   (add-to-list (atomify(car i)) name (car j))))
+
+ 
+
+
+
+(*defun add-to-list (atom inlist position) 
+       ((lambda (u) (cond (u (rplaca u (1+ (car u)))
+			     (rplacd u (cons inlist (cdr u))))
+			  ((putprop atom (list 1. inlist) position))))
+	(get atom position))) 
+
+(*defun datum (name) (get name 'datum)) 
+
+(*defun present (pattern) (in-list? pattern (key-list pattern))) 
+
+(*defun remove-from-list (atom thing flag) 
+       ((lambda (u) (cond ((null u))
+			  ((= (car u) 1.) (remprop atom flag))
+			  ((rplaca u (1- (car u)))
+			   (delq thing u))))
+	(get atom flag))) 
+
+(*defun remove	(atom)
+	(do ((i (cdr (datum atom)) (cdr i))
+	     (j (cdr keylist) (cdr j)))
+	    ((null i) (remob&remove-datum-prop atom))
+	    (or (datum (car i))
+		(remove-from-list (atomify (car i))
+				  atom (car j))))) 
+
+(*defun cp n 
+       (or (and (= n 2.) (arg 2.)) (cursorpos 'c))
+       ((lambda (context) 
+		(cond ((null context)
+		       (*remark (list (arg 1.)
+				      'is/ not/ a/ context/.)))
+		      ((do ((i (reverse (cdr context)) (cdr i)))
+			   ((null i) (ascii 0.))
+			   (cond ((get (car i) 'likelihood)
+		  (funcall (cond ((and (= n 2.)(null (arg 2.)))
+		(function
+			(lambda (l)
+				(print (decode l)))))
+	(t '*remark)) (list (get (car i)
+						      'likelihood)
+						 (car i))))
+				 ((*up (car i) *any))
+		 ((funcall (cond ((and (= n 2.)(null (arg 2.)))
+		(function
+			(lambda (l)
+				(print (decode l)))))
+	(t '*remark)) (car i))))))))
+	(get (arg 1.) 'context))) 
+
+(*defun cflush (context) 
+	(setq context-list (delq context context-list))
+	(mapc (function remove)
+	       (cdr (get context 'context)))
+	(mapc (function remob&remove-datum-prop)
+	      (get context 'quoted-lists))
+	(remprop context 'quoted-lists)
+	(remprop context 'context))
+;;;i think things are not properly gc if only remob is
+;;;done
+
+(*defun remob&remove-datum-prop (atom)
+	(remprop atom 'datum)
+	(remob atom))
+
+(*defun key-list (pattern) 
+       (do ((i pattern (cdr i))
+	    (min 32768.)
+	    (j)
+	    (flag keylist (cdr flag))
+	    (ans nil))
+	   ((null i) ans)
+	   (and (not (eq (car i) '?))
+		(setq j (or
+			 (get (atomify (car i)) (car flag))
+			 (return nil)))
+		    (< (car j) min)
+		    (setq ans (cdr j) min (car j))))) 
+
+(*defun in-list? (pattern list) 
+       (do ((i list (cdr i)) (ans nil))
+	   ((or ans (null i)) ans)
+	   (and (match-it pattern (datum (car i)))
+		(setq ans (car i))))) 
+
+(*defun match-it (x y) 
+       (and (or (eq (car x) (car y)) (eq (car x) '?))
+	    (or (equal (cadr x) (cadr y)) (eq (cadr x) '?))
+	    (or (equal (caddr x) (caddr y)) (eq (caddr x) '?))
+	    (cond ((and(cdddr x)(cdddr y))
+		   (or (equal (cadddr x) (cadddr y))
+		       (eq (cadddr x) '?)))
+		  ((and (null (cdddr x))(null (cdddr y)))))))
+
+(*defun fetchi (pattern) 
+       (do ((i (key-list pattern) (cdr i)) (ans nil))
+	   ((null i) ans)
+	   (and (match-it pattern (datum (car i)))
+		(setq ans (cons (car i) ans))))) 
+
+(declare (special alist star-value)) 
+
+(*defun gf fexpr (x) 
+       (prog (next context) 
+	     (apply 'uread x)
+	     (ioc q)
+	loop (cond ((eq 'eof (setq next (read 'eof)))
+		    (return '*))
+		   ((eq (car next) 'context)
+		    (setq context (cadr next)))
+		   (t (apply 'gobble (list context next))))
+	     (go loop))) 
+
+(*defun decode (concept) 
+       (cond ((atom concept)
+	      ((lambda (u) 
+		       (cond (u (mapcar (function decode) (cdr u)))
+			     (t concept)))
+	       (datum concept)))
+	     (t (mapcar (function decode) concept)))) 
+
+(declare (special context)) 
+
+(*defun cmatch n 
+       ((lambda (context) 
+		(cond ((atom (arg 1.)) (*up (arg 1.) context))
+		      ((cm (arg 1.)))))
+	(cond ((= n 1.) *any) ((arg 2.))))) 
+
+(*defun cm (x) 
+       (cond
+	((null (cddr x))
+	 (cond ((atom (cadr x)) (fetchi (cons context x)))
+	       ((mapcan 
+		 (function (lambda (q) 
+				   (fetchi (list context (car x) q))))
+		 (cm (cadr x))))))
+	((atom (caddr x))
+	 (cond
+	  ((atom (cadr x)) (fetchi (cons context x)))
+	  ((mapcan 
+	    (function (lambda (q) 
+			      (fetchi (cons context
+					    (cons (car x)
+						  (cons q
+							(cddr x)))))))
+	    (cm (cadr x))))))
+	((atom (cadr x))
+	 (mapcan (function (lambda (q) (fetchi (list context
+						     (car x)
+						     (cadr x)
+						     q))))
+		 (cm (caddr x))))
+	(((lambda (u) 
+	   (and
+	    u
+	    (do
+	     ((i (cm (cadr x)) (cdr i)) (key (car x)) (ans nil))
+	     ((null i) ans)
+	     (setq 
+	      ans
+	      (append ans
+		      (mapcan (function (lambda (q) 
+						(fetchi (list context
+							      key
+							      (car i)
+							      q))))
+			      u))))))
+	  (cm (caddr x)))))) 
+
+(declare (unspecial context))
+
+
+
+(macrodef check-to-see-if-good (pointers)
+	  (cond( (eq(car (arg 1.)) 'time-of)
+	       (check-to-see-if-good1 pointers))
+		(t pointers)))
+
+(*defun cmatch* n 
+((lambda (l-or-c-match )
+	(cond ((= n 1.) (decode(check-to-see-if-good
+				(lmatch (arg 1.) 
+					*facts*))))
+	      ((= n 2.) (decode (check-to-see-if-good
+				 (funcall
+				 l-or-c-match
+				 (arg 1.) (arg 2.)))))
+	      (t ((lambda (those-found) 
+			  (and those-found
+			       (arg 3.) 
+			       (mapcar (arg 3.) those-found)))
+		  (decode((lambda (gensyms)
+			   (and
+			    (> n 3.)
+			    (arg 4.)
+			     (and
+			      (boundp '*record-of-cmatchs*)
+			      (setq *record-of-cmatchs*
+				    (append
+				     *record-of-cmatchs*
+				     gensyms))))
+			   gensyms)
+			  (check-to-see-if-good
+			   (funcall
+			  l-or-c-match
+			  (arg 1.) (arg 2.)))))))))
+(cond ((or(= n 1)
+	(atom (arg 2.)))
+       'cmatch)
+      (t 'lmatch))))
+
+
+
+(*defun check-to-see-if-good1 (pointers )
+  (do ((pointers pointers (cdr pointers))
+       (ans nil))
+      ((null pointers) (reverse ans))
+      ((lambda (believability-of-it)
+	   (cond
+		((null believability-of-it)
+		  (setq ans (cons (car pointers) ans)))
+		 ((= (length believability-of-it) 1.)
+		  (and
+		   (eq (goodness(cdr 
+				 (datum believability-of-it)))
+		     'good)
+		  (setq ans (cons (car pointers) ans))))
+		 ((eq
+		   (find-most-recent-believability
+		     believability-of-it)
+		   'good)
+		   (setq ans (cons (car pointers) ans)))))
+       (cmatch 
+	(cons-believability (car pointers) '?)
+	(get-context (car pointers))))))
+
+(*defun get-context (pointer)
+	(car (datum pointer)))
+
+
+
+(*defun cmatch*atom n
+((lambda (arg-list)
+ (atom-only (apply (function cmatch*) arg-list) arg-list))
+(listify n)))
+
+(*defun cmatch*first n
+ (car (apply (function cmatch*) (listify n))))
+
+(*defun cmatch*last n
+ (car(last (apply (function cmatch*) (listify n)))))
+
+(*defun atom-only (thing arg-list) 
+       (cond ((null thing) thing)
+	   ((= (length thing) 1.) (car thing)) 
+	     (t (*error 'atom-only
+			(list thing (cons 'cmatch* arg-list)) 
+		(list thing 'should/ be/ only/ one/ element)))))
+
+;;;replaced by car in newer lisp versions
+;;;(*defun first-only (thing) 
+;;;       (cond ((null thing) thing)
+;;;	   (t (car thing))))
+
+(*defun lmatch (pattern c-list) 
+       (cond ((atom c-list) (cmatch pattern c-list))
+	     (t (do ((i c-list (cdr i)) (ans nil))
+		    ((null i) ans)
+		    (setq ans (append ans
+				      (cmatch pattern (car i)))))))) 
+
+(*defun *remark (x) 
+       (terpri)
+       (princ '/././.)
+       (mapc (function (lambda (q) 
+			       (cond ((> (length (explode q)) chrct)
+				      (terpri)
+				      (princ '/ / / )))
+			       (princ q)
+			       (princ '/ )))
+	     (flatten x))
+       (terpri)
+       (ascii 0.)) 
+
+(*defun flatten (x) 
+       (cond ((null x) nil)
+	     ((atom x)
+	      (cond ((get x 'datum)
+		     (flatten (englishify1 (decode x))))
+		    (t (list x))))
+	     ((eq (car x) 'and) (fl1 x 'and))
+	     ((eq (car x) 'or) (fl1 x 'or))
+	     (t (append (flatten (car x)) (flatten (cdr x)))))) 
+
+(*defun fl1 (y code) 
+       (append (flatten (cadr y))
+	       (mapcan (function (lambda (q) (cons code (flatten q))))
+		       (cddr y)))) 
+
+(*defun *up (thing context) 
+       (cond ((atom thing)
+	      (cond ((eq context *any)
+		     (append (get* thing 'second)
+			     (get* thing 'third)))
+		    ((do ((i (append (get* thing 'second)
+				     (get* thing 'third))
+			     (cdr i))
+			  (ans nil))
+			 ((null i) ans)
+			 (and (eq (car (datum (car i))) context)
+			      (setq ans (cons (car i) ans)))))))
+	     ((mapcan 
+	       (function (lambda (q) 
+				 (append (get* q 'first)
+					 (get* q 'second))))
+	       (cmatch thing context))))) 
+
+(*defun *all (key form context) 
+       (prog (l ans) 
+	     (setq l (cmatch key context) ans (cmatch form context))
+	loop (cond ((null l) (return ans))
+		   ((memq (car l) ans) (setq l (cdr l)))
+		   ((setq ans
+			  (union ans
+				 (cmatch (subst (car l) key form)
+					 context))
+			  l
+			  (union (cdr l) (*up (car l) context)))))
+	     (go loop))) 
+
+(*defun union (x y) 
+       (prog nil 
+	loop (cond ((null x) (return y))
+		   ((memq (car x) y))
+		   ((setq y (cons (car x) y))))
+	     (setq x (cdr x))
+	     (go loop))) 
+
+(*defun nth (x n) 
+       (and (numberp n)
+	    (do ((i x (cdr i)) (j 1. (1+ j)))
+		((or (= j n) (null i)) (and i (car i)))))) 
+
+(*defun function-arg (key thing cntxt) 
+       (mapcar (function (lambda (u) (cdr (decode u))))
+	       (*all thing (list key thing *any) cntxt))) 
+
+(*defun function-value (key thing cntxt) 
+       (mapcar (function (lambda (u) (cdr (decode u))))
+	       (*all thing (list key *any thing) cntxt))) 
+
+ 
+
+(declare (special context))
+
+
+
+(*defun remove-all-below (atom)
+	(do ((i (cdr (datum atom)) (cdr i))
+	     (j (cdr keylist) (cdr j)))
+	    ((null i) nil)
+	    (cond ((numberp (car i)))
+		  ((null atom))
+		  (t (and (< (length (*up (car i)
+					  context))
+			     2.)
+			  (datum (car i))
+			  (remove-all-below (car i)))
+		     (remove-from-list&gc (car i)
+					  atom
+					  (car j)))))) 
+
+(*defun replace-atom (atom new-expression position) 
+       (prog (alist context old-exp key) 
+	     (setq context (car (datum atom)))
+	     (setq alist (list (cons '* context)))
+	     (putprop atom
+		      (subst (accept new-expression)
+			     (setq old-exp
+				   (nth (cdr (datum atom)) position))
+			     (datum atom))
+		      'datum)
+	     (remove-all-below old-exp)
+	     (remove-from-list&gc old-exp
+				  atom
+				  (nth (cdr keylist) position)))) 
+
+(*defun remove-from-list&gc (atom thing flag) 
+       (remove-from-list atom thing flag)
+       (or (get atom 'first)
+	   (get atom 'second)
+	   (get atom 'third)
+	   (and (datum atom)
+		(remove-from-list context atom 'context)
+		(remprop atom 'datum)))) 
+
+(declare (unspecial context)) 
+
+(*defun remove-top-level (atom) 
+       (prog (context) 
+	     (setq context (car (datum atom)))
+	     (cond
+	      ((*up atom '?)
+	       (print (list 'only/ remove/ top/ level/ expressions
+			    atom)))
+	      (t (remove-all-below atom)
+		 (remove-from-list context atom 'context)
+		 (remprop atom 'datum))))) 
+
+
+;;;this was english >
+;;;re-written 7-24-74
+
+ 
+
+(declare (special most-recent exp)) 
+
+(setq most-recent nil) 
+
+(*defun englishify (x) (*remark (englishify1 (decode x)))) 
+
+(*defun englishify1 (exp) 
+       (cond ((atom exp) exp)
+	     ((> (length exp) 3.) exp)
+	     ((atom (car exp))
+	      (or (mapcar 'eval
+			  (get (car exp) 'english))
+		  (list (car exp) (*arg) (value))))
+	     (t (list (englishify1 (car exp)) (*arg) (value))))) 
+
+(*defun *arg nil (englishify1 (cadr exp)))
+
+(*defun value nil (englishify1 (caddr exp))) 
+
+

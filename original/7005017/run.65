@@ -1,0 +1,127 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment run) ;;for tags
+
+(defprop process-character-descriptor |ken;char| autoload)
+ ;;until this is in ani fasl (not as 9/19 6:50)
+
+
+(progn
+ (define-abbreviation ka ask kept-apart)
+ (define-abbreviation in ask introduction)
+ (define-abbreviation nl ask no-longer-kept-apart)
+ (define-abbreviation me ask meeting)
+ (define-abbreviation ju ask justice)
+ (define-abbreviation sytdv send yourself to director via)
+ (define-abbreviation ci ask cinderella)
+ (define-abbreviation sm ask step-mother)
+ (define-abbreviation pr ask prince)
+ (define-abbreviation fg ask fairy-godmother))
+
+(setq i 'introduction ka 'kept-apart nl 'no-longer-kept-apart ;;just to save some typing
+      me 'meeting ju 'justice)
+
+(defun run n
+       (run-1 (arg 1) (and (> n 1) (arg 2)) (and (> n 2) (arg 3))))
+
+(setq :choice-points-loaded nil)
+
+(defun run-1 (scene :print-load-messages to-do-before-running);if nil then no loading comments
+ (cond ((null :print-load-messages)
+	(sort (list 1) '>) ;;to load sort in now
+	(shut-up 'defprop-and-warn)
+	(shut-up 'bind-convey-method))) ;;turn off comments from this guy
+  (make-subscene-define-abbreviation scene)
+  (unshut-up 'defprop-and-warn)
+ (ask subscene set your subscene-count to 0)
+ (ask subscene ask each of your offspring to unmake)
+ (ask convey-task ask each of your offspring to unmake)
+ (ask establish-task ask each of your offspring to unmake)
+ (ask special-dynamics ask each of your descendants to unmake) ;;clean up from before
+ (director-load 'cindy '(to reset ,scene))
+ (cond ((null :choice-points-loaded)
+	(director-load 'cp) (setq :choice-points-loaded t)))
+ (cond ((equal scene 'no-longer-kept-apart)
+	(director-load '((ar9 ken1) kept mini) '(to get previous scene decisions))))
+ (eval to-do-before-running) ;;eg a trace that would be clobbered by the above
+ (ask ,scene collect subtasks suggestions)
+ (ask ,scene choose subscenes)
+ (ask ,scene choose values)
+ (let ((posit-file (get scene 'position-file)))
+      (and posit-file (director-load posit-file '(to get positions from running last scene))))
+ (ask ,scene ask each of your subscenes to
+      do the following: (run your methods) (plan your actions))
+ (ask ,scene make a place for tasks and current choices))
+
+
+(defun make-subscene-define-abbreviation (scene)
+ (eval
+  '(progn
+    (define-abbreviation ss1 ask (subscene-of ,scene 1))
+    (define-abbreviation ss2 ask (subscene-of ,scene 2))
+    (define-abbreviation ss3 ask (subscene-of ,scene 3))
+    (define-abbreviation ss4 ask (subscene-of ,scene 4))
+    (define-abbreviation ss5 ask (subscene-of ,scene 5))
+    (define-abbreviation ss6 ask (subscene-of ,scene 6))
+    (define-abbreviation ss7 ask (subscene-of ,scene 7)))))
+
+(defprop introduction (introd uction) file-name)
+(defprop introduction nil position-file)
+
+(defprop kept-apart (kept apart) file-name)
+(defprop kept-apart ((ken1) intro posit) position-file)
+
+(defprop no-longer-kept-apart (no longer) file-name)
+(defprop no-longer-kept-apart ((ken1) ka posit) position-file)
+
+(defprop meeting (meet ing) file-name)
+(defprop meeting ((ken1) nl posit) position-file)
+
+(defprop justice (just ice) file-name)
+(defprop justice ((ken1) me posit) position-file)
+
+(defun save n
+ (save-1 (arg 1) (= n 2)))
+
+(defun save-1 (scene dont-bother-to-ask?)
+ (let ((to-do-when-over nil)) ;;this is so I can go off and do something else until valret
+      (let ((file-name '((ken1) ,(first (get scene 'file-name)) mini)))
+	   (cond ((or dont-bother-to-ask?
+		      (ask-if '(|want to save summary of scene as| ,file-name)))
+		  (ask (choices-made-in ,scene) save !,file-name)
+		  (push '(move-file (quote ,file-name)
+				    (quote ((ar9 ken1) !,(rest file-name)))
+				    dont-bother-to-ask?)
+			to-do-when-over))))
+      (let ((file-name '((ken) !,(get scene 'file-name))))
+	   (cond ((or dont-bother-to-ask? (ask-if '(|want to save scene as| ,file-name)))
+		  (cond ((and (probef file-name)
+			      (or dont-bother-to-ask? (ask-if '|ok to delete old one?|)))
+			 (deletef file-name)))
+		  (cond ((not (probef file-name)) (save-all scene file-name))))))
+      (let ((file-name '((dsk ken1) ,(first (get scene 'file-name)) print)))
+	   (cond ((or dont-bother-to-ask?
+		      (ask-if '(|want to print out the scene as| ,file-name)))
+		  (print-all scene file-name)
+		  (move-file file-name
+			     '((ar9 ken1) !,(rest file-name))
+			     dont-bother-to-ask?))))
+      (mapc 'eval to-do-when-over)))
+
+(defun save-all (scene file-name)
+ (ask ,scene send yourself to director via !,file-name)
+ (let ((:default-file-object (open file-name 'append)))
+      (ask special-dynamics ask each of your reversed-descendants to save)
+      (close :default-file-object)))
+
+(defun print-all (scene file-name)
+ (let ((:default-file-object (open file-name 'out)))
+      (ask ,scene print memory)
+      (ask ,scene ask each of your subscenes to print memory)
+      (ask ,scene ask each of your subscenes to
+	   ask each of your plans to print memory)
+      (ask special-dynamics ask each of your descendants to print memory)
+      (ask ,scene ask each of your tasks to print memory)
+      (close :default-file-object)))

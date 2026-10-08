@@ -1,0 +1,74 @@
+ -*-text-*- is what is in this file
+ this file implements forward references in R
+.define_comment fdref just for tags
+.set chapter \:chapter
+ where to find its number and how to print it (eg Roman numerals)
+.set section \;section
+.set subsection \subsection
+.set subsubsection \,subsubsection.
+.set appendix \:appendix.
+postfix to the count of a references usage
+.set count _count
+.define make_reference
+ this sets the variables to save the page and section name
+ and saves it in a file too
+ if there is a third arg it is the string_version
+.cleanup_string reference \0takes out the bad characters such as ?,.-
+.set reference_count_name \reference\\count
+.if nargs>0
+.set reference_type \1
+.else
+.set reference_type Section default if no type given
+.end
+.if \?\reference
+.if \\reference~=\page 
+ if there was a value from before and it was different
+.if \?\reference_count_name and its been used at least once then
+.type "Warning:  Reference \0 is \page and was \\reference (used \\reference_count_name times)"
+.end
+.end
+.end
+.set_number \reference \page
+.if nargs>1
+.set string_version \2
+.else
+.stringify string_version \0
+.end
+.set \reference \reference_type \\reference_type "\string_version"
+ eg set foo Chapter II. "Foo bar"
+.if \saving_away_references
+.write_line .set_number \reference \page
+.write_line .set \reference \\reference
+.end
+.em
+.
+.set_number saving_away_references 0 normally not doing it
+.define reference_file
+ give this the name of the file to write the forward references on
+.set_number saving_away_references 1
+.write_file \0
+.em
+.
+.define refer_to
+ this inserts text into the stream using the forward references if they exist
+.cleanup_string reference \0
+.if nargs>1
+.set on_page \1 on page
+.else
+.set on_page on page
+.end
+.set reference_count_name \reference\\count
+.if \?\reference
+\\reference \on_page \\reference
+.if \?\reference_count_name>0 and its been used at least once then
+.set_number \reference_count_name 1+\\reference_count_name increment it then
+.else
+.set_number \reference_count_name 1 initialize to 1 it then
+.end
+.else
+{Reference to unknown place \0}
+.type "{Reference to unknown place \reference occured"
+.type "on \lineno on text page \page}"
+.end
+.em
+

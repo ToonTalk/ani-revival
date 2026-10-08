@@ -1,0 +1,156 @@
+;;; Hey, Emacs, this file contains -*- Mode: Lisp; Package: Zwei; -*- code!
+
+;; Disable ZWEI's violation of pretty printing convention to save space.
+
+(SETQ *LISP-DEFUN-INDENTATION* NIL *LISP-INDENT-OFFSET-ALIST* NIL) 
+
+(SET-COMTAB *STANDARD-COMTAB* '("/"" COM-INSIDE-STRING
+				"~" COM-INSIDE-SQUIGGLES
+				;; Type matched pairs of quotes and bars, just like parens.
+				"|" COM-INSIDE-BARS
+				;; [] and {} to be treated listily just like ()
+				"[" COM-MAKE-/[/]
+				"]" COM-MOVE-OVER-/]
+				"{" COM-MAKE-/{/}
+				"}" COM-MOVE-OVER-/}
+				;; Miser mode indenting on Meta-NewLine.
+				"
+"                                    COM-INDENT-MISER))
+
+(set-comtab *standard-comtab* '("s" com-save-all-files
+				"s" com-query-replace))
+
+
+(SET-COMTAB *STANDARD-CONTROL-X-COMTAB* '("W" COM-SELECT-WINDOW-BUFFER
+					  "V" COM-VIEW-FILE))
+
+(DEFUN EXTEND-LIST-SYNTAX ()
+       ;; Change the syntax table to understand [], {} as lists.
+       (ASET LIST-OPEN *LIST-SYNTAX-TABLE* #/[)
+       (ASET LIST-CLOSE *LIST-SYNTAX-TABLE* #/])
+       (ASET LIST-OPEN *LIST-SYNTAX-TABLE* #/{)
+       (ASET LIST-CLOSE *LIST-SYNTAX-TABLE* #/}))
+
+(EXTEND-LIST-SYNTAX)
+
+(DEFCOM COM-INSIDE-STRING
+	"Inserts a pair of double quotes, leaving you inside them to type a string."
+	()
+	(COM-INSIDE "/"")
+	DIS-TEXT)
+
+(DEFUN COM-INSIDE (CHARACTER)
+       ;; Inserts a matching set of CHARACTER.
+       (INSERT-MOVING (POINT) CHARACTER)
+       (INSERT (POINT) CHARACTER))
+
+(DEFCOM COM-INSIDE-BARS
+	"Inserts a pair of vertical bars, leaving you inside them to type a symbol's name."
+	()
+	(COM-INSIDE "|")
+	DIS-TEXT)
+
+(DECLARE (SPECIAL *EMPHASIS-FONT-BEGIN* *EMPHASIS-FONT-END*))
+(SETQ *EMPHASIS-FONT-BEGIN* "~" *EMPHASIS-FONT-END* "~")
+
+(DEFCOM COM-INSIDE-SQUIGGLES
+	"Inserts a pair of tildes, leaving you inside them to type a symbol's name."
+	()
+        (INSERT-MOVING (POINT) *EMPHASIS-FONT-BEGIN*)
+        (INSERT (POINT) *EMPHASIS-FONT-END*)
+	DIS-TEXT)
+
+(DEFCOM COM-MAKE-/[/] "Insert [], putting point between them.
+With an argument, puts that many s-exprs within the new []." ()
+    (LET ((BP (IF *NUMERIC-ARG-P*
+		  (OR (FORWARD-SEXP (POINT) *NUMERIC-ARG*) (BARF))
+		  (POINT))))
+       (INSERT BP (IN-CURRENT-FONT #/]))
+       (INSERT-MOVING (POINT) (IN-CURRENT-FONT #/[))
+       DIS-TEXT))
+
+(DEFCOM COM-MOVE-OVER-/] "Moves over the next ], updating indentation.
+Any indentation before the ] is deleted.
+LISP-style indentation is inserted after the ]." ()
+    (LET ((BP (OR (SEARCH (POINT) #/]) (BARF))))
+       (MOVE-BP (POINT) BP)
+       (DELETE-BACKWARD-OVER (CONS #\CR *BLANKS*) (FORWARD-CHAR BP -1))
+       (LET ((ARG (1- *NUMERIC-ARG*)))
+	 (AND (> ARG 0)
+	      (MOVE-BP (POINT) (OR (SEARCH (POINT) #/] ARG) (BARF)))))
+       (COM-INSERT-CRS)
+       (COM-INDENT-FOR-LISP)
+       DIS-TEXT))
+
+(DEFCOM COM-MAKE-/{/} "Insert {}, putting point between them.
+With an argument, puts that many s-exprs within the new {}." ()
+    (LET ((BP (IF *NUMERIC-ARG-P*
+		  (OR (FORWARD-SEXP (POINT) *NUMERIC-ARG*) (BARF))
+		  (POINT))))
+       (INSERT BP (IN-CURRENT-FONT #/}))
+       (INSERT-MOVING (POINT) (IN-CURRENT-FONT #/{))
+       DIS-TEXT))
+
+(DEFCOM COM-MOVE-OVER-/} "Moves over the next }, updating indentation.
+Any indentation before the } is deleted.
+LISP-style indentation is inserted after the }." ()
+    (LET ((BP (OR (SEARCH (POINT) #/}) (BARF))))
+       (MOVE-BP (POINT) BP)
+       (DELETE-BACKWARD-OVER (CONS #\CR *BLANKS*) (FORWARD-CHAR BP -1))
+       (LET ((ARG (1- *NUMERIC-ARG*)))
+	 (AND (> ARG 0)
+	      (MOVE-BP (POINT) (OR (SEARCH (POINT) #/} ARG) (BARF)))))
+       (COM-INSERT-CRS)
+       (COM-INDENT-FOR-LISP)
+       DIS-TEXT))
+
+(DEFUN HORIZONTAL-POSITION-IN-LINE (BP) (CADR BP))
+
+(DEFCOM COM-INDENT-MISER
+        "Indents for Lisp, but in Miser mode, aligned with CAR of form."
+        ()
+        (LET ((ORIGINAL-POINT (POINT))
+	      (UP-A-LIST (FORWARD-LIST (POINT) -1 NIL 1)))
+             ;; Go up out of the enclosing list, down inside again.
+             ;; Note the horizontal position, then insert new line and that many spaces.
+             (COND (UP-A-LIST
+		    ;; Should really be down a list...
+		    (LET ((DOWN-AGAIN (FORWARD-CHAR UP-A-LIST 1)))
+			 (LET ((HORIZONTAL-POSITION (HORIZONTAL-POSITION-IN-LINE DOWN-AGAIN)))
+			      (MOVE-BP (POINT) ORIGINAL-POINT)
+			      (INSERT-MOVING ORIGINAL-POINT "
+")
+			      (DOTIMES (USELESS HORIZONTAL-POSITION)
+				       (INSERT-MOVING ORIGINAL-POINT " ")))))))
+        DIS-TEXT)
+
+;; COM-INDENT-FOR-LISP doesn't respect *LIST-SYNTAX-TABLE* in looking for parens.
+;; FORWARD-UP-LIST won't take you outside the middle of a string.
+
+(DEFCOM COM-SELECT-WINDOW-BUFFER
+	"Takes the name of a buffer. If that buffer is on the screen, switches
+to that buffer. If not, switches to that buffer in the current window."
+        ()
+        ;; If there's a window with this buffer in it, switch to that window.
+        ;; otherwise, switch to the buffer in the current window.
+        (DO ((REST-WINDOWS *WINDOW-LIST* (CDR REST-WINDOWS))
+	     (BUFFER (READ-BUFFER-NAME "Select buffer name:"
+				       (DOLIST (BUF *ZMACS-BUFFER-HISTORY*)
+					       (OR (EQ BUF *INTERVAL*) (RETURN BUF)))))
+	     (WINDOW))
+	    ((COND ((NULL REST-WINDOWS) (MAKE-BUFFER-CURRENT BUFFER) T)
+		   ((EQ (WINDOW-INTERVAL (SETQ WINDOW (CAR REST-WINDOWS))) BUFFER)
+		    (MAKE-WINDOW-CURRENT WINDOW)
+		    T))))
+	DIS-NONE)
+
+
+(DEFUN TEXT-MODE-HOOK-FUNCTION ()
+       (TURN-ON-MODE 'AUTO-FILL-MODE)
+       (SETQ *FILL-COLUMN* 650.))
+
+;;(DEFUN LISP-MODE-HOOK-FUNCTION () (TURN-ON-MODE 'word-abbrev-mode))
+
+(SETQ TEXT-MODE-HOOK #'TEXT-MODE-HOOK-FUNCTION)
+;;(SETQ LISP-MODE-HOOK #'LISP-MODE-HOOK-FUNCTION)
+

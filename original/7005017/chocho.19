@@ -1,0 +1,82 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment chocho)
+
+;;this is the part of Dot Ani that choose which choice to make. 
+;;the choice itself is handled by choose >
+
+;;node is the name of a non-terminal part of the decision tree
+;;eg character, or cinderella or scene 
+;;the top-level node is whether to work on the plot or characters first
+
+(declare (setq :default-compilation-target 'node))
+
+(define-function make-choices-until-completed (node)
+ (let ((focus (ask film ask your current-film to recall your focus)))
+      (do ((result (make-choices node focus) (make-choices node focus)))
+	  ((eq result 'completed)))))
+    
+
+(define-function make-choices (node focus)
+ (choose-choices (cond ((ask ,node are you a choice-point) nil)
+		       (t (unfinished-choices (ask ,node yield your choices))))
+		 focus
+		 node))
+
+(define-function choose-choices (choices focus node)
+ (cond ((null choices)
+	(cond ((ask ,node are you a choice-point)
+	       (example-of (ask ,node choose a value) choice-point)) ;;is a terminal node
+	      (t (let ((unfinished-choices
+			(unfinished-choices (ask ,node yield your choices))))
+		      (cond (unfinished-choices
+			     '(postponed: (still have to do ,unfinished-choices)))
+			    (t (ask ,node set your status to completed)))))))
+       ((one-long choices)
+	(make-choices (first choices) focus)
+	(choose-choices nil focus node))
+       (t (let ((preferred-choice (choice-in-focus choices focus)))
+	       (cond (preferred-choice
+		      (make-choices preferred-choice focus)
+		      (choose-choices (delq preferred-choice choices) focus node))
+		     (t (let ((postponers-preference
+			       (ask postponer who should be tried first among ,choices)))
+			     ;;here is where the postponer can play with things
+			     (cond (postponers-preference
+				    (make-choices postponers-preference focus)
+				    (choose-choices (delq postponers-preference choices)
+						    ;;delq is ok cuz choices
+						    ;;cons up in unfinished-choices
+						    focus
+						    node))
+				   (t '(postponed: (still have to do ,choices)))))))))))
+
+
+(define-function unfinished-choices (choices)
+ (do ((c choices (rest c))
+      (unfinished-ones nil))
+     ((null c) unfinished-ones)
+     (let ((choice (first c)))
+	  (cond ((and (ask ,choice are you a choice-point)
+		      (ask ,choice recall your current-choice)))		
+		((eq (ask ,choice recall your status) 'completed))
+		(t (setq unfinished-ones (cons choice unfinished-ones)))))))
+
+
+(define-function choice-in-focus (choices focus)
+ ;;this picks the first choice it finds that is relavent to the focus
+ ;;eg if the focus is a particular character-relationship then either character is relavent
+ ;;if the focus is a relationship then
+ ;;if the node is character then T if it is say typical-motion then NIL 
+ (do ((c choices (rest c)))
+     ((null c) nil) ;;none found
+     (let ((choice (first c)))
+	  (and (example-of (ask ,focus is ,choice part of the focus) focus)
+	       (return choice)))))
+
+(define-function reset-node-status (node)
+ (ask ,node ask each of your descendants to set your status to nil)
+ (ask node set your status to nil))
+

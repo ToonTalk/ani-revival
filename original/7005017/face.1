@@ -1,0 +1,43 @@
+;;-*-lisp-*-
+
+;;this is a test of parts/whole stuff in director
+
+(include |ai:ken;declare >|)
+
+(defcomment face) ;;for tags
+
+(define face object)
+
+(define triangle poly (set your angle to 120))
+
+(define nose triangle 
+ (become part of face)
+ (set your relative-heading to 30.0)
+ (set your fraction-of-whole to .2))
+
+(define circle poly (set your angle to 10))
+
+(define mouth circle
+ (become part of face)
+ (set your fraction-of-whole to .15)
+ (set your direction-from-center to 180.0)
+ (set your fractional-distance-from-center to .5))
+
+(define square poly (set your angle to 90))
+
+(define left-eye square
+ (become part of face)
+ (set your fraction-of-whole to .1)
+ (set your relative-heading to 45.0)
+ (set your direction-from-center to -45.0)
+ (set your fractional-distance-from-center to .4))
+
+(define right-eye square
+ (become part of face)
+ (set your fraction-of-whole to .1)
+ (set your relative-heading to 45.0)
+ (set your direction-from-center to 45.0)
+ (set your fractional-distance-from-center to .4))
+
+(define head circle
+ (become part of face))

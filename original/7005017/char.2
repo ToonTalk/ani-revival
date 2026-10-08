@@ -1,0 +1,174 @@
+;; -*-lisp-*-
+;;this is the part of ani the defines characters and their descriptors
+
+(include |ai:ken;declare >|)
+
+(defcomment char) ;;for tags
+
+(define visible-object something) ;;visible-objects are actors that will eventually be
+;;seen so maybe should be simply objects (or else own an object)
+
+(define non-character visible-object);;this will be for scenery and other props
+
+(define character visible-object
+ (add (if-told-about (description: type physical
+				   descriptor beautiful
+				   source initial-description)
+		     (ask :self memorize (description: type movement
+						       descriptor graceful
+						       source beautiful)))
+      to your list of (description: actions-if-memorizing))
+ (do when receiving (process each initial description (?descriptor-type ?descriptor))
+     (process-character-descriptor descriptor descriptor-type))
+ (do when receiving (process initial description %description)
+     (do ((d description (rest d)))
+	 ((null d))
+	 (ask :self process each initial description ,(first d))))
+ (do when receiving (collect suggestions for ?element)
+     (collect-suggestions (ask :self collect items memorized matching
+			       (description: type ?
+					     descriptor ?	
+					     source ?))
+			  element
+			  'identical))
+ (do when receiving (collect ?relation-to-descriptor suggestions for ?element)
+     (collect-suggestions (ask :self collect items memorized matching
+			       (description: type ?
+					     descriptor ?	
+					     source ?))
+			  element
+			  relation-to-descriptor)) ;;eg neighbors or opposites
+ (do when receiving (compare yourself with your siblings)
+     (mapc
+      (function
+       (lambda (sibling)
+	       (ask :self compare yourself with ,sibling)))
+      (ask :self recall your siblings)))
+ (do when receiving (compare yourself with ?other)
+     (compare-two-characters :self other))
+ (do when receiving (print comparisons)
+     (dicks-print (ask :self collect items memorized matching
+		       (comparison: finding ?
+				    descriptor ?
+				    descriptor-type ?)))
+     (dicks-print (ask :self collect items memorized matching (uniqueness-summary: %)))
+     (ask-all (comparison-of ,:self ?) print comparisons)
+     no-value))
+
+(define-receiver (yield your special-dynamics in ?subscene) character
+  (or (ask :self recall your (special-dynamics-of ,:self in ,subscene))
+      ;;know it already or else
+      (let ((special-dynamics
+	     (ask special-dynamics make (special-dynamics-of ,:self in ,subscene))))
+	   (mapc
+	    (function
+	     (lambda (element)
+		     (ask ,special-dynamics set your ,element to
+			  ,(ask ,subscene yield most current value of (,:self ,element)))))
+	    (ask normal-movement-element recall your offspring))
+	   (mapc
+	    (function
+	     (lambda (sibling)
+		     (cond ((ask-if-exists (relationship-of ,:self ,sibling)
+					   recall if any items match
+					   (description: type ? descriptor dominates %))
+			    (ask ,special-dynamics add ,sibling to your list of dominates)))))
+	    (ask :self recall your siblings))
+	   (ask :self set your (special-dynamics-of ,:self in ,subscene)
+		to ,special-dynamics))))
+
+(define-function process-character-descriptor (descriptor type)
+ (cond ((atom descriptor)
+	(ask :self memorize (description: type ,type
+					  descriptor ,descriptor
+					  source initial-description)))
+       ((eq (first descriptor) 'and)
+	(mapc (function (lambda (descriptor)
+				(process-character-descriptor descriptor type)))
+				      (rest descriptor)))
+       (t (ask :self warning the character descriptor ,descriptor is not understood))))
+
+
+(define descriptor something
+ (do when receiving (process suggestions %suggestions)
+     (ask :self do the following:
+	  !,(mapcar
+	     (function
+	      (lambda (suggestion)
+		      '(process suggestion ,suggestion)))
+	     suggestions)))
+ (do when receiving (process suggestion (for ?element ?value strength ?strength))
+     (put-suggestion-in-source :self element value strength))
+ (do when receiving (process suggestion (for ?element (or %values+strengths)))
+     (do ((vs values+strengths (nth-rest 3 vs)))
+	 ((null vs) no-value)
+	 (let ((value (first vs))
+	       (strength (third vs)))
+	      (cond ((not (eq (second vs) 'strength))
+		     (shouldnt-happen 'descriptor
+				      '(bad list of alternative suggestions ,vs))))
+	      (put-suggestion-in-source :self element value strength))))
+ (do when receiving (add ?descriptor to your list of opposites)
+     (let ((current-opposites (ask :self recall your opposites)))
+	  (cond ((memq descriptor current-opposites))
+		((eq descriptor :self))
+		(t (ask :self change your opposites to
+			,(cons descriptor current-opposites))
+		   (ask :self ask your parent to if new make ,descriptor)
+		   (ask ,descriptor add ,:self to your list of opposites)
+		   (ask :self ask each of your neighbors
+			to add ,descriptor to your list of opposites)))))
+ (do when receiving (add ?descriptor to your list of neighbors)
+     (let ((current-neighbors (ask :self recall your neighbors)))
+	  (cond ((memq descriptor current-neighbors))
+		((eq descriptor :self))
+		(t (ask :self change your neighbors to ,(cons descriptor current-neighbors))
+		   (ask :self ask your parent to if new make ,descriptor) 
+		   (ask ,descriptor add ,:self to your list of neighbors)
+		   (ask :self ask each of your neighbors 
+			to add ,descriptor to your list of neighbors)
+		   (ask :self ask each of your opposites
+			to add ,descriptor to your list of opposites))))))
+
+
+(define-function put-suggestion-in-source (source element value strength)
+ (cond ((non-trivial-pattern? element)
+	;;the element is really a pattern for if-needed demon
+	(ask ,source add
+	     (if-asked-about
+	      (suggestion: element {and ?the-full-element ,element}
+			   ;;since element is a pattern
+			   value ?
+			   strength ?
+			   source ?)
+	      '(suggestion: element ,the-full-element
+			    value ,,value
+			    strength ,,strength
+			    source ,(quote ,source)))
+	     ;;since the source is not a form is :self
+	     to your list of (suggestion: if-recalling-items)))
+       (t (ask ,source memorize
+	       (suggestion: element ,element
+			    value ,value
+			    strength ,strength
+			    source ,source)))))
+
+
+(define relationship something
+ (do when receiving (process initial description ?descriptor)
+     (process-relationship-descriptor descriptor)))
+
+
+(define-function process-relationship-descriptor (descriptor)
+ (cond ((atom descriptor)
+	(ask relationship-descriptor if new make ,descriptor)
+	(ask :self memorize (description: type ,(ask ,descriptor recall your type)
+					  descriptor ,descriptor
+					  source initial-description))
+	descriptor)
+       ((eq (first descriptor) 'and)
+	(mapc 'process-relationship-descriptor (rest descriptor))
+	descriptor)
+       (t (ask :self warning the relationship descriptor ,descriptor is not understood))))
+
+(compile-actors)

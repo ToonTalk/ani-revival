@@ -1,0 +1,105 @@
+;;-*-lisp-*-
+
+;;this is the part of Dani that decides whether to continue or to postpone the current choice
+
+(include |ai:ken;declare >|)
+
+(defcomment postpo);;for tags
+
+;;when this does postpone it should return (postponed: <reason>)
+
+(define postponer something
+ (set your hard-up-level to 0)) ;;starts off very low
+
+(define-receiver (should ?choice-point postpone with ?suggestions ?conflict-count conflicts)
+		 postponer
+ (cond ((and (null suggestions) (= conflict-count 0))
+	'(postponed: more-info-needed))
+       ((> conflict-count 0) '(postponed: conflicts-found))
+       (t (let ((strength-suggestion
+		 (total-strength (first suggestions)
+				 (ask ,choice-point recall your source-priorities)))
+		(minimum-happiness-number
+		 (ask ,choice-point recall your minimum-happiness-number)))
+	       (cond ((< strength-suggestion minimum-happiness-number)
+		      '(postponed: not-happy-enough))
+		     (t nil)))))) ;;dont postpone go ahead
+
+
+(define-receiver
+ (should ?choice-point postpone since ?choice-points were needed but not yet made)
+ postponer
+ (ask :self change your unmade-but-needed-choice-points to
+      ,(union choice-points			
+	      (ask :self recall your unmade-but-needed-choice-points)))
+ (let ((last-postponement-reason
+	(first (ask ,choice-point recall your postponement-reasons)))
+       (new-reason '(values-missing ,choice-points)))
+	      (cond ((equal last-postponement-reason new-reason)
+		     ;;at this point I need to check why the same values are missing to avoid
+		     ;;a sort of deadly embrace
+		     ;;so if all the choice-points were postponed for because they are waiting 
+		     ;;for choice-point then can't postpone
+		     (do ((i choice-points (rest i)))
+			 ((null i) nil) ;;dont postpone
+			 (let ((reason-for-postponement
+				(first (ask ,(first i) recall your postponement-reasons))))
+			      (cond ((not (eq (first reason-for-postponement) 'values-missing))
+				     (return '(postponed: ,new-reason)))))))
+		    ;;at least one is blocked for reasons other than waiting for some value
+		    ;;smarter version should allow value-missing so long as there are no
+		    ;;dependency loops
+		    (t '(postponed: ,new-reason)))))
+
+(define-receiver 
+ (should ?choice-point give up on ?suggestion-source since no missing values determined)
+ postponer
+ nil) ;;dont give up since previous message will handle it
+
+(define-receiver
+ (note (can not resolve conflict by either criticism or previous choices) ?choice-point)
+ postponer
+ nil) ;;for now
+
+(define-receiver
+ (note (can not resolve conflict by conflicting suggestions strengths) ?choice-point)
+ postponer
+ nil)
+
+(define-receiver
+ (note (can not resolve conflict using non-conflicting suggestions) ?choice-point)
+ postponer
+ nil)
+
+
+(define-receiver (note (can not compromise away conflict) ?choice-point) postponer
+		 nil)
+
+(define-receiver (who should be tried first among ?choices) postponer
+ (cond ((ask ,(first choices) are you a choice-point)
+	(let ((needed-ones
+	       (intersect choices
+			  (ask :self recall your unmade-but-needed-choice-points))))
+	     (cond (needed-ones (first needed-ones))
+		   (t (first choices)))))
+       (t (let ((sample-choice (first (ask ,(first choices) recall your choices))))
+	       (cond ((and sample-choice (ask ,sample-choice are you a choice-point))
+		      (node-with-choices-most-needed
+		       choices
+		       (ask :self recall your unmade-but-needed-choice-points)))
+		     (t (first choices))))))) ;;nothing to go on
+
+(define-receiver (note (choice point determined) ?choice-point) postponer
+ (ask :self remove ,choice-point from your list of unmade-but-needed-choice-points))
+
+
+(define-function node-with-choices-most-needed (nodes choices-needed)
+ (do ((n nodes (rest n))
+      (best-so-far nil)
+      (best-count -1))
+     ((null n) best-so-far)
+     (let ((number-of-choices-of-node-needed
+	    (length (intersect choices-needed (ask ,(first n) recall your choices)))))
+	  (cond ((> number-of-choices-of-node-needed best-count)
+		 (setq best-so-far (first n)
+		       best-count number-of-choices-of-node-needed))))))

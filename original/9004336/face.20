@@ -1,0 +1,55 @@
+;;-*-lisp-*-
+
+;;this is a test of parts/whole stuff in director
+
+(include |ai:ken;declare >|)
+
+(defcomment face) ;;for tags
+
+(define face performer)
+
+(define triangle poly (set your angle to 120))
+
+(define nose triangle
+ (set your size to 20)
+ (set your whole to face)
+ (turn left 30))
+
+(define circle poly
+	(set your angle to 10))
+
+;;(define half-circle poly
+;;	(set your angle to 10)
+;;	(set your number-of-sides to 18))
+
+(define line poly
+ (set your angle to 360))
+
+(define horizontal-line line
+ (turn right 90))
+
+(define mouth horizontal-line
+ (set your size to 15)
+ (set your whole to face)
+ (move down 50))
+
+(define eyes performer
+ (set your whole to face))
+
+(define left-eye circle
+ (set your size to 10)
+ (set your whole to eyes)
+ (move left 40))
+
+(define right-eye circle
+ (set your size to 10)
+ (set your whole to eyes)
+ (move right 40))
+
+(ask eyes move forward 20)
+
+(define square poly (set your angle to 90))
+
+(define head square
+ (set your whole to face)) ;;is the same size as the face
+

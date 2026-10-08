@@ -1,0 +1,82 @@
+;; -*-lisp-*-
+
+;this defines the screen which provides an interface between actors and the tv display
+;it relies heavily upon tvrtle
+
+(include |ai:ken;declar >|)
+
+(defcomment screen) ;;for tags
+
+(define screen something
+ (set your mode to normal))
+
+(define-method (recall your width) screen
+ (first (tvsize)))
+
+(define-method (recall your height) screen
+ (second (tvsize)))
+
+(define-method (set your height to ?new-height) screen
+ (tvsize (ask screen recall your width) new-height))
+
+(define-method (set your width to ?new-width) screen
+ (tvsize new-width (ask screen recall your height)))
+
+(define-method (perform turtle actions %turtle-commands) screen
+ (let ((mode (ask :self recall your mode)))
+      (cond ((eq mode 'normal) (mapc 'eval turtle-commands))
+	    ((eq mode 'silent) nil) ;;ignore
+	    ((eq (first mode) 'silent-but-tell)
+	     (ask ,(second mode)
+		  add (progn !,turtle-commands) to your list of turtle-commands)))))
+
+(define-method (showing ?object) screen 
+ (ask :self add ,object to your list of visible-objects))
+
+(define-method (hiding ?object) screen
+ (ask :self remove ,object from your list of visible-objects))
+
+(define-method (save screen) screen
+  (do ((appearances nil)
+       (objects (ask :self recall your visible-objects) (rest objects)))
+      ((null objects) appearances)
+      (let ((appearance (compile-using object ;;but really ask
+				       (ask ,(first objects) create new appearance))))
+	   (and appearance (setq appearances (cons appearance appearances))))))
+
+(define-method (wipe) screen
+ (help-comments: |clear the screen and then redisplay all the visible objects|)
+ (wipe)
+ (compile-using object ;;since they are all objects
+		(ask screen ask each of your visible-objects to show))
+ no-value)
+
+(define-form (director-wipe) 
+ (ask screen wipe))
+
+(define-synonym dwipe director-wipe)
+
+(define-method (clear) screen
+ (help-comments: |clear the screen and make everybody hide that is visible|)
+ (director-clearscreen))
+
+(define-method (start display) screen
+(help-comments: |start up the display again and hide all visible objects|)
+ ;;restarts the display if it has gone bad
+ (director-startdisplay)
+ (director-clearscreen))
+
+(define-method (restart display) screen
+ (help-comments:
+  |start up the display again and redisplay visible objects - to be used if tv is misbehaving|)
+ (director-startdisplay)
+ (director-wipe))
+
+(define-form (director-clearscreen)
+ (ask screen ask each of your visible-objects to set your visibility to nil)
+ (ask screen set your visible-objects to nil)
+ (clearscreen))
+
+(define-synonym dcs director-clearscreen)
+
+(compile-actors)

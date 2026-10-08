@@ -1,0 +1,22 @@
+;; -*-lisp-*-
+(comment)
+
+((lambda (^w old-crunit)
+	 (load '|ai:ken;ken lisp|)
+	 (go-fast) ;;set nouuo and *rset to nil 
+	 (load '|ai:ken;load|)
+	 (director '(direct))
+	 (sstatus ttyint 18. '(lambda (ch f)
+				      (nointerrupt nil)
+				      (ask screen set your mode to normal)
+				      (ask screen wipe)))
+	 ;; ctrl-r restores (or redisplays) the screen
+	 (sstatus ttyint 1. '(lambda (ch f)
+				     (nointerrupt nil)
+				     (ask screen set your mode to silent)))
+	 ;; ctrl-a makes it continue but not showing any thing (hide)
+	 (apply 'crunit old-crunit)
+	 '|Welcome to Director|)
+ t
+ (crunit))
+

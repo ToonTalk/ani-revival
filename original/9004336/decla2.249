@@ -1,0 +1,80 @@
+;;-*-lisp-*-
+;;the declaration to the compiler for Director system code is here
+
+(if-for-maclisp
+ (mapex t)
+ ;;want all mapped functions open coded so that macros are never double expanded
+ (muzzled t) ;;for the time being not worried about number optimations
+ (setq nfunvars t) ;;i use funcall to make functional variables explicit
+ (defun defcomment macro (x) nil))
+
+(defcomment decla2) ;for tags
+
+(if-for-maclisp
+(special :penstate :xorstate :eraserstate :heading :colors :pencolor :erasercolor
+	 :xcor :ycor :outline)) ;;these are tvrtle variables
+
+
+(special *tvrtle-file-name pi-over-180 *e *last-runtime
+	 *last-thing-upped :tvstep *reasonable-size-interpolation
+	 *director-turtle-scaling-factor *director-home-state
+	 turtle-picture-right turtle-picture-top floating-point-tolerance)
+
+(special compiled-pattern-of-name ask-all-result)  ;;for expansion of ask-all
+
+(defcomment *lexpr)
+
+(if-for-maclisp
+ (*lexpr turtlesize tvsize mw hw sw range bearing fillwindow
+	 eval-define dicks-print dicks-prin1 /#princ
+	 director-load merge-suggestions gen-number time-to-walk copy test-part-of-pattern
+	 estimate-time-to-move-character find-screen-coordinate-of ideal-number-of-cycles
+	 some-number-of-cycles estimate-time-for-cycles ask-macro predicate-of-pattern
+	 type print-without-parens princ-without-parens princ+blank 
+	 lispify-transmission compile-cases-cleverly extractor-of-difference 
+	 compile-file compile-files defunize compile-actor make-actor union intersect
+	 collect-all-memory-items super-member shouldnt-happen reap-symbol
+	 draw-poly draw-color-poly save-property match binding-part-of-pattern-1
+	 make-normal-method))
+
+(defcomment special)
+
+ (special myself *message *compiler-on  *incrementally-compiling ? *files-already-read
+	  *protected-actors *help-storage-place *printer-of-compiler
+	  *default-compilation-target *print-load-messages *reset-default-compilation-target?
+	  *reversed-already? no-value nothing-found *color-tvrtle-file-name
+	  *compiled-movies *line-length *actors-currently-traced *tvrtle-functions
+	  *dont-want-to-see-warnings-from *replace-old-methods *default-file-object
+	  *message-not-understood *actor-not-defined *ask-type-macros *warning-break
+	  *collecting-actors *actors-collected *method-being-run
+	  *maximum-number-of-matching-methods *make-method-selectors *replace-old-actors
+	  *only-files-in-let-files *eval-when-loaded *what-to-show
+	  *how-to-print-actors *protect-all-actors *load-priorities *insert-methods-at-end
+	  *compilation-target *actors-needed-by-this-file)
+
+(if-for-lispm (special *recency-count-of-director-compiler *inside-qc-file))
+
+(special macro-expansion-use macroexpanded) ;;from defmacro
+
+;;for compiling actors
+(special *help-file-object *macros-file-object
+	 *want-to-make-help-file *collecting-actors-in-this-file
+	 *compile-all-together)
+;;when fast-compile is declared in a file the special compiling macros are activated
+
+
+(setq *protected-actors nil) ;;anybody can be redefined while compiling
+
+(if-for-maclisp
+ (progn (or (status features gcdemn) (load '|ken;gcdemn|)))
+ (cond ((not (status features dicks-printer))
+	(load '|liblsp;#print|)
+	(sstatus features dicks-printer)))
+ (or (status features henrys-read-macros) (load '|ken1;reamac|))
+ (or (status features director-macros) (load '|ken1;macros|))
+ (or (status features director-read-macros) (load '|ken1;readir|))
+ (or (status features kens-utilities) (load '|ken1;util|))
+ (or (status features director) (load'|ken1;drect|)))
+
+;;these files are needed to complete macro defintions (ask  for example)
+

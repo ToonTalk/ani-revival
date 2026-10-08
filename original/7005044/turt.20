@@ -1,0 +1,233 @@
+;this is turt >
+;part of the anima system that defines objects that are turtle like
+
+
+
+
+(DECLARE (GENPREFIX turt-)(special :eraserstate :heading)(muzzled t)) 
+ 
+(declare (setq ibase 10.) (macros t))  
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil);makes {} single objects
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );makes . a normal character except within numbers
+
+
+(declare (*lexpr make-actor)
+	 (special :self :pattern :action :message :values :variables :matched?
+		  :name :class something :reversed.already? object flower))
+
+
+
+
+(defun do.the.following: macro (a)
+       (cons 'progn (cdr a)))
+
+(defun define.object nil
+        (ask something '(make object))
+	(ask object '(remember size 100))
+	(ask object '(remember how-to-draw draw-point))
+	(ask object '(if receive {memq ?command
+		      			'(fd forward rt right lt left bk back
+					  pu pd penup pendown here setx sety setxy
+					  delx dely delxy heading setheading sett)}
+					%rest then progn (tell-logo-which-turtle :self)
+							 (eval :message)))
+	(ask object '(if receive show then progn (tell-logo-which-turtle :self)
+		      				 (st)))
+	(ask object '(if receive hide then progn (tell-logo-which-turtle :self)
+		      				 (ht)))
+        (ask object '(if receive move away from (?x ?y %) by factor ?factor
+		       then progn
+		       (tell-logo-which-turtle :self)
+		       ((lambda (:towards :range seeturtle)
+				(ht)
+				(rt :towards)
+				(bk (times :range (plus -1.0 :factor)))
+				(lt :towards)
+				(and seeturtle (st)))
+			(towards :x :y)
+			(range :x :y)
+			:seeturtle)))
+	(ask object '(if receive revolve around (?x ?y %) by ?turn degrees then
+		      do.the.following:
+		      (tell-logo-which-turtle :self)
+		      ((lambda (:towards :range seeturtle)
+			       (ht)
+			       (rt :towards)
+			       (fd :range)
+			       (rt :turn)
+			       (bk :range)
+			       (lt :towards)
+			       (and seeturtle (st)))
+			(towards :x :y)
+			(range :x :y)
+			:seeturtle)))
+	(ask object '(if receive {memq ?command
+		      			'(replace )}  ;remember should be here later
+				 size ?n then
+				 progn (tell-logo-which-turtle :self)
+				 (ht)
+				 (funcall :command (list 'size :n) :self);do better
+				 (apply 'maketurtle (draw+erase :self))
+				 (st)))
+	(ask object '(if receive grow ?amount then progn
+		      				(tell-logo-which-turtle :self)
+		      				(ht)
+	     					(ask :self
+						     (list 'remember
+							    'size
+							    (plus :amount
+							     (ask :self
+							           '(what size ?)))))
+						(apply 'maketurtle (draw+erase :self))
+						(st))))
+
+
+
+(defun tell-logo-which-turtle (:self)
+ ((lambda (turtle-name)
+	  (cond (turtle-name (useturtle turtle-name))
+		(t (make-a-new-turtle :self))))
+  (caar (find '(turtle-name ?) :self))))
+;;;  (ask :self '(what turtle-name ?)) is gone cuz finds superior's turtle
+
+
+(defun make-a-new-turtle (:self)
+((lambda (new-turtle)
+	 (hatch new-turtle)
+	 (ht)
+	 (pu)
+(ask :self (list 'remember
+		  'turtle-name
+		  new-turtle))
+(apply 'maketurtle 
+	(draw+erase
+	 	 :self)))
+(append-atoms 'turtle :self)))
+
+
+
+
+(defun draw+erase (:self)
+((lambda (how-to-draw)
+  (list	 (cons-draw-form how-to-draw :self)
+	 (cons-erase-form how-to-draw :self)))
+(funcall (ask :self '(recall how-to-draw ?)))))
+
+
+(defun cons-draw-form (:how-to-draw :self)
+	(list 'progn
+		     '(pd)
+		     (list 'apply
+			    (list 'quote (car :how-to-draw))
+			    (list 'quote (cdr :how-to-draw)))
+		     '(pu)))
+
+(defun cons-erase-form (:how-to-draw :self)
+	(list 'progn
+		     '(erd)
+		     (list 'apply
+			    (list 'quote (car :how-to-draw))
+			    (list 'quote (cdr :how-to-draw)))
+		     '(eru)))
+
+
+
+(defun xor-point nil
+       (xordown) (point)(xorup))
+(defun draw-point nil (list 'xor-point))
+
+
+(defun petals (:size :n :color-list)
+(right 45)
+(do ((i :n (1- i))
+     (turn (quotient 360.0 :n))
+     (present-colors  :color-list (or (cdr present-colors)
+					  :color-list)))
+    ((zerop i)(lt 45.))
+    (pencolor (car present-colors))
+    (petal :size)
+    (right turn)))
+
+(defun petal (:size)
+       ((lambda (begin eraserstate)
+		(lt 45.)
+		(draw-arc :size 90.)
+		(rt 90.)
+		(draw-arc :size 90.)
+		(rt 135.)
+		(pu)
+		(sett begin)
+		(cond (eraserstate (erd))
+		      (t (pd))))
+(here) :eraserstate))
+
+(defun draw-arc (:size :angle)
+       (do ((stop-heading (plus :heading :angle)))
+	   ((not (< :heading stop-heading)))
+	   (fd :size)
+	   (rt 5)))
+
+(defun flower (:size-in-turtle-steps :n :color-list)
+       ((lambda (begin eraserstate :size)
+		(petals :size :n :color-list)
+		(pencolor 'green)
+		(bk (*$ :size 32.0))
+		(rt 22)
+		(petal (*$ :size .55))
+		(lt 22)
+		(bk (*$ :size 8.0))
+		(lt 33)
+		(petal (*$ :size .9))
+		(rt 33)
+		(bk (*$ :size 13.0))
+		(pu)
+		(sett begin)
+		(cond (eraserstate (erd))
+		      (t  (pd))))
+    (here) :eraserstate (quotient :size-in-turtle-steps 55.0)))
+
+(defun draw-flower nil
+(list 'flower
+        (ask :self '(what size ?))
+	(ask :self '(what number-of-petals ?))
+	(ask :self '(what colors ?))))
+
+(defun define.flower nil
+       (ask object '(make flower))
+       (ask flower '(remember how-to-draw draw-flower))
+       (ask flower '(remember number-of-petals 3))
+       (ask flower '(remember colors (red yellow orange)))
+;       (ask flower '(remember size 200))
+(remember '(size 200) flower);fix later triggers daemons
+(ask flower '(if receive {memq ?command '(replace remember)}
+				 number-of-petals ?n then
+				 progn (ht)
+				 (funcall :command (list 'number-of-petals :n) :self)
+				 (define-eraw+erase :self)
+				 (st)))
+
+       (ask flower '(if receive {memq ?command '(replace remember)}
+				 colors ?color-list then
+				 progn (ht)
+				 (funcall :command (list 'colors :color-list) :self)
+				 (apply 'maketurtle (draw+erase :self))
+				 (st))))
+
+
+(or (status feature color)
+(defun pencolor (color)
+(print (list 'pen 'is 'now color))))
+
+(declare (setsyntax 46. 139712. nil))
+

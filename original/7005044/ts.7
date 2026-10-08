@@ -1,0 +1,1416 @@
+.require "ken;pub setup" source
+.
+.
+.skip to line 7
+.begin center
+MECHANIZING TEMPORAL KNOWLEDGE
+.skip 5
+Kenneth Kahn and G. Anthony Gorry^*
+.break
+Massachusetts Institute of Technology
+.break
+.DATE
+.skip 8
+.end
+.once center
+ABSTRACT
+.begin indent 10,10,10;single space
+The importance that an understanding of time plays
+in many problem-solving situations requires that intelligent
+programs be equipped with extensive temporal knowledge.
+This paper discusses one route to that goal, namely the
+construction of a time specialist, a program
+knowledgable about time in general which can be used by
+a higher level program to deal with
+the temporal aspects of its problem-solving.
+Some examples are given of
+such a use of a time specialist.
+The principal issues addressed in this
+paper are how the time specialist organizes
+statements involving temporal references,
+checks them for consistency,
+and uses them in answering questions.
+.skip 3
+
+This research was supported by the Department of Health, Education,
+and Welfare (Public Health Service) under Grant number 1 RO1 MB 00107-01.
+.end
+.skip 2
+^*Present address: Baylor College of Medicine
+.
+.tabs 5,10,20
+.every footing (,Page - {page},)
+.double space
+.next page
+.indent 5
+.once indent 0
+INTRODUCTION
+
+In a wide variety of situations, problem solving requires
+a rather extensive and detailed knowledge of time.  To
+deal effectively with everyday life, a person must understand
+how events are related to one another in time and how
+plausible deductions can be drawn from the temporal
+characteristics of these occurrences.  The paramount importance
+that such an understanding plays in human problem solving
+argues forcefully that no computer program can be 
+"intelligent," if it lacks a sophisticated temporal sense.
+In this paper, we will consider the problems of
+equipping a computer with such an understanding.
+
+Despite the importance of an understanding of time in many
+problem-solving situations, research on mechanized intelligence
+conducted within the artificial intelligence community largely
+has
+ignored the temporal characteristics of
+problems.foot<The
+two exceptions known to the authors are the work of Bruce (1)
+and the work of Findler and Chen (2). The former primarily
+is concerned with the computational linguistic aspects of
+temporal reference, and neither work deals with the full range
+of problems considered here.
+For example, neither work considers in any detail
+intervals of time, the fuzziness of temporal references,
+or the use of various organizing structures.>
+The application areas have been chosen deliberately
+to illuminate only particular aspects of a current theory
+of intelligence.  Thus, for example, the so called world of
+"toy blocks" has received considerable attention, not so
+much because artificial intelligence researchers are enamoured
+of blocks, but because they thought that the rather clear-cut
+"physics" of this world
+was a more suitable vehicle for testing rudimentary theories of knowledge
+acquisition, organization, and application.  Because the
+consideration of time within such settings would lead to
+rather messy problems, researchers in artificial
+intelligence generally have factored temporal considerations
+out of the problem domain in question, deliberately have treated them in rather
+cursory fashion, or at best gave time equal consideration with
+many other aspects of the problem domain.
+
+
+This paper considers one way in which
+knowledge about time can be incorporated into problem-solving
+programs.  Our hypothesis is that such
+knowledge, in large part, can be embodied in a set of problem-solving
+routines which collectively we will refer to as a time specialist.
+The time specialist then can be placed in the service of a larger
+problem-solving program to deal with the temporal questions that arise
+in the domain dealt with by the latter.
+Having given the time specialist statements
+involving temporal references (in a language that is determined
+by the time specialist), the problem-solving program can ask it
+to make a variety of deductions and to answer a variety of
+questions concerning these statements.  Thus the time specialist is
+an iidiot savantn, a program that can answer questions about temporal matters
+(provided that the questions are framed appropriately), but that otherwise
+knows nothing of the problem domain in question.
+
+To test our idea, we undertook
+the construction of a rudimentary time specialist program
+to understand temporal specifications.
+A temporal specification is a statement that partially
+specifies,
+in some manner, the time of one or more events.  Examples are:
+.skip
+
+.begin crbreak single space indent 10,5 preface 0
+(1) Three weeks ago John had a cold.
+(2) John was born June 6, 1966.
+(3) Two or three years after graduating, John went back to school.
+(4) A few months from now, John will finish his thesis.
+(5) After his cold, John died.
+(6) John saw Mary a while ago.
+.end
+
+.once indent 0
+In any temporal specification, some relation is given between
+at least two events, each of which can be considered a point
+in time.
+We dealt exclusively with the case of two events, because
+temporal specifications with more events can be 
+represented as a series of statements concerning only two
+events.  The more primary event is called the "event" and
+the other, the "reference event".
+Sometimes, as in sentence (1), the reference event "now"
+is implicit (through the use of the word
+"ago").  In date expressions such
+as sentence (2), the reference event
+is the "zero" point for the calendar in use.
+
+We made no attempt to deal with what is commonly called subjective
+time.  The representation
+of temporal facts and questions was designed to
+conveniently represent as large a variety 
+of temporal specifications in English
+as possible.  We devoted relatively little
+attention, however, to the linguistic problems associated with parsing
+English into the representation or of generating English
+from it.
+Within
+these constraints, however, we did implement a rather extensive
+program for understanding and answering questions about
+temporal references. foot<A detailed discussion of this program
+is available in (3).> To test our notion that such a
+program would be useful in a variety of problem-solving applications,
+we undertook an initial assessment of its use in understanding the temporal aspects of some everyday occurrences,
+disease scenarios used in medical diagnosis,
+and time-travel stories.
+
+.if lines < 8 then next page
+.once indent 0
+A SESSION WITH THE TIME SPECIALIST
+
+In Figure 1, a session with the time specialist is presented.
+For ease of exposition, we have translated the stilted
+language
+foot<For example, the first two sentences are given to the
+time specialist as
+"(time-of (beginning-of life)
+(date (1952 1 25) (fuzz nil)))"
+and "(time-of (all-of operation))
+(after (beginning-of life)
+(fuzzy-amount (nil a-few weeks))))." The meaning of "fuzz" and
+"fuzzy-amount" will be
+discussed below.>
+required by the program
+into English. Although this has substantially improved
+the form of the conversation, it has not
+altered the content of the interactions.
+
+As can be seen by the user's story (U1), the time
+specialist can accept facts in many different
+forms.  Some of the statements specify the dates of
+events.  The others give the time of one event
+relative to some other event.
+Portions of the date can be missing as in "June 1965".
+In addition to accepting time intervals in 
+terms such as "2 years" or "between 8 and 9 weeks",
+the specialist accepts time intervals stated in vague terms
+such as "several days", "nearly a month", or "a few weeks"
+as in U1.
+The time specialist also
+can answer questions about
+events whose time was not explicitly given.
+Questions that require the time specialist to 
+search for events that occurred at a
+specified time expression such as "before I was 10" 
+(U5 and S4) also are accepted.
+.next page
+.once center 
+Figure 1: A Conversation with the Time Specialist
+.skip
+.begin single space indent 0,0
+
+(U1)
+User: I was born January 25, 1952. When I was
+a few weeks old I had an operation.  I began
+grade school when I was 5.  I graduated grade
+school in June 1965. I went to England two
+years later.  I stayed in England for 8 or 9 weeks.
+
+(U2)
+User: How old was I when I left England?
+
+(S1)
+System: 15.5 years give or take 1.6 months
+
+(U3)
+User: Explain your answer.
+
+(S2)
+System: The time of the end of the trip to England
+is August 17, 1967 give or take 1.6 months and the
+time of birth is exactly, Friday, January 25, 1952.
+
+(U4)
+User: How long ago did I go to England?
+
+(S3)
+System: Between 8 and 8.3 years ago
+
+(U5)
+User: What happened before I was 10?
+
+(S4)
+System: The beginning of grade school, the operation,
+and birth
+
+(U6)
+User: I was born May 5, 1955.
+
+(S5)
+System: I thought the time of birth is January 25, 1952
+not May 5, 1955, are you referring to the same birth?
+
+(U7)
+User: Yes
+
+(S6)
+System: Is May 5, 1955 correct?
+
+(U8)
+User: Yes
+
+(S7)
+System: Earlier I was asked how old the person was at end
+of the trip to England, and I replied 15.5 years give or take
+1.6 months.  However, my reasoning was based on the fact that
+the birth was January 25, 1952, which you now say is incorrect.
+We could either forget it or I could answer the question
+again. Shall I re-run it?
+
+(U9)
+User: Yes
+
+(S8)
+System: The answer is now "12.3 years give or take 1.6 months"
+.end
+.next page
+
+The time specialist checks incoming facts for
+contradictions with previously entered facts. The statement
+"I was born May 5, 1955" (U6) is inconsistent with
+a previous statement.
+The time specialist begins to resolve the
+contradiction by making sure the same event is being
+referred to (S5).  Then it asks whether the new fact
+is correct (S6).  (If more than one old fact had been involved
+in the contradiction, then the time specialist would have
+asked about
+each one in turn.)
+
+After finding that the old fact, "I was born January 25, 1952"
+is invalid, the time specialist attempts to correct the
+situation.  It marks the old fact as "not to be believed"
+and searches for facts that were deduced from that fact
+and doubts those in turn. For example, it had deduced that
+the end of the trip to England was August 17, 1967 and
+it found that this deduction was partially based on the original
+date of birth, so it is also tagged the date of the trip as unreliable.
+(It also looks for other facts that were responsible for the
+doubted fact, but there were none in this example.)
+Finally, the program considers answers to previous questions that made use
+of the fact in question.
+It then explains the situation to the user (S7),
+and attempts to answer the question again if desired (U9 S8).
+
+In what follows, we will discuss the operation of the program in terms
+of its three major functions.  These functions of the time
+specialist are depicted schematically in Figure 2.
+First, we
+will consider how statements of knowledge which embody some
+reference to time can be represented in a consistent way.  Second,
+we will discuss how plausible deductions concerning
+these statements can be made by a program that knows only about
+the temporal characteristics of the knowledge involved.  Finally,
+we will discuss the problems of maintaining a
+consistent set of temporal references by detecting
+inconsistent or potentially contradictory pieces of knowledge.
+
+.next page
+.next page
+.once indent 0
+THE REPRESENTATION OF TEMPORAL REFERENCES
+
+It is natural first to approach the problem of representing
+statements involving temporal references through the use of
+a single representation into which all such statements are converted.
+For example, each occurrence can be associated with the date on
+which the it began and the date of its conclusion.  All
+events that happened during a particular time interval, then,
+can be retrieved simply from a date line, a list of
+events sorted into chronological order.
+
+In many situations, however, the date of an event is unknown
+or irrelevant.  Suppose for example the following two statements 
+were given to the time specialist: "Event A was after event B
+by four months" and "Event B was before event C by six weeks."
+Surely we would like the time specialist to be able to answer
+the question of how much later A was than C through the obvious
+means of subtracting six weeks from four months.  To force
+the conversion of these expressions to ones involving dates seems inappropriate,
+even
+if the dates of A, B, and C are known or computable.
+
+Another problem with using dates (or any point estimates) as the
+only means for specifying temporal items is that it is difficult
+to preserve the inexactness or fuzziness of statements
+such as "A few weeks ago I
+had a cold." If the time specialist converts
+such a statement to one involving a date and an associated interval
+(the latter reflecting the uncertainty about the precise time), it may lose much of
+the original information.  If asked, for example, "When did the
+patient have a cold?", it may not be able to produce the reasonable
+answer "a few weeks ago."
+
+For reasons such as these, the time specialist was constructed to
+deal with different kinds of temporal specifications.
+The time specialist has routines that can compare time expressions
+of different kinds, translate between them, 
+and combine time expressions in making inferences.  The complete specification of
+statements accepted by the time specialist is given in Appendix I.
+
+Because of the limited scope of 
+this research, however, certain temporal specifications are
+unintelligible to the time specialist.  Example (6), "John
+saw Mary a while ago", is one such specification.
+The problem is that the phrase "a while ago" (or "recently")
+is extremely context-dependent.  If John and
+Mary live together, the meaning of the sentence is quite different than if
+they live in different countries.  The frequency of their
+being together is only one consideration; if the speaker and
+listener both had seen John and Mary a few hours before
+the sentence was spoken, a different meaning should be inferred
+than if that was not the case. In
+some sense, the time specialist can handle example (6),
+by paraphrasing the sentence as, "John saw Mary before now"
+and making no assumptions about the interval concerned.  This
+is, however, only a partial solution, since there are cases where
+a person will make certain assumptions about the interval
+and use those assumptions in answering
+questions.
+
+
+.once indent 0
+ORGANIZING TEMPORAL SPECIFICATIONS
+
+.indent 5,0,0
+The manner in which the time specialist organizes the incoming
+statements is important, because this organization
+may markedly influence the efficiency with which
+questions can be answered.
+A temporally sorted date line will make the retrieval
+of those events which occurred within a particular interval
+both simple and fast.  Other organizations
+are preferred, however, if many dates are unknown or
+different types of questions
+are anticipated.  Therefore, the time specialist
+has several different ways of organizing the events in its memory.
+The choice of which organizing schemes
+are employed is under the
+control of the user.
+
+Organizing by Dates: One way in which the time specialist can organize events is
+by their dates.  If it has been requested to do so,
+the time specialist checks
+new facts to see if they are
+"date" types, and if they are, it inserts them into the date line 
+in an appropriate chronological position.
+The date line is represented by a list of 
+event specifications, each including a date and a
+pointer to the time specification from which
+the date was obtained or inferred.
+Thus the date line can be revised when the
+fact in question is no longer to be believed.
+
+If the incoming
+fact contains a date and an implicit fuzzy expression
+(e.g., "June, 1965"), then the upper and lower bounds
+for the date are computed, and each is inserted into the date line,
+marking an interval for the event.
+When no date is obvious for a time specification,
+the time specialist can invoke a
+program that will attempt to discover
+the date of the event so the event can be placed properly in the
+date line. This program is one of the "methods" which
+will be discussed below.
+
+
+
+Organizing by "Special Reference Events":
+Another way the time specialist has of organizing facts is
+in terms of special reference events, events
+(e.g., "birth" and "now") that often are referred to (perhaps
+implicitly) in giving the time of particular
+occurrences.foot<The choice of which events are special reference
+events is made by the user of the time specialist, but the
+time specialist itself could make such decisions after inspecting
+statistics on which events are referred to most often by
+other events.>
+Typically, the time of a special reference event is known quite
+precisely.  Therefore, it can be used to assess the time of events
+related to it.  For example, the time of the event "A" can
+be determined with considerable confidence from the statement "Event A
+happened a few days after my twelfth birthday."
+If a new event entering the system does not 
+refer to some special reference event, then the time specialist
+attempts to find one for it.
+If it succeeds, a link between the incoming event
+and the special reference event found
+is added to the data base.  Thus, in terms of our example, if the incoming
+statement is "Event B began when I was 15" then the
+system can use the "the day of birth" as a special reference
+event to find the relation between A and B.
+
+Organizing by "Before/After Chains":
+Another form of organization employed by the time specialist
+uses the notion of "before/after" chains.  Such a
+chain occurs often in a story where the principal events
+form a sequence.
+For example, suppose the system had been told
+.skip 1
+
+.begin indent 15,5,5;single space; nofill
+(1) Event A was a week before event B.
+(2) Event B was three weeks before event C.
+(3) Event C was a month before event D.
+(4) Event A was two months before event D.
+.end
+.once indent 0
+The time specialist would create a chain "(Event A, Event B, Event C,
+Event D)" and a chain "(Event A, Event D)"
+to reflect the two "temporal" paths through 
+this series of events.  Such paths often are useful in answering
+questions about the time of events in the chain, particularly when
+additional temporal characteristics are known for some members of
+the chain.
+
+In Figure 3, we have depicted the facts in the story given above,
+organized in three different ways --- with a date line, using
+before/after chains, and using special reference events.
+
+ 
+
+Analyzing an Incoming Statement:
+When a fact is added to the system, there may be a number
+of analyses brought to bear on it by the time specialist depending on the commands from the higher-level program.
+We
+have indicated the three major ones in our above discussion,
+namely the deduction of a date for the facts, the association
+of the event to the nearest special reference event, and the
+insertion of the event into an appropriate before/after chain.
+Any or all of these functions may be applied to a given
+event.  It is not necessary, however, that the methods
+be applied at the time that the event is entered.  The time specialist
+leaves a record whenever
+a given method is applied to a fact.  If, at a later
+time, the higher-level system wants another method applied to
+the fact in question, it is easy to do so.  For example, if the
+higher-level program decides that a date-line would be useful,
+it can activate the function which constructs the date-line
+to make the date-line current.  
+Thus, the time specialist can accept
+statements without deducing
+all those aspects which may have some potential use.
+.next page
+require "fig3 >" source
+.next page
+.once indent 0
+ANSWERING QUESTIONS
+
+The time specialist can answer three types of questions about
+the facts it has in its data base.
+These types are sufficient for the representation of the
+essence of a wide variety of superficially different requests.
+The three basic question types are:
+.skip
+
+.begin indent 15,5,5;single space;nofill
+(1) Did event X happen at time expression T?
+(2) When did event X happen?
+(3) What happened at time expression T?
+.end
+
+
+
+The question-answering ability of the time specialist is
+embodied in a set of programs collectively called the fetcher.
+The tasks of the fetcher are to accept a pattern which specifies
+a particular question, to interpret the pattern to determine
+the type of question involved, and to select one or more appropriate
+methods for answering the question.  The fetcher has a rather
+large number of methods at its disposal.  Each method is an
+independent program which is designed to answer a particular kind
+of question by making use of a particular organization of facts
+in the data base.  For example, there is a method which is designed to
+answer questions about dates by making use of a date line.  In
+this section we will review briefly the various methods employed
+by the fetcher and indicate the way in which they
+are used to answer various kinds of questions.
+
+Equivalent Temporal Specifications:
+The simplest way a question can be answered by the time specialist is
+that the fetcher finds that the answer is already known explicitly
+or that a fact equivalent to the answer is known.
+For example, suppose the system had been told that Event A
+was three or four days after Event B.  If later it was asked if
+Event B was about a half a week before Event A, the time specialist should
+know the answer.
+
+The time specialist employs a method
+to see if an equivalent means of expressing
+the requested item is already known.
+In assessing the equivalence of two temporal
+specifications, this method uses knowledge of
+the meanings of such relationships as "before," "after," and
+"same as," as well as the meanings of the various time units.  It may be possible to make the
+required assessment with only
+rather straightforward conversions.  If the items are different representation types, however,
+(for example, one in terms of the fuzzy notation and the other in terms
+of intervals) translation of
+one item into the type of the other is required before the application of the equivalence
+tests.foot<There is one problem in the
+assessment of equivalence, if the pattern being used to retrieve items from
+the data base has a "fuzziness" within it.  Currently, the test of whether one
+fuzzy event occurs within the interval specified by another
+fuzzy event depends on which type of
+representation is involved.  Each representation has associated
+with it a specialized program which computes the percentage of
+overlap between a retrieved item and the pattern which represents
+the question involved.  These routines leave behind comments on
+how well the items in the question matched the item retrieved
+from the data base.> 
+
+Deduction in Question Answering: 
+When the fetcher fails to find an equivalent expression in the
+data base, it must invoke other methods to try to deduce
+the answer to the question.  As we noted above, these methods
+are specialized to particular kinds of questions and to particular
+kinds of organizations of facts.
+
+Using dates: Many questions can be answered using dates.  In the case where the
+dates are stored in the system, then the question
+can be answered simply.  For example, if the time specialist
+is asked what events occurred within a particular time interval,
+then it will retrieve the section of the date-line that falls 
+between the dates of the end points of the interval.
+foot<This retrieval
+can also incorporate the so-called group specialists to filter out
+those events which are not of the desired type.  At present the
+time specialist does not segregate events from different groups
+into different date lines.> Alternatively, if the time specialist is asked
+whether one event occurred before another, a comparison of the
+dates of the event will be sufficient.  The subtraction
+of two dates is sufficient for answering questions about the 
+temporal relationship of two events.
+
+
+Dates are so useful that it is often worthwhile
+determining the date of an event when one is not given.  The time
+specialist has an indirect method for inferring the date of an event
+using reference events.
+The idea is simple: to find the date of an event, find a relative
+time expression for the event in question and look for the date
+of that time expression's reference event.  If that date is
+found, then the date of the original event can be determined.
+For example, suppose the system had been previously told:
+.skip 1
+.begin indent 15,5,5;single space;nofill
+(1) A week after the sore throat I had headaches.
+(2) The sore throat was March 21, 1975.
+.end
+
+.once indent 0
+To answer the question "When were the headaches?" a method
+would find the first fact.
+Once the date
+of the reference event, the
+sore throat, is retrieved, it is a simple matter to
+produce a date for the headaches.  If the date of the reference event is not known, the
+date-finding method can be recursively applied to try to find it.
+
+Using Relative Expressions: 
+Suppose the time specialist has been told
+"Three weeks ago I had a cold and two
+weeks ago it was over", and later it is asked
+"How long did my cold last?" It seems
+natural that it simply subtract two weeks from three weeks and
+respond "one week," rather than calculate the dates of
+the beginning and the end of the cold and use subtraction.
+Further there are many such cases where the time specialist will
+not have
+the choice of computing dates.
+
+The fetcher possesses a method which tries to deal with such
+a problem.  When a question concerning the relationship between
+two events is posed, this method attempts to find
+facts in a data base which
+relate the events to a common special reference event.  If
+it succeeds, it can easily determine the temporal relationship
+between the events in question.  If it fails, it
+attempts to find two special reference events linked to one another which
+in turn link the two events in question.  For example, consider
+"Three years ago I graduated from college, and I started college
+at the age of 18." In order to determine how much time was spent
+at college, the time specialist can use the special reference
+event link from the beginning of college to birth and another such
+link from the end of college to now.  Because it knows the
+"distance" between the two special reference events, in this case
+age, it can answer the question.  Typically such links between special reference events
+do exist, because of the importance of these events in answering
+a variety of questions.foot<There is another version of this method that uses the
+full power of the fetcher to try to establish such links if they
+do not exist.  This method will not be invoked on the second
+call to the fetcher, because it does not apply to questions that
+explicitly mention a special reference event.>
+
+There is a similarity between the time
+specialist's special reference events and Minsky's
+notion of capitals discussed in his frames paper.(4)
+He makes the analogy
+between a frame system and the roads or airline routes.  One
+does not in general know how to get from each place (event) to
+another (reference event) directly. Instead one knows how to
+get from one place to a major "capital" 
+(special reference event) and how to go between major capitals.
+
+Using Before/After Chains:
+The fetcher also employs the before/after chains in trying to
+find relationships between events.  Basically it seeks a chain
+that contains both the events in question, and then attempts to
+find the shortest path between the two events in the chain.
+When this path has been determined, the time specialist
+uses the intervals of each link in
+the chain to compute the overall time interval between the two events.
+For example,
+if the before/after chain "(A, B, C, D)" is in the data base,
+and the time specialist is later told that A is before C by some
+amount, then in determining the interval between A and D then
+it only needs to combine the "distance" between A and C and the
+"distance" between C and D.
+
+The fetcher
+cannot be confident of the intervals determined from a long
+before/after chain, because in combination of fuzzy information, considerable
+inaccuracy is introduced.  Links between special
+reference events, however, often are known with great accuracy.  (For example,
+the "distance" between birth and now).  Therefore, whenever possible the fetcher
+seeks to "jump over" segments of a before/after chain through
+connections between two special reference events.
+
+The before/after chains are also useful in several other contexts.
+For example, if the question pattern requires only the relative
+order of the events, not the temporal distance between them,
+then finding a before/after chain may solve the problem.  Similarly,
+if the question requests all events of a particular group
+which occurred between two
+specified events, then finding the specified events in before/after
+chains will yield at least some of the required answer.  Of course
+in this latter case it may be necessary to filter the events by
+a group specialist.
+
+The Last Resort:
+When all other methods fail, a breadth-first search
+can be invoked as a last resort.  The search follows all chains away from the
+event until the reference event in question is found or until the chain
+terminates.
+This method could be used for all fetches of the time of an event, 
+but of course it
+would be exceedingly slow.  Because of its computational inefficiency,
+it is used only sparingly.  Another problem with the use of this
+method is that although a chain between two events may be found,
+the chain may include so many events with fuzzy specifications that
+the overall time interval may be
+so uncertain as to make the answer virtually meaningless.
+
+Selecting a Method for Application: 
+When the fetcher is called with a question pattern, it must decide
+which methods it will employ in trying to provide an answer.  Currently
+its choice depends on two factors.  First, it considers the type
+of time specification which occurs in the pattern.
+Second, it determines whether events are
+specified or whether events are required to fit within a certain
+time expression.  Once these determinations have 
+been made, it is
+a simple matter to select a subset of the available methods for
+application.  For example,
+if the question asked what events occurred between two dates, then
+the method that selects the appropriate portion of 
+the date line and the method that checks
+if each known event occurred within the interval would be selected.
+The selection of appropriate methods is easily
+accomplished, but the order in which
+the methods should be applied remains a problem.  Presently the order of the methods is determined
+by a static estimate of their likelihoods of
+success.  In a more advanced system, of course,
+other factors such as the characteristics of the items in the data
+base and statistics on the past success of methods would influence
+the default order.
+
+The effort the caller wants to put into the task is reflected in the use of the
+selected methods.
+Clearly the time specialist cannot know how important any particular
+fetch is to some higher level problem-solving program.  For this
+reason an effort measure can be passed to the fetcher
+along with the question pattern.  Presently this effort measure
+is approximated by the amount of CPU time necessary to complete
+a fetch.
+
+
+.if lines < 10 then next page
+.once indent 0
+MAINTAINING THE CONSISTENCY OF THE DATA BASE
+
+In addition to accepting temporal specifications,
+the time specialist attempts to assess the plausibility of a particular
+statement and its consistency with statements already
+in the data base.  Consider the following facts:
+.skip 1
+.begin indent 15,0,0; single space; nofill
+(1) The cold ended last week.
+(2) Three weeks ago there was a party.
+(3) A couple of days after the party the cold ended.
+.end
+
+.once indent 0
+If the same cold and party are being referred to, 
+the "fuzziness" of these expressions is not sufficiently great
+to account for the discrepancy among these statements.
+We would like the time specialist to recognize this
+and to correct the situation if possible. 
+
+The module that detects this kind of inconsistency
+was easy to implement by making use of other portions of the time
+specialist.  The time specialist invokes its question-answering
+function to check the consistency of the latest fact with facts previously accepted.
+It asks the fetcher whether the latest fact is true.  Three
+outcomes are possible for this request.  The fact already may be 
+known.  There may be insufficient 
+information to answer the question, in which case the fact
+is accepted.  Of course it may be contradicted later.
+The third possibility is that enough is known to determine
+that the new fact is inconsistent with facts previously learned.
+Notice that an apparent inconsistency need not be 
+a real one.  It may be that the events being referred to 
+are in fact different events than the ones known in the data base.
+Thus in the above example, the party that is referenced
+may be a different party in the two statements.
+
+When an inconsistency is detected, the normal course for the
+time specialist is to engage in a conversation with the user to
+ascertain whether the events in question are the events currently
+known to the time specialist.
+If they are indeed different
+events, then the new item can be added to the data base, but
+the time specialist must store with it a reminder that 
+the new event is different from the events it previously knew about.
+When the events are the same, then the
+apparent inconsistency is explained to the user, and the user
+is asked if the new fact is wrong. If it is, then the fact
+is rejected and the user is free to add a revised version of it.
+If the new fact is correct, then the user is asked about each
+of the other facts which are involved in
+the apparent contradiction.  If the user asserts that each fact
+is correct, then the inconsistency is allowed to stand and a certain
+amount of indeterminism has been introduced into the data base.
+If, however, one of the offending items is no longer to be believed, then its status is changed, and the entire mechanism for undoing
+the consequences of having believed that fact is invoked. foot<Of
+course, this rather simple approach will not solve all problems.
+One inconsistency that it will not discover is that the
+beginning of an occurrence may be said to be after its end, but
+this inconsistency can be detected easily by asking the question-answering program 
+somewhat different questions.
+Notice, however,
+that in time-travel stories,
+this normally obvious constraint is not always valid.  It should
+not be applied to time trips.>
+
+Ideally the time specialist should complain about
+implausible items entered into the system.  A cold 
+cannot have a duration of several hundred years, and someone cannot
+gain twenty pounds in an hour.  Unfortunately the time specialist
+alone cannot detect such implausible or impossible items.  It can,
+however, be expected to provide a certain amount of help to a
+higher level problem solving program charged with this responsibility.
+If that program can provide the time specialist with some bounds
+on the duration of a cold or the minimum time
+for a given weight gain, then
+the time specialist can use its temporal knowledge to assess the
+plausibility of the events in question.  The point is that the
+assessment of the plausibility of a new item is to a large extent
+a function of the higher level problem-solving program, and the
+time specialist can only be expected to provide support for this
+activity.
+.if lines < 10 then next page
+.once indent 0
+CORRECTING ERRORS
+
+It is one thing to reject an item that appears to be implausible
+or inconsistent with knowledge in the data base, but it is an
+entirely different matter to undo the effects of having 
+believed something incorrectly.  Thus when it is told that a previously accepted fact
+is now to be doubted,
+the time specialist faces a rather complicated problem.  Other
+facts may have been deduced from the suspect fact, and these,
+too, perhaps should be under suspicion.  On the other hand, the
+questioned fact may not have come directly from the higher-level
+problem-solving program, but itself may have been deduced from
+other facts. At times, these other facts should be doubted, but
+at other times the original facts should remain.  In addition,
+answers to previous questions now become
+suspect when the reasoning employed the doubted
+fact.
+
+	For example, when a previously accepted fact is 
+no longer to be believed,
+the before/after chains which reference this fact should
+be corrected.  
+Assume the time specialist has
+formed the chains "(Event A, Event B,
+Event C, Event D)" and "(Event A, Event D)",
+and it subsequently is
+told to doubt that "Event B
+is before Event C."
+The program generally will destroy those chains containing 
+both Events B and C.  If a chain can be easily saved, however,
+(as when both of the events in question are at
+the beginning or both are at the end of a chain), then the
+chain is shortened in the appropriate manner.  Notice that
+were the chain "(Event A, Event D)" based on a fact that in
+turn was based on the doubted fact, it too would be doubted and
+the incorrect chain would then be destroyed.
+
+
+
+
+When it makes deductions, the time specialist
+retains information about which facts were used in
+the process.  Then when it is told to doubt a particular fact,
+it can determine whether each of
+the deduced facts remains
+consistent with the facts known in the data base.  Some of these
+deduced facts will come under suspicion, and the
+entire process will be applied recursively to the newly-doubted
+facts.  Quite understandably this process requires
+a considerable amount of computation; it will, however, maintain
+the data base in a consistent fashion.
+
+As we noted, the fact under suspicion may have caused the time
+specialist to answer questions incorrectly.  Unfortunately
+the time specialist cannot know what has been done with the
+answers it provided, but it can interact with the user, if it no
+longer believes an answer formerly given.  To discover which
+answers should be doubted, the time specialist uses comments
+left behind by the fetcher that indicate what facts were
+used in answering a particular question.  The higher level program is given an opportunity to
+ask each such question again.
+ 
+
+Although these solutions are not complete, they do allow the
+time specialist to undo most of the effects of incorrectly believed
+facts.  Clearly much more work is required to solve this problem
+in a general way.  The complexity of the problem is such that
+in some circumstances, the simplest and most efficient solution
+may be to change the fact in question and to re-learn
+the whole set of facts that are affected.
+
+.if lines < 8 then next page
+.once indent 0
+UNDERSTANDING A TIME-TRAVEL STORY
+
+In order to test the various functions of the time specialist
+and to assess whether they were sufficient to deal with a
+variety of temporal references, we applied the time specialist
+to the problem of understanding a time-travel story.  Although
+this application may seem somewhat frivolous and esoteric, it
+is nonetheless one which provides a good exercise of the time
+specialist's capabilities.  The very fact that travel through time
+permits a number of ostensible paradoxes to exist exposes virtually
+the full range of assumptions implicit in the program.  Of course,
+an important aspect of time-travel stories is that some of these
+assumptions need to be disabled if the story is to be understood
+properly.  For example, a person
+can be alive in a time-travel story at a point in time which is
+before his birth.
+
+For the time specialist to deal with time-travel stories, we had to extend its capabilities somewhat.
+The most important extension
+was to equip the time specialist with the ability to look at
+facts from two different points of view.  The first point of
+view is the normal "universal" point of view in which time follows
+its normal, somewhat pedestrian, course.  From this point of
+view, the experiences of the time-traveler are seen as creating
+paradoxes.  If the time specialist truly is to understand
+time-travel stories, however, 
+it must be able to appreciate the point
+of view of the time traveler himself.  From this point of
+view, temporal paradoxes vanish and the traveler enters and leaves the
+linear course of time at will.  Therefore, in order to answer 
+questions about time-travel stories, the time specialist must
+assume an appropriate point of view.  For this reason, the
+understanding of such stories presents an interesting test
+case in which the capabilities of the time specialist can be
+investigated.
+
+The following is a very condensed version of the story,
+"All You Zombies" (5) (with apologies to Robert Heinlein).
+It is a paraphrasing of what the
+time specialist is told. 
+.begin indent 0 narrow 5,5 single space
+On November 7, 1970 the Unwed Mother comes into "Pop's Place".  He is 25 years old. He tells the story:
+
+.begin narrow 10,10
+I was left at an orphanage in 1945 at a month old.  I was girl
+and at 18 I was placed as a "mother's helper" and then I met a
+"city slicker". Then one night "my pants did come off".  I got
+pregnant and gave birth to a baby girl. I underwent a Caesarian and was changed to a male during the operation. Four weeks
+later the baby was snatched. 
+.end
+.break
+To help find the man who stole the Unwed Mother's baby,
+the bartender offers to take him back in time.  They travel to
+April 3, 1963.
+The Unwed-mother meets a "nice girl", whom he gets pregnant.
+The bartender goes off to March 10, 1964.
+The bartender steals a baby and takes it to September 20,
+1945 and abandons it at an orphanage.  He then goes to
+April 24, 1963 and meets the Unwed Mother again. He recruits
+him into the time service and leaves him off in August 12,
+1985.  The bartender goes back to January 12, 1993 and
+writes a report.  It occurs to him that its been 30 years since
+he was recruited. (He gets undressed and looks at his Caesarian
+scar.)
+.end
+
+The original story was read to a college class of about
+25 students. Most people realized that the "nice girl"
+the male Unwed Mother met was himself years earlier.
+Fewer concluded that the
+bartender was the Unwed Mother after being in the
+time service
+and that the baby that the bartender stole was
+the Unwed Mother.
+Of course the story is longer, (about 14
+pages) so the students had to contend with many details
+and had difficulty remembering all the facts.
+
+Figure 4 depicts the "time line" and the time-travel trips
+schematically.
+Figure 5 is a paraphrasing of a question-answering
+session after the story was entered into the
+time specialist.  The answers to the "why" questions are
+greatly pared down.
+.next page
+require "fig4 >" source
+.next page
+.once center
+Figure 5: The Time-Travel Story
+
+
+.begin single space; indent 0,0
+User: How old is the bartender at the end of the story?
+(This is from the bartender's point of view)
+
+System: Dont know.
+
+User: Assume that the bartender's recruitment
+is synonymous with the Unwed Mother's recruitment and that
+the birth of the bartender is synonymous with the birth of
+the unwed mother.
+
+System: 56 years give or take 2.5 years.
+
+User: Explain your answer
+
+System: It has been 30 years since the bartender was recruited,
+which occurred at the same time as the end of the fifth time
+trip which occurred at the same time as the beginning of the
+fifth time trip ... which occurred at the same time
+as the beginning of the
+first time trip which was between 25 and 26 years after
+birth.
+
+User: How many years have passed since he was born? 
+(This is the same question as before except it is asked
+from the "universe's" viewpoint.)
+
+System: 48 years give or take 6 months
+
+User: Why?
+
+System: Because birth was May 7, 1945 give or take
+6 months and it is now January 12, 1993
+
+User: Was the time of the Unwed Mother being left at
+the orphanage the same as the time of the bartender's
+abandonment of the baby?
+
+System: Yes, the Unwed Mother was left at the
+orphanage 3.4 months before the bartender abandoned the
+baby give or take 6.3 months
+
+User: Why?
+
+System: The bartender abandoned the baby on September
+20, 1945 and the Unwed Mother was left at the orphanage
+about June 7, 1945 give or take a 6.3 months.
+
+User: What is the relation between the meeting of the
+(female) Unwed Mother and the "city slicker" and the
+meeting of the (male) Unwed Mother and the "nice girl"?
+
+System: The Unwed Mother met the "city slicker" 1.5
+give or take 2.1
+years after meeting the "nice girl".
+.end
+.next page
+
+	The last answer is evidence for the need for the
+inclusion of fuzz in the temporal representation of events.  
+Once the hypothesis
+that all the characters of the story are the same person
+is entertained by a higher-level understanding system, foot<This
+role was performed by the authors. The problem of automating
+that process is beyond the scope of this research.> it may
+want to confirm that it is possible that the "nice girl" is
+the Unwed Mother at an earlier age, and that the "city
+slicker" is also the Unwed Mother.  The time
+that the Unwed Mother met the "city slicker," however, is 
+given vaguely in the story as sometime after becoming a mother's
+helper when she was 18.  Also until it is concluded
+that the baby the bartender abandoned was the Unwed
+Mother, the date of birth of the Unwed Mother is only
+known to fall within a particular one year interval.  
+Were one to consider
+only the most probable time of occurrence of these events,
+then she met the "city slicker"
+later than he met the "nice girl".  It is only when the
+fuzz is considered that one can conclude that they could
+have occurred simultaneously.
+	Another interesting answer the time specialist
+gave is to the question about how long ago the bartender
+was born.  The answer is incorrect, and within the 
+framework presented it cannot be corrected easily.  The problem
+is that the time specialist deduces that the bartender
+was born in 1945, since he was 25 in 1970.  
+He was born in 1964, however, and as a one month old infant was taken
+to 1945.foot<Notice that telling the story in this
+manner, giving the date of the birth first, followed by the time
+trip, would cause this problem to vanish. It would also vanish if
+the question referred to the birth of the baby.>
+Normally,
+the time specialist is justified in representing age as
+time since birth, but here the assumption is invalid.  Because of the limited value of a
+special representation of age to handle time travel stories, however,
+no changes to the time
+specialist were undertaken.
+	One problem, not peculiar to time travel stories,
+that became apparent while representing the story is that
+often one uses real world knowledge to infer some of
+the intervals of time.  Commonly, a time of an event is known, a
+series of happenings follow it without any information about
+their duration.  To guess the interval between the two end
+events, one often fills in normal durations for the
+activities that intervene.  Fortunately in situations
+where so little information is available, only rough
+approximations to the interval are usually necessary.  These
+rough, very fuzzy intervals were provided by the authors
+in entering the story above.
+
+
+.once indent 0
+DISCUSSION
+
+The time specialist programs which we have discussed above
+were designed to test the hypothesis that it is possible to
+encode knowledge about time "in general" in procedures which
+can be invoked in the service of higher-level problem-solving
+systems.  Our initial investigations of the use
+of the time specialist in several different problem settings
+encourage this view.
+On the other hand,
+a final assessment of the usefulness of such an approach must
+await more extensive testing.  This testing, in turn, will
+depend upon the construction of rather elaborate problem-solving
+programs, because it is only within the context of such programs
+that the time specialist can be properly exercised.  For this
+reason, we intend to include a revised version of the time
+specialist in some rather large programs designed to solve
+medical decision-making problems.  These programs will require
+extensive knowledge about time and, therefore, we should be able
+to gain much more information about the long term usefulness of
+this approach.
+
+Although a final evaluation of the time specialist must await further
+testing, it is possible for us at this point in time to identify
+a number of problem areas within the time specialist itself.
+Most of these involve extensions to the time specialist, rather
+than alterations of its basic structure.  A number of these
+extensions are:
+.begin indent 5,5 single space
+	(1) The extension of the representation to 
+include recurring events.  The main
+problem here is how to incorporate
+the use of arbitrary predicates within dates and to
+make these predicates intelligible to the
+methods of the time specialist.foot< This is discussed at some
+length in Kahn (3).>
+	(2) Improving the program's ability to use facts about classes of
+events to infer the time of particular instances of the class.
+This requires a module separate from the time specialist
+that is an expert in classes and instances.
+	(3) The integration of "periods" into the time specialist
+as another organizing principle.  This is similar to
+the previous item except that time specialist should not
+require another module's help.  The time specialist could
+be an expert in classes and instances when the classes are
+temporal or periods.
+	(4) The break-down of the date-line and before/after
+chains into smaller units whose events are semantically linked.
+The semantic grouping of events would be provided by a 
+different specialist.
+	(5) The use of more complete analysis of questions to
+determine the appropriate methods to be used in answering them.
+The problem here is to determine what additional information
+would be useful and how the various methods would benefit from
+the analysis.
+	(6) The dynamic reordering of the methods in accordance
+with an estimate of their relative cost effectiveness.  Statistics
+as to the performance of the various methods are kept, so a crude
+estimate of the cost effectiveness of the methods is easily
+obtainable.  A better measure would take into account the
+reasons for failure of a method and the type of question involved.
+The measure would also be improved by use of the analysis of
+the question discussed in the previous item.
+	(7) Improving the mechanism by which methods
+interact so that
+each method can learn more about the causes of other
+methods failures. Perhaps this mechanism
+should be a data base context, so that the methods remain modular and
+independent.  One problem here is how the methods make use of
+the information without becoming more complex programs.
+	(8) The program needs a more refined representation of fuzz and
+better rules for combining fuzzy expressions.
+.end once indent 0
+These extensions will improve the performance
+of the time specialist on problems it already can solve, and
+they will increase the scope of the 
+problems that the program can handle.
+	One research question is how to handle context-dependent fuzzy expressions.  How should "a while ago",
+for instance be
+represented? How does real world knowledge constrain the
+meanings of such expressions? A related problem is how
+to handle expressions such as "the accident we saw a few minutes
+ago", where the time expression is used to identify an
+event whose time is already known to the speaker and to the hearer.
+A very interesting question is how the parser and the time specialist should
+interact and what sort of interface they should have.
+The parsing of temporal specifications and questions
+in a natural language into the language of the time specialist
+is a difficult problem that needs to be resolved if the time
+specialist is to be truely useful. One subproblem is to
+determine the linguistic clues that influence the vagueness
+or fuzz.  For example, how does the expression "I think"
+preceding the statement influence the determination of the fuzz.
+The ways in which the use of tense
+influence the representation of sentences is an
+interesting research problem in itself. 
+	Another, more speculative 
+research problem is to determine how subjective time
+differs from the time of the time specialist.  
+Are perceived events remembered in a structure similar 
+to before/after chains?
+If so, can
+the time specialist use the length of such a chain in
+assessing the subjective duration of the sequence of events in question?
+Surely, the matter is not simple, but perhaps a good start on the
+problem may be made in this way.
+	Finally, the construction of specialists of
+other common elements of problems, such as distance and rates,
+presents many interesting possibilities.
+One is that the structure and knowledge of these specialists will
+have many similarities.
+The most important possibility, however, is
+that the task of building intelligent machines
+will be eased significantly by the availability of a small set of specialists, experts in
+important aspects of problem solving.
+ 
+.next page
+.begin center 
+REFERENCES
+.end
+.begin fill preface 0
+.single space
+.begin nofill preface 0
+(1) Bruce, B.
+.fill
+"A Model for Temporal References and Its Application in a
+Question Answering Program"
+.nofill
+Artificial Intelligence 3 (1972)
+.skip
+(2) Findler N. and Chen D.
+.fill
+"On the Problems of Time, Retrieval of Temporal Relations,
+Causality, and Coexistence"
+.nofill
+International Journal of Computer and Information Sciences,
+Vol 2, No. 3 (1973)
+.skip
+(3) Kahn, K.
+"Mechanization of Temporal Knowledge"
+Massachusetts Institute of Technology, Project MAC Technical Report No. 155
+.skip
+(4) Minsky, M.
+"A Framework for Representing Knowledge"
+MIT AI Laboratory Memo MIT-AI-306 (June 1974)
+.skip
+(5) Heinlein, Robert A.
+i6 x Hn, Pyramid Communications, Inc., New York, 1959.
+.end end
+.next page
+.once center
+APPENDIX I
+
+.once indent 0
+Time Specifications: We define a time specification as follows:
+
+itime-specification ==> (TIME-OF <event> <time-expression>)n
+
+.begin indent 0
+where time-expression is defined as,
+.end
+.begin turn off "{}"
+.break
+i time-expression ==> (<relation> <reference-event> {<amount>})n
+.end
+.once indent 0
+As stated earlier, the time specialist considers events
+to be points in time.  Any occurrence with a duration greater than
+the minimum unit of interest foot<In most of the applications
+considered, this minimum is a unit of time of one day.> is defined
+in terms of two points in time, one corresponding to the beginning of
+the occurrence; the other event, the end.  This is expressed as:
+.begin single space narrow 5,5 preface 0
+.skip
+ievent ==> (<event-type> <event-description>)
+.break
+event-type ==> BEGINNING-OF | END-OF | ALL-OF.r
+.end
+.once indent 0
+The representation of the "event-description" was not considered to
+be a problem directly related to
+this research, and therefore is handled in an iad hocr fashion.
+.once indent 0
+
+Dates: Although dates can be expressed in the
+basic representation, it was decided that an alternate, more convenient representation of dates would
+result in a more natural operation of the time specialist.
+A date-expression was defined as follows:
+
+.begin narrow 5,5 single space crbreak preface 0
+.skip
+itime-expression ==> <date-expression>
+date-expression ==> (DATE <date> <fuzz-expression>)
+date ==> (<year> <month> <day>)r.
+.end
+.once indent 0
+"Fuzz-expression" will be explained later. An example
+of the "dates" representation
+is the "parsing" of the sentence
+discussed earlier, "John was born, June 6, 1966", is:
+.begin narrow 5,5 single space crbreak preface 0
+.skip
+l(TIME-OF (BEGINNING-OF (JOHN'S LIFE))
+	 (DATE (1966 6 6) (FUZZ NIL))).
+.end
+
+.once indent 0
+"Relative" Representation Types:
+The "by-amount" representation type, along with the "interval"
+type and the "fuzzy-amount" type, correspond to time-expressions of the form:
+.begin narrow 5,5
+itime-expression ==> (<relation> <reference-event> <amount>).r
+.end once indent 0
+The three representation types differ only in the form of the
+"amount" portion.  The by-amount type is an interval of time, plus
+or minus some fuzz factor. The amount in the interval type, is
+represented by two intervals of time, the meaning being that the
+event occurred sometime between those intervals.  The amount of
+the fuzzy-amount type is an interval of time expressed 
+in fuzzy words, like "a few", "several", etc..
+
+.once indent 0
+The by-amount representation is defined as:
+.begin single space preface 0 crbreak
+.skip 1
+iamount ==> by-amount
+
+by-amount ==> (BY-AMOUNT <interval> <fuzz-expression>)
+
+interval ==> (<time-unit> <number>)
+
+time-unit ==> DAYS | WEEKS | MONTHS | YEARSr
+.end once indent 0
+Example (1), "Three weeks ago John had a cold",
+is represented as
+.begin nofill crbreak preface 0 single space
+l(TIME-OF (ALL-OF (JOHN'S COLD))
+	 (BEFORE (ALL-OF TODAY)
+		 (BY-AMOUNT (WEEKS 3) (FUZZ (DAYS 4)))))
+.end
+
+.once indent 0
+The interval representation is defined as
+.begin single space preface 0 crbreak
+.skip 1
+iamount ==> interval-amount
+
+interval-amount ==> (INTERVAL <interval> <interval>)r
+.end once indent 0
+This representation was designed to represent sentences such as
+example (3), "Two or three years after graduating, John went
+back to school.".  This sentence is represented as,
+.skip 1
+.begin single space crbreak preface 0
+l(TIME-OF (ALL-OF (JOHN'S GOING-BACK-TO SCHOOL))
+	 (AFTER (ALL-OF (JOHN'S GRADUATING))
+		(INTERVAL (YEARS 2) (YEARS 3))))
+.end once indent 0
+The interval representation is very similar to the by-amount
+representation, so much so that there need not be two separate
+types. There are two types, however, because the fuzz-expression in the by-amounts type is considered to be only a crude approximation
+to what is meant by "fuzz" or "lack of exactness".  
+
+.once indent 0
+The fuzzy-amount representation is defined as follows:
+.begin single space preface 0 indent 5,0,0; crbreak
+.skip 1
+iamount ==> fuzzy-amount
+
+fuzzy-amount ==> (FUZZY-AMOUNT <fuzzy-expression>)
+
+fuzzy-expression ==> (<qualifier> <fuzzy-number> <time-unit>)
+
+qualifier ==> ABOUT | NEARLY | SOMEWHAT-LESS-THAN 
+	| SOMEWHAT-MORE-THAN | A-BIT-MORE-THAN | NIL
+
+fuzzy-number ==> A-HALF | ONE | A-COUPLE | A-FEW | SEVERAL | MANY | PLURALr
+.end once indent 0
+The fuzzy-amount representation type is intended to
+suffice for temporal specifications such as example (4), "A
+few months from now, John will finish his thesis",
+which is represented as,
+.begin indent 5,0,0; crbreak preface 0 single space
+.skip 1
+l(TIME-OF (END-OF (JOHN'S WORKING-ON THESIS))
+	 (AFTER (ALL-OF TODAY)
+		(FUZZY-AMOUNT (NIL A-FEW MONTHS))))
+
+.end
+
+The Representation of Fuzz: "Fuzz" describes the uncertainty
+about exactly when an event occurred, not the uncertainty
+of the event having occurred at all.  The fuzz-expression
+is part of the "date" and "by-amount" representation types.
+The fuzz-expression is defined as,
+.begin indent 5,0,0; crbreak preface 0; skip
+ifuzz-expression ==> (FUZZ <interval>)r
+.end once indent 0
+This is interpreted by the time specialist to mean that
+the event in question occurred within the interval
+defined by the date or relative time "plus or minus" the interval
+specified in the "fuzz".
+This scheme, although simple has proved
+quite useful.
+Regardless of the representation chosen, however,
+the time specialist needs
+a way to combine fuzz from different temporal references.
+In following chains of events, for example, it needs to combine
+the fuzz of each expression to assess the duration of the chain.
+Currently, this
+is done in the simplest manner, the fuzz-expressions are
+simply "added", and although this tends to overestimate the fuzz,
+this is seldom an important problem.
+

@@ -1,0 +1,13 @@
+(defun gpoly (size angle factor colors)
+       (do ((size (float size) (*$ size factor))
+	    (the-colors colors (or (cdr the-colors) colors)))	   
+	   ((greaterp :ycor (car (turtlesize))) '?)
+	   (and the-colors (pc (car the-colors)))
+	   (fd-arc size)
+	   (rt angle)))
+
+(defun fd-arc (length)
+       (pu) (fd length)
+       (pd)
+       (arc length 180)
+       (pu) (fd length) (pd))

@@ -1,0 +1,107 @@
+;this is #comp >
+;part of the anima system that is for compiling actors
+
+(declare (genprefix comp)
+	 (fasload qq)
+	 (macros t)
+	 (special :message :self))
+;Receive-macro replaces the usual receive function when called
+;after an ask
+;it sets latest-receiver to the instantiated action and returns that
+;which gets evaled, latest-action is used by ask displace calls to it
+;with the action finally performed
+				       
+
+(defun receive-macro macro (a)
+       (prog (:values :variables)
+       (and (match :message (cadr a))
+	    (setq :matched? t)
+	    (THROW (list 'receive2
+				 (list 'quote (cadr a))
+				 (list 'quote (caddr a))
+				 (list 'quote :message))
+		   ASK-MACRO))))
+
+;this substs the :values for the :variables in the :exp
+
+;flush?
+(defun moby-subst (:values :variables :exp)
+       (do ((val :values (cdr val))
+	    (var :variables (cdr var))
+	    (ans :exp))
+	   ((null val) ans)
+	   (setq ans (subst (list 'quote (car val)) (car var) ans))))
+					
+(defun displace (a b)
+       (rplacd a (cdr b))
+       (rplaca a (car b)))
+
+
+;this replaces the ask function and temporally replaces receive with the above macro
+;it displaces the call with the latest action set by the receive-macro
+;the atom check is because things like (class-of :self) should not be displaced
+;since :self may be actor or members of it 
+;"tell" is the same as ask except it doesnt "compile"
+
+(defun ask macro (ask-call)
+(prog (the-receiver CASES-MACRO)
+(SETQ CASES-MACRO (get 'cases 'macro))
+(return
+ (cond ((atom (cadr ask-call))
+	(cond ((boundp (cadr ask-call))
+	       (putprop 'receive (get 'receive-macro 'macro) 'macro)
+	       (REMPROP 'CASES 'MACRO)
+	       (setq the-receiver
+		     (CATCH
+		      (car(errset(tell
+			     (eval (cadr ask-call)) (eval (caddr ask-call)))))
+				ASK-MACRO))
+	       (AND CASES-MACRO (PUTPROP 'CASES CASES-MACRO 'MACRO))
+	       (remprop 'receive 'macro)
+	       (cond (the-receiver
+		      (setq the-receiver
+			    (list
+			     (list 'lambda '(:self)
+				  (subst (caddr ask-call)
+					 (cadddr the-receiver)
+					 the-receiver))
+				    (cadr ask-call)))
+		      (displace ask-call  the-receiver))
+		     (t (cons 'tell (cdr ask-call)))))
+	      (t (cons 'tell (cdr ask-call)))))
+      (t (cons 'tell (cdr ask-call)))))))
+
+
+;(defun cases fexpr (a)
+;       (do ((:i a (cdr :i))
+;	    (:matched? nil)
+;	    (ans nil))
+;	   ((null :i) nil)
+;	   (setq ans (eval (car :i)))
+;	   (and :matched? (return ans))))
+
+;as a macro expands to a cond as follows:
+
+(defun cases macro (code)
+(list (list 'lambda '(ans :matched?)
+      (cons 'cond
+	      (mapcar (function (lambda (receiver)
+		 (list (list 'progn (list 'setq 'ans
+					   (list 'receive/.with/.functional/.action
+						  (list 'quote (cadr receiver))
+						  (list 'function
+							 (list 'lambda nil
+								(caddr receiver)))))
+			      ':matched?)
+		       'ans)))
+	       (cdr code))))
+      nil nil))
+				 
+(defun receive/.with/.functional/.action macro (a)
+'(prog (:variables :values)
+ (return   (and (match :message `(cadr a))
+		(setq :matched? t)
+	    (progv :variables :values (`(caddr a)))))))
+			
+	   
+	    

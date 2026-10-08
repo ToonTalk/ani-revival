@@ -1,0 +1,255 @@
+;;-*-lisp-*-
+;;this file implements abbrevs for director (with the help of ken;reamac >)
+
+(include |ai:ken;declare >|)
+
+(defun define-abbreviation macro (form)
+ ;;this might get more complicated later (even interact with emacs abbrevs)
+ '(defprop-and-warn ,(second form) ,(rest (rest form)) abbreviation-expansion))
+
+(defun defprop-and-warn fexpr (x)
+       (let ((atom (first x))
+	     (value (second x))
+	     (indicator (third x)))
+	    (cond ((and (get atom indicator) ;;has an old value and
+			(not (equal (get atom indicator) value))) ;;its not the same
+		   (warning 'defprop-and-warn
+			    '(property ,indicator of ,atom was/
+				       ,(get atom indicator)
+				       |and is being redefined as/
+|
+				       ,value))))
+	    (putprop atom value indicator)))
+
+(define-abbreviation som ask something)
+
+(define-abbreviation obj ask object)
+
+(define-abbreviation mov ask movie)
+
+(define-abbreviation scr ask screen)
+
+(define-abbreviation d-u ask default-universe)
+
+(define-abbreviation inm if new make)
+
+(define-abbreviation mc make copy)
+
+(define-abbreviation muo make uninterned offspring)
+
+(define-abbreviation mio make interned offspring)
+
+(define-abbreviation ms make synonym)
+
+(define-abbreviation dwr do when receiving)
+
+(define-abbreviation ebwr extend behavior when receiving)
+
+(define-abbreviation bd by doing)
+
+(define-abbreviation sy set your)
+
+(define-abbreviation cy change your)
+
+(define-abbreviation ry recall your)
+
+(define-abbreviation reoy recall each of your)
+
+(define-abbreviation iy increment your)
+
+(define-abbreviation tylo to your list of)
+
+(define-abbreviation reg regardless)
+
+(define-abbreviation fylo from your list of)
+
+(define-abbreviation layvn list all your variable names)
+
+(define-abbreviation fy forget your)
+
+(define-abbreviation mem memorize)
+
+(define-abbreviation riaim recall if any items match)
+
+(define-abbreviation raim recall an item matching)
+
+(define-abbreviation cimm collect items memorized matching)
+
+(define-abbreviation fim forget items matching)
+
+(define-abbreviation pn plan next)
+
+(define-abbreviation pa plan after)
+
+(define-abbreviation parx plan after receiving)
+
+(define-abbreviation ta to always)
+
+(define-abbreviation te times every)
+
+(define-abbreviation pm print memory)
+
+(define-abbreviation pdb print database)
+
+(define-abbreviation pv print variables)
+
+(define-abbreviation ps print script)
+
+(define-abbreviation rcf recall clause for)
+
+(define-abbreviation ricf recall internal clause for)
+
+(define-abbreviation ay ask your)
+
+(define-abbreviation aeoy ask each of your)
+
+(define-abbreviation dtf do the following:)
+
+(define-abbreviation kdu keep doing until)
+
+;;now for object stuff
+(define-abbreviation wdu when drawing use)
+
+(define-abbreviation grad gradually)
+
+(define-abbreviation gf gradually forward)
+
+(define-abbreviation gb gradually back)
+
+(define-abbreviation gr gradually right)
+
+(define-abbreviation gl gradually left)
+
+(define-abbreviation rr right-revolve)
+
+(define-abbreviation lr left-revolve)
+
+(define-abbreviation grr gradually right-revolve)
+
+(define-abbreviation glr gradually left-revolve)
+
+(define-abbreviation cyst change your state to)
+
+(define-abbreviation sett setturtle)
+
+(define-abbreviation cypt change your position to)
+
+(define-abbreviation cyht change your heading to)
+
+(define-abbreviation cyxt change your xcor to)
+
+(define-abbreviation cyyt change your ycor to)
+
+(define-abbreviation syst set your state to)
+
+(define-abbreviation sypt set your position to)
+
+(define-abbreviation syht set your heading to)
+
+(define-abbreviation syxt set your xcor to)
+
+(define-abbreviation syyt set your ycor to)
+
+(define-abbreviation rys recall your state)
+
+(define-abbreviation ryp recall your position)
+
+(define-abbreviation ryh recall your heading)
+
+(define-abbreviation ryx recall your xcor)
+
+(define-abbreviation ryy recall your ycor)
+
+(define-abbreviation gdelx gradually delx)
+
+(define-abbreviation gdely gradually dely)
+
+(define-abbreviation gdelxy gradually delxy)
+
+(define-abbreviation gsett gradually setturtle)
+
+(define-abbreviation gsetx gradually setx)
+
+(define-abbreviation gsety gradually sety)
+
+(define-abbreviation gsetxy gradually setxy)
+
+(define-abbreviation gsh gradually setheading)
+
+(define-abbreviation gg gradually grow)
+
+(define-abbreviation gs gradually shrink)
+
+(define-abbreviation gcy gradually change your)
+
+(define-abbreviation giy gradually increment your)
+
+(define-abbreviation cyct change your colors to)
+
+(define-abbreviation ptmcw prepare to mix colors with)
+
+(define-abbreviation mitx make interpolation to)
+
+(define-abbreviation itx interpolation to)
+
+(define-abbreviation int interpolation)
+
+(define-abbreviation sr silent running)
+
+(define-abbreviation nr normal running)
+
+(define-abbreviation cs clearscreen)
+
+(define-abbreviation ftn film the next)
+
+(define-abbreviation fstn film secretly then next)
+
+(define-abbreviation pfs project frames)
+
+(define-abbreviation pf project frame)
+
+(define-abbreviation se showing every)
+
+(define-abbreviation pse project showing every)
+
+(define-abbreviation sc smart compile)
+
+(define-abbreviation aimx actions-if-memorizing)
+
+(define-abbreviation iri if-recalling-items)
+
+(define-abbreviation airx actions-if-recalling)
+
+(define-abbreviation aic actions-if-changing)
+
+(define-abbreviation offs offspring)
+
+(define-abbreviation sib siblings)
+
+(define-abbreviation des descendants)
+
+(define-abbreviation cd childless-descendants)
+
+(define-abbreviation uni universe)
+
+(define-abbreviation ttdn things-to-do-next)
+
+(define-abbreviation asa after-show-action)
+
+(define-abbreviation aha after-hide-action)
+
+(define-abbreviation eras erasability)
+
+(define-abbreviation co center-offset)
+
+(define-abbreviation vo visible-objects)
+
+(define-abbreviation atrn actors-to-run-next)
+
+(define-abbreviation fps frames-per-second)
+
+(define-abbreviation tfp ticks-per-frame)
+
+(define-abbreviation nfa new-frame-action)
+
+(define-abbreviation da define-abbreviation) ;;slightly recursive

@@ -1,0 +1,418 @@
+;; -*- Lisp -*- is what is in this file
+
+(include |ai:ken;declare >|)
+
+(defcomment box) ;;for tags
+
+;;this is the new version of ken;box >
+
+(define-form (test-boxes)
+ (ask box make box-1)
+ (ask box-1 setxy 300 200)
+ (ask box make box-2)
+ (ask box-2 setxy -400 100)
+ (ask box make box-3)
+ (ask box-3 setxy 200 -300)
+ (ask link make link-12)
+ (ask link-12 set your text to |from 1 to 2|)
+ (ask link-12 go from bottom of box-1 to right of box-2)
+ (ask link make link-32)
+ (ask link-32 set your text to |3 to 2|)
+ (ask link-32 go from top of box-3 to right of box-2)
+ (ask link make link-31)
+ (ask link-31 set your text to |3 to 1|)
+ (ask link-31 go from top of box-3 to bottom of box-1))
+
+
+(define box performer
+ (set your rectangular-frame to rectangular-frame) ;;use the class for this class
+ (set your horizontal-links to 0)
+ (set your vertical-links to 0)
+ (set your font-series to times-roman)
+ (set your size to 1000.0))
+
+(define-method (recall your font) box
+ (ask myself ask your font-series recall your font))
+
+(define-method (recall your ({or top bottom} {or left right})) box
+ (ask myself ask your rectangular-frame !,*message))
+
+(define-method (recall your {or width height}) box
+ (ask myself ask your rectangular-frame !,*message))
+
+(define-method (make ?name-of-box) box
+ (let ((new-box (do-old-behavior))) ;;make one
+      (ask ,new-box set your font-series to ,(ask myself ask your font-series make))
+      ;;get own copy
+      (let ((font (ask myself recall your font))
+	    (a-frame (ask rectangular-frame make))
+	    (the-text (ask text make)))
+	   (ask ,new-box set your rectangular-frame to ,a-frame)
+	   (compile-using rectangular-frame
+			  (ask ,a-frame recompute dimensions for ,name-of-box of ,font))
+	   (ask ,a-frame set your whole to ,new-box)
+	   (ask ,new-box set your text to ,the-text)
+	   (ask ,the-text set your whole to ,new-box)
+	   (ask ,the-text set your string to ,name-of-box) ;;good default
+	   (ask ,the-text set your font to ,font)
+	   (ask ,new-box set your parts to (,the-text ,a-frame)))
+      (ask ,new-box show all)
+      new-box))
+
+(define-method (set your size to ?new-size) box
+ ;;this constrains the size of the font to be proportional to the size of the box
+ (let ((growth-factor (//$ (float new-size) (ask myself recall your size))))
+      (ask myself ask your font-series multiply your size by ,growth-factor))
+ (ask myself set your font to ,(ask myself ask your font-series recall your font))
+ (do-old-behavior))
+
+(define-method (set your font to ?new-font) box
+ (let ((text (ask myself recall your text)))
+      (cond (text ;;could be too soon or a degenerate box
+	     (ask ,text !,*message) ;;tell the text about it
+	     (ask myself ask your rectangular-frame
+		  recompute dimensions for ,(ask ,text recall your string) of ,new-font))))
+ (do-old-behavior))
+
+(define-method (set your {or horizontal-links vertical-links} to ?) box
+ (let ((rectangular-frame (ask myself recall your rectangular-frame)))
+      (do-old-behavior)
+      (ask-old ,rectangular-frame !,*message))) ;;so similar guy on rectangular-frame wont loop
+
+(define-method (insert ?link-end on ?which side) box
+ (let* ((links-there-already (ask myself recall your (links ,which)))
+	(number-of-links-there-now (1+ (length links-there-already))))
+       (cond ((memq which '(top bottom))
+	      (let ((horizontal-links (ask myself recall your horizontal-links)))
+		   (cond ((< horizontal-links number-of-links-there-now)
+			  (ask myself
+			       set your horizontal-links to ,number-of-links-there-now)))))
+	     ((memq which '(left right))
+	      (let ((vertical-links (ask myself recall your vertical-links)))
+		   (cond ((< vertical-links number-of-links-there-now)
+			  (ask myself
+			       set your vertical-links to ,number-of-links-there-now))))))
+       (ask myself set your (links ,which) to
+	    ,(insert-link link-end links-there-already (memq which '(top right)))))
+ no-value)
+
+(define-form (insert-link link links scanning-clockwise)
+ ;;some day this will be very smart about ordering them using suggestions, etc.
+ ;;for now it orders then by the angle to the other end of the link
+ (sort (cons link links) (cond (scanning-clockwise 'other-end-more-to-the-left)
+			       (t 'other-end-more-to-the-right))))
+
+(define-method-helper (predicate-of-angle-to-other-end point-1 point-2 predicate) point
+ (funcall predicate
+	  (angle-from (ask ,point-1 recall your position)
+		      (ask ,point-1 ask your other-end recall your position))
+	  (angle-from (ask ,point-2 recall your position)
+		      (ask ,point-2 ask your other-end recall your position))))
+
+(define-form (other-end-more-to-the-right angle-1 angle-2)
+ (predicate-of-angle-to-other-end angle-1 angle-2 'more-right))
+
+(define-form (other-end-more-to-the-left angle-1 angle-2)
+ (other-end-more-to-the-right angle-2 angle-1))
+
+(define-form (more-right angle-1 angle-2)
+ (cond ((> angle-1 angle-2) (< (-$ angle-1 angle-2) 180.0))
+       (t (> (-$ angle-2 angle-1) 180.0))))
+
+(define-form (angle-from position-1 position-2)
+ (penup)
+ (setturtle position-1)
+ (setheading 0.0)
+ (float (bearing position-2)))
+
+(define-method (set your state to ?new-state) box
+ (do-old-behavior)
+ (ask myself set your (links top) to ,(ask myself recall your (links top)))
+ (ask myself set your (links bottom) to ,(ask myself recall your (links bottom)))
+ (ask myself set your (links left) to ,(ask myself recall your (links left)))
+ (ask myself set your (links right) to ,(ask myself recall your (links right)))
+ new-state)
+
+(define-method (set your (links {and ?top-bottom {or top bottom}}) to ?links) box
+ (let (((left-x left-y) (ask myself recall your (,top-bottom left)))
+       (distance-apart (//$ (ask myself recall your width) (float (1+ (length links))))))
+      (do ((i links (rest i))
+	   (position (+$ left-x distance-apart) (+$ position distance-apart)))
+	  ((null i) (do-old-behavior))
+	  (ask ,(first i) set your position to (,position ,left-y)))))
+
+(define-method (set your (links {and ?left-right {or left right}}) to ?links) box
+ (let (((top-x top-y) (ask myself recall your (top ,left-right)))
+       (distance-apart (//$ (ask myself recall your height) (float (1+ (length links))))))
+      (do ((i links (rest i))
+	   (position (-$ top-y distance-apart) (-$ position distance-apart)))
+	  ((null i) (do-old-behavior))
+	  (ask ,(first i) set your position to (,top-x ,position)))))
+
+
+(define rectangular-frame performer
+ (set your x-text-factor to 1.2) ;;20% longer than the text
+ (set your y-text-factor to 2.0) ;;100% taller than the text
+ (set your minimum-links-distance to 75.0) ;;links should be at least 75 units apart
+ (set your text-length to 0.0) ;;default but should be informed of changes
+ (set your width to 0.0)
+ (set your height to 0.0)
+ (set your horizontal-links to 0)
+ (set your vertical-links to 0)
+ (set your standardize-size? to nil)
+ (when drawing use draw-rectangle of height width))
+
+(define-method (recall your (top left)) rectangular-frame
+ (let (((x y) (ask myself recall your position)))
+      (list (-$ x (*$ (ask myself recall your width) .5))
+	    (+$ y (*$ (ask myself recall your height) .5)))))
+
+(define-method (recall your (bottom left)) rectangular-frame
+ (let (((x y) (ask myself recall your position)))
+      (list (-$ x (*$ (ask myself recall your width) .5))
+	    (-$ y (*$ (ask myself recall your height) .5)))))
+
+(define-method (recall your (top right)) rectangular-frame
+ (let (((x y) (ask myself recall your position)))
+      (list (+$ x (*$ (ask myself recall your width) .5))
+	    (+$ y (*$ (ask myself recall your height) .5)))))
+
+(define-method (recall your (bottom right)) rectangular-frame
+ (let (((x y) (ask myself recall your position)))
+      (list (+$ x (*$ (ask myself recall your width) .5))
+	    (-$ y (*$ (ask myself recall your height) .5)))))
+
+(define-method (set your horizontal-links to ?new-number) rectangular-frame
+ (do-old-behavior)
+ (ask myself set your text-width to ,(ask myself recall your text-width))
+ new-number)
+
+(define-method (set your vertical-links to ?new-number) rectangular-frame
+ (do-old-behavior)
+ (ask myself set your text-height to ,(ask myself recall your text-height))
+ new-number)
+
+(define-method (recall your minimum-width) rectangular-frame
+ (*$ (float (ask myself recall your horizontal-links))
+     (ask myself recall your minimum-links-distance)))
+
+(define-method (recall your minimum-height) rectangular-frame
+ (*$ (float (ask myself recall your vertical-links))
+     (ask myself recall your minimum-links-distance)))
+
+(define-method (set your text-height to ?height) rectangular-frame
+ (ask myself set your height to
+      ,(max (ask myself recall your minimum-height)
+	    (*$ height (ask myself recall your y-text-factor))))
+ (do-old-behavior))
+
+(define-method (set your text-width to ?width) rectangular-frame
+ (ask myself set your width to
+      ,(max (ask myself recall your minimum-width)
+	    (*$ width (ask myself recall your x-text-factor))))
+ (do-old-behavior))
+
+(define-method (recompute dimensions for ?string of ?font) rectangular-frame
+ (ask myself set your text-width to ,(ask ,font recall your (length-for ,string)))
+ (ask myself set your text-height to ,(ask ,font recall your height))
+ no-value)
+
+(define-method (set your {or width height} to ?new-value) rectangular-frame
+ (let ((visibility (ask myself recall your visibility)))
+      (cond (visibility (ask myself hide)))
+      (do-old-behavior)
+      (cond (visibility (ask myself show)))
+      new-value))
+
+;;(define-method (display) rectangular-frame
+;; (penup)
+;; (setturtle (ask myself recall your state))
+;; (eval (ask myself recall your draw-mode))
+;; (draw-rectangle (ask myself recall your width)
+;;		 (ask myself recall your height)))
+;;
+;;
+;;(define-method (erase) rectangular-frame
+;; (penup)
+;; (setturtle (ask myself recall your state))
+;; (eval (ask myself recall your erase-mode))
+;; (draw-rectangle (ask myself recall your width)
+;;		 (ask myself recall your height)))
+;;
+;;(define-function draw-rectangle (width height)
+;; ;;starts at the center much like wf except need not xor nor be horizontal
+;; ;;doesn't worry about being state transparent since Director should take care of that
+;; (thingup)
+;; (back (*$ .5 height))
+;; (right 90)
+;; (back (*$ .5 width))
+;; (left 90)
+;; (thingdown)
+;; (repeat 2 (forward height) (right 90) (forward width) (right 90)))
+
+(define link performer
+ (set your label-position to .5) ;;stick it in the middle by default
+ (set your text to ||)
+ (set your font-series to times-roman)
+ (set your size to 1000.0)
+ (set your drawing-mode to (pendown)))
+
+(define-method (make ?) link
+ (let ((new-link (do-old-behavior))) ;;make one
+      (ask ,new-link set your font-series to ,(ask myself ask your font-series make))
+      ;;get own copy
+      (let ((font (ask myself ask your font-series recall your font))
+	    (arrow (ask arrow make))
+	    (label (ask link-label make)))
+	   (ask ,new-link set your arrow to ,arrow)
+	   (ask ,arrow set your whole to ,new-link)
+	   (ask ,new-link set your label to ,label)
+	   (ask ,label set your whole to ,new-link)
+	   (ask ,label set your string to ,(ask ,new-link recall your text))
+	   (ask ,label set your font to ,font)
+	   (ask ,new-link set your parts to (,arrow ,label)))
+      new-link))
+
+(define-method (go from ?side-1 of ?box-1 to ?side-2 of ?box-2) link
+ (let ((source (ask link-point-source make))
+       (sink (ask link-point-sink make)))
+      (ask ,source set your link to ,myself)
+      (ask myself set your source to ,source)
+      (ask ,sink set your link to ,myself)
+      (ask myself set your sink to ,sink)
+      (compile-using box (ask ,box-1 insert ,source on ,side-1 side))
+      (compile-using box (ask ,box-2 insert ,sink on ,side-2 side))
+      (ask myself ask your arrow set your source to ,source)
+      (ask myself ask your arrow set your sink to ,sink)
+      (ask myself show all)))
+
+(define-method (recall your font) link
+ (ask myself ask your font-series recall your font))
+
+(define-method (set your text to ?new-text) link
+ (do-old-behavior)
+ (ask myself ask your label set your string to ,new-text))
+
+(define-method (set your visible-parts to ?visible-parts) link
+ ;;got to show the arrows first then the labels
+ (ask-old myself set your visible-parts to
+	  ,(sort visible-parts
+		 (function
+		  (lambda (part-1 nil)
+			  (not (ask ,part-1 are you a link-label)))))))
+
+(define-method (recall your position) link
+ (ask myself ask your arrow recall your position))
+
+;;(define-method (recall your very-minimum-distance) link
+;; (let ((text-orientation (ask myself recall your text-orientation)))
+;;      (cond ((eq text-orientation 'parallel)
+;;	     (ask myself ask your label recall your length))
+;;	    ((eq text-orientation 'orthogonal)
+;;	     (ask myself ask your font recall your height))
+;;	    (t 0.0))))
+
+(declare (*lexpr princ-type-append-atoms))
+
+;;(define-method (label link from ?from to ?to with ?label) link
+;; (ask myself set your source to ,from)
+;; (ask myself set your sink to ,to)
+;; (ask myself set your label to ,(princ-type-append-atoms '| | label '| |))
+;; (ask ,from add (,to ,myself) to your list of links)
+;; (ask ,to add (,from ,myself) to your list of links))
+;; (ask diagram just made new link called ,myself)
+
+;;(define-function princ-type-append-atoms n
+;; (let ((*nopoint t))
+;;      (maknam (mapcan 'exploden (listify n)))))
+
+;;(define-method (do you cross with ?other-link) link
+;; (are-vectors-crossing? (ask myself recall each of your (position-at ?))
+;;			(ask ,other-link recall each of your (position-at ?))))
+
+(define link-label text)
+
+(define-method (recall your state) link-label
+ '(!,(ask myself ask your whole recall your position) 0.0))
+
+(define-method (display) link-label
+ (cond ((not (zerop (ask myself recall your length)))
+	(penup)
+	(setturtle (ask myself recall your state))
+	(eraserdown)
+	(fillwindow (*$ .5 (ask myself recall your width))
+		    (*$ .5 (ask myself recall your height)))
+	(do-old-behavior))))
+
+(define point performer
+ (when drawing use point of)) ;;no args
+
+(define arrow-point point)
+
+(define-method (set your state to ?new-state) arrow-point
+ (let ((arrow (ask myself ask your link recall your arrow)))
+      (cond (arrow
+	     (let ((arrows-visibility (ask ,arrow recall your visibility)))
+		  (cond (arrows-visibility
+			 (ask ,arrow hide)
+			 (do-old-behavior)
+			 (ask ,arrow show)
+			 new-state)
+			(t (do-old-behavior)))))
+	    (t (do-old-behavior)))))
+
+(define default-arrow-point arrow-point)
+
+(define link-point arrow-point)
+  ;;this is like arrow-point except that it also makes the label redisplay
+ 
+(define-method (set your state to ?new-state) link-point
+ (let ((label (ask myself ask your link recall your label)))
+      (cond (label
+	     (let ((labels-visibility (ask ,label recall your visibility)))
+		  (cond (labels-visibility
+			 (ask ,label hide)
+			 (do-old-behavior)
+			 (ask ,label show)
+			 new-state)
+			(t (do-old-behavior)))))
+	    (t (do-old-behavior)))))
+
+(define link-point-source link-point)
+
+(define-method (recall your other-end) link-point-source
+ (ask myself ask your link recall your sink))
+
+(define link-point-sink link-point)
+
+(define-method (recall your other-end) link-point-sink
+ (ask myself ask your link recall your source))
+
+(define arrow performer
+ (set your source to default-arrow-point)
+ (set your sink to default-arrow-point)
+ (set your head-size-in-rasters to 10))
+
+(define-method (recall your head-size) arrow
+ (times (ask myself recall your head-size-in-rasters) :tvstep))
+
+(define-method (recall your position) arrow
+ (let (((x-1 y-1) (ask myself ask your source recall your position))
+       ((x-2 y-2) (ask myself ask your sink recall your position)))
+      (list (average$ x-1 x-2)
+	    (average$ y-1 y-2))))
+
+
+(define-method (display) arrow
+ (eval (ask myself recall your draw-mode))
+ (draw-arrow (ask myself ask your source recall your position)
+	     (ask myself ask your sink recall your position)
+	     (ask myself recall your head-size)))
+
+(define-method (erase) arrow
+ (eval (ask myself recall your erase-mode))
+ (draw-arrow (ask myself ask your source recall your position)
+	     (ask myself ask your sink recall your position)
+	     (ask myself recall your head-size)))
+
+

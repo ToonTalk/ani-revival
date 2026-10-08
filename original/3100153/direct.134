@@ -1,0 +1,1358 @@
+;problem with remembered? ... then: that stuff that follows is either a list which
+;loses or is quoted which only loses if compiled
+
+
+(declare (or (boundp 'fdirct)(fasload ask fasl dsk ken)))
+ ;this guarentees the right version of the ask macro will be loaded
+
+
+(declare (fasload qq)) ;qq is the quasi-quote stuff
+
+(setq *nopoint t)  
+
+(or (status feature grindef)
+(defprop sprint (grindef fasl com) autoload))
+
+(sstatus features director)
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+
+(declare (*lexpr make-actor)
+	 (*fexpr ask superbreak)
+	 (special :self :pattern :action :message :values :variables :matched? :actor
+		  :name :class something :something composite.something editor
+		  universe editors.replace.handler editors.remove.handler
+		  somethings.plan:.handler :reversed.already? no-value nothing-found))
+
+(setq nothing-found nil)
+;nothing-found is another name for nil for 2 reasons
+;1 comcond has no value compiler bug and
+;2 might want to say something different if nothing is found than if nil is found
+
+(setq no-value '?)
+
+;part of the director system that defines the top nodes of the kind tree
+
+(defun define.all nil
+       (define.something)
+;       (define.editor)
+;       (define.editors.replace.handler)
+;       (define.editors.remove.handler)
+       (define.somethings.plan:.handler)
+       (define.universe)
+;       (define.composite.something)
+)
+
+(declare (macros t))
+
+(defun do.the.following: macro (a) (cons 'progn (cdr a)))
+
+(defun output (x) x)
+;this is so that %code can be output :?foo, however, if it conflicts with llogo
+;then change it
+
+
+(defun define.something nil
+       (setq :something (setq something (make-actor 'top-thing)))
+       (insert-receive '(% receive %pattern then %action)
+		       '(insert-receive :%pattern :%action :self)
+		       'something)
+       (ask something '(if receive only change your ?variable to ?value
+			then output do.the.following:
+			 (cond ((memq :?variable (get (symeval :self) '%variables)))
+			       (t (putprop (symeval :self)
+					   (cons :?variable
+						 (get (symeval :self) '%variables))
+					   '%variables)))
+			 (putprop (symeval :self) :?value :?variable)))
+       (ask something '(if receive change your ?variable to ?value
+			then output do.the.following:
+			 (cond ((memq :?variable (get (symeval :self) '%variables)))
+			       (t (putprop (symeval :self)
+					   (cons :?variable
+						 (get (symeval :self) '%variables))
+					   '%variables)))
+			 (putprop (symeval :self) :?value :?variable)))
+       (ask something '(if receive recall your ?variable then
+				output eval.if.application
+					(get.or.ask.parent :self :?variable)))
+       (ask something '(if receive increment your ?variable by ?amount then
+			ask :self (change your :?variable to
+					 (plus (ask :self (recall your :?variable))
+					       :?amount))))
+       (ask something '(if receive pop your ?variable then output
+			(lambda (:its.value)
+				(ask :self
+				     (change your :?variable to (cdr :its.value)))
+				(car :its.value))
+			 (ask :self (recall your :?variable))))
+       (ask something '(if receive pop onto ?variable your ?list.variable then
+			(lambda (:lists.value)
+				(ask :self
+				     (change your :?list.variable to
+					   (cdr :lists.value)))
+				(ask :self (change your :?variable to
+						 (car :lists.value))))
+			 (ask :self (recall your :?list.variable))))
+       (ask something '(if receive remember %item then remember :%item :self))
+       (ask something '(if receive only remember %item then remember :%item :self))
+       (ask something '(if receive forget %item then forget :%item :self))
+       (ask something '(if receive % clause % then output
+					pass.the.buck.to editor :message :self))
+;       (ask something '(if receive find all %pattern then
+;		       output find.all.and.parents :%pattern :self))
+;       (ask something '(if receive what
+;		       		%pattern then output
+;				find.one :%pattern :self))
+       (ask something '(if receive resume find with ?state.of.find then: %code then
+			(lambda (recalled)
+				(cond (recalled (ask :self
+						     (change your state.of.last.find to
+							     (cdr recalled)))
+						(eval.in.env
+						 (cdr (car recalled))
+						 (car (car recalled))
+						 :%code))
+				      (t nothing-found)))
+			(apply 'resume.find :?state.of.find)))
+       (ask something '(if receive resume last find then: %code then output
+			(lambda (recalled)
+				(cond (recalled (ask :self
+						     (change your state.of.last.find to
+							     (cdr recalled)))
+						(eval.in.env
+						 (cdr (car recalled))
+						 (car (car recalled))
+						 :%code))
+				      (t nothing-found)))
+			(apply 'resume.find
+				   (ask :self (recall your state.of.last.find)))))
+       (ask something '(if receive remembered? %pattern then: %code then output
+			(lambda (recalled)
+				(cond (recalled (ask :self
+						     (change your state.of.last.find to
+							     (cdr recalled)))
+						(eval.in.env
+						 (cdr (car recalled))
+						 (car (car recalled))
+						 :%code))
+				      (t  nothing-found)))
+			(find.one :%pattern :self)))
+;note that the following must come after the above since its more specific
+       (ask something '(if receive remembered? %pattern then output
+			not (null (find.one :%pattern :self))))
+       (ask something '(if receive replace %item then replace :%item :self))
+       (ask something '(if receive only replace %item then replace :%item :self))
+       (ask something '(if receive make ?name then
+			(lambda (internal-name)
+				(set :?name internal-name)
+				(ask
+				 :?name
+				 (change your name to :?name)
+				 (example: (ask something
+						(change your name to Sally)))))
+			 (make-instance :self :?name)))
+       (ask something '(if receive unmake then do.the.following:
+			((lambda (:its.turtle)
+			(cond (:its.turtle (setq :turtles (delq
+							   (useturtle :its.turtle)
+							   :turtles))
+					   (hideturtle))))
+			 (ask :self (recall your turtles.name)))
+			(setplist (eval :self) nil)))			
+       (ask something
+	    '(if receive plan: % then pass.the.buck.to
+					 somethings.plan:.handler :message :self))   
+       (ask something '(if receive wait {numberp ?number} then 
+			   ask :self
+				(change your time to
+				      (+ (ask :self (recall your time)
+						       (example:
+							 (ask something ...)))
+					 :?number))
+			       (example: (ask something (change your time to 6)))))
+       (ask something '(if receive tick ?universe then
+			do.stuff.planned 
+		                 (ask :self (change your time to
+						    (1+
+						     (ask :self (recall your time)
+							  (example:
+							   (ask something
+								(recall your time)))))))
+			         :?universe
+				 :self))
+       (ask something '(if receive do all planned for next tick with ?universe then
+			do.stuff.planned 
+		                 (ask :self (change your time to
+						    (1+
+						     (ask :self (recall your time)
+							  (example:
+							   (ask something
+								(recall your time)))))))
+			         :?universe
+				 :self))
+       (ask something '(if receive repeat ?number ?message then do.the.following:
+			(ask :self :?message)
+			(and (> :?number 1)
+			     (ask :self (plan: repeat (1- :?number) :?message next)))))
+       (ask something (change your name to something))
+       (ask something (change your time to 0))
+       (ask something '(if receive sprint then sprinter
+			(caddr (get (symeval :self) 'expr))))
+       (ask something '(if receive print %option then fancy-print :self :%option))
+       (ask something '(if receive trace %option then apply 'trace
+							    (list
+							     (cons (symeval :self)
+								   :%option))))
+       (ask something '(if receive untrace then apply 'untrace (list (symeval :self)))))
+
+
+
+
+;(defun define.editor nil
+;      (ask something (make editor))
+;       (ask editor
+;	    '(if receive remove % then pass.the.buck.to 
+;					editors.remove.handler :message :self))
+;       (ask editor
+;	    '(if receive replace % then pass.the.buck.to
+;					 editors.replace.handler :message :self))
+;       (ask editor '(if receive recall clause number {numberp ?clause.number}
+;			  then output find.clause :?clause.number :self))
+;       (ask editor '(if receive interchange clause {numberp ?clause.number1}
+;						      {memq ? '(and with)}
+;						      {numberp ?clause.number2}
+;			  then (lambda (:first.clause :second.clause)
+;			       (ask :self
+;				    (replace clause :?clause.number1
+;						 with :second.clause)
+;				    (example: (ask editor
+;						   (replace clause 5 with
+;							(receive (foo bar) (mumble))))))
+;			       (ask :self
+;				    (replace clause :?clause.number2
+;						 with :first.clause)
+;				    (example: (ask editor
+;						   (replace clause 7 with
+;						     (receive (mumble) (foo bar)))))))
+;			    (ask :self
+;				 (recall clause number :?clause.number1)
+;				 (example: (ask editor (recall clause number 5))))
+;			    (ask :self
+;				 (recall clause number :?clause.number2)
+;				 (example: (ask editor (recall clause number 7))))))
+;       (ask editor '(if receive insert clause (% receive %pattern then %action)
+;			   			after clause {numberp ?number}
+;			   then insert.after.clause (list 'receive :%pattern :%action)
+;						     :?number :self))
+;       (ask editor '(if receive insert clause (receive ?pattern ?action)
+;						after clause {numberp ?number}
+;			   then insert.after.clause (list 'receive :?pattern :?action)
+;						     :?number :self))
+;;the following is until complaint departments are worked into things
+;       (insert-receive '(% receive % then %)
+;		       '(pass.the.buck.to something :message :self)
+;		       'editor)
+;       (ask editor
+;	    '(if receive % clause % then complain :self (list '|Doesn't Understand|
+;						       :message))))
+
+
+;(defun define.editors.replace.handler nil
+;       (ask something (make editors.replace.handler))
+;       (ask editors.replace.handler
+;	    '(if receive replace clause
+;				{numberp ?clause.number}
+;				with (% receive %new.pattern then %new.action)
+;				then
+;				replace.clause.number :?clause.number
+;						(list 'receive
+;						       :%new.pattern
+;						       :%new.action)
+;						:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace pattern of clause 
+;					  {numberp ?clause.number}
+;					  with %new.pattern
+;			  then replace.part.of.clause.number
+;	      			'pattern
+;	      			:?clause.number
+;				:%new.pattern
+;				:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace pattern of clause 
+;					  (% receive %old.pattern then %old.action)
+;					  with %new.pattern
+;			  then replace.part.of.clause
+;				'pattern
+;				(list 'receive :%old.pattern :%old.action)
+;			        :%new.pattern
+;				:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace action of clause 
+;					  {numberp ?clause.number}
+;					  with %new.action
+;			  then replace.part.of.clause.number
+;	      			'action
+;				:?clause.number
+;				:%new.action
+;				:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace pattern of clause 
+;					  (% receive %old.pattern then %old.action)
+;					  with %new.action
+;			  then replace.part.of.clause 
+;				'action
+;				(list 'receive :%old.pattern :%old.action)
+;			        :%new.action
+;				:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace clause
+;				{numberp ?clause.number}
+;				with (receive ?new.pattern ?new.action)
+;				then
+;				replace.clause.number
+;	      				:?clause.number
+;					(list 'receive :?new.pattern :?new.action)
+;	      				:self))
+;       (ask editors.replace.handler
+;	    '(if receive replace clause
+;				(% receive %old.pattern then %old.action)
+;				with (% receive %new.pattern then %new.action)
+;				then
+;				replace.clause (list 'receive
+;						      :%old.pattern
+;						      :%old.action)
+;					       (list 'receive
+;						      :%new.pattern :%new.action)
+;						  :self))
+;       (ask editors.replace.handler
+;	    '(if receive replace clause
+;				(receive ?old.pattern ?old.action)
+;				with (receive ?new.pattern ?new.action)
+;				then
+;				replace.clause (list 'receive
+;						      :?old.pattern
+;						      :?old.action)
+;					       (list 'receive
+;						      :?new.pattern
+;						      :?new.action)
+;						  :self))
+;       (ask editors.replace.handler
+;	    '(if receive replace % then complain :self
+;	      				        (list '|Doesn't Understand|
+;						       :message))))
+;
+;(defun define.editors.remove.handler nil
+;       (ask something (make editors.remove.handler))       
+;       (ask editors.remove.handler
+;	    '(if receive remove clause {numberp ?clause.number}
+;			   then remove.clause.number :?clause.number :self))
+;       (ask editors.remove.handler
+;	    '(if receive remove clause (% receive %pattern then %action)
+;				 then remove.clause (list 'receive :%pattern :%action)
+;							 :self))	
+;       (ask editors.remove.handler
+;	    '(if receive remove clause (receive ?pattern ?action)
+;				 then remove.clause (list 'receive :?pattern :?action)
+;							 :self))
+;       (ask editors.remove.handler
+;	    '(if receive remove % then complain :self
+;	      				        (list '|Doesn't Understand|
+;						       :message))))
+
+
+
+(defun define.somethings.plan:.handler nil
+       (ask something (make somethings.plan:.handler))
+       (ask somethings.plan:.handler
+	    '(if receive plan: %command next then do.the.following:
+			   (ask :self (remember to.do.at.time 
+					   (1+ (ask :self (recall your time)))
+					    :%command)
+				      (example: (ask something
+						    (remember
+							  to.do.at.time 5 show))))
+			   (or (eq :self 'universe)
+			       (ask universe
+				(plan: send.me.a.tick :self next)
+					 (example: 
+				    	    (ask something
+						 (plan: send.me.a.tick sam next)))))))
+       (ask somethings.plan:.handler 
+	    '(if receive plan: %command after {numberp ?number}
+					 ticks then do.the.following:
+			   (ask :self (remember to.do.at.time 
+					   (+ :?number
+					      (ask :self (recall your time)
+						  (example: (ask something ...))))
+					     :%command)
+				      (example: (ask something
+						     (remember
+						      to.do.at.time 33 hide))))
+			   (or (eq :self universe)
+			       (ask universe (plan: send.me.a.tick :self next)
+				    (example: 
+				    	    (plan: send.me.a.tick sam next))))))
+;       (ask somethings.plan:.handler 
+;	    '(if receive plan: %command now then do.the.following:
+;			   (ask :self (remember to.do.at.time 
+;					     (ask :self (recall your time)
+;						  (example: (ask something ...)))
+;					     :%command)
+;				      (example: (ask something
+;						     (remember
+;						      to.do.at.time 33 hide))))
+;			   (ask universe (remember send.me.a.tick :self)
+;					 (example: 
+;				    	    (remember send.me.a.tick sam)))))
+       (ask somethings.plan:.handler
+	    '(if receive plan: % then complain :self
+	      				        (list '|Doesn't Understand|
+						       :message))))
+;this part defines composites of individual actors
+
+
+(defun define.composite.something nil
+       (ask something (make composite.something))
+       (ask composite.something
+	    '(if receive tell parts ?message ;ask will not compile properly
+;should fix up macro-expand
+	      then mapc (function (lambda (part)
+					  (ask (eval part) :?message)))
+			(ask :self (recall your parts)))))
+
+
+(defun define.help.for.something nil
+       (ask something (make help.for.something)))
+;to be continued later
+
+;this is the universe of actors with things planned used for interactions of actors
+
+;this assumes that things clean up after running schedule 
+
+
+(defun define.universe nil
+       (ask something (make universe))
+       (ask universe '(if receive {memq ? '(run go)} for ?number ticks then 
+	            do ((count 1 (1+ count)))
+		       ((> count :?number) 'done)
+	               (run.with.turtles.hidden
+			'(ask :self (tick :self)))
+			(wipe)))
+       (ask universe '(if receive send.me.a.tick ?actor then
+		       ask :?actor (tick :self))))
+
+
+
+(declare (coutput (read))) ;don't want this compiled because of the quoted structure
+
+(defun do.stuff.planned (:time :universe :actor.with.something.to.do)
+       (do ((dummy (ask :actor.with.something.to.do
+			(remembered? to.do.at.time :time %thing.to.do then: do.the.following:
+				     '(ask :actor.with.something.to.do :%thing.to.do)
+				     '(ask
+				      :actor.with.something.to.do
+				      (forget to.do.at.time :time :%thing.to.do)
+				      (example:
+				       (ask something
+					    (forget to.do.at.time 3 forward 10))))))
+		   (ask :actor.with.something.to.do
+			(resume last find then: do.the.following:
+				     '(ask :actor.with.something.to.do :%thing.to.do)
+				     '(ask
+				      :actor.with.something.to.do
+				      (forget to.do.at.time :time :%thing.to.do)
+				      (example:
+				       (ask something
+					    (forget to.do.at.time 3 forward 10))))))))
+	   ((eq dummy nothing-found)
+;;in the case that the actor has nothing to do at that time it checks to
+;;see if it has anything to later if not then cleans things up
+	    (or (ask :actor.with.something.to.do
+		   (remembered? to.do.at.time % then: do.the.following:
+				'(or (eq :actor.with.something.to.do :universe)
+				    (ask :universe
+				         (plan: send.me.a.tick
+						:actor.with.something.to.do next)))))
+		(ask :actor.with.something.to.do (change your time to 0)
+		     (example: (ask something ...)))))))
+
+
+
+(defun find.clause (:number :actor)
+       (do ((receivers (cdr (caddr (get (symeval :actor) 'expr)))
+		       (cdr receivers))
+	    (i 1 (1+ i)))	    
+	   ((null receivers) (warning 'find.clause
+				      '(there is no clause `:number in `:actor)))
+	   (cond ((= i :number)
+		  (return (car receivers))))))
+
+(defun replace.part.of.clause.number (:part :number :new.part :actor)
+       (do ((receivers (cdr (caddr (get (symeval :actor) 'expr)))
+		       (cdr receivers))
+	    (i 1 (1+ i))
+	    (receivers-looked-at nil))
+	   ((null receivers) (warning 'replace.part.of.clause.number
+				      '(there is no clause `:number in `:actor)))
+	   (cond ((= i :number)
+		  (putprop (symeval :actor)
+			   (cons-lambda-exp
+			    (append (nreverse receivers-looked-at)
+				    (list
+				     (cond ((eq :part 'pattern)
+					    '(receive `:new.part
+						      `(caddr (car receivers))))
+					   ((eq :part 'action)
+					    '(receive `(cadr (car receivers))
+						   `:new.part))
+					   (t (warning 'replace.part.of.clause.number
+							'(there is no `:part part
+							       of a receiver))
+					      (car receivers))))
+				    (cdr receivers))
+			    :actor)
+			   'expr)
+		  (return '?))
+		 (t (setq receivers-looked-at (cons (car receivers)
+						    receivers-looked-at))))))
+
+(defun replace.part.of.clause (:part :old.clause :new.part :actor)
+		  (putprop (symeval :actor)
+			   (subst
+			      (cond ((eq :part 'pattern)
+					    '(receive `:new.part
+						      `(caddr :old.clause)))
+					   ((eq :part 'action)
+					    '(receive `(cadr :old.clause)
+						   `:new.part))
+					   (t (warning 'replace.part.of.clause
+							'(there is no `:part part
+							       of a receiver))
+					      :old.clause))
+			      :old.clause
+			      (get (symeval :actor) 'expr))
+			   'expr))
+
+(defun insert.after.clause (:new.clause :number :actor)
+       (do ((receivers (cdr (caddr (get (symeval :actor) 'expr)))
+		       (cdr receivers))
+	    (i 1 (1+ i))
+	    (receivers-looked-at nil))
+	   ((null receivers) (warning 'insert.after.clause
+				      (list 'there 'is 'no 'clause :number 'in :actor)))
+	   (cond ((= i :number)
+		  (putprop (symeval :actor)
+			   (cons-lambda-exp
+			    (append (nreverse receivers-looked-at)
+				    (list (car receivers) :new.clause)
+				    (cdr receivers))
+			    :actor)
+			   'expr)
+		  (return '?))
+		 (t (setq receivers-looked-at (cons (car receivers)
+						    receivers-looked-at))))))
+
+(defun replace.clause.number (:number :new.clause :actor)
+       (do ((receivers (cdr (caddr (get (symeval :actor) 'expr)))
+		       (cdr receivers))
+	    (i 1 (1+ i))
+	    (receivers-looked-at nil))
+	   ((null receivers) (warning 'replace.clause.number
+				      (list 'there 'is 'no 'clause :number 'in :actor)))
+	   (cond ((= i :number)
+		  (putprop (symeval :actor)
+			   (cons-lambda-exp
+			    (append (nreverse receivers-looked-at)
+				    (list :new.clause)
+				    (cdr receivers))
+			    :actor)
+			   'expr)
+		  (return '?))
+		 (t (setq receivers-looked-at (cons (car receivers)
+						    receivers-looked-at))))))
+		 
+
+
+
+(defun remove.clause.number (:number :actor)
+       (do ((receivers (cdr (caddr (get (symeval :actor) 'expr)))
+		       (cdr receivers))
+	    (i 1 (1+ i)))
+	   ((null receivers) (warning 'remove.clause.number
+				      (list 'there 'is 'no 'clause :number 'in :actor)))
+	   (cond ((= i :number)
+		  (delete (car receivers) (caddr (get (symeval :actor) 'expr)))
+		  (return nil)))))
+
+(defun remove.clause (:clause :actor)
+       (delete :clause (caddr (get (symeval :actor) 'expr))))
+
+
+(defun fancy-print (:actor :option)
+       (cond ((null :option)
+	      (fancy-print-script :actor)
+	      (terpri)
+	      (fancy-print-memory :actor t))
+	     ((equal :option '(script)) (fancy-print-script :actor))
+	     ((equal :option '(memory)) (fancy-print-memory :actor nil))
+	     ((equal :option '(variables)) (fancy-print-variables :actor nil))
+	     (t (warning :actor
+			 (list (cons 'print :option) 'not/ understood))))
+	(ascii 0))
+
+(defun fancy-print-script (:actor)
+(terpri)
+(princ '|I/ am |)
+(princ (ask :actor (recall your name)
+		   (example: (ask something ...))))
+(cond ((eq (car (caddr (get (symeval :actor) 'expr))) 'cases-of)
+       (princ '|, and I am defined as follows:|)
+       (do ((receivers
+	     (cddr (caddr (get (symeval :actor) 'expr)))
+	     (cdr receivers))
+	    (receiver nil)
+	    (any.receivers? nil)
+	    (i 1 (1+ i)))
+	   ((null receivers))
+	   (setq receiver (subst (caddr (get (function-name (cadr (car receivers))
+						     :actor)
+				      'expr))
+				 (caddr (car receivers))
+				 (car receivers)))
+	   (cond ((eq (car receiver) 'receive)
+		  (setq any.receivers? t)
+		  (terpri)(terpri)
+		  (princ '|Clause number #|)
+		  (princ i)
+		  (princ '| says:  If I receive a message that matches the pattern:|)
+		  (print-without-parens (cadr receiver))
+		  (terpri)
+		  (princ '/ / then/ I/ will:/ / )
+		  (sprint (cond ((and (eq (car (caddr receiver)) 'progn)
+				      (eq (caddr (caddr receiver)) 'no-value))
+				 (cadr (caddr receiver)))
+				(t (caddr receiver)))
+			  linel 0))
+		 (t (terpri)(terpri)
+		    (and any.receivers? (princ '|Otherwise I will: |))
+		    (print-without-parens (cadr receiver))))))
+      (t (princ '|, but I am compiled so my script cannot be printed, sorry.|))))
+
+
+(defun fancy-print-memory (:actor :name.told?)
+       (cond (:name.told? (terpri) (princ '|And I know that:|))
+	     (t (terpri)
+		(princ  '|I am |)
+		(princ (ask :actor (recall your name)
+			    (example: (ask something ...))))
+		(princ '| and I know that:| )))
+       (mapc (function
+	      (lambda (first-word)
+		     (mapc (function
+			    (lambda (item)
+				    (terpri)
+				    (princ '|I was told that |)
+				    (sprinter (cons first-word item))))
+			   (get (symeval :actor) first-word))))
+             (get (symeval :actor) '%memory))
+       (fancy-print-variables :actor t))
+
+(defun fancy-print-variables (:actor :name.told?)
+       (cond (:name.told? (terpri))
+	     (t (terpri)
+		(princ  '|I am |)
+		(princ (ask :actor (recall your name)
+			    (example: (ask something ...))))
+		(princ '| and I know that:| )))
+       (mapc (function
+	      (lambda (variable)
+		      (terpri)
+		      (princ '|My |)
+		      (princ variable)
+		      (princ '| is |)
+		      (princ (get (symeval :actor) variable))))
+	     (get  (symeval :actor) '%variables)))
+				     
+
+
+(defun print-without-parens (l)
+       (terpri)
+       (mapc 'princ+blank l))
+
+(defun princ+blank (x) (princ x) (princ '/ ))
+	      	
+
+;the receiver part of the director system follows:
+;it creates actors and receivers
+
+
+(defun make-actor something?
+((lambda (:internal-name)
+(putprop :internal-name
+       (cond ((> something? 0)
+	      (cons-lambda-exp
+	      '((else (complain :self
+			  '(|Doesn't Understand|
+				` :message))))
+	      'something))
+	     (t	(cons-lambda-exp
+		 (list (list
+			'else
+			(list 'pass.the.buck.to
+			       (list 'quote (ask :class (recall your name)
+				    	   (example: (ask something ...))))
+			       ':message ':self)))
+		 :name)))
+	'expr)
+	:internal-name)
+ (append-atoms 'internal- (cond ((= something? 0) :name)
+			(t 'something)))))
+
+(defun append-atoms (atom1 atom2)
+       (maknam (append (and atom1 (explode atom1))
+		       (and atom2 (explode atom2)))))
+	      
+(defun else (a)
+       (setq :matched? t)
+       a)
+
+
+(declare (special :actors :remember.actors))
+
+(or (boundp ':actors) (setq :actors '(something)))
+(setq :remember.actors t)
+
+(defun make-instance (:class :name)
+((lambda (:instance)
+(putprop :instance
+	 (ask :class (recall your name) (example: (ask something ...)))
+	 'parent)
+(putprop :instance
+	 (cons 'parent (get :instance '%variables))
+	 '%variables)	 
+(or (not :remember.actors) (memq :name :actors) (setq :actors (cons :name :actors)))
+:instance)
+ (make-actor)))
+
+;couldnt to it right ,too soon
+
+(defun parent.of (:actor)
+(or (get (symeval :actor) 'parent)
+    (and (boundp (symeval :actor)) (parent.of (symeval (symeval :actor))))
+    (shouldnt.happen 'parent.of (list :actor 'has 'no 'parent))))
+
+	      
+
+;think about what should happen if same or more general pattern is first
+;idea if the pattern matches any of the patterns of receivers then should
+;either warn or replace
+
+(defun insert-receive (:pattern :action :actor)
+(add-to-actor (define.action.part
+	       :pattern
+		(find-variables-in-pattern :pattern)
+	       (cond ((eq (car :action) 'output)
+		       (cdr :action))
+		     (t '(progn `:action no-value)))
+	       :actor)
+	      :pattern
+	      :actor)
+       no-value)
+
+(defun define.action.part (pattern variables action name)
+       (eval (list 'defun (function-name pattern name)
+		    variables
+		    action)))
+
+(defun function-name (pattern name)
+       (implode (append (exploden pattern) (exploden name))))
+
+
+(defun find-variables-in-pattern (pattern)
+(prog (:values :variables)
+      (apply 'match (instantiate-patterns pattern))
+      (return :variables)))
+
+
+;this returns both the pattern and the instantiated pattern
+;because it removes any restrictions on varibles in the pattern
+;which are always inclosed in {}
+
+(defun instantiate-patterns (pattern)
+(do ((i pattern (cdr i))
+     (sub-pattern nil)
+     (look-for-/} nil)
+     (instantiated-pattern nil)
+     (new-pattern nil))
+    ((null i)(list (reverse instantiated-pattern)(reverse new-pattern)))
+    (setq sub-pattern (car i))
+	   (cond (look-for-/} (cond ((eq sub-pattern '/})
+				     (setq look-for-/} nil)
+				     (setq instantiated-pattern
+					   (cons (gensym) instantiated-pattern)))
+				    ((and (atom sub-pattern)
+					  (memq (getchar sub-pattern 1) '(? %)))
+				     (setq new-pattern
+					   (cons sub-pattern new-pattern)))))
+		 ((eq sub-pattern '/{)
+		  (setq look-for-/} t))
+		 ((atom sub-pattern)
+		  (cond ((memq (getchar sub-pattern 1) '(? %))
+			 (setq instantiated-pattern
+			       (cons (gensym) instantiated-pattern)))
+			(t (setq instantiated-pattern
+				 (cons sub-pattern instantiated-pattern))))
+		  (setq new-pattern (cons sub-pattern new-pattern)))
+		 (t ((lambda (patterns)
+			     (setq instantiated-pattern
+				   (cons
+				    (car patterns)
+				    instantiated-pattern))
+		    (setq new-pattern (cons (cadr patterns) new-pattern)))
+		     (instantiate-patterns sub-pattern))))))
+	    
+
+
+
+
+
+(defun add-to-actor (:action.function :pattern :actor)
+((lambda (receivers receiver)
+(or (member receiver receivers)
+    (putprop (symeval :actor)
+	     (cons-lambda-exp
+	      (insert-second-to-last receiver
+				     receivers)
+	      :actor)
+	     'expr)))
+ (get-receivers :actor)
+ (list 'receive :pattern (list 'apply (list 'quote :action.function) ':values))))
+
+(defun get-receivers (:actor)
+  ((lambda (script)
+		(cond ((null script)
+		       (cond ((get (symeval :actor) 'subr)
+			      (list (list 'else
+					  (list 'subrcall
+						nil
+						(list 'get :actor ''subr)
+						 ':message))))
+			     (t (complain 'insert-receive
+					   (list :actor 'not 'defined)))))
+		      (t (cdr (caddr script)))))
+    (get (symeval :actor) 'expr)))
+
+(defun cons-lambda-exp (:receivers :name)
+       (list 'lambda '(:message)
+	      (cons 'cases-of
+		    (cond ((eq (car :receivers) :name) :receivers)
+			  (t (cons :name :receivers))))))
+
+(defun insert-second-to-last (:item :list)
+       (do ((:i :list (cdr :i))
+	    (:ans nil))
+	   ((null (cdr :i))
+	    (append (nreverse :ans) (list :item) :i))
+	   (setq :ans (cons (car :i) :ans))))
+
+;the following is the definition of ask, cases, and receive
+; the basic primitives of the system
+;ask.not.to.be.compiled will not be compiled in any efficient way, while ask will
+;also ask will transform its message via listify-message so that any top level list
+;or atom beginning with : will be evalled
+
+;new regime is that :self is not the internal name but external name of guy
+
+(defun ask.not.to.be.compiled (:self :message)
+       (ask.not.to.be.compiled1 (symeval :self) :message))
+
+
+(defun ask.not.to.be.compiled1 (:internal.self :message)
+       ((lambda (code)
+		(cond (code (funcall :internal.self :message))
+		      ((boundp :internal.self)
+		       (ask.not.to.be.compiled (symeval :internal.self) :message))
+		      (t (warning 'ask (list :self 'Is 'not 'an 'actor))
+			       (superbreak no.such.actor t))))
+	(getl :internal.self '(subr expr))))
+
+(declare (special a))
+
+(defun ask fexpr (a)
+((lambda (self-form message-form)
+	 ((lambda (:self :message)
+		  (funcall (symeval :self) :message))
+	  (find.self self-form)
+	  (eval (listify-message message-form))))			
+ (car a)
+ (cadr a)))
+
+(defun find.self (self-form)
+	  (cond ((atom self-form)
+		 (cond ((and (boundp self-form)
+			     (getl (symeval self-form)  '(expr subr)))
+			self-form)
+		       ((boundp self-form)
+			(find.self (symeval self-form)))
+		       (t (warning 'ask (list (car a) 'Is 'not 'an 'actor))
+			  (superbreak no.such.actor t))))
+		(t (find.self (eval self-form)))))
+
+(declare (unspecial a))
+
+(declare (special can-be-quoted-list))
+
+;note a copy of this is in ken;ask macro and should be kept up
+
+(defun listify-message (message)
+((lambda (can-be-quoted-list)
+       (cond ((atom message) message)
+	     ((eq (car message) 'quote) message)
+	     (t ((lambda (listified-message)
+			 (cond (can-be-quoted-list
+				(list 'quote (eval listified-message)))
+			       (t listified-message)))
+		 (listify-message1 message)))))
+ t))
+
+(defun listify-message1 (message)
+       (cond ((null message) nil)
+	     ((atom message) message)
+	     ((eq (car message) 'quote) message)
+	     ((numberp (car message)) (list 'cons
+					    (car message)
+					    (listify-message1 (cdr message))))
+	     ((atom (car message))
+	      (cond ((eq (getchar (car message) 1) ':)
+		     (setq can-be-quoted-list nil)
+		     (cond ((eq (getchar (car message) 2) '%)
+			    (list 'append (car message)
+				  (listify-message1 (cdr message))))
+			   (t (list 'cons (car message)
+				    (listify-message1 (cdr message))))))
+		    (t (list 'cons
+			     (list 'quote (car message))
+			     (listify-message1 (cdr message))))))
+	     ((eq (caar message) 'quote)
+	      (list 'cons (car message)
+		    (listify-message1 (cdr message))))
+;the above clause does not set can-be-quoted-list so that (a b '(c d)) will 
+;become a quoted list
+	     (t (setq can-be-quoted-list nil)
+		(list 'cons
+		      (car message)
+		      (listify-message1 (cdr message))))))
+
+
+(defun pass.the.buck.to (:actor :message :self)
+ (funcall :actor :message))
+
+(defun most.recent.target nil
+       (cond ((boundp ':actor) :actor)
+	     (t :self)))
+
+;:actor is the guy who just got passed the message and is not bound if 
+;the actor who the message was intended for called this
+
+(defun pass.the.message.to.parent (:message :self)
+ (pass.the.buck.to (parent.of (cond ((boundp ':actor) :actor)
+				    (t (symeval :self))))
+		   :message :self))
+		
+(defun cases-of fexpr (a)
+       (do ((:i (cdr a) (cdr :i))
+	    (:matched? nil)
+	    (ans nil))
+	   ((null :i) nil)
+	   (setq ans (eval (car :i)))
+	   (and :matched? (return ans))))
+	   
+
+(defun cant.happen fexpr (a)
+       (print (list 'this 'cant 'happen a))
+       (superbreak cant.happen t))
+
+
+(defun superbreak fexpr (a)
+       (cond ((status feature llogo)(apply 'logobreak a))
+	     (t (apply 'break a))))
+
+(defun shouldnt.happen (:complainee :complaint)
+       (terpri)
+       (princ (cons
+	       :complainee
+	       (cons '|complained that| :complaint)))
+       (superbreak shouldnt.happen t))
+
+(defun complain (:actor :complaint)
+       (terpri)
+       (princ (cons
+	       :actor
+	       (cons '|complained that| :complaint)))
+       (superbreak complain t))
+
+
+;this matches the :pattern against :message (where the message always is)
+;and if sucessful then runs the :action in the extended environment
+
+(defun receive fexpr (a)
+       (receive1 (car a) (cadr a)))
+
+
+;note that action is missing dots for a very important reason
+;namely a possible conflict with progv variables with name :action
+;but since alls :variables begin with : all should be ok
+
+
+(defun receive1 (:pattern action)
+ ((lambda (:variables :values)
+      (and (match :message :pattern)
+	   (setq :matched? t)
+	   (eval action)))
+  nil nil))
+
+
+
+;this is the match portion of the director system
+;it provides the pattern matching primitive MATCH for the  system
+;the :obj is any s-expression and the :pat places special meanings to:
+; ?<name> matches next item at that level and binds to :<name> if there
+; %<name> matches any number of items and binds :<name>
+; {x1 x2 x3 ... xn} is interpreted as temporarily bind the first argument
+;and then evaluate the form,
+;e.g. {memq ?foo '(bar zap)} or {numberp ?number}
+; :<name> in the pattern is evaluated and then match is recursed
+;both the : and the eval with {} is done within the environment extended by
+;the matching to date, but this could screw one since % might reverse the pat and obj
+
+
+;match is the basic function, the only one in this section to be called by the user
+
+(defun match (:obj :pat)
+(cond ((equal :obj :pat) t)
+      ((and (atom :obj)
+	    (atom :pat)) (match (list :obj) (list :pat)))
+      ((and (or (atom :obj) (atom :pat)) :obj) nil)
+      ((eq (car :obj) (car :pat)) (match (cdr :obj) (cdr :pat)))
+      ((not (atom (car :pat))) (and (match (car :obj) (car :pat))
+				    (match (cdr :obj) (cdr :pat))))
+      ((eq (car :pat) '/{)
+       (handle-restriction (car :obj) (cdr :obj) (up-til '} (cdr :pat))
+			   (cdr (memq '} (cdr :pat)))))
+      ((numberp (car :pat))
+       (and (numberp (car :obj)) (= (float (car :pat)) (float (car :obj)))))
+;;the above will lose for very close numbers
+      (t ((lambda (first-letter)
+		  (cond ((eq first-letter '?)
+			 (cond ((null :obj) nil)
+			       (t (bind (car :pat) (car :obj))
+				  (match (cdr :obj) (cdr :pat)))))
+			((eq first-letter '%)
+			 (look-for-next (cadr :pat) (car :pat) (cdr :pat) :obj nil))
+			((eq first-letter '/:)
+			  (match :obj (cons
+					(eval.in.env :variables :values (car :pat))
+					(cdr :pat))))))
+	  (getchar (car :pat) 1.)))))
+
+;this handles the restrictions indicated by { and }
+;eg to do a disjunction {memq ?zap '(foo bar zing)}
+;the binding element must be at top level of the list
+
+
+(defun handle-restriction (:first-obj :rest-obj :restriction :rest-pat)
+(do ((:i :restriction (cdr :i)))
+    ((null :i) (warning 'handle-restriction
+			 '(The restriction `:restriction has nothing to bind))
+    		 nil)
+    (cond ((numberp (car :i)))
+	  (t ((lambda (first-char)
+		      (cond ((eq first-char '?)
+			     (cond ((eval.in.env (cons (car :i) :variables)
+						 (cons :first-obj :values)
+						 :restriction)
+				    (bind (car :i) :first-obj)
+				    (return (match :rest-obj :rest-pat)))
+				   (t (return nil))))
+			    ((eq first-char '%)
+			     (warning 'handle-restriction
+				       (list 'cant 'handle '%s 'in :restriction))
+			     (return nil))))
+	      (getchar (car :i) 1))))))
+
+(defun eval.in.env (variables values exp)
+       (progv variables values (eval exp)))
+
+
+
+;binding applies only within a receive which lambda binds the
+;variables in :variables to the *value*
+;the names are changed, e.g. ?foo becomes :?foo and %bar becomes :%bar
+;note: need to bind even ? and % for find.all to work
+	   
+(defun bind (:atom :value)
+       (setq :variables (cons (fix-name :atom)
+			:variables))
+       (setq :values (cons :value :values)))
+
+;this is only there so that match called at top level doesnt bomb out
+(setq :variables nil :values nil)
+			       
+
+;this is when a % is in the :pat
+;basically it is looking for the place in the :obj that equals the
+;pattern item after the %<name> one.  If the next one is special
+;i.e. ?,%,{, or : the appropriate action is taken
+
+
+
+(defun look-for-next (:next :first-pat :rest-pat :obj :to.bind)
+       (cond ((null :rest-pat)
+	      (match (member-and-bind (gensym) :obj (nreverse :to.bind) :first-pat)
+		     :rest-pat))
+	     ((atom :next)
+	      ((lambda (first-letter)
+			 (cond 
+			  ((eq first-letter '/:)
+			   (look-for-next (eval :next)
+					  :first-pat
+					  (cons (eval :next) (cdr :rest-pat))
+					  :obj
+					  :to.bind))
+			  ((eq first-letter '?)
+			   (look-for-next (cadr :rest-pat)
+					  :first-pat
+					  (cdr :rest-pat)
+					  :obj
+					  (cons :next :to.bind)))
+			  ((eq first-letter '%)
+			   (warning 'match '(cant handle two %s like this in
+					     `(cons :first-pat :rest-pat)))
+			   (look-for-next (cadr :rest-pat)
+					  (car :rest-pat)
+					  (cdr :rest-pat)
+					  :obj nil))
+			  ((eq first-letter '{)
+			   (match (member-and-bind (up-til '} :rest-pat)
+						   :obj
+						   (nreverse :to.bind)
+						   :first-pat)
+				  :rest-pat))
+			  (t (match (member-and-bind :next :obj (nreverse :to.bind)
+						     :first-pat)
+				    :rest-pat))))
+		 (getchar :next 1)))
+	     (t (match (member-and-bind :next :obj (nreverse :to.bind) :first-pat)
+		       :rest-pat))))
+
+(defun member-and-bind (:element :list :to.bind :unpack)
+       (do ((i :list (cdr i))
+	    (before-part nil)
+	    (before-before-part nil)
+	    (j :to.bind (cdr j)))
+	   ((and (null j) (null i))
+	    (bind :unpack (nreverse before-before-part))
+	    (bind-all :to.bind before-part)
+	    nil)
+	   (cond ((and (null j) (prog (:variables :values)
+				      (return (cond ((atom :element)
+						     (eq :element (car i)))
+						    ((eq (car :element) '{)
+						     (match  (list (car i)) :element))
+						    (t (match (car i) :element ))))))
+		  (bind :unpack (nreverse before-before-part))
+		  (bind-all :to.bind before-part)
+		  (return i)))
+	   (cond (j (setq before-part (cons (car i) before-part)) 
+		    (or (cdr j) (setq before-part (nreverse before-part))))
+		 (:to.bind 
+		  (setq before-before-part
+			  (cons (car before-part) before-before-part))
+		  (setq before-part (cond (before-part
+					   (rplacd (last before-part)
+						   (list (car i)))
+					   (cdr before-part))
+					  (t (list (car i))))))
+		 (t (setq before-before-part (cons (car i) before-before-part))))))
+
+(defun bind-all (variables values)
+       (mapc 'bind variables values))
+
+(defun fix-name (:name)
+       (implode (cons '/: (explodec :name))))
+
+(defun match-member (:pattern :list)
+       (do ((:i :list (cdr :i)))
+	   ((null :i) nil)
+	   (and (match (car :i) :pattern)
+		(return :i))))
+
+
+;this returns the items up to but not including the :atom in the :list
+;if :atom is not in the list then the :list is returned 
+
+
+(defun up-til (:atom :list)
+       (do ((:i :list (cdr :i))
+	    (ans nil))
+	    ((null :i) :list)
+	    (cond ((eq :atom (car :i)) (return (nreverse ans)))
+		  (t (setq ans (cons (car :i) ans))))))
+
+
+
+(defun warning (:from-who :warning)
+       (print (list 'warning 'from :from-who))
+       (print :warning))
+
+;this is the memory portion of the director system
+
+;this gets a variable from an actors property list of goes up the kind-of tree
+
+(defun get.or.ask.parent (:actor :variable)
+((lambda (:rest.of.plist)
+       (cond (:rest.of.plist (cadr :rest.of.plist))
+	     ((eq (symeval :actor) something) nothing-found)
+	     (t (get.or.ask.parent (parent.of :actor) :variable))))
+ (getl (symeval :actor) (list :variable))))
+
+;this remembers by using the property lists of the actor indexed by first word
+;it was modified to clober existing list so that resume will work with remembered?
+
+(defun remember (:item :actor)
+((lambda (:internal.actor)
+	 ((lambda (%memory-value)
+		  (cond ((memq (car :item) %memory-value))
+			((null %memory-value)
+			 (putprop :internal.actor (list (car :item)) '%memory))
+			(t
+			 (nconc %memory-value (list (car :item))))))
+	  (get :internal.actor '%memory))
+	 ((lambda (relations-value)
+		  (cond ((member (cdr :item) relations-value))
+			((null relations-value)
+			 (putprop :internal.actor (list (cdr :item)) (car :item)))
+			(t (nconc
+			    (get :internal.actor (car :item))
+			    (list  (cdr :item))))))
+	  (get :internal.actor (car :item))))
+ (symeval :actor)))
+
+;this finds an occurance of the pattern the actor has been told to remember
+;it also goes up the kind tree if necessary
+;this returns  the env as the car and the state of the search used for resumption
+;as the cdr
+
+
+
+(defun find.one (:pattern :actor)
+       (resume.find.or.ask.parent (get (symeval :actor) (car :pattern))
+				  :pattern
+				  :actor))
+
+
+(defun resume.find.or.ask.parent (:possible-answers :pattern :actor)
+       (cond  ((resume.find :possible-answers :pattern :actor))
+	      ((eq (symeval :actor) something) nothing-found)
+	      (t (resume.find.or.ask.parent
+		   (get (symeval (parent.of :actor)) (car :pattern))
+		   :pattern
+		   (parent.of :actor)))))
+
+(defun resume.find (:possible-answers :pattern :actor)
+        (do ((:i :possible-answers (cdr :i))
+	     (:values nil nil)
+	     (:variables nil nil))
+	    ((null :i) nil)
+	    (and (match (car :i) (cdr :pattern)) 
+		 (return (list (cons :values :variables) (cdr :i) :pattern :actor)))))
+
+
+
+(defun intersect (:list1 :list2)
+       (do ((:i :list1 (cdr :i))
+	    (ans nil))
+	   ((null :i) ans)
+	   (and (member (car :i) :list2)
+		(setq ans (cons (car :i) ans)))))
+
+(defun union (:list1 :list2)
+       (do ((:i :list2 (cdr :i))
+	    (ans :list1))
+	   ((null :i) ans)
+	   (or (member (car :i) ans)
+	       (setq ans (cons (car :i) ans)))))
+
+
+
+;this replaces the value rather than adds the new one
+
+(defun replace (:item :actor)
+       ((lambda (old-property-value)
+		(or (atom old-property-value)
+		    (displace old-property-value (list (cdr :item)))))
+	(get (symeval :actor) (car :item))))
+
+(defun displace (old-list new-list)
+       (cond ((atom old-list) (shouldnt.happen 'displace (list old-list 'not 'a 'list)))
+	     (t (rplaca old-list (car new-list))
+		(rplacd old-list (cdr new-list)))))
+
+
+(defun forget (:item :actor)
+       (cond ((memq (car :item) (get (symeval :actor) '%memory))
+	      (and (match (car (get (symeval :actor) (car :item)))
+			  (cdr :item))
+		   (rplaca (get (symeval :actor) (car :item)) nil))
+	      (cond ((equal (match-delete (cdr :item)
+					  (get (symeval :actor) (car :item)))
+			    '(nil))
+		     (putprop (symeval :actor)
+			      (delq (car :item) (get (symeval :actor) '%memory))
+			      '%memory)
+		     (remprop (symeval :actor) (car :item))))))
+       (and (null (cddr :item))
+	    (remprop (symeval :actor) (car :item))
+	    (putprop (symeval :actor)
+		     (delq (car :item) (get (symeval :actor) '%variables))
+		     '%variables)))
+
+
+(defun match-delete (:pattern :list)
+       (cond ((null :list) :list)
+	     ((match (car :list) :pattern)
+	      (match-delete :pattern (cdr :list)))
+	     ((rplacd :list (match-delete :pattern (cdr :list))))))
+	    
+(defun value.or.nil (:name)
+       (and (boundp :name) (symeval :name)))
+
+(defun addto (:name :value)
+       (cond ((member :value (symeval :name)))
+	     (t (set :name (cons :value (value.or.nil :name))))))
+
+(defun atom-if-only-one (:thing)
+       (cond ((cdr :thing) :thing)
+	     (t (car :thing))))
+
+(defun eval.if.application (form)
+       (cond ((atom form) form)
+	     ((eq (car form) 'eval)  (eval (cadr form)))
+	     (t form)))
+
+
+(declare (setsyntax 46. 139712. nil))
+;restores the normal meaning to .
+

@@ -1,0 +1,96 @@
+;; -*- lisp -*-
+
+(include |ai:ken;declare >|)
+
+(defcomment dump) ;;for tags
+
+(declare (special :echolines)
+	 (*lexpr test-director))
+
+(define-form (dump-director (file-name '|ken1;second:direct >|) (test-director? t))
+ ;;i use this to dump out director 
+       (and test-director? (test-director nil))
+       (nouuo nil)
+       (*rset t)
+       (cond (test-director? ;;clean up from the test
+	      (let ((*protect-all-actors nil)) ;;I really do want to delete them
+		   (ask-each (scenery face test-movie) unmake)
+		   ;;should broadcast to its parts and so on
+		   (ask-each (looking-around looking-left looking-right) unmake))))
+       (clearscreen)
+       (SPLITSCREEN NIL)
+       (MAP-TV-CORE NIL) ;;this is from savedisplay so that it sees if new tv then dumped
+       (sstatus flush t) ;;so that the Lisp need not be dumped with it
+       (type '|remember to update lisp;lock >|)
+       (princ (status lispversion))
+       (SUSPEND '|:CLEAR/
+ : ----- YOU'RE IN DDT ------ /
+ | file-name)
+ ;;now I'm back in the dumped lisp
+       (cond ((= (status ttytype tyo) 5.) ;;on a tv
+	      (MAP-TV-CORE T) ;;restore tv map
+	      (SPLITSCREEN :ECHOLINES)
+	      (SSTATUS TTYINT 11. NIL) ;;dunno why but was in savedisplay
+	      (director-wipe)
+	      (apply 'crunit (list (status uname)))
+	      (SSTATUS GCTIME 0) ;;so that gc statistics are sensible (suggested by lisp news)
+	      (sstatus who1 42. '% 118. 0) ;;initializes and sets the wholine form baker;gcdemn
+	      (sstatus gcwho 3) ;;so that gc temporally shows itself
+	      (cursorpos 'c) ;;clear the bottom part
+	      (cond ((and (probef '|Ken1;direct stats|)
+			  (not (eq (status uname) 'ken))) ;;and not me
+		     (let-files ((file (open '|Ken1;direct stats| 'append)))
+				(print '(,(status uname) on ,(status date)) file))))
+	      (princ '|Welcome to Director --- Version # |)
+	      (princ (third (probef '|ai:ken1;direct >|)))
+	      (terpri)
+	      (princ '|Many changes made since Director guide came out.  |)
+	      (princ '|See revised AI memo 482a.|)
+	      (terpri)
+	      (princ '|For help type (?).|)
+	      (and (status jcl)
+		   (director-load (mergef (namelist (implode (status jcl)))
+					  '((* ,(status uname)) ,(status uname) direct)))))
+	     (t (type '(you are not on a tv so dont use this dumped out Director))
+		(type '(instead type |:lisp ken;direct| and dont use any tv display stuff)))))
+
+
+;;this is just a quick and simple test to make sure that turt part of director is working
+
+(define-form (test-director (face-file 'compiled))
+ (ask stage clear)
+ (ask stage show)
+ (cond ((eq face-file 'compiled) (director-load'face))
+       (face-file (director-load'|face >|)))
+ (define scenery flower
+	 (set your size to 200)
+	 (move right 750)
+	 (show))
+ (ask face move left 300)
+ (ask face grow 200)
+ (ask face show all)
+ (ask head turn right 3) ;;slightly crocked
+ (ask eyes consider ((move right speed) (move left speed)) synonyms)
+ (ask-each (eyes mouth nose) set your (move right speed) to 50)
+ (define test-clock clock
+ 	 (set your frames-per-second to 2))
+ (define looking-around something)
+ (define looking-left something)
+ (define looking-right something)
+ (define the-surprise something)
+ (unwind-protect
+  (progn
+   (ask something set your clock to test-clock) ;;applies to every one
+   (ask looking-around sequentially
+	(ask looking-left ask eyes plan next gradually move left 50)
+	(plan after 1 second ask looking-right concurrently
+	      (ask eyes gradually move right 100)
+	      (ask nose plan after .5 seconds gradually move right 55)
+	      (ask mouth plan after .5 seconds gradually move right 50))
+	(ask the-surprise sequentially
+	     (ask scenery hide)
+	     (ask mouth plan next set your angle to 10))) ;;become a circle (in surprise)
+   (define test-movie movie
+	   (film the next 4 seconds)
+	   (project)))
+  (ask something set your clock to default-clock)))

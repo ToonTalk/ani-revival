@@ -1,0 +1,178 @@
+;; -*-lisp-*-
+
+(include |ai:ken;declar >|)
+
+(defcomment cindy) ;for tags
+
+(define cinderella character
+	(process initial description
+		 (physical (and beautiful shabby))
+		 (personality (and good friendly hard-working shy))
+		 (role-in-story most-important)))
+
+(define step-mother character
+	(process initial description
+		 (physical ugly)
+		 (personality (and mean selfish strong evil))))
+
+(define (relationship-of step-mother cinderella) relationship
+	(process initial description
+		 (and dominates hates)))
+
+(define (relationship-of cinderella step-mother) relationship
+	(process initial description
+		 (and is-obedient-to is-tolerant-of)))
+
+
+(define fairy-godmother character
+	(process initial description
+		 (physical (and pretty magical))
+		 (personality (and good kind strong))))
+
+(define (relationship-of cinderella fairy-godmother) relationship
+	(process initial description
+		 (and is-polite-to is-grateful-to)))
+
+(define (relationship-of fairy-godmother cinderella) relationship
+	(process initial description
+		 (and is-protective-of is-generous-towards is-helpful-towards)))
+
+(define prince character
+	(process initial description
+		 (physical (and beautiful strong)) 
+		 (personality (and good stubborn determined))))
+
+(define (relationship-of cinderella prince) relationship
+	(process initial description
+		 loves))
+
+(define (relationship-of prince cinderella) relationship
+	(process initial description
+		 loves))
+
+(define introduction scene
+	(process initial description
+		 (and (establish (personality cinderella))
+		      (establish (emotional-state cinderella (joy (positive low))))
+		      (establish (personality step-mother))
+		      (establish (emotional-state step-mother (joy (positive low))))
+		      (establish (relationship (relationship-of step-mother cinderella)))
+		      (establish (relationship (relationship-of cinderella step-mother)))))
+	(set your rhythm to normal);this is relative to the film's rhythm
+	(set your length to long))
+
+(define kept-apart scene
+	(process initial description
+		 (sequence  (convey (wants cinderella (meets cinderella prince)))
+			    (convey (prevents step-mother (meets cinderella prince)))
+			    (and (establish (emotional-state cinderella (joy (negative high))))
+				 (establish
+				  (emotional-state step-mother
+						   (and (joy (positive medium))
+							(pride (positive medium))))))))
+	(set your mood to (changes hopeful depressing))
+	(set your rhythm to (changes fast slow))
+	(set your length to long))
+
+
+;;(define step-mother-goes scene
+;;	(process initial description (display (exit-by step-mother)))
+;;	(set your mood to depressing)
+;;	(set your rhythm to slow)
+;;	(set your length to short))
+;;
+;;;;skip this one for a while (or forever?)
+;;
+;;(define introduce-fairy-godmother scene
+;;	(process initial description
+;;		 (establish (personality fairy-godmother)))
+;;	(set your mood to depressing)
+;;	(set your rhythm to picking-up))
+;;
+;;;;this might never get done --- ho well
+;;
+;;(define cinderella-beautified scene
+;;	(process initial description
+;;		 (sequence
+;;		  (convey (causes fairy-godmother 
+;;				  (change (physical cinderella shabby)
+;;					  (physical cinderella elegant))))
+;;		  (and
+;;		   (establish (emotional-state cinderella (joy (positive high))))
+;;		   (establish (emotional-state fairy-godmother (joy (positive medium)))))))
+;;	(set your mood to (changes depressing joyous))
+;;	(set your rhythm to picking-up)
+;;	(set your length to long))
+
+(define no-longer-kept-apart scene
+	(process initial description
+		 (convey (undoes fairy-godmother
+				 (from-scene kept-apart
+					     (convey (prevents step-mother
+							       (meets cinderella prince)))))))
+	(set your mood to (and joyous anticipatory))
+	(set your rhythm to fast)
+	(set your length to short))
+
+
+
+;;(define pre-meeting scene
+;;	(process initial description
+;;		 (and (establish (emotional-state cinderella (anticipation high)))
+;;		      (establish (personality prince))
+;;		      (establish (emotional-state prince (and (joy (negative low))
+;;							      (loneliness high))))))
+;;	(set your mood to anticipatory))
+
+;;gota say that they meet first
+
+(define meeting scene
+ (process initial description
+	  (sequence
+	   (convey (alone cinderella prince))
+	   ;;gets rid of fairy-godmother and step-mother
+	   (convey (getting-it-on cinderella prince))
+	   (and (establish (relationship (relationship-of prince cinderella)))
+		(establish (relationship (relationship-of cinderella prince))))
+	   (and (establish (emotional-state prince (joy (positive high))))
+		(establish (emotional-state cinderella (joy (positive high)))))))
+ (set your mood to (very joyous))
+ (set your rhythm to fast)
+ (set your length to long))
+
+ 
+(define justice scene
+	(process initial description
+		 (and (convey (aware step-mother (getting-it-on prince cinderella)))
+		      (convey (getting-it-on prince cinderella))
+		      (establish (emotional-state step-mother (joy (negative high))))))
+	(set your mood to joyous)
+	(set your length to medium))
+
+;;add focus and point, a few others to this
+
+(declare (coutput (read))) ;;dont want the side effects upon (... level) lost
+
+(define cinderella-film film
+	(set your level of variety to medium)
+	(set your level of complexity to low)
+	(set your level of originality to low)
+	(set your film-length to (interval (minutes 2) (minutes 5)))
+	(set your level of rhythm to high) ;; medium-fast was here but not supported so...
+	(set your mood to scene-dependent)
+	(set your level of coherence to high)
+	(set your level of obviousness to high)
+	(set your level of flashiness to low)
+	(set your level of energy to high)
+	(set your focus to the-films-focus))
+
+;;more to come for focus
+
+(define the-films-focus focus
+ (set your order-of-character+element-type+element to (characters element-types elements))
+ (set your parts-of-the-focus to
+      (cinderella no-longer-kept-apart kept-apart
+                 (relationship-of cinderella step-mother)
+                 (relationship-of step-mother cinderella))))
+						  
+(compile-actors)

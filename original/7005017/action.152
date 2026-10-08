@@ -1,0 +1,399 @@
+;; -*-lisp-*-
+;;this is the part of Ani that runs in Director and runs her plans and subscenes
+
+(include |ai:ken;declare >|)
+
+(defcomment action) ;;for tags
+
+(define director-scene something)
+
+(define-receiver (plan everything) director-scene
+  (do ((subscenes (ask :self recall your subscenes) (rest subscenes))
+       (previous-subscene nil (first subscenes)))
+      ((null subscenes) no-value)
+      (let ((subscene (first subscenes))
+	    (begin-time (ask ,(first subscenes) recall your begin-time)))
+	   (let ((begin-event (cond (begin-time (second begin-time))
+				    (previous-subscene '(end-of ,previous-subscene))
+				    (t '(beginning-of ,:self))))
+		 (delay (cond (begin-time (third begin-time))
+			      (t 0.0)))
+		 (movements (ask ,subscene recall your movements))
+		 (initial-actions (ask ,subscene recall your initial-actions))
+		 (changes (mapcan
+			   (function
+			    (lambda (character)
+				    (mapcar
+				     (function
+				      (lambda (change)
+					      '(ask ,character !,change)))
+				     (ask ,subscene
+					  recall your (changes-for ,character)))))
+			   (ask director-character recall your offspring))))
+		(ask ,subscene plan after receiving (note that ,begin-event happened)
+		     to
+		     (quote
+		      (plan after ,delay seconds
+			    do the following:
+			    !,initial-actions
+			    (ask each of ,subscenes to
+				 note that (beginning-of ,subscene) happened)
+			    (run (and !,movements !,changes)
+				 then ask each of ,subscenes to
+				 note that (end-of ,subscene) happened))))))))
+
+(define director-subscene something
+ (add (or :old-value
+	  '((and !,(ask :self recall your plans))))
+      to your list of (movements actions-if-recalling)))
+
+
+(define-receiver (note that ?event happened) director-subscene
+ (let ((current-movie (ask movie recall your current-movie)))
+      (ask ,current-movie set your ,event to ,(ask ,current-movie recall your frame-count))
+      (cond ((and (eq (first event) 'beginning-of)
+		  (equal (second event) :self)) ;;if signaling itself that its beginning then
+	     (ask :self place the characters)) ;;place any (Or all if cut) of the characters
+	     ((and (eq (first event) 'end-of)
+		   (ask-if-exists ,(second event) are you a plan)) ;;end of a plan then
+	      (ask ,(second event) finish off all plans))
+	     ((and (eq (first event) 'beginning-of)
+		   (ask-if-exists ,(second event) are you a director-subscene))
+	      (let ((status (ask :self recall your status)))
+		   (cond ((eq (first status) 'parasite-on)) ;;do nothing for now
+			 (t (ask :self
+				 ask your scene to
+				 add ,(second event) to your list of running-subscenes)))))
+	     ((and (eq (first event) 'end-of)
+		   (ask-if-exists ,(second event) are you a director-subscene))
+	      (ask ,current-movie set your (time-estimate-error-for ,(second event)) to
+		   ,(subtract-elapsed-from-estimated-time (second event) current-movie))
+	      (ask :self ask your scene to
+		   remove ,(second event) from your list of running-subscenes)
+	      (mapc
+	       (function (lambda (parasite)
+				 (ask ,parasite note that (end-of ,parasite) happened)))
+	       (ask :self recall your parasites))
+	      ;;wait a tick so something can start now
+	      (ask :self plan next stop film if nothing running)))))
+
+(define-function subtract-elapsed-from-estimated-time (subscene movie)
+ (let ((elapsed (//$ (float (- (ask ,movie recall your (end-of ,subscene))
+			       (ask ,movie recall your (beginning-of ,subscene))))
+		     (float (ask ,movie recall your frames-per-second))))
+       (estimated (ask ,subscene recall your running-time)))
+      (cond (estimated '(,(-$ elapsed estimated) out of ,elapsed seconds))
+	    (t 'no-estimate-found-so-cant))))
+
+(define-receiver (stop film if nothing running) director-subscene
+ (cond ((and (null (ask :self ask your scene to recall your running-subscenes))
+	     (null (ask default-universe recall your actors-to-run-next)))
+	(ask movie ask your current-movie to stop filming))))
+
+
+(define-receiver (run (repeat ?number ?actions %inner-followup) then %followup)
+		 director-subscene
+ ;;this differs from the one in some > in that the action is repeated after
+ ;;its previous invocation is finished
+  (let ((combined-followup (cond ((eq (first inner-followup) 'then)
+				  '(do the following: 
+				       ,(rest inner-followup)
+				       ,followup))
+				 (t followup))))
+       (ask :self note that (repetition number ,(- number) of ,actions) happened)
+       (cond ((= number 1)
+	      (ask :self run ,actions then !,combined-followup))
+	     ((< number 1)
+	      (shouldnt-happen 'director-subscene
+			       '(|can't repeat so few times in| !,:message)))
+	     (t (ask :self run (sequence: ,actions
+					  (repeat ,(1- number) ,actions))
+		     then !,combined-followup)))))
+
+(declare (coutput '(comment |previous two comments should be ignored|)))
+
+(define-receiver (run (sequence: ?first-action %rest-actions) then %followup) director-subscene
+ (cond ((ask-if-exists ,first-action are you a plan)
+	(ask ,first-action run yourself in ,:self then
+	     ask ,:self to plan next run (sequence: !,rest-actions) then !,followup))
+       (t (ask :self run ,first-action then
+	       plan next run (sequence: !,rest-actions) then !,followup))))
+
+(define-receiver (run (sequence:) then %followup) director-subscene
+ (ask :self !,followup)) 
+
+(define-receiver (run (and %actions) then %followup) director-subscene
+  ;;do the actions "now" in parallel 
+  (cond (actions
+	 (let ((wait-list (set-up-running-actions actions followup)))
+	      (mapc ;;prepare first
+	       (function
+		(lambda (action)
+			(cond ((ask-if-exists ,action are you a plan)
+			       (ask ,action prepare yourself to run in ,:self then
+				    ask ,:self to remove ,action from your list of ,wait-list))
+			      (t (ask :self run ,action then
+				      remove ,action from your list of ,wait-list)))))
+	       actions)
+	      (mapc ;;then run if a plan
+	       (function
+		(lambda (action)
+			(cond ((ask-if-exists ,action are you a plan)
+			       (ask ,action run yourself in ,:self then
+				    ask ,:self
+				    to remove ,action from your list of ,wait-list)))))
+	       actions)))
+	(t (ask :self !,followup))))
+
+(define-function set-up-running-actions (actions followup)
+ (let ((wait-list (append-atoms 'actions-still-running- (gen-number))))
+      (ask :self set your ,wait-list to ,actions) ;;when this is empty then followup
+      (ask :self add (cond ((null :new-value) ;;if the list gets empty then
+			    (ask :self forget your (,wait-list actions-if-changing))
+			    (ask :self !,followup)
+			    no-value)
+			   (t :new-value)) ;;otherwise dont change the wait-list
+	   to your list of (,wait-list actions-if-changing))
+      wait-list))
+
+
+(define-receiver (run {and (activity-of %) ?plan-name} %followup) director-subscene
+ (ask ,plan-name prepare yourself to run in ,:self)
+ (ask ,plan-name run yourself in ,:self !,followup))
+
+
+(define-receiver (see if everybody is done) director-subscene
+ ()) ;;pretty good default
+
+(define-receiver (run (ask ?target %message) then %followup) director-subscene
+ (ask ,target !,message then ask ,:self to !,followup))
+
+
+(define-receiver (place the characters) director-subscene
+  (cond ((eq (ask :self recall your transition-type) 'cut)
+	 (ask :self note that (film cut) happened)
+	 (mapc ;;first do those with screen-position locations
+	  (function (lambda (character)
+			    (let ((location
+				   (get (ask :self recall your (location-of ,character))
+					'where)))
+				 (and location
+				      (not (eq location 'nowhere))
+				      (eq (first location) 'screen-position)
+				      (do-as-if-you-were director-character
+							 ,character show yourself at location
+							 ,location in ,:self)))))
+	  (ask director-character recall your offspring))
+	 (mapc ;;then those with relative positions
+	       ;;since they might be relative to those just located
+	  (function (lambda (character)
+			    (let ((location
+				   (get (ask :self recall your (location-of ,character))
+					'where)))
+				 (and location
+				      (not (eq location 'nowhere))
+				      (not (eq (first location) 'screen-position))
+				      (do-as-if-you-were director-character
+							 ,character show yourself at location
+							 ,location in ,:self)))))
+	  (ask director-character recall your offspring)))
+	(t (mapc ;;otherwise set it only if it has no value currently
+	    (function (lambda (character)
+			      (or (ask ,character recall your initial-location)
+				  (do-as-if-you-were
+				   director-character 
+				   ,character show yourself at location
+				   ,(get (ask :self recall your (location-of ,character))
+					 'where)
+				   in ,:self))))
+	    (ask director-character recall your offspring)))))
+
+
+(define-or-add-to plan something) ;;is also defined in Ani but should not conflict much
+
+(define-receiver (prepare yourself to run in ?subscene %followup) plan
+ ;;this and the next are seperated so that all the plans prepare then all run
+ ;;avoiding ordering screws
+  (let ((begin-time (ask :self recall your begin-time)))
+       (cond ((numberp begin-time)) ;;do nothing now
+	     ((eq (first begin-time) 'after)
+	      (let (((nil trigger-event delay) begin-time))
+		   (ask ,subscene plan after receiving (note that ,trigger-event happened)
+			to
+			(quote
+			 (ask ,:self to plan after ,delay seconds
+			       do the following:
+			       (ask ,subscene to note that (beginning-of ,:self) happened)
+			       (add
+				(ask ,subscene to do the following:
+				     (note that (end-of ,:self) happened)
+				     !,(cond ((eq (first followup) 'then)
+					      '(,(rest followup)))))
+				to your list of to-do-when-over)			       
+			       (remove ,trigger-event from your list of waiting-to-happen)
+			       (run (and !,(ask :self recall your plans))
+				    then clean up since just finished))))
+		   (ask :self add ,trigger-event to your list of waiting-to-happen)))
+	     (t (shouldnt-happen 'plan
+				 '(dont understand the begin time ,begin-time of ,:self))))))
+
+(define-receiver (run yourself in ?subscene then %followup) plan
+  (let ((begin-time (ask :self recall your begin-time)))
+       (cond ((numberp begin-time) ;;do it now
+	      (ask ,:self plan after ,begin-time seconds
+		   do the following:
+		   (ask ,subscene to note that (beginning-of ,:self) happened)
+		   (add (ask ,subscene to do the following:
+			     (note that (end-of ,:self) happened)
+			     ,followup)
+			to your list of to-do-when-over)
+		   (run (and !,(ask :self recall your plans))
+			then clean up since just finished)))
+	     ((null (ask :self recall your waiting-to-happen))
+	      (shouldnt-happen
+	       :self
+	       '(|I'm suppose to begin at| ,begin-time |but nothing planned|))))))
+
+(define-receiver (run (and %actions) then %followup) plan
+  ;;do the actions "now" in parallel 
+  (cond (actions (let ((wait-list (set-up-running-actions actions followup)))
+		      (mapc 
+		       (function
+			(lambda (action)
+				(ask :self run ,action then
+				     remove ,action from your list of ,wait-list)))
+		       actions)))
+	(t (ask :self !,followup))))
+
+(define-receiver (run (sequence: ?first-action %rest-actions) then %followup) plan
+ (ask :self run ,first-action then
+      run (sequence: !,rest-actions) then !,followup))
+
+(define-receiver (run (sequence:) then %followup) plan
+ (ask :self !,followup))
+
+(define-receiver (run (ask ?target %message) then %followup) plan
+ (ask ,target !,message then ask ,:self to !,followup))
+
+(define-receiver
+ ;;this gradually faces the character towards the gradually left and then moves towards it
+ (cause ?characters to gradually go in arc ?regardless-or-careful of collisions
+	    to ?destination as ?target-type stopping if ?condition-definition %followup)
+ plan
+  (ask-each ,characters forget your current-goal)
+  ;;since new one coming but old should not be used in figuring it out
+  (let (((goal screen-coordinates)
+	 (display-position characters 
+			   (cond ((eq target-type 'stationary-target)
+				  ;;want to set the destination so it wont change
+				  '(stationary-target ,destination
+						      ,(find-xy-position destination nil)))
+				 (t destination))))
+	(character (first characters))) ;;first one is the leader
+       (ask-each ,characters set your current-goal to ,goal)
+       (let ((original-distance
+	      (ask ,character yield distance to ,screen-coordinates)))
+	    (ask :self gradually face ,character towards ,screen-coordinates
+		 plus ,(*$ (ask ,character
+				ask your special-dynamics
+				to yield real value for path-curvature)
+			   (ask ,character recall your last-curvature-sign))
+		 then
+		 cause ,characters to go in arc ,regardless-or-careful of collisions to ,goal
+		 stopping if ,(let ((new-condition (eval condition-definition)))
+				   (ask ,new-condition
+					set your original-distance to ,original-distance)
+				   new-condition)
+		 !,followup))))
+
+(define-receiver
+ {and ?the-whole-message (gradually face ?character towards ?position plus ?angle %followup)}
+ plan
+ ;;plan does it so that plans can stop at any time and not munge other plans
+  (let ((state (ask ,character recall your state)))
+       (do-set-turtle-gradually :self character (first state) (second state)
+				(+$ (do-as-if-you-were
+				     character 
+				     ,character
+				     yield heading to ,(find-screen-coordinate-of position))
+				    (eval angle)) ;;usually a number but not always
+				(cond ((eq (first followup) 'then)
+				       (rest followup)))
+				the-whole-message)))
+
+(declare (special :show-goals))
+
+(or (boundp ':show-goals) (setq :show-goals nil)) ;;default is not to do anything here
+
+(declare (special :goal :position)) ;;just for debugging purposes
+
+;;the following is used in debugging only
+
+(define-function display-position (characters :goal)
+ ;;this is used to debug the goal stuff
+ (let ((:position (find-screen-coordinate-of :goal)))
+      (cond (:show-goals
+	     (display-characters-and-goal :position 25)
+	     (dicks-print '(goal of !,characters is ,:goal))
+	     (break display-position)))
+      '(,:goal ,:position)))
+
+(define-function display-characters-and-goal (position goal-size)
+ (let ((screen-status (ask screen recall your running)))
+      (ask screen normal running)
+      (display-just-goal (first position) (second position) goal-size)
+      (and (eq screen-status 'silent) ;;restore screen to previous status if need be
+	   (ask screen silent running))))
+
+(define-function display-just-goal (x-position y-position goal-size)
+ (penup)
+ (setxy x-position y-position)
+ (circle goal-size))
+
+(define-synonym rdp redisplay-position)
+
+(define-function redisplay-position nil
+ (display-characters-and-goal :position 20)
+ (cond ((eq (first :goal) 'stationary-target)
+	(let ((new-goal '(stationary-target ,(second :goal)
+					    ,(find-xy-position (second :goal) nil))))
+	     (setq :goal new-goal))))
+ (setq :position (find-screen-coordinate-of :goal))
+ (display-just-goal (first :position) (second :position) 40))
+
+(declare (unspecial :goal :position))
+
+(define-receiver
+ {and ?the-whole-message
+      (cause ?characters to go in arc ?regardless-or-careful of collisions
+	     to ?goal stopping if ?condition %followup)}
+ plan
+ (let ((go-on? (ask ,(first characters) ;;the first of the characters is the leader
+		    go in arc ,regardless-or-careful of collisions
+		    dragging ,(rest characters) along 
+		    to ,goal stopping if ,condition !,followup)))
+      (cond (go-on? (ask :self plan next !,the-whole-message))
+	    ((eq (first followup) 'then) (ask :self !,(rest followup))))))
+
+(define-receiver
+ (cause ?character to gradually turn ?degrees degrees stopping if ?stop-condition %followup)
+ plan
+ ;;not currently stopable
+ (ask ,character gradually turn right ,degrees degrees stopping if ,stop-condition
+      !,(cond ((eq (first followup) 'then) '(then ask ,:self to !,(rest followup))))))
+
+(define-receiver
+ (cause ?character to hit ?victum and then retreat by at least original distance %followup)
+ plan
+ (ask ,character hit ,victum and then retreat by at least original distance
+      !,(cond ((eq (first followup) 'then) '(then ask ,:self to !,(rest followup))))))
+
+(define-receiver (finish off all plans) plan
+ ;;this happens when another plan stops one
+ (ask :self forget your things-to-do-next)
+ (ask :self clean up since just finished))
+
+(define-receiver (clean up since just finished) plan
+ (let ((to-do-when-over (ask :self recall your to-do-when-over)))
+      (ask :self forget your to-do-when-over)
+      (ask :self do the following: !,to-do-when-over)))

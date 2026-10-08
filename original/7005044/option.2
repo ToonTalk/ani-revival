@@ -1,0 +1,474 @@
+;;*(PAGEWIDTH 64. 64. 0. 0.)
+
+
+
+(DECLARE (FASLOAD GOODYS) (SPECIAL COMRATE)
+	 (*LEXPR MAKE-TABLE))
+
+(SETQ COMRATE 0.03) 
+
+;;;DO A SPREAD FUNCTION BOTH WAYS I.E. SUBTRACTION OF EACH EPO
+;;;AND EP-SPREAD AND SEE IF EQ
+
+
+
+ 
+(DECLARE (SPECIAL *ASSUMPTION-PAIRS* ))
+(DEFUN RUN FEXPR (LOOK-AT-EXP&ASSUMPTION-PAIRS)
+(SETQ *ASSUMPTION-PAIRS* (CADR LOOK-AT-EXP&ASSUMPTION-PAIRS))
+(EVAL (EVAL (CAR LOOK-AT-EXP&ASSUMPTION-PAIRS))))
+		  
+
+(DEFUN LOOK-AT FEXPR (NAME&NEWS-PAPER&VOLATILITY)
+(PRINT (LIST 'NAME= (CAR NAME&NEWS-PAPER&VOLATILITY)))
+(SPRINTER (CADR NAME&NEWS-PAPER&VOLATILITY))
+       (DO ((SPRICE (CAR (CADR NAME&NEWS-PAPER&VOLATILITY)))
+	    (XPRICE-DURATION-OPRICES
+			(MAKE-XDO
+			 (CDR
+			  (CADR NAME&NEWS-PAPER&VOLATILITY))))
+	    (SDS (MAPCAR 'CAR *ASSUMPTION-PAIRS*)
+		 (CDR SDS))
+	    (GRS (MAPCAR 'CADR *ASSUMPTION-PAIRS*)
+		 (CDR GRS))
+	    (ANS NIL))
+	   ((NULL SDS) (OUTPUT-GIANT-TABLE ANS)
+		       (TERPRI) (TERPRI) (TERPRI))
+	   (SETQ ANS (APPEND
+		      (MAKE-TABLE SPRICE
+			   (CAR SDS)
+			   XPRICE-DURATION-OPRICES
+			   (CAR GRS)
+			   'DOING-RUN)
+		      ANS))))
+
+(SETQ *DAYS1* 10.0)
+(SETQ *DAYS2* 75.0)
+(SETQ *DAYS3* 140.0)
+(DECLARE (SPECIAL *DAYS1* *DAYS2* *DAYS3*))
+
+(DEFUN MAKE-XDO (NEWS-PAPER-NUMS)
+(DO ((I NEWS-PAPER-NUMS (CDR I))
+     (ANS NIL))
+    ((NULL I) ANS)
+       (SETQ ANS
+	     (APPEND
+	      ANS
+	      (AND (CADR (CAR I))
+		   (LIST(LIST
+		    (CAAR I)
+		    *DAYS1*
+		    (CADR (CAR I)))))
+	      (AND (CADDR (CAR I))
+		   (LIST(LIST
+		    (CAAR I)
+		    *DAYS2*
+		    (CADDR (CAR I)))))
+	      (AND (CADDDR (CAR I))
+		   (LIST (LIST
+		    (CAAR I)
+		    *DAYS3*
+		    (CADDDR (CAR I)))))))))
+	       
+
+
+
+
+
+
+
+
+(DEFUN EPO (SPRICE XPRICE SD GROWTH-RATE) 
+       ((LAMBDA (MEAN) 
+		((LAMBDA (STOP) 
+			 ((LAMBDA (INCREMENT) 
+				  (DO ((PRICE XPRICE
+					      (+$ PRICE INCREMENT))
+				       (SUM 0.0)
+				       (PROB 0.0)
+				       (VALUE 0.0))
+				      ((> PRICE STOP) SUM)
+				      (SETQ VALUE
+					    (//$ (-$ PRICE XPRICE)
+						 PRICE))
+				      (SETQ PROB
+					    (LOG-NORMAL PRICE
+							MEAN
+							SD))
+				      (SETQ SUM
+					    (+$ SUM
+						(*$ VALUE
+						    PROB
+						    INCREMENT)))))
+			  (*$ (-$ STOP XPRICE) 5.0E-3)))
+		 (EXP (+$ MEAN (*$ 4.0 SD)))))
+	(+$ (LOG SPRICE) (LOG GROWTH-RATE) (*$ -0.5 SD SD)))) 
+
+(DEFUN EP (SPRICE SD GROWTH-RATE) 
+       ((LAMBDA (MEAN) 
+		((LAMBDA (STOP) 
+			 ((LAMBDA (INCREMENT) 
+				  (DO ((PRICE 0.99999999E-10
+					      (+$ PRICE INCREMENT))
+				       (SUM 0.0)
+				       (PROB 0.0))
+				      ((> PRICE STOP) SUM)
+				      (SETQ PROB
+					    (LOG-NORMAL PRICE
+							MEAN
+							SD))
+				      (SETQ SUM
+					    (+$ SUM
+						(*$ PROB
+						    INCREMENT)))))
+			  (*$ STOP 1.0E-3)))
+		 (EXP (+$ MEAN (*$ 4.0 SD)))))
+	(+$ (LOG SPRICE) (LOG GROWTH-RATE) (*$ -0.5 SD SD)))) 
+
+(DEFUN EPS (SPRICE XPRICE1 XPRICE2 SD GROWTH-RATE) 
+       ((LAMBDA (MEAN) 
+	 ((LAMBDA (STOP) 
+		  ((LAMBDA (INCREMENT) 
+			   (DO ((PRICE XPRICE1 (+$ PRICE INCREMENT))
+				(SUM 0.0)
+				(PROB 0.0)
+				(VALUE 0.0))
+			       ((> PRICE STOP) SUM)
+			       (SETQ VALUE
+				     (//$ (COND ((< PRICE XPRICE2)
+						 (-$ PRICE XPRICE1))
+						(T (-$ XPRICE2
+						       XPRICE1)))
+					  PRICE))
+			       (SETQ PROB (LOG-NORMAL PRICE MEAN SD))
+			       (SETQ SUM
+				     (+$ SUM
+					 (*$ VALUE PROB INCREMENT)))))
+		   (*$ (-$ STOP XPRICE1) 1.0E-3)))
+	  (EXP (+$ MEAN (*$ 4.0 SD)))))
+	(+$ (LOG SPRICE) (LOG GROWTH-RATE) (*$ -0.5 SD SD)))) 
+
+(DEFUN LOG-NORMAL (PRICE MEAN SD) 
+       ((LAMBDA (CHANGE) 
+		(//$ (EXP (//$ (*$ CHANGE CHANGE) (*$ -2.0 SD SD)))
+		     (*$ 2.50662723 SD)))
+	(-$ (LOG PRICE) MEAN))) 
+
+(DEFUN SD (LIST-OF-VALUES) 
+       ((LAMBDA (LENGTH-OF-LIST) 
+		(DO ((I LIST-OF-VALUES (CDR I))
+		     (ANS 0.0)
+		     (MEAN (//$ (APPLY '+$ LIST-OF-VALUES)
+				LENGTH-OF-LIST)))
+		    ((NULL I) (SQRT (//$ ANS LENGTH-OF-LIST)))
+		    (SETQ ANS (+$ ANS
+				  (*$ (-$ MEAN (CAR I))
+				      (-$ MEAN (CAR I)))))))
+	(FLOAT (LENGTH LIST-OF-VALUES)))) 
+
+(DEFLEXPR MAKE-TABLE
+	  (PRICE INTERVAL-SD
+		 XPRICE-DURATION-OPRICES
+		 GROWTH
+		 (DOING-RUN? NIL)
+		 (DO-BEST-GROWTH? NIL))
+	  (DO ((I XPRICE-DURATION-OPRICES (CDR I))
+	       (XPRICE)
+	       (OPID)
+	       (DURATION)
+	       (EP)
+	       (OPRICE)
+	       (SD)
+	       (MINI-TABLE NIL))
+	      ((NULL I) (STUDY MINI-TABLE))
+	      (SETQ XPRICE (FLOAT (CAAR I)))
+	      (SETQ DURATION (FLOAT (CADAR I)))
+	      (SETQ OPRICE (FLOAT (CADDAR I)))
+	      (SETQ OPID (SXHASH (CAR I)))
+	      (SETQ SD (*$ INTERVAL-SD (SQRT DURATION)))
+	      (SETQ EP (EPO PRICE
+			    XPRICE
+			    SD
+			    (+$ 1.0 (*$ (-$ (FLOAT GROWTH) 1.0)
+					(//$ DURATION 260.0)))))
+	      (SETQ MINI-TABLE
+		    (CONS (LIST OPID OPRICE EP DURATION XPRICE
+				INTERVAL-SD GROWTH)
+			  MINI-TABLE))
+	 (AND (NOT DOING-RUN?)
+	      (PRINT 'EXCERCISE-PRICE=)
+	      (PRINC XPRICE)
+	      (PRINC '/ / DURATION=)
+	      (PRINC DURATION)
+	      (PRINC '/ / EXPECTED-PRICE=)
+	      (PRINC EP)
+	      (PRINC '/ / RATIO=)
+	      (PRINC (//$ OPRICE EP))
+	      (AND DO-BEST-GROWTH?
+		   (PRINT 'BEST-GROWTH-RATE=)
+		   (PRINC (FIND-BEST-GROWTH PRICE
+					    XPRICE
+					    SD
+					    OPRICE)))))) 
+
+(DECLARE (SPECIAL *TOLERANCE*)) 
+
+(SETQ *TOLERANCE* 0.02) 
+
+(DECLARE (SPECIAL MB LB HB EPL EPH EPM RATIO)) 
+
+(DEFUN FIND-BEST-GROWTH (PRICE XPRICE SD OPRICE) 
+       (DO ((MB)
+	    (LB 0.5)
+	    (HB 2.0)
+	    (EPL (EPO PRICE XPRICE SD 0.5))
+	    (EPH (EPO PRICE XPRICE SD 2.0))
+	    (EPM)
+	    (RATIO 0.0))
+	   ((> *TOLERANCE* (ABS (-$ RATIO 1.0))) MB)
+	   (SETQ EPM
+		 (EPO PRICE XPRICE SD (SETQ MB (//$ (+$ LB HB) 2.0))))
+	   (COND ((> (SETQ RATIO (//$ OPRICE EPM)) 1.0)
+		  (SETQ LB MB)
+		  (SETQ EPL EPM))
+		 (T (SETQ HB MB) (SETQ EPH EPM))))) 
+
+;;;MINI-TABLE IS LIST OF ELEMENTS OF THE FORM:
+;;;(OPID OPRICE EP DURATION XPRICE SD GROWTH)
+;;;AND RETURNS A LIST OF LISTS OF THE FORM
+;;;(TRANSACTION EXPECTED-PROF PERCENT-RETURN ANNUAL-RETURN
+;;; 	        ...	      ... WITH COMM  ...)
+;;;WHERE TRANSACTION IS LIST OF THE FORM
+;;;(ID B-OP S-OP COMMENT)
+(DEFUN STUDY (MINI-TABLE) 
+       (DO
+	((OPT1 MINI-TABLE (CDR OPT1))
+	 (PERETURN)
+	 (COMM)
+	 (THE-ANS NIL)
+	 (ANRET)
+	 (EPDIF)
+	  (OPDIF)
+	  (EP1)
+	  (EP2)
+	  (OP1)
+	  (OP2)
+	  (DURATION1)
+	  (DURATION2)
+	  (XPRICE1)
+	  (XPRICE2)
+	  (BOP)
+	  (BEP)
+	  (SOP)
+	  (SEP)
+	  (PROF))
+	((NULL OPT1)
+	 THE-ANS)
+(SETQ XPRICE1 (CAR (CDDDDR (CAR OPT1))))
+(SETQ DURATION1 (CADDDR (CAR OPT1)))
+(SETQ EP1 (CADDR (CAR OPT1)))
+(SETQ OP1 (CADR (CAR OPT1)))
+	(DO
+	 ((OPT2 (CDR (MEMQ (CAR OPT1) MINI-TABLE)) (CDR OPT2))
+	  (ANS NIL))
+	 ((NULL OPT2) NIL)
+(SETQ OP2 (CADR (CAR OPT2)))
+(SETQ EP2 (CADDR (CAR OPT2)))
+(SETQ DURATION2 (CADDDR (CAR OPT2)))
+(SETQ XPRICE2 (CAR (CDDDDR (CAR OPT2))))
+	 (SETQ EPDIF (ABS (-$ EP1 EP2)))
+	 (SETQ OPDIF (ABS (-$ OP1 OP2 1.E-10)))
+	 (SETQ COMM (+$ (*$ COMRATE OP1)
+			(*$ COMRATE OP2)))
+	 (COND
+	  ((EQ (CAR OPT1) (CAR OPT2)))
+	  (T
+	   (COND ((COND ((< XPRICE1  XPRICE2)
+			 (SETQ BOP OP1 SOP OP2)
+			 (SETQ BEP EP1 SEP EP2)
+			 (DURATIONS-WRONG?
+				    (CAR OPT1)
+				    (CAR OPT2)))
+			(T (SETQ BOP OP2 SOP OP1)
+			   (SETQ BEP EP2 SEP EP1)
+			   (DURATIONS-WRONG?
+			    (CAR OPT2)
+			    (CAR OPT1))))) 
+		 (T 
+	   (SETQ 
+	    ANS
+	    (LIST
+	     (COND ((< XPRICE1 XPRICE2)
+		    (LIST (- (ABS (CAAR OPT1))
+			     (ABS (CAAR OPT2)))
+			  (CAR OPT1)
+			  (CAR OPT2)
+			  'LONG/ POSITION))
+		   (T  (LIST (- (ABS (CAAR OPT2))
+			       (ABS (CAAR OPT1)))
+			    (CAR OPT2)
+			    (CAR OPT1)
+			    'LONG/ POSITION)))
+	     (SETQ PROF (+$ (-$ BEP BOP) (-$ SOP SEP)))
+	     (SETQ PERETURN (//$ PROF OPDIF))
+	     (EXPT (+$ 1.0 PERETURN)
+			 (//$ 260.0
+			      (MIN DURATION1
+				   DURATION2)))
+	     (-$ PROF COMM)
+	     (SETQ PERETURN (//$ (-$ PROF COMM)
+				       (+$ COMM OPDIF)))
+	     (SETQ ANRET
+		   (EXPT (+$ 1.0 PERETURN)
+			 (//$ 260.0
+			      (MAX DURATION1
+				   DURATION2))))))
+ (AND ANS (SETQ THE-ANS (CONS ANS THE-ANS)))))
+	   (COND ((COND ((< XPRICE2 XPRICE1)
+			 (DURATIONS-WRONG?
+				    (CAR OPT1)
+				    (CAR OPT2)))
+			(T (DURATIONS-WRONG?
+			    (CAR OPT2)
+			    (CAR OPT1)))))
+		 (T
+	   (SETQ 
+	    ANS
+	    (LIST
+	     (COND ((< XPRICE1 XPRICE2)
+		    (LIST (- (ABS (CAAR OPT1))
+			     (ABS (CAAR OPT2)))
+			  (CAR OPT1)
+			  (CAR OPT2)
+			 'SHORT/ POSITION ))
+		   (T (LIST (- (ABS (CAAR OPT2))
+			       (ABS (CAAR OPT1)))
+			    (CAR OPT2)
+			    (CAR OPT1)
+			    'SHORT/ POSITION)))
+	     (SETQ PROF (+$ (-$ BOP BEP) (-$ SEP SOP)))
+	     (SETQ PERETURN
+			 (//$ PROF
+			      (-$ (ABS (-$ XPRICE1
+					   XPRICE2))
+				  OPDIF)))
+	     (EXPT (+$ 1.0 PERETURN)
+			 (//$ 260.0
+			      (MAX DURATION1
+				   DURATION2)))
+	     (-$ PROF COMM)
+	     (SETQ PERETURN
+			 (//$ (-$ PROF COMM)
+			      (+$ COMM
+				  (-$ (ABS (-$ XPRICE1
+					       XPRICE2))
+				      OPDIF))))
+	     (SETQ ANRET
+		   (EXPT (+$ 1.0 PERETURN)
+			 (//$ 260.0
+			      (MAX DURATION1
+				   DURATION2))))))
+ (AND ANS (SETQ THE-ANS (CONS ANS THE-ANS)))))))))) 
+
+;;;(OPRICE EP DURATION XPRICE)
+
+(DEFUN DURATIONS-WRONG? (BOPT SOPT) 
+(< (CADDDR BOPT) (CADDDR SOPT)))
+
+(DECLARE (SPECIAL *MIN-RET*)) 
+
+(DEFUN OUTPUT-GIANT-TABLE (TABLE-OF-TABLES)
+(DO ((I (SORTCAR TABLE-OF-TABLES
+	 (FUNCTION (LAMBDA (LINE1 LINE2)
+			   (> (CAR LINE1) (CAR LINE2)))))
+	(CDR I))
+     (AV-ANRET 0.0)
+     (TOT-ANRET 1.0)
+     (TRANSACT NIL)
+     (TRANSACTS NIL)
+     (ANRET)
+     (ID 0))
+    ((NULL I) (PRINT-OUT TRANSACTS))
+(SETQ ANRET (CAR (LAST (CAR I))))
+    (COND ((= ID (CAAAR I))
+	   (SETQ TOT-ANRET (*$ TOT-ANRET ANRET))
+	   (SETQ TRANSACT (CONS (CAR I) TRANSACT)))
+	  (T (SETQ ID (CAAAR I))
+	     (COND 
+		   ((< (SETQ AV-ANRET TOT-ANRET)
+		       *MIN-RET*))
+		   (T (SETQ TRANSACTS (CONS
+				       (CONS AV-ANRET TRANSACT)
+				       TRANSACTS))))
+	     (SETQ TOT-ANRET ANRET)
+	     (SETQ TRANSACT (LIST (CAR I)))))))
+	     
+(DEFUN PRINT-OUT (LIST-OF-TRANS)
+(MAPC 'PRINT-TRANS (SORTCAR LIST-OF-TRANS 'GREATERP))
+(PRINT 'DONE))
+
+(DEFUN PRINT-TRANS (TRANS)
+(PRINT (CADDDR (CAR (CAR (CDR TRANS)))))
+(PRINT 'AVERAGE-RETURN=) 
+(PRINC (CAR TRANS))
+(PRINT 'BUY) 
+(PRINC (LIST (CADDDR (CADR (CAR (CAR (CDR TRANS)))))
+	     (CAR (CDDDDR (CADR (CAR (CAR (CDR TRANS))))))
+	     'FOR
+	     (CADR (CADR (CAR (CAR (CDR TRANS)))))))
+(PRINT 'SELL)
+(PRINC (LIST (CADDDR (CADDR (CAR (CAR (CDR TRANS)))))
+	     (CAR (CDDDDR (CADDR (CAR (CAR (CDR TRANS))))))
+	     'FOR
+	     (CADR (CADDR (CAR (CAR (CDR TRANS)))))))
+(TERPRI)
+(PRINC 'SD/	GROWTH/	/BUYEP/	SELLEP/	EP/	ANRET/	CEP/	CRET/	/CANRET)
+(DO ((I (CDR TRANS) (CDR I))
+     (TAB '/	))
+    ((NULL I) (TERPRI) (TERPRI))
+    (PRINT (CADR (CDDDDR (CADR (CAR (CAR I))))))
+    (PRINC TAB)
+    (PRINC (CADDR (CDDDDR (CADR (CAR (CAR I))))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADDR (CADR (CAR (CAR I))))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADDR (CADDR (CAR (CAR I))))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADR (CAR I))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADDDR (CAR I))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CAR (CDDDDR (CAR I)))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADR (CDDDDR (CAR I)))))
+    (PRINC TAB)
+    (PRINC (TRUNC (CADDR (CDDDDR (CAR I)))))))
+
+(DEFUN TRUNC (NUM)
+(COND ((< NUM 100.0)
+       (//$ (FLOAT (FIX (*$ 10000.0 NUM))) 10000.0))
+      (T (FIX NUM))))
+    
+    
+    
+
+
+
+(SETQ *MIN-RET* 1.15) 
+ 
+(DEFUN E (a B MOnth d month2)
+       (DO ((I '(0.0145 0.017 0.02 0.023 0.027 0.03 0.035) (CDR I))
+	    (o1)(o2))
+	    ((NULL I) 'DONE)
+	    (PRINT (LIST (CAR I)
+			 (setq o1
+			       (EPO (FLOAT A)
+			      (FLOAT B)
+			      (TIMES MONTH (CAR I))
+			      1.0))
+			 (setq o2
+			       (EPO (FLOAT a)
+			      (FLOAT d)
+			      (TIMES MONTH2 (CAR I))
+			      1.0))
+			 (-$ o1 o2)))))

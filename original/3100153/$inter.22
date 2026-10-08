@@ -1,0 +1,379 @@
+.sec Introduction
+	Suppose you have Logo draw two images and you are interested in the
+series of drawings that gradually transform the first drawing into the second.  Suppose
+you have a circle and a square then the following might be close to what you have in
+mind:
+.begin group
+.skip 9
+.end once indent 0,0
+You might be doing this as an exercise in turtle geometry
+with varying
+degrees of sophistication or you just want to produce interesting drawings.
+Or you may be animating and desire smooth transitions between parts of drawings, for
+example, you have a mouth that smiles and one that frowns and you want the face to
+gradually transform from one to the other.
+	There are, however, very many interpolations between two drawings.  Suppose in 
+the previous example the circle and square were created by calling a procedure called
+"Poly" whose first argument is the size of each side and the second the angle turned.
+So the square might have been "[fl]POLY 200 90[fr]" and the circle "[fl]POLY 20 10[fr]".
+Now one simple way to interpolate the two would be to gradually change 200 to 20 and
+90 to 10.  This would produce the following series of drawings however:
+.begin group
+.skip 12
+.end
+	What follows is a description of various attempts I made over a two week period
+to refine the definition of this problem and
+to produce a very general solution to it.  Interesting discoveries made along the way
+will also be described.
+.sec Versions Zero and One
+	Before I actually tried implementing anything I thought of a simple, though
+limited solution.  It was based on the observation that any drawing can rather simply
+be transformed to a straight line.  All that is necessary is to reexecute the original
+procedure with repeatedly smaller inputs to "Right" and "Left".  To transform a line
+into an arbitrary turtle program, one needs only use the procedure for transforming
+drawings into lines, and reverse the result.  This scheme is not very good, since the
+series of drawings will seldom be a natural transformation, nor will they be 
+very pretty.  Glenn Iba suggested a better version of this same approach, namely that
+you always transform into a circle and then from a circle to the second drawing. 
+	My first thought on how to do this without using one 
+of these middle man
+was that the total distance and turning were important.  Somehow knowing the
+totals for both drawings one could interpolate between them.  As will be shown later,
+these totals are useful, however, they abstract too much from the drawings.  The
+triangle "[fl]POLY 200 120[fr]" has the same totals as the hexagon "[fl]POLY 100 60[fr]"
+yet they have very different appearances.
+	At that point I realized you need to manipulate the display lists 
+that correspond to drawings, in addition to statistics of their execution.
+Comparing any two display lists is difficult, since there is so much variety possible.
+The way around this that I pursued was to [fi]canonicalize[fr] the display lists.
+As a first approximation, I implemented a version that produced display lists that
+consisted of only "Forward" some amount, followed by "Right" some amount, then "Forward"
+again, and so on.  Two forwards in a row were reduced to a forward of their sum,
+left some amount was recorded as
+right the negative of that amount and so on. The handling of 
+"Penup" and "Pendown" was put off until later.  There was a bug in the original version
+in that "[fl]FORWARD 100[fr]" followed by "[fl]BACK 50[fr]" was represented in the
+display list as "[fl]FORWARD 50[fr]". The patch was to represent them as the list
+[fl]((FORWARD 100) (RIGHT 180) (FORWARD 50) (RIGHT 180))[fr]. For example, the
+display list of "[fl]POLY 200 90[fr]" was:
+.begin nofill skip
+(RIGHT 90)
+(FORWARD 200)
+(RIGHT 90)
+(FORWARD 200)
+(RIGHT 90)
+(FORWARD 200)
+(RIGHT 90)
+(FORWARD 200)
+.end
+	Now if we want to interpolate between that display list the one resulting
+from the call "[fl]POLY 100 120[fr]" then we face the problem of different
+lengths of the display list.  If only they were the same length then the interpolation
+would be very easy, just interpolate between the first line of the first display list
+and the first line of the second display list, and then for the second line of each
+and so on.  The easiest way to make two display lists equal is to fatten up the
+shorter one by adding dummy statements like "[fl]FORWARD 0[fr]" and "[fl]RIGHT 0[fr]".
+This would work, however, the interpolation would not be symmetrical since the dummy
+vectors are interspersed with full vectors.
+	The way that I first implemented fattening up display lists was based on the
+observation that
+.begin nofill choose lisp
+FORWARD 100 [fn]is equivalent to[fl] FORWARD 50, RIGHT 0, FORWARD 50 [fn]and that[fl]
+RIGHT 60 [fn]is equivalent to[fl] RIGHT 30, FORWARD 0, RIGHT 30.
+.end
+So any line of a display list could by this method become three lines.  The algorithm
+that I first tried
+substituted the equivalent three lines into the shorter display list a number of times
+equal to
+the difference in length between the two display lists divided by two.  The decision as
+to which lines in the shorter display list would be expanded was to distribute them as
+equally as possible to try to preserve any symmetry.  So applying this algorithm to
+the display list of a square and triangle the triangle display list was transformed as
+follows:
+.begin nofill choose lisp skip
+[fn]Original				Fattened Up Display List[fl]
+
+(RIGHT 120)			(RIGHT 120)
+(FORWARD 100)			(FORWARD 100)
+				(RIGHT 60)
+(RIGHT 120)			(FORWARD 0)
+				(RIGHT 60)
+(FORWARD 100)			(FORWARD 100)
+(RIGHT 120)			(RIGHT 120)
+(FORWARD 100)			(FORWARD 100)
+.end
+	When the shorter list was less than a third of the length of the other then this
+simple scheme breaks down.  I needed the ability of expand a line by any factor, not
+just three with this scheme.  The algorithm was easily extended to multiple any line
+by an odd factor by splitting the amount up by half of the 
+factor plus one and inserting dummy
+operations in between.  For example, the result of expanding
+"[fl]RIGHT 90[fr]" by a factor of five is 
+[fl]((RIGHT 30) (FORWARD 0) (RIGHT 30) (FORWARD 0) (RIGHT 30))[fr].  The initial version
+did not succeed when an even factor was called for.
+	Once the display lists are the same length and corresponding lines have 
+corresponding operations then interpolation was simple.  At first I created a list
+of intermediate display lists by making a linear interpolation between the corresponding
+amounts.  Later I realized that creating the display lists was both inflexible and
+inefficient so I changed it to produce an "interpolation function" which expected as
+an input a function to apply to the difference.  For example, 
+the interpolation function between
+a square and triangle was:
+.begin nofill single space skip indent 0,0 preface 0 
+.choose lisp
+(LAMBDA (INTERPOLATION-FUNCTION)
+	(RIGHT (+ 90 (FUNCALL INTERPOLATION-FUNCTION -30)))
+	(FORWARD 200 (FUNCALL INTERPOLATION-FUNCTION -100))
+	(RIGHT (+ 90 (FUNCALL INTERPOLATION-FUNCTION 30)))
+	(FORWARD 200 (FUNCALL INTERPOLATION-FUNCTION -200))
+	(RIGHT (+ 90 (FUNCALL INTERPOLATION-FUNCTION 30)))
+	(FORWARD 200 (FUNCALL INTERPOLATION-FUNCTION -100))
+	(RIGHT (+ 90 (FUNCALL INTERPOLATION-FUNCTION -30)))
+	(FORWARD 200 (FUNCALL INTERPOLATION-FUNCTION -100)))
+.end
+	It was simple to write a few functions that repeated called this with different
+interpolation functions, producing a straight line interpolation between the square and
+triangle.
+	Next, I worried about how to handle programs with "Penup" and "Pendown" commands
+in them.  My first thought was to just insert them into the display lists and then
+into the corresponding position in the interpolation function.  This will tend to
+produce strange interpolations where two dashed lines on different dash lengths will
+interpolate suddenly to an even more dashed line.  A dashed line should
+interpolate with a solid line of the same length by gradually removing the "blank"
+spaces in the dashed line.  With this in mind I changed the display list generator
+to treat pen commands specially.  Penup was defined to remember the turtle state and
+and then prevent the other commands from adding
+ to the display list until a pendown comes along.  The
+"Pendown" command will then generate a new command that I called "Invisibly" and add
+it to the display list.  "Invisibly" expects three commands as inputs, the first and
+third are
+"Right" commands and the middle one is a "Forward" command.  
+These three commands when done
+with the penup behave identically to whatever happened while the drawing program was
+running with the pen up.  As an example of hidden dependencies, this change caused a
+bug that did not manifest itself for days.  The problem was that the assumption that
+between any two "Rights" is a "Forward" and between any two "Forwards" is a "Right"
+was no longer valid.  It makes sense to go forward then go somewhere with the pen up and
+then go forward again.  This was simple to patch by inserting a "Right 0" before the
+last "Forward", however, it was a little harder to track down.
+	The next problem was how to modify the interpolator of equivalent programs
+if they contain "Invisibly" commands.  The initial solution to this was both cludgy
+and buggy.  I was misled by the example of the dashed lines mentioned above.  The
+problem I thought was how to make "Invisiblies" disappear since if there were more
+"Invisiblies" in the destination drawing then I could do the interpolation between
+the destination and source and then "reverse" the result.  Making "Invisibly" statements
+gradually disappear was easy, I just interpolated each command in the "Invisibly" with
+a dummy "Invisibly" that looked like 
+"[fl](INVISIBLY (RIGHT 0) (FORWARD 0) (RIGHT 0))[fr]".  Since "Invisibly" commands had
+been standardized as right, forward then right this part was easy.  
+.skip
+	Thus ended the first night of hacking.
+.sec Deficiencies Discovered and Improvements Implemented
+	Playing with the program and showing it to various people resulted in the
+discovery of many deficiencies.  One problem was that in interpolating a circle and
+a star [fl](POLY 200 144)[fr] resulted in the following:
+.begin group skip 12
+.end once indent 0
+The program was "correct" in some sense, however, as Hal Abelson pointed out, one would
+like the interpolation between two closed figures to be closed.  The program produced
+a much better interpolation when asked to interpolate as follows:
+.begin nofill choose lisp 
+.skip
+(MAKE.INTERPOLATION 'STAR.TO.CIRCLE
+		    '(POLY 200 144)
+		    '(PROGN (POLY 20 10) (POLY 20 10)))
+.end
+The resulting interpolation looked like:
+.begin group skip 12
+.end once indent 0
+The correspondences were much more reasonable when the two display lists had the
+same total turnage.  With this in mind I changed the program to check the total
+turnage and if the display lists were state transparent then each could be repeated
+until equal to the least common multiple of total turnage of each divided by 360.
+For example, a display list that had a total turnage of 720 when interpolated with
+one with a 1080 turnage would be tripled while the other doubled.  If they were not
+state transparent then the following hack was incorporated.  The display
+list is doubled by turning right 180 and then running the display list backwards.  This
+was motivated by the desire to produce a nice interpolation between a line and a
+circle such as:
+.begin group skip 12
+.end once indent 0
+while the program was producing this:
+.begin group skip 12
+.end once indent 0
+This hack caused more problems than it was worth and was later eliminated.  So presently
+only state transparent programs keeps things closed.  To interpolate to or from a line,
+it needs to be entered as something like "[fl](POLY 200 180)[fr]"
+	One exciting possibility for my program that I overlooked at first was that the
+interpolation functions it writes are also [fi]extrapolation[fr] functions. 
+For example, the "Circle.to.star" function could be run from -3 to 4 where 0 is the
+circle and 1 is the star (double circle actually) and the result is:
+.begin group skip 24
+.end once indent 0
+	One embarrassing aspect of the program's performance was when interpolating
+between a triangle and a square.  The interpolation looked bad, even worse than
+the present performance of the system which looks like:
+.begin group skip 12
+.end once indent 0
+The interpolation was only "almost" closed and not very symmetrical.  This problem
+while still not solved, led to some improvements in the system.  
+	One idea was that the lack of symmetry was due to the way in which display
+lists were expanded.  After talking with Hal Abelson about this, we decided that
+maybe if we expanded both display list to the least common multiple of the number of
+instructions in each that maybe smoother, more symmetrical interpolations would result.
+So by this scheme the triangle display list would get fattened by a factor of four
+and the square by three.  At this point I realized that the old way of multiplying by
+a factor lost for even factors.  The solution that I implemented was to break up
+pairs of instructions at the same time rather than one at a time.  This way if an
+even factor was called for the expansion one less could be generated and a dummy forward
+and right could be inserted in the center of the expanded list.  
+This simplified the code
+and produced better interpolations but did not solve the square to triangle problem.
+	Also though this implementation was more elegant and accurate sometimes it
+results in rather poor use of resources.  One problem that I gave the system was:
+.begin choose lisp nofill
+MAKE.INTERPOLATION 'CIRCLE.TO.STAR156 '(POLY 10 10) '(POLY 200 156)
+.end
+This problem had been presented to an earlier version of the program (before total
+turnage was equalized) by Seymour Papert
+and it lost very badly.  The new version it did the "right" thing
+which looked like:
+.begin group skip 12
+.end once indent 0
+The problem was that it took it forever to generate the interpolation function 
+and to draw the drawings.  The problem was that it took the circle and "ran" it
+13 times producing a display list 13 times 72 or 936 instructions long.  It then
+found the least common multiple of that and the thirty pointed star whose length is
+60 coming up with 4680.  The interpolation
+function was 40 blocks long and the compiler used up over
+a 100K of list space trying to compile it before it gave up.  So I cheated and
+changed the circle to [fl]"(POLY 10 12)"[fr] whose length is also 60 instructions,
+so the resulting function was a fifth the size of the previous one and looked as
+good.
+	The triangle to square problem bothered me, and I noticed that the 
+interpolation between a triangle and a twelve sided polygon and the interpolation
+between that polygon and a square are very symmetrical and nice. They look like this:
+.begin group skip 12
+.end once indent 0
+So I thought how could one interpolation function interpolate between these three
+display lists.  I worked out the algorithm for making them equivalent and then
+fitting a quadratic to the three points corresponding to the amounts in corresponding
+statements.  I started to implement this but lost interest because it was too tedious 
+changing all the code to handle two [fi]or three[fr] drawings.  The reader is invited
+to implement the generalization of all this, namely, fitting a curve to an
+arbitrary number of display lists.
+	Next I returned to the problem of handling the "Invisibly" commands.  I realized
+that a better way to handle them is to insert at the corresponding place in the other
+function a dummy "Invisibly" command.  Interpolating between "Invisibly" commands is
+simply the interpolation between their components.  This behaves reasonably for the few
+examples I tested it out on and again made the code simpler.
+	The last problem I worked on was to make interpolations on top of each other
+look better.  For example, the interpolation between a circle and square looked like
+this:
+.begin group skip 12
+.end once indent 0
+While I wanted it to look like this:
+.begin group skip 12
+.end once indent 0
+The problem was how to center the two display lists over the same point.  This was
+solved by keeping a "position list" in addition to the display list.  A position list
+is a list of pairs, the first element is the state of the turtle, the second element is
+the amount of the forward that took the turtle to that point or the amount of the forward
+for leaving that state.  The idea is that a crude approximation of the center of a 
+display list is the average x coordinate and y coordinate of all the vertices.  This
+method favors, however, many short vectors over a few long ones.  For this reason the
+position list also included the amount of the forwards and uses them as weights when
+calculating the center.
+	Once I had the center I constructed a series of commands with the pen up to
+take the turtle from the center to the starting point and then apply those commands
+to go from the starting state to a new starting state that results in the drawing
+being centered around the start state.  The display list generated thus had
+the appropriate "Invisibly" command at the beginning and worked fine.
+.sec Things Left to Do
+	There are many directions one could take this.  One could vary the system
+and see if there are visible effects.  I tried a couple of variations, one where
+only "Forward" statements were broken up in the process of fattening up, another
+instead of breaking up 
+up statements equally it used ratios of the number of
+vectors in each display list to break up lines more fairly, and another used the product
+of their lengths
+instead of using the least common multiple to fatten up to, 
+The first two had little affect and were flushed.  The last one
+led to trying twice the product of their lengths.  I was motivated by the
+triangle to square problem and the interpolations improved as the length of the
+interpolation functions did.  Approximations built into the algorithm became
+less apparent as can be seen in the following drawings:
+.begin group skip 24
+.end once indent 0
+	Another possible improvement would be to break up short vectors less than
+long vectors.  In all the Poly examples this would have no affect since the vectors
+have the same length.  It is worth exploring the effect of this would be on more
+random drawings.
+	One direction I would like to take this, if I have the time, is to 
+interpolate other aspects of the drawings.  If they are in color then the colors
+could be interpolated in the obvious way, i.e. computing the differences in the
+red, green and blue parts of each drawing.  A straight line interpolation
+is known not the be perceive as equal increments, but very pretty pictures may
+result anyway.  Another aspect of a tv turtle drawing is its shading.  A special
+purpose hack can be done for textures, by slowing changing the threshold that is
+used to decide to put down a point or not.  A more common shading method is to use
+windows.  Windows can also be interpolated.  If the dimensions of each are the same
+(if they are not they probably could be made the same) then a difference table is
+easily generated by xoring the two windows.  This difference table (or window) could
+then be successively filtered so that more and more points get through and at each
+stage xored with the first window.  This may look like a "dissolve" in movies, but
+since it is so easy I may try it.  How to treat programs that make use of xor or
+erasers is a hard problem that I have thought little about.
+	Despite the ability of the system to handle to some extend sections where the
+pen is up the system could not interpolate between two faces unless it was either
+guided by extra information or if it was just lucky and only interpolated between
+noses and never a nose of one face and a mouth of the other.  My feeling is that this
+cannot be done in general using a mathematical approach such those that I have been
+discussing but must be based on more semantic information of what the drawings
+represent.  
+.sec Appendix How to Play with the System
+	The following is subject to change so if anything goes wrong just send me
+a message.  
+	To load the system on AI, just type:
+.begin nofill indent 0,0
+:l ken;inter
+to start up the system is Lisp.  To start it up in Lisp Logo try:
+:llogo
+DO YOU WANT TO USE THE TV TURTLE?
+yes
+?readlisp inter llogo dsk ken
+.end
+	To make an interpolation you should use the function "Make.interpolation"
+which is abbreviated as "MI".   To create centered interpolations use 
+"Make.centered.interpolation" abbreviated as "MCI".  "MI" and "MCI" have identical
+inputs, the 
+first one is the name you want to give
+the interpolation function, the second is the first call to a tvrtle program and
+the second call comes last.  For example, to interpolate between a circle and star
+and call it 'circle.to.star you type:
+.begin nofill indent 0,0 skip
+MI 'CIRCLE.TO.STAR '(POLY 10 10) '(POLY 200 144)
+.end once indent 0
+If you are in LLogo then you should preceded the name with ":", for example,
+':CIRCLE.TO.STAR.
+	To see an interpolation you can use the function "Straight.line.movie" which
+is shows a straight line interpolation and is abbreviated "SLM".  Its first argument
+is the name of the interpolation function unquoted and the second input is the
+initial value to multiply the difference between the functions by, and the third 
+input is the final value, the fourth is the increment to use in going between the
+initial and final values, and the fifth and final input is amount of time it should
+wait in seconds between drawings.  If you want to see all the interpolations at once
+(without wiping) then use "Straight.line" or "SL".  Note that both of these functions
+always start drawing where the turtle is when called.  To use the interpolation created
+above you could type:
+.begin indent 0,0 nofill skip
+SLM CIRCLE.TO.STAR 0 1 .1 .5
+.end once indent 0
+which means, show the interpolation called "Circle.to.star" starting at 0 going to 1
+in increments of .1 and wait half a second between showings.  To extrapolate type 
+something like:
+.begin indent 0,0 nofill skip
+SLM CIRCLE.TO.STAR -5 5 .5 1
+.end
+	Good Luck and Have Fun!
+    

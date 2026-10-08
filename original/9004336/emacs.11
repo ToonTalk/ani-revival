@@ -1,0 +1,35 @@
+!*  This is ken's emacs init and is full of -*-text-*- since I dont understand teco mode !
+
+m(m.mload lib) xworda
+m(m.mword abbrev mode)
+m(m.mquick read word abbrev file)
+m(m.mquick read word abbrev file) direct wordab
+m(m.mread incremental word abbrev file)
+m(m.mauto fill)
+m(m.m& auto save setup)
+1uAuto Save Default
+0uFind File Inhibit Write  !* so that c-x c-f does auto saving on file name !
+95ufill column            !* I like a wide screen !
+m.m^r query replaceu..S  !* makes meta-s be query replace !
+m.msave all filesu...S   !* makes control-meta-s be save all files !
+m.mview fileu..p         !* make meta-p call view file !
+m.mcompileu...c          !* make control-meta c be for compiling files!
+
+(M.M^R MM Via Minibuffer)u...X
+
+!^R Directory Display:! !^R Displays Directory. Arg gives most-recent-first listing.!
+
+^:i...D` -4"E m(m.mview file)dir:cdate down
+   '"# EY ' 
+`
+1m(m.mvisit tag table) ken !*this my tag table of everything !
+m(m.mload lib) doclsp
+m(m.mload lib) lispt
+,*5+1:F..D'		    !* Treat , like ' and end lisp stuff !
+
+[*5+1:F..D(		    !* Treat [ like (!
+]*5+1:F..D)		    !* Treat ] like )!
+{*5+1:F..D(		    !* Treat { like (!
+}*5+1:F..D)		    !* Treat } like )!
+
+ER EMACS;* EMACS  ^Y M(HFX*)

@@ -1,0 +1,384 @@
+
+(declare (setq ibase 10.) (muzzled t))
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+(declare
+ (special :display.list :penstate :started.from :true.penstate :number.of.invisiblies
+	  :making.display.list :xcor :ycor :heading :position.list
+	  :making.position.list :turtle))
+
+(declare (*lexpr tvsize turtlesize))
+
+
+
+(defun display.list (call)
+(and (memq :turtle '(scratchpad.turtle scratchpad.turtle2))
+     (print '(warning turtle is a scratch pad turtle)))
+((lambda
+  (:true.penstate :making.display.list :display.list :position.list :ans
+	   :making.position.list :old.turtle :started.from :number.of.invisiblies)
+  (useturtle 'scratchpad.turtle)
+  (logo.penup)
+  (eru)
+  (home)
+  (eval call)
+  (setq :ans
+	(cons (list (cons 'positions :position.list)
+		    (cons 'number.of.invisiblies :number.of.invisiblies)
+		    (cons 'x.displacement :xcor)
+		    (cons 'y.displacement :ycor)
+		    (cons 'heading.change :heading))
+	      :display.list))
+  (useturtle :old.turtle)
+  :ans)
+  t
+ t
+ nil
+ nil
+ nil
+ t
+ :turtle
+ nil 
+ 0))
+
+(defun position.list (call)
+(and (memq :turtle '(scratchpad.turtle scratchpad.turtle2))
+     (print '(warning turtle is a scratch pad turtle)))
+((lambda
+ (:true.penstate :making.display.list :position.list :making.position.list :old.turtle
+		 :started.from :number.of.invisiblies)
+	 (useturtle 'scratchpad.turtle2)
+  	 (logo.penup)
+	 (eraserup)
+ 	 (home)
+	 (eval call)
+	 (useturtle :old.turtle)
+  	 :position.list)
+ t
+ nil
+ nil
+ t
+ :turtle
+ nil
+ 0))
+       
+(setq :true.penstate nil
+      :started.from nil
+      :making.display.list nil
+      :making.position.list nil)
+
+
+(defun squished.display.list (call) (squish (display.list call)))
+
+
+
+;note that the display.list is reversed by this processing and that the fd bk hack
+;expects the inputed display.list to be backwards
+;this also makes sure that fd follows rt even with invisibly inbetween
+
+
+(defun squish (display.list)
+       (do ((i (cdr display.list) (cdr i))
+	    (ans nil))
+	   ((null i) (cons (car display.list) ans))
+	   (and (eq (caar i) 'forward)
+		(eq (caar ans) 'forward)
+		(minusp (min (cadr (car i)) (cadr (car ans))))
+		(< (abs (cadr (car i))) (abs (cadr (car ans))))
+		(setq ans (cons '(right 0.0) ans)))
+	   (cond ((eq (caar i) 'invisibly)
+		  (cond ((eq (caar ans) (car (cadr i))) ;ie when same op on both sides
+			 (setq ans (cons (car i)
+					 (cons
+					  (cond ((eq (caar ans) 'forward)
+						 '(right 0.0))
+						((eq (caar ans) 'right)
+						 '(forward 0.0))
+						(t (break bad-display-list-squish t)))
+					  ans))))
+			(t (setq ans (cons (car i) ans)))))
+		 ((eq (caar i) (caar ans))
+		  (setq ans (cons (list (caar i)
+					(+$ (cadr (car i))
+					    (cadr (car ans))))
+				  (cdr ans))))
+		 (t (setq ans (cons (car i) ans))))))
+
+
+(defun how.to.get.to.center (call)
+       (car (how.to.get.to.center.and.scale call nil)))
+
+
+(defun how.to.get.to.center.and.scale (call max.radius)
+   ((lambda (extreme.and.center)
+	((lambda (center scale)
+		 (cons
+		  (list 'progn
+		       '(right 90)
+		       (list 'forward (- (car center)))
+		       '(left 90)
+		       (list 'forward (- (cadr center))))
+		  scale))
+    (cdr extreme.and.center)
+    (cond (max.radius
+	   (//$  (float max.radius) (car extreme.and.center)))
+	  (t 1.0))))
+	  (find.extreme.and.center call)))
+	    
+(defun draw.centered n
+    ((lambda (call max.radius)
+       ((lambda (to.get.to.center+scale)
+		((lambda (restore-size)
+			 ((lambda (errlist)
+				  (scale (cdr to.get.to.center+scale))
+				  (penup)
+				  (eval (car to.get.to.center+scale))
+				  (pendown)
+				  (eval call)
+				  (penup)
+				  (mapc 'negative.eval
+					(reverse (cdr (car to.get.to.center+scale))))
+				  (pendown)
+				  (eval restore-size))
+			  (cons restore-size errlist)))
+		 (list 'scale (//$ (cdr to.get.to.center+scale)))))
+	(how.to.get.to.center.and.scale
+	 call
+	 max.radius)))
+     (arg 1)
+     (and (= n 2) (arg 2))))
+
+(defun scale.call.simple (call factor)
+       ((lambda (restore-size)
+		((lambda (errlist)
+			 (scale (float factor))
+			 (eval call)
+			 (eval restore-size))
+		 (cons restore-size errlist)))
+	(list 'scale (//$ (float factor)))))
+
+
+(defun scale.call fexpr (a)
+    ((lambda (call factor)
+       ((lambda (restore-size)
+		((lambda (errlist)
+			 (scale (float factor))
+			 (eval call)
+			 (eval restore-size))
+		 (cons restore-size errlist)))
+	(list 'scale (//$ (float factor)))))
+     (car a)
+     (cadr (cadr a))))
+
+
+(defun negative.eval (exp)
+       (funcall (car exp) (minus (cadr exp))))
+
+(defun find.extreme.and.center (call)
+       ((lambda (position.list)
+		(compute.extreme position.list
+				 (compute.center position.list)))
+	(position.list call)))
+
+
+(defun find.center (call)
+       (compute.center (position.list call)))
+	
+(defun compute.center (position.list)
+       (do ((i position.list (cdr i))
+	    (x.total 0.0)
+	    (y.total 0.0)
+	    (weight)
+	    (weight.total 0.0))
+	   ((null i) (list (fix (//$  x.total weight.total))
+			   (fix (//$  y.total weight.total))))
+	   (setq weight (cdr (car i)))
+	   (setq x.total (+$ x.total (*$ weight (car (car (car i))))))
+	   (setq y.total (+$ y.total (*$ weight (cdr (car (car i))))))
+	   (setq weight.total (+$ weight.total weight))))
+
+(defun compute.extreme (position.list :center)
+       (do ((i position.list (cdr i))
+	    (center.x (float (car :center)))
+	    (center.y (float (cadr :center)))
+	    (max.so.far 0.0)
+	    (distance.squared))
+	   ((null i) (cons (sqrt max.so.far) :center))
+	   (setq distance.squared
+		 (+$ (*$ (-$ (caaar i) center.x)
+			 (-$ (caaar i) center.x))
+		     (*$ (-$ (cdaar i) center.y)
+			 (-$ (cdaar i) center.y))))
+	   (and (> distance.squared max.so.far)
+		(setq max.so.far distance.squared))))	   
+
+
+
+(defun fancy.forward (x)
+       (and :making.display.list :true.penstate
+	    (setq :display.list (cons (list 'forward (float x)) :display.list)))
+       (and :making.position.list :true.penstate
+	    (setq :position.list (cons (cons (cons :xcor :ycor)
+					     (float x))
+				       :position.list)))
+       (logo.forward x)
+       (and :making.position.list :true.penstate
+	    (setq :position.list (cons (cons (cons :xcor :ycor)
+					     (float x))
+				       :position.list))))
+
+(defprop fancy.fd fancy.forward expr)
+
+(defun fancy.right (x)
+       (and :true.penstate :making.display.list
+	    (setq :display.list (cons (list 'right (float (make.it.less.than.180 x)))
+					    :display.list)))
+       (logo.right x))
+
+(defprop fancy.rt fancy.right expr)
+       
+(defun fancy.back (x)
+       (and :true.penstate :making.display.list
+	    (setq :display.list 
+		  (cons '(right 180.0)
+			(cons (list 'forward (float x))
+			      (cons '(right 180.0) :display.list)))))
+       (and :making.position.list :true.penstate
+	    (setq :position.list (cons (cons (cons :xcor :ycor)
+					     (float x))
+				       :position.list)))
+       (logo.back x)
+       (and :making.position.list :true.penstate
+	    (setq :position.list (cons (cons (cons :xcor :ycor)
+					     (float x))
+				       :position.list))))
+
+(defprop fancy.bk fancy.back expr)
+
+(defun fancy.left (x)
+       (and :true.penstate :making.display.list
+	    (setq :display.list (cons (list 'right (-$
+						    (float (make.it.less.than.180 x))))
+					    :display.list)))
+       (logo.left x))
+
+(defprop fancy.lt fancy.left expr)
+
+(defun fancy.penup nil
+       (or :started.from (setq :started.from (here.without.mod)))
+       (setq :true.penstate nil)
+       (logo.penup))
+
+(defprop fancy.pu fancy.penup expr)
+
+(defun fancy.pendown nil
+       (cond ((and :started.from (or :making.display.list :making.position.list))
+	      (setq :display.list
+		    (cons (cons 'invisibly (rt.fd.rt :started.from (here.without.mod)))
+			  :display.list))
+	      (setq :number.of.invisiblies (1+ :number.of.invisiblies))
+	      (setq :started.from nil)
+	      (setq :true.penstate t))
+	     (t (logo.pendown))))
+
+(defprop fancy.pd fancy.pendown expr)
+
+
+(defun make.it.less.than.180 (x)
+       ((lambda (mod360)
+		(cond ((> mod360 180)
+		       (- 180 mod360))
+		      (t mod360)))
+	(\ (fix x) 360)))
+
+
+(defun here.without.mod nil (list :xcor :ycor :heading))
+
+(defun invisibly fexpr (code)
+       (pu)
+       (mapc 'eval code)
+       (pd))
+
+(defun rt.fd.rt (:begin :end)
+((lambda (ans)
+       (sett :begin)
+       (setq ans
+	     (list (list 'right (float (towards :end)))
+		   (list 'forward (float (range :end)))
+		   (list 'right (-$ (float (\ (fix (caddr :end)) 360))
+				    (towards :end)))))
+       (sett :end)
+       ans)
+ nil))
+
+
+(defun move.and.bind (old.name new.name new.definition)
+       (and (plist old.name) (setplist new.name (plist old.name)))
+       (and (plist new.definition) (setplist old.name (plist new.definition))))
+
+
+(defun move.and.bind.tvrtle.stuff (functions)
+       (mapc (function (lambda (old.name)
+	  	         (move.and.bind old.name
+					(intern (append-atoms 'logo. old.name))
+					(intern (append-atoms 'fancy. old.name)))))
+	     functions))
+
+(declare (special :movable.tvrtle.functions))
+
+(defun unfancify nil
+       (mapc (function (lambda (old.name)
+			    (move.and.bind (intern (append-atoms 'logo. old.name))
+					   old.name
+					   (intern (append-atoms 'logo. old.name)))))
+	     :movable.tvrtle.functions))
+
+(setq :movable.tvrtle.functions
+      '(fd forward bk back right rt lt left penup pu pendown pd))
+
+(defun fancify nil
+       (move.and.bind.tvrtle.stuff
+	:movable.tvrtle.functions))
+
+
+(or (status feature direct)
+    (defun append-atoms (atom1 atom2)
+	   (maknam (append (and atom1 (explode atom1))
+			   (and atom2 (explode atom2))))))
+
+
+(defun kksd nil
+       ((lambda (tvsize turtlesize)
+		(ht)
+		(wrap)
+		(sd)
+		(apply 'tvsize tvsize)
+		(turtlesize turtlesize)
+		(hatch 'scratchpad.turtle)
+		(ht)
+		(wrap)
+		(hatch 'scratchpad.turtle2)
+		(ht)
+		(wrap)
+		(useturtle 'logoturtle)
+		(ht)
+		(wrap))
+	(tvsize)
+	(cadr (turtlesize))))
+
+
+(kksd)
+
+

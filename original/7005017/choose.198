@@ -1,0 +1,605 @@
+;;-*-lisp-*-
+;;This is the part of Dani that chooses values, based upon suggestions and conflicts
+
+(include |ai:ken;declare >|)
+
+
+(defcomment choose);;for tags
+
+
+(declare (setq :default-compilation-target 'choice-point))
+
+(define-function choose-value (choice-point)
+ (let ((answer (choose-value1 choice-point)))
+      (cond ((eq (first answer) 'postponed:)
+	     (ask ,choice-point
+		  add ,(second answer) to your list of postponement-reasons regardless)))
+      answer))
+
+(define-function choose-value1 (choice-point) 
+;;eg Cinderellas-speed and suggestion-resurected
+ (cond ((ask ,choice-point recall your current-choice))
+       (t (let ((postponement-reason
+		 (first (ask ,choice-point recall your postponement-reasons))))
+	       (cond ((eq (first postponement-reason) 'values-missing)
+		      (look-at-previously-missing-values choice-point
+							 (second postponement-reason)))
+		     ((memq postponement-reason '(conflicts-found
+						  more-info-needed
+						  not-happy-enough
+						  conflict-after-resolving-conflict
+						  nil)) ;;first time around
+		      ;;hopefully ok
+		      (choose-value2 choice-point))
+		     (t (shouldnt-happen 'choose-value1
+					 '(,postponement-reason is not a recognized
+								postponement reason))))))))
+
+
+(define-function choose-value2 (choice-point)
+ (let ((suggestion-sources (ask ,choice-point recall your suggestion-sources)))
+      (cond ((null suggestion-sources)
+	     (decide-since-no-more-suggestions choice-point))
+	    (t (gather-more-info choice-point suggestion-sources)))))
+
+(define-function look-at-previously-missing-values (choice-point missing-values)
+ (let ((no-longer-missing (any-choice-points missing-values))
+       (suggestion-sources (ask ,choice-point recall your suggestion-sources)))
+      (cond (no-longer-missing
+	     (gather-more-info choice-point suggestion-sources))
+	    ((ask postponer should ,choice-point give up on ,(first suggestion-sources)
+			    since no missing values determined)
+	     (ask ,choice-point change your suggestion-sources to ,(rest suggestion-sources))
+	     (choose-value2 choice-point))
+	    (t (gather-more-info choice-point suggestion-sources)))))
+
+(define-function any-choice-points (choice-points)
+ (do ((c choice-points (rest c)))
+     ((null c) nil)
+     (cond ((ask ,(first c) recall your current-choice) (return (first c))))))
+
+(define-function decide-since-no-more-suggestions (choice-point)
+ (let ((suggestions (ask ,choice-point collect items memorized matching (suggestion: %)))
+       (conflicts (ask ,choice-point collect items memorized matching (conflict: %))))
+      (cond (conflicts (resolve-conflicts choice-point suggestions conflicts))
+	    (suggestions
+	     (cond ((one-long suggestions) (record-choice choice-point (first suggestions)))
+		   (t (shouldnt-happen 'decide-since-no-more-suggestions
+				       '(too many suggestions ,suggestions)))))
+	    (t (record-choice choice-point
+			      '(suggestion: element ,(ask ,choice-point recall your element)
+					    value none
+					    strength none
+					    source given-up))))))
+
+(define-function gather-more-info (choice-point suggestion-sources)
+ (do ((suggestion-source (cond ((null suggestion-sources) nil)
+			       ((atom (first suggestion-sources))
+				(list (first suggestion-sources)))
+			       (t (first suggestion-sources)))
+			 (rest suggestion-source))
+      (suggestions-gathered
+       (ask ,choice-point collect items memorized matching (suggestion: %)))
+      (old-conflicts (ask ,choice-point collect items memorized matching (conflict: %)))
+      (non-empty-sources (ask ,choice-point recall your non-empty-sources)))
+     ((null suggestion-source)
+      (combine+record-the-suggestions suggestions-gathered old-conflicts choice-point)
+      (ask ,choice-point change your non-empty-sources to ,non-empty-sources)
+      (ask ,choice-point change your suggestion-sources to ,(rest suggestion-sources))
+      (try-to-choose-value choice-point (rest suggestion-sources)))
+     (let ((new-suggestions (gather-suggestions-of-type (first suggestion-source)
+							choice-point)))
+	  (cond ((eq (first new-suggestions) 'postponed:)
+		 (combine+record-the-suggestions suggestions-gathered
+						 old-conflicts
+						 choice-point)
+		 (cond ((eq (first (second new-suggestions)) 'values-missing))
+		       (t (ask ,choice-point change your suggestion-sources to
+					 ,(cons (rest suggestion-source)
+						(rest suggestion-sources)))))
+		 (return new-suggestions))
+		(new-suggestions
+		 (setq suggestions-gathered (append new-suggestions suggestions-gathered))
+		 (setq non-empty-sources
+		       (cons (first suggestion-source) non-empty-sources)))))))
+
+
+(define-function try-to-choose-value (choice-point suggestion-sources-left)
+ (let ((element (ask ,choice-point recall your element)))
+      (let ((conflicts (ask ,choice-point collect items memorized matching
+			    (conflict: type ?
+				       elements-involved ,element
+				       offenders ?)))
+	    (suggestions (ask ,choice-point collect items memorized matching
+			      (suggestion: element ,element
+					   value ?
+					   strength ?
+					   source ?))))
+	   (let ((number-of-conflicts (length conflicts)))
+		(cond ((null suggestion-sources-left)
+		       (decide-since-no-more-suggestions choice-point))
+		      ((ask postponer should ,choice-point postpone with ,suggestions
+				  ,number-of-conflicts conflicts))
+		      ((= number-of-conflicts 0)
+		       (cond ((null suggestions)
+			      (shouldnt-happen 'try-to-choose-value
+					       '(no suggestions nor conflicts and yet not
+						    postponed)))
+			     ((one-long suggestions)
+			      (record-choice choice-point (first suggestions)))
+			     (t (shouldnt-happen 'try-to-choose-value
+						 '(too many suggestions ,suggestions)))))
+		      (t (resolve-conflicts choice-point suggestions conflicts)))))))
+
+
+(define-function gather-suggestions-of-type (type choice-point)
+ (let ((element-name (ask ,choice-point recall your element-name)))
+      (cond ((eq type 'absolute-suggestions)
+	     (example-of
+	      (ask ,choice-point ask your thing to collect suggestions for ,element-name)
+	      something))
+	    ((eq type 'neighbors-absolute-suggestions)
+	     (example-of
+	      (ask ,choice-point
+	       ask your thing to collect neighbors suggestions for ,element-name)
+	      something))
+	    ((eq type 'opposites-absolute-suggestions)
+	     (example-of
+	      (ask ,choice-point
+	       ask your thing to collect opposites suggestions for ,element-name)
+	      something))
+	    ((eq type 'relative-suggestions)
+	     (let ((relative-element (ask ,choice-point yield elements relative-element)))
+		  (cond (relative-element
+			 (gather-relative-element-suggestions
+			  choice-point
+			  (find-relative-choice-points (ask ,choice-point recall your thing)
+						       relative-element)))
+			(t nil))));;no suggestions since there is no relative version
+	    ((eq type 'global-suggestions)
+	     (gather-global-suggestions choice-point))
+	    (t (shouldnt-happen 'gather-suggestions-of-type
+				'(,type is not a recognized type of
+					suggestion for ,choice-point))))))
+
+
+(define-function gather-relative-element-suggestions (choice-point relative-choice-points)
+ (do ((relative-choices relative-choice-points (rest relative-choices))
+      (value-packages nil))
+     ((null relative-choices)
+      (combine-value-packages value-packages choice-point))
+     (let ((relative-value (ask ,(first relative-choices) recall your current-choice)))
+	  (cond ((null relative-value))
+		((eq relative-value 'none)) ;;given up
+		(t (setq value-packages
+			 (append
+			  (make-value-package
+			   relative-value
+			   (first relative-choices)
+			   (rest (ask ,(first relative-choices) recall your element))
+			   (ask ,choice-point recall your element)
+			   (ask ,choice-point recall your thing))
+			  value-packages)))))))
+
+(define-function find-relative-choice-points (thing relative-element)
+ (mapcar
+  (function
+   (lambda (sibling)
+	   (let ((comparison '(comparison-of ,thing ,sibling)))
+		(cond ((not (exists? comparison))
+		       (example-of (ask ,thing compare yourself with ,sibling) character)))
+		(let ((relative-choice-point
+		       (example-of
+			(ask ,comparison yield your relative choice point of ,relative-element)
+			character-comparison)))
+		     (example-of (ask ,relative-choice-point choose a value)
+				 relative-choice-point)
+		     relative-choice-point))))
+  (ask ,thing recall your siblings)))
+
+
+;;things is typically the two characters for which the relation holds true
+(define-function make-value-package (relation relative-choice-point things element thing)
+ (let ((thing1 (first things))
+       (thing2 (second things)))
+      (cond ((eq thing1 '?)
+	     (make-value-packages (ask ,relation recall your negative)
+				  element
+				  thing2
+				  relative-choice-point))
+	    ((eq thing2 '?) ;;right order
+	     (make-value-packages relation
+				  element
+				  thing1
+				  relative-choice-point))
+	    ((eq thing1 thing) ;;order is ok
+	     (make-relative-value-package
+	      (ask absolute-choice-point if new make (choice-point-of ,thing2 ,element))
+	      relation
+	      element
+	      relative-choice-point))
+	    ((eq thing2 thing) ;;other order
+	     (make-relative-value-package
+	      (ask absolute-choice-point if new make (choice-point-of ,thing1 ,element))
+	      (ask ,relation recall your negative)
+	      element
+	      relative-choice-point))
+	    (t (shouldnt-happen 'make-value-package
+				'(,thing is not in ,things))))))
+
+(define-function make-relative-value-package
+		 (others-choice-point relation element relative-choice-point)
+ (let ((others-value (ask ,others-choice-point recall your current-choice)))
+      (cond ((eq others-value 'none) nil) ;;have given up on this
+	    (others-value
+	     '((relative-value-package:
+		relation ,relation
+		value ,others-value
+		element ,element
+		source ,relative-choice-point
+		others-choice-point ,others-choice-point)))
+	    (t '((no-value-for ,others-choice-point))))))
+
+(define-function make-value-packages (relation element thing relative-choice-point)
+ (mapcar
+  (function
+   (lambda (sibling)
+	   (first  ;;should be only one since ? is gone
+	    (make-value-package
+	     relation relative-choice-point '(,thing ,sibling) element thing))))
+ (ask ,thing recall your siblings)))
+
+(define-function combine-value-packages (value-packages choice-point)
+ (do ((i value-packages (rest i))
+      (good-packages nil)
+      (missing-values nil))
+     ((null i) (cond ((and missing-values
+			   (ask postponer should ,choice-point postpone since ,missing-values 
+				      were needed but not yet made)))
+		     (good-packages (combine-value-packages1 good-packages))))
+     (let ((value-package (first i)))
+	  (cond ((eq (first value-package) 'no-value-for)
+		 (setq missing-values
+		       (cons-if-not-member (second value-package) missing-values)))
+		((eq (first value-package) 'relative-value-package:)
+		 (setq good-packages (cons value-package good-packages)))
+		((null value-package)) ;;isnt really there
+		(t (shouldnt-happen 'combine-value-packages
+				    '(,value-package is not a valid value-package)))))))
+
+(define-function combine-value-packages1 (packages)
+ (do ((i packages (rest i))
+      (suggestions nil))
+     ((null i) suggestions)
+     (let ((package (first i)))
+	  (let ((value (get package 'value))
+		(element (get package 'element))
+		(relation (get package 'relation)))
+	       (cond ((and value element relation)
+		      (setq suggestions
+			    (cons
+			     '(suggestion: element ,element
+					   value (,relation ,value)
+					   strength ,(ask ,(get package 'source)
+						      yield your strength)
+					   source ,(get package 'source))
+			     suggestions)))
+		     (t (shouldnt-happen 'combine-value-packages1
+					 '(,package is not a complete package))))))))
+
+(define-function gather-global-suggestions (choice-point)
+ (or (ask film ask your current-film to yield suggestions for ,choice-point)
+     (ask ,choice-point yield elements last-ditch-default)))
+;;the only ones with last-ditch-defaults should be those that need a value (or else)
+;;eg size but not typical speed
+
+
+(define-function collect-film-level-suggestions (descriptor-levels choice-point)
+ ;;this is called by the film actor
+ (do ((sources descriptor-levels (rest sources))
+      (suggestions nil))
+     ((null sources) suggestions)
+     (let ((new-suggestion ;;cant fancy compile it so...
+	    (uncompiled-ask ,(first sources) yield suggestions for ,choice-point)))
+	  (cond (new-suggestion (setq suggestions (cons new-suggestion suggestions)))))))
+
+
+(define-function resolve-conflicts (choice-point suggestions conflicts)
+ ;;resolve-conflict will reduce the number of conflicts and recurse or postpone
+ ;;should really be smarter (eg if suggestion is offender in many conflicts should be rejected)
+ (resolve-conflict choice-point suggestions (first conflicts)))
+
+
+(define-function resolve-conflict (choice-point suggestions conflict)
+ ;;first it looks at the previous choices and its originality level and tries to decide
+ ;;next this will see if the difference is strength and number of suggestions clinches things
+ ;;next it tries to see if relative and/or global suggestions might clinch it
+ (cond ((three-long (get conflict 'offenders))
+	(shouldnt-happen 'resolve-conflict
+			 '(too many suggestions conflicting in ,(get conflict 'offenders))))
+       ((one-long (get conflict 'offenders))
+	;;self-conflicting conflict as for example (less-than low)
+	(conflict-resolved choice-point suggestions conflict nil (get conflict 'offenders)
+			   'self-conflicting-suggestion))
+       ((reject-offender-if-already-rejected choice-point
+					     suggestions
+					     (get conflict 'offenders)))
+       ((try-to-resolve-using-criticism choice-point suggestions conflict))
+       ((try-to-resolve-using-previous-choices choice-point suggestions conflict))
+       ((ask postponer note (can not resolve conflict by either criticism or previous choices)
+		   ,choice-point))
+       (t (let
+	   ((conflicter1 (first (get conflict 'offenders)))
+	    (conflicter2 (second (get conflict 'offenders)))
+	    (source-priorities (ask ,choice-point recall your source-priorities)))
+	   (cond ((null conflicter1) ;;not really a conflict anymore
+		  (conflict-resolved choice-point suggestions conflict nil conflicter1 nil))
+		 ((null conflicter2) ;;not really a conflict anymore
+		  (conflict-resolved choice-point suggestions conflict nil conflicter2 nil))
+		 ((resolve-on-suggestion-strengths choice-point suggestions source-priorities
+						   conflict conflicter1 conflicter2))
+		 ((ask postponer note
+			     (can not resolve conflict by conflicting suggestions strengths)
+			     ,choice-point))
+		 ((and suggestions 
+		       (use-suggestions-to-resolve-conflict choice-point suggestions
+							    source-priorities conflict
+							    conflicter1 conflicter2)))
+		 ((ask postponer
+		       note (can not resolve conflict using non-conflicting suggestions)
+			     ,choice-point))
+		 ((try-to-compromise choice-point suggestions conflict
+				     conflicter1 conflicter2))
+		 ((ask postponer note (can not compromise away conflict) ,choice-point))
+		 (t (pick-strongest-suggestion choice-point suggestions source-priorities
+					       conflict conflicter1 conflicter2)))))))
+
+(define-function reject-offender-if-already-rejected (choice-point suggestions conflict)
+ (let
+  ((already-rejected-suggestions (mapcar
+				  (function (lambda (rejected-suggestion)
+						    (get rejected-suggestion 'suggestion)))
+				  (ask ,choice-point recall your rejected-suggestions)))
+   (offenders (get conflict 'offenders)))
+  (let
+   ((conflicter1 (first offenders))
+    (conflicter2 (second offenders)))
+   (let ((first-rejected? (member conflicter1 already-rejected-suggestions))
+	 (second-rejected? (member conflicter2 already-rejected-suggestions)))
+	(cond ((and first-rejected? second-rejected?)
+	       (conflict-resolved choice-point suggestions conflict nil '(and !,offenders)
+				  'already-rejected))
+	      (first-rejected?
+	       (conflict-resolved choice-point suggestions conflict conflicter2 conflicter1
+				  'already-rejected))
+	      (second-rejected?
+	       (conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+				  'already-rejected)))))))
+ 
+(define-function resolve-on-suggestion-strengths 
+		 (choice-point suggestions source-priorities conflict conflicter1 conflicter2)
+ (let ((strength-relationship (strength-relationship source-priorities
+						     conflicter1 conflicter2)))
+      (cond ((eq strength-relationship 'much-greater-than) ;;first one wins
+	     (conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+				'much-less-strongly-suggested))
+	    ((eq strength-relationship 'much-less-than)  ;;second one wins
+	     (conflict-resolved choice-point suggestions conflict conflicter2 conflicter1
+				'much-less-strongly-suggested))
+	    (t nil))))
+
+(define-function pick-strongest-suggestion 
+		 (choice-point suggestions source-priorities conflict conflicter1 conflicter2)
+ (let ((strength-relationship (strength-relationship source-priorities
+						     conflicter1 conflicter2)))
+      (cond ((eq strength-relationship 'greater-than) ;;first one wins
+	     (conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+				'less-strongly-suggested))
+	    ((eq strength-relationship 'less-than)  ;;second one wins
+	     (conflict-resolved choice-point suggestions conflict conflicter2 conflicter1
+				'less-strongly-suggested))
+	    (t ;;got to pick one at this point so first is as good as second
+	     (conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+				'no-reason-at-all)))))
+
+(define-function much-more-strongly-suggested? (source-priorities suggestion1 suggestion2)
+ (eq (strength-relationship source-priorities suggestion1 suggestion2)
+     'much-greater-than))
+
+
+(define-function total-strength (suggestion priorities)
+ (let ((strength (numberify (get suggestion 'strength)))
+       (source-count (let ((source (get suggestion 'source)))
+			  (cond ((eq (first source) 'and) 
+				 (source-count priorities (rest source)))
+				(t (source-count priorities (list source)))))))
+      (* strength source-count)))
+
+
+(define-function strength-relationship (priorities suggestion1 suggestion2)
+ (let ((total-strength1 (total-strength suggestion1 priorities))
+       (total-strength2 (total-strength suggestion2 priorities)))
+      (cond ((much-greater total-strength1 total-strength2) 'much-greater-than)
+	    ((much-greater total-strength2 total-strength1) 'much-less-than)
+	    ((> total-strength1 total-strength2) 'greater-than)
+	    ((< total-strength1 total-strength2) 'less-than)
+	    (t 'equal))))
+
+(define-function much-greater (n1 n2)
+ (>  n1 (+ n2 n2))) ;;for now good enuf
+
+(define-function source-count (priorities sources)
+ (do ((s sources (rest s))
+      (sub-total 0))
+     ((null s) sub-total)
+     (let ((source-type (source-type (first s))))
+	  (let ((source-weight (get priorities source-type)))
+	       (cond ((null source-weight) (warning
+					    'source-count
+					    '(,(first s) has a type of ,source-type
+						       which has no priority in ,priorities)))
+		     (t (setq sub-total (+ sub-total source-weight))))))))
+
+(define-function source-type (source)
+ (cond ((and (exists? source)
+	     (cond ((ask ,source are you a global-descriptor) 'global-suggestions)
+		   ((ask ,source are you a relative-choice-point) 'relative-suggestions)
+		   ((ask ,source are you a descriptor) 'absolute-suggestions))))
+       ((not (atom source))
+	(cond ((eq (first source) 'neighbor-of) 'neighbors-absolute-suggestions)
+	      ((eq (first source) 'opposite-of) 'opposites-absolute-suggestions)
+	      (t 'absolute-suggestions))) ;;absolute suggestion for relative value
+       (t (shouldnt-happen 'source-type '(no type for ,source)))))
+
+(define-function use-suggestions-to-resolve-conflict 
+		 (choice-point suggestions source-priorities conflict conflicter1 conflicter2)
+ (let ((conflict-type (get conflict 'type)))
+      (cond ((eq conflict-type 'incompatible-relative-values)
+	     ;;cant mix it with suggestions so flush conflict completely
+	     (conflict-resolved choice-point
+				suggestions
+				conflict
+				nil ;;no winning suggestion (both ignored)
+				'(and ,conflicter1 ,conflicter2)
+				'non-conflicting-suggestions-won-out))
+	    (t
+	     (let ((suggestion (first suggestions))
+		   (value-description
+		    (ask ,choice-point ask your element-name to
+				   ask your value-description to
+				   recall your relative-value-description)))
+		  (let ((relationship-to-conflicter1
+			 (uncompiled-ask ,value-description yield relationship
+					 ,(get suggestion 'value)
+					 ,(get conflicter1 'value)
+					 in ,suggestion ,conflicter1))
+			(relationship-to-conflicter2
+			 (uncompiled-ask ,value-description yield relationship
+					 ,(get suggestion 'value)
+					 ,(get conflicter2 'value)
+					 in ,suggestion ,conflicter2)))
+		       (use-suggestions-to-resolve-conflict1 choice-point suggestions
+							     source-priorities conflict
+							     conflicter1 conflicter2
+							     suggestion
+							     relationship-to-conflicter1
+							     relationship-to-conflicter2)))))))
+
+(define-function use-suggestions-to-resolve-conflict1
+ (choice-point suggestions source-priorities conflict conflicter1 conflicter2
+	       suggestion relationship-to-conflicter1 relationship-to-conflicter2)
+ (cond ((or (eq relationship-to-conflicter1 'identical) ;;first one is ok
+	    (eq (first relationship-to-conflicter1) 'compatible))
+	(conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+			   'not-compatible-with-others))
+       ((or (eq relationship-to-conflicter2 'identical)
+	    (eq (first relationship-to-conflicter2) 'compatible))
+	(conflict-resolved choice-point suggestions conflict conflicter2 conflicter1
+			   'not-compatible-with-others))
+       ((eq-many relationship-to-conflicter1 relationship-to-conflicter2 'near-enough)
+	(conflict-resolved choice-point
+			   suggestions
+			   conflict
+			   '(and ,conflicter1 ,conflicter2)
+			   nil
+			   'compromised))
+       ((eq relationship-to-conflicter1 'near-enough)
+	(conflict-resolved choice-point suggestions conflict conflicter1 conflicter2
+			   'not-compatible-with-others))
+       ((eq relationship-to-conflicter2 'near-enough)
+	(conflict-resolved choice-point suggestions conflict conflicter2 conflicter1
+			   'not-compatible-with-others))
+       ((and (much-more-strongly-suggested? source-priorities suggestion conflicter1)
+	     (much-more-strongly-suggested? source-priorities suggestion conflicter2))
+	(conflict-resolved choice-point
+			   suggestions
+			   conflict ;;no winning suggestion (both ignored)
+			   nil
+			   '(and ,conflicter1 ,conflicter2)
+			   'non-conflicting-suggestions-won-out))
+       (t nil)))
+
+(define-function try-to-compromise (choice-point suggestions conflict conflicter1 conflicter2)
+ (let ((conflict-type (get conflict 'type)))
+      (cond ((eq conflict-type 'top-bottom)
+	     (let ((values (list (get conflicter1 'value) (get conflicter2 'value)))
+		   (possible-values (ask ,(get conflicter1 'element) recall your possible-values)))
+		  (let ((values-left (set-minus possible-values values)))
+		       (cond ((one-long values-left)
+			      (conflict-resolved choice-point
+						 suggestions
+						 conflict
+						 (replaceprop
+						  (merge-suggestions (first values-left)
+								     conflicter1 conflicter2)
+						  'low
+						  'strength) ;;since it is a compromise
+						 '(and ,conflicter1 ,conflicter2)
+						 'compromised))
+			     (t nil)))))))) ;;cant compromise
+
+
+(define-function conflict-resolved 
+ (choice-point suggestions conflict winning-conflicter losing-conflicter reason-for-rejection)
+;;winnning or losing conflict might be a '(and sug1 sug) type thing 
+ (let ((combined-suggestion
+	(cond ((eq (first winning-conflicter) 'and)
+	       (ask ,choice-point  
+		first combine ,(second winning-conflicter) and ,(first suggestions)
+		then (,(third winning-conflicter))))
+	      (winning-conflicter
+	       (ask ,choice-point combine suggestions ,winning-conflicter !,suggestions)))))
+      (ask ,choice-point add ,(replaceprop conflict reason-for-rejection 'how-resolved)
+		     to your list of conflicts-resolved)
+      (ask ,choice-point forget items matching ,conflict)
+      (cond ((memq reason-for-rejection '(compromised nil)))
+	    ;;didnt really reject it
+	    ((eq (first losing-conflicter) 'and)
+	     (ask ,choice-point rejecting ,(second losing-conflicter)
+			    because ,reason-for-rejection)
+	     (ask ,choice-point rejecting ,(third losing-conflicter)
+			    because ,reason-for-rejection))
+	    (t (ask ,choice-point rejecting ,losing-conflicter
+			      because ,reason-for-rejection)))
+      (cond ((and (memq (first combined-suggestion) '(and conflict:)) winning-conflicter)
+	     (update-suggestions combined-suggestion choice-point)
+	     '(postponed: conflict-after-resolving-conflict)) ;;to fail in this round
+	    (t (cond (winning-conflicter (update-suggestions combined-suggestion choice-point))
+		     (suggestions (update-suggestions (first suggestions) choice-point)))
+	       (choose-value choice-point))))) ;;should work now
+
+
+(define-function combine+record-the-suggestions (suggestions old-conflicts choice-point)
+ (cond ((null suggestions))
+       (t (let ((combined-suggestion (ask ,choice-point combine suggestions !,suggestions)))
+	       (update-suggestions
+		(cond (old-conflicts '(and ,combined-suggestion !,old-conflicts))
+		      (t combined-suggestion))
+		choice-point)))))
+
+(define-function update-suggestions (combined-suggestion choice-point)
+ ;;this cleans up the appropriate part of the thing before adding the new suggestion situation 
+ (ask ,choice-point forget items matching (suggestion: %))
+ (record-combined-suggestion combined-suggestion choice-point))
+
+
+
+(define-function try-to-resolve-using-criticism (choice-point suggestions conflicts)
+nil ;;for now
+)
+
+(define-function try-to-resolve-using-previous-choices (choice-point suggestions conflicts)
+nil ;;for now
+)
+
+
+(define-function record-choice (choice-point suggestion)
+ ;;at some point this should check for criticism before accepting choice if not sooner
+ (ask postponer note (choice point determined) ,choice-point)
+ (let ((value (get suggestion 'value)))
+      (ask ,choice-point ask your element-name to increment your (count-for ,value) by 1)
+      (ask ,choice-point memorize ,suggestion)
+      ;;probably knows it already but should be harmless then
+      (ask ,choice-point set your current-choice to ,value)))
+
+

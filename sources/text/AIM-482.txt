@@ -1,0 +1,2368 @@
+===== p001
+28 June 1978
+Massachusetts Institute of Technol%Y
+Artificial Intelligence Laboratory
+MIT
+FOR SCIENCE
+A1 MEMO • 482
+ROOM
+DIRECTOR GUIDE
+Kenneth Mm Kahn
+A bstract
+Director is a programrning language designed for dynamic graphics.. artificial intelligence, and
+naive users, It is based upon the actor ot obJect oriented approach to programming and resembles
+Act I and SmallTalk„ Director extends MacLisp by adding a small set of primitive actors and the
+ability Vo create new ones. its graphical feature; include an interface to the TV turtle.
+pgudo•parallelismi many animation primitives, and a primitive actor for making and recording
+-movies", Far artificial intelligence programming Director provides a pattern-directed data base
+associated with each actor, an inheritance hierarchy, pseudo-parallelism* and a means of
+conveniently creating non-standard control structures. For use by relatively naive programmers
+Director is appropriate because of its stress upon very powerful, yet conceptually simple primitives
+and its verbose, simple syntax based upon pattern matching. Director can be turned into
+Optimized Lisp which in turn Can be compiled into machine code.
+The aothot of' this work is currently supported by an IBM Fellowship. The research
+her'ein is being conducted at the Artifitiai intelligence Laboratory, a Massachusetts Institute of
+Technology research pr%ram-
+===== p002
+COde
+Thc General Idea
+Ati Introductory
+Table conimto
+CONTENTS
+Example
+C.
+E,
+Something
+Creation and Destruction of Actors
+Defining thc Behavior Of Actors
+Printing
+Tracing
+Memory Mess*ges
+Variables
+2. Demons for Variables
+3. Relational Data Bases
+a, Memorizing
+b, Retrieving
+e. Demons *fid Vir'tual Items
+F.
+d, Forgetting
+Plans and Pseudo-Parallelism .
+Broade*sting Messages
+Variables that are Special to Actors
+JV. Object
+Creation and Appearance
+B,
+C.
+2.
+D.
+E,
+F,
+H.
+Shov,'ing and Hiding
+Moving and Turning
+Turtle Commands
+Coordinate Messages
+Crowing and Shrinking
+Cradually Changing the Value Of * Vitiable
+Pens
+Special Variables
+Colors
+Interpolation
+Poge
+Kü*tgth Kom
+4
+10
+11
+19
+21
+26
+28
+. 92
+32
+36
+37
+37
+===== p003
+Oirætor Guide
+Tawe of Contents
+Kam
+LY
+Treating Objects as Turtles
+Appearance Definition Using Instant Turtle
+Non Standard Appearances
+V. The Screen
+VI, Universe
+VII, Movie
+VIII, Big Example
+Figure I A Test of the Space War Program
+X.
+XL
+Compiling
+Odds aud Ends
+A.
+BY
+E,
+G.
+Debugging
+Complete Description Of Patterns
+Global Variables
+Useful Lisp Functions and Macros
+Discussion of Why Director is the Way it is
+Discussion Of Why One Might Want to use Director
+Getting Started
+References
+Index Of Patterns
+index Of Special Variables
+page
+41
+42
+42
+44
+46
+50
+55
+56
+60
+60
+61
+63
+65
+66
+74
+===== p004
+Guide
+General Ide
+I. The G energi Iden
+Kometh
+Director is an actor•based extensiOfi Of MacLisp and is described in AI Working Paper 120.
+(Kahn 1976) This document is intended to help FOO use
+While much or the work described here is intended for a graphics audience (describ/ng
+much simpler and more intuitive wars of thinking about graphics and animation), much of it
+should bc of interest to anyone interested in actors. Graphics iS an ideal domain to test Out
+different styles of message passing in way that is concrete- A face telling its mouth to smite is
+pedagogically a much better example than a number being told to multiply by the result of
+factorial being sent the result of that number being asked to subtract one.
+The language is also usable as an Al language, Each actor has rather sophisticated abilities
+including inheritance. a relational database With demonsv and a pseudo-parallel Control structure
+The language is currently grafted upon MacLisp, so that In addition to lists, *roms. numbers*
+lambda expressions and other Lisp entities, Director provides actors and few primitives for
+manipulating them, This implerncntation strategy vas one Of necessity and rnany Of Directorig
+defieiencjes would disappear were it built upon •n Actor language such as Act I.
+===== p005
+Director Guido
+An Introdl..ctocy Exernple
+II. An Introductory Example
+Keri*th Katm
+TO get a general impression of what Director is all about try the following the next time you
+are logged into AT on a TV (if you Want to try it withcmt graphics read' the 'Getting
+section), Start up the system by typing
+irect (carriage return)
+to Oirector Version 391 et Ditectar read' instructions
+Cask
+(ask
+(ask
+ask
+( ask
+( ask
+(ask
+(ask
+(ask
+poly nake pent) ; ; create a polygon named pent
+pent show) m
+a default (a hexagon) appear
+pent set your angle to 7?) ; ; it should nctu læ'k C Pentagon
+DO ly nake star) ; ; make another
+star set your angle to 144) .
+; jet its angle to 144
+star fittdUy 65k it
+star forward 200) ; ; Star to go forward 200 $teP$
+star grow ?50) ; ask tit Star to 250 units garget
+star print) if are curious about knouts printing It
+At this point, YOU might vant to play around, the typing is much for you there are
+abbreviated versions of nearly all the messages, For example typ.ng.
+(ask star &sypt 1200 is the typing
+(ask star set your position to (200 -100))
+ohieå go ta Pöint 200 over and 100 from the center
+A list Of all the abbreviations iS in the index at the end Of this d«urnervt..
+To make a little movie type the following
+Page- 5
+===== p006
+Guide
+An
+Kernoth
+(ask star plan next gradually shrink 300)
+Start sloudy beginning tie next tick
+(ask star gradually left 90) i; to turn left
+(ask pent plan next gradually grow 300) for Pentagon
+(ask pent plan next gradually right 90)
+(ask movie make my—first-fi au Planned $0 lets make tkt movie
+(ask rny-first•fi set your frames-per-second to ? )
+; if the computer fgJter 30 might nicer
+(ask my-first-film f i In the next 6 ticks) rall tke next 6 cl«k ticks
+(ask my-first-fitn project) ; ; you theftlm betrt& nou lets ste It PtoJected
+Pege - S
+===== p007
+Qirætoe Guido
+Kmooth Kem
+Something
+When you start up a you initially have available to you only a few actors. The
+nmost important one is called Something and it does everything that every actor should be able to
+do, In other words, Something maintains a memory, accepts print messages, makes instances of
+itself, maintains plans for pseudo-parallelism (with the help Of Universe), and can be told how to
+handle new messages. Object, Moviei and Screen do graphical things and are describa:l later,
+Every actor is an offspring of Something and therefore unless explicitly told otherwise
+behave as Something does when receiving the messages is this section, The sections describing
+messages of Object, Movie, Universe, and Screen apply only to those actors and their descendants.
+The relationships Of the actors initially present in Director is depicted in the following diagram.
+HING
+08 ET
+R
+INTERPOLATION
+UNIVERSE
+DEFAULT-UNIVERSE
+SCREEN
+POLY
+ROCKET
+F
+This guide is organized by the patterns of messages an actor can handle, Each section
+describes primitive actor by listing those message patterns directly with it (i.e. those
+messages that thc actor itself handles rather than passing the problem on up to its parents or more
+distance ancestors). Variables that the actor treats specially are also described,
+A pattern iS a list of words or patterns. If word begins With question mark Or a
+then iC is treated specially, Patterns are matched against messages, A question mark means that
+anything may be typed in the corresponding position of a message. If question mark is followed
+by a word. then that Word beccnnes the name OT the what you typed in the corresponding positiort
+in the message. A •t" means that number of sub-items (even zero) can be at the corresponding
+position Of the message. For example, the message I eat pot suckers)" matehes the pattern '(I
+===== p008
+Guide
+hction *things)" and as a result the nime 'action* temporarily gets the value and the word
+-things" is bound to (ie gets the value) Ipot stickers)". Currently the can only be used at the
+end or a pattern,
+You may type upper ot lower Case letters as you prefer. The patterns given in this paper use
+capital letters for required words and lower case for variable names in patterns. If there an
+abbreviation for apattern in the text Ehen it is on the far right of the pattern.
+Creation and Destruction Of Actors
+(ASK
+This causes an instance ot the receiver •or the message to bc made and returned, The newly
+created actor will behave exactly as its parent dæs (except when asked for its name, offspnng„ or
+parent's name of course). You can tell it new things to remember or how to behave if it receives
+new kinds of messages. JT' there was already arl actor around with the eme narne it will be
+destroyed and replaced by this new orle-
+Any time you Want to ask an actor anything you type then Its name, the message
+and end with a So 00 create an actor named Sally type,
+( ask something nake Sal ly)
+(ASK ?anyong INTERNED OFFSPRING)
+1
+This behaves just like "make except that here you lets Director pick a name-
+(ASK HAKE OFFSPRING}
+muo
+This behaves like the previous one only the narne it picks can not be typed in. TO talk to
+1. Mio abbreviation interned offspring* 'o eati
+is Io signal Diroeuvr what tollavg iß an abbreviation.
+Pege — e
+===== p009
+OirEtor Guide
+ond Oestruction of Actors
+Kom
+the resulting actor you must cither save the result of this message in a Lisp variable Of have some
+other actor store it,
+(ASK Tanyone IF MAKE
+inn
+If there already exists an actor With the sarne pame then nothing happens Otherwise one ig
+made. Namc is returned in either Case,
+(ASK ?anyone HAKE COPY ?sibi
+An exact copy of the recipient in this memge transmission is created, The only differences
+between the new actor -sibling* and the recipient are their and that the newly created actor
+has no off@ptjng. Of course, afterwards they may be told differervt facts and how to handle
+messages. This creates an identical tWih while the other *Make" messages create children. One big
+difference is that if you change a twin its sibling is not affected but if you change a parent then its
+children potentially will be affected.
+(ASK SYNONYM
+mS
+This does create a new Instead the recipient is given an alias, another name with
+which you can use 00 send it messages. Besides providing a way to give shorter names to any
+actor, this is often uscfül when the narne is a list, For example. if you have an actor that iS the
+cornpatison between A and B then you can define the comparison and give it equivalent name as
+(ask something make (comparison-of A a ) )
+(ask (comparison-of A B) nake synonym (comparison-of g A))
+1. The only reason putting up with this ig go tbag the •etor
+collection, i.e. Will you no to it. to it anything.
+===== p010
+Oir•æta• Guide
+Oefi6ng tho B.hvior Of
+Defining the Behavior of Actors
+Kom
+(ASK 7anyone 00 ul+EN RECEIVING mattern *action)
+This very important message type expands the repertoire of actor. The indicates that
+*action" is to be the name Of the part Of the that follows the -pattern
+Suppose you want to make an actor named "Sally* who respond with -yes it iS nice
+day. rrvorning Of evening* when you say •grod mornino evening or whatever". Just type
+(ask something make
+(ask Sally do when receiving (good
+if Sally receives word good fellaujtd b' another word
+by then
+(type • (yes it is nice , tine-of •day)) )
+If Lhe cornrna had not preceded variable "time-of-day • then she would always type the message
+•yes it is a nice time-of-day-. TO test it out we again ask Sally sortethlog„. this tirrte to respond to
+"good morning".
+(ask sally good morning)
+to tohich
+YES IT IS A NICE HORNING
+(ASK BEHAVIOR RECEIVING tpattern BY OOING bd
+This is useful for extending the behavior of in response to a message that it already
+can respond to. If while running *some-action" a message is sent that matches the •pattern-. then
+this new clause is ignored and the Old action iS taken-I Suppose you want Star to
+and addition grow Whenever is told to go forward,
+The LO thin way is to allow recursion-
+If each recover clause were ineli them their be done i. a
+Cleaner
+Poge IO
+===== p011
+Guide
+Oefiring the
+Kem
+ask star extend behavior receiving (forward 7amunt) by dotog
+(script: (ask {self grow ,anount) i i ask to grote
+(ask • :self forward tanount))) ; ; send along the message 'oür$&lf
+You gould have used -star" instead of "self' but *elf will also•work right if you make any offspring
+Of Star and ask them to go forward, since self' always contains the name of the original recipient Of
+the message- The word *script:" is used to protect the commas. Recall that they mean use the
+value or the following CiprCSSiOtt and so without thc word • script: A Director WOUld be confused and
+say thai 'amount* has no value when you type the above expression, Using the word •script*
+means that the comma shoulo get the Value Of the following expression when the script is being
+run, To learn how to remove extended behavjot, if no longer wanted. see the •remove clause
+for..." roessage below,
+If you are confused about how this message differs from the when receiving • message
+above try making some actor and tell it "do when receiving' with the same pattern and action as
+above Then tell it to go forward 90me small amount. After you get the idea type control-g (while
+holding the control button (Ctrl) type
+Printing
+(ASK ?unyoqte PRINT
+psOR pn OR pv0R pdb
+The possible 'options" are *script'. •memory*.. •variables*. "database' or •all*. If no option or
+"all" is given then all are assumed. They cause the script ot the memory of' the recipient to be
+printed. The memory is split up into and "database', a second optvon iS given it is
+assumed to be a file name to which to print, So to print the entire definition of Sue toa file type
+(ask Sue print all Sue file)
+This wnl cause Sue to be printed out in a form that designed to be easiest to read,
+not be read back into a Director however. To do that use the following rnessage
+Pege - 11
+===== p012
+Oire:ztor Gi-ide
+(ASK ?anyone SAVE ie•nane)
+print irsg
+Ka*zth Korn
+This message causes the recipient print itself out in Lisp onto the "file-narTE'. if a fibe of
+that name already exists it will add itself to the end. You can call the LISP compiler upon the file
+or just ose this IO save away an actor CwltO file, Using the Lisp function "Load* you cao get the
+saved actor back into another Director, If no file-name is given then it will return the Lisp form
+instead. This does not work if the actor is compiled iS the case with all the actors available in a
+fresh mrector, you pant to save away Sally and Sue for another tirne. for exampk, then type
+(ask sally save flower t i Io)
+put the file ta,ued
+task sue Save flower ; ; put sue there tea
+so another time if you want Sally and Sue just type '(flower file)).
+(ASK ?anyone HELP "pattern
+Th•s causes the recipient to pont out cornrncnt:s about the different messages it can receive-
+If no pattern is given then all the different messages are described, If a pattern is even then only
+those that match the pattern are printed. so to See an the rrEssages that begin with the word
+"project- that a movie can handle just type
+( ask novie help project
+(ASK ?aoyone RECALL CLAUSE FOR *sample-message)
+rcr ?
+This will return the first clause that the •sarn#rnessage•, NIL is returned if the
+clause iS Compiled or if' nothing matches the message. For example, if you tell Sally,
+(ask sa ily do when recolving (bye ?Wheoj "(goodbye .*en)) eg (ask b"
+(ask sally recall clause for bye any-ol—tdne)
+((BYE MIEN) *CGOOOBYE ts returned
+(ASK ?anyone REhOVE CLAUSE FOR
+Pege-
+===== p013
+Oirætor Ga..Jido
+printing
+This removes the first clause to catch the "sample-message*- You can even rernove clauses
+from the cornpiled primitivc actors such as Something and Ob#et SO use this message with Care.
+Tracing
+(ASK ?anyone TRACE ?pattero *action)
+any transmission occurs that match the 'pattern* then comment that it happened is
+printed and the •action-. if any, taken, Finally the message is sent and a cornrnent is printed
+describing the results, A transmission is the recipient combined with thc rrtessage. This is so that
+you cao ask a parent to trace some or all messages passed to it fronm :i'Ä offspring, If you want to
+see all the messages for Sally that begin with either or shrink. you her to trace by
+typing
+(ask sally trace (or grow shrink}
+or it you want a break point when she or any Of her descendants receives a message that Changes:
+the value of the variable "size" then type
+(ask sally trace (7 {or set change} your size to (break
+If you want to trace every message that Sally and her descendants receives you can type
+(ask sally sane os (ask sally
+(ASK ?anyone UNTRACE ?patterni
+This retmtoves any traces that match the 'pattern". If no pattern is given (the message
+simply untrace) then traces on that actor are removed, Untrace removes traces from thc actor
+receiving the message and all of it5 descendants Therefore to rernove all traces from everyone just
+type "(ask something untrace)'.
+in Director more than described go far. A complete de«ription of pattern*
+can be found in later Thc use of O in example here pattern •uceeed•
+if either O'
+Pogo
+===== p014
+CGde
+K erreth Kam
+Memory Messages
+Something (and Sittee actors are descendants Of Something this is true Of all actors
+Director) has two kinds of rnemorie$i variables and a relational data base. The variables are
+known by the actor that was originally Set them and indirectly by all of its offspring and
+more distant descendants, The data base is goc«l for remernbering any list structure and recalling
+it later with
+Variables
+Each Director variable is ass«iated with a particular actor, The and the Of a
+variable may be either an atom or a list, so for example an actor may have a variable called
+'(EYE COLOR)" and its value •may be 'BLUE",
+(ASK ?anyone {or CHANGE SET} YOUR 7variab1e TO 7new-va1ue)
+1 OR cy to
+The part enclosed in {l means that either the word or •set • can be typed, there is no
+difference. A message matching the pattern causes the value of •variable* to be changed to
+*new-value". If the actor had no such variable then one is created and its value set. New-value Is
+returned. For example, if Sally just got a hair cut you might want to update her hair length as
+follows
+(ask sally set your (hair length) to mediun)
+which quses Sallis variable "{hair to be to •medium-.
+(ASK ?anyone RECALL YOUR
+This message causes the value of •variable" to be returned. If there is no such variable
+associated with the actor, then its parent will be askei the same question. and so on until either a
+page - 14
+===== p015
+Guide
+Voriabios
+value is found or finally NIL is returned.l So. if ask sally
+(ask Sally recall your (hair length))
+the word "medium* Will be returned,
+(ASK *anyone RECALL EACH Of YOUR *Variable-pattern)
+Kea-wth
+reoy
+Variable names may be euher atoms or lists. If it is a list then one can refer to it b! giving
+only part or its name and a for each missing part. This message causes the return of the list
+the values of all the variables that match the •variable-pattern". Note that variable patterns are
+not 35 general as message pattern$, mly are perrnitted and only at the top level Of the pattern.
+Using this feature an actor can have the equivalent of property lists, nested property lists, and
+arrays, For example,
+(ask sally set your (color-of friend bob) to red)
+(ask sally Set your (color—of friend Sanj to blue)
+(ask sally set your (Color—of stranger to green)
+; then asking
+(ask sal ly recall each of your (color-of friend 7))
+(BLUE REO) ; ;
+" asking
+(ask saily recall each of your (color-of
+(GREEN BLUE REO) ; ; three
+If you made the movie My-first-film described earlier and you Want to see all the farnes
+you can type
+(ask my-first-film recall each Of your (frame 7))
+This pattern notat.on for variables also works for the •set Or Change' "messages. For
+example, typing
+(ask 50! 1)" set your (color-of t) to yellow)
+l, Thc returning NIL for unbound variables very convenient default. epecially for novices.
+can be overridden so that it by using the derno"'
+Paæ 'IS
+===== p016
+Guide
+Variables
+Kerrelh
+will set all the variables or Sally that are three bong and begin with •color-or to
+(ASK ?anyone INCREMENT YOUR BY
+This causes the value of •variable" to be he sum of its old value plus •am«int• in the
+message. If there is no such variable then ane iS Created and set to the •amount*-
+"amount" and the value Of •variable"' are numbers an error will result. The tiCW value Of
+HvariabLe" is returned, So if you type
+(ask san increment your size by IO)
+and his Old Site 20 then his size is now 20. If Sam did not know what to do when he received
+a message asking him to increment Variable you could have told him by typing
+(ask san do receiving (increment your 'Pveriable by *amount)
+(script: (ask :self change your i variable to
+i (plus (or (esk recall your ,variablo)
+O L" In ease it has itö value already
+Notice that this message and the following ones do not change the value Of a variable Of an
+ancestor. So if when asking Sarn increment his size, he did not know his size and had to ask his
+parenti then his parent hs 15 not affected by this change. Instead a variable for Size is created
+for Sam and initialired to be the sum Of parents size and •arnount•.
+(ASK '?anyone ADO TO YOUR LIST OF ist•nanej
+add tylo
+If "new•item- already a member ot the contents Of "list-name* theo nothing happens,
+otherwise "new-item' iS added onto the value of list-narne', The new value Of is
+returned- For exan.p/e. typing
+(ask san set your neighbors to (fred bob sally))
+(ask san add sue to your list of neighbors)
+results in Sam's variable -neighbors" to beset to FREO Bog SALLY),
+— 16
+===== p017
+Oireete•
+Veria&ee
+(ASK *anyone TO YOUR LIST Of 71 ist•name REGARDLESS)
+add 7' tylo 7 reg
+This is the same as the previous "add message only the •new-items added regardless of
+whether it iS already a member Of the value Of
+(ASK ?anyone YOUR LISVOF
+This removes all copies of "old-item' from the contents of "lis8-name•,
+away from Sallyi then YOO en ask Sally
+(ask ly remove bob from your 1 iSt of neighbors)
+(ASK ?anyone LIST ALL YOUR VARIAdLt
+fy Io
+Suppose Bob moves
+I ayvo
+Returns a Itst Of the names of all the variables known directly by the recipient- Special
+variables like descendants and siblings are not inchided s•nce they are Computed when asked for
+and are not known Otherwise.
+(ASK ?änyone FORGET YOUR
+If Uvariable-pattexn• is the name Ofa variable it 15 förgotten (the recipient is restored to the
+condition as before the variæble was created). If is then all variables are forgotpen
+except for "parent", "offspring- and -narne•. If' is a list containing question
+marks then all those variables which match are forgotten. so typing
+(ask sally forget your (color—of friend 7))
+will cause Sally to forget about the variables '(oolor-affriend and "(color-af friend
+Pege- 17
+===== p018
+Oetnone
+Kerv•wih Kat-n
+Demons for Variables
+Sometimes you want some special action to take place when recalling or changing the value
+Of a variable. Each special action iS called a demon and demons for a variable are kept in a
+variable whose name Starts with the name of thc variable to be watched followed by either
+or "actions-if-changing" depending on whether the actim should take place
+when the variable is recalled or changed. Variables matching the following variabbe patterns are
+run when their corresponding variable is changed or recalled.
+Vatio+l& ACTIONS-IF-RECALLING) abbreoiattd as ( 7 air* )
+Such variables itan be created, modified and inspected using the normal variable messages.
+If the second name ofa variable is "actions-it-recalling* then if the "variable-name* is ever recall«i,
+then each member Of the list of is evaluated. The value returned by the recall
+is the last form of the list evaluated. The Can referenoe the Lisp variable which
+is the current value of the variable. So if you want Jack to always Ile about his age, go that it is
+never greater than 39 rou can type
+(ask jack add (nin ;old-value 39) the gf current agt and 39
+to your list Of (age actions—if-recalling» recalling age
+(ask Jack sot your age to to test it aut
+78
+(ask jack recall your age)
+39
+to whith he responds 39
+This feature is use,f objects (descendants af Object which is described later> which have a
+variable called "state" that 15 a list of the x coordinate, y Cmrdinate and heading. When you ask
+an Object for its heading it returns the third element of this variable. This is done by
+(ask object add (third (ask recall your state))
+to your list of (heading
+18
+===== p019
+Oirætor Gi-ido
+Voriobleo
+Variable Pattern ( ?variable-nane abbreviated as (7 aic)
+When changing or setting (they are the same thing) the -variable-name* then the variable
+whose first name is "variable-name" and second narne is •actions-if-Changmg" is recalled, Each
+element Of that variable (jr there is Ohé) is then evaluated. The value that the variable has
+been set to is available in the Lisp variable Suppose you know that Jack should
+never be over 39, Then to get warning if his age iS set to too high value just enter
+(ask Jack add
+icond ( ( > 39) if the greater 39
+•Cwarniog decks age set to *ich is too high))))
+to your list of (age actdons•if-chaoging))
+(ask jack change your ege to 73) try if out setting hl$ age to Mgh a value
+WARRING JACKS AGE str TO WHICH rs
+73 .
+but his age iS Jet to 73 anpay
+If you wanted his age auternatically set to in this case then type
+(ask Jack add (Cond t O :nev-vaiue 39)
+(ask deck set your age to 39) l)
+to your list of (age
+Relational Data Bases
+Associated with each (5inoe each actor iS an offspring Of Something) is a powerful data
+base- The patterns used to retrieve items from the data. base have the same form as. the message
+patternsv e.g. is used for anything in that position. for anything taking up any nurnber of
+positions, A Complete description of patterns can be found in a later
+Memorizing
+(ASK ?anyone HEHORIZE ? ften)
+mem
+Any list structure rnay be remembered. Once an actor is tow IO memorize an item it will
+never forge•t it unless ask it to "(Orget• as described later. Some examples Of memorizing are
+Page — 19
+===== p020
+Oirætor Guide
+M etnoritirv
+Kerneth
+(ask menorize (color Sky blue))
+(ask sa Ily menorize (color ocean blue))
+Retrieving
+It doesnh: do any good to have Sally remember these things if we ask her about them so
+we have, the following messages.
+(ASK tanyone RECALL If ANY ITEhS HATCH
+Sally will answer "T" Cot' true) Of "NIL* (for dont; know anything about it) depending on
+whether she was ever told something that matches* the •pattern•. So if you asked Sally the
+follow.og quesoons
+(ask sally recall if any teens match (color Sky blUO))
+(ask sally recall if any items noteh (color 'anything blue))
+T Of course
+(ask sally recan it any items natch (color tan,ything green))
+doot Of treen
+?anyone RECALL AN HATCHJ\G 'pattern Taction)
+• (color blue)
+raim then t
+II would be nice if Sally would say rnore than Yes or no, One way to do this is to use this
+mesase, If she remembers at least one thrng that matches the •pattern • she Will take whatever
+"action" you ask her to, So, if you type •
+(ask sally recall an i ten matching (color Pthing blue)
+then (type know that the t thing is blue)) )
+r KNOU THAT SKY Is BLUE ro responds
+If you hadn't told her about any blue things she would have
+The first element OF an in a database treated specially in order to speed up retrieval.
+Because of this you should always provide the first element completely without using any question
+Page - 20
+===== p021
+CLidO
+Retrigging
+Kent'*th Kol•n
+marks. If you dont like this you an use sorne dummy word in the front Of ail the items.
+(ASK 'anyone COLLECT ITEMS MATCHING Ipattern)
+The previous messages arent helpfiJl il the actor in question has remembered several
+items that rnatch the pattern Since you never know whith item the actor Will base its answers
+Director once had (and it could corne back by popular denund) a series of messages for creating a
+stream of answers to questions that could be interrogated for its answers one by one 'Instead or
+that$ this simplier, less general. -collect items memoriæed matching„.- message is provided which
+collects into a and returns all the forms that were m«norited and match the SO
+typing
+(ask sei iy col lect items nemorized natching (color ? blue))
+((COLOR OCEAN BLUE) (COLOR SKY BLUE))
+Demons and Virtual Items
+You sometimes want special actions to occur during some database references. Similar to the
+demons for variables "you can create database dernons to satisfy such needs. Variables whose name
+consists Of the first element Of the item in question followed by either *if-recalling-items- or
+*actions-if-mernorizing- are evaluated when an item with the same first element is called for or
+memorized.
+IF-RECALLING-ITEMS) (t
+The constructors or virtual items 'items that are not really the actor'S database but that
+pretend to be) are found on variables whose narnes match the above pattern, When needed by
+either a "recall if any match", •recall an itern matching* or a ite1TÜ rnemorized
+matching" message they get rum
+Suppose you want to have a table actor that keeps track Of bl«kson top Of it. You want it
+to remember which blocks are Jen and right of each Other. Furthermore, you don't want to clutter
+21
+===== p022
+Oirætor 'GL.ide
+ard
+the table up with too many facts One thing to do is to have the table mernorize only items about
+which blocks are left of which others and to use 'if•realling-items' demons to fake it to as if
+it also had metnorized which are right of which TO do this
+(ask table odd
+; ; add tke [iSt ef fat' questions begintung righr•of
+(r tgtlt—öf ?blotk-l rbloek—Z
+if a block bang of another then
+scr iptl
+(ask recall i ten matching item that that
+(left—of {and land '*bl
+• tie $ttond block is left-of the first one
+then '(right-of *b?)) ) )
+and if pretend that a right-of item there
+to your of (right-af if—recall
+Only items constructed that match the original request are used in answers. To test out aur
+table we can enter
+(ask table memorize (left-of (green block) (red cube)))
+tell it something
+(ask table recall an item matching (right-of (red cube)
+then (type '(the i some-other-block iS right Of the red cube)))
+after asking it for samething that i' right of the red cube It
+THE (GREEN BLOCK) IS RICHT OF THE REO CUBE
+Variable Pattern ? first—element ACTIONS-IF-HEHC8JtING) aereviøged aimx)
+If. instead Of pretending that sorne item is you want some special actions to «cur
+when certain items are memorized then you should put the actions in a variable whose name iS the
+first element of the items in question followed by Suppose ypu rather have
+the table memorize both the left and right relationships Ot blocks, but you dorft want to have to
+enter both kinds ot statements. Then using actions-if-merrMizing you can have kind
+automatically added after the other kind is, To get the table to mernorite right-of statements after
+first hearing of the left-of version just type,
+- 22
+===== p023
+Director Guido
+(ask table add
+Page - 23
+ard VirtQÉl Itorno
+Korn
+add to the list Of actions fö if memorizing an item beginning left-of
+(if-told-about Oeft-of Ithing•1 7thing-2)
+(scr ipt:
+(cond ( (ask $self recall •if any iten$ match (right—of *thing-2 , thing—I)) )
+already netroorized the corresponding item then do nothing
+(t (ask :self nemorize (right-of , thing—2 i thing-I ) i)) ) )
+Orheyroise memorize the right-af Viti the things switched ground
+to your list of (left-of
+The reason first checked whether the new item 15 already known $0 that the anabogous demon
+can be placed upon the pattern "(right-of without the two activating each other forever
+Forgetting
+ASK ?anyone FORGET ITEMS HATCHING 'pattern)
+This removes any previously mernorized item rnatching the "pattern* the data base Of
+an actor. If you want sally to forget abbut all the blue things she knows about you could type:
+(ask sol ly forget items matching (eolor 7 blue))
+To have her forget everything (except her name, parent and receiving clauses)' type
+(ask sally forget items matching "forget data tase item
+(ask sally forget your ? ) ; ; fdrget au pur variables
+Plans and Pseudo-Paralielism
+Normally when an actor receweg a message it responds as quickly as possible order to
+have several actors behave at what scorns to be the same time this is not desirable. Director solves
+this by providing a -tick" mechanism which is described in greater detail in (Kahn 1978).
+(ASK ?anyone NEXT *action)
+This indicates that the message called •action' should be Sent after the next tick,
+explained later in this sect•om
+pn 'X
+Ticks are
+===== p024
+Oireztor Gi-ide
+Pians ard PeeL&-PomNOliOm
+(ASK ?anyone PLAN AFTER 7nunber TICKS *action)
+KON*th
+pa ticks X
+This requests that the message called taction' be sent after -number' ticks. Suppose you
+want to have Sally grow and aner that to go and the sarne time you Want, Sam to go
+forward On the next tick and to grow on the tick after that. You could type
+(ask sally glen next grow
+(ask sally plan after 2 tickS forward SO)
+(ask san plan next forward 50)
+(ask sam after 2 ticks grow 100)
+Once all the plans have been made you can get any actor to do all planned on the next tick
+by asking it to (TICK). If you ask an attar named Default-universe to (TICK) then all the actors
+Will do what they planned for the next tick, If you ask Default-universe to •RUN FOR 3 T ICES*
+then 3 ticks of action will happen,
+(ASK PLAN AFTER SECONDS *message)
+pa ? seconds %
+This iS the same as the previous message except that the units are in fitm seconds. While
+making a movie there are variables for the number of frames per second and ticks per frame
+which are multiplied by *number" in the message to the number Of ticks,
+f ASK ?anyone PLAN AFTER RECEIVING TO "essage—forn)
+parx to
+If thc recipient of this message type receives a rnessage matching the 'event-pattern* then the
+*message-form« is evaluated (in the environrnent extended by matching the event-pattern against
+the event and sent to the recipient. Suppose you want Sam to melt after colliding with a
+sun otherujse to explode. Then you Could enter;
+(ask san D Ian after receiving (col tding with to
+„ if a message mattåtj
+t (ask . other are you e sun) if the other is a rum
+• (nelt)) ; ; then message Io be sent ir melt
+; otherwise it IS
+Pege
+===== p025
+öirctor Guido
+Plang
+Ket-n
+(ASK ?enyone PLAN AFTER RECEIVING ?event-pattern TO ALWAYS *message-rorn) par* ? ta 7
+This is just like the last message except that it Will do •message-form* after receiving
+a message that matches "event•pattern•, while the cnher one only works the first ume that a
+message matches. The affect Of this rncssage could easily be accomplish«l using the "extend
+behavior when recejung" message, Suppoge you want Sally to grow IEO units 3 ticks after
+gråduaily going forward 200. then you could type
+(ask 541 ly plan after receiving (note that I finished gradually forward 200)
+to a lyays after 3 ticks grov 150))
+(ASK Panyone REPEAT message *number TIMES)
+This causes the •message' to be sent now and the plan the messages the comma means the
+value instead Of name,
+(ASX ?anyooe REPEAT ?mossege liMCS EVERY ?so-nany TICKS) repeat te ttckS
+If beacons had not be told how to blink they oould be tow to using this message by entering.
+(ask i beacon repeat (show) IO tines every 2 ticks)
+(ask ,beacon plan next repeat (hide) 10 tines every 2 ticks)
+SO that the beacon Will show and hide on alternate ticks.
+(ASK ?anyone REPEAT message FOREVER)
+This is 5imilar to the previous message Mily the action is repeated ad This is
+defined as follows;
+ask sonethfng ; ; every actor inherits behavior Something
+do when receiving (repeat '?mcssege forever)
+(scr ipt.l (ask : solf ,messape) ; } send the message to purself
+Cask : self pian next repeat tmessage forever)"
+and plan next tc repeat thr thing again
+Pegs - 25
+===== p026
+Oirætor GUcie
+and
+Kotm
+The in the first line Of gript means that the list that follows should be inserted into the list
+without its parenthesises. So typing "65k sally (print memory))" is exactly the same as typing '(ask
+sally print tnemory)".
+(ASK ?anyono TICK)
+This .message causes those messages planned for the next tick to be sent. These are kept On
+the variable called Conceptually the transmissions for a tick happen
+in parallel as does the broadcasting of messages by either a movie or a universe- A tick is a
+quantum of time during which you should not care about the order Of transmission Of any planned
+gnessages, Spe the sections describing Movie and Universe below for more d&ilg,.
+Broadcasting Messages
+Sornetimes you want to have an send tmessages on to others it knows about. The
+following messages are to help you do that.
+(ASK *anyone ASK YOUR 'variable TO
+This asks the recipient to recall its •variable* Jild then send to it the •message-. For
+(ask so Ily set your rriend to bob}
+(ask sally ask your friend to "recall your offspring)
+Hopefully Sally has more than One frgend, In that case you can create a different
+("friends" iS a good name) and use the next message,
+'anyone ASK EACH OF YOUR 10 *nessage)
+aeoy to X
+This sends out the "message" to each of the members Of the list that is the value Ot
+Wvariable". Nothing happens if there is no value for -variable•€ As an example.
+poge -
+===== p027
+Meagageo
+(ask sally set your friends to (bob ted carol aiice))
+(ask sally ask each Of your friends to print variables)
+There are a few special variables that are useful together with this message They are
+"descendants"i "childless-descendants", amd *offspring s, Offspring are all the children Of
+an actor, siblings are all the offspring cf an actor's parents except itself, descendants are all the
+children and their children's children and so onw and childless-descendants those descendants
+that themselves have no children- If you wanted all the actors in existence (except Something and
+those actors created by •make unintern•ed to pr•nt, Tor example. you just type
+( ask sonething ask each of your descendants ito print)
+(ASK ?anyone ASK ?0fi0ther TO *message)
+This one may seem kind or sillyr Why ask someone else to ask another person Something,
+why not just ask thern This iS handy mostly when you are planning or repeating
+sornething because they, by convention, deal with rnessages that are to be sent to the planner at
+son•ve later time, The planner is typically the sarnc actor as the one who executes plans but
+crcasionaily this is not the case. For example, if you want Sally to tell sorneone that he is a clutz
+because he just collided with her (rather then do something herself such as explcde), then you
+could type
+(ask sally plan after receiving with Tother)
+to always '(ask .other to rote that you are a elutz))
+Sally receives a message jnrorming her that she is colliding with Bob then the following
+transmission occurs
+( ask sally ask bob to note that you e clutz)
+(ASK 'anyone OO THE FOLLOWING: *Htssnc€sy
+This too may seem silly at first. why send yourself many messages at once like this? Again
+===== p028
+Guide
+Kerr-eth Kot•n
+this message is handy when planning to do something later. Since ycn,) have no say. regarding the
+order Of messages sent during a tick. this pattern provides you with some. The difference is subtle.
+Using this message You can plan LO do a compound action at a particular time. The alternative is
+to plan to do several simple actions ail at that time, Suppose you want Sue to draw a Fltagram (a
+five pointed star), then you oould type either
+(ask sue pendown}
+, $0 tkdt leave' g trail bthind key
+(ask sue repeat the (forward 200) 144))
+or if you care whether the star is drawn by going forward first or right first then the
+follOwing is just as good
+(ask sue repeat (forward 200) 5 tines)
+(ask sue repeat fright 5 times)
+Rernernber that the •repeat* message is defined to do the rnessage and plan to repeat one less time
+the same "Essage.
+(ASX Ponyone KEEP DOING UNTIL ?predicate *message)
+kdu ? X
+This keeps sending the •message* to itself until it results in something that satisfies the
+-predicate". Suppose you want Sam to IO until he Is at least 200 big. Then you could type
+(ask san keep doing until (result) ( > result 200)) grow JO)
+Variables that are Special to All Aotorg
+There are a few Variables that are treated specially, Among thern are •siblings•. •offspring',
+*descendants", and %hildless-descendants•. If there iS no value for one Of these variables instead Of
+asking the recipient's parent for a value one iS made tp. It returns cither the relatives indicated or
+NIL if there are none,
+name iS d variable rekose default used when made)
+Every actor has a name.
+Poge - 28
+===== p029
+Gode
+Veriebleg trot are to
+Kernelh
+parent is a variable default value is {the naker Of
+Every actor has as its parent the actor that created it. It essential to have a parent 00 accept
+any message or recall any variable or database item that one does not know explicitly. You can
+Change your mind as to who a parent ot' an actor is and reset it using "change your but the
+previous parent's offspring (see below) will not be changed and the new parent will not
+automatically know of this new offspring.
+offsprinq is a variable Whose default is nil and is abbreviated as Offs
+Every actöt knows the names Of ail its offspring (except those that not interned). This
+variable iS not inherited Of course.
+5 inqs is a default oglueis nil and sib
+An actor's siblings are all of its parent'S offspring except itself.
+descendants a variable d'fault nil and is abbreviated des
+This is a list Ot the actor's offspring and their offspring and so on.
+eh i ld less-gescendants is o variable default nii abbreviated as cd
+This is a list of atl the actor's descendants that themselves have no offspring.
+is a default is default-universe and is abbreviated unt
+The variable "universe" is used in planning and its value should always be a descendant of
+Universe, Its value is informed whenever an actor plans anything.
+ij Variable default value gnd abbreviated as ttdn
+This variable contains the list Of things that its owner plans to do upon receipt of the next
+tick message. You need not Worry about this variable unless you Want to write your own planning
+primitives,
+===== p030
+Object is the top-level actor for those tan be seen on •a display screen, Objects are
+much "ke Logo turtles only much more versatile. Many of the message patterns are intended to be
+compatible with the TV turtle,
+Creation and Appearance
+Objects are treated using the "Make' message described above. In order to inform this newly
+created actor of' its appearance it must be told the narne Of a Lisp program (made up or turtle
+commands) that will draw it on a display, its appearance is not easily describable by turtle
+commands (such as text) then you can use thc instant turtle Can Supply clauses for the
+Guide
+Objæt
+lv. Object
+Pago - go
+Kerroth
+reception of display and erase messages. This is all described later.
+(ASK Rati-object VIIEN ORAWING USE OF "dray-args)
+"du or
+This informs •an-object" that it should draw itself using the The
+procedure may consist Of' Forward, Back, Right and Left comrrnnds but Commands (for
+example, Set xy} should be avoided. Instead of Penup and Pendown use Thingup and
+Thingdowo, "Oraw•args" is a list Of variables that must be *Recall-able", variables known
+(either directly or through inheritance) by the actor in question. If these variables are changed
+and the Object is currently being displayed, then its its appearance will be updated, For
+to define an object that can appear as any polygon we could type
+(deftne poly Object
+(set YOUC angle to 60)
+i ; tkt default be d
+(when use draw-poly of size angle))
+The macro *Define" is just Short hand for:
+===== p031
+Guide
+ask Object make polyl
+Crwtion
+Kerrzth Kern
+ask poly sot your angle to
+( ask poly when drawing use draw-poly Of 5174 eogle)
+Draw-poly in Lisp could be defined as follows:
+(defun draw—poly '(distance turoage)
+(do ( (artginäl•heading (head*ng))
+; i. gave the original heading
+(first-tine? t))
+( (and original—heading (heading)) ; ; beck to the Original heading
+(setq (not first—time?) ) n
+and this iS nat first tine through then if*$ finished
+(forward distance) ; ; each time go dt$tatæce
+(right turnage))) ; ; and turn right rhe furnage
+When giving the arguments the drawing procedure one rnay put any of the arguments in
+parenthesis. This declares to Director that the argument dces not change the shape of the object-
+For exarnple, if thc drawing procedure has an argument for the texture then it should be in
+parenthesis otherwise whenever the texture is changed Director will go through much more work
+than necessary. If "draw-poly" had a ihird argument for the texture then you type,
+DRAViNC USE DRAW-POLY Of SIZE ANGLE TEXTURE", Ain the variable is treated specially
+by the system {in the definition of grow and shrink for example) so you should L.ne that name
+when that what you mean. All SiZe5 are standardilfd so that anyobJect of size.. say, will Just
+fit inside a circle of radius 100 units. Yau neednt worry about centering the appearance. Director.
+will do it for you, This can be overridden by setting the variable •center-offset • described
+below.
+Currently the initial environment includes this definition of Poly and two other objects,
+Rocket and Flower.
+Pew - 31
+===== p032
+Oir•ætar Gi-idé
+(ASK ran-object
+Stv.•øiirv ord Hi&t'ü
+Showing nnd Hiding
+"An-object* is shown if already being shown,
+(ASK Ren-object HIDE)
+"An-object" is hidden if currently visible
+Moving and Turning
+Just as in Logo thete are at least two ways of chancing Object'S position or orientation.
+You can ask it to go forward or to turn, ot you can ask it to change either its (the
+coordinate), •ycor• (the vertical coordinate}, 'heading", (the xcor and yoor) or •state* (the
+ycor and heading)
+Turtle Commands
+There are two ways or moving or turning, An Object can either disappear from where it ig
+and appear in its new position or orientation, Another way of moving or turning is to do it
+gradually- "Gradually* messages to objects do not cause them to slowly when the message is
+rece.ved, Instead they move only a tick%, worth (see previous discussion Of ticks) and plan to do
+the In order to see the object move gradually one should ask an instance Of Universe or
+Movie to run for a number of ticks (see below).
+(ASK ?an-obdect {and FD RT RIGHT LT LEFT BK BACK)) Tanount))
+If any af the words forward. rti right, It. left, bk OT back followed by any sort af number is
+received by an object then will hide, do the •command", and reappear. SO typing (ask sally
+rorvaord 200) causes Sally to disappear and then to appear 200 steps forward front the way she
+===== p033
+Oirætar GA-ide
+Kem»eth Kem
+was facing (her heading) she was hidden to Start With she 'Will move but you see her,
+ASK Ian-object CRAOUALLY' ?comand tamunt)
+grad ?
+This causes the actor to find its appropriate speed and send itself a message asking it to do
+"command* With either the speed or *amount' whichever less, The narne Of the speed iS found
+in the variable (,command speed-narne). "if there is anything left over to do, then it plans to do
+that next. SO typing
+(ask saily gradoaiiy forward ?50)
+, the game a; Cossumitag speed 1$ less than 250)
+(ask sally forward , (ask sally recall your speed))
+(ask sally plan next gradually forward (ask sally recall your speed j))
+The speed of change is the variable *speed • if the message is a or "back ¯ message, It is
+"rotational-speed" if the message is *right" Ot i left • Object knows reasonable defaults for these
+variables but Of course you Can override any of them. When an object drys something gradually
+such as 88) then the message (NOTE THAT 1 STARTED GRADUALLY RIGHT ee) is
+sent to itself and later when it finished the message (NOTt FINISHED RIGHT
+88), These are very handy for making convocated plans where only after some event has begun
+or finished should another start.
+(ASK ?an-obdect RIGHT-REVOLVE
+(ASK Tan-object LEFT-REVOLVE
+These cause the recipient to revolve around its •revolution-center* if it has one. Otherwise it
+acts just as if it received either 'reght" or "left". travels in a circle around its •revolution-center*
+travelling *degrees- to the right or left,
+(ASK ?an-obdect GRADUALLY RICHT-REVOCVE
+(ASK ?an-object LEFT-REVOLVE ?degrees)
+ore
+These causes "an-object* to revolve at the lesser of its and, "degrees* and
+Pago
+===== p034
+Oirætor
+then plan to do the rest nexu
+Coordinate Messages
+Turtle Corn-nondo
+Karyoth
+Sqmetimes you might want to tell an object where to go by giving the distance up or down
+and the distance left: ot' right from either the current position Or the center of the The up
+and down part iS called the y coordinate and the left •nd right part is the X Cmrdinatev The
+following are the coordinate-oriented messages
+(ASK ?an-object SETW
+Set x coordinate to and y to new-y,
+(ASK tan-object SEVX
+(ASK tan-object SETY ?new-y)
+(ASK tan—object SET TURTLE ( ?neu-x mew-y 7new-heading))
+This is the same as (change your state to hew-state),
+(ASK ?an-obdoct SETIIEAOINC ?new-heading)
+Sets rhe heading sarne as {change your heading to hew-heading),
+(ASK ran-object OELXY ?deita-y)
+Add delta-x to current x coordinate and delta-y to y.
+Ian-object OELX
+(ASK tan-object
+(ASK ?an-obJeet CHANGE YOUR ro
+Where state is (xcor ycor heading) same as setturtie new-state,
+(ASK Fan-object CHANGE YOUR POSITION TO mew-position)
+Positron is just (xcor ycor),
+(ASK ?an-object CHANGE YOUR READING TO 'heading)
+Sets the heading
+(ASK ran-object CHANGE YOUR TO
+34
+cyst ?
+eypC 7
+cyht
+CYXt 7
+===== p035
+Oirætor
+Synonymous with '(setx
+Coardmte
+(ASK ?an.object CHARGE YOUR YOCR TO rnew-ycorj
+Same as (setF -O.
+(ASK Tan-object RECALL YOUR STATE)
+Returns the current State
+(ASK ?an-obJoct RECALL YOUR POSITION)
+Returns the list Of the and YCOf
+(ASK ?an-object RECALL YOUR HEADING)
+Returns the current head•ng
+(ASK tan-object RECALL youn
+Returns the x coordinate
+(ASK tan-object RECALL YOUR YCOR}
+Returns the y coordinate
+Karteth Kom
+cyyC 7
+rys
+ryh
+Just as w.th the turtle commands it possible have a zajrdinate message happen
+gradually. The relative ones (Delk Dely Delxy) use the variable •speed" just "*forward" and
+Oback' do. The absolute ones {Setl Sety Seny Setturtbe Sethcading) are rnore unusual. While the
+recipients of these message; also use "speed' and •rotational-speed* where appropriate, they cause
+odd behavjor sometimes.. An object is defined to move towards its goal (the desired c«wdinateg
+and heading) AS much as its speeds allow and then if the goal is not reached to plan to do the
+original message all over again on the next This can cause some interesting conflicts if you
+have an object trying IO get to a particular State and while that is in have it also receive
+some *forward" or "right' messages throwing it off codrse. The gradual ccotdlnate messages are:
+(ASK ?an-object GRADUALLY OELX 7da1ta-*)
+pan-abject GRADUALLY
+{ASK ?an.object GRADUALLY OELXY 7de1ta-y)
+page SS
+gdeix 7
+ode ly
+===== p036
+Oira=tor Cutdo
+Page -
+( ASK
+(ASK
+ASK
+( ASK
+?an-
+obdect GRADUALLY 5ETTVRTLE tnew-statej
+object 5ETX
+GRADUALLY SEIY mew-y)
+object
+end.
+gsett
+gsh
+gsatx
+gsety 7
+osetxy
+All obrcts can change their Size. Just with going forward or turning an Object can grow
+gradually or ali once.
+(ASK Ian-object egou ?amount)
+This is the sarne as the messages Of the form (INCREMENT YOUR SIZE BY
+obrct iS currently visible it will disappear and reappear bigger (if •amount* is positive).
+(ASK tan-obdect
+This is the same as a grow message Of the negative Of the •amount-.
+(ASK tan-object CRAOUALLY GROV
+(ASK Ian-object CRAOUALLY SHRINK
+If the
+gs
+This works a bot like the gradually messages for going forward. turning right and the like.
+The object will grow (shrink) at thc amount Of •its "growth-speed - and if anything iS left
+plan to do it later.
+===== p037
+Oirætor CLidO
+Ctengng the Of e Veriaeo
+Gradually Changing the Volue of Variable
+ASK Pan-object CHAWE YOUR ?variabie TO mow-value)
+Ken-oth Kotm
+ocy ? to
+This 'Will gradually change "variable' io a •new-value'. The speed Of the change is
+given by the variable (.variable Speed) or assumed be I if none is provided. you want Sally to
+grow to 3CO at a rate of 30 units per second (by default there is one tick per second) then
+type
+(ask sally set your (size speed) to 30)
+(ask sany plan next gradual iy change your size to 300) ; ; plan to thane
+(ask sally keep doing until nothing-more—to-do tick) sending ticks until finish"
+(ASK Ian-object CRADOALLY INCREMENT YOUR Tvariable BY )
+giy ? by?
+This 'is like the previous one and is defined to gradually change the "variable" to its current
+value plus the "addition#. The only difference between the following two ways of making Sally
+grow iS that grow uses *growth-speed • while •gradually increment ymyr uses (size speed).
+(ask sally gradually grow 200)
+(ask sally gradually increment your size by 200)
+Peng
+When an object rooves it can leave a trail behind itself, It this by falling upon the
+TV Turtle. The commands that are currently available are pug penup, pd. pendovn, erd,
+eraserdown. xd$ xordown„ xu or xorup- They have the same meaning as described in the Ltao
+metno [Goldstein 19751
+Poee - 3?
+===== p038
+Guide
+Sp«iel Veriablee
+Special Variables
+Korrwth
+We have already 5.een a few variables that Objects treat specially Such 15 'heading',
+and *position", Also the arguments for drawing given in the Awhen drawing use message are
+also special variables- They are denned to cause the Object in question to disappear if visible and
+then to reappear With a new appearance. This is accomplished using the •actions-if-changing"
+variable demons described earlier and e.xplains why setting the variables •size* or •angJe• of a poly
+causes it to change, Suppose Bob is a square and you want him to become a triangle of size 200
+then just type
+(ask bob change your angle to 120) ; ; become a
+(ask bob change your Size to 200)
+There are a few other special variable; associated with objects that ycn,l might want to set
+sometirrvesv
+after—show-action is a variable def6t,dr n] 1 and abbregdated as asa
+Thi5 contains the action to be performed aner' the tntject has finished drawing itself. The
+turtle is at the center 50 that shading is possible here. so ta shade in Sally with a checker pattern
+{for more about shading see the LLOgO memo CColdstein 1975)) you type
+(ask sally change your after—show-action to (shade 'checker n
+after-hide-action IS a variable if nil and is abbreviated as aha
+This describes the action to be täken after the obrct has erased itself, you want Bob to
+print a message every time he hides then
+(ask bob change your after-hide-action to (type e (try and find me now)) )
+tty is a d"at.clt value iJ t gnd abbreviated as eras
+Director has two ways to erase ad object, either redraw it with an eraser or erase everything
+in the region or the object, Only if the Object'S erasability is nil is the latter action perforrned
+===== p039
+Guide
+Speciäl Veri&ee
+Kerneth
+This is necessary if the appearance iS shaded for example and 15 often raster if' the drawing is
+complex. Sally's problem nov that she is checkered Is that she carfi be erased by redrawing with
+an eraser so you should type
+(ask sally change your erasabtlity to nil)
+center-offset is a vaxiable whose default o•atueis ni and is abbreviated as co
+Director assumes that an object should be shown, turn. grow. etc, around its center, The
+center-offset is evaluated before these actions are taken to allow to change If you want
+Bob to be a flower that turns {or grows) not at his center but his base then try
+(ask flower make bob)
+(ask bob change your center-offset to (forward (ask bob recan your size)) Y
+(ask bob show)
+bob 30) the if
+Colors
+If you to change the colors of an object you use can the •change your message. If
+colors Were in the *When drawing use" message then this will work automatically, The
+list of possible colors is in the Lisp variable H;colors" and others can be made as described in the
+LLogo merno- If you want to see a smooth trænsition from one of colors to another can use
+the following message.
+Ian-object CHANGE YOUR COLORS TO IN TICKS)
+cyct ? in ?
+The number of colors before should be equal to those after. Each color is slowly changed to
+the Color in the corresponding position in 'colors", Only I/number of the change will occur. the
+rest will be planned for later. Of course, if you arc not running the color system then these colors
+Will all look white, but internal variables can be inspected to see that indeed the color is being
+•changed"
+Page - 39
+===== p040
+Oirætor Guide
+(ASK *an-object PREPARE TO COLORS
+Cawe
+ptncv ?
+The number of "other-colors" should be same as the current colors. This message sets up
+a variable called that controls the Of the Old colors With the If
+-color-mi*" is set to 0.0 then the old cotors appear, if it 1.0 then the new-colors, it it is S then they
+are mxed 50•50, This rnes.sage is used to define the previous message as follows
+ask object
+do receiving (change your colors to 7e010rs in Pnumber ticks)
+script: (ask :self prepare to colors "4th mix
+(ask : Self set your (color-nix speed) to .(//S (float nu±er)))
+; ; reciprocal Of number iJ What Jhould be done each
+(ask :self gradually increnent your color-mix by 1.0)) )
+00 each tick cotar-mtx incremented b' tkt speed)
+For example,
+(ask sally change your colors to (rod white b lue) in 5 ticks)
+is the same as typing
+(ask sally prepare to mix colors with (red white blue))
+(ask sally set your GO Tor-mix speed) to WE)
+(ask sally gradual ly increment your color-nix by 1+0) it jtd*t$ at O
+Interpolation
+Sometimes you want an objectis shape to slowly change to another Shape IO Director you
+can create an that is the interpolation between appearanoe of two actors,
+(ASK tan-object HAKE ?nane INTERPOLATION TO 7anot.her•objeet)
+This returns an actor named •name" that is the interpolation between Kan-object* and
+•anolhef-object". This actor is ari Object that you can tell to grow, turn or whatever, it has
+associated with it a special variable called "amount". Amount is initially S which means that the
+appearance Should be exactly between the t.wo appearances, 0.0 will rnake it look iike -an-object"
+Page — 40
+===== p041
+Dirætor Guide
+Kerr-Eth Kotm
+and • the appearance of •another-object", Very interesting results cxeur if you try negative
+numbers or numbers treater than
+(ASK ?an-ob$eet HAKE IN TERPOLATION TO ?another-0bJect)
+nit*
+Same as the previous one only Director pic:ks a narne Of the interpolatim for To make
+a simple movie of a circle begom•ng a square try the following
+(ask poly rnake circle)
+(ask circle set your angle to IO) like circle but C 56-agon
+(ask poiy make square)
+(ask square set your angle to 90)
+(ask circle make circle-to-square to square) ; ; make the interpolation actor
+(ask circle-to—square set your amount to O 'tart off locking like a
+(ask circle-to-square set your (anount speed) to .05)
+(ask circle—to-square gradually inerenent your emourit by
+(ask circle—to-square show) ; needs to be Vi'i.ble if me're going to make g movie of it
+(ask movie make cts—novie) met"itS art dumbed in a Idler Jecttotl
+(ask cts-novie film the next 20 ticks) send Out 20 ticks retarding go
+( ask CtS-movie project) filming is over project
+This transition will be linear. If you wanted the rate Of Change to increase just elter the following
+before running the movie.
+(ask circle—to-square set your I (amount speed) speed) to
+the amount speed itself has a (Je tkt etceleration)
+(ask CiCC1e-to—saoare gradually change your (amount speed) to
+Treating Objects as Turtles
+It is possible to have an obJecr behave as turtle and run turtle procedures. To do this use
+the following message pattern
+(ASK Iao-object RIJN *action)
+"Action" can be any turtle command. procedure, or sequence of them beginnjng With the
+pone — 41
+===== p042
+Director Guido
+Troeting Objæto
+KehT
+word •script:-
+If you want an Object named Sam to go forward 100. turn right 45. and then follow
+the course of a circle then you could type:
+(ask san pendown)
+; 4 fö See trail
+(ask san run script: (forward 100) (right 45) (dray-poly 10 JO))
+where draw-poly iS Lisp TV Turtle program,
+Appearance Definition Using Instant Turtle
+Another way of creating appearances for objects is by using a mode called *instant turtle-. It
+is entered by typing (instant) and is exited by either type or control•g. The idea is to enable
+you to "dravfl on the screen by having the turtle move to ytnr every key stroke. Most single letters
+cause the turtle do something or to deftne the current image either an actor. procedure or the
+definition of single character. Numbers are given to it br typing them before the letter comrnand.
+no numbers are given then the numbers last given to that better are assumed (or I if it is the first
+time that letter is used}. Thc mode is self-detornenting just type
+( instant)
+Welcome to Instant Turtle
+it tweltome it read'
+? i type ? and then any letter or on commands
+and each character will describe itself. Note especially the •n • command for naming the picture
+an actor
+Non Standgt•d Appearances
+The default appearance handler of objects assumes that the Lisp program given in the
+"When drawing use" message consists of turtle commands such as forward, fight. left, and back. If
+you want a special kind of appearance you need to define an appearance handler that takes at least
+two messages "Display" and *Erase', if you want even less help from the system then you can
+define your actor to accept: 'Hide' and "Show' messages but this is not recommended. Suppose you
+want an actor that displays text then you could define it as follows:
+Pega - 42
+===== p043
+Guide
+(define text object
+Non Appmrarcee
+(set your text to INO text given l) Ptazi'ide a default text
+set your font to tvfont) ; ; dofault
+( set your appearance—variables to (text font)); } needed
+(do When receiving
+(for display erase)) ; ; if the messages iS Ot
+(oenup)
+(setturtle (ask :self your move the turtle
+(tontprinc (ask :seif recall your text) ; ; print tkt text In the font
+(ask recaii your
+Pints if blank. othergwe etases
+This is the minimum needed to define a text Of any font* or position. You might want the
+screen to reflect changes in the variables "text" and Tont•. The -actions-if-changing • variables
+(described iti the earner section on detnons for variables} can be used for this as follows
+(ask
+( ask
+(ask
+( ask
+ask
+(ask
+text add (Script: (ask screen wipe) :new-valuej
+Old aneargnee• easily so and redraw It atl
+to your list or (text actions-if—changing)) ; ; text changed
+text add (ask Screen wipe} :ney-value)
+to your list of (font
+We can now use the new text definition„
+text nake label)
+label show)
+label change your text to I Here I aml)
+SO become the ajøtd$ here gm
+label forward 200) ; . to moue
+The "text" actor in Director is defined as described here With the ability to display the text in
+Various fonts. The fonts have to be made by "windowize• which is described
+Jf you want you can use a font called (about 3, tirnes bigger than normal) and it will
+automatically be ioaded in, Fonts are loaded in automatically it the font nante has a
+"font-autotoad•file" property. so if you type
+(ask label change your font to trig)
+the text will be displayed in that font,
+Page — .43
+===== p044
+Codo
+Kerr-eth
+V. The Soreen
+The Screen actor provides the interface between the world of actors and the TV Turtle
+display area, There is currently Only one •screen • though the system could be extended to
+multiple screens. TO See thern on different physical displays is another question- Much of what
+Screen does you need not bother with, The messages OT some use
+(ASK SCREEN SILENT RUNNING)
+This makes Screen "pretend' to do What its told but not to Shtjv anything on the TV.
+This is useful mostly for making movies, but also if one wants to do many things and theti see the
+final result, For example, jf takes a while to draw an object you may not want to See erase and
+redraw as you tell it to go forward, grow and turn. You could always hide the object first but if
+there are many objects then it is easier to use this. If, while Director is running, you want the
+Screen to run SitentIF you can type ctN1trOl a at any time.
+ASK SCREEN NORMAL RUNNING)
+This oeils the Screen to stop running silently and also to wipe as described next, This
+message can be sent to Screen by sirnpiy typing control r.
+(ASK SCREEK WIPE)
+This wipes off anything from the Screen and the') redraws any objects that should be
+visible. This is useful if a message Of something messed up your display area.
+(ASK SCREEN CLEARSCREEN)
+This tells the actors to hide. SO that the sereeri become; blank.
+44
+CS
+===== p045
+'Gl.ido
+The Screen
+height a vanablt default üälue 200
+Width is a variable default
+The height and width of the screen is controlled by its variables *height- and •width*.
+you want a square Streen 400 big then type
+(ask screen set your he ight to 400)
+(ask screen set your width to 400)
+vi a t.variäåle default nil and ts vo
+This is a Ij5t that Screen keeps of actors it thinks should be visible If you forget the name
+of sorneooe on the Screen then 100k at variable.
+Page — 4S
+===== p046
+Oirætv GOde
+Univeee
+VI. Universe
+Ken-wth kern
+Universes (instances of Universe} are the actors responsible for knowing who wants ticks
+messages. Any actor that has planned anything has told its universe that it has sornething vo do,
+(The "plan messages handle this and all actors inherit these from Something) The Only thing
+that you need ask of a universe is to run when you want a" the planned activities to Each
+actor is asked for its "universe" when planning and unless Oold otherwise inherits from Something
+one called "default-universe", Telling a universe to run is not recornrnended when the display is
+involved instead Movie should be asked to *film". (Movies described in the next Section.)
+(ASK *a-universe RUN FOR nength TICKS)
+Send tick messages to Cath actor with sornething planned *length • number of times, So 'DO
+run through a scene Sally and Sue both growing you could type
+(ask sally plan next gradually grow 300)
+(ask sue plan after 2 ticks gradually grov 200)
+(ask sally p 100 after E ticks print nemory) ; ; to see Okdt*$ happen.tng to Sally
+(ask sally ask your universe to run for 4 ticks)
+unless told otherwise Sue and Sally liÜt in tkt
+t$ a variable default and abbreviated as atrn
+This variable iS kept by a universe and should be a list Of all actors in that universe with
+anything planned.
+Pogo - 46
+===== p047
+Oirætor Guide
+Movie
+VII. Movie
+Kat"'
+Movie can also be told to run its major difference from Universe is that movies manage
+to remember any changes to the screen, Movies can then be askeå to play back at a speed that is
+typically much faster than when first created,
+(ASK FILM THE NEXT In-length TICKS)
+This js similar to the "run for message for instances
+ftn ticks
+of Universe. however rnovies
+(instances of Movie) also record whatts happening to the display. TO create a movie named
+Fantasia 12 ticks long One need only type
+(ask movie nake fantasia)
+Gsk rantasia f i 1m the next 12 ticks)
+All objects that currently on the screen or plan to appear Åuring the next 12 ticks Will be in the
+movie,
+g variable 1 and iS abbtetuartd as fps
+Sometimes you may want to see the same movie but With more frames and less change
+between frarnes. If you used •gradually* cornmands described above then you can control the
+number of frames per second. Remember that the speeds of gradually commands are in units per
+second. If the display vere fast enough setting the number Ot trarnes per second to 20 or 30 and
+projecting at that rate would make the very TO project many Irarnes per second
+see the messages described later in this section. If you set Fantasia's frames-per-second to 4 and
+had it run for 48 ticks instead then every fourth frame will be the sarne as before and the others
+Will show a transition between the frames. You can think of frames-per-second as the
+speed With which the -camera # shoots the action, The default value Tor frames-per-second is 1.
+ticks—per-Trane a variable default iS 1 and i' abbreüated tpf
+If you want to film just every 5th tick then set the movi€s •ticks-per-frame* to 5 This iS
+Page • 47
+===== p048
+Guido
+Movie
+primarily useful if you want a tick to be a small unit for accuracy and want 00 see or
+record every tick.
+(ASK ?a-novie SECRETLY THE
+rst.n 7 ticks
+This does the same as thc previous in that all changes to Screen are recorded except
+here they arc not displayed. This is usefUl if you w t to save the time Of displaying changes on
+the screen or to free the terminal to do something e (e.g. edit a file) while the movie is being
+There is a wide selection ot different messages asking a movie to display itself. They are.
+(ASK PROJECT)
+Shom au start
+(ASK Po-movie PROJECT FRA" Y. TO tend SHOVING EVERY
+Shu Jromfrgme BEGIN ta END SO-MANY frames.
+(ASK ?a-novie PROJECV FRAHES TO •pend)
+assume that no fromes should bt skipped
+(ASK ?a-movie PROJECT STARTING AT FRAME ?begin EVERY iso-nany)
+; show until tie end of the BEGIN 'hauling every SO-MANY frames
+'(ASK ?a-novie PROJECT SHOVING EVERY Tso-many)
+starts tke beginning etid goes to the end every SO-MANY
+(ASK ?a-novie PROJECT F RAHE ?nutnber)
+; just show that one frame
+a z;vAoue default 99999
+pfs to se
+psat 7 se 7
+pse
+Movies have speed which indicates how many frames per second should be displayed
+Unfortunately the computer seldom can show more than small number per second. The speed
+Pago - 4B
+===== p049
+Ceclä
+may be less than one if you want very slow motion, the machine can not display frames as rast
+as indicated (for example if the Speed is the default Of then it will just show them •as fast as
+the it can" -
+a variab& whose default is (clearscreen) and abbreviated as n fa
+Another variable associated with movies 15 cawed the •new-frame-actione€ This provides
+instructions as to how to make thc transition between frames. The default iS (CLEARSCREEN>
+which Just clears everything off the screen. The value of this atotn is evaluaved so if it is NIL then
+nothing will happen and yoo will see all the superimposed on thc screen, One usefU1 value
+is "erase-old" which redraws the frame with the eraserdown. Sometimes this is faster.
+(ASK ta-novie SHART COMPILE
+SC %
+This message will create a file of Lisp code that can then be compiled. The resulting movie
+projects the Same as before but an run faster and be saved. TO run the It)0Vie. load it into your
+Director and call the function "PROJECTED-COMPILED-MOVIE" (abbreviated PCM). If you
+call it with a it pritlt out a description of the arguments it expa:ts and their defaults. So to
+save the. move My-first-film ffilm compile it and then run it do the following:
+(ask rmy-first—film smart compile fff in
+translation of my-first-film in the ffüm your director'
+Az
+; ; Leave Direttcr
+ffiln ; ; compile the film if pu want it to run a
+direct¯h gfret tompUaticn iJ finished return to, Director
+( låad ; ; load movie into
+(pcn
+IO s" tke defaults
+(pen) ; ; to project it using Ikt defaults
+I Contemplate extending Movie so that while projecting you can have the •projector'
+pan, Ot other filmic effects, Type IAsk Movie help}' to find out about this. Also Scripts are
+planned which will save the state of' the plans, This you can save the script, run the
+movie, restore the script and then modify it.
+Pew — 49
+===== p050
+Oir•ætor GGde
+A Big E*on$o
+VIII. A Big
+Suppose we want to write spaoe war in Director, First we will want to define space ships.
+suns. and gravity One way to do this is to asscriate with each physical Object another object
+corresponding to its velocity, The velocity actors have their own position which corresponds to the
+magnitude and direction of the velocity. On every tick each Objeces position is updated by turning
+it in the direcnon or its velocity and goang forward the magnitude Of its velocity. Also the vel«ity
+itself rnay be updated in a similar manner by the thrust of the ship or by the gravitational pull of
+the suns, T hos u" of a turtleis position to represent the velocity vector is similar to the approach
+presented in tAbelson 19751 First we define physical objects that will include the space ships and
+the suns, Then we define thc gravitational field to apply the forces between the objects to their
+velocities,
+===== p051
+Oiræto- GLide
+A Big ExBrnple
+this is g test Of Director fat doing
+(include : ken :declare ; ; this is needed Only am
+(define physica I-object object
+; make ax d kind of ObJtct and jend it tke messages
+(set your nass to 10)
+; ; the default mg."
+(extend behavior when receiving (nake 7 instance) by doing
+; this me to extend normal behavior Of make
+(ask 4tse1f make , instance) ; ;
+ask velocity nake (velocity—of .tnstaoce» male a for object
+instance) return the created
+(do when receiving (update your state)
+• get a message asking to update
+(ask tself Change your position to 1 update my position
+by Odding to to the of velocity
+, (oosttton-sun (ask recali your
+(ask (velocity-of :seif) recall your position)) )
+; ask the gtüüifational field location to change my
+(ask gravitational-field
+apply gravitational forces at
+ask : self recall your posttion) to (velocity-of
+, :self)))
+(do Hi'iet'i receiving (yield pull at
+; to determine puu Ct the in units)
+(quotient Xask :5elf recall your mass) ; ;
+square (ask :selt yield distance to ,place))
+divide by the square of my distance to tie rt get force pet sttand
+'frames-per—second ; ; divide to get forte per frame
+:tleks-per-frome})) ; i divide to gti per
+Pege - 51
+===== p052
+Guide
+A Bia
+Kenneth Koh'
+(define gravitational-field something
+or appear en: the nc need to be an object
+make the geld and rend it tie messages
+(do When receiving (apply gravitational forces et 7p1ace to
+; for me to fortes af d plate to a
+(ask exert pulls ot I exert Ike of the not at the Platt
+remove—any-at-place (ask recall your masses)
+on ,veiocity at *place)) 09t tke
+(do When receiving
+(exart pulls of ( ?first-nass on ?ve10city at Ip lace)
+; ; to exert the gravitational pun at a Point of ma$$es on g velocity
+(ask . velocity nove , (ask , first-nass yield pull at ,place) in direction
+from .place to , (ask , first-nass your position) y
+touärds the nass from tke place by the Pull (acceleration) at
+(ask ; self exert pulls Of on i velocity at .pløce))
+Me rest of rhe majSC$ Ihenretoes on tit
+(do 'Ahen receiving (exert puns ot ( ) on at
+when there no do nothing
+(define velocity object) ; ; a an that ts can move in velocli' space
+(define ship physical-object to define'$hi#g
+(do when rece iving (throst forward ?amount) When ü$ked to thrust
+(ask (velocity-of , {self)
+change your heading to , (ask ;salf recall your heeding))
+; ; Set the heading of my velocity to my own heading
+(ask (velocity-or 'self) and change by
+having it go quotient of the thrust and my mass
+forward i (quotient anount (ask :self retail your mass ) n y
+(when drawing ose draw-rocket of size))
+and drawn by Draco-rocket Proctdurt applied to size
+(define sun physical-object
+; ; a is also c
+(set your angle to 10) near to a 56-agon)
+(set your nass to 100) mass Of g sutt is 100
+(when drawing use draw-poly of angle))
+am draavn using of Silt and
+Page - 52
+===== p053
+Oirætor Guido
+A Big
+Kerr'*th
+(ask object
+ij ro eve thix ability to Objects
+do when receiving (nove *amount. towards ?position)
+scr ipt
+(let ( (original-heading (ask :Se1f recall your heading)) )
+the original heading
+(ask :self change your heading to thange heading to fact towards
+. (ask yield heading to *position))
+task : self forward ,amount) ; ; go forward the amount
+(ask : Self set your heading .original—heeding)))) ; ; ristort old heading
+(ask objeet to parallel to g line btta'tttt the giue•n
+do when receiving
+(roove ?amount in direction from *begin-position to Rend-position)
+let t (original-heading (ask :self your headingh)
+(ask : self
+set your heading to . (heading-from begin-position end-posit ton))
+: self foreard *amount)
+(ask :self set your heading IO
+NOW to test out this program we make a short movie. One ship will pass by a star
+system We define this as follows
+(define enterprise 5b ip
+make a called the
+(set your state to (—1000 —400 90)) put me at an interesting $tgmng state
+{show) ; ; Jhow myself
+(plan next
+repeat (thrust forward 206) 5 times)) ; ; turn on thrusters for rhe 5 ticks
+(define sunl sun
+(set your position to (0 ; ; $tatt off 200 utdtS above the screen center
+(ask (veloci ty-of sun I) to forward 25 j ; ; Jtart Off a of 25 upwards
+(set your size to 100) give it a
+Set,
+(define
+(ask
+(set
+( set
+( set
+your mass to
+Crid g
+sunZ sun
+; ; one a smaller and
+(velocity-of surto to back 75)
+your position to (600 ZOO 'tart vay to the tight Of Sun!
+your size to 60 J
+your mass to 3000000 »
+Page -
+===== p054
+Durettor Guide
+A Big Example
+Kenneth Kahn
+lask—each > (sun I sun2 enterprise) plen next repeat (update your state) forever)
+; on fo et2Ck of the objects message (update your
+(ask sunl set your after-show-action to {shade
+(ask sunl set your erasabiiity to nil)
+(ask sunl show)
+(ask sun2 set your after-show-action to (shade
+; ; a Sun2
+(ask sun? sot your eresability to oil)
+(ask sun? show)
+> texture))
+(ask gravitational-field your masses to (sun] sun2 enterprise)); tell Ike field the objects
+Evet'"hing is ta test g IO tick tRC•üit, It tan be Figure
+(define test-movie-I movie
+(film the next IO ticks)"
+(project)) ; ; shotv the *.tt0ÜiC default speed ordo
+I'll leave 't as an exercise for you finish the space war program, Unfortunately. it will be
+the slowest spare war ever created, To speed things up very muchl we could. compile our code as
+descnbet:l in the next section,
+run
+Pegg 54
+===== p055
+Dira: tor GGoe
+— I A Teet Of Pro.gm
+Kæv»eth
+Figure
+A Test of the Space Program
+Pogo 55
+===== p056
+Guide
+KBr•rwth
+X. Compiling
+There are some Very fancy macros for compiling Director code into efficient Lisp so that it
+run at a more reasonable speed, T here are three major optifiiiiations., one iS to Compile the
+patterns given in "do when receiving* messages and database inquiries. For example, the pattern
+(BELIEVED: (COLOR-OF
+becomes something like thc follow.ng
+; this ij the test part of
+(LAMBDA (OBJECT)
+(ANO OOJECT NIL
+(CAR OBJECT)
+(CADR OBJECT)
+if a second
+oasiEcT) first element of the second Is 'color-of
+CCOAOR OBJECT)
+; ; there is a second element of second element
+(CODAOR 08JECT) i' a third element Of the second element
+f NULL (COR (CODADR OBOECT))) ; ; and there i' itbföUrth element
+(NULL (COOR
+; and third element at
+"is part that find. the the Pattern mote but„r)
+(LAMBDA (OBJECT) OBJECT)) (CAOAOR OBJECT)))
+; ; list Of the color and the thing
+This cornpiÅtign or patterns happens throughout the system. The clause patterns and the
+data base inquities are compiled. The clause pattern5 are also compiled into nested CONDs so
+that redundant tests are avoided. If are curious about how this works create a simple actor
+and then ask it to save (see descripttm"l of "save *file-name" earlier) and it will the Lisp
+optimized version of itself. (Note that this does not make the actor become that more efficient. To
+do that you should type (eval (ask sue save»,)
+A more important optimization is the comp"ation of message transmissions, The typical
+message will be tried by Everal different actors as the message gets passed along to each actor's
+parent. Also the predefined actors such as Something and Object have very many patterns to tty
+out on the nmessage. TO 5k•p all Ihis computation macro Tor transmission (Ask) figures what
+action Will be taken by the transmission and substitutes that. action for the transmission- For
+Peae - SS
+===== p057
+Oirætor CLide
+example, the transmission
+my-first-film project frames 3 to
+iS replaced by
+(LET :SELF 'Mt-FIRST-f1LX)
+( tHtSSAGE '(PROJECT FRAMES To
+(I(PROJECT FRAHES To
+where the Lisp functionl (PROJECT FRAMES ?BEGÄN TO corresponds to the action part
+Ot Movws clause whose pattern is "(project frames ?begin iO Pend)". This optimization has its price
+in terms or flexibility. My-first-film is told a new way to project this will have no affect upon
+the compiled eode which contained the above transmission. In practice this is not grious since
+changes to the way that Movie itself handles this kind of "project frames- rnessage will affect
+Compiled code This scherne works fine even when the message and target contain commas
+indicating variables.
+What has been described so far, is the default action for compilation when no other advice is
+available. It is possible to give advice to how any particular message Shc»ld be compile
+(ASK *anyone COMPILE MESSAGE AS IN (ASK narget-form %nessaooh)
+The compiler uses this message to compile all transmissions. The target-form and the
+message-form are from the actual transmission. The •message"' is an example of the
+•message-form'. This message is sent to the target when incrementally (as described
+below). Otherwise the actor in which the transmissiCüt iS embedded (Or Something if there is
+none) is sent this rnessage. Thc following is a simple example Of this ability to give the compiler
+ad vice:
+(ask (macros-of something) do when receiving
+; ; a Parallel Parent-offspring structure kept beginning the atom macros-of
+(compile message (recall your parent) as in (ask 7tarpet-form X))
+aparent-0f '(actor-of i target—forni))
+using this advice the transmission
+Pege- 57
+===== p058
+Oirætoe Guide
+(ask . sorne—aetor recall your parent)
+will cornpile IO
+(PARENT-OF (ACTOR-OF SOME-ACTOR))
+Kerneth
+There are a few macros for defining receivers for an actor. Something and Object
+use them Often $0 that messages that they receive are compiled efficientlyr A corresponding nornmal
+receive is also creared So that while running interpretively there IS no overhead. For more details
+see me- The code prmduced in this manner js very close to the Lisp one might have written. For
+example the transmission
+( ask someth ing ask each of your offspring to print nemory)
+; iJ into
+(*APCAR
+(FUNCTION (LAH80A (ACTOR)
+(FANCY-PRINT
+(GET-ACTOR ACTOR) (ACTOR-AUTOLOAD ACTOR
+(RECALL-VARIABLE 'SOHETHING "OFFSPRING))
+(ASX ?anyone COMPILE MESSAGE *message)
+This provides an easy Way to see how a message would be oompibed, For example,
+(ask sally conoile message change your color to blue)
+will return
+(CHANGE-VALUE *SALLY 'COLOR *BLUE)
+There are two ways in which you can use the compiler. One is incrementally and all you
+need do iS to type (COHPILER-SVITCH T) and it is turned en, From then on all transmissions will
+be replaced by their expanded form and their Old form prefaced by the atom - Expansion:•.
+(COMPILER—SHI TCH NIL) will not only prevent new forms from being made but will clean up Old
+expansions,
+TO compile your Director code into machine language you need to include the Director
+Pege - 5B
+===== p059
+Oira:tor GOdH
+Convling
+Korn
+declaration file into your At the beginning file you Should have
+(INCLUOE
+Use the COM PLR when trying this. The •c' switch to the compåbet has been added and means to
+•cleverly* compile the transmissions. If you create any actors without using DEFINE then to get
+them compiled you should have the form "(COMPILE-ACTORS)' at the Of your file.
+===== p060
+Guide
+XL
+Odda and Ende
+Odds and Ends
+Debugging
+Kerv»lh Rehn
+For the most part debugging Director is like Lisp, The •trace• message described under the
+Something section is helpfiJL There are three kinds of break potnt5, Lisp ones.
+"shouldnt-happen" ones which indicate a system bug or a 'no-soch•actor• or *bad-message"
+break. These last two are often easy to recover from. The -no-such-actor' break can be returned
+from as follows:
+( ask soe recall your parent}
+;Varntng from ASK that SUE was asked (RECALL YOUR PARENT) Is not an actor
+;BKPT KO-SUCH-ACTOR
+a good to get kelp
+( ask something makg sue)
+(return •retry)
+SOMETHING
+If had meant *sally"' not then I could simply have replied (RETURN • the
+"bad-message" break point can be returned (rom. If you fix it so that the message is receivable
+then just return •retry. Jf the message was Wrong just return the right message When you get an
+error try typing it might be helpful.
+Complete Description Of Patterns
+A pattern can be any list structure. If an atom in the pattern begins with a then
+anything can be in the corresponding position in the rncssage in addition, the Lisp Variable
+whose name follows rhe question mark becomes bound to the Corresponding expression in the
+message. The character is similar but Will match the rest of the corresponding list structure,
+and so should be used ooly at the end of a list (which can be a sub-list Of Course). An expression
+surrounded by curly brackets {l is also treated 5pecially. It it begins with the word 'OR* then if
+any of the following expressions match the corresponding element in the message then the match
+Page -
+===== p061
+===== p062
+Oiretor Gi-ido
+Oeæriptim of Pätte-ne
+Kernoth Kat'"
+continues, If the word is "AND", then all the following expressions must match and all the
+bindings occur, Any other expression is evaluated and if it returns NIL the match fails, Such
+expressions have an a00m beginning with a in it which becomes bound and then evaluated,
+For example, the pattern "{greaterp match any number greater than 33 and n will be
+bound IO that number, An error will result if the corresponding element not a number. however.
+so to be safe you should write the pattern as "{and {numberp 7} {greaterp
+Global
+There are very few global variables, and even fewer worth knowing about. A few useful
+ones follow.
+•SELF ; ; this is bound the teeeiutd iht
+the megagr k63 passed to an ancestor to handle
+tke monge
+•TVRTLE-€XLE-RA*E
+this is to the normal tutti' and reset if far example
+{PRINT-LOAD-HESSAGES if then nc typed a loaded
+:HESSAGE-NOT-UNOERSIOOO
+its ;VOlUt iS o of target and message ond it jhouEd
+; ; handle; messages that art understood. The default value puts In a break-point
+function of the rargtf and meusagt ealled when terget ij not defined
+7 This d very handy bound. to sane go
+try it whenever pu need help te print
+pogo 61
+===== p063
+Oirætor Guido
+Uoeful Liep Functiono erÉ Mæroe
+Useful Lisp Functions and Macros
+TO make Ijre a little easier there is the *define' macro for defining new actors. For example
+the definjtjon Of POIF
+(DEFINE POLY
+YOUR ANGLE 10 60)
+(KHEN DRAVING MAW-POLY (SIZE
+You type the name. it; parent and then a list Of messages to be to thi5 newly created actor.
+There iS a Variant of define ailed "Define-or-add-to-actor" that differs only in that if the actor
+already exists it adds to while "Defjne' will dobber the oner
+The Lisp predicate "Exists?' of an actor returns NTL if the actor not exist. *Actor-of"
+returns the internal representation of an actor if you are curious, There are also shght variants Of
+the "ask" macro. They differ primarily in either how errors are handled or code is
+compiled.
+They are
+ASK-IF-EXISTS ask except returns NIL if rawer
+ASK-IF-UNOERSTOOD
+ask but returns NIL not undergrt»d
+ASK-IF-CAN
+, N IL either! Octor not defined or message nor undetstcod
+UNCOHPJLEO-ASK
+; ; titt be compiled
+ASK-ALL ask au matches tie target
+eg Cask-all print to get 611 tke tcmBltrJ to print
+kc$ targets, tåt ont to be used for compilation
+for example, object ibody
+You can define your own abbreviations by using *define-abbreviation • which itself is
+abbreviated *dat If you are often asking Sally lots af things then to abbreviate •ask sally- Just
+enter
+( Sal ask sally)
+$0! Should be abbreviation for csk
+(&sal &Dtn) ; Test it out, this iS Sane as print memory)
+Pege - 62
+===== p064
+Oirætar Guido
+of Why ie the Way it ig
+Kav»oth Kam
+Discussion of Why Director is the Way it is
+Director iS the vay it is mostly because I am a fan of object•orienoed pr%ramrning, For
+graphics its seems the most natural way of thinking about what happens on a display screen, For
+knowledge-based programming the association of a database with each actor and the inheritance
+mechanism are very handy, More importantly, the ability to arbitrarily mix data and procedure
+(and different forms of each) is great convenience for representing complex knowledge. For
+knowledge-based programming the spectrum of flexibility is nicely spanned by the variables. the
+database, the variable demons, the database demons. and the message receiving potentially
+usable by the same actor. feature lead naturally to very pr%rams with all the
+advantages that that brings.
+The graphics in Director is very strongly influenced by turtles, Director's objects are
+generalized turtles that can change appearance and remember things in addition to the usual turtle
+actions, The pseudo-parallelism based upon ticks is in Director to ease the task of cc»rdsnating the
+actions of several different objects •at onee•, For more about ticks see [Kahn 1978) and among
+many [Papert 1971a1 [Papert 1971b). (Goldstein 19751 IGoldstein 1976], and tKahn 1977b) are good
+sources for learning more about turtles
+One design decision that may strike rtuny as peculiar is the verbose style of programming in
+Director. The advantages are many. Programs need,few oomrncnts since the CIAe is itself close to
+English, Debugging is aided by the long, typically •self-explanatory, rnessages that are traced or
+seen at error break points While someone unfamiliar With Director not write any code,
+compared to most languages there a good such a person could read the code The
+obvious objection to such long messages that it necessitates tm much typing is just plain false.
+The abbrevtation feature in Director cuts down drastically the amount ot typing needed while
+retaining all the advantages since the abbreviation is at read time All of the
+Pogo -
+===== p065
+Guide
+of LM'V iO it iO
+Kem
+abbreviations are also available for use by Emacs's abbreviation This has the
+features ot expanding as Space Or parenthesis is typed and that it requires no character
+prefix, (This iS why all the abbreviations that would be an English word have an -x' at the end,)
+Another common objection to such English-looking Syntax for programs iS that users get confused
+and expect paraphrases that are valid in English to be va•lid In the computer language This dæs
+not really apply to Director since the user learns about pattern matching Very early On and that is
+the only mechanism for "parsing',
+mrector was built upon MacLisp SO that I gould fall back upon Lisp for mernory
+management, a garbage collector. debuggers, readers, printers, an evaluator, and a compiler (to
+machine code). The running of Lisp at low levels of Director rnade it feasible to put in many
+costly features in the basic transmissiort rnechanism of' Director. The overhead Of a
+transmission is reasonable for events Of the Size typically dealt with by Director. A message-passing
+definition OT factorial in Director, however, would be exceedingly slow (though it wcn,.lld compile
+pretty well), This inefficiency need be the ca4e witb message-passing languages witness
+Smalltalk and Act l, Ideally Director should have been built upcut such a base to make things
+more consistent everything could then be an actor.
+Discussion of Why One Might Want to Use Director
+both fun and good for writing programs (i.e. complex movies or large Al
+programs).
+is edii@r by Riel'i•rd
+•nd others. Thc pack*" in developed by Euge« C Ciee•relli.
+Page - 84
+===== p066
+GLido
+Getting Started
+Getting gturted
+Kern
+1
+Couldn't be easier (well almost), You type:
+: OIRECT
+After you see the message "Welcome to Director • you can type, for example,
+(DEFINE STAR (SET YOUR ANGLE To 144) (SHOV))
+and you should see a Star appear on your TV. Type for a little bit Of help. If want to use
+only part of Director or are running it in color (in which Case you should type (run-color) before
+doing anything on the screen} then type
+XEN;DIRECT
+and as you need things the appropriate files will be loaded. Have fun and report any problerns to
+KEN*AI,
+Acknow
+I Wish to thank Carl Hewitt and Henry Lieberrnan far the help and support they have
+provided. Hal Abelson and Bill Kornfeld provided many important suggestions as to the form
+and COtitent of this guide. Jerry Barber, Director's first user, provided me with suggestionsp
+discovered bugs and noticed missing features. Ira Goldstein provided many ideas when Director
+was first being developed, I Wish could acknowledge SmallTa1k as a direct source of ideas, but
+unfortunately I was ignorant: of its details and rediscovered many of their ideas on my own. The
+Learning Research Group at Xerox Parc pioneered in the development of
+programming and graphics for which I am very indebted.
+thi* if on TV are pianoing Io run Director in color.
+===== p067
+Director Guide
+tAbe1son 1975)
+References
+X References
+Biblicraphx
+Kenneth Kahn
+Abelson* H.. DuSessa Rudolph L.
+*Velocity Space and thc Geometry of Planetary Orbitz:
+American journal of Physics, July [975
+(Goldberg
+Cold berg, A.
+"Smalltalk and Kids •r Cormnetltaties•
+Learmog Research Group., Xerox palo Alto Research Center. 1974 Dram
+(Goldberg 19761
+Goldberg, Kay A editors
+Smalltalk-72 Instruction Manual'
+The •Learning Research Group, Xerox Palo Alto Research Center.. March
+(Goldstein 1975]
+Goldstein J. Lieberman H.. BochnerH.v Miller M,
+of LOGO in LISP*
+MIT-AJ Memo 307. March 1975
+(Coldsteii•i 1976aJ
+Codlstejn. J Abelson Bamberger
+"LOGO progress Report 19734975*
+MIT-A1 Memo March
+(Halas
+ed. Halas. J.
+Computer Aliimation
+Hastings House, New York, 1974
+IHewitt
+Hewitt C, Smith B
+"Towards a Programming Apprentice'
+IEEE Transactions cÜ" Software Engeneering SE-l. March 1975
+Pege -
+===== p068
+Guide
+Referortoe
+(Kahn 1976]
+Kahn, K.
+"An Actor-Based Computer Anlrnation Language", Prcx;eedings of the SJGGRAPH/ACM
+Workshop on User-Orlented Design ot interactive Graphics Systems. Oct±er
+ed, Treo. S. pp. 37-43
+Revision ot;
+Rahm K
+"An Actor-Based Computer Animation Language"'
+LOGO Working Paper AJ Working Paper 120m MIT, February 1976
+[Kahn
+Kahn- "Three Interactions between AI and Education",
+Machine Intelligence Knowledge.
+eds. Elcock E. and Michie, D. Ellis Ltd. amd John Wylie '971
+IKahn 1977b)
+Kahn. Lieberman H.
+"Computer Animation; Snow White's Drearn Machine'
+Tech nology Review, Volume 80, Number 1971. pp. 34-46
+tKahn 1978)
+Kahrti Hewitt C.
+"Dynamic Graphics using Quasi Parallelism'
+MIT A1 Memo 480, June 1978
+[Kay 1977)
+Kay, A. Goldberg A.
+"Personal Dynamic Media*
+Computer, IEEE. March 1977, v. IO. n. 3, pp 31•41
+Moon. D.
+"Maci-isp Reference Manual'
+Project Mac MIT. April 1974
+(Negroponte 1977]
+Negroponte. N,
+"The Return of the Sunday Painter or The Computer in the Visual Arts •
+Future Imnag Con"'puters and Informat90n Processing
+Dertouzos, M. and Moses J, ed,
+in press 1978
+67
+KBt•n
+===== p069
+Gil-ide
+(Newma n 1973)
+Newman W.
+ReferetEae
+Princ i ples Comput@Gpphbcs
+McGraw-Hill, New York.
+[Papert 1971a)
+Papert S,
+"Teaehing Children Thinking"
+MIT-AI Memo 247, October 1971
+[Papert 1971b]
+papert S.
+"Teaching Children To Be Mathematicians •vs. Teaching About Mathematics-
+MIT-A1 Memo 249
+[Reynolds 19781
+Reynolds C,
+"Computer Animation in the World of Actors and Scripts*
+Masters Thesis.. MIT Department of Arthecture. May 1978
+[Smith 1975)
+Smith and Hewitt C,
+"A Plasma Primer"
+MIT-AI Working Paper 92,
+(Tilson 1976)
+Tilson, M-
+"Ed itine Computer Animated Film"
+University of Toronto, Technical Report CSRG-66, January 1978
+— 68
+===== p070
+(HAKE INVERNEO OFFSPRING)
+UNINTERNEO OFFSPRING)
+(IF NEH
+(HAKE copy
+?name)
+(00 WHEN RECEIVING ?oattern *action)
+(EXTENO RECEIVING ?pattcrn BY DOING
+( PRINT *option)
+(SAVE
+(HELP
+RECALL FOR
+(REHOvE CLAUSE FOR Y-sample-nessage)
+( TRACE ?pattern
+(UNTRACE
+(for CHANGE SET} YOUR TO ?new-value)
+(RECALL YOUR *variable)
+(RECALL EACH OF YOUR ?variable-pattern)
+( INCREMENT YOUR ?vartable 7anount)
+(ADO tem JO YOUR LIST OF 71 ist-name)
+(ADO TO LIST OF n REGARDLESS)
+(REMOVE item FROM YOUR
+Oirætor
+Message Pattern
+(HAKE ?narne
+Pag. -
+xnx.
+of Peltgrne
+Index Of Patterns
+Patterns tigt Something Handles
+Korn
+Abbreviation Page
+8
+mio
+muo
+inn
+obwr 7 bd
+ps OR p. OR pvOR pdb
+sy to t OR cy to
+reoy
+ty by
+add
+add 7 ? rog
+remove
+8
+8
+9
+9
+9
+10
+10
+12
+12
+12
+12
+13
+13
+14
+16
+16
+17
+17
+===== p071
+Index Of Pattrne
+(LIST ALL YOUR VARIABLE
+(FORGET YOIJR
+(MEHORIZE
+(RECALL ANY ITEMS HATCH
+(RECALL AN ITEh HAT CHING Tpattern 'THEN Taction)
+COLLECT ITEMS hEhORJZEO HATCHING
+(FORGET ITEHS HATCHINC ?p.ttern)
+(PLAN NEXT
+(PLAN AFTER ?ntAgr TICKS *action)
+( PLAN AFTER ?number SECONDS
+RECEIVING To
+(PLAN AFTER RECEIVING TO AWAYS message-for.)
+(REPEAT ?nessage tnumber T JHES)
+fy ?
+mem ?
+7
+raim 7 then
+. cinn 7'
+fim ?
+pn %
+seconds %
+parx to ?
+par* ta
+(REPEAT ?messago TIMES EVERY Tso-many TICKS)
+FOREVER)
+(TICK)
+(ASK YOUR ?variable TO %nessage)
+(ASK EACH Of YOUR ?variable TO
+(ASK ?another IO %nessage)
+. repeat 7 te 7 ticks
+aeoy to X
+(00 TRE FOLLOWING: "MESSAGES)
+dtf X
+(KEEP OOING ?predlcate
+kdu
+Patterns thgt Object Handles
+(YHEN ORAVÄNG USE tdraw-procedure Of
+'t of %
+(f and ?comnand {or FORMARO RT RIGHT LT LEFT BK BACK"
+Page - 70
+K*rt
+17
+19
+20
+20
+21
+23
+23
+24
+24
+24
+25
+25
+25
+26
+26
+27
+28
+30
+32
+32
+32
+===== p072
+(SET TURTLE ( ?new-x toey-heading))
+(SETHEAOING
+(DEI-XY
+(OELX
+*delta-y)
+CHANGE YOUR STATE TO 'new-state)
+(CHANGE YOUR POSITION TO Tnew-position)
+(CHANGE YOUR HEADING TO
+(CHANGE YOUR XCOR TO ?new-xeor)
+(CHANGE YOUR YCOR TO ?new-ycor)
+(RECALL YOUR STATO
+(RECALL YOUR POSITION)
+(RECALL YOUR HEADING)
+(RECALL YOUR xcoR)
+(RECALL YOUR YCOR)
+(GRADUALLY OELX
+(GRADUALLY
+(GRADUALLY OELXY ?delta-x
+(GRADUALLY SETTURVLE 'hew-state)
+Page - 71
+Oiretor Cuide
+in±x Of Petternø
+(GRADUALLY ?Command
+grad 7
+( RIGHT-REVOLVE 7degrees)
+(LEFT-REVOLVE ?degrees)
+(GRADUALLY RIGHT—REVOLVE ?deg-ees)
+(GRADUALLY LEFT-REVOLVE
+(SET XY 'new-x
+(SET*
+(SETM ?nes.ey)
+......ryx
+sett 7)
+cyst 7
+cypt
+Cyht
+CY*t
+r ocyyt ?
+. rys
+MYY
+gdel*
+.gdely
+gdeixy 7
+gsett ?
+Ketvt
+33
+33
+33
+33
+33
+34
+34
+34
+34
+34
+34
+34
+34
+34
+3b
+35
+3b
+35
+35
+35
+35
+35
+36
+===== p073
+Guide
+(GRADUALLY SETHEAOTNG ?newheeding)
+( GRACUALLY scrx
+(GRADUALLY SEXY *new-y)
+(GRAOUALLY SETXY inew-y)
+(GROW
+(SHRINK
+(GRADUALLY GROW
+(GRADUALLY SHRIV.
+of Pot erns
+Kon-nth Kem
+(GRADUALLY CHANGE YOUR TO mew-value)
+GRADUALLY INCREFÉNT tvariabie BY
+(CHANGE YOUR COLORS TO ?colors IN TICKS)
+( PREPARE TO NIX ?other-colors)
+(HAKE ?naoe INTERPOLATION TO Taoother—object)
+(HAKE INTERPOLATION TO
+(RIJN *Action)
+Petternx that Screen Hendlts
+(SILENT RUNNING}
+(NORhAL RUNNING)
+("IPE)
+(CLEARSCREEN)
+cyct ?
+gsh
+gsetx 7
+gsety ?
+gsgtxy ?
+gcy. to
+giy ? by
+sr
+36
+36
+36
+36
+36
+36
+37
+39
+40
+41
+44.
+44
+(RON FOR nength TICKS)
+Patterns that Universe Handles
+Patterns that Movie Handles
+(FILH THE NEXT TICKS)
+SECRETLY NEXT ner,9th Ticxs)
+- 72
+rstn t ticks
+===== p074
+Oirætor Güdä
+(PROJECT)
+index of PottEne
+Kerneth Korn
+(PROJECT FRANES ?begin to EVERY Tso-many)
+FRAhES tbegin ro tend)
+( PROJECT AT FRANE SHOWING EVERY
+(PROJECT SKOWJNG
+( PROJECT FRAME
+(SFART
+Pogo - 7ä
+.pfs 't to so 7
+psat 7 se
+ose 7
+48
+48
+48
+48
+48
+===== p075
+OiræW CLidB
+Variable Pattern
+xrv.
+Index
+of
+of
+Special Varizbles
+Kotm
+Abbreviation page
+18
+Treated Spetlüåly Something
+( ?var i ab 'e-nane ACTIONS •VF-RECALLIWG)
+( ACTIONS—iF-CHANGING)
+( ?rirst-elenent IF-RECALLING-ITEHSj
+ACTIONS-IF-MEMORIZING)
+n arne
+parent
+offspr i ng
+sib] ings
+de scandants
+Ch i idle Ss—descendants
+universe
+th ings- to-do—next
+Variables Treated Specially by Ob>ct
+otter—hide •act ion
+erasabt
+center -offset
+Variables Treated Screen
+he ight
+width
+visible-objects
+aim*)
+sib
+des
+uni
+ttdn
+-asa
+aha
+eras
+19
+21
+22
+28
+29
+29
+29
+29
+29
+29
+29
+38
+38
+38
+39
+45
+===== p076
+Oirætor
+actors—to-run-next
+frames -per—second
+t cks-per•frame
+speed
+ln±x of Special Veriobleø
+Variables Treated Specialty b' Univete
+Variables Treated by Movie
+•ten
+fps
+tpf
+Kahn
+46
+47
+48
+49

@@ -1,0 +1,257 @@
+.require "ken;pubset >" source
+.every heading([fb]Director Users Guide,,[fb]Kenneth Kahn[fr])
+.every footing([ft]DRAFT[fr],[fb]{page}[fr],{date} {time})
+.begin double space indent 5,0,0
+.subsec The General Idea
+	Director is a language that is like Logo but has some new things added on
+that Logo doesn't have. 
+When you program in Director all the Logo commands are still available and 
+in addition
+Director provides you with a very powerful command called ASK.  
+ASK expects two inputs,
+the first one is the name an actor and the second is a message for that actor.  Actors
+are like procedures, but actors can do
+one very important thing that procedures
+can't do and that is 
+to remember things when asked to by a message.  
+When the system is started there
+are about ten actors already defined and you can create many more.
+	For example, suppose we have an actor named "Fred" then if we say:
+.break
+[fl]ASK FRED (REMEMBER SIZE 100)[fr]
+.break
+Then we are sending "Fred" the message "[fl](REMEMBER SIZE 100)[fr]".  "Fred" might
+or might not know what to do about that.  
+It all depends on what we told him earlier that
+he should do if he receives a message like this one.
+.subsec Something
+	There is an actor whose name is "Something".  This guy is very important
+because he knows how to handle lots of different kinds of messages.  Also since he
+knows so much many other actors when they don't understand a message will
+ask "Something" for help.  Here is a list of the messages that "Something" will
+accept:
+.begin narrow 5,5 single space preface 0 indent 0
+.skip
+1) If it gets a message that is the word "make" followed by one more word, then it
+creates a new actor whose name is the second word in the message.  The newly
+created actor will not know anything, except to pass any messages to "Something"
+for help in interpreting them.  For example, [fl]ASK SOMETHING (MAKE SAM)[fr] will
+create a new actor named "Sam".
+.skip
+2) If "Something" or an actor that "Something" made (often called the offspring of
+"Something") receives
+a message with the word "remember" followed by any number of words, then
+"Something" will make sure that whoever originally got this message will remember
+the words that followed the word "remember".  For example, if you typed
+[fl]ASK SAM (REMEMBER COLOR SKY BLUE)[fr] then if later you ask "Sam" some questions
+numbers 3 and 4 below he will be able to answer.
+.skip
+3) If "something" or its offspring gets
+a message whose first word is "what" which is followed by
+any number of words, then "Something" will help the actor who got this message to
+see if he was told previously to remember similar to what it is being asked now.
+For example, suppose now you type, [fl]ASK SAM (WHAT COLOR SKY BLUE)[fr] and since
+you told him that earlier he will respond true.
+The words that follow the first word can be question marks so that the question doesn't
+have to be exactly like what you asked him to remember earlier.  For example, you can
+type [fl]ASK SAM (WHAT COLOR SKY ?)[fr] and "Sam" (with some help from "Something")
+will answer "BLUE".  
+.skip
+4) If you want to ask a question that has more than one answer, like "What are all
+the things that you know about that are blue?", you can send a message that starts
+with the two words "find all" followed by the pattern or question asked.  For example,
+if besides having told "Sam" that the color of the sky was blue suppose you had
+also said, [fl]ASK SAM (REMEMBER COLOR SEA BLUE)[fr] then when you typed,
+[fl]ASK SAM (FIND ALL COLOR ? BLUE)[fr] 
+he will answer with the list [fl](SKY SEA)[fr].
+.skip
+5) Suppose you want "Sam" to forget something you told him earlier, then you can
+send him a message whose first word is "forget" and with the help of "Something"
+he will no longer know the words that follow (if he had been told them earlier 
+of course).  So, if you typed [fl]ASK SAM (FORGET COLOR SKY BLUE)[fr] then if you
+asked him the question above about what blue things he had been told about he would
+answer with only [fl](SEA)[fr] since he forgot about the sky.
+.skip
+6) Now, if you change your mind, and you decide that the sea is really green
+not blue then of course you could ask "Sam" to forget that the sea is blue and then
+ask him to remember that it is green.  An easier way is to send him a message whose
+first word is "replace".  To change the color of the sea from anything to green
+you can type, [fl]ASK SAM (REPLACE COLOR SEA GREEN)[fr].
+.skip
+7) The above commands are fine for providing any offspring of "Something" with a memory.
+In the interests of efficiency, however, there are a few more memory commands.  These
+allow any offspring of "Something" to have its own variables.  If you type,
+[fl]ASK SAM (KNOW THAT YOUR SPEED IS 50)[fr] then there will be a variable called
+"speed" that is 50 and only "Sam" knows that.  The format of the message is the words
+"know that your" followed by the name of the variable, followed by "is" followed by
+the value.
+.skip
+8) To get the value of a variable of an offspring of "Something" you can type
+[fl]ASK SAM (RECALL YOUR SPEED)[fr] and in this case out will come "50".  The
+format for the message is the words "recall your" followed by the name of the variable.
+You can use the message like number 2 above and type [fl]ASK SAM (WHAT SPEED ?)[fr]
+however this will take longer since it will check first in the regular memory.
+To forget a variable use the message described in number 5 above.
+.skip
+9) You can also get an actor that is an offspring of "Something" to print by typing
+the word "Print" followed by either the word "script", "memory" or "variables". "Script"
+will have him print out his definition, "memory" those things you told him to remember
+or know,
+and "variables" prints out only those that you told him to "Know" as in number 7 above.
+If you type [fl]ASK SAM (PRINT)[fr], without a second word,
+then the script, memory and variables will all be printed.
+.end
+.subsec Object
+	There is another very important actor and it is called "Object".  Now "Object"
+is an offspring of "Something" so if it doesn't know what to do about a message it will
+ask "Something" for help.  "Object" can accept all the messages that "Something" 
+accepts 
+plus many more.  The kinds of commands that "Object" takes are like those of a turtle.
+You can tell an offspring of "Object" to go forward, turn right or left and many other
+things.  The messages that "Object" accepts are:
+.begin narrow 5,5 single space preface 0 indent 0
+.skip
+1) The words "draw using" followed by the name of a turtle procedure, then the word "of"
+and then any number of words that are the inputs to the procedure.  Suppose you had a
+turtle procedure called "Draw.poly" that had two inputs called ":size" and ":angle" then
+to create an actor named "Poly" that used "Draw.poly" to show itself you just type,
+[fl]ASK OBJECT (MAKE POLY)[fr] and then [fl]
+ASK POLY (DRAW USING DRAW.POLY OF SIZE ANGLE).[fr]
+.skip
+2) The word "show" (in parenthesis as always) then the offspring of "Object" will show
+itself using whatever its size and angle are.  Suppose you type the following:
+.break
+[fl]ASK POLY (MAKE ANA)
+.break
+ASK ANA (KNOW THAT YOUR SIZE IS 50)
+.break
+ASK ANA (KNOW THAT YOUR ANGLE IS 90)
+.break
+ASK ANA (SHOW)[fr]
+.break
+then an offspring of "Poly" called "Ana" will be created given a size and angle and 
+told to show, so that a square 50 on a side will be shown on the screen.
+.skip
+3) You can also type the word "hide" to an offspring of "Object" and it will disappear.
+.skip
+4) The word "appear" followed by any of the following words: fd, forward, rt, right,
+lt, left, bk and back, then followed by a number makes the offspring
+of "Object" behave like a turtle, in other words, it will hide, then either move
+or turn and then show himself. So if you typed [fl]ASK ANA (APPEAR FORWARD 200)[fr]
+then the square will disappear and appear again on the screen forward 200 steps.
+.skip
+5) If you ask a offspring of "Object" the words 
+"know that your" and then a name of a variable,
+then the word "is", and then a value for that variable, the same thing that happened
+if you asked "Something" the same thing as in number 7 of the previous section will happen, however, in addition, if the variable name is the name of an input to the drawing
+procedure of the actor then its appearance will change.  For example, if you typed 
+[fl]ASK ANA (KNOW THAT YOUR ANGLE IS 120)[fr] then the square will disappear and a
+triangle will appear in its place
+.skip
+6) To change the size of "Ana" you could type
+[fl]ASK ANA (KNOW THAT YOUR SIZE IS 100[fr] and "Ana" will become 100 steps on each
+side, instead of the 50 it was from before.  To make it easier you can type the
+word "grow" or "shrink" followed by a number and the offspring of "Object" that gets
+the message will grow or shrink the amount.  So another way to make "Ana" become
+100 steps big is to type [fl]ASK ANA (GROW 50)[fr]
+What I just said is not completely true.  If you asked "Ana" for her growth speed
+by typing [fl]ASK ANA (RECALL YOUR GROWTH.SPEED)[fr] then she would have answered with
+"100" because while she didn't know her growth speed and neither did her parent "Poly"
+but her parent's parent "Object" knew to answer 100 to anybody that
+doesn't know their growth speed.  What the growth speed means is the most that an actor
+can grow at one time.  If we had asked "Ana" to grow 200 then she would have done as 
+much as she could, or grown 100 and then with the other 100 just plan to do it at the
+next chance.  You'll see later how this happens and how to get her to do the rest of the
+growing.  If you don't like this setup all you have to do is type [fl]ASK OBJECT (KNOW
+THAT YOUR GROWTH.SPEED IS 1000000)[fr] so that no matter how much you want an offspring
+of "Object" to grow it will be less than the most it can do at one time which is now
+one million.
+.skip
+7) There are other messages that have speeds like the one above.  You can type the
+word "forward", "fd", "back" or "bk" and then a number, this time without the word
+"appear" in front and the actor will [fi]appear[fr] forward or back the most it can
+at one time which is a variable called "speed".  So if you type the following:
+.break
+[fl]ASK POLY (KNOW THAT YOUR SPEED IS 20)
+.break
+ASK ANA (FORWARD 100)[fr]
+.break
+then "Ana" will appear forward 50 steps and plan on doing the rest or 150 later.
+.skip
+8) In the same way if you tell an offspring of "Object" the word "right", "rt", "left",
+or "lt" and then some number, it will turn at most its "rotational.speed" and plan to do
+what is left over later.
+.skip
+9) There are many variables that are special to the offspring of "Object".  When being
+changed they change
+something on the screen besides getting new values.  They are like the variables
+"size" and "angle" that affect the appearance of "Poly".  They are "here", "heading",
+"xcor" and "ycor" and there will soon be more of them.  For example, if you type
+[fl]ASK ANA (KNOW THAT YOUR HEADING IS 45)[fr] then "Ana" will be headed 45 degrees
+regardless of which way she was pointing before.  
+.skip
+10) You can also find out the values of these variables by typing [fl]ASK ANA
+(RECALL YOUR XCOR)[fr] which answer with distance that the turtle is to the left or
+right of the center of the screen.
+.end
+.subsec More about Something
+	"Something" can do more than what I told you above and many of those things
+have to do with planning to do things later rather than do them when told.  The reason
+for doing any planning at all is so that you can have more than one thing happen at a
+time.  For example, suppose you have two actors and you want them both to go forward
+together, maybe in a race.  There is a series of commands, many of which begin with
+the word "plan:", that any offspring of "Something" can accept, they are:
+.begin narrow 5,5 single space preface 0 indent 0
+.skip
+1) The words "do all planned for next tick with" followed by the name of the universe
+of actors involved.  If you didn't do anything special then that name is "Universe".
+So if you typed, [fl]ASK ANA (DO ALL PLANNED FOR NEXT WITH UNIVERSE)[fr] then "Ana"
+will see what she has planned for the next tick of her "clock".  She would notice
+that she still had to grow 100 and go forward 150 and then she would do as much
+of them as she could, which would mean that she would grow 100 but go forward only
+50 since that is her speed.
+.skip
+2) Any of the offspring of "Something" can accept a 
+message that starts with the word "plan:" and then any command and then the
+word "next".  This makes it so that at the next tick of the "clock" the command will
+get sent to the actor who got sent the entire message.  For example when we typed
+[fl]ASK ANA (FORWARD 200)[fr] that was short for the following:
+.break
+[fl]ASK ANA (APPEAR FORWARD 50)
+.break
+ASK ANA (PLAN: FORWARD 150 NEXT).
+[fr]
+.skip
+3) If you don't want an actor to do something next instead you can type the word
+"plan:", the command, and then the word "after" then some number and then the 
+word "ticks". This make it happen that many ticks later.
+.end
+.subsec Movies
+	As you'll notice when you use the system, it runs too slowly to see things
+move like they should.  One kind of actor that helps fix this problem is called
+"Movie".  Now "Movie" will send out messages to all actors with things to do to do
+those things they have planned and it also remember what they do.  The things it
+did before can be shown at a much faster, though still not always fast enough, rate.
+The messages that "Movie" like are:
+.begin narrow 5,5 single space preface 0 indent 0
+.skip
+1) If "Movie" gets a message that is the word "make", then the name of the movie being
+made, and then a number and then the words "ticks long in" and then the name of the
+universe which you should give as "Universe".  For example, you can type [fl]ASK MOVIE
+(MAKE FANTASIA 20 TICKS LONG IN UNIVERSE)[fr] and all the things that are planned for
+the next 20 ticks of the clock will run and be recorded in the offspring of "Movie"
+called "Fantasia".
+.skip
+2) Another way of doing the same thing is to make an offspring of "Movie" and then 
+send it a message that is the words "run for", then a number, and then the words
+"ticks in universe".  If you type [fl]ASK MOVIE (MAKE FANTASIA)[fr] and then type
+[fl]ASK FANTASIA (RUN FOR 20 TICKS IN UNIVERSE)[fr] the same thing will happen as with
+number 1 above.
+.skip
+3) To see your movie just send it the message [fl](SHOW)[fr] and watch your screen.
+Soon you will be able to control the speed and run it backwards if you want.
+.end
+Good Luck!
+.end
+
+    

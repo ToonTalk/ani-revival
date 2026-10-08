@@ -1,0 +1,33 @@
+;;-*-lisp-*--
+;;this is for timing parts of director and ani to see where all the time is going
+
+(untime)
+(time-function 'ask1)
+(time-function 'ask-old1)
+(time-function 'cases)
+(time-function 'method-list-that-matches)
+(time-function 'record-method-list-and-run)
+(time-function 'run-method)
+(time-function 'select-winning-method)
+(time-function 'compiled-ask)
+(time-function 'compiled-ask-old)
+(time-function 'quick-compiled-ask)
+(time-function 'quick-compiled-ask-old)
+(time-function 'super-quick-compiled-ask)
+(time-function 'super-quick-compiled-ask-old)
+(time-function 'forward)
+(time-function 'right)
+(time-function 'left)
+(time-function 'make-actor)
+(init-timer)
+
+(defun record-timings nil
+ (let ((f (open '|time ings| 'append)))
+      (dicks-print
+       (mapcar
+	(function (lambda (timing)
+			  '(,(first timing) ,(second timing)
+					    ,(times (third timing) .000001))))
+	(get-all-times))
+       f)
+      (close f)))

@@ -1,0 +1,317 @@
+;this stuff uses the llogo tvrtle package to use fonts from lisp or llogo
+;the major drawback is that the fonts are larger than usually desired but...
+
+
+;the following set of functions are for two purposes
+;the first ones, "windowize" being the normal interface, are for reading ast versions
+;of fonts and displaying them, and taking Llogo windows. It also putprops the width and
+;height on the appropriate atoms.
+;also the a-list of windows and fonts is kept on each character's ascii value as an atom
+;eg on the atom /1 would be the windows for ^a and the font name associated with that 
+;window
+;The second set of functions are for writing to the tv screen in the desired font
+;they include:
+;	font-mark ---- marks an atom in the desired font
+;	font-princ ---- princ-s a list in the desired font
+;	font-terpri ---- moves the cursor "turtle" down the height of the current font
+; plus the *line-spacing* and also puts the cursor at the *left-margin*
+;	font-print ---- prints a list in the desired font, ie does a font-princ and 
+;font-terpri
+;	font-cs ---- moves the turtle to the *left-margin* and *top-margin*
+;all these functions affect the turtles state, the desired font is an optional
+;arguement, if omitted the last one specified is assumed
+
+
+
+(declare (setq Ibase 10.) (*lexpr font-mark font-princ font-print)
+	 (special *spacing* *line-spacing* *left-margin* *last-font-used*
+		  *top-margin* *right-margin*
+		  :xcor :ycor :penstate :eraserstate))
+
+
+;this function reads ast font descriptions displays them and takes llogo windows of them
+
+(defun windowize fexpr (filename)
+(or (status feature tvrtle)
+    (progn (defprop cs (tvrtle fasl dsk llogo) autoload)
+	   (cs) (ht) (wrap) (pu)))
+(turtlesize (cadr (tvsize)))
+       (apply 'uread filename)
+((lambda (header)
+((lambda (height baseline column-position-adjustment)
+(putprop (car filename) height 'height)
+(cs)
+       (do ((i 1 (1+ i))
+	    (char-header (read-char-heading)(read-char-heading))
+	    (eof? nil)
+	    (char-name nil)
+	    (window-name)
+	    (char-width)
+	    (raster-width)
+	    (left-kern nil))
+	   ((eq char-header 'eof) '?)	   
+	   (setq char-name (atomize (car char-header)))
+	   (setq window-name (implode (append (explodec (car filename))
+					      ((lambda (*nopoint base)
+						       (explodec (car char-header)))
+					       t 8))))
+	   (putprop char-name (cons (list (car filename) window-name)
+				    (get char-name 'fonts-windows))
+		    'fonts-windows)
+	   (setq left-kern (cadddr char-header))
+	   (setq char-width (caddr char-header))
+	   (setq raster-width (cadr char-header))
+	   (setq eof? (eq (read-and-display baseline (- (+ column-position-adjustment
+							   left-kern)))
+					    'eof))
+	   (mw window-name 0 0
+	       		(+ raster-width
+			   (abs left-kern)
+			   (abs column-position-adjustment)
+			   1)
+	       		(+ Height baseline))
+	   (hw window-name)
+	   (putprop window-name char-width 'char-width)
+	   (and eof? (return '?))))
+ (car header)
+ (cadr header)
+ (caddr header)))
+(read-heading)))
+
+
+;this turns numbers into everyday atoms
+
+
+(defun atomize (n)
+       (implode ((lambda (*nopoint base)
+			 (explodec n))  t 8)))
+
+
+;this reads a character and displays it
+; the char nil is so that ^q is set when readch-ing
+
+
+
+(defun read-and-display (baseline total-left-kern)
+       (do ((char nil (readch 'eof))
+	    (x total-left-kern)
+	    (y baseline)
+	    (^q t))
+	   ((memq char '(/ eof)) char )
+	   (cond ((eq char '*) (point x y))
+		 ((eq char '/ ))
+		 ((eq char '/
+) (setq x total-left-kern) (setq y (1- y))))
+	   (setq x (1+ x))))
+	   
+	    
+;this reads the heading of the file and returns the height, baseline and column-position
+(declare (special height base-line column-position-adjustment))
+
+(defun read-heading nil
+       (do ((char nil (readch 'eof))
+	   (info (list 'height 'base-line 'column-position-adjustment))
+	    (height nil)
+	    (base-line nil)
+	    (column-position-adjustment nil)
+	    (^q t))
+	   ((eq char 'eof) char)
+       (cond ((eq char '/
+)
+	      (cond ((null info) (return (list height base-line column-position-adjustment))))
+		    
+	      (and (eq (set (car info) (read 'eof)) 'eof)
+		   (return 'eof))	      
+	      (setq info (cdr info))))))
+
+
+(declare (special width char-width left-kern))
+	   
+;this reads the headings in front of each character and returns
+;the char-number (later to be atomized), the width, char-width and left-kern	   
+	    
+(defun read-char-heading nil
+       (do ((char nil (readch 'eof))
+	   (info (list 'width 'char-width 'left-kern))
+	    (width nil)
+	    (char-width nil)
+	    (left-kern nil)
+	    (char-name ((lambda (ibase ^q) (read 'eof)) 8. t))
+	    (^q t))
+	   ((or (eq char 'eof)
+		(eq char-name 'eof)) char)
+       (cond ((eq char '/
+)
+	      (cond ((null info) (return (list char-name width char-width left-kern))))
+		    
+	      (and (eq (set (car info) (read 'eof)) 'eof)
+		   (return 'eof))
+	      (setq info (cdr info))))))
+
+
+;font-mark will display the its first arg, with the font of its second arg 
+;if there is one otherwise the last font used
+;the position is wherever the turtle is and mark leaves the
+;turtle at the end of the text
+
+(defun font-mark n
+       ((lambda (text font penstate eraserstate)
+		(pu)
+		(do ((i (cond ((atom text)(exploden text))
+			      (t (print (list 'font-mark 'likes 'only 'atoms
+					       text 'is 'not 'one))
+				 nil))
+			(cdr i))
+		     (height (get font 'height))
+		     (char-window nil)
+		     (char nil)
+		     (left-margin (- *left-margin* (// (car (tvsize)) 2)))
+		     (right-margin (- (// (car (tvsize)) 2) *right-margin*)))
+		    ((null i) (cond (penstate (pd))
+				    (eraserstate (erd))
+				    (t (pu))))				    
+		    (setq char (car i))
+		    (cond ((= char 13.)
+			   (font-terpri))
+			  (t (setq char-window
+				   (cadr (assq font (get (atomize char)
+							 'fonts-windows))))
+			     (cond ((null char-window)
+				    (print (list (ascii char)
+						 'not 'defined 'for 'font font)))
+				   (t  (cond ((> (+ (xcor)
+						    (get char-window 'char-width))
+						 right-margin)
+					      (dely (- (+ *line-spacing* height)))
+					      (setx left-margin)))
+				       (xw char-window :xcor :ycor)
+				       (delx (+ (get char-window 'char-width)
+						*spacing*))))))))
+	(arg 1)
+	(cond ((= n 2) (setq *last-font-used* (arg 2)))
+	      (t *last-font-used*))
+	:penstate
+	:eraserstate))
+
+;this clears the screen and leave the turtle in the upper left most corner
+(defun font-cs nil
+       (cs)
+       (setxy (- *left-margin* (// (car (tvsize)) 2))
+	      (- (// (cadr (tvsize)) 2 ) *top-margin*)))
+
+;this moves the turtle down and to the left margin
+
+(defun font-terpri nil
+       (dely (- (+ *line-spacing* (get *last-font-used* 'height))))
+       (setx (- *left-margin* (// (car (tvsize)) 2))))
+
+
+
+;this font-marks each atom in the list and the necessary parens and blanks
+
+(defun font-princ n
+       ((lambda (thing font)
+		(cond ((atom thing) (font-mark thing font))
+		      (t (font-mark '/( font)
+			 (font-mark (car thing))
+			 (mapc (function (lambda (element)
+						 (font-mark '/ )
+						 (font-princ element font)))
+			       (cdr thing))
+			 (font-mark '/) font))))
+	(arg 1)
+	(cond ((= n 2) (arg 2.))
+	      (t *last-font-used*))))
+
+;this font-terpris and then font-princ
+(defun font-print n
+       (font-terpri)
+       (apply 'font-princ (listify n)))
+
+
+;these are default values for paramters, feel free to change them
+
+
+
+(setq *spacing* 0)  ;distance between character in addition to char-width
+(setq *left-margin* 20) ;left-most position of turtle
+(setq *right-margin* 20);right-most position, princ will terpri when this is about to
+;be suceeded
+(setq *top-margin* 20);the top most position
+(setq *bottom-margin* 20);the bottom most position but not used see wrap in llogo manual
+(setq *line-spacing* 0); this is the distance between lines over and above font height
+(setq *last-font-used* '(no font given to font-mark))
+
+;the following is for saving away the windows and information to be quickly
+;loaded into a lisp (or llogo?)
+
+;this writes out two files, one being the appropriate windows and the second the
+;appropriate defprops putprops and initializing so that the file (second file name is
+;always winfon) can be re-read into another lisp, and the slow windowizing process is
+;avoided
+;(windowize assumed the fonts name is the car of filename read so use that)
+;this writes two files 
+;whose first name is the same as font-name's and the second is "window" and "winfon"
+
+(defun write-font (font-name)
+       (uwrite)
+       ((lambda (^r ^w)
+		(print-defprop font-name 'height)
+		(store-props-of-each-char font-name)
+		(print '(or (status feature tvrtle)
+				(progn (defprop cs (tvrtle fasl dsk llogo) autoload)
+				       (cs)
+				       (pu)
+				       (wrap)
+				       (ht))))
+		(print '(turtlesize (cadr (tvsize))))
+		(print (list 'getwindows font-name 'window)))
+	t t)
+       (apply 'ufile (list font-name 'winfon)))
+
+;this writes out the defprops
+
+
+
+(defun print-defprop (atom indicator)
+       (print
+	(list
+	 'defprop
+	  atom (get atom indicator) indicator)))
+
+;this writes out the putprops so that they cons on what was previously on that atom
+
+(defun print-putprop-with-cons (atom value indicator)
+       (print
+	(list
+	 'putprop
+	  (list 'quote atom)
+	  (list 'cons (list 'quote value)
+		 (list 'get (list 'quote atom) (list 'quote indicator)))
+	  (list 'quote indicator))))
+
+(declare (special :windows))
+
+;by making :windows special locally savewindows will save only those in :windows
+
+
+;this writes off the properties of each char
+
+
+(defun store-props-of-each-char (font)
+       (do ((the-ascii 1. (1+ the-ascii))
+	    (char nil)
+	    (font-window)
+	    (:windows nil))
+	   ((= the-ascii 128)
+	    (apply 'savewindows (list font 'window)))
+	   (setq char (atomize the-ascii))
+	   (setq font-window (assq font (get char 'fonts-windows)))
+	   (cond (font-window
+		   (print-putprop-with-cons char font-window 'fonts-windows)
+		   (print-defprop (cadr font-window) 'char-width)
+		   (setq :windows (cons (cadr font-window) :windows))))))
+;good luck
+
+		  
+       

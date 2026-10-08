@@ -1,0 +1,80 @@
+ -*-text-*- is what is in this file
+ this is for reading in pictures produced by tv2R from your TV screen
+.
+ an example of its use follows:
+            .dv xgp
+            .fo 0 31vg (n)
+            .fo D ken1;turt1 {ai:ken1;turt1 kst} so that other machines know where it is
+            .fo E ken1;turt2 {ai:ken1;turt2 kst}
+            .so "libdoc;tv2r r2xgp"  read in this file
+            some text up here
+            .read_picture "foo pict" 500 1 indent 500 mils and use 1 xgp point per tv point
+            and some more down here
+.
+.eq define de
+.eq font_select fs
+.eq nofill nf
+.eq set_number nr
+.eq push_number nv
+.eq indent in
+.eq resume_spacing rs
+.eq font fo
+.eq source so
+.eq line_spacing ls
+.eq string_default sd
+.
+.string_default small_picture_font D R counts its fonts in hex
+.string_default medium_picture_font E
+.string_default big_picture_font F
+.fo D ken1;turt1 something like this should be in your file
+.fo E ken1;turt2
+.
+.define read_picture
+ arg 0 is the file name
+ arg 1 is the indentation in mils (defaults to 0)
+ arg 2 is the font size (1 2 or 3) (defaults to 1)
+.begin picture_environment
+.push_number font
+.push_number fill
+.push_number ls
+.push_number pfont
+.push_number indent
+.nofill
+.if nargs>1
+.set_number indent \1
+.else
+.set_number indent 0
+.end
+.if nargs>2
+.set_number points_per_point \2 xgp pts to tv pts
+.else
+.set_number points_per_point 1 one point per point is the default
+.end
+.if points_per_point==1
+.font_select small_picture_font
+.eq h hs_one use a short name to keep the file size down
+.end
+.if points_per_point==2
+.font_select medium_picture_font
+.eq h hs_two
+.end
+.if points_per_point==3
+.font_select big_picture_font
+.eq h hs_three
+.end
+.line_spacing 0.0
+.source \0
+.end
+.resume_spacing just in case
+.em
+.
+.define hs_one skoot over that many tvsteps
+.hs \0u
+.em
+.define hs_two skoot over twice that many tvsteps
+.hs 2*\0u
+.em
+.define hs_three skoot over thrice that many tvsteps
+.hs 3*\0u
+.em
+.

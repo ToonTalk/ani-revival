@@ -1,0 +1,24 @@
+(defun sread nil
+       (catch (cons 'Help:  (read)) help-button))
+
+
+(setsyntax 0. 'macro 'help-macro)
+;(setq ibase 8.)
+;(setsyntax '/# 410540 nil)
+;(setq ibase 10.)
+
+(defun help-macro nil
+       'help)
+
+
+(sstatus interrupt 0 'help-macro-interrupt)
+;(defun help-macro-interrupt (nothing) (throw stuff-read help-button))
+(defun help-macro-interrupt (nothing)
+       (uread parens > dsk ken)
+       (ioc q)
+       (print ^q))
+
+
+(defun tyi-loop nil
+       (do ((i (tyo (tyi)) (tyo (tyi))))
+	   (nil nil)))

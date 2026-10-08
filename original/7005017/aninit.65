@@ -1,0 +1,248 @@
+;;-*-lisp-*-
+;;director init for running ani's output
+
+(include |ai:ken;declare >|)
+
+(defcomment aninit) ;;for tags
+
+(setq :see-all nil)
+
+(declare (special :see-all))
+
+(defun asd nil
+       (dsd)
+       (clip)
+       (cond (:see-all (see-all))))
+
+
+(defun see-all nil
+ ;;this shows the sides of the screen too
+ (setq :see-all t)
+ (scale .5) ;;make it twice as big
+ (hatch 'real-border)
+ (eval '(maketurtle 'real-border
+		    (wf ,(*$ (first (turtlesize)) .25)
+			,(*$ (second (turtlesize)) .25))
+		    (wf ,(*$ (first (turtlesize)) .25)
+			,(*$ (second (turtlesize)) .25))))
+ (useturtle 'logoturtle))
+
+(defun see-just nil ;;back to normal
+ (setq :see-all nil)
+ (asd))
+
+(or (boundp ':interface-files-loaded) (setq :interface-files-loaded nil))
+
+(define-function initialize-characters nil
+ (define cinderella director-character
+	 (set your angle to 144)
+	 (set your center-offset to (right 18)))
+ (define step-mother director-character
+	 (set your ani-size to .07)
+	 (set your angle to 90))
+ (define fairy-godmother director-character
+	 (set your angle to 5))
+ (define prince director-character
+	 (set your angle to 120)
+	 (set your center-offset to (right 30))))
+
+(cond ((not (status features complr))
+       (cond ((not :interface-files-loaded)
+	      (director-load'interf)
+	      (director-load'action)
+	      (director-load'dichar)
+	      (director-load 'animov)))
+       (setq :interface-files-loaded t)
+       (asd) ;;mostly for clip's  sake
+       (nodisplay) ;;dont need it now
+       (initialize-characters)
+       (progn
+	(define-abbreviation ka ask kept-apart)
+	(define-abbreviation in ask introduction)
+	(define-abbreviation nl ask no-longer-kept-apart)
+	(define-abbreviation me ask meeting)
+	(define-abbreviation ju ask justice)
+	(define-abbreviation ci ask cinderella)
+	(define-abbreviation sm ask step-mother)
+	(define-abbreviation pr ask prince)
+	(define-abbreviation fg ask fairy-godmother))))
+
+(setq :minimum-between-clicks 3.0)
+
+(setq :time-of-last-click (time))
+
+(or (boundp ':running-color) (setq :running-color nil))
+
+(define-form (running-color (skip-to-frame))
+ (setq :running-color t)
+ (setq :skip-to-frame skip-to-frame)
+ (tvsize 550 413)
+ (ask screen silent running) ;;changes are hidden until ready to film them
+ (ask director-character set your parent to many-polys) ;;sorry about that
+ (initialize-characters)
+ (ask cinderella set your colors to (green))
+ (ask cinderella set your offset to 20.0) ;;since a star is denser
+ (ask step-mother set your colors to (red))
+ (ask prince set your colors to (yellow))
+ (ask fairy-godmother set your colors to (orange))
+ (ask-each (cinderella step-mother prince fairy-godmother) make your parts)
+ (cond (skip-to-frame (skip-til-frame skip-to-frame))
+       (t (ask ani-movie set your after-new-frame-made to
+	       (progn (sleep-if-not-enuf-time :time-of-last-click :minimum-between-clicks)
+		      (asd) ;;reset the display since it seems to lose easily
+		      (tvsize 550 413)
+		      (ask screen normal running)
+		      (click)
+		      (setq :time-of-last-click (time))
+		      (princ (ask :self recall your frame-count)) (princ '/  )
+		      (ask screen silent running)))))
+ (ask ani-movie set your save-the-frame to nil) ;;is saved on film instead
+ (setq :default-frames-per-second 24))
+
+(define-form (skip-til-frame frame-number)
+ (ask screen silent running)
+ (ask ani-movie set your after-new-frame-made to
+ (cond ((< (ask :self recall your frame-count) ,frame-number)) ;;nothing
+       (t (break ready-to-roll)
+	  (ask ani-movie set your after-new-frame-made to
+	       (progn (sleep-if-not-enuf-time :time-of-last-click :minimum-between-clicks)
+		      (asd) ;;reset the display since it seems to lose easily
+		      (tvsize 550 413)
+		      (ask screen normal running)
+		      (click)
+		      (setq :time-of-last-click (time))
+		      (princ (ask :self recall your frame-count)) (princ '/  )
+		      (ask screen silent running)))))))
+
+
+(define-form (sleep-if-not-enuf-time time-of-last-click minimum-between-clicks)
+ (let ((difference (-$ (time) time-of-last-click minimum-between-clicks)))
+      (cond ((> difference 0.0)) ;;enuf time as passed
+	    (t (sleep (abs difference))))))
+
+(defprop kept-apart (kept apart) scene-file)
+(defprop kept-apart ka movie-name)
+
+(defprop introduction (introd uction) scene-file)
+(defprop introduction intro movie-name)
+
+(defprop no-longer-kept-apart (no longer) scene-file)
+(defprop no-longer-kept-apart nl movie-name)
+
+(defprop meeting (meet ing) scene-file)
+(defprop meeting me movie-name)
+
+(defprop justice (just ice) scene-file)
+(defprop justice ju movie-name)
+
+ ;;just to save some typing
+(setq i 'introduction ka 'kept-apart nl 'no-longer-kept-apart me 'meeting ju 'justice)
+
+(defun save (scene)
+ (let ((movie (get scene 'movie-name)))
+      (let ((file-name '((ken1) ,movie posit)))
+	   (cond ((ask-if '(|want to save positions as| ,file-name))
+		  (cond ((and (probef file-name) (ask-if '|ok to delete old one?|))
+			 (deletef file-name)))
+		  (cond ((not (probef file-name)) (save-positions scene file-name))))))
+      (let ((file-name '((ken1) ,movie movie)))
+	   (cond ((ask-if '(|want to save a compilable version of the movie as| ,file-name))
+		  (cond ((ask-if '|have you projected the whole thing yet?|))
+			;;to create appearances
+			(t (ask ,movie project)))
+		  (cond ((and (probef file-name) (ask-if '|ok to delete old one?|))
+			 (deletef file-name)))
+		  (ask ,movie smart compile !,file-name)))))
+ 'all-done-but-might-want-to-compile-the-movie)
+
+(defun save-positions (scene file-name)
+ (let ((file (open file-name 'out)))
+      (mapc
+       (function
+	(lambda (character)
+		(let ((xy-position (find-xy-position '(vicinity-of ,character) nil)))
+		     (and xy-position
+			  (not (eq (first xy-position) 'missing-location-of))
+			  (not (eq (first xy-position) 'symbolic-position))
+			  (dicks-print
+			   '(ask (subscene-of `scene 1)
+				 set your (location-of ,character) to
+				 (place: where ,xy-position
+					 why (ended up here in ,scene)
+					 status cool))
+			   file)))))
+       (ask director-character recall your offspring))
+      (close file)))
+
+(setq :default-frames-per-second 4)
+
+(defun run n
+ (run-1 (arg 1)
+	(cond ((> n 1) (arg 2))
+	      (t :default-frames-per-second))
+	(cond ((> n 2) (arg 3))
+	      (t 1000))
+	(cond ((> n 3) (arg 4)))))
+
+(defun run-1 (scene frames-per-second frames :print-load-messages)
+ (start scene frames-per-second)
+ (m frames))
+
+(declare (special movie-name))
+
+(or (boundp ' :skip-to-frame) (setq :skip-to-frame nil))
+
+(defun start (scene frames-per-second)
+ (cond ((null :print-load-messages)
+	(shut-up'keep-turning-til-not-colliding)
+	(shut-up'director-character)
+	(shut-up 'defprop-and-warn))) ;;no warnings from these
+ (make-subscene-abbreviations scene)
+ (unshut-up 'defprop-and-warn)
+ (clean-up-ani) ;;now to clean up from any previous runs
+ (cond (:running-color (running-color :skip-to-frame))
+       (t (initialize-characters))) ;; to reinitialize the characters
+ (ask dynamic-constants initialize conversion factors) ;;in case screen size is different
+ (director-load (get scene 'scene-file) '(to get ,scene))
+ (ask default-universe forget your actors-to-run-next) ;;reset the universe
+ (setq movie-name (get scene 'movie-name)) ;;setq so that m will work ok
+ (ask ani-movie make ,movie-name)
+ (ask ,movie-name set your frames-per-second to ,frames-per-second)
+ (ask ,movie-name set your scene-name to ,scene)
+ (ask ,scene plan everything)       
+ (ask (subscene-of ,scene 1)
+      plan next note that (beginning-of ,scene) happened))
+
+
+(defun clean-up-ani nil
+ (ask-each (special-dynamics director-subscene director-scene plan)
+	   ask each of your descendants to unmake))
+
+(defun save-ani (file) ;;doesn't work debug it sometime
+ (let ((:default-file-object (open file 'out)))
+      (ask-each (special-dynamics director-subscene director-scene plan director-character)
+		ask each of your reversed-descendants to save)
+      (close :default-file-object)))
+
+(defun make-subscene-abbreviations (scene)
+ (eval
+  '(progn
+    (define-abbreviation ss1 ask (subscene-of ,scene 1))
+    (define-abbreviation ss2 ask (subscene-of ,scene 2))
+    (define-abbreviation ss3 ask (subscene-of ,scene 3))
+    (define-abbreviation ss4 ask (subscene-of ,scene 4))
+    (define-abbreviation ss5 ask (subscene-of ,scene 5))
+    (define-abbreviation ss6 ask (subscene-of ,scene 6))
+    (define-abbreviation ss7 ask (subscene-of ,scene 7)))))
+
+(defun m (n)
+ (ask ,movie-name film the next ,n ticks))
+
+(define-synonym tp test-pattern)
+
+(define-form (test-pattern)
+  (let ((:outline t))
+       (pencolor'white)
+       (clearscreen)
+       (circle 50)
+       (wf 100)))

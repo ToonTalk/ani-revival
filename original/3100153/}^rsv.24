@@ -1,0 +1,706 @@
+.sec Introduction
+	Woods in [Bobrow 1975] discusses what a semantics for semantic networks should
+be like and what problems one has in constructing one.  He wants the meanings of the
+components of a semantic network to be made explicit.  He also wants made explicit
+what is missing from such networks.
+This would be
+good for evaluating and comparing notational schemes for these networks.
+	I have decided to model this paper after his, first by discussing the examples
+that he provides, relating them to Schank's
+Conceptual Dependency Graphs [Schank 1973] 
+and to Norman and Rummelhart's Active Structural Network
+[Norman 1975].  For the most part I found the examples that Woods presents either
+easily solvable, such as the representing the
+distinction between intensional and extensional descriptions.
+Or the examples involved
+subtleties, such as representing the difference in emphasis in sentences
+with relative clauses,
+that I think are inappropriate concerns when
+much more critical issues are left untouched.
+I continue by putting forth some of these issues and
+relating them to the work of Schank and Norman & Rummelhart.  In other words, I admire the
+task and general framework of Woods' paper and try to produce a version of my own which
+critically examines the specifics of his paper and then offers alternatives of my own.
+Most of the differences I have with Woods' paper are a result of my bias towards always 
+considering how the representation will be used to make inferences.
+Before I begin, however, I will give very short summaries of each of
+the papers.
+.subsec Woods' Paper
+	Woods discusses the need for a theory for semantic network
+representations.  He is concerned with the sort of networks
+dealt with by Quillian, Carbonell &
+Collins, and Simmons in addition to those which I will be discussing,
+Norman & Rummelhart and Schank.  For the most part, my criticism of his paper will be limited
+to how Woods ideas relate to Schank and the Norman and Rummelhart group.
+	Woods writes about the need to be explicit about what the links and nodes in a semantic
+network mean.  He presents a set of requirements and criteria for
+choosing conventions for representing facts as assemblages of links and nodes.  He then
+discusses certain inadequacies in existing networks especially in representing relative
+clauses and quantification.  Woods also presents some solutions for handling these problems.
+.subsec Schank's Conceptual Dependency Graphs
+	Schank is concerned with creating a representational system that adequately
+represents the meaning underlying utterances in a natural language.  An adequate scheme
+should be able to 
+represent all the different meanings a human might find in an utterance.  In addition,
+the representation needs to be in a form that facilitates prediction and inference.  He
+wants to construct a conceptual base for formally representing the concepts underlying
+an utterance independent of the language of the utterance.
+	He constructs what he calls Conceptual Dependency Graphs which describe
+relationships between different conceptual categories.  Each conceptualization consists of an actor
+which performs an action upon an object which is in some state.  There is also a donor and a
+recipient of the action and a direction towards which the action is directed.
+The actors and actions are typically modified by
+other concepts.  The conceptualization itself is modified by conceptual cases and
+usually depends upon other conceptualizations.
+Schank claims that all these elements are necessary to form a complete
+conceptualization or thought.  If any of conceptual roles are unspecified then the system is faced
+with the task of trying to fill them in, perhaps by bringing in other types of information
+or by guessing.
+	Schank has concentrated on the dependencies between conceptualizations
+and on representing
+the actions in terms of a small set of primitive actions.  He shows how many complex
+actions can be successfully decomposed into these primitive actions.  The representation
+of actors and objects
+could presumably also be made more primitive, he has, however, decided to
+concentrate his efforts on actions.
+.subsec Norman & Rummelhart's Active Structural Network
+	Norman & Rummelhart are interested in how people perceive, represent, remember,
+and use knowledge.  Their major emphasis in the first chapters is the representation.
+There are many parallels between their system of representation
+and that of Schank.  As I shall point out later one can consider the two systems
+to be dialects of one another.  They both break down concepts that correspond to English
+verbs and nouns into similar primitive structures.  Schank's conceptual cases that
+are attached to primitive concepts parallels Norman & Rummelhart's relations attached
+to primitive predicates.  Schank has causal links between conceptualizations in much
+the same way that Norman & Rummelhart have a cause primitive predicate that relates
+two propositions.
+	At the next level of detail, however, one can find many differences.  Schank's
+Conceptual Dependency graphs are structured around the primitive action.  The links
+represent the dependency of one concept upon another.  Norman & Rummelhart's active
+structural network is based upon states and predicates.  The links represent the relations
+between a predicate and nodes.  
+	Norman & Rummelhart are able to represent in their system kinds of information 
+other than the
+meanings underlying utterances which Schankrestricts himself to.  
+They can represent propositional
+structures that are less primitive and correspond more closely with the English utterance.
+Norman & Rummelhart also present examples of the use of the same representational
+system for both linguistic and perceptual processing.
+Perhaps more importantly, they are able to represent procedures within their formalism
+that can, in addition to being executed, be inspected, modified or translated to and from
+English
+using the same
+mechanisms that are used for networks that represent propositions.  
+.sec Requirements for a Semantic Representation
+	The authors of the three papers present lists of criteria for a good
+system of representation.  With such lists one can compare and judge different representation
+schemes.  It is instructive to discover which criteria are generally acceptable and
+which ones are debated.  These lists describe properties of semantic
+representations that facilitate the use of the knowledge being represented.
+.subsec Agreements
+	Woods writes that a representation should have logical adequacy, that is
+it should "precisely, formally, and unambiguously represent any particular interpretation
+that a human listener may place on a sentence."  Both Schank and Norman & Rummelhart
+agree that the representation should be complete, that no meaning is unrepresentable.
+Schank agrees that the representation should be unambiguous since the
+original meaning of a speaker is usually unambiguous, and if it is not then the system
+should choose the most likely interpretation.  They do not consider the possibility
+that ambiguity or vagueness of the original utterance be preserved in the representation.
+Doing this would probably greatly increase the complexity of their systems and they
+sensibly avoid this.
+	Woods additionally requires that there must be procedures for translating
+the original sentence into the representation and which can make use of the representation
+to make inferences and deductions. (It is odd that he does not mention procedures for
+translating back into a natural language.)  Schank states the same requirement by
+demanding that the representation be "computationally valid" which means that computers
+be able to operate with such notions efficiently.  Norman and Rummelhart
+neglect to mention this requirement.
+	Both Schank and Norman & Rummelhart require of their representations that they
+be "psychologically valid."  To both of them this means that it be consistent with what
+is known about humans.  Norman & Rummelhart say that the representation should reflect
+both the weaknesses and strengths of humans, while Schank says nothing about the 
+desirability of reflecting human weaknesses in the representation.  Woods is perhaps
+willing to accept a representation that is logically adequate and not psychologically valid.
+	Norman & Rummelhart require that there be continuity, 
+i.e. that a small change in meaning
+results in only a small change in representation.  They also require that the representation
+preserve overlaps of
+meanings so that overlapping meanings share common substructures.  When Schank
+in [Bobrow 1975] writes that he wants a system that will make similarity relations
+clearer he is probably asking for this continuity and preservation of meaning overlap
+that Norman & Rummelhart desire.
+Extendibility,
+or to always be able to link new information to old, is also one of Norman & Rummelhart's requirements.
+Schank also wants his system to be extendible and considers it important.
+.subsec Disagreements
+	There is a very strong disagreement, however, as to the desirability of
+trying to achieve
+invariablity under paraphrase.  Both Schank and Norman & Rummelhart expect that there be
+only one way to express a meaning in the representation.  Woods believes that it
+is unrealistic to expect that such a canonical form exists for English paraphrasings, and 
+argues further
+that even if one had a canonical form function, one would still need
+all the inferential machinery that proponents
+of canonical forms attempt to avoid.
+	Woods' argument for the unlikelihood of the existence of a canonical form for each
+set of paraphrases is based upon what is known about canonical form functions in formal
+systems, the noun problem in semigroups being his example.
+In order to determine the equivalence of two expressions, [fi]e1[fr] and [fi]e2[fr],
+it is sometimes necessary to search for a chain of transformations that connects the two
+expressions, rather than construct a chain from [fi]e1[fr] to [fi]c(e1)[fr], the canonical
+form of [fi]e1[fr], 
+then construct a similar chain from[fi] e2[fr] to [fi]c(e2)[fr] and finally
+compare [fi]c(e1)[fr] and [fi]c(e2)[fr] for identity.  He then goes on to write, "If this can
+be the case for formal systems as simple as semigroups, it would be foolhardy to assume
+lightly that there is a canonical form for something as complex as English paraphrasing."<foot
+[Bobrow 1975], page 46>
+	I find many problems with this argument.  For one, even accepting the basic
+premise as correct, it is not clear that it implies Schank or Norman & Rummelhart
+should change their systems.  If they happen to fail to produce a canonical form
+for a particular set of paraphrases what would it mean?  They want canonical forms so that
+they can economically distribute the knowledge necessary to make inferences.  Their
+primary motivation for desiring canonical forms is not the
+testing for equivalence of two utterances as Woods would have us believe.
+If there were two ways of representing the
+meaning of the sentence "John hit Mary" then one would need to place the knowledge that
+leads to the inference that John was probably mad at Mary in both places.  
+It is not the efficiency
+of the system that is at stake here, but the ease with which inference rules can be added
+to the system.
+Also what would it mean for, say, Schank's system to fail to produce a
+single canonical form for two paraphrases?  It would mean that two conceptual dependency
+graphs are equivalent (but not identical) or that the system will consider the two utterances
+as having
+different meanings.  I think that Schank would consider the first case a bug in the
+representation while the latter is a bug in the analyzer.  
+	Schank, in striving for a canonical form for the two paraphrases, would probably
+try to correct the representation scheme in the case where there were two graphs which
+could be expressed by the same utterance in a natural language.
+Is Woods arguing that Schank should not try
+since it might be impossible to produce a representational scheme with this property?
+Woods argument does not negate the desirability of the working hypothesis that canonical
+form functions exist, only that, in theory, they are impossible.
+If he thinks that the
+canonical form function will fail often then why is it so hard to produce any
+examples, using either Schank's or Norman & Rummelhart's notation,
+of two graphs that are different but mean the
+same thing?  For example, one might consider the two conceptual dependency graphs:
+.begin single space nofill preface 0
+.choose lisp
+.skip 2
+                                 ----> mouth 
+                    o          D |
+ john <==> INGEST <---- frog <---|
+                                 |
+                                 ----< X
+.skip 2
+                                 ----> mouth 
+                    o          D |
+ john <==> PTRANS <---- frog <---|
+                                 |
+                                 ----< X
+.skip 2
+.end
+The first graph corresponds to the sentence, "John ate a frog" while the second to, "John
+put a frog in his mouth".  Now one may argue that they do mean different things.  In
+the first case, John not only put the frog in his mouth but he chewed it, swallowed it
+and digested it.  So suppose that the second graph was changed to be a representation of that
+sequence of events.  If this new graph is considered equivalent to the first one then one might
+think that we have shown
+that "INGEST" is not a primitive since it can be represented by the other primitives.  This
+analysis, however, misses the major advantage of primitive actions, that inferences can be more
+conveniently attached to them.  The first graph would lead to inferences of the sort that if
+frogs are edible then John became nourished, that if frogs 
+are inedible then maybe John became
+sick, that the frog no longer exists in its normal state,
+that if John likes the taste of frogs then he was pleased and more.  The second
+graph would not be recognized as equivalent (since Schank's system is based upon the
+assumption that no two non-identical 
+conceptual dependency graphs are equivalent) and would make
+inferences of the sort that the frog is no longer at "X" and that it no longer exists
+in its normal state but could not infer much about John.  So the system will treat the
+two graphs differently and thus they mean something different.  If we want the system 
+to consider the utterances that the two graphs represent
+as paraphrases then we are left with only one possibility
+for Schank's system to fail to maintain canonical forms --- the analyzer failed.
+	If Schank notices that the analyzer managed
+to find two different meanings for what he considers paraphrases of the same meaning then
+he would probably fix it.
+Schank might agree that since the analyzer is a canonical form function that perhaps it
+is theoretically impossible.  But he would go on to defend the working hypothesis that his
+analyzer can be a canonical form function.  A canonical form function is very useful and
+he would expect it  seldom to fail.
+	Woods has another argument that, even if it is theoretically sound, it has little
+prescriptive value.  Woods argues that one still needs to be able to search for individual
+chains of inference between [fi]e1[fr] and [fi]e2[fr] and thus the principal motivation
+for wanting a canonical form is superfluous.  Suppose one wants to make the inference
+that [fi]e2[fr] uni-directionally implies [fi]e1[fr], then we will need an inference
+mechanism for dealing with this case.  Since full equivalence is a special case of this, 
+it will
+fall out and the canonical form mechanism for handling full equivalence will give no
+improvement in performance and is unnecessary.  
+	Trying to relate this argument to the Schank's system
+is very difficult.  The primary reason he wants the canonical form mechanism is not
+demonstrating full equivalence but to facilitate inferences.  Even supposing that he
+did want to be able to show full equivalence then Woods argument only applies to
+the problem of showing [fi]logical[fr] full equivalence.  Most of the inferences that
+Schank is interested in are reasonable, common sensical and seldom follow strictly
+logically from their premises.
+The ability
+to infer that John's hand came into physical contact with Mary when told that "John
+hit Mary," for example, 
+does not have full equivalence as a special case.  
+The claim being made by Schank and others is that it is much easier to discover that
+[fi]c(e2)[fr] implies [fi]c(e1)[fr] making use of the canonical form than to discover
+that the paraphrases of [fi]e2[fr] imply [fi]e1[fr].
+One of many
+advantages of this scheme is that the inferences that lead from [fi]e2[fr] to [fi]c(e2)[fr]
+and from [fi]c(e1)[fr] to [fi]e1[fr] need only be done once, 
+while the other way the system might have to
+recompute the chains each time [fi]e1[fr] or [fi]e2[fr] are used.
+	Woods has one more argument against canonical forms that is based upon a problem
+Lindsay had in representing kinship relations.  He had a logically minimal representation
+consisting of a male and female parent and some number of offspring.  The question was
+how to represent, "Harry is John's uncle"?  We do not know if Harry is the brother
+of John's mother or father.  If we wish to retain the detail of information presented
+to us in English then the concept "uncle" must be stored directly.  Since sometimes
+uncle will be represented directly and other times in more basic family relationships,
+Woods argues that this should demolish any hope of a canonical form representation.
+	Woods argument is a good argument against logically minimal representations,
+but neither Schank nor Norman & Rummelhart are striving for that.  They would probably
+be happy to represent uncle as a brother of a parent and when not enough is know leave the
+gender of the
+parent unspecified.   The problem with Woods' argument is that "Harry is John's uncle"
+does [fi]not[fr] mean the same as "Harry is John's mother's brother" and so should not
+be considered equivalent.  "Uncle" represented as a brother of 
+an unspecified parent of John
+is different from a representation as a brother of either parent of John.
+	To summarize, I would say that Woods brings up an important and interesting
+issue.  
+The arguments that he gives I find very unconvincing, but even accepting
+his argument that it is impossible to create a canonical form function I don't see
+how that implies that one should not try to reduce to a minimum the occasions
+that where the system fails to find a canonical form.  
+The proof of the halting problem does not imply that one should
+not bother to look at one's code to determine whether it will loop or not, only that
+one cannot [fi]always[fr] succeed in determining termination.
+.sec Intensions and Extensions
+	A large section of Woods' paper is devoted to need to be explicit in one's
+representational system in distinguishing between intensional and extensional objects.
+An extensional object is an object that exists, while an intensional object is the 
+description of the meaning of a concept or thing.  
+Woods presents the example of the Morning/Evening
+Star.  The intensional entity corresponding to "Morning Star" would be a definition,
+probably including statements about its apparent brightness and position in the sky in
+the mornings.  The "Evening Star" has a similar, but different, intension.  What makes
+this example interesting is that the extension of both these 
+intensional entities is the identical extensional
+object.  The problem that Woods brings up is supposing that we have a semantic network with
+a node and some links, how is the system to determine whether the representation is
+intensional or extensional.  Creating such a distinction is important for many inferences
+are applicable for only one type of node, however, it does not seem very difficult to
+represent a distinction between these kinds of nodes.
+.subsec Schank
+	Before we discuss Woods' proposed solution, let us look at how Schank deals
+with this issue.  It is hard to find Schank discussing this issue since his emphasis
+upon actions has resulted in his neglecting nouns.
+He does, however,
+describe two kinds of nodes in his system, [fi]concepts[fr] and
+[fi]tokens[fr] nodes.  Tokens represent the concepts as they are used
+in specific contexts.  Typically a token is an instance of some specific concept.  
+Schank's concepts seem to correspond to the intensional objects that Woods discusses
+and his tokens correspond to extensional objects.
+When Schank's system discovers that two previously different nodes are indeed
+the same object, however, 
+the properties of each are merged and a new property that records the 
+origin of the merged nodes is added.  When Schank's system discovers that both the Morning
+and Evening Star are the same object, it would probably merge them and record the sources
+of the information about this merged concept, such that a distinction between the two
+intensional definitions would still be possible.  This scheme does not seem to conveniently
+record the situation.  It is also not clear how Schank would represent an indefinite
+intensional object such as the wrench in the sentence, "John wants a wrench."
+.subsec Norman & Rummelhart
+	Norman & Rummelhart have two kinds of nodes, [fi]primary[fr] and [fi]secondary[fr]
+nodes.  They correspond roughly to Schank's concepts and tokens.  Norman & Rummelhart
+could represent
+the Morning/Evening Star situation by creating a token and predicating that it is both
+the Morning and the Evening Star.  Intensional descriptions are usually represented by 
+predicates.
+Norman & Rummelhart have a another way, however, of representing indefinite
+intensional objects by using
+unbounded variables and then predicating what is known about those variables.  For example,
+they could represent the sentence, "John wants a wrench," by creating a variable, [fi]X[fr],
+to represent the intensional reference to wrench
+and then predicating the [fi]X[fr] is a wrench and that John wants it.  This contrasts with
+the extensional wrench that would be a node that "isa" wrench.
+.subsec Woods' Solution
+	Woods proposes a different solution, where every node is assumed to be
+intensional and for those that are intended to correspond with real objects there is an
+explicit predicate of existence on that node.  One could then create an intensional entity
+that is both the Evening and the Morning Star and then predicate its existence.   Woods
+claims that making all entities intensional also helps the system in interpreting
+indefinite objects such as the wrench in the previous example.
+Under Woods' scheme if John has a specific wrench in mind then it would be predicated
+as existing and the system will not become confused with the indefinite intensional wrench.
+It is not clear how Woods would represent the intension of the Morning or Evening Star.
+.subsec Assertional and Structural Links
+	A related problem that Woods discusses is the distinction between assertional
+and structural links.  Some links assert some fact about a node, while others
+help define a node.  One has an intuitive sense of a difference between the
+things one knows about a node that is
+essential and those that are incidental.  The differences could be useful for simplifying
+or comparing nodes.  Woods suggests that we distinguish between the two by using what
+he calls [fi]ego[fr] links from nodes to a description of the node's intensional identity.
+These ego links he feels will aid the human researcher by providing the reason for any
+node along with the node.  Such links do indeed seem potentially useful, however, there
+are at least two other simplier means of distinguishing assertional links from structural ones.
+The simplest scheme is to know which types of links are structural
+and which are definitional.  Isa links, name links, agent and object links, for example,
+are structural while time or color links are not.  
+The way Norman & Rummelhart distinguish is that structural
+links are on primary nodes while assertional links are on secondary nodes.
+	Woods is correct that designers of semantic networks should be explicit about the
+different sense with which an object can be defined.  I agree that the distinctions that
+he discusses are necessary, but I do not see this as a difficult problem.  
+Norman & Rummelhart seem to handle the distinctions in their own ways with 
+no apparent difficulty.
+.sec Relative Clauses 
+	Woods also discusses the representation of relative clauses
+as an example of the kinds of problems that one finds in constructing a
+semantics of semantic networks.  Woods feels that a subtle difference in emphasis between
+two sentences that are otherwise paraphrases needs to be represented.  
+Schank and Norman & Rummelhart are willing to ignore such subtleties until more progress is
+made handling the representations that they now produce.
+.subsec Woods' Description of the Problem
+	To illustrate the problem of representing relative clauses Woods gives the 
+example of how to handle the sentence, "The dog that bit the man had rabies."  He 
+dispenses with what he considers an
+inadequate treatment that treats the sentence as two separate propositions,
+"The dog bit the man," and "The dog had rabies".  They are joined by sharing the same node
+for dog.  One problem with this, according to Woods, is that it does not distinguish
+the original sentence from, "The dog that had rabies bit the man". In the case where 
+the listener had never heard of the dog before, the importance of
+such a subtle distinction 
+is debatable.  The case where the dog was known
+to the listener leads to what Woods calls the [fi]transient-process account[fr].  He
+relates an observation of Quillian that the purpose of a
+portion of an input sentence is essentially to provide
+stage directions to identify an appropriate internal node.
+.subsec The Transient Process Account
+	Woods gives three arguments against the transient process account.  He considers
+it evading the issue of representing the meaning of a sentence, focusing instead on
+the resulting change in memory contents.  I find this a very strange argument, since
+the purpose of communicating a sentence is to effect some change in the memory structure
+of the listener.  Norman & Rummelhart write,<foot [Norman 1975], page 56>
+"In a real sense, a sentence does not exist in
+memory after it has been interpreted; rather, the sentence is used to provide instructions
+as to how to modify the structures of memory to convey the deep, underlying components
+that comprise meaning."  Schank, I assume would agree with Norman & Rummelhart since the analyzer of his
+system is based upon the principle that the syntax is only there to help find the meaning.
+	Woods goes on to explain
+how a transient process account does not take care of the case where the dog had never
+been mentioned before.   Woods proposes using his ego links
+to differentiate the two different emphasises.  
+This case leads one to the wonder what level of subtlety should be represented
+and what should be left out because it is too inconsequential.
+It is difficult to find examples of inferences that can be made for the sentence witht he
+relative clause that
+emphasizes the rabies that could not be based upon the other sentence.
+The only difference in the inferences one can make about the two sentences are
+about the discourse, i.e. about the listener or speaker.
+If one is trying to preserve all subtlety and differences in emphasis
+in representing sentences then one would no longer consider any two sentences paraphrases
+since there is always a subtle difference in meaning.
+	Woods second argument against the transient process account, is analogous to
+his second argument against canonical form functions.  Even if you accept it, you still
+need the same mechanisms the transient process account hopes to avoid.  In order to
+find "the dog that bit the man" to add that it had rabies, one must still represent
+that clause in such a way that the retrieval mechanism knows that it is the dog not the
+man that it is looking for.  What Woods seems to overlook is that one can easily represent
+the clause without using any special notation.
+	Woods writes that his third argument is that the transient process account is not
+an account, but merely a way of avoiding the problem.  This argument seems to me to be a
+paraphrasing of his first argument and brings up the question of what one expects an
+accounting of a linguistic construct to look like.  Schank, Norman & Rummelhart, and many other
+computational linguists are perfectly satisfied with an account that shows how the
+construct is an aid in constructing the representation, regardless of whether the construct
+itself plays any role in the final representation.
+.sec The Representation of Quantification 
+	Woods presents the problem of representing quantified statements as an example
+of a problem in representation that has not been adequately treated.  He uses the
+sentence, "every integer is greater than some integer" as an example.  We need a means
+of representing both meanings of the sentence.  The sentence is ambiguous as to whether
+the second integer is dependent upon the choice of
+the first or not.  I find little to quarrel with
+Woods here,
+neither the importance nor difficulty of the problem, nor his accounting various solutions.
+.subsec Woods' Solutions
+	Woods presents three solutions; one that he used in LUNAR that considered the
+quantifiers as higher operators.  The connections between nodes become more indirect
+as a result of separating nodes by wrapping these operators around them.
+Another solution, which he attributes to Martin Kay,
+is to use the idea of a Skolem function to record the dependencies of the existential 
+variables as functions of the universally qualified ones.  This captures nicely
+the intuition of the dependencies within quantified expressions, but for technical
+reasons it is very difficult to negate an expression in this form.  The final
+solution proposed by Woods is to create predicates with variables represented in
+Church's lambda notation and then to use relations such as "Forall" and "Forsome"
+between the object and the lambda predicate.  
+.subsec Norman and Rummelhart
+	Norman & Rummelhart have two different methods for representing qualification.  The first
+they call "individual quantification" and corresponds to simply applying the predicate
+to every known member of the set.  For example, "Every person in this room wears
+glasses" would be handled by predicating for each of those individuals known to be
+in the room that they have glasses.  This clearly can work only for a limited class of
+quantified statements
+since the set being referenced may be very large or not well individuated.  For small
+sets, however, this does seem to be a very reasonable method.
+	When individual quantification is inappropriate Norman & Rummelhart have what they call
+"generic quantification" which corresponds closely to Woods' lambda abstraction method.
+What is different about their approach is that instead of considering the quantification
+as a proposition, as Woods does, they think of it as a procedure to modify the 
+definition of a predicate.  "All men are mortal" means in their system to take the
+former definition of man and add to it the predicate that the object of predication
+also is mortal.  This is a strong departure from the representations discussed by
+Woods which are declarative.  The procedural representation of Norman & Rummelhart is reminiscent of
+Winograd's SHRDLU which represented everything as procedures.  When appropriate
+Norman & Rummelhart represent some quantified statements as  declaratives.
+For example, they would probably represent the sentence, 
+"John knows that all men are mortal" as a
+declarative that indicated that one of the predicates that defines man in John's
+active structural network is "mortal".
+.subsec Schank 
+	Schank has avoided the problem of representing quantification so as to concentrate
+his efforts on other problems that he believes either to be easier or more likely to
+succeed.  The interesting question is how easily could his notation be
+extended to handle quantification.  I would think that any of Woods' solutions could
+be applied to Conceptual Dependencies without major revision of his system.  The
+more interesting question is whether Norman & Rummelhart's solution could be appropriate for Schank's
+system.  Apparently it would be very difficult since there are no constructs within
+Conceptual Dependencies that can be used to define procedures.  It is interesting to
+note that Schank's system does represent very many quantified expressions
+that it uses to make inferences and predictions.
+Schank's system represents these kinds of items as Lisp procedures.  The problem with
+Lisp procedures, as opposed to representing the procedures in the semantic network,
+is that they are difficult to inspect or modify automatically.  In
+defense of Schank, one could claim that he could handle procedural knowledge in a more
+uniform manner, but for reasons of efficiency has chosen otherwise.  Rieger
+has written, "Everything should be representable within the same structure,
+even if some things are, in practice, stored in other ways for computational efficiency
+on a computer."<foot [Schank 1975] page 165. >
+.sec The Homongeneity of the Representation
+	The kind of comparison that just arose between Schank and Norman & Rummelhart
+regarding the representation of procedures 
+is a probably more relevant
+for comparing different representations and determining their weakness than problems
+with relative clauses or quantification which Woods discusses.  All else equal, 
+one would like to
+be able to use the same notational system for all the kinds of knowledge that are
+required for thought.  
+	Rieger writes, "... to study language is to study
+[fi]everything[fr], because everything can be described and assigned a meaning by language;
+it is the most powerful means of representing knowledge that exists."<foot [Schank 1975] 
+page 158.>  
+Norman & Rummelhart seem to think
+there is more that needs to be represented than the meanings of natural language utterances.
+They write, "Thus, it [the representation] must be able to handle the
+concepts expressed in natural language, but it should not be restricted to
+linguistic information. Sensory, experiential, emotional, and cognitive aspects of information
+must all be present.  We would like a homogeneous representational format, so that
+information can be used in similar manner by all mental processes regardless of its 
+initial source or eventual use."<foot [Norman 1975], page 8.>
+	This may seem only to be a philosophical disagreement as to the scope of language but
+it seems to have had important ramifications in the designs of the two systems.  Schank's
+system cannot represent executable
+procedures in an homogeneous manner as Norman & Rummelhart can.  Schank does not
+describe how his representation could be adapted to perceptual tasks, Norman & Rummelhart do.  Norman & Rummelhart 
+represent not only the primitive underlying meaning structures of utterances but also the
+connections between them and a more superficial description of
+original utterances.  Riesbeck's analyzer for Schank's system does not even temporarily
+maintain such a structure.  As a result, Norman & Rummelhart's system should be capable of representing
+statements and answering questions about the relationship between words and their
+meaning in a context.  
+	It would seem that the more superficial representation
+is useful for making inferences that are not possible because of information lost in
+forcing the meaning into a structure of primitives.  Are there cases where information
+is lost in representing a meaning using Schank's primitive actions?
+For example, Schank says that he has difficulty
+with words such as "kiss" where many predictions and inferences would be impossible to
+make if it were converted to the physical act of propelling one's lips.  Schank could
+probably resolve this problem without relying upon non-primitive concepts by adding
+a new primitive action that corresponds to displays of emotion.  Kiss could then be represented
+as a positive "EDISPLAY" (i.e. display of emotion)
+to some physical object, the instrument being the propelling
+by the actor of the EDISPLAY his or her lips towards the physical object.  Understandably
+Schank is reluctant to add new primitives since he believes that too large a number of
+primitives becomes unmanageable.  On the other hand, I see no reason why he has primitive
+actions such as EXPEL and not EDISPLAY.  By his criteria of determining primitives by
+the inferences that they facilitate and their correspondence to what Schank considers people's
+primitives in conceptualizing the world, I would expect that the actions which are basically
+displays of emotion (kissing, smiling, giving someone "the finger", copulating, etc.) have at
+least a status equal to EXPEL (breathing, spitting, vomitting, urinating, etc.).
+.sec Chunking and Different Levels of Abstraction
+	Two other very important questions to ask about a representational scheme is
+how easy it is to describe things at different levels of abstraction and how to group
+into manageable chunks the semantic network.  Both of these mechanisms help to guide
+the placement of knowledge into an existing network
+and its efficient retrieval.
+.subsec Levels of Abstraction
+	There are many ways to conceptualize the levels within a semantic representation.
+One view is that the primitives are the lowest level, then the conceptualizations or
+propositions built
+out of them, then the structures of related conceptualizations and so on.  Another way
+to view the system is that the primitives are the highest level of abstraction since
+in placing running and trotting both into PROPEL, for example, is abstracting away
+their details.  Underneath the primitives would then be words that correspond more
+closely to English.  Another way to view the memory is with machine primitive structures
+on the bottom, then some implementation tools such as property lists, hashing, actors,
+or pattern-oriented data bases.  Next comes the contexts or units of conceptualization
+and so on up.
+	A design criterion that I would have added to the lists of requirements
+of a semantic representation presented in the
+beginning of this paper, is that the system should allow one to put a piece of
+knowledge at its appropriate level of generality.  Schank's system seems to meet
+this criterion rather well.  If one has an inference rule such as when something
+PTRANS then it is no longer at the place it PTRANS-ed from, then it fits in at
+the level of PTRANS.  If the inference rule is less general, such as the rule that
+when something is
+INGESTed and is edible then the actor of the INGESTing becomes nourished, then
+there is an appropriate level to place it.  Inferences can be based upon any subpattern
+of a conceptualization, and also at the level of groups of conceptualizations when
+making inferences about causality.  In some of Schank's more recent work on scripts
+it is possible to add inferences that are very particular to certain situations and
+contexts.  Due to Schank's concentration on verbs, it is not so easy to place
+knowledge at the appropriate level for nouns and adjectives.  Even a simple "kind-of"
+hierarchy would reduce this deficiency.  In Schank's more recent work described in
+[Bobrow 1975]
+he rejects this emphasis upon subsets and supersets and favors what he calls an episodic
+memory.  The knowledge associated with nouns, for example, is stored within the episodes
+that use it.  A hammer is not primarily defined as a kind of tool, instead Schank argues
+that it is defined by its use in episodes where hammers might be used to hit nails into wood.
+	Norman & Rummelhart have the same flexibility since they discuss their structures at
+many different levels.  There are differences in detail between the systems, however, 
+a characteristic one is
+their choice of even more primitive primitives than Schank.  They have a primitive predicate
+called CHANGE which seems to correspond to common aspects of PTRANS, ATRANS, and MTRANS.
+Similarily, they have a primitive called CAUSE while Schank has result, reason, initiation,
+and enable causation.  The distinctions between these different kinds of change and
+causality are significant.  This makes it awkward in Norman & Rummelhart's system to 
+describe inference rules that are based upon these distinctions.  They realize this, however,
+and write, "the best solution may prove to be one that makes use of a set of near-primitive
+causal predicates such as those suggested by Schank, all of which have in common some more
+basic component such as our CAUSE."<foot [Norman 1975], page 96.>  This would represent an
+improvement over their present scheme, however, it is not clear that it would be any better
+than Schank's less hierarchical scheme.  The saving by not having to repeat the common
+knowledge between the different kinds of CAUSE three or four times might not compensate for
+the added complexity of the extra level of abstraction.  
+.subsec Chunking
+	Norman & Rummelhart write very favorably of 
+"the notion that knowledge is packaged into conceptual
+frameworks that guide in the interpretation of a person's experiences."<foot [Norman 1975],
+page 7>
+They recognize
+establishment of the appropriate frames and their modification as difficult problems.
+Unfortunately, they have not managed to a significant extent
+to incorporate these ideas
+into their system.  In the epilogue of their book they mention this as one of their 
+recent active research efforts.
+They do, however, represent prototypes, but they do it as a list of truth predicates,
+and have none of information needed in them to provide a useful
+chunking mechanism.
+	Schank in his more recent work [Bobrow 1975] discusses the representation and
+uses of what he calls "scripts".  These are a special kind of frame that
+are used to tied together conceptualizations that are represented as a stereotypical sequence
+of events.  A script is a causal chain which provides world knowledge of common situations.
+They fulfill many of the functions of frames, such as guiding search and providing defaults.
+They are limited, however, to understanding and representing stories that contain only
+mundane or expected information.
+.sec The Syntax of Semantic Representations
+	In this paper I am trying to follow Woods in dealing with a semantics for
+semantic networks.  The semantics of the notation is very important, but it also
+worth considering the syntax of these notations.  It is interesting that both Schank
+and Norman & Rummelhart have sections where they put forth the syntax of conceptualizations and
+propositions, respectively.  
+	Perhaps an analogy with programming languages is instructive.  Few would
+argue that it is important in comparing computer languages to see what
+each permits one to do
+easily and naturally.  The comparison of the 
+semantics of two programmlanguages
+is the overriding consideration, but the syntax is not immaterial.  The legibility, the
+ease of learning, the cleanliness of the code itself matters, and the syntax determines
+those factors.
+	One should likewise expect a good syntax for the representation of knowledge so
+that it is easy to read, write, learn and is as simple as possible.  When we compare
+Schank with Norman & Rummelhart it would seem that Schank's notation is more confusing than necessary.
+People have difficulty learning it, it is slower to read than the corresponding active
+structural network and demands of the user that he or she learn many apparently
+arbitrary conventions.  In defense of Schank, however, his
+notation is more structured and restrictive.  Only certain kinds of arrows can point
+to concepts, others 
+can point only to entire conceptualizations.  Norman & Rummelhart seem to permit
+one to link any node with any other, Schank strongly restricts the possibilities without
+any apparent lose in expressive power.  Schank's restriction are useful in quickly
+determining the kind of structure being represented and what is missing.  It also makes
+it easier to compare two structures.
+.sec Representation of Time
+	In the same spirit as Woods' discussion of the inadequate treatment of quantification
+I will discuss the representation of time as an example of important aspects of the 
+representations that are lacking.  Both Schank and Norman & Rummelhart are able to represent the time of
+an event as before and or after another one.  Norman & Rummelhart also can specify a time by 
+a partially specified date.  Schank's system takes into account the time of an utterance
+in the representation.  
+	Both systems' representations of time 
+are reasonable approximations, but very many common ways of expressing
+and reasoning about time are not possible.  There is no easy way to represent the time of
+an event as recurring, for example, as the first Tuesday in November, or as occuring during
+another event, or as a member of a chain of events.  It is not clear how they would represent
+expressions such as, "a while ago", "when I was a young", "when I was five years old".
+There is
+no indication that even if the system did have means of representing these expressions that
+it would be able to use them.  The most important reason for representing all this knowledge
+is to use it, to make inferences and predictions, to solve problems, to answer questions, and 
+to notice inconsistencies.  
+Neither Schank nor Norman & Rummelhart provide any sophisticated mechanism to reason about time
+(or space, or location).  It is not even clear how, were it to exist,
+such a mechanism would interface with the rest of the system.  Both Norman & Rummelhart and Schank have
+made substantial progress in representation in general, 
+but when one thinks of specific aspects of reality 
+it become apparent that much remains to be done.
+.sec Summing Up
+	Woods has written a very provoking paper that brings up some very good questions
+about both what semantic networks mean and how to evaluate them. I choose to differ
+with him on the details of some of his examples but thoroughly approve of the purpose of
+his paper, to help one to think about and evaluate networks.  I tried to continue in the
+spirit of his paper by bring up other criteria for judgement and other examples of the
+shortcomings of current systems.
+	Schank and Norman & Rummelhart have developed perhaps the best semantic networks to date.  I
+used the two systems as concrete examples with which to discuss the issues that Woods
+and I brought up.
+In the process, both systems were evaluated and found to handle adequately many of
+the problems discussed.
+The two systems are very similar, perhaps they should be
+considered different dialects.  Their differences seems to be that Schank has concentrated
+on particular aspects of representation dealing with
+actions, causality, and inference, to the detriment of
+other aspects such as the representation of nouns, quantification, and procedural knowledge.
+Norman & Rummelhart have covered more ground, but as a result they have not made the sort of progress that Schank has in understanding causality and inferences.
+.sec Bibliography
+.begin single space nofill preface 0
+.skip
+[Bobrow 1975]
+Bobrow, D.G. and Collins A., ed. Representation and Understanding,
+Academic Press, Inc., New York 1975
+.skip
+[Norman 1975]
+Norman, D.A. and Rummelhart, D.E., Explorations in Cognition,
+W.H. Freeman and Company, San Francisco 1975
+.skip
+[Schank 1973]
+Schank, R.C. and Colby, K.M., ed. Computer Models of Thought and Language,
+W.H. Freeman and Company, San Francisco 1973
+.skip
+[Schank 1975]
+Schank, R.C. Conceptual Information Processing, American Elsevier Publishing Co., Inc.
+New York, 1975
+.end
+

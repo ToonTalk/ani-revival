@@ -1,0 +1,929 @@
+ -*-text-*- is what is in this file
+.so ken;fancy
+.source ken;rlisp
+.final_copy
+.set_number margin_limit 350 ok to go a third of an inch past the margin here
+.define_paper_title "How to Program a Society"
+.vertical_position 2.618i
+.font_select title_font
+.center "How to Program a Society"
+.space 2
+.center "Kenneth M. Kahn"
+.space 2
+.font_select normal_font
+.center "Abstract" underline
+.space 2
+.New_paragraph
+Conventional programming languages are inadequate for constructing reasoning systems
+organized as communities of autonomous individuals.
+They lack a means of conveniently describing the behavior of individuals, the relationships
+between individuals and subsocieties, and communication conventions and paths between
+individuals and societies.
+.New_paragraph
+This paper presents the thesis that bold_font(actor) languages are
+ideal as an underlying base in the implementation of societies.
+The language "Director" is presented as an example of how one can implement individual
+reasoning agents as actors and their interaction as bold_font("message passing").
+Communication and control conventions are established between the actors to form composite
+actors that correspond to subsocieties.
+An example of a large actor system called "Ani" which was
+implemented in this manner is presented.
+Portions of Ani's reasoning in creating an animated film are used as
+illustrations of an actor-based societal reasoning style.
+.begin_table_of_contents
+.line_spacing 1.2
+.define_chapter "Introduction"
+.new_paragraph
+This paper attempts to deal with some of the issues of reasoning by a
+society of experts by concentrating on a particular example.
+The example is drawn from the operation of a program called "Ani" which was designed
+to create simple computer animation in response to vague high-level story descriptions.
+Since Ani is a very large and complex system we select just one small portion
+of its reasoning in creating an animated version of the story of Cinderella
+and analyze it in detail. 
+Ani was implemented in an actor language called "Director".
+An actor is a computational entity which combines both program and data in a single
+independent module.
+This paper supports the thesis that actors are ideal for
+italics("implementing") societies of experts.
+.define_section "Reasoning by a Society of Experts"
+.new_paragraph
+Reasoning by a society of experts can best be understood in contrast to
+the more conventional "monolithic" reasoning.
+The conventional metaphor for an AI program is an individual which can access or modify facts
+by searching or modifying its knowledge base.
+The society metaphor is a community of individuals each of which can directly access and modify
+its own knowledge and must interact with others when that is insufficient.
+.New_paragraph
+A monolithic reasoning system's components are very dependent upon their
+"caller" for direction, context, and resources.
+The components of a societal reasoning system are independent processes which
+conceptually are concurrent, even though in practice they may execute serially.
+The components of a monolithic reasoning system are typically
+subroutines and database contexts.
+.define_section "Director and Actors"
+.new_paragraph
+Monolithic systems are implemented with subroutines and databases;
+expert systems are constructed out of bold_font(actors) which combine in a single
+entity both subroutines and databases.
+An actor is an active computational entity consisting of a script (which corresponds to
+subroutines or programs) and bold_font(acquaintances) (which roughly correspond its state or
+declarative knowledge).
+Computation in an actor system consists of actors sending messages to
+each other.
+.new_paragraph
+Several actor systems or computer languages have been implemented.
+Smalltalk ([Goldberg 1976] and [Kay 1977]) was one of the first but has not been used very
+extensively for high-level reasoning or AI programming.
+Act 1 [Lieberman draft] and XPRT [Steels 1979]
+are actor systems that were designed for just such a use.
+Lisp Machine Lisp [Weinreb 1979] is most like Director
+in that it is a hybrid of actors and Lisp.
+Many of the ideas embodied in these languages can directly or indirectly be traced to
+the idea of bold_font(classes) in Simula [Birtwistle 1973].
+.new_paragraph
+Director is the actor language that was used in implementing Ani [Kahn 1976] [Kahn 1978]
+[Kahn 1979].
+Each actor in Director consists of an ordered list of methods, a
+database, an environment (i.e. its own variables and their bindings),
+and a bold_font(parent).
+The methods describe the behavior of an actor.
+When an actor receives a message the bold_font(patterns) associated with each method
+are checked to see if they match.
+If so the action associated with that method is invoked.
+Otherwise the message is passed along to the bold_font(parent) of the actor.
+This "buck passing" to parents provides simple hierarchical inheritance of
+behavior.
+The parent is also queried when an actor does not know about an item in
+a database or the value of a variable.
+.foot
+One common objection to actor systems is that all the pattern matching and buck passing that
+occurs is computationally too expensive.
+Director addresses this issue by providing a compiler which alleviates most of the cost.
+.efoot
+.new_paragraph
+Director is also an animation and graphics language.
+One reason for this is that Director was developed with Ani in mind and
+Ani must ultimately draw and animate the films it conceives.
+Actors also provide a very powerful and convenient
+means of describing and programming dynamic graphics.
+Graphics itself is a very good domain for introducing and explaining how
+one computes with actors.
+Finally Director has been used to graphically represent complex structures in an
+"intelligent" manner, in particular a Director program called DIAGRAMER which creates diagrams
+[Kahn 1979].
+.define_section "What Ani Does"
+.New_paragraph
+Ani is a computer system which, when presented with a description of a film, attempts to
+create an animated film based upon that description.
+The descriptions are typically high-level, vague, and incomplete.
+A user presents Ani with partial descriptions of the personality and appearance of the
+characters involved, of the relationships and interactions among
+the characters, and of the type of film desired.
+Ani integrates this information with more general knowledge and
+produces a detailed film description.
+This detailed description is a program that in turn is run by Director.
+.New_paragraph
+Ani was tested with a simple version of the story of Cinderella.
+The films produced are graphically simple;
+the essence of the films is the dynamics of their images.
+In making the films Ani chooses between several alternatives by
+gathering and evaluating many suggestions from different bodies of knowledge.
+A description of Cinderella as happy will tend to make her move faster and "bouncy" curves.
+This tendency to move quickly in a bouncy manner can be negated by other descriptions
+(e.g. that Cinderella is shy) or modified by events (e.g. when running to meet the Prince she
+may move even faster than normal but more directly).
+.New_paragraph
+Ani is a simple embodiment of the aesthetic principles that the arbitrariness of any choice
+should be minimal and that the coherence of a set of choices should be maximal.
+Arbitrary choices are avoided by the use of knowledge.
+This is in contrast to making the choice based upon a pseudo-random number generator
+or some irrelevant computational criteria such as "who asked first" or "finder's keepers".
+Coherence demands that the different parts and aspects of the films have the proper
+inter-relationships.
+The coherence of Ani's films results from a control
+structure that bold_font(postpones) troublesome choices and bold_font(focuses) on the more
+important aspects of the films.
+The quality of Ani's reasoning in making "aesthetic" decisions is a reflection of
+the amount of relevant knowledge that Ani brings to bear and the reasonableness of its use.
+.New_paragraph
+Research on this unusual kind of problem lead to
+some development of AI techniques and concepts.
+For example, Ani is built upon the idea of bold_font(suggestions) which are gathered,
+combined, elaborated, compared, related, compromised, rejected, and followed.
+Ani's control structure is somewhat unusual because it
+decides which choice to think about next and when to postpone decisions.
+Whenever a choice is difficult to make for reasons such as insufficient information or
+conflicting suggestions, Ani considers bold_font(postponing) that choice until more of the
+film has been determined.
+This postponement mechanism depends heavily upon Ani's explicit reasoning and
+recording of justifications.
+Ani uses a bold_font(focus), which describes what parts of the film are to be emphasized,
+as a guide in making decisions.
+.define_section "The Example"
+.new_paragraph
+To make concrete this discussion of actors and societies of experts this
+paper concentrates on a small sample of some of Ani's reasoning while
+designing an animated version of the story of Cinderella.
+In making this film Ani must make myriad choices about what should happen
+in the film and how the different characters should behave.
+To help establish the personality and relationships of the characters of
+the film Ani constructs a bold_font("typical dynamics") for each character.
+This describes the normal or default way of moving for a character.
+Whether a character typically moves quickly and directly or slowly in long
+graceful curves, whether a character moves boldly or avoids anyone along
+its path --- these all contribute to giving the characters in the films
+their own personality.
+.new_paragraph
+The example we will study in detail is how Ani determines a typical
+speed for the stepmother of Cinderella.
+The choice must take into account the personality of the stepmother and her
+relationship with the other characters.
+The choice cannot be optimally made in isolation but needs to be made
+in coordination with other choices, especially the choices of the speeds of
+the other characters.
+.New_paragraph
+Ani makes this choice by creating bold_font("choice points") which are
+actors who are each responsible for a particular choice.
+The choice point for the stepmother's speed, for example, is responsible for
+gathering up suggestions, trying to make sense out of the suggestions gathered,
+interacting with other choice points, maintaining the current state and
+justifications of any decisions made, and deciding whether to try
+to postpone work on its choice to wait for others to make choices.
+.define_chapter "An Overview of Director"
+.New_paragraph
+Actors are the most natural and convenient building blocks for building societies of experts.
+An actor combines in one entity both programs and state or, more generally,
+both procedural and declarative knowledge.
+Director is an actor-based language that allows the implementor the whole spectrum from
+procedural to declarative knowledge to choose from in constructing components of a reasoning
+system.
+The language encourages a very modular style of implementation.
+A typical Director program has the facts distributed among a large number of actors that only
+know enough to do their "job" and who ask for help when they don't know enough.
+.New_paragraph
+Sharing of knowledge is important, especially so if we are going to associate it with objects.
+In Director this is accomplished primarily by the inheritance hierarchy.
+If an actor does not know how to handle a message, the value of a variable, or
+how to answer a question about an item in its database it delegates the problem
+to its bold_font(parent).
+Explicit delegation is also common, where an actor knows only who else to ask when faced with
+a particular kind of problem.
+.define_section "An Example from the Blocks World"
+.New_paragraph
+Let us consider a simple Director program from the world of toy blocks.
+Initially there are only cubes and a table.
+We want to be able to move blocks around and stack them up.
+The most sophisticated operation is to put a cube on top of
+another perhaps having to clear them off first.
+We also want to be able to make inquiries about the locations
+and relationships of the different objects.
+.New_paragraph
+The only syntax of Director itself
+(as opposed to that which comes from the patterns of actor's methods)
+can be expressed in Director's pattern syntax as follows.
+.begin_lisp
+(ask ?target %message)
+.end_lisp
+where "target" corresponds to the second element in the list and "message" the rest of the
+list.
+In putting together patterns a "comma" is used to insert the value of the following form.
+An "exclamation mark" is used to unpack the following form.
+For example, if "target" were bound to "Block-A"
+and "message" to "(move to (top-of the-table))" then the following two forms are equivalent.
+.begin_lisp
+(ask ,target !,message)
+(ask block-a move to (top-of the-table))
+.end_lisp
+For convenience the form lisp_font("(I %message)") is short-hand
+for lisp_font("(ASK MYSELF %message)").
+The final bit of syntax needed to read the following is that when a message containing a
+"back-quote" (lisp_font("`")) is sent the back quote becomes a comma.
+becomes a comma.
+This is very useful for transmitting programs in messages.
+.New_paragraph
+We begin by defining blocks as follows.
+.foot
+In the text that follows Director primitives are in upper case for expository purposes only.
+.efoot
+.begin_lisp
+(ASK something MAKE block)
+(ask performer make block) ;;this is what its changed to later in the text
+ ;com("create an actor named ""block"" whose parent is ""something"" the prototypical actor")
+(ASK block DO WHEN RECEIVING (move to (top-of ?another))
+     ;com("when I receive a message to move on top of another block")
+     (I clear top) ;com("I clear my top")
+     (ASK `another clear top) ;com("clear the top of my destination")
+     (I MEMORIZE (underneath-me `another))) ;com("I memorize that the other is below me")
+
+(ASK block DO WHEN RECEIVING (clear top) ;com("when asked to clear my top of blocks")
+     (I RECALL AN ITEM MATCHING (on-top-of-me ?something-above-me)
+        THEN (SCRIPT (ASK ,something-above-me move to (top-of the-table)))))
+
+ ;com("now for some bookkeeping ""demons""")
+(ASK block DO WHEN RECEIVING (MEMORIZE (underneath-me ?some-other))
+     ;com("when asked to memorize that something is underneath me")
+     (I RECALL AN ITEM MATCHING (underneath-me ?something-below-me) THEN
+        ;com("If I already think something else is below me I forget it")
+        (SCRIPT ;com("the word ""script"" protects the commas that follow")
+         (I FORGET ITEM (underneath-me ,something-below-me))
+         ;com("and tell that other thing to forget it")
+         (ASK ,something-below-me FORGET ITEM (on-top-of-me ,myself))))
+     (CONTINUE-ASKING) ;com("really memorize it")
+     ;com("I ask the other block to remember I'm above it if it doesn't know that already")
+     (ASK `some-other MEMORIZE (on-top-of-me `myself) IF ITS NOT ALREADY))
+
+;com("Next we send the same message again except ""underneath-me"" and ""on-top-of-me"" are interchanged")
+(ASK block DO WHEN RECEIVING (MEMORIZE (on-top-of-me ?some-other))
+      (I RECALL AN ITEM MATCHING (on-top-of-me ?something-above-me) THEN
+        (SCRIPT (I FORGET ITEM (on-top-of-me ,something-above-me))
+               (ASK ,something-above-me FORGET ITEM (underneath-me ,myself))))
+     (CONTINUE-ASKING) ;com("really memorize it")
+     (ASK `some-other MEMORIZE (underneath-me `myself) IF ITS NOT ALREADY))
+.end_lisp
+Notice that most of the work of the program is done by recursively invoking the "clear top"
+method.
+To create an initial situation with a table and three blocks we enter the following.
+.begin_lisp
+(ASK SOMETHING MAKE the-table)
+(ask performer make the-table)
+(ASK the-table DO WHEN RECEIVING (clear top)
+     "done") ;com("when asked to clear top do nothing")
+
+(ASK block MAKE block-a) ;com("Create a block called ""block-a""")
+(ASK block-a move to (top-of the-table)) ;com("and put it on the table")
+(ASK block MAKE block-b)
+(ASK block-b move to (top-of the-table))
+(ASK block MAKE block-c)
+(ASK block-c move to (top-of block-a))
+.end_lisp
+.define_section "The Role of Computer Graphics"
+.New_paragraph
+Director is not only a language designed for building object-oriented reasoning and
+simulation systems but is also a full-fledged graphics and animation language.
+Graphics is a great aid in depicting, debugging, and explaining what is going on in any complex
+system and so its use in AI programs in general is appropriate.
+(And perhaps one day it use will be considered indispensable.)
+In this blocks world example its appropriateness is obvious --- we would like to be able to see
+these blocks as they are moved around.
+.New_paragraph
+To add graphics to our little program we first change bold_font("Block")
+and bold_font("The-Table") to be an instance of bold_font("Performer"),
+Director's prototypical graphical actor.
+Next we need to give the blocks an appearance.
+We can do this by catching the message for making blocks and having it create
+a square and a label as parts of it.
+.begin_lisp
+(ASK block DO WHEN RECEIVING (MAKE ?new-block)
+    (CONTINUE-ASKING) ;com("really make the block as normal")
+    (ASK TEXT MAKE label) ;com("make a label whose string is the block's name")
+    (ASK label SET YOUR STRING TO `(ASK `new-block RECALL YOUR NAME))
+    (ASK label BECOME PART OF `new-block) 
+    (ASK square MAKE BOX) ;com("make a square named ""box""")
+    (ASK box BECOME PART OF `new-block)
+    (ASK `new-block ABSORB YOUR PARTS) ;com("this makes the names ""label"" and ""text"" local")
+    (ASK `new-block SHOW ALL))
+(ask stage set your height to 300)
+(define square poly (set your angle to 90) (set your size to 250))
+(ask block set your size to 250)
+(ask block set your (xcor speed) to 1000)
+(ask block set your (ycor speed) to 1000)
+(ask text set your font to tr18)
+.end_lisp
+.New_paragraph
+We also want blocks to change their position whenever they move.
+bold_font("Performer") will take care of the changes to the display when positions change.
+We can edit the previous method or extend it as follows.
+.begin_lisp
+(ASK block DO WHEN RECEIVING (move to (top-of ?another))
+     (CONTINUE-ASKING) ;com("do the actions in the previous method for moving")
+     (I GRADUALLY SET MY POSITION TO
+        ;com("slowly move to the other's position plus the sum of our sizes")
+        (`(ASK `another RECALL YOUR XCOR)
+         `(PLUS (ASK `another RECALL YOUR YCOR)
+                (ASK `another RECALL YOUR SIZE)
+                (I RECALL MY SIZE)))))
+(ask block set your (components of position) to (xcor ycor))
+.end_lisp
+bold_font("Xcor") and bold_font("ycor") are components of the bold_font("position")
+variable.
+The bold_font("size") of a performer is defined to be the radius of the enclosing circle so it
+is adequate for this purpose.
+The block movement will be depicted as a gradual movement whose pace is controlled by
+convenient defaults.
+.New_paragraph
+We need also to redefine bold_font("The-Table") so that it gives a position to an object when
+it is moved onto it.
+bold_font("The-Table") does not really have its own position
+but since the blocks just position themselves
+above the object they are on top of we can
+move bold_font("The-Table")'s bold_font("position") each time a new block appears.
+.begin_lisp
+(ask the-table set your state to (-1000 -600 0))
+(ASK the-table DO WHEN RECEIVING (MEMORIZE (on-top-of-me ?some-block))
+     (CONTINUE-ASKING) ;com("do the normal thing")
+     (I INCREMENT MY XCOR BY `(double (ASK `some-block RECALL YOUR SIZE))))
+(defun double (x) (plus x x))
+.end_lisp
+Now if we want to move bold_font(Block-A) onto bold_font(Block-B)
+then bold_font(Block-C) will be put on top of the table while
+clearing bold_font(Block-A) and then bold_font(Block-A) is put on bold_font(Block-B).
+The following is all that is need to make a little movie of this
+.begin_lisp
+(ASK MOVIE MAKE putting-a-on-b-film)
+(ASK block-a plan next move to (top-of block-b)) ;com("move on the next clock tick")
+(ASK putting-a-on-b-film FILM EVERYTHING PLANNED)
+.end_lisp
+The resulting film has the correct first and last frame but the ones in between are a bit odd.
+A good exercise for the reader is to guess why.
+The following diagram shows the first and last frames only.
+.show_picture "ken;block1 pict" 2750 1 4i "The First Frame of Putting-a-on-b-film"
+.show_picture "ken;block2 pict" 2750 1 2i "The Last Frame of Putting-a-on-b-film"
+.define_section "A Short Digression into Parts and Wholes"
+.New_paragraph
+When we defined the appearance of blocks we created a box and a label and told them that
+they were italics(part) of the recently created block.
+This "community" of parts and wholes forms a very simple, but instructive, illustration of
+how actors can get together to form societies.
+In Director a composite actor is one who tells its parts whenever certain changes happen to it.
+For example, when such an actor moves it tells all its parts its new position and they
+react as they please to the information.
+Typically, if a composite actor moves forward 100 units then so will the parts,
+but this decision is left up to them.
+If the composite actor is modeling a chain then if there is enough slack some of the
+parts might not move when the chain "as a whole" moves.
+If an actor grows then the parts will typically grow proportionately but also move away from
+the center of the composite.
+.New_paragraph
+Of course, this parts/whole message-passing convention can apply recursively so that a person
+has a head, torso, legs and arms as parts and the head in turn has eyes, a nose, a mouth, and
+an outline as parts.
+One can tell a person to move and simultaneously tell its legs and arms to swing back and
+forth.
+In principle, the parts should also inform their whole about changes, however as a default
+behavior this is too expensive.
+In Director the whole tells the parts what changes they want to be informed of and by default
+this includes the position, heading, and size of an actor.
+.define_section "A Comparison with Global Databases"
+.New_paragraph
+Extending our simple blocks world program to include objects with special properties such as
+pyramids that cannot have any object on top of them or a
+robot arm that moves the objects is straight-forward.
+Blocks can easily be changed to permit more than one block on top of them.
+If the table has a limited area then it can have a method for memorizing that an object
+is on top of it that finds and allocates space.
+A history of block movements can easily be kept and used as a source of explanations.
+These kinds of extensions are no more difficult, and often simpler, than in the more
+monolithic systems that maintain all this information in a global database.
+.New_paragraph
+One difference between this object-oriented approach and a global database system
+is its greater efficiency at the price of less flexibility.
+Given a particular object what is immediately above or below it is readily available.
+Fanning out from there to answer questions like "what is two blocks above it" is
+not difficult.
+We can add a method for answering such questions as follows.
+.begin_lisp
+(ASK block DO WHEN RECEIVING (what is ?number blocks above you)
+     (COND ((= number 0) myself) ;com("I'm no blocks above myself")
+           (T (I RECALL EACH ITEM MATCHING (on-top-of-me ?someone-on-me) THEN
+                 ;com("I ask each guy above me what is one less than number above them")
+                 (ASK `someone-on-me what is `(1- number) blocks above you)))))
+.end_lisp
+.New_paragraph
+This contrasts strongly with the way that transitive relationships are typically handled
+in an "assertional" database.
+The above method is an object-oriented analog of bold_font("antecedent") reasoning.
+bold_font("Consequent") reasoning can be handled as easily.
+One possible objection to this way of handling transitive
+relationships is that it places a much larger burden on the system builder.
+It also predetermines whether the piece of knowledge that "above is transitive" is to be used
+in an antecedent or consequent manner.
+Finally, the fact that "above is transitive" is not itself explicit knowledge that can be
+reasoned about.
+One way to resolve these difficulties in an object-oriented framework is to create an actor
+for transitive relationships and have "above" (among many others) be instances of it.
+The actor for transitive relationships would then know how to chain together facts and actors
+like bold_font("Block") will call upon it for help when appropriate.
+.New_paragraph
+So far we have been concerned with questions that are directed to a particular object.
+However, if no object is given then it is often awkward and expensive to find the
+one referred to in order to ask it a question.
+A question like "what is on top of the big dark block" requires more mechanism to
+answer while a global database could answer that simply as follows,
+.begin_lisp
+(ASK the-blocks-world RECALL AN ITEM MATCHING
+     (on-top-of-me {AND {big ?block} {dark ?block}} ?other-block) THEN other-block)
+.end_lisp
+Where bold_font("big") and bold_font("dark") are predicates.
+.New_paragraph
+Since by default in Director an actor has a list of all of its instances
+we can take a hybrid approach and search through such lists only when necessary.
+The above example would then be expressed as
+.begin_lisp
+(ASK block
+     BROADCAST TO YOUR OFFSPRING
+     IF (AND (big (your size)) (dark (your color))) THEN
+     (RECALL AN ITEM MATCHING (on-top-of-me ?other-block) THEN other-block))
+.end_lisp
+.New_paragraph
+The major computational advantage of an object-oriented organization
+over a more global one is that certain questions can be answered
+without any search.
+The cost is that many other questions are more awkward or expensive to answer.
+An important task of an implementor of a system in an object-oriented
+style is to anticipate those questions that will be the most frequent
+and arrange so that the objects involved directly know the answer.
+.New_paragraph
+What is expensive or awkward on a serial computer sometimes becomes cheap and straight-forward
+on very parallel machines.
+Also what is cheap and easy often becomes very expensive and difficult as one tries to take
+advantage of parallel hardware.
+Actor systems are conceptually parallel and as such much better equipped to take advantage of
+multi-processors.
+A global database, for example, must be locked to prevent timing errors and as a result
+becomes a serious computational bottleneck.
+With the same knowledge distributed among many actors only a small subset of them need to be
+bold_font(locked) at any one time.
+.define_chapter "Ani and Actors"
+.New_paragraph
+Ani is a very large program which performs a complex and creative task.
+Since Ani was implemented in an actor-based language it
+provides evidence for the claim that actors are useful building blocks
+for implementing large AI systems.
+Inside Ani each animated character is an actor, as is every descriptor, character comparison,
+choice point, plan, method, scene, relationship and activity.
+.foot
+Ideally italics(everything) in the system should be an actor.
+In Director this would be too inefficient; in languages such as Smalltalk and Act 1 this is
+not the case.
+.efoot
+The convenience of being able to place knowledge in an actor by adding items to a database
+associated with each actor and the
+power of being able to associate arbitrarily complex programs with the same actor were very
+important in easing the task of implementing and modifying Ani.
+Director's actors provide a means of chunking knowledge much in the way that frames do in FRL
+([Roberts 1977a] and [Roberts 1977b]), units do in KRL [Bobrow 1977] and experts do in XPRT
+[Steels 1979].
+The use of actors eased the task of keeping the different
+components and bodies of knowledge of Ani as independent and modular as possible.
+Without this high degree of modularity, Ani would have been much more difficult to design,
+implement, and debug.
+.New_paragraph
+The style with which an AI program is implemented is very important.
+It affects the ease of program construction and modification.
+The style strongly influences what sort of organization and structure an AI program has.
+The programming language used, in turn, strongly influences what programming styles are
+practical, convenient, and natural.
+.New_paragraph
+Ani was written partly in Lisp and partly in Director. 
+Of course the entire program italics(could) have been written in Lisp.
+The problem with using Lisp is that it does not give an implementor much support
+for writing in an object-oriented style.
+What distinguishes an object-oriented style is the organization of programs into independent
+modular units that contain both procedural and state components.
+To maintain the independence and modularity of actors they only pass messages between
+themselves.
+One cannot "reach inside" an actor to get or update information but must send it a message
+requesting the information or update.
+.New_paragraph
+Actors are important to AI not only as better building blocks for implementing intelligent
+systems.
+There is a way of thinking about how to italics(organize) complex systems that is sometimes
+called "the actor philosophy".
+It takes as the primary metaphor for modeling intelligence a community or society as opposed
+to the more traditional model as an individual.
+Knowledge and control is distributed to the extent feasible.
+This is not to suggest that it advocates anarchy over the commonly constructed hierarchical
+structure.
+There are many conventions and patterns in the way the components of a society interact.
+The implementation of Ani was strongly influenced by this view.
+For example, each source of suggestions is an independent module that puts forth its views of
+what should be done and in the case of conflicts with other sources becomes
+involved in the process of compromise or rejection that follows.
+.define_chapter "Picking a Speed for a Stepmother"
+.New_paragraph
+One of Ani's problems is to choose typical speeds for
+Cinderella, her stepmother, the fairy godmother, and the Prince
+which are in keeping with their personalities, physical characteristics, and
+the desired style of the film.
+The relative speeds of the characters
+should, in turn, be in keeping with the relationships and comparisons of the characters.
+The following is all that Ani is told about the stepmother and her relationships with other
+characters.
+.begin_lisp
+(ASK character MAKE step-mother)
+(ASK stepmother process initial description
+     (physical ugly) ;com("she is physically ugly")
+     (personality (and mean selfish strong evil))) ;com("is mean, selfish, strong and evil")
+(ASK relationship MAKE (relationship-of step-mother cinderella))
+(ASK (relationship-of step-mother cinderella) process initial description
+     (and dominates hates))) ;com("and she hates and dominates Cinderella")
+
+(ASK relationship MAKE (relationship-of cinderella step-mother))
+(ASK (relationship-of cinderella step-mother) process initial description
+     (and is-obedient-to is-tolerant-of)) ;com("and Cinderella tolerates and obeys her")
+.end_lisp
+.New_paragraph
+This section presents a high-level description of Ani choosing the stepmother's speed followed
+by a very detailed low-level "blow up" of a portion of the high-level description.
+.define_section "How Her Speed was Chosen"
+.New_paragraph
+bold_font("Choice points") are created to represent the process of picking typical speeds
+for each character.
+The choice point for the stepmother's speed, for example,
+begins by asking each of the descriptors of the stepmother for suggestions for her speed.
+Only the description bold_font("Strong") replies and suggests a high speed.
+The choice point is not happy with just that because there are not enough reliable suggestions.
+So it asks permission to be postponed to wait for
+more information to become available and it is granted.
+.New_paragraph
+When the choice point for the stepmother's speed is reawakened, it inspects its record of
+previous activations.
+It then asks the choice points for the relative speeds of the stepmother
+and the other characters for suggestions.
+These choice points are created in response to this request and they
+choose values (e.g., that the stepmother be faster than
+Cinderella because she dominates Cinderella and differs from her),
+but cannot make any concrete suggestions since none of the characters have speeds yet.
+The choice point for the stepmother's speed asks permission to postpone to wait for the
+speeds of the others to be determined and it is granted.
+.New_paragraph
+The choice points for the other characters also ask and are granted permission to postpone.
+This could potentially lead to a deadlock in which the four choice points wait
+for each other to make a decision.
+One of the reasons the choice points don't just postpone themselves, but instead ask
+permission first, is to avoid this type of situation.
+A postponement manager keeps track of the situation and will not grant someone permission to
+postpone for the same reason twice.
+A common exception to this is when the choice point is waiting for other choice points
+to finish and at least one of these is making progress.
+In this case, no one is making progress so the postponement manager must refuse permission to
+at least one of the choice points.
+.New_paragraph
+Ani is built upon the principle that as few decisions as possible be determined arbitrarily.
+The decision as to who should be refused permission to postpone has too many consequences to
+be determined by something like who asks first.
+Instead the postponement manager asks the bold_font(focus), which
+indicates that conveying the personality of Cinderella is important.
+The choice point for Cinderella's speed is refused permission
+to postpone and the deadlock is broken.
+This means Cinderella's speed will be based on the description of Cinderella
+without being constrained to be faster or slower than the others.
+.New_paragraph
+The choice point for the stepmother's speed finally gets
+suggestions from the relative choice points.
+It discovers conflicts with one of these suggestions
+and the earlier suggestion it had received from bold_font("Strong") and postpones again.
+Upon being resumed the choice point asks the descriptions of the film's style
+for suggestions and receives them from the moderate variety level,
+high energy level, and low flashiness.
+Unfortunately they do not all agree and so the choice point postpones one more time.
+.New_paragraph
+When it is reawakened
+it discovers that there are no more sources of suggestions and proceeds with what it has.
+First it attempts to make compromises between the conflicting suggestions and makes one
+that in turn generates a new conflict.
+Excuses are found for rejecting some of the conflicting suggestions.
+The choice point finally picks a high speed for the stepmother and saves away a justification
+for this choice.
+.define_section "A More Detailed Look"
+.need 4i for quote 
+.New_paragraph
+Consider the following paragraph from the previous section.
+.space
+.begin_saying
+bold_font("Choice points") are created to represent the process of picking typical speeds
+for each character.
+The choice point for the stepmother's speed, for example,
+begins by asking each of the descriptors of the stepmother for suggestions for her speed.
+Only the description bold_font("Strong") replies and suggests a high speed.
+The choice point is not happy with just that because there are not enough reliable suggestions.
+So it asks permission to be postponed to wait for
+more information to become available and it is granted...
+.end_saying
+.New_paragraph
+What do the sentences above mean?
+How does a "choice point" ask "each of the descriptors of the stepmother for suggestions for
+her speed"?
+How can one ask "permission to be postponed"?
+In this section we present very detailed answers to these questions.
+.New_paragraph
+First we consider what the sentence
+"bold_font("Choice points") are created to represent the process of picking typical speeds
+for each character" means.
+It means that some actor in Ani sent to an actor named bold_font("Absolute-Choice-Point") the
+message bold_font("make (choice-point-of stepmother speed)") as follows,
+.begin_lisp
+(ASK absolute-choice-point MAKE (choice-point-of stepmother speed))
+.end_lisp
+.New_paragraph
+This creates an actor named bold_font("(Choice-Point-Of Stepmother Speed)") which is
+an instance of bold_font("Absolute-Choice-Point").
+This newly created actor just knows its task which is to choose a speed for the stepmother.
+When it cannot handle a message it will ask bold_font("Absolute-Choice-Point"), its parent,
+to handle it.
+bold_font("Absolute-Choice-Point") can handle a few trivial messages
+and otherwise passes them on along to bold_font("Choice-Point") who can handle
+about ten different messages ranging from requests for
+making a choice to receiving and combining groups of suggestions.
+bold_font("Choice-Point") in turn passes those messages
+it cannot handle on up to bold_font("Something"), Director's prototypical actor.
+The piece of the inheritance hierarchy involved in this example is depicted below.
+.show_picture "ken;tree pict" 5500 2 4i "A Piece of the Inheritance Hierarchy"
+.New_paragraph
+Some actor wants to know what the stepmother's speed is so it sends the new choice point
+a message asking it for its choice as follows.
+.begin_lisp
+(ASK (choice-point-of stepmother speed) RECALL YOUR choice)
+.end_lisp
+A method for bold_font("recall your choice") is found in bold_font("Choice-Point").
+.foot
+If there was no such method,
+the general method for messages matching bold_font("(recall your ?)") would have been found
+in the primitive actor named bold_font("Something") instead.
+.efoot
+The real method is quite long and complex so what follows is a simplified version.
+The method was added to bold_font("Choice-Point") as follows.
+.begin_lisp
+(ASK choice-point DO WHEN RECEIVING (recall your choice)
+     ;com("If the message ""recall your choice"" is sent, then")
+     (COND ((I RECALL MY current-choice)) ;com("I answer with my current choice if I have one.")
+           (T ;com("otherwise")
+            (LET ((postponement-reasons (I RECALL MY postponement-reasons)))
+                 ;com("I recall what my reasons for previously postponing were.")
+                 (COND ((NULL postponement-reasons)
+                        ;com("There are no reasons so this is my first try")
+                        (I combine suggestions
+                           ;com("I combine the suggestions I get by asking")
+                           !`(I collect suggestions from ;com("myself for suggestions from")
+                                ;com("the first of my suggestion sources")
+                                `(FIRST (I RECALL MY suggestion-sources)))))
+                       (T ;com("If I've previously postponed work on my choice")
+                        (I continue to recall my choice
+                           ;com("I try to continue taking into account the most recent difficulty")
+                           ;com("The methods for handling this sometimes gather more")
+                           ;com("information sometimes resolve old conflicts between suggestions")
+                           ;com("and sometimes try to postpone work until more is known")
+                           despite `(FIRST postponement-reasons))))))))
+.end_lisp
+The running of this method produces the following series of transmissions.
+.begin_lisp
+;com("First see if a value is already chosen and if so it is returned")
+(ASK (choice-point-of stepmother speed) RECALL YOUR current-choice)
+NIL ;com("NIL is returned indicating no choice has been made yet")
+.end_lisp
+.begin_lisp
+;com("Next see if a previous attempt to choose a value temporarily gave up")
+(ASK (choice-point-of stepmother speed) RECALL YOUR postponement-reasons)
+NIL ;com("The NIL returned means that this is first time it has been asked for a value.")
+.end_lisp
+.begin_lisp
+;com("Now see what the possible sources of suggestions are.")
+(ask (choice-point-of stepmother speed) recall your suggestion-sources)
+;com("The following is returned after being found in ""absolute-choice-point""".)
+((absolute-suggestions ;com("These first three sources are grouped together")
+  neighbors-absolute-suggestions ;com("indicating that they should be explored together.")
+  opposites-absolute-suggestions)
+ relative-suggestions
+ global-suggestions)
+
+;com("This results in the next transmission")
+(ASK (choice-point-of stepmother speed)
+     collect suggestions from (absolute-suggestions
+                               neighbors-absolute-suggestions
+                               opposites-absolute-suggestions))
+.end_lisp
+.New_paragraph
+The last transmission invokes a method search which finds the following
+method in "choice-point".
+.begin_lisp
+(ASK choice-point DO WHEN RECEIVING
+     (collect suggestions from (?first-suggestion-source %rest-of-the-sources))
+     ;com("When I get a message asking me to collect suggestions from a list of sources")
+     ;com("I gather up the suggestions from the first of the sources")
+     ;com("and combine them with those from the rest of the sources")
+     (APPEND (I collect suggestions from `first-suggestion-source)
+             (I collect suggestions from `rest-of-the-sources)))
+.end_lisp
+This method is placed near the end of the list of the methods in "choice-point".
+Before it are methods for actually collecting suggestions from a single source.
+An example is the following one for collecting what are called "absolute-suggestions".
+.begin_lisp
+(ASK choice-point
+     DO WHEN RECEIVING (collect suggestions from absolute-suggestions)
+     ;com("when I get a message asking for absolute suggestions")
+     (I ASK MY thing ;com("I ask my thing, i.e. the object I am making some choice about")
+        ;com("to collect suggestions for the element or aspect of my thing that I am choosing")
+        collect suggestions for `(I RECALL MY element)))
+.end_lisp
+.New_paragraph
+This method causes a message to be sent to the "stepmother" asking her to collect
+suggestions for her speed as follows.
+.begin_lisp
+(ASK stepmother collect suggestions for speed)
+.end_lisp
+The method invoked by this transmission had originally been added to
+an actor named "character", the stepmother's parent, as follows.
+.begin_lisp
+(ASK character DO WHEN RECEIVING (collect suggestions for ?element)
+     ;com("when I get a message asking for suggestions for an aspect of myself")
+     (I RECALL EACH ITEM MATCHING
+        ;com("then for every item in my database that matches the following pattern")
+        (description type ? ;com("any type of descriptor is fine")
+                     descriptor ?the-descriptor ;com("call the descriptor ""the-descriptor""")
+                     source ?) ;com("any source")
+        THEN (SCRIPT
+        (ASK ,the-descriptor COLLECT ITEMS MEMORIZED MATCHING
+             ;com("then I ask the descriptor to search its database for items")
+             ;com("matching the following pattern")
+             (suggestion element ,element
+                         ;com("a suggestion whose element is what we are looking for")
+                         value ?
+                         strength ?
+                         source ?)))))
+.end_lisp
+.New_paragraph
+We are now at the point corresponding to
+"The choice point for the stepmother's speed, for example,
+begins by asking each of the descriptors of the stepmother for suggestions for her speed".
+The method above initiates the following transmission
+.begin_lisp
+(ASK stepmother RECALL EACH ITEM MATCHING
+     (description type ?
+                  descriptor ?the-descriptor
+                  source ?)
+     THEN
+     (ASK `the-descriptor COLLECT ITEMS MEMORIZED MATCHING
+          (suggestion element speed
+                      value ?
+                      strength ?
+                      source ?)))
+.end_lisp
+Which in turn generates the following transmissions.
+.begin_lisp
+(ASK ugly COLLECT ITEMS MEMORIZED MATCHING ;com("ugly is a descriptor of the stepmother")
+          (suggestion element speed
+                      value ?
+                      strength ?
+                      source ?))
+NIL ;com("""Ugly"" has no suggestions for speed")
+.end_lisp
+.begin_lisp
+(ASK strong COLLECT ITEMS MEMORIZED MATCHING
+            (suggestion element speed
+                        value ?
+                        strength ?
+                        source ?))
+;com("It turns out that only ""strong"" has a suggestion, the following one")
+(suggestion element speed
+            value high
+            strength medium
+            source strong)
+
+;com("""evil"", ""mean"", and ""selfish"" are also asked for suggestions and reply NIL")
+.end_lisp
+.New_paragraph
+We have just witnessed what was described in the third sentence,
+"Only the description bold_font("Strong") replies and suggests a high speed".
+.New_paragraph
+This suggestion from bold_font("Strong") is then returned by the bold_font("Stepmother").
+The bold_font("(Choice-Point-Of Stepmother Speed)") also returns the suggestion from 
+bold_font("Strong") in response to the message
+bold_font("(collect suggestions for absolute-suggestions)").
+There are still two other suggestion sources waiting to be tapped
+bold_font("Neighbors-Absolute-Suggestions") and bold_font("Opposites-Absolute-Suggestions").
+They refer to suggestions from the synonyms and antonyms of the descriptors of the stepmother.
+The methods for collecting these suggestions are similar to the ones just described.
+In this case they return no suggestions at all.
+.New_paragraph
+The suggestions gathered are then combined with any other suggestions previously gathered.
+In this case there is only the one from bold_font("Strong"),
+so no conflicts are looked for, no compromises sought, or problems postponed.
+.foot
+"Combining" is a complex process that would at least double the length of this section
+if included.
+.efoot
+This suggestion from bold_font("Strong") is added to the bold_font("(Choice-Point-Of Stepmother Speed)").
+The bold_font("suggestion-sources") of the bold_font("(Choice-Point-Of Stepmother Speed)")
+is set to those sources left, i.e. bold_font("(relative-suggestions global-suggestions)").
+.New_paragraph
+We are now near the end of the paragraph.
+"The choice point is not happy with just that
+because there are not enough reliable suggestions.
+So it asks permission to be postponed to wait for
+more information to become available and it is granted."
+An actor called bold_font("Postponement-manager") is then consulted as to what to do.
+.begin_lisp
+(ASK postponement-manager
+     should (choice-point-of stepmother speed) postpone with ;com("the following suggestions")
+     ((suggestion element speed 
+                  value high
+                  strength medium
+                  source strong)) ;com("and the following number of conflicts")
+     0 conflicts)
+;com("The answer from Postponement-manager to postpone follows.")
+(postponed not-happy-enough)
+.end_lisp
+bold_font("Postponement-manager") compared the suggestion in the message with the
+bold_font("minimally-good-sample-suggestion") of the
+bold_font("(Choice-Point-Of Stepmother Speed)")
+(which it inherited from bold_font("Absolute-Choice-Point") and was set
+initially by the bold_font("Focus")).
+The comparison in this case indicates that the suggestion from bold_font("Strong")
+is not good enough and so bold_font("Postponement-manager") says to postpone.
+.New_paragraph
+The bold_font("(Choice-Point-Of Stepmother Speed)") then remembers the reason.
+.begin_lisp
+(ask (choice-point-of stepmother speed)
+     add not-happy-enough to your list of postponement-reasons regardless)
+.end_lisp
+At this point the choice point has altered its internal state so that upon reawakening
+it will know why it postponed previously, what sources of suggestions are left, which
+ones have yielded suggestions, what the suggestions have been gathered so far are, and
+what conflicts have yet to be resolved.
+.New_paragraph
+The choice point finally returns bold_font("(postponed not-happy-enough)") in response
+to the original message bold_font("choose a value").
+By doing this it has indicated to the actor that originally
+asked it for its choice that it has postponed its choice until later (and why).
+This actor can itself try to postpone to wait
+for bold_font("(Choice-Point-Of Stepmother Speed)")
+or can decide to go ahead without knowing
+how bold_font("(Choice-Point-Of Stepmother Speed)") will decide.
+.New_paragraph
+Conceptually all the choice points are running in parallel and when they run into
+difficulties it is up to them to ask permission to go to sleep.
+It is typically to the choice point's advantage to sleep (i.e. postpone work on its problem)
+when faced with difficulties because upon awakening more information is available.
+It is to the system's advantage to grant permission to sleep since it frees up computational
+resources.
+However, to make sure that some progress is being made it is necessary to have a postponement
+manager with a more global view of the situation which occasionally refuses permission to
+postpone thereby forcing the choice point in question to make due despite its difficulties.
+.New_paragraph
+Rather than the more conventional manner of putting processes to sleep by saving their
+state and having them resume computation at the same point they were interrupted,
+the choice points save away what state information they please and are woken by simply
+sending them a message to requesting a choice.
+It is up to the choice point whether to go back to what it was doing when it went to sleep
+or to try something new.
+The explicit form of italics(memoization) of partial results and difficulties by choice points
+proved to be flexible and general.
+It is up to each actor to obtain permission to postpone and to save away what it wants
+for its reawakening.
+The major disadvantage of this explicit memoization
+is that any actor that uses it must have code that decides to postpone, that records
+some state information, and inspects such information upon reawakening.
+The inheritance of methods and state from more generic actors greatly reduces this
+burden on an implementor however.
+.New_paragraph
+This long description of just the first attempt (out of ten)
+to choose a typical speed for the stepmother is still sketchy.
+I hope it has served its purpose of conveying what is it is like to build
+a reasoning system which operates as a society of experts.
+.need 3i
+.source ken;dianib
+.need 1.5i
+.space 2
+.center "t Acknowledgements r"
+Henry Lieberman, Luc Steels, Bill Kornfeld and Carl Hewitt.

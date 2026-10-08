@@ -1,0 +1,395 @@
+ -*-text-*-
+.eq set_number nr
+.set_number print_headings 1
+.set_number print_footings 1
+.set_number picture_fonts 1
+.so ken;rmacs >
+ this is for papers that require fanciness
+.define_comment fancy  for tags
+.
+.translate_character 0 _   makes _ look like a space in the 0th font
+.translate_character 1 _  
+.translate_character 2 _  
+.translate_character 3 _  
+.translate_character 4 _  
+.translate_character 5 _  
+.translate_character 6 _  
+.translate_character 7 _  
+.translate_character 8 _  
+.translate_character 9 _  
+ the other numbers are usually picture fonts which definitely should not be translated
+.
+.define define_paper_title   the abbrev for this is dpt
+.set paper_title \0
+.set toc_blurb \\t \0 \n
+.if nargs>1
+.set short_paper_title \1
+.else
+.set short_paper_title \0
+.end
+.em
+
+.define final_copy
+ turns off the draft and date and time stuff 
+.set left_footing
+.set right_footing
+.set chapter_form \\\\:chapter.  \\section_title
+.set section_form \\;section.  \\section_title
+.if nargs>0
+.set right_heading
+.set left_heading
+.set center_heading
+.end
+.em
+.define photo_offset
+ makes it come out in 4 by 10 inch columns single spaced etc.
+.line_spacing .875
+.set_margins 1000 3250  moved over to avoid a scratch on the xgp's drum
+.set_margins 1700 2550
+.page_length 12i
+.define define_chapter
+.space .3
+\.center "t\\0r"
+.break
+\.em
+.define define_section
+\.space .1
+\b\\0r 
+\.em
+.define define_subsection
+\.define_section "\\0"
+\.em
+.define New_paragraph
+\.space .5
+\.em
+.em
+.
+.number_default no_footings_or_headings 0
+.if no_footings_or_headings
+.set left_heading
+.set center_heading
+.set right_heading
+.set left_footing
+.set center_footing
+.set right_footing
+.else
+.set left_heading \short_paper_title
+.set center_heading \section_title
+.set right_heading Kenneth Kahn
+.set left_footing \tDraftr
+.set center_footing Page - \page
+.set right_footing \date   \time
+.end
+.set short_paper_title
+.set paper_title
+.set chapter_form \Section \:chapter    \section_title
+.set chapter_toc_form Section \:chapter.  \section_title . \page
+.set section_form Subsection \;section  \section_title
+.set section_toc_form \    \;section.  \section_title . \page
+.set subsection_form  \section_title
+.set subsection_toc_form \      \subsection.  \section_title . \page
+.set subsubsection_form  \section_title
+.set subsubsection_toc_form \         \,subsubsection.  \section_title . \page
+.set subsubsubsection_form \section_title
+.set subsubsubsection_toc_form \            \.subsubsubsection.  \section_title . \page	
+.set_number toc_level 4
+.set_number chapter_toc_font bold_font
+.set_number section_toc_font bold_font
+.set_number heading_font small_font
+.set_number footing_font small_font
+.set_number section_headings 0
+.set_number chapter_starts_page 1 I used to do the force_out and new_page myself
+.set list_indent -4  should make the list number stick out by four lisp font characters
+.set list_left_margin 500m  the default of 800m was a little too much
+.set list_right_margin 500m
+. the following are obsolete and kept only for compatibility with old papers
+.define paper_title
+.set paper_title \0
+.if nargs>1
+.set short_paper_title \1
+.else
+.set short_paper_title \0
+.end
+.em
+
+.define begin_bib
+.break
+.begin_env
+.nofill
+.line_space 1
+.em
+
+.define end_bib
+.end_env
+.em
+
+.define bib_entry
+.space 1
+.keep end_entry
+.em
+
+.define end_entry
+.end_keep
+.em
+
+.define begin_list
+.need 5l  need more space to begin a list
+.font_select lisp_font
+.list
+(\,list_count)\n
+.em
+
+.define next_element
+.font_select lisp_font
+.next  does a normal next list element
+(\,list_count)\n
+.em
+.
+.set_number figure_count 0 initialize the figure_count
+.
+.define begin_table_of_figures
+.new_page
+.add_to_macro exit_macro
+.figure_table
+\.em
+.set_number figure_table_page_number \page
+.if nargs>0
+.set_number page \page+\0
+.else
+.set_number page \page+1
+.end
+.em
+.define figure_table
+.set section_title Table of Figuresfor the heading to be right
+.new_page
+.set_number page \figure_table_page_number
+.center "t Table of Figures b" the figure table is in bold font
+.space 2
+.nofill
+.em
+.
+.define begin_figure
+.if nargs>0
+.need \0
+.else
+.need 5i
+.end
+.begin_env
+.line_space 1
+.nofill
+.font_select lisp_font
+.em
+.
+.number_default figures_with_chapter_numbers 0
+.
+.define end_figure
+.end_env
+.begin_env
+.font_select bold_font
+.set_number figure_count \figure_count+1
+.space .618i
+.if \chapter&\figures_with_chapter_numbers
+.center "Figure \chapter.\figure_count  \0"
+.add_to_macro Figure_table
+Figure \chapter.\figure_count  \0 \.\ \page
+\.em
+.else
+.center "Figure \figure_count  \0"
+.add_to_macro Figure_table
+Figure \figure_count  \0 \.\ \page
+\.em
+.end
+.space
+.end_env
+.em
+.
+.number_default margin_offset 0
+.
+.define begin_saying
+ this is for inserting textual quotes into the text
+.begin_env
+.space
+.line_spacing 1
+.font_select italic_font
+.narrow +5
+.keep end_saying
+.em
+.
+.define end_saying
+.end_keep
+.font_select footnote_font
+.if nargs>0
+.space
+---\0right flushed
+.else
+.end
+.end_env
+.space
+.em
+.
+.define narrow
+.indent (\margin_offset)m when I want things in the margin I fake it out with this
+.indent \0
+.right_indent \0
+.em
+.
+.number_default multiple_chapters 0
+.
+.define define_chapter   these names are better since I want tags to pick up on it
+.chapter_or_appendix "\0" Chapter
+.em
+.
+.define define_appendix 
+.chapter_or_appendix "\0" Appendix
+.set_number section 0 since the appendix macro doesn't (for toc to look right)
+.em
+.
+.define chapter_or_appendix
+.\1 "\0" call either chapter or appendix
+.em
+.
+.define define_section
+.set section_title \0
+I set this before the need so that if I go to a new page it has the most current heading 
+.need 3i  need more space to start a section
+.section "\0"
+.New_paragraph don't really always want it and can do it myself fine
+.em
+.define define_subsection
+.set section_title \0
+.need 2.5i  need some space to start a section
+.subsection "\0"
+.em
+.define define_subsubsection
+.set section_title \0
+.need 2.5i  need some space to start a section
+.subsubsection "\0"
+.em
+.
+.set space   a space should be there
+.define stringify  this turns an atom into string by changing its _ to spaces
+ it takes two arguments where to stuff the answer and what the atom is
+.substitute \0 \space _ "\1" subst space for _ in second arg and put it in result 
+.em
+.define cleanup_string  this removes bad characters from a string (eg - ? .)
+ it takes two arguments where to stuff the answer and what the atom is
+.set result \1
+.any_such_characters_in yes "-?.,'/" "\1"
+.if \yes
+ subst nothing for - in second arg and put it in result 
+.substitute result "" - \result
+.substitute result "" ? \result
+.substitute result "" . \result
+.substitute result "" , \result
+.substitute result "" ' \result
+.substitute result "" / \result
+.end
+.set \0 \result
+.em
+.
+.define any_such_characters_in
+ 0 is for the result
+ 1 is the characters in question
+ 2 is the string
+.set chars \1
+.set s \2 string
+.set_number \0 0 there are none in there unless we find one
+.string_length n chars
+ for effecieny I use: sb  substring ; si  string_index ; nr  set_number 
+.while n
+.sb char chars \n 1
+.si there char s
+.if \there
+.nr n 0 stop the recursion
+.nr \0 1 there are such characters in there
+.else
+.nr n \n-1
+.end the if-else
+.end the while loop
+.em
+.
+.set_number i
+.set temp
+.define substitute  same as next one but keeps doing it until all occurences are substed
+ eg substitute result x {for} y {in} z
+.set x \1 replacement
+.set y \2 looking_for
+.set z \3 partial_result
+.string_compare space_if_zero space x
+.string_index i y z
+ for effecieny I use: sb  substring ; si  string_index ; nr  set_number 
+ i was where_first_is (ie the index)
+.while i
+.subst_once temp "\x" \y "\z" \i \space_if_zero
+.set z \temp
+.si i y z
+.end
+.set \0 \z
+.em
+.
+.set_number i
+.set_number out was length_taken_out
+.set first
+.set rest
+.define subst_once
+ 0 = where to put result
+ 1 = what to replace it with
+ 2 = what to look for
+ 3 = where to find it all
+ 4 (if there is one) = i
+create these variables
+.set x \1
+.set y \2
+.set source \3
+.sl out y string_length
+.if nargs>3
+.nr i \4
+.else
+.si i y source
+.end
+.substring first source 0 \i-\out
+put in first that up to first occurence
+.sb rest source \i+\out substring
+ put it all together now
+.if nargs>4
+.nr space_if_zero \5
+.else
+.sc space_if_zero space x
+.end
+.if space_if_zero==0
+ make it with spaces rather than one long string with control-q-ed spaces in it
+.set \0 \first \rest
+.else
+.set first \first\\x
+.set \0 \first\\rest
+.end
+.em
+.
+.number_default show_pictures 1
+.
+.define show_picture
+ arg 0 is the file name
+ arg 1 is the width in mils (used to center the picture)
+ arg 2 is the font size (1 2 or 3)
+ arg 3 is the size of the picture (amount needed so I don't have read twice with keep)
+ arg 4 is the caption to go under the picture
+.begin_figure \3
+.if show_pictures
+.read_picture "\0" margin_offset+((ll-\1)/2) \2 thats half the line length minus the width
+.else
+.space \3
+.end
+.end_figure "\4"
+.type "Page \page has figure \4"
+.em
+.
+.source libdoc;tv2r r2xgp the picture reading stuff
+.
+.
+.define set_margins
+ 0 is the left and 1 is the right -- both in mils
+.even_offset \0m
+.odd_offset \0m
+.line_length (8375-(\0+\1))m
+.em
+.

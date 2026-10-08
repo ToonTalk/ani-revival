@@ -1,0 +1,145 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment sugrel) ;;for tags
+
+;;this file is the part of dot ani that collects suggestions from relationships and comparisons
+;;and tries to make some sense of them
+
+(define-function collect-relationship-and-comparison-suggestions (element comparison)
+ (let ((character1 (second comparison))
+       (character2 (third comparison)))
+      (collect-relationship-and-comparison-suggestions1
+       character1
+       '(relationship-of ,character1 ,character2)
+       character2
+       '(relationship-of ,character2 ,character1)
+       comparison
+       element)))
+
+							
+(define-function collect-relationship-and-comparison-suggestions1 
+	 (character1 relationship1 character2 relationship2 comparison element)
+
+ (let ((character-description1
+	(ask ,character1 collect items memorized matching 
+		     (uniqueness-summary: uniqueness-level ?
+					  descriptor-type ?
+					  of-who ?)))
+      (character-description2
+       (ask ,character2 collect items memorized matching 
+		    (uniqueness-summary: uniqueness-level ?
+					 descriptor-type ?
+					 of-who ?)))
+      (relationship1-descriptions
+       (and (exists? relationship1)
+	    (ask ,relationship1 collect items memorized matching
+			    (description: type ?
+					  descriptor ?relationship-descriptor
+					  source ?))))
+      (relationship2-descriptions
+       (and (exists? relationship2)
+	    (ask ,relationship2 collect items memorized matching
+			    (description: type ?
+					  descriptor ?relationship-descriptor
+					  source ?))))
+      (comparison-description
+       (ask ,comparison collect items memorized matching
+	    (comparison-summary: similarity-level ?
+				 descriptor-type ?
+				 of-who ?)))
+      (element-name (cond ((atom element) element)
+			  (t (first element)))))
+      (flush-inappropriate-suggestions
+       (append
+	(gather-relative-suggestions-character character-description1 element-name character1)
+	(gather-relative-suggestions-character character-description2 element-name character2)
+	(gather-relative-suggestions-relationship relationship1-descriptions
+						  element-name character1 character2)
+	(gather-relative-suggestions-relationship relationship2-descriptions
+						  element-name character2 character1)
+	(gather-relative-suggestions-comparison comparison-description element-name
+						character1 character2))
+       element-name
+       character1 character2)))
+
+
+(define-function flush-inappropriate-suggestions
+		 (suggestions element-name character1 character2)
+ (do ((s suggestions (rest s))
+      (correct-element '(,element-name ,character1 ,character2))
+      (reversed-element '(,element-name ,character2 ,character1))
+      (good-ones nil))
+     ((null s) good-ones)
+     (let ((element (get (first s) 'element))
+	   (suggestion (first s)))
+	  (cond ((match correct-element element) ;;I use match since element may have ?
+		 (setq good-ones
+		       (cons (replaceprop suggestion correct-element 'element)
+			     good-ones)))
+		((match reversed-element element)
+		 (setq good-ones
+		       (cons
+			'(suggestion: element ,correct-element
+				      value ,(ask ,(get suggestion 'value)
+						  recall your negative)
+				      strength ,(get suggestion 'strength)
+				      source ,(get suggestion 'source))
+			good-ones)))))))
+
+;;the charcter-description is a list of:
+;;(uniqueness-summary: uniqueness-level high
+;;		      descriptor-type personality
+;;                    of-who cinderella)
+
+(define-function gather-relative-suggestions-character 
+		 (character-description element-name character)
+ (do ((d character-description (rest d))
+      (suggestions nil))
+     ((null d) suggestions)
+     (setq suggestions
+	   (append suggestions
+		   (ask uniqueness-summary: collect items memorized matching
+			(suggestion: element (,element-name ,character ?)
+				     value ?
+				     strength ?
+				     source ,(first d)))))))
+
+;;the comparison-description is a list of:
+;;(comparison-summary: similarity-level (positive high)
+;;		       descriptor-type personality
+;;                     of-who ?)
+
+(define-function gather-relative-suggestions-comparison 
+		 (comparison-description element-name character1 character2)
+ (do ((d comparison-description (rest d))
+      (suggestions nil))
+     ((null d) suggestions)
+     (setq suggestions
+	   (append suggestions
+		   (ask comparison-summary:
+			collect items memorized matching
+			(suggestion: element (,element-name ,character1 ,character2)
+				     value ?
+				     strength ?
+				     source ,(first d)))))))
+
+(define-function gather-relative-suggestions-relationship 
+		 (descriptions element-name character1 character2)
+ (do ((d descriptions (rest d))
+      (suggestions nil))
+     ((null d) suggestions)
+     (let ((descriptor (get (first d) 'descriptor)))
+	  (ask relationship-descriptor if new make ,descriptor)
+	  (setq suggestions
+		(append
+		 suggestions
+		 (ask ,descriptor
+		      collect items memorized matching
+		      (suggestion: element (,element-name ,character1 ,character2)
+				   value ?
+				   strength ?
+				   source ?)))))))
+
+

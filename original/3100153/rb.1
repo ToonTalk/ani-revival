@@ -1,0 +1,23 @@
+(defun make-rainbow (length)
+       (append (mcolori 'red 'yellow (// length 3))
+	       (cdr (mcolori 'yellow 'green (// length 3)))
+	       (cdr (mcolori 'green 'blue (// length 3)))))
+
+(defun alt-color (length pause)
+       ((lambda (rainbow)
+		(do ((rb rainbow (cdr rb))
+		     (rrb (reverse rainbow) (cdr rrb))
+		     (i length (1- i)))
+		    ((= 0 i))
+		    (erc (car rb))
+		    (wait pause)
+		    (erc (car rrb))
+		    (wait pause)))
+	(make-rainbow (// length 2))))
+
+(defun wait (pause)
+       (cond ((numberp pause) (sleep pause))
+	     ((eq pause 'camera) (click) (sleep :exposure))
+	     (t (princ '*) (tyi))))
+		    
+		    

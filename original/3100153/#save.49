@@ -1,0 +1,71 @@
+
+
+(declare  (fasload qq))
+
+(defun write-actors (:filename :the-actors :expand?)
+	(uwrite)
+(setsyntax 46. 192. nil) ;slashifies
+	((lambda (^r ^w *nopoint)
+(cond (:expand? (print '(declare
+			(special :message :matched? :self :values :drawturtle :turtles
+				 :eraseturtle :variables :? :% no-value nothing-found
+				 :seeturtle :fucked.with.seeturtle :new.interpolation)
+			 (alloc '(list (200000 300000 .35)))
+			 (defun output macro (a) (cons 'return (cdr a)))
+			`(cons 'special :actors))))
+      (t (print '(declare
+		  (*fexpr receive cases cant.happen superbreak eval.if.application)
+		 (setq ibase 10.)
+	 	 (special :message :matched? :self :values :variables :? :%
+			  no-value nothing-found)
+		 (defun output macro (a) (cons 'return (cdr a)))
+		 `(cons 'special :actors)
+		 (fasload qq)))))
+(print '(declare (eval (read))))
+(print '(progn
+(DEFUN OPEN-BRACE-MACRO NIL '/{)
+(DEFUN close-BRACE-MACRO NIL '/}) 
+(setsyntax 123. 'macro 'open-brace-macro)
+(setsyntax 125. 'macro 'close-brace-macro)))
+	(mapc (function
+	       (lambda (actor)
+		       (cond (:expand? (print '(defprop `(eval actor)
+					  	  `(actor-expand (eval actor))
+					  	   expr)))
+			     (t (print '(declare (setq :self `actor)))
+				(apply 'grindef (list (eval actor)))))
+		       (print (list 'setq actor (list 'quote (eval actor))))
+		       (print (list 'defprop (eval actor)
+				    (get (eval actor) '%memory) '%memory))
+		       (save-memory (eval actor) (get (eval actor) '%memory))
+		       (print (list 'defprop (eval actor)
+				    (get (eval actor) '%variables)
+				    '%variables))
+		       (save-memory (eval actor) (get (eval actor) '%variables))))
+	      :the-actors)
+	 (print '(declare (setsyntax 46. 139712. nil))))
+	 t t nil)
+	(apply 'ufile :filename)
+       (SETSYNTAX 46. 128. NIL))
+
+(defun actor-expand (:self)
+ (macro-expand (get :self 'expr)))
+
+
+(defun save-memory (actor memory-list)
+       (mapc (function (lambda (indicator)
+			 (print (list 'defprop actor (get actor indicator) indicator))))
+		memory-list))
+
+(defun compile (:filename :the-actors)
+(write-actors :filename :the-actors t)
+(valret
+ (implode (append '(/ : n c o m p l r / )
+			  (explodec (car :filename))
+			  '(/ )
+			  (explodec (cadr :filename))
+			  '(/  /( f k u w /) /
+  j /   p /)))))
+	 
+
+

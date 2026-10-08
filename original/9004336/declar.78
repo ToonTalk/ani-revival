@@ -1,0 +1,20 @@
+;; -*-lisp-*-
+;;when compiling this should include decla2 > where the real declarations are
+
+(eval-when (eval compile)
+ (cond ((not (status feature lispm))
+	(defun if-for-maclisp macro (x)
+	       (cons 'progn (cons ''compile (cdr x))))
+	(defun if-for-lispm macro (x)
+	       '(quote nil))
+	(defun if-for-maclisp-else-lispm macro (x)
+	       (cadr x)))))
+
+(declare 
+ (cond ((status features director-declarations)) ;;do nothing if done already
+       ((status features complr)  ;;since I'm in the compiler
+	(load '|ken;decla2 >|))
+       (t (if-for-lispm (load '|ken;decla2 >|))))
+ (sstatus feature director-declarations))
+
+

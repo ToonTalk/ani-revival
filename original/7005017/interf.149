@@ -1,0 +1,944 @@
+;;-*-lisp-*-
+;;this supports a symbolic description of the position of a character
+;;and other stuff that is at the interface of the two
+;;it is used by both director and ani
+
+(include |ai:ken;declare >|)
+
+(defcomment interf) ;;for tags
+
+(define-function position-between n
+ (position-between-1 (arg 1) (arg 2) (arg 3) (arg 4) (arg 5) (arg 6)
+		     (cond ((> n 6) (arg 7))
+			   (t 0.0))
+		     (cond ((> n 7) (arg 8))
+			   (t nil)))) ;;dont keep on stage as default
+
+(define-function position-between-1 (place1 place2 subscene desired-minimum-distance
+				     fraction-if-happy fraction-if-unhappy additional-distance
+				     keep-on-stage?)
+ ;;if the distance is at least desired-minimum-distance then position fraction-if-happy
+ ;;of the way to place2 from place1 is returned otherwise fraction-if-unhappy is used
+ (let ((xy-position-1 (find-xy-position place1 subscene))
+       (xy-position-2 (find-xy-position place2 subscene)))
+      (cond ((or (eq (first xy-position-1) 'missing-location-of)
+		 (eq (first xy-position-2) 'missing-location-of))
+	     (merge-missing-locations xy-position-1 xy-position-2))
+	    ((or (eq (first xy-position-1) 'symbolic-position)
+		 (eq (first xy-position-2) 'symbolic-position))
+	     '(symbolic-position (position-between-1 ,place1 ,place2 ,subscene
+						     ,desired-minimum-distance
+						     ,fraction-if-happy
+						     ,fraction-if-unhappy
+						     ,additional-distance
+						     ,keep-on-stage?)))
+	    (t (let ((distance (screen-fraction-between xy-position-1 xy-position-2 subscene)))
+		    (move-from-xy-position
+		     xy-position-1
+		     xy-position-2
+		     (cond ((> distance desired-minimum-distance)
+			    (+$ (*$ fraction-if-happy distance) additional-distance))
+			   (t (+$ (*$ fraction-if-unhappy distance) additional-distance)))
+		     keep-on-stage?))))))
+
+(define-function distance-from-position-between
+		 (place1 place2 subscene desired-minimum-distance
+			 fraction-if-happy fraction-if-unhappy additional-distance)
+ ;;this is just the part of the previous function that figures out how much to go from place1
+ (let ((xy-position-1 (find-xy-position place1 subscene))
+       (xy-position-2 (find-xy-position place2 subscene)))
+      (cond ((or (eq (first xy-position-1) 'missing-location-of)
+		 (eq (first xy-position-2) 'missing-location-of))
+	     (merge-missing-locations xy-position-1 xy-position-2))
+	    (t (let ((distance (screen-fraction-between xy-position-1 xy-position-2 subscene)))
+		    (cond ((eq (first distance) 'symbolic-position) distance)
+			  ((> distance desired-minimum-distance)
+			   (+$ (*$ fraction-if-happy distance) additional-distance))
+			  (t (+$ (*$ fraction-if-unhappy distance) additional-distance))))))))
+
+
+(define-function towards-by-distance (place1 place2 subscene distance keep-on-stage?)
+ ;;if can move towards place2 from place1 distance of the screen
+ (let ((xy-position-1 (find-xy-position place1 subscene))
+       (xy-position-2 (find-xy-position place2 subscene)))
+      (cond ((or (eq (first xy-position-1) 'missing-location-of)
+		 (eq (first xy-position-2) 'missing-location-of))
+	     (merge-missing-locations xy-position-1 xy-position-2))
+	    ((or (eq (first xy-position-1) 'symbolic-position)
+		 (eq (first xy-position-2) 'symbolic-position))
+	     '(symbolic-position
+	       (move-from-xy-position ,place1 ,place2 ,distance ,ýyrð[ýû–óéage?)))
+	    (t (move-from-xy-position xy-position-1 xy-position-2 distance keep-on-stage?)))))
+
+
+(define-function away-from-by-distance (place1 place2 subscene distance keep-on-stage?)
+ ;;move in opposite direction as previous one
+ (towards-by-distance place1 place2 subscene (-$ distance) keep-on-stage?))
+
+
+;;this is way I want it but can't load in the turtle into ani so the following should be ok
+;;(define-function move-from-xy-position (position-1 position-2 distance)
+;; ;;returns an xy-position distance from position-1 towards position-2
+;; (penup)
+;; (setturtle (rest position-1))
+;; (setheading (bearing (rest position-2)))
+;; (forward distance)
+;; '(xy-position ,:xcor ,:ycor))
+;;
+
+(define-function move-from-xy-position (position-1 position-2 distance keep-on-stage?)
+ ;;based on equivalent triangles
+ ;;also keeps the goal on stage
+ (let (((nil x-1 y-1) position-1)
+       ((nil x-2 y-2) position-2))
+      (let ((x-distance (-$ x-2 x-1))
+	    (y-distance (-$ y-2 y-1)))
+	   (let ((distance-apart (xy-distance x-distance y-distance)))
+		(let ((fraction-to-go (//$ distance distance-apart)))
+		     (let ((delta-x (*$ fraction-to-go x-distance))
+			   (delta-y (*$ fraction-to-go y-distance)))
+			  (move-from-xy-position-1  x-1
+						    y-1
+						    (+$ x-1 delta-x)
+						    (+$ y-1 delta-y)
+						    delta-x
+						    delta-y
+						    keep-on-stage?)))))))
+
+
+(define-function move-from-xy-position-1
+		 (old-x old-y new-x new-y delta-x delta-y keep-on-stage?)
+ (cond ((or (not keep-on-stage?) (and (< (abs new-x) .5) (< (abs new-y) .5)))
+	'(xy-position ,new-x ,new-y)) ;;in range
+       ((and (< (abs old-x) .5) (< (abs old-y) .5)) ;;wasn't off to start with
+	(move-from-xy-position-1 old-x old-y
+				 (+$ old-x (*$ .5 delta-x)) (+$ old-y (*$ .5 delta-y))
+				 (*$ .5 delta-x) (*$ .5 delta-y)
+				 keep-on-stage?))
+       (t '(xy-position ,old-x ,old-y)))) ;;otherwise dont move at all
+
+(define-function distance-of-xy (xy-distance)
+ (cond ((eq (first xy-distance) 'xy-distance)
+	(xy-distance (second xy-distance) (third xy-distance)))
+       (t (shouldnt-happen 'distance-of-xy
+			   '(,xy-distance is not an xy-distance)))))
+
+(define-function xy-distance (x y)
+ (sqrt (+$ (*$ x x) (*$ y y))))
+
+(declare (special subscene)) ;;since I dont want a compiler warning since I might use it later
+
+(define-function size-of-location (place subscene)
+ (cond ((eq (first place) 'vicinity-of) ;;for now only vicinity-of's have size
+	(or (ask ,(second place) recall your ani-size) 0.0))
+       ;;for now they don't change from scene to scene
+       (t 0.0)))
+
+(declare (unspecial subscene))
+
+(define-function located? (place subscene)
+ (not (eq (first (find-xy-position place subscene)) 'missing-location-of)))
+
+(define-function location-of (character subscene)
+ (cond ((or (null subscene) ;;if its visible then no problem (in Director)
+	    (ask ,character recall your visibility))
+	(ask ,character recall your location))
+       (t (let ((location-package (location-package-of character subscene)))
+	       (let ((where (get location-package 'where)))
+		    (cond ((eq where 'nowhere) ;;not really there so
+			   '(missing-location-of ,character))
+			  ((eq (get location-package 'status) 'symbolic)
+			   '(symbolic-position ,where)) ;;so that is not looked up more
+			  (where)
+			  (t '(missing-location-of ,character))))))))
+
+(define-function location-package-of (character subscene)
+ ;;either knows it or inhierits it backwards through time 
+ ;;since there is no McCarthy frame problem here
+ (or (ask ,subscene recall your (location-of ,character))
+     (let ((previous-subscene (ask ,subscene recall your previous-subscene)))
+	  (cond (previous-subscene (location-package-of character previous-subscene))))))
+
+(define-function simplify-position (position)
+ (cond ((exists? (first position))
+	(let ((simplier-version
+	       (ask-if-understood ,(first position) simplify position ,position)))
+	     (cond ((equal simplier-version position) position) ;;no progress
+		   (simplier-version ;;in case further simpliable
+		    (simplify-position simplier-version))
+		   (t '(,(first position) !,(mapcar 'simplify-position (rest position)))))))
+       (t position)))
+
+(define-function find-xy-position (place subscene)
+ (uncompiled-ask ,(first place) yield xy-position for ,place in ,subscene))
+
+(define position something
+ (do when receiving
+     (yield xy-position for ?place in ?)
+     ;;the default action is to return the place eg xy-position or missing-location-of
+     (cond ((or (eq (first place) 'missing-location-of)
+		(eq (first place) 'xy-position))
+	    place)
+	   (t (shouldnt-happen 'position
+			       '(cant yield xy-position for ,place))))))
+
+(define missing-location-of position)
+
+(define xy-position position)
+
+(define stationary-target position
+ (do when receiving
+     (yield xy-position for (stationary-target ? ?xy-position) in ?)
+     xy-position))
+
+(define screen-position position
+ (do when receiving
+     (yield xy-position for (screen-position ?height ?left-right) in ?)
+     (let ((x (cond ((eq left-right 'left) -.375)
+		    ((eq left-right 'slightly-left) -.125)
+		    ((eq left-right 'far-left) -.49)
+		    ((eq left-right 'middle) 0.0)
+		    ((eq left-right 'slightly-right) .125)
+		    ((eq left-right 'right) .375)
+		    ((eq left-right 'far-right) .49)))
+	   (y (cond ((eq height 'lower) -.375)
+		    ((eq height 'slightly-low) -.125)
+		    ((eq height 'bottom) -.49)
+		    ((eq height 'middle) 0.0)
+		    ((eq height 'slightly-upper) .125)
+		    ((eq height 'upper) .375)
+		    ((eq height 'top) .49))))
+	  (cond ((and x y) '(xy-position ,x ,y))
+		(t (shouldnt-happen 'screen-position
+				    '(either ,x or ,y are not valid screen-positions)))))))
+
+(define off-screen-position position
+ (do when receiving
+     (yield xy-position for (off-screen-position ?height ?left-right) in ?)
+     (let (((nil x y) ;;using lets pattern-matching ability
+	    (ask screen-position yield xy-position for (screen-position ,height ,left-right)
+		 in nil)))
+	  (cond ((> (abs x) (abs y)) ;;x is closest to edge so make it offscreen
+		 '(xy-position ,(cond ((> x 0.0) .6)
+				      (t -.6))
+			       ,y))
+		(t '(xy-position ,x
+				 ,(cond ((> y 0.0) .6)
+					(t -.6))))))))
+
+(define vicinity-of position)
+ 
+(define-receiver (yield xy-position for (vicinity-of ?character) in ?subscene) vicinity-of
+ (cond ((or (ask-if-exists ,character are you a director-character)
+	    (ask-if-exists ,character are you a character))
+	(find-xy-position (location-of character subscene) subscene))
+       (t (find-xy-position character subscene)))) ;;cept its not a character
+
+(define-receiver (simplify position (vicinity-of ?place)) vicinity-of
+ (cond ((ask-if-exists ,place are you a character) nil) ;;cant simplify it
+       (t place)))
+
+(define symbolic-position position)
+
+(define-receiver (yield xy-position for {and ?place (symbolic-position ?)} in ?)
+		 symbolic-position
+ place) ;;this is sorta like quoting it
+
+(define-receiver (how far is ? from ? in ?) symbolic-position
+		 nil)
+
+(define-receiver (simplify position (symbolic-position ?place)) symbolic-position
+ place)
+
+(define current-goal-of position)
+
+(define-receiver (simplify position (current-goal-of ?character)) current-goal-of
+ (cond ((ask-if-exists ,character are you a character) nil) ;;cant be simplified
+       (t (subst 'current-goal-of 'vicinity-of character))))
+
+ (define-receiver (yield xy-position for (current-goal-of ?character) in ?subscene)
+		  current-goal-of
+  (cond ((ask-if-exists ,character are you a director-character)
+	 (find-xy-position (or (subst '(vicinity-of ,character) ;;so I dont loop
+				      '(current-goal-of ,character)
+				      (ask ,character recall your current-goal))
+			       (location-of character subscene))
+			   subscene))
+	((ask-if-exists ,character are you a character) ;;in ani not director
+			   (find-xy-position (location-of character subscene) subscene))
+	(t ;;otherwise just use the xy-position but the current-goal-of instead of
+	 ;;vicinity-of of any characters
+	(find-xy-position character subscene))))
+
+(define on-stage-near position
+ (do when receiving (yield xy-position for (on-stage-near ?who ?place) in ?subscene)
+ ;;is no op if already on the stage otherwise closest place clearly on stage
+ ;;the who is used to get the size 
+     (let (((type x y) (find-xy-position place subscene))
+	   (max (-$ .5 (size-of-location '(vicinity-of ,who) subscene))))
+	  ;;just barely completely onstage
+	  (cond ((eq type 'symbolic-position) '(symbolic-position (on-stage-near ,who ,x)))
+		(t (let ((min (-$ max)))
+			'(xy-position ,(cond ((> x max) max)
+					     ((< x min) min)
+					     (t x))
+				      ,(cond ((> y max) max)
+					     ((< y min) min)
+					     (t y)))))))))
+
+(define contact-with position)
+
+(define-receiver (yield xy-position for (contact-with ?who by ?other) in ?subscene)
+		 contact-with
+ (let ((whos-location '(vicinity-of ,who))
+       (others-location '(vicinity-of ,other)))
+      (let ((sizes (plus (size-of-location whos-location subscene)
+			 (size-of-location others-location subscene)))
+	    (distance (screen-fraction-between whos-location others-location subscene)))
+	   (cond ((eq (first distance) 'missing-location-of) distance)
+		 (t (towards-by-distance whos-location ;;from guy to contact
+					 others-location ;;towards self
+					 subscene
+					 (*$ .9 (min sizes distance))
+					 ;;since circles only sorta work
+					 ;;wont move if already in contact
+					 nil))))))
+
+
+(define-receiver (how far is (contact-with ?who by ?other)
+		      from {and ?screen-position (screen-position ? ?)} in ?subscene)
+		 contact-with 
+ (let ((whos-position (location-of who subscene))
+       (others-position (location-of other subscene)))
+      (cond ((eq (first whos-position) 'symbolic-position) nil) ;;dont know enuf
+	    ((eq (first others-position) 'symbolic-position)
+	     ;;approximate it by using only whos-position
+	     (distance-between whos-position screen-position subscene))
+	    (t (distance-between (find-xy-position '(contact-with ,who by ,other) subscene)
+				 screen-position
+				 subscene)))))
+
+(define small-way-from position)
+
+(define-receiver (yield xy-position for (small-way-from ?place1 ?place2) in ?subscene)
+		 small-way-from
+ (position-between place1 place2 subscene
+		   .50 .2 ;;20% if they are least a half of the screen apart
+		   .33))
+
+(define-receiver (how far is (small-way-from ?place1 ?place2)
+		      from (small-way-from ?place3 ?place4) in ?)
+		 small-way-from
+ (cond ((and (equal place1 place3) (equal place2 place4)) 0.0) ;;the same place
+       ((and (equal place1 place4) (equal place2 place3)) .05))) ;;a small distance
+
+
+(define-receiver (how far is (small-way-from ?place1 ?place2) from ?place3 in ?subscene)
+		 small-way-from
+ (cond ((equal place1 place3)
+	(distance-from-position-between place1 place2 subscene .5 .2 .33 0.0))
+       ((equal place2 place3)
+	(distance-from-position-between place1 place2 subscene .5 .8 .67 0.0))
+       (t (break small-way-from-cant-do-yet))))
+
+
+(define small-way-from-plus-size position
+ (do when receiving
+     (yield xy-position for (small-way-from-plus-size ?place1 ?place2 %characters)
+	    in ?subscene)
+     (position-between place1 place2 subscene
+		       .50 .2 ;;20% if they are least a half of the screen apart
+		       .33
+		       (do ((i characters (rest i))
+			    (sum-of-sizes 0.0))
+			   ((null i) sum-of-sizes)
+			   (let ((character (first i)))
+				(setq sum-of-sizes
+				      (+$ sum-of-sizes
+					  (or (ask ,character recall your ani-size) 0.0))))))))
+
+(define large-way-from position
+ (do when receiving
+     (yield xy-position for (large-way-from ?place1 ?place2) in ?subscene)
+     (position-between place1 place2 subscene
+		       .50 .80 ;;80% if they are least a half of the screen apart
+		       .67 ;;otherwise two thirds of the distance
+		       0.0 'keep-on-stage)))
+
+(define half-way-between position
+ (do when receiving
+     (yield xy-position for (half-way-between ?place1 ?place2) in ?subscene)
+     (position-between place1 place2 subscene
+		       1.0 .5 .5))) ;;half way regardless
+
+(define away-from position)
+ ;;this returns the position that is on the opposite side of place1 (same distance)
+ ;;the hacks for away-from used within itself could be simplified if I could turn off
+ ;;the keep-on-stage feature (ie global variable for control) ..oh well
+
+(define-receiver (simplify position (away-from ?place1 (away-from ?place2 ?place3))) away-from
+ (cond ((equal place1 place2) place3)))
+
+(define-receiver (simplify position
+			   (away-from ?place1 (current-goal-of (away-from ?place2 ?place3))))
+		 away-from
+ (cond ((equal place1 place2) '(current-goal-of ,place3))))
+
+
+(define-receiver (yield xy-position for (away-from ?place1 ?place2) in ?subscene) away-from
+ (position-between place1 place2 subscene
+		   1.0 -1.0 ;;negative so that it moves away from
+		   -1.0
+		   0.0 'keep-on-stage))
+
+
+
+(define a-small-distance-away-from position
+ ;;this returns the position that is on the opposite side of place1 but a small distance
+ (do when receiving
+     (yield xy-position for (a-small-distance-away-from ?place1 ?place2) in ?subscene)
+     (away-from-by-distance place1 place2 subscene
+			    (+$ (size-of-location place1 subscene)
+				(size-of-location place2 subscene)
+				.075)
+			    'keep-on-stage)))
+
+(define a-little-bit-away-from position
+ ;;this returns the position that is on the opposite side of place1 but a very small distance
+ (do when receiving
+     (yield xy-position for (a-little-bit-away-from ?place1 ?place2) in ?subscene)
+     (away-from-by-distance place1 place2 subscene
+			    .075
+			    'keep-on-stage)))
+
+(define a-small-distance-away-from-and-towards-center position
+ ;;opposite side and either delx or dely toward center (which ever it travelled less)
+ (do when receiving
+     (yield xy-position for (a-small-distance-away-from-and-towards-center ?place1 ?place2)
+	    in ?subscene)
+ (let (((type-1 x-1 y-1)
+	(uncompiled-ask ,(first place1) yield xy-position for ,place1 in ,subscene))
+       ((type-2 x-2 y-2)
+	(uncompiled-ask ,(first place2) yield xy-position for ,place2 in ,subscene)))
+      (cond ((or (eq type-1 'symbolic-position) (eq type-2 'symbolic-position))
+	     '(symbolic-position dont-know-enuf))
+	    (subscene ;;only ani is interested so approximate as follows
+	     (away-from-by-distance '(xy-position ,x-1 y-1)
+				    '(xy-position ,x-2  y-2)
+				    subscene .15 nil))
+	    (t (move-towards-center-or-60-degrees x-1 y-1 x-2 y-2))))))
+
+(define-form (move-towards-center-or-60-degrees x-1 y-1 x-2 y-2)
+ (penup)
+ (setxy x-1 y-1)
+ (let ((angle-to-center (bearing 0.0 0.0))
+       (angle-to-other (bearing x-2 y-2)))
+      (let ((difference (make-it-less-than-180 (-$ angle-to-center angle-to-other))))
+	   (cond ((and (> difference 0.0) (< difference 60.0)) ;;cant just go straight
+		  (setheading (+$ angle-to-other 60.0)))
+		 ((and (< difference 0.0) (> difference -60.0))
+		  (setheading (-$ angle-to-other 60.0)))
+		 (t (setheading angle-to-center)))
+	   (forward .15)
+	   '(xy-position ,:xcor ,:ycor))))
+
+(define distance-away-from position
+ ;;this returns the position that is on the opposite side of place1 at a specified distance
+ (do when receiving
+     (yield xy-position for (distance-away-from ?place1 ?place2 ?distance) in ?subscene)
+     (away-from-by-distance place1 place2 subscene distance 'keep-on-stage)))
+
+
+(define distance-towards-from position
+ ;;this returns the position that is on the SAME side of place1 but a small distance
+ (do when receiving
+     (yield xy-position for (distance-towards-from ?place1 ?place2 ?distance) in ?subscene)
+     (towards-by-distance place1 place2 subscene distance 'keep-on-stage)))
+
+(define far-from-both position
+ ;;this picks a position equally far from place1 and place2
+ (do when receiving
+     (yield xy-position for (far-from-both ?place1 ?place2) in ?subscene)
+     (let ((quadrant-1 (quadrant-of-xy (find-xy-position place1 subscene)))
+	   (quadrant-2 (quadrant-of-xy (find-xy-position place2 subscene))))
+	  (find-xy-position
+	   '(screen-position ,(cond ((eq (first quadrant-1) (first quadrant-2))
+				     (opposite-screen-descriptor (first quadrant-1)))
+				    (t (first quadrant-1))) ;;use this one only this time
+			     ,(cond ((eq (second quadrant-1) (second quadrant-2))
+				     (opposite-screen-descriptor (second quadrant-1)))
+				    (t (second quadrant-2)))) ;;so if opposite dont lose
+	   subscene))))
+
+(define-function quadrant-of-xy (xy-position)
+ (cond ((eq (first xy-position) 'missing-location-of)
+	(shouldnt-happen 'quadrant-of-xy
+			 '(,xy-position not a good position)))
+       (t (list (cond ((> (third xy-position) 0.0) 'upper)
+		      (t 'lower))
+		(cond ((> (second xy-position) 0.0) 'right)
+		      (t 'left))))))
+
+
+(define-function opposite-screen-descriptor (descriptor)
+ (cond ((eq descriptor 'right) 'left)
+       ((eq descriptor 'left) 'right)
+       ((eq descriptor 'lower) 'upper)
+       ((eq descriptor 'upper) 'lower)
+       (t (shouldnt-happen 'opposite-screen-descriptor
+			   '(dont know about the descriptor ,descriptor)))))
+
+
+(define move-orthogonally-away-from position
+ ;;this goes from place-2 to place-1 turns right (or left if need to avoid a wall)
+ ;;and goes forward the distance between them or about a tenth of a screen if they are close
+ (do when receiving
+     (yield xy-position for (move-orthogonally-away-from ?place-1 ?place-2) in ?subscene)
+     (let (((nil x1 y1) (find-xy-position place-1 subscene))
+	   ((nil x2 y2) (find-xy-position place-2 subscene)))
+	  (let ((y-dif (-$ y2 y1))
+		(x-dif (-$ x2 x1)))
+	       (let ((new-x-dif (cond ((> x-dif 0.0) (max x-dif .1))
+				      (t (min x-dif -.1))))
+		     (new-y-dif (cond ((> y-dif 0.0) (max y-dif .1))
+				      (t (min y-dif -.1))))) 
+		    '(xy-position ,(add-if-result-on-stage x1 new-y-dif)
+				  ,(add-if-result-on-stage y1 new-x-dif)))))))
+
+
+(define-function subtract-if-result-on-stage (old change)
+ (let ((fixed-old (put-in-range -.5 .5 old)))
+      (let ((new (-$ fixed-old change)))
+	   (cond ((< (abs new) .5) new)
+		 (t (+$ fixed-old change))))))
+
+(define-function add-if-result-on-stage (old addon)
+ (let ((fixed-old (put-in-range -.5 .5 old)))
+      (let ((new (+$ fixed-old addon)))
+	   (cond ((< (abs new) .5) new)
+		 (t (-$ fixed-old addon))))))
+
+(define-function put-in-range (min max number)
+ (cond ((< number min) min)
+       ((> number max) max)
+       (t number)))
+
+(define add-distance-to position
+ ;;this returns the position the fraction from place1 towards place2
+ (do when receiving
+     (yield xy-position for (add-distance-to ?place1 ?distance towards ?place2)
+	    in ?subscene)
+     (add-distance-to place1 place2 distance subscene)))
+
+			   
+(define small-distance-from position
+ ;;this returns any position that is on stage and about a tenth of a screen away
+ (do when receiving
+     (yield xy-position for (small-distance-from ?place) in ?subscene)
+     (let ((xy-position-of-place (find-xy-position place subscene)))
+	  (cond ((or (eq (first xy-position-of-place) 'missing-location-of)
+		     (eq (first xy-position-of-place) 'symbolic-position))
+		 xy-position-of-place)
+		(t (let (((nil x y) xy-position-of-place))
+			(cond ((or (> (abs x) .2) (> (abs y) .2))
+			       ;;if not too close to center
+			       (offset-xy-position-towards x y 0.0 0.0 .07 .07))
+			      (t (offset-xy-position-towards x y
+							     (-$ x ) (-$ y)
+							     .07 .07)))))))))
+
+(define small-distance-from-center-of position
+ ;;this returns any position that is on stage and about a tenth of a screen away
+ ;;from the center of the others
+ (do when receiving
+     (yield xy-position for (small-distance-from-center-of %places) in ?subscene)
+     (let ((xy-position-of-places (average-xy-positions places subscene)))
+	  (cond ((or (eq (first xy-position-of-places) 'missing-location-of)
+		     (eq (first xy-position-of-places) 'symbolic-position))
+		 xy-position-of-places)
+		(t (let (((nil x y) xy-position-of-places))
+			(cond ((or (> (abs x) .2) (> (abs y) .2))
+			       ;;if not too close to center
+			       (offset-xy-position-towards x y 0.0 0.0 .1 .1))
+			      (t (offset-xy-position-towards x y
+							     (-$ x ) (-$ y)
+							     .1 .1)))))))))
+
+(define-function average-xy-positions (places subscene)
+ (do ((i places (rest i))
+      (sum-x 0.0)
+      (sum-y 0.0)
+      (count 0 (1+ count)))
+     ((null i) '(xy-position ,(//$ sum-x (float count)) ,(//$ sum-y (float count))))
+     (let ((xy-position (find-xy-position (first i) subscene)))
+	  (cond ((eq (first xy-position) 'missing-location-of) (return xy-position))
+		(t (setq sum-x (+$ sum-x (second xy-position))
+			 sum-y (+$ sum-y (third xy-position))))))))
+
+(define medium-distance-from position
+ ;;this returns any position that is on stage and about a third of a screen away
+ (do when receiving
+     (yield xy-position for (medium-distance-from ?place) in ?subscene)
+     (let ((xy-position-of-place (find-xy-position place subscene)))
+	  (cond ((or (eq (first xy-position-of-place) 'missing-location-of)
+		     (eq (first xy-position-of-place) 'symbolic-position))
+		 xy-position-of-place)
+		(t (let (((nil x y)  xy-position-of-place))
+			(cond ((or (> (abs x) .2) (> (abs y) .2))
+			       ;;if not too close to center
+			       (offset-xy-position-towards x y 0.0 0.0 .25 .25))
+			      (t (offset-xy-position-towards x y
+							     (-$ x ) (-$ y)
+							     .25 .25)))))))))
+
+
+(define good-distance-from position)
+;;this returns a position that is on stage and pretty far from place
+
+(define-receiver (yield xy-position for (good-distance-from ?place) in ?subscene)
+		 good-distance-from
+ (let ((xy-position-of-place (find-xy-position place subscene)))
+      (cond ((eq (first xy-position-of-place) 'missing-location-of) xy-position-of-place)
+	    ((eq (first xy-position-of-place) 'symbolic-position)
+	     '(symbolic-position (good-distance-from ,(second xy-position-of-place))))
+	    (t (do ((c '((screen-position middle middle)
+			 (screen-position upper left)
+			 (screen-position lower left)
+			 (screen-position upper right)
+			 (screen-position lower right))
+		       (rest c))
+		    (best-so-far nil)
+		    (biggest-distance-so-far -1.0))
+		   ((null c) (find-xy-position best-so-far subscene))
+		   (let ((distance (screen-fraction-between (first c) place subscene)))
+			(cond ((> distance biggest-distance-so-far)
+			       (setq best-so-far (first c)
+				     biggest-distance-so-far distance)))))))))
+
+(define-receiver (simplify position (good-distance-from (good-distance-from ?place)))
+		 good-distance-from
+ place)
+
+(define-receiver (how far is (good-distance-from ?place1) from ?place2 in ?)
+		 good-distance-from
+ (cond ((equal place1 place2) .6) ;;good guess
+       ((or (eq (first place1) 'symbolic-position)
+	    (eq (first place2) 'symbolic-position))
+	nil) ;;gota give up (i think?)
+       (t nil))) ;;some of these could be figured out ... oh well
+
+(define good-distance-from-and-offstage position)
+ ;;this returns a position that is off stage and far from place
+
+(define-receiver (yield xy-position for (good-distance-from-and-offstage ?place) in ?subscene)
+		 good-distance-from-and-offstage
+ (let ((xy-position-of-place (find-xy-position place subscene)))
+      (cond ((eq (first xy-position-of-place) 'missing-location-of) xy-position-of-place)
+	    ((eq (first xy-position-of-place) 'symbolic-position)
+	     '(symbolic-position
+	       (good-distance-from-and-offstage ,(second xy-position-of-place))))
+	    (t (do ((c '((off-screen-position middle middle)
+			 (off-screen-position top far-left)
+			 (off-screen-position bottom far-left)
+			 (off-screen-position top far-right)
+			 (off-screen-position bottom far-right))
+		       (rest c))
+		    (best-so-far nil)
+		    (biggest-distance-so-far -1.0))
+		   ((null c) (find-xy-position best-so-far subscene))
+		   (let ((distance (screen-fraction-between (first c)
+							    xy-position-of-place
+							    subscene)))
+			    (cond ((> distance biggest-distance-so-far)
+				   (setq best-so-far (first c)
+					 biggest-distance-so-far distance)))))))))
+
+
+(define small-distance-from-and-offstage position
+ ;;this returns any position that is OFF stage and about a tenth of a screen away if can do
+ (do when receiving
+     (yield xy-position for (small-distance-from-and-offstage ?place) in ?subscene)
+     (some-distance-from-and-offstage (find-xy-position place subscene)
+				      .1)))
+
+
+(define medium-distance-from-and-offstage position
+ ;;this returns any position that is OFF stage and about a third of a screen away if can do
+ (do when receiving
+     (yield xy-position for (medium-distance-from-and-offstage ?place) in ?subscene)
+     (some-distance-from-and-offstage (find-xy-position place subscene)
+				      .33))) ;;the major difference
+
+(define-function some-distance-from-and-offstage (xy-position-of-place desired-distance)
+ (cond ((or (eq (first xy-position-of-place) 'missing-location-of)
+	    (eq (first xy-position-of-place) 'symbolic-position))
+	xy-position-of-place)
+       (t (let (((nil x y) xy-position-of-place))
+	       (cond ((> (abs x) (abs y)) ;;closer to sides (not tops)
+		      (let ((horizontal-distance (-$ .6 (abs x))))
+			   '(xy-position
+			     ,(cond ((> x 0.0) .6)
+				    (t -.6))
+			     ,(cond ((> (-$ .6 (abs x)) desired-distance) ;;already gone enuf
+				     y) ;;so dont change y at all
+				    ((> y 0.0)
+				     (-$ y (-$ desired-distance horizontal-distance)))
+				    (t (+$ y (-$ desired-distance horizontal-distance)))))))
+		     (t (let ((vertical-distance (-$ .6 (abs y))))
+			     '(xy-position
+			       ,(cond ((> (-$ .6 (abs y)) desired-distance) x)
+				      ((> x 0.0) 
+				       (-$ x (-$ desired-distance vertical-distance)))
+				      (t (+$ x (-$ desired-distance vertical-distance))))
+			       ,(cond ((> y 0.0) .6)
+				       (t -.6))))))))))
+
+(define-function offset-xy-position-towards (x y goal-x goal-y delta-x delta-y)
+ ;;returns a new xy-position offset by deltas towards the goals
+ '(xy-position
+   ,(cond ((> x goal-x) (-$ x delta-x))
+	  (t (+$ x delta-x)))
+   ,(cond ((> y goal-y) (-$ y delta-y))
+	  (t (+$ y delta-y)))))
+
+(define-function screen-fraction-between (place1 place2 subscene)
+ (let ((xy-distance (distance-between place1 place2 subscene)))
+      (cond ((or (eq (first xy-distance) 'missing-location-of)
+		 (eq (first xy-distance) 'dont-know-enuf))
+	     xy-distance)
+	    ((eq (first xy-distance) 'screen-fraction)
+	     (second xy-distance))
+	    (xy-distance (xy-distance (second xy-distance) (third xy-distance))))))
+
+(define-function distance-between (place1 place2 subscene)
+ ;;places can either be screen positions (eg (screen-position upper left))
+ ;;or real places such as (xy-position 50 -250)
+ ;;or relative to other place such as (vicinity-of cinderella)
+ ;;or relative to two other places such (small-way-from <place1> <place2>)
+ ;;and I want to return either the distance (as fraction of screen width)
+ ;;or indicate that some more decisions need to be made (eg (missing-location-of prince))
+ ;;if this returns NIL then just not enuf is known (but the characters involved are located)
+ (cond (subscene
+	(or (ask ,subscene recall your (distance-between ,place1 ,place2))
+	    (ask ,subscene recall your (distance-between ,place2 ,place1))
+	    (let ((position-1 (find-xy-position place1 subscene))
+		  (position-2 (find-xy-position place2 subscene))
+		  (next-subscene
+		   (let ((possible-subscene (ask ,subscene recall your next-subscene)))
+			(cond ((exists? possible-subscene) possible-subscene)
+			      (t subscene)))))
+		 (cond ((eq-many (first position-1) (first position-2) 'xy-position)
+			(ask ,next-subscene set your (distance-between ,place1 ,place2) to
+			     ,(distance-between-places (rest position-1) (rest position-2))))
+		       ((eq-many (first position-1) (first position-2) 'missing-location-of)
+			(merge-missing-locations position-1 position-2))
+		       ((eq-many (first position-1) (first position-2) 'symbolic-position)
+			(ask-positions-for-distance (second position-1) (second position-2)
+						    subscene next-subscene))
+		       ((eq (first position-1) 'symbolic-position)
+			(ask-positions-for-distance (second position-1) place2
+						    subscene next-subscene))
+		       ((eq (first position-2) 'symbolic-position)
+			(ask-positions-for-distance (second position-2) place1
+						    next-subscene subscene))
+		       (t (warning 'distance-between
+				   '(|can't come up with the distance between/
+| ,place1 |and/
+| ,place2))
+			  nil)))))
+       (t (distance-between-places (rest (find-xy-position place1 subscene)) ;;in director
+				   (rest (find-xy-position place2 subscene))))))
+
+
+(define-function ask-positions-for-distance (place1 place2 subscene next-subscene)
+ (let ((place1 (simplify-position place1))
+       (place2 (simplify-position place2)))
+      (and (exists? (first place1))
+	   (exists? (first place2))
+	   (let ((first-way
+		  (ask-if-understood ,(first place1)
+				     how far is ,place1 from ,place2 in ,subscene)))
+		(cond (first-way
+		       (ask ,next-subscene set your (distance-between ,place1 ,place2)
+			    to (screen-fraction ,first-way)))
+		      (t (let ((second-way
+				(ask-if-understood ,(first place2)
+						   how far is ,place2
+						   from ,place1 in ,subscene)))
+			      (cond (second-way
+				     (ask ,next-subscene
+					  set your (distance-between ,place2 ,place1)
+					  to (screen-fraction ,second-way)))
+				    (t (warning
+					'ask-positions-for-distance
+					'(|can't figure out distance between| ,place1 |and/
+| ,place2 |so returning nil|))
+				       nil)))))))))
+
+(define-function record-distance-estimates (for-what estimate subscene)
+ (let ((next-subscene
+	(let ((possible-subscene (ask ,subscene recall your next-subscene)))
+	     (cond ((exists? possible-subscene) possible-subscene)
+		   (t subscene))))) ;;otherwise the current subscene
+      (ask ,next-subscene set your ,for-what to ,estimate)))
+
+
+(define-function distance-between-places (x-and-y-1 x-and-y-2)
+ '(xy-distance ,(-$ (first x-and-y-2) (first x-and-y-1))
+	       ,(-$ (second x-and-y-2) (second x-and-y-1))))
+
+(define-function merge-missing-locations (place1 place2)
+ ;;normally at least one of these is of missing-location-of type
+ '(missing-location-of
+   !,(union (and (eq (first place1) 'missing-location-of) (rest place1))
+	    (and (eq (first place2) 'missing-location-of) (rest place2)))))
+
+
+;;warning the folowing does not take size into account as the others do
+
+(define-function add-distance-to (place1 place2 add-distance subscene)
+ ;;adds distance to place1 in direction of place2
+ (let ((xy-position-1 (find-xy-position place1 subscene)))
+       (let ((distance (distance-between xy-position-1 place2 subscene)))
+	    (cond ((eq (first distance) 'missing-location-of) distance) ;;can't hack it here
+		  ((eq (first distance) 'xy-distance)
+		   (let ((x-distance (second distance))
+			 (y-distance (third distance))
+			 (x-position (second xy-position-1))
+			 (y-position (third xy-position-1)))
+			(let ((factor (//$ add-distance (xy-distance x-distance y-distance))))
+			     '(xy-position ,(+$ x-position
+						(*$ factor x-distance))
+					   ,(+$ y-position
+						(*$ factor y-distance))))))
+		  (t (shouldnt-happen
+		      'add-distance-to
+		      '(dont understand distance ,distance from ,place1 to ,place2)))))))
+
+;;now for some special-dynamics stuff since this file is shared by ani and director
+;;and I already have too many files
+
+
+(define special-dynamics something)
+
+;;(define-receive (multiply your ?variable by ?factor returning self)
+;; ((ask :self set your ,variable to
+;;       ,(times factor (or (ask :self recall your ,variable) 1.0)))
+;;  :self)
+;; special-dynamics)
+
+(define-receiver
+ (multiply each of your variables matching ?variable-pattern by those in ?other)
+ special-dynamics
+ ;;multiplies each variable matching variable-pattern by variable in other
+ (mapc
+  (function
+   (lambda (variable)
+	   (and (match variable variable-pattern)
+		(ask :self set your ,variable to
+		     ,(*$ (ask :self recall your ,variable)
+			  (or (ask ,other recall your ,variable) 1.0))))))
+  (ask :self list all your variable names)))
+ 
+
+
+(define-receiver (yield your ?variable value) special-dynamics
+ (*$ (weightify (or (ask :self recall your ,variable) 'medium))
+     (or (ask :self recall your (,variable factor)) 1.0)))
+
+
+(define-receive (yield real value for rotational-speed) ;;does not have its own variable
+ ((*$ (ask :self yield your speed value)
+      (example-of
+       (ask dynamic-constants recall your (conversion-factor rotational-speed))
+       something))) ;;don't need to load it in when compiling
+ special-dynamics)
+
+(define-receive (yield real value for ?variable)
+ ((*$ (ask :self yield your ,variable value) ;;normalized to 1.0
+      (example-of (ask dynamic-constants recall your (conversion-factor ,variable))
+		  something)))
+ special-dynamics)
+
+(define-receiver
+ (set speed so that it takes ?character ?amount-form seconds to go to ?place in ?);;subscene
+  special-dynamics
+  (ask :self set your speed to medium) ;;ie 1.0
+  (ask :self set your (speed factor) to
+       ,(//$ (*$ (screen-fraction-between (ask ,character recall your location)
+					  place
+					  nil)
+		 (ask dynamic-constants recall your time-to-cross-screen))
+	     (eval amount-form))))
+
+
+(define-receiver (update special-dynamics in ?subscene using ?special-dynamics-packages)
+  special-dynamics
+  (mapc
+   (function
+    (lambda (special-dynamics-package)
+	    (let ((who (get special-dynamics-package 'who)))
+		 (cond (who
+			(let ((special-dynamics
+			       (do-as-if-you-were character ;;sample target
+						  ,who
+						  yield your special-dynamics in ,subscene)))
+			     (or special-dynamics
+				 (shouldnt-happen 'special-dynamics
+						  '(no special-dynamics for ,who)))
+			     (do ((i (rest special-dynamics-package) (rest (rest i))))
+				 ((null i))
+				 (cond ((eq (first i) 'who)) ;;skip this one
+				       (t (ask ,special-dynamics set your ,(first i)
+					       to ,(second i)))))))
+		       (t (shouldnt-happen 'special-dynamics
+					   '(,special-dynamics-package has no who slot)))))))
+   special-dynamics-packages))
+
+
+(define-function weightify (value)
+ (cond ((or (eq value 'low) (eq value 'short)) .5)
+       ((eq value 'medium) 1.0)
+       ((or (eq value 'high) (eq value 'long)) 2.0)
+       (t (shouldnt-happen 'weightify
+			   '(,value is not low short medium long or high)))))
+
+(define-function unweightify (number) ;;not sure if this is used any more
+ (cond ((< number .51) 'low)
+       ((< number 1.01) 'medium)
+       (t 'high)))
+
+(declare (special :screen-size))
+
+(define dynamic-constants something
+ (set your time-to-cross-screen to 8.0) ;;8 seconds to cross the screen
+ (set your time-to-turn-around to 2.0)
+ (set your time-to-grow-e-times to 5.0) ;;takes 5 seconds to normal e times an element
+ (do when receiving (initialize conversion factors)
+     (let ((:screen-size (cond ((status feature tvrtle) (sqrt (apply '*$ (turtlesize))))
+			       (t 1100.0))))
+	  (mapc
+	   (function
+	    (lambda (variable+form)
+		    (ask :self set your (conversion-factor ,(first variable+form)) to
+			 ,(eval (second variable+form)))))
+	   '((speed (//$ :screen-size ;;does this really make any sense??????
+			 (ask dynamic-constants recall your time-to-cross-screen))) 
+	     (rotational-speed
+	      (//$ 360.0
+		   (ask dynamic-constants recall your time-to-turn-around)))
+	     ;;typically takes 2 seconds to turn completely around
+	     (activity-level 1.0)
+	     (rhythmic-level 1.0)
+	     (acceleration (//$ :screen-size 10.0)) ;;10 seconds to be going at 1 screen/second
+	     (repetiveness 1.0)
+	     (path-length (//$ :screen-size 20.0))
+	     ;;typically 20 loops to arc across sceen
+	     (path-curvature 15.0) ;;15 degree arc is average
+	     (path-jaggedness 2.0))))) ;;2 degrees jaggature normal
+ (initialize conversion factors)) ;;warning if the screen size changes this better happen again
+
+
+(define-function stop-plan (plan-name)
+ '(note that (end-of ,plan-name) happened))
+

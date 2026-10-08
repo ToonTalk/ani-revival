@@ -1,0 +1,133 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment nodes)
+
+;;this file contains the node structure for the choices that ken;chocho > deals with
+
+
+(define node something
+ (extend behavior when receiving (make ?instance) by doing
+	 (ask :self make ,instance)
+	 (ask ,instance set your status to nil) ;;so it is not inhierted
+	 instance)
+ (do when receiving (yield your choices)
+     (or (ask :self recall your offspring) ;;if it has no offspring then
+	 (ask :self recall your choices))) ;;its choices are choice points
+ (do when receiving (yield your and ancestors node-for)
+     ;;this should perhaps be generalized and moved to something (helper >)
+     (do ((current-node :self (ask ,current-node recall your parent))
+	  (node-fors nil))
+	 ((eq current-node 'node) node-fors) ;;order is top down in tree
+	 (let ((node-for (ask ,current-node recall your node-for)))
+	      (and node-for (setq node-fors (cons node-for node-fors)))))))
+
+(define top-level-node node)
+
+(define scenes-node top-level-node)
+
+;;there are 3 ways to organize this, character can be worked on or else
+;;speed of all the characters, or else typical-movement of the characters 
+;;in other words there is a few difference levels at which characters themselves can
+;;be inserted the three orders are
+;;(characters element-types elements)
+;;(element-types characters elements)
+;;(element-types elements characters)
+
+(define-function make-characters-subnodes nil
+ (let ((focus (ask ,(or (ask film recall your current-film) 'cinderella-film)
+		   ;;for compiling especially useful
+		   recall your focus)))
+      (let ((order-of-choice (ask ,focus recall your order-of-character+element-type+element)))
+	   (cond (order-of-choice
+		  (let ((top-level (first order-of-choice)))
+		       (make-next-level-subnodes 'characters-node
+						 (first order-of-choice)
+						 (rest order-of-choice)
+						 (cond ((eq top-level 'characters)
+							(ask character recall your offspring))
+						       ((eq top-level 'element-types)
+							(ask element-types recall your types))
+						       (t (shouldnt-happen
+							   'make-characters-subnodes
+							   '(bad order-of-choice
+								 ,order-of-choice 
+								 in ,focus)))))))
+		 (t (shouldnt-happen 'make-characters-subnodes '(no order of choice in focus
+								    ,focus)))))))
+
+(define-function make-next-level-subnodes (previous-node current-level next-levels nodes)
+ (mapc
+  (function
+   (lambda (node)
+     (cond (next-levels
+	    (let ((node-name
+		   (intern (cond ((eq previous-node 'characters-node)
+				  (append-atoms node '-node))
+				 (t (append-atoms (ask ,previous-node recall your node-for)
+						  '- node '-node))))))
+		 (ask ,previous-node make ,node-name)
+		 (ask ,node-name set your node-for to ,node)
+		 (make-next-level-subnodes
+		  node-name
+		  (first next-levels)
+		  (rest next-levels)
+		  (cond ((eq (first next-levels) 'characters)
+			 (ask character recall your offspring))
+			((eq (first next-levels) 'element-types)
+			 (ask element-types recall your types))
+			((eq (first next-levels) 'elements)
+			 (ask ,(element-type-of-node node-name (ask element-types recall your types))
+			  recall your offspring))
+			(t (shouldnt-happen 'make-next-level-subnodes
+					    '(,(first next-levels) no good)))))))
+	   (t (let ((choice-point
+		     (cond ((eq current-level 'elements)
+			    (ask absolute-choice-point
+			     if new make (choice-point-of
+					  ,(character-of-node previous-node) ,node)))
+			   ((eq current-level 'characters)
+			    (ask absolute-choice-point
+			     if new make
+			     (choice-point-of ,node ,(element-of-node previous-node))))
+			   (t (shouldnt-happen 'make-next-level-of-subnodes
+					       '(current-level shouldnt be ,current-level))))))
+		   (ask ,previous-node add ,choice-point to your list of choices))))))
+  nodes))
+
+
+(define element-types something 
+ ;;this is here because element has relative-element as offspring
+ (set your types to (normal-movement-element movement-tendency-element)))
+
+(define-function element-type-of-node (node element-types)
+ (let ((node-for (ask ,node recall your node-for)))
+      (cond ((memq node-for element-types) node-for)
+	    ((eq node 'node) (shouldnt-happen 'element-type-of-node
+					      '(gone too far without finding element-type)))
+	    (t (element-type-of-node (ask ,node recall your parent) element-types))))) 
+
+(define-function character-of-node (node)
+ (let ((node-for (ask ,node recall your node-for)))
+      (cond ((eq (ask ,node-for recall your parent) 'character) node-for)
+	    ((eq node 'node) (shouldnt-happen 'character-type-of-node
+					      '(gone too far without finding character)))
+	    (t (character-of-node (ask ,node recall your parent))))))
+
+(define-function element-of-node (node)
+ ;;finds the element of a node 
+ (let ((node-for (ask ,node recall your node-for)))
+      (cond ((ask ,node-for are you an element) node-for)
+	    ((eq node 'node) (shouldnt-happen 'element-type-of-node
+					      '(gone too far without finding element)))
+	    (t (element-of-node (ask ,node recall your parent))))))
+
+;;this is down here so that make-characters-subnodes and element-types are defined
+(define characters-node top-level-node
+ (do when receiving (create subnodes)
+     (make-characters-subnodes))
+ (create subnodes)) ;;generate the subtree controlled by the focus's order of choice
+
+(compile-actors) ;;to get the generated ones compiled
+

@@ -1,0 +1,241 @@
+.sp 12
+.ce
+LOGO Thoughts
+.sp 4
+.ce
+by
+.sp 2
+.ce
+Kenneth Kahn
+.sp 7
+						November 24, 1974
+						SRE211
+						LOGO Teaching Section
+.pa
+.sp 2
+.ce
+Major Modifications
+.sp
+	The following is a list of possibly inconsistent
+and redundant modifications to LOGO that after talking
+to several people and teaching some 5th graders I would be
+very happy to see implemented:
+.sp
+1. Some relatively easy way of redefining system primitives.
+One rather clean way of doing this would be a primitive
+"ADVICE" that could be applied to system primitives.
+Its basic operation is that the advice associated with
+the system primitive would be executed first and that advise
+code would have the option, among other things,
+of not even invoking the system primitive called.
+   Some uses of this "ADVISE" primitive would be to
+use it to implement variations of LOGO to try out.  For
+example, advise could be given to some system primitives to
+have default conditions, or to engage in a dialog if a
+primitive is called with no inputs.  Another use of this
+would be to redefine RT, LT, FD, and BK to operate
+in different geometrical spaces, for example, the surface of
+a sphere, in a gravitational field, or in three dimensional
+space (which would not be very difficult to implement).
+Another thing would be to give advise to those turtle commands
+to look for multiplicative factors so that by changing the
+factor for FD and BK one could easily change the size
+of any picture or could easily run the same procedures
+on the display and floor turtle (at reasonable sizes). It
+is true that one can now define NEWRT, NEWLT, etc.
+and use them but what if you want to see how previously written
+code would look on the surface of a sphere.  However,
+the need for such an "ADVISE" primitive would decrease
+if the editor were powerful enough to change many names to other
+names quickly for an entire file.  
+.sp
+2. User defined procedures with a variable number of inputs
+are also
+important. Probably not for kids to write, but for
+writting sub-systems
+or teacher aids. This would enable all sorts of default
+mechanisms. One could write, for example, an ARC procedure
+that would make a quarter arc unless told otherwise, so in
+using it the kid first gets used to a simpler but completely
+compatible version. It would also enable a no inputs implies
+a dialog type of sub-system.
+   Of course this would introduce many problems for the parser,
+but the problem now exists.  WORD and SENTENCE, for
+example, take a variable number of inputs, and if more
+than (or less than) the usual number of
+inputs is given, parentheses are required.  A smarter parser
+might alleviate the parentheses in most cases, but that is
+another issue.
+.sp
+3.  It would be nice if there were a system UNDO command
+undid last mistake (e.g. erased
+something wrong or went left not right). Different levels
+of implementation are possible-- the full thing would be
+nice but is 
+daydreaming, but it is 
+at least feasible for most display commands or file commands.
+It need not remember back that long to be useful.
+This has questionable pedagogic value since it may encourage
+button pushing instead of thinking, on the other hand it makes
+bugs less painful. See Paul Goldenberg's FASTR paper for
+more discussion of this.
+.sp
+4. Error handling needs some improvement.
+	A. ?-type thing for a lengthy explanation perhaps on disk.
+	B. A more local ERSET function where the name of
+	    the error handling procedure (set by ERSET)
+	    would be automatically local to the procedure it 
+	    was set in. This is consistant withthe tidiness
+	    idea that is often  preached. 
+	    As it stands now to do the equivalent
+	    of this the error handling function must be very hairy
+	    to decide which situation it is in.
+.sp
+5. A smarter parser would be nice but maybe too mysterious
+and slow.  I was thinking of it making use of the
+usual number of inputs to procedures.  For example,
+	MAKE "Foo  -:Bar 
+.br
+would not lose since MAKE requires two inputs 
+only one parse makes sense.  I feel that the results of
+misparsed code is much more confusing and mysterious than
+a parser that uses expectations of the number of inputs
+to a procedure.
+.sp
+6. Line numbers should not be required. They could be 
+replaced with Repeat or Do type thing. The only excuse
+for them is EDITing and when TVs come with a TECO
+and cursor this excuse should disappear.  In any case,
+why are they numbers?  LISP, Algol or Pl/1 labels are
+at least names that can be mnemonic.
+.sp
+7. File system
+	A. procedures should know what file they belong in
+	B. should be able to state things about all procedures
+	    in a file such as BURY, WRITE
+.sp
+	The motivation for this change is that files should
+be a logical entity.  But trying to keep files 
+separate is very difficult.
+When one WRITEs everything is written and one should
+not be forced to BURY things just to please the file system.
+So 'WRITE "geom' should mean write those procedures that
+came from "geom or are new but not those that came from other
+files. Again a TECO might alleviate this problem.
+.sp
+8. MAKETURTLE ala LLOGO would be nice. In other
+words make the picture of the turtle be setable.  If one is
+willing (or even desirous) of slowing things down one should
+be able to have a more obvious looking turtle.  Especially
+younger children have difficulty determining the display turtle's
+heading.  This might be handy if the ADVISE suggestion
+were implemented
+so that turtle living in different spaces would look different.
+.sp
+9. System generated comment mode (perhaps part of advise idea)
+might say things like FD 20 FD 30 could have been
+FD 50. I am
+not suggesting that the system programmer write this but a
+mechanism to let others do it. Like in giving ADVISE to
+FD could one have access to the previous line or lines of
+code?
+.sp 3
+.ce
+Modifications that Are More Minor
+.sp 3
+1. HERE, XCOR, and YCOR under the influence of
+WRAP should at least optionally be modulo the screen.
+Useful for collision testing among other things.
+.sp
+2. Remainder of -4 3 ===> 2 is odd but it is -4 modulo 3.
+(Note that MACLISP returns -1.) One can always
+write a remainder procedure that calls the present modulo
+version and then subtracts the divisor if the quotient is
+negative.  This whole thing may be silly because few
+people take
+remainders of negative numbers but it did pop up.
+.sp
+3. User defined abbreviations that expand out when PO-ed
+are important.
+A fancier version would accept the beginning letters of
+a word that uniquely defined that word and finish typing it
+for you.  The problem, that this is in response to,
+is that we want
+to encourage meaningful names but want to minimize the child's
+typing problems.  Too much time is spent looking for keys.
+.sp
+4. If there are line numbers, why can't TO produce them
+and if you really want to run something while in TO
+one can rubout the line number and then type the command.
+.sp
+5. Multiple statements per line if permitted should be
+separated by something (e.g. "," or ";") to help parser
+and readability.
+.sp
+6. OUTPUT is a pain. Why can't everything output?
+Should there really be a difference between commands and
+functions?
+.sp
+7. Adjustable workspace sizes depending on need and how many
+users are on the system.  It seems that too often people run
+into limits imposed by workspace size.
+.sp
+8. Should be able to slow down the display so the turtle's
+motions are more obvious.  The display turtle is too fast
+to see it turn or go forward and this confuses some children.
+Also would be a useful debugging tool. To put in the
+necessary WAITs might require too much EDITing.
+(Note this could easily be done using the
+ADVISE primitive suggested above.)
+.sp
+9. How about letting PO (or POL) have optional args
+so only some of
+the procedure is printed out both to save paper and time.
+.sp
+10. Should have option of running things as you teach (i.e. TO),
+except maybe when you recurse, or request input.
+.sp
+11. Help feature for system primitives (and user defined)
+	A. Text (from disk)
+	B. Dialog
+.sp
+12. TEST .... If True is screwy looking.
+Why have it? But no one needs use it...
+.sp
+13. Should List operators be extended to some of LISPs'
+such as MEMBER, ASSOC, MAP, REVERSE?
+.sp
+14. LISP like "get" and "putprop" would be very handy
+in associating many things with an "atom".  Especially
+Language hacking and AI for children.
+.sp
+15. Alarmclock for backup and various hacks is desirable.
+That is the
+ability to state that something should happen depending on
+the clock.  One could for example have movies that are
+run by the clock each fraction of a second the display is
+WCed and something new DISPLAYed and the alarm reset.
+.sp
+16. Can IF...THEN...ELSE  statements be pretty
+printed?  (even if one must input it that way?)
+.sp
+17. Setable FD-BK step size (in terms of raster points)
+good for running same thing on display and floor turtle
+also easy way to scale. This is if ADVISE kind of
+thing is not implemented.
+.sp
+18. PU, PD, HT, and ST  (i.e. turtle's internal state)
+should be:
+	A. Local
+	B. Reset to top-level's values in cntl-g-ed
+	C. Or reset on any error
+.sp
+The problem comes up when a procedure does, for example,
+PU ... PD and either an error or cntl-g occurs between
+them.  To require procedures to do a PD first seems preverse.
+.sp
+19. Do-it again button instead of cntl-y, cntl-r <car ret>.
+(See Paul Goldenberg's FASTR paper.)  An optional
+input might be handy to do the last <arg> commands again.
+.end
+

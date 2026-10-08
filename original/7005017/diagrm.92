@@ -1,0 +1,807 @@
+;; -*-lisp-*-
+;;this is meant to run in Director to make diagrams, figures and the like
+
+(include |ai:ken;declare >|)
+
+(defcomment diagrm) ;;for tags
+
+(define diagram something
+ (set your default-diagram to diagram-1)
+ (add ;;if asked for the links in diagram find the union of each box's links
+  (do ((i (ask :self recall your boxes) (rest i))
+       (links nil))
+      ((null i) links)
+      (setq links (union (mapcar 'cadr (ask ,(first i) recall your links)) links)))
+  to your list of (links actions-if-recalling)))
+
+(define-extension-receiver (unmake) diagram
+ (ask :self ask each of your links to unmake)
+ (ask :self ask each of your boxes to unmake)
+ (ask :self unmake))
+
+(define diagram-1 diagram)
+
+(define-receiver (initialize everything) diagram
+ ;;this guy should not be getting this so makes the diagram a grandchild instead
+ (let ((real-parent '(diagram-of ,(length (ask :self recall your boxes)) boxes)))
+      (cond ((not (exists? real-parent))
+	     (shouldnt-happen :self
+			      '(|there is no actor| ,real-parent |to handle me|))
+	     (ask :self initialize everything)) ;;try again in case it was fixed
+	    (t (ask :self set your parent to ,real-parent)
+	       (let ((boxes (ask :self recall your boxes)))
+		    (ask position ask each of your descendants to forget your occupier)
+		    (mapc
+		     (function (lambda (box)
+				       (ask ,box forget your location)
+				       (ask ,box set your diagram to ,:self)
+				       (ask ,box
+					    set your other-boxes to ,(safe-delete box boxes))))
+		     boxes)
+		    (ask :self set your unplaced-boxes to ,boxes)
+		    (ask :self
+			 set your locations-left
+			 to ,(ask :self recall your possible-locations))
+		    (ask :self ask each of your links to forget your spread-them-out-already)
+		    (ask :self
+			 set your number-of-links
+			 to ,(stuff-boxes-into-array-by-number-of-links boxes)))))))
+
+(define-receiver (just made a new boxed-text called ?name) diagram
+ (ask ,name set your diagram to ,(ask :self recall your default-diagram))
+ (ask :self ask your default-diagram
+      to do the following:
+      (add ,name to your list of boxes)
+      (initialize everything)
+      (redraw)))
+
+(define-receiver (just made new link called ?name) diagram
+ (ask ,name set your diagram to ,(ask :self recall your default-diagram))
+ (ask :self ask your default-diagram to do the following: (initialize everything) (redraw)))
+
+(define-receiver (redraw) diagram
+ (director-clearscreen)
+ (ask :self do the following:
+;;    (initialize everything)
+      (place your boxes)
+      (redo all links)
+      (show))
+ (ask screen wipe))
+
+(define-receiver (just unmade a box called ?name) diagram
+ (ask :self ask your default-diagram to remove ,name from your list of boxes))
+
+(define-receiver (redo all links) diagram
+ (ask :self ask each of your boxes to reconnect all links))
+
+(define-receiver (show) diagram
+ (do-as-if-you-were boxed-text :self ask each of your boxes to show)
+ (do-as-if-you-were link :self ask each of your links to show))
+
+(define (diagram-of 1 boxes) diagram
+ (set your possible-locations to ((screen-position center center)))
+ (set your favorite-location to (screen-position center center)))
+
+(define-receiver (place your boxes) (diagram-of 1 boxes) 
+ ;;this ones real easy
+ (ask :self ask each of your boxes to
+      place yourself at ,(ask :self recall your favorite-location)))
+
+(define-function screen-horizontal? nil
+ (> turtle-picture-right turtle-picture-top))
+
+(define (diagram-of 2 boxes) diagram
+ (add (cond ((screen-horizontal?)
+	     '((screen-position center left) (screen-position center right)))
+	    (t '((screen-position upper center) (screen-position lower center))))
+      to your list of (possible-locations actions-if-recalling))
+ (add (first (ask :self recall your possible-locations))
+      to your list of (favorite-location actions-if-recalling)))
+
+(define-receiver (place your boxes) (diagram-of 2 boxes)
+ ;;he who has more links coming out goes on top (or left) otherwise the bigger one
+ (let ((boxes (ask :self recall your boxes)))
+      (let ((most-links-coming-out (most-links-coming-out boxes)))
+	   (cond (most-links-coming-out
+		  (ask ,most-links-coming-out
+		       place yourself at ,(ask :self recall your favorite-location)))
+		 (t (let ((sorted-boxes (sort-boxes-by-size boxes)))
+			 (ask ,(first sorted-boxes)
+			      place yourself at ,(ask :self recall your favorite-location))))))
+      (ask ,(first (ask :self recall your unplaced-boxes))
+	   place yourself at ,(first (ask :self recall your locations-left)))))
+
+
+(define-function most-links-coming-out (boxes)
+ ;;if there is one that has more links coming out than the others
+ ;; then its returned nil otherwise
+ (do ((i boxes (rest i))
+      (most-so-far 0)
+      (winner-so-far nil))
+     ((null i) winner-so-far)
+     (let ((number-of-links (number-of-links-leaving (first i))))
+	  (cond ((> number-of-links most-so-far)
+		 (setq most-so-far number-of-links
+		       winner-so-far (first i)))
+		((= number-of-links most-so-far)
+		 (setq winner-so-far nil)))))) ;;ties dont count
+
+(define-function number-of-links-leaving (box)
+ (do ((links (mapcar 'cadr (ask ,box recall your links)) (rest links))
+      (count 0))
+     ((null links) count)
+     (and (eq box (ask ,(first links) recall your source))
+	  (setq count (1+ count)))))
+
+(define (diagram-of 3 boxes) diagram
+ (add (cond ((screen-horizontal?)
+	     '((screen-position upper center) (screen-position lower left)
+					      (screen-position lower right)))
+	    (t '((screen-position center left) (screen-position upper right)
+					       (screen-position lower right))))
+      to your list of (possible-locations actions-if-recalling))
+ (add (ask :self recall your possible-locations) ;;are sorted by favoriteness
+      to your list of (favorite-locations actions-if-recalling)))
+
+(define-receiver (place your boxes) (diagram-of 3 boxes)
+ ;;he who has more links coming out goes on top (or left) otherwise the bigger one
+ (do ((box-number 1 (1+ box-number))
+      (favorites (ask :self recall your favorite-locations) (rest favorites)))
+     ((null favorites))
+     (let ((boxes (ask :self recall your unplaced-boxes)))
+	  (let ((winner
+		 (or (most-links-coming-out boxes)
+		     (first (sort-boxes-by-size boxes)))))
+	       (ask ,winner place yourself at ,(first favorites))))))
+ 
+
+(define (diagram-of 4 boxes) diagram
+ (set your possible-locations to
+      ((corner lower left) (corner lower right) (corner upper left) (corner upper right)))
+ (set your favorite-location to (corner upper left)))
+
+(define-receiver (place your boxes) (diagram-of 4 boxes)
+ ;;makes sure that they fit and that no link is has too short a distance to travel
+ ;;this places the boxes first trying to minimize links between boxes in the corner
+ (place-four-boxes (ask :self recall your number-of-links) :self))
+
+(define-function place-four-boxes (number-of-links diagram)
+ (cond ((< number-of-links 0)
+	(warning 'place-four-boxes '(didnt place them and went through array))
+	(place-boxes-any-where diagram))
+       (t
+	(let ((locations-left (ask ,diagram recall your locations-left))
+	      (unplaced-boxes (ask ,diagram recall your unplaced-boxes))
+	      (boxes-being-considered (boxes-by-number-of-links number-of-links))
+	      (favorite-location (ask ,diagram recall your favorite-location)))
+	     (cond (locations-left ;;if none left I blew it
+		    (cond ((one-long unplaced-boxes) ;;only one left to place so...
+			   (ask ,(first unplaced-boxes)
+				place yourself at ,(first locations-left)))
+			  (t (let ((boxes-being-considered
+				    (intersect boxes-being-considered unplaced-boxes)))
+				  (place-four-boxes-1 unplaced-boxes
+						      boxes-being-considered
+						      favorite-location
+						      (length boxes-being-considered)
+						      (ask ,favorite-location
+							   recall your occupier)
+						      (ask
+						       ,(close-corner-from favorite-location)
+						       recall your occupier))
+				  (place-four-boxes (1- number-of-links) diagram)))))
+		   (unplaced-boxes
+		    (shouldnt-happen 'place-four-boxes
+				     '(|no places left but some boxes are|))))))))
+
+(define-function place-boxes-any-where (diagram)
+ (do ((boxes (ask ,diagram recall your unplaced-boxes) (rest boxes))
+      (locations-left (ask ,diagram recall your locations-left) (rest locations-left)))
+     ((null boxes))
+     (ask ,(first boxes) place yourself at ,(first locations-left))))
+
+(define-function place-four-boxes-1 
+ (unplaced-boxes boxes-being-considered favorite-location number-of-boxes
+		 guy-in-favorite-location guy-in-near-favorite-location)
+ (cond ((= number-of-boxes 0)) ;;cant do anything so will recurse
+       ((and guy-in-favorite-location guy-in-near-favorite-location)
+	(place-much-linked-close-or-little-linked-far guy-in-favorite-location unplaced-boxes))
+       (guy-in-favorite-location
+	(place-much-linked-close-or-little-linked-far guy-in-favorite-location
+						      boxes-being-considered))
+       ((= number-of-boxes 1)  ;;he's the most linked so
+	(ask ,(first boxes-being-considered) place yourself at ,favorite-location))
+       (t
+	(ask ,(first boxes-being-considered) place yourself at ,favorite-location)
+	(place-much-linked-close-or-little-linked-far (first boxes-being-considered)
+						      (rest boxes-being-considered)))))
+
+(define-function place-much-linked-close-or-little-linked-far (placed-box other-boxes)
+;;if the placed box is linked to the other boxes then be close otherwise opposite corner if can
+ (let ((those-not-linked (not-linked-to placed-box other-boxes)))
+      (cond (those-not-linked
+	     (do-as-if-you-were boxed-text
+				,(first those-not-linked)
+				place yourself at
+				,(unoccupied-far-corner-from 
+				  (ask ,placed-box recall your location))))
+	    (t
+	     (do-as-if-you-were boxed-text
+				,(most-linked-to placed-box other-boxes)
+				place yourself at
+				,(unoccupied-close-corner-from
+				  (ask ,placed-box recall your location)))))))
+
+(define-function not-linked-to (placed-box other-boxes)
+ ;;returns those not linked to placed box out of other boxes
+ (do ((i other-boxes (rest i))
+      (placeds-links (mapcar 'car (ask ,placed-box recall your links)))
+      (not-linked nil))
+     ((null i) not-linked)
+     (or (member (first i) placeds-links)
+	 (push (first i) not-linked))))
+
+(define-function most-linked-to (placed-box other-boxes)
+ ;;returns the one in other-boxes who in linked to the placed box the most
+ (do ((i other-boxes (rest i))
+      (placeds-links (mapcar 'car (ask ,placed-box recall your links)))
+      (most-linked nil)
+      (max-links -1))
+     ((null i) most-linked)
+     (let ((number-of-occurences (number-of-occurences (first i) placeds-links)))
+	  (cond ((> number-of-occurences max-links)
+		 (setq max-links number-of-occurences
+		       most-linked (first i)))))))
+
+(define-function number-of-occurences (thing list)
+ ;;counts the number of occurences of thing in list
+ (number-of-occurences-1 thing (member thing list) 0))
+
+(define-function number-of-occurences-1 (thing list count)
+ (cond ((null list) count)
+       (t (number-of-occurences-1 thing (member thing (rest list)) (1+ count)))))
+
+
+(define-function stuff-boxes-into-array-by-number-of-links (boxes)
+ ;;this stuffs an array of those with zero links to the others one, two, and so on
+ ;;and the maximum number of links
+ (array boxes-by-number-of-links t 10) ;;reset the array
+ (do ((i boxes (rest i))
+      (max 0))
+     ((null i) max)
+     (let ((box (first i)))
+	  (let ((number-of-links (length (ask ,box recall your links))))
+	       (cond ((> number-of-links max) (setq max number-of-links)))
+	       (store (boxes-by-number-of-links number-of-links)
+		      (cons box (boxes-by-number-of-links number-of-links)))))))
+
+(define-function unlinked-pairs-of-boxes (boxes)
+ ;;this returns a list of pairs of boxes that have no links between them
+ (do ((i boxes (rest i))
+      (pairs nil))
+     ((null i) pairs)
+     (let ((box (first i))
+	   (boxes-connected (mapcar 'car (ask ,(first i) recall your links))))
+	  (mapc
+	   (function (lambda (not-connected-box)
+			     (or (eq not-connected-box box) ;;same box
+				 (equal (list not-connected-box box) pairs) ;;other way round
+				 (push (list box not-connected-box) pairs))))
+	   (set-minus boxes boxes-connected)))))
+
+(define-function sort-boxes-by-size (boxes)
+ (sort (append boxes nil)
+       (function (lambda (box-1 box-2)
+			 (> (ask ,box-1 recall your screen-size)
+			    (ask ,box-2 recall your screen-size))))))
+
+(define-receiver (fix a crossing) (diagram-of 4 boxes)
+ (do ((i (ask :self recall your links) (rest i)))
+     ((null i) 'none-noticed)
+     (let ((who-crosses (link-that-crosses (first i) (rest i))))
+	  (and who-crosses
+	       (return (handle-crossing-between :self))))))
+
+(define-function link-that-crosses (link others)
+ (do ((i others (rest i)))
+     ((null i) nil)
+     (and (ask ,link do you cross with ,(first i))
+	  (return (first i)))))
+
+(define-function handle-crossing (diagram) ;;could be told which links but won't use it
+ ;;easiest idea is to the bottom ones if diagram is horizontal else the right ones
+ ;;(since they are typically similar and should stay there)
+ (cond ((> turtle-picture-top turtle-picture-right) ;;vertical diagram
+	(let ((occupant-1 (ask (corner lower right) recall your occupier))
+	      (occupant-2 (ask (corner upper right) recall your occupier)))
+	     (ask ,occupant-1 trade places with ,occupant-2)))
+       (t ;;horizontal diagram
+	(let ((occupant-1 (ask (corner lower right) recall your occupier))
+	      (occupant-2 (ask (corner lower left) recall your occupier)))
+	     (ask ,occupant-1 trade places with ,occupant-2))))
+ (ask ,diagram redo all links))
+
+(define boxed-text text
+ (ask your parent to forget your text) ;;so that its name is used as a default
+ (set your x-text-factor to 1.2) ;;20% longer than the text
+ (set your y-text-factor to 1.5) ;;50% wider than the text
+ (set your minimum-links-distance to 75.0) ;;links should be at least 75 units apart
+ (set your minimum-width to 300.0)
+ (set your minimum-height to 0.0) ;;no minimum
+ (add (append (ask :self recall your left-connections)
+	      (ask :self recall your right-connections)
+	      (ask :self recall your top-connections)
+	      (ask :self recall your bottom-connections))
+      to your list of (connections actions-if-recalling))
+ (add (stretch-box-if-too-many (sort :new-value 'lesser-xcor) 'x-corner)
+      to your list of (top-connections actions-if-changing))
+ (add (stretch-box-if-too-many (sort :new-value 'lesser-xcor) 'x-corner)
+      to your list of (bottom-connections actions-if-changing))
+ (add (stretch-box-if-too-many (sort :new-value 'lesser-ycor) 'y-corner)
+      to your list of (right-connections actions-if-changing))
+ (add (stretch-box-if-too-many (sort :new-value 'lesser-ycor) 'y-corner)
+      to your list of (left-connections actions-if-changing))
+ (add (progn (ask :self forget your x-corner) :new-value)
+      to your list of (text actions-if-changing))
+ (add (progn (recompute-box-center :self) :new-value)
+      to your list of (location actions-if-changing))
+ (add (or :old-value
+	  (prog1 (ask :self set your x-corner to
+		      ,(max (*$ .5 (ask :self recall your minimum-width))
+			    (*$ (ask :self recall your x-text-factor) .5
+				:tvstep (ask :self recall your length))))
+		 (recompute-box-center :self)))
+       to your list of (x-corner actions-if-recalling))
+ (add (or :old-value
+	  (prog1 (ask :self set your y-corner to
+		      ,(max (*$ .5 (ask :self recall your minimum-height))
+			    (*$ (ask :self recall your y-text-factor) .5
+				:tvstep (get (ask :self recall your font) 'height))))
+		      (recompute-box-center :self)))
+      to your list of (y-corner actions-if-recalling))
+ (add (or :old-value
+	  (ask :self set your screen-size to
+	       ,(*$ 4.0 ;;since they are twice as large as their corners
+		    (//$ (abs (ask :self recall your x-corner)) turtle-picture-right)
+		    (//$ (abs (ask :self recall your y-corner)) turtle-picture-top))))
+      to your list of (screen-size actions-if-recalling))
+ (add (let (((x y heading) :new-value)
+	   ((current-x current-y) (ask :self recall your position))	   
+	   (extreme-x (-$ (*$ .5 (first (turtlesize)))
+			  (ask :self recall your x-corner)
+			  :tvstep)) ;;leave a point or two on the edges
+	   (extreme-y (-$ (*$ .5 (second (turtlesize)))
+			  (ask :self recall your y-corner)
+			  :tvstep)))
+	  (let ((new-x (cond ((> current-x 0.0) (min current-x extreme-x))
+			     (t (max current-x (-$ extreme-x)))))
+		(new-y (cond ((> current-y 0.0) (min current-y extreme-y))
+			     (t (max current-y (-$ extreme-y))))))
+	       '(,new-x ,new-y ,heading)))
+      to your list of (state actions-if-changing)))
+
+;;sets the default font but should not do anything at compilation time (like load the tvrtle)
+(or (status features complr)
+    (ask boxed-text set your font to tr18))
+
+(define-function recompute-box-center (box)
+ (let ((location (ask ,box recall your location)))
+      (let ((position (cond ((null location) nil) ;;not placed yet
+			    (t (ask ,location recall your position)))))
+	   (and position (ask ,box set your position to ,position)))))
+
+(define-function stretch-box-if-too-many (links corner)
+ ;;there should be only so many connections per distance
+ (let ((total-distance (*$ 2.0 (ask :self recall your ,corner)))
+       (minimum-distance (*$ (float (length links))
+			     (ask :self recall your minimum-links-distance))))
+      (cond ((> minimum-distance total-distance) ;;gotta stretch things
+	     (cond ((eq corner 'x-corner)
+		    (ask :self forget your x-corner)
+		    (ask :self
+			 multiply your x-text-factor
+			 by ,(//$ minimum-distance total-distance)))
+		   ((eq corner 'y-corner)
+		    (ask :self forget your y-corner)
+		    (ask :self
+			 multiply your y-text-factor
+			 by ,(//$ minimum-distance total-distance))))))
+      links))
+
+(define-extension-receiver (make ?name) boxed-text
+ (ask :self make ,name) ;;do it
+ (ask ,name set your text to ,name) ;;good default
+ (ask diagram just made a new boxed-text called ,name)
+ name)
+
+(define-extension-receiver (unmake) boxed-text
+ (ask diagram just unmade a box called ,:self)
+ (ask :self unmake))
+
+(define-receiver (trade places with ?other) boxed-text
+ (let ((my-location (ask :self recall your location))
+       (other-location (ask ,other recall your location)))
+      (ask :self forget your location)
+      (ask ,other forget your location)
+      (ask ,my-location forget your occupier)
+      (ask ,other-location forget your occupier)
+      (ask ,other place yourself at ,my-location)
+      (ask :self place yourself at ,other-location)
+      (ask :self ask your diagram to redo all links)
+      (ask screen wipe))) ;;draw it all
+
+(define-function lesser-xcor (box+link-1 box+link-2)
+ (let (((boxed-text-1 link-1) box+link-1)
+       ((boxed-text-2 link-2) box+link-2))
+      (cond ((eq boxed-text-1 boxed-text-2) (label-alphalessp link-1 link-2))
+	    (t (< (ask ,boxed-text-1 recall your xcor)
+		  (ask ,boxed-text-2 recall your xcor))))))
+
+(define-function lesser-ycor (box+link-1 box+link-2)
+ (let (((boxed-text-1 link-1) box+link-1)
+       ((boxed-text-2 link-2) box+link-2))
+      (cond ((eq boxed-text-1 boxed-text-2) (label-alphalessp link-1 link-2))
+	    (t (< (ask ,boxed-text-1 recall your ycor)
+		  (ask ,boxed-text-2 recall your ycor))))))
+
+(define-form (label-alphalessp link-1 link-2)
+ (alphalessp (ask ,link-1 recall your label)
+	     (ask ,link-2 recall your label)))
+
+
+(define-receiver (place yourself at one of ?locations-left) boxed-text
+ ;;any where no one else is at that is
+ (let ((others-locations (ask :self ask each of your other-boxes to recall your location)))
+      (let ((left-over (set-minus locations-left others-locations)))
+	   (cond (left-over (ask :self place yourself at ,(first left-over)))))))
+
+(define-function change-towards-zero (number change)
+ (cond ((< number 0.0) (+$ number change))
+       (t (-$ number change))))
+
+
+(define-form (unoccupied-far-corner-from some-place)
+ (cond ((corner-if-not-occupied some-place 'opposite-corner))
+       ((horizontal-space?) ;;diagram is essentially horizontal
+	(or (corner-if-not-occupied some-place 'horizontal-neighbor)
+	    (corner-if-not-occupied some-place 'vertical-neighbor)))
+       (t ;;else its vertical
+	(or (corner-if-not-occupied some-place 'horizontal-neighbor)
+	    (corner-if-not-occupied some-place 'vertical-neighbor)))))
+
+(define-function close-corner-from (corner)
+ (cond ((> turtle-picture-right turtle-picture-top)
+	(ask ,corner recall your vertical-neighbor))
+       (t (ask ,corner recall your horizontal-neighbor))))
+
+(define-form (unoccupied-close-corner-from some-place)
+ (or
+  (cond ((horizontal-space?)
+	 (or (corner-if-not-occupied some-place 'vertical-neighbor)
+	     (corner-if-not-occupied some-place 'horizontal-neighbor)))
+       (t ;;else its vertical
+	(or (corner-if-not-occupied some-place 'vertical-neighbor)
+	    (corner-if-not-occupied some-place 'horizontal-neighbor))))
+  (corner-if-not-occupied some-place 'opposite-corner))) ;;give up and take opposite corner
+
+
+(define-form (corner-if-not-occupied some-place relative-place)
+ (let ((other-place (ask ,some-place recall your ,relative-place))) ;;eg opposite-corner
+      (cond ((ask ,other-place recall your occupier) ;;is already taken
+	     nil)
+	    (t other-place))))
+
+(define-form (horizontal-space?)
+ (> turtle-picture-right turtle-picture-top))
+
+(define-receiver (place yourself at ?place) boxed-text
+ (let ((occupier (ask ,place recall your occupier)))
+      (cond ((equal :self occupier) place) ;;already there
+	    (occupier nil) ;;fail if already occupied
+	    ((ask :self recall your location)
+	     (shouldnt-happen :self
+			      '(|trying to place me but I'm already placed|)))
+	    (t (ask ,place set your occupier to ,:self)
+	       (ask :self ask your diagram to remove ,:self from your list of unplaced-boxes)
+	       (ask :self ask your diagram to remove ,place from your list of locations-left)
+	       (ask :self set your location to ,place)))))
+
+(define-extension-receiver (display) boxed-text
+ (ask :self display)
+ (penup)
+ (setturtle (ask :self recall your state))
+ (pendown)
+ (a
+ (draw-rectangle (ask :self recall your x-corner)
+		 (ask :self recall your y-corner)))
+
+(define-extension-receiver (erase) boxed-text
+ (ask :self erase)
+ (penup)
+ (setturtle (ask :self recall your state))
+ (eraserdown)
+ (draw-rectangle (ask :self recall your x-corner)
+		 (ask :self recall your y-corner)))
+
+(define-function draw-rectangle (x-offset y-offset)
+ ;;starts at the center much like wf except need not xor nor be horizontal
+ ;;doesn't worry about being state transparent since Director should take care of that
+ (thingup)
+ (back y-offset)
+ (right 90)
+ (back x-offset)
+ (left 90)
+ (thingdown)
+ (repeat 2 (forward (*$ 2.0 y-offset)) (right 90) (forward (*$ 2.0 x-offset)) (right 90)))
+ 
+(define-receiver (reconnect all links) boxed-text
+ (ask :self forget all connections) ;;pretty drastic should be smarter
+ (mapc
+  (function (lambda (other+link)
+		    (ask :self connect to ,(first other+link) by ,(second other+link))))
+  (ask :self recall your links)))
+
+(define-receiver (forget all connections) boxed-text
+ (ask :self forget your left-connections)
+ (ask :self forget your right-connections)
+ (ask :self forget your top-connections)
+ (ask :self forget your bottom-connections))
+
+(define-receiver (connect to ?other by ?link) boxed-text
+  (let ((other-link '(,other ,link))
+	(self-link '(,:self ,link)))
+       (ask :self yield position of my link ,link with ,other by
+        ,(cond ((ask :self what connection is ,other-link))
+	       (t (ask :self make a new connection from ,self-link to ,other-link))))))
+
+(define-receiver (what connection is ?link) boxed-text
+ (cond ((member link (ask :self recall your left-connections))
+	'left-connections)
+       ((member link (ask :self recall your right-connections))
+	'right-connections)
+       ((member link (ask :self recall your top-connections))
+	'top-connections)
+       ((member link (ask :self recall your bottom-connections))
+	'bottom-connections)))
+
+(define-receiver (make a new connection from ?self-link to ?other-link) boxed-text
+ (let ((my-state (ask :self recall your state))
+       (other (first other-link))
+       (other-state (ask ,(first other-link) recall your state)))
+      (let ((x-distance (-$ (first my-state) (first other-state)))
+	    (y-distance (-$ (second my-state) (second other-state))))
+	   (cond ((> (abs x-distance) (abs y-distance)) ;;closer horizontally
+		  (cond ((< x-distance 0.0) ;;to the left of other
+			 (ask :self add ,other-link to your list of right-connections)
+			 (ask ,other add ,self-link to your list of left-connections)
+			 'right-connections)
+			(t ;;to the right of other
+			 (ask :self add ,other-link to your list of left-connections)
+			 (ask ,other add ,self-link to your list of right-connections)
+			 'left-connections)))
+		 (t ;;closer vertically
+		  (cond ((< y-distance 0.0) ;;underneath
+			 (ask :self add ,other-link to your list of top-connections)
+			 (ask ,other add ,self-link to your list of bottom-connections)
+			 'top-connections)
+			(t ;;on top of other
+			 (ask :self add ,other-link to your list of bottom-connections)
+			 (ask ,other add ,self-link to your list of top-connections)
+			 'bottom-connections)))))))
+
+(define-receiver (yield position of my link ?link with ?other by ?connection-type) boxed-text
+ ;;this finds out how many others their are to find out spacing and
+ ;;the links are already sorted from top-down for sides and left-to-right from tops and bottoms
+  (let ((links (ask :self recall your ,connection-type))
+	(my-state (ask :self recall your state))
+	(x-corner (ask :self recall your x-corner))
+	(y-corner (ask :self recall your y-corner)))
+       (ask ,link set your (position-at ,:self) to
+	    ,(cond ((memq connection-type '(top-connections bottom-connections))
+		    (determine-label-position links) ;;this fixes double arrow conflicts
+		    ;;start at upper or lower left then
+		    (list (+$ (-$ (first my-state) x-corner)
+			      (*$ 2.0 x-corner (fraction-in-list '(,other ,link) links)))
+			  (cond ((eq connection-type 'top-connections)
+				 (+$ (second my-state) y-corner))
+				(t (-$ (second my-state) y-corner)))))
+		   (t ;;start at bottom left or right going up
+;;why was the folllowing there?? just causes problems 
+;;(maybe so that with new topology the old label-position is recomputed)
+;;		    (ask-each ,(mapcar 'cadr links) set your label-position to .5)
+		    (list (cond ((eq connection-type 'left-connections)
+				 (-$ (first my-state) x-corner))
+				(t (+$ (first my-state) x-corner)))
+			  (+$ (-$ (second my-state) y-corner)
+			      (*$ 2.0 y-corner
+				  (fraction-in-list '(,other ,link) links)))))))))
+
+(define-function determine-label-position (links)
+ ;;if any two links are to the same place then set the links label-positions to .33 and .67
+ (do ((i links (rest i)))
+     ((null i))
+     (let ((pair (assoc (first (first i)) (rest i))))
+	  (cond (pair
+		 (let ((link-1 (second (first i)))
+		       (link-2 (second pair)))
+		      (cond ((and (equal (ask ,link-1 recall your source)
+					 (ask ,link-2 recall your source))
+				  (equal (ask ,link-1 recall your sink)
+					 (ask ,link-2 recall your sink)))
+			     ;;if the same direction then part up and part down
+			     (ask ,link-1 set your label-position to .333)
+			     (ask ,link-2 set your label-position to .667))
+			    (t (ask-each (,link-1 ,link-2)
+					 set your label-position to .333)))))))))
+
+(define-function fraction-in-list (thing list)
+ (let ((length (length list)))
+      (cond ((= length 1) .5) ;;smack in the middle
+	    (t (let ((rank (rank-in-list thing list)))
+		    (cond ((oddp length) (//$ (float (1- rank)) (float (1- length))))
+			  ((= length 2) (//$ (float rank) 3.0))
+			  (t (//$ (float rank) (float length)))))))))
+
+
+(define-function rank-in-list (thing list)
+ (do ((i list (rest i))
+      (ans 1 (1+ ans)))
+     ((null i) (shouldnt-happen 'rank-in-list '(,thing not in ,list)))
+     (and (equal thing (first i))
+	  (return ans)))) 
+
+(define position something)
+
+(define screen-position position
+ (add (or :old-value
+	  (let (((x y) (ask :self recall your xy-position)))
+	       (ask :self set your position to
+		    (,(*$ x turtle-picture-right) ,(*$ y turtle-picture-top)))))
+      to your list of (position actions-if-recalling)))
+
+
+(define (screen-position center center) screen-position
+ (set your xy-position to (0.0 0.0)))
+
+(define (screen-position center left) screen-position
+ (set your xy-position to (-.5 0.0)))
+
+(define (screen-position center right) screen-position
+ (set your xy-position to (.5 0.0)))
+
+(define (screen-position upper center) screen-position
+ (set your xy-position to (0.0 .5)))
+
+(define (screen-position lower center) screen-position
+ (set your xy-position to (0.0 -.5)))
+
+(define (screen-position lower left) screen-position
+ (set your xy-position to (-.5 -.5)))
+
+(define (screen-position upper left) screen-position
+ (set your xy-position to (-.5 .5)))
+
+(define (screen-position lower right) screen-position
+ (set your xy-position to (.5 -.5)))
+
+(define (screen-position upper right) screen-position
+ (set your xy-position to (.5 .5)))
+
+(define corner position ;;need to throw in the occupier's dimensions into this*********
+ (add (or :old-value 
+	  (ask :self set your position to
+	       ,(let (((nil vertical horizontal) :self))
+		     '(,(*$ (cond ((eq horizontal 'left) -.90) ;;use 90% of the screen
+				  ((eq horizontal 'right) .90))
+			    turtle-picture-right)
+		       ,(*$ (cond ((eq vertical 'lower) -.90)
+				  ((eq vertical 'upper) .90))
+			    turtle-picture-top)))))
+      to your list of (position actions-if-recalling)))
+
+(define (corner lower left) corner
+ (set your opposite-corner to (corner upper right))
+ (set your horizontal-neighbor to (corner lower right))
+ (set your vertical-neighbor to (corner upper left)))
+
+(define (corner lower right) corner
+ (set your opposite-corner to (corner upper left))
+ (set your horizontal-neighbor to (corner lower left))
+ (set your vertical-neighbor to (corner upper right)))
+
+(define (corner upper left) corner
+ (set your opposite-corner to (corner lower right))
+ (set your horizontal-neighbor to (corner upper right))
+ (set your vertical-neighbor to (corner lower left)))
+
+(define (corner upper right) corner
+ (set your opposite-corner to (corner lower left))
+ (set your horizontal-neighbor to (corner upper left))
+ (set your vertical-neighbor to (corner lower right)))
+
+(define link object
+ (set your label-position to .5) ;;stick it in the middle by default
+ (set your label to ||)
+ (set your font to tr12b)
+ (set your drawing-mode to (pendown))
+ (add (cond ((eq (ask :self recall your text-orientation) 'parallel)
+	     (cond ((ask :self recall your text-length))
+		   (t (ask :self set your text-length to
+			   ,(*$ :tvstep
+				(fwuse-text-length (ask :self recall your label)
+						   (ask :self recall your font)))))))
+	    ((eq (ask :self recall your text-orientation) 'orthogonal)
+	     (cond ((ask :self recall your text-height))
+		   (t (ask :self set your text-height to
+			   ,(get (ask :self recall your font) 'height)))))
+	    (t 0.0))
+      to your list of (very-minimum-distance actions-if-recalling)))
+
+(define-receiver ({or display erase}) link
+ (let ((source (ask :self recall your source))
+       (sink (ask :self recall your sink)))
+      (let ((source-position (do-as-if-you-were boxed-text ,source connect to ,sink by ,:self))
+	    (sink-position (do-as-if-you-were boxed-text ,sink connect to ,source by ,:self)))
+	   (thingup)
+	   (setturtle source-position)
+	   (let ((extra-distance (-$ (range sink-position)
+				     (*$ 1.33 (ask :self recall your very-minimum-distance)))))
+ 		(cond ((and (< extra-distance 0.0)
+			    (null (ask :self recall your spread-them-out-already)))
+		       ;;too close so move them apart a bit
+		       (ask ,source run do-the-following:
+			    (setheading (bearing ,sink-position))
+			    (back ,(*$ extra-distance -.5))
+			    (setheading 0.0))
+		       (ask ,sink run do-the-following:
+			    (setheading (bearing ,source-position))
+			    (back ,(*$ extra-distance -.5))
+			    (setheading 0.0))
+		       (ask :self
+			    set your spread-them-out-already to ,(-$ extra-distance)))
+		      (t (eval (ask :self recall your drawing-mode))
+			 (draw-labeled-arrow source-position
+					     sink-position
+					     (ask :self recall your label-position)
+					     (ask :self recall your label)
+					     (ask :self recall your font))))))))
+
+
+(declare (*lexpr princ-type-append-atoms))
+
+(define-receiver (label link from ?from to ?to with ?label) link
+ (ask :self set your source to ,from)
+ (ask :self set your sink to ,to)
+ (ask :self set your label to ,(princ-type-append-atoms '| | label '| |))
+ (ask ,from add (,to ,:self) to your list of links)
+ (ask ,to add (,from ,:self) to your list of links)
+ (ask diagram just made new link called ,:self))
+
+(define-function princ-type-append-atoms n
+ (let ((*nopoint t))
+      (maknam (mapcan 'exploden (listify n)))))
+
+(define-receiver (do you cross with ?other-link) link
+ (are-vectors-crossing? (ask :self recall each of your (position-at ?))
+			(ask ,other-link recall each of your (position-at ?))))
+
+(define-synonym nss new-screen-size)
+
+(define-function new-screen-size (x y)
+ (ask position ask each of your descendants to forget your position)
+ (ask boxed-text ask each of your offspring to
+      do the following: (forget your x-corner) (forget your y-corner))
+ (director-startdisplay)
+ (tvsize x y)
+ (ask diagram ask your default-diagram to do the following: (initialize everything) (redraw)))
+
+
+(defun (z fast-turtle-handler) (useless) ;;this makes the letter z redo the whole diagram
+ (ask diagram ask your default-diagram to redo all links)
+ (ask screen wipe))
+
+(define-macro link (box-1 label box-2)
+ (or (exists? box-1) (ask boxed-text make ,box-1))
+ (or (exists? box-2) (ask boxed-text make ,box-2))
+ (let ((link-actor (ask link make (link from ,box-1 to ,box-2 with ,label))))
+      (ask ,link-actor label link from ,box-1 to ,box-2 with ,label)))

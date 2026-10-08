@@ -1,0 +1,20 @@
+(DEFUN ATOMIZE1 ARGS (MAKNAM (MAPCAN 'EXPLODEC (LISTIFY ARGS))))
+
+(DEFUN TVXGP (FILENAME N)
+       (CURSORPOS 'C)
+       (COND ((CDDDR FILENAME)
+              (RPLACA (CDDR FILENAME) (ATOMIZE1 (CADDR FILENAME) ':))
+              (RPLACA (CDDDR FILENAME) (ATOMIZE1 (CADDDR FILENAME) '/;)))
+             ((CDDR FILENAME) (RPLACA (CDDR FILENAME) (ATOMIZE1 (CADDR FILENAME) '/;)))) 
+       (SETQ FILENAME (EXPLODEC FILENAME))
+       (RPLACA (LAST FILENAME) (ASCII 0.))
+       (SETQ FILENAME (IMPLODE (CDR FILENAME)))
+       ((LAMBDA (*NOPOINT)
+                (VALRET (ATOMIZE1 '/:BKPH/;ZAP/   
+                                 FILENAME 
+                                 '/ //
+                                 N 
+                                 '/î:VP/ )))
+        T))
+
+

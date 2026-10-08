@@ -1,0 +1,357 @@
+(declare (setq ibase 10.)
+	 (special cycle1 :pi :outline :exposure)
+	 (*lexpr turtlesize tvsize))
+
+
+(defun grow-circle (initial-size initial-tvsize
+				 growth-cycle color-pairs number-circles distance-factor
+				 color-bases erc-colors max-size delay frame-number end)
+      (makecolor 'erc 0 0 0)
+      ((lambda (addons)
+       (do ((size (float initial-size))
+	    (screen-size (float (// (cadr (tvsize)) 2)))
+	    (cp color-pairs (or (cdr cp)
+				color-pairs))
+	    (colors)
+	    (cycle-factor (apply '*$ growth-cycle))
+	    (cycle-addon (apply '+$ addons))
+	    (frames-to-linear (* (fix
+				  (+$ .99999 (//$ (log (//$ (float (// (cadr (tvsize))
+								       2))
+							    initial-size))
+						  (log	(apply '*$ growth-cycle)))))
+				 (length growth-cycle))))
+	   ((> frame-number end))
+	   (setq colors (mcolori (car (car cp)) (cadr (car cp)) number-circles))
+	   (do ((i (cond ((= (\ frame-number (length growth-cycle)) 0)
+			  growth-cycle)
+			 (t (last-n growth-cycle (- (length growth-cycle)
+						    (\ frame-number
+						       (length growth-cycle))))))
+		   (cdr i)))
+	       ((null i))
+	       (setq size (compute-size frame-number
+					(length growth-cycle)
+					cycle-factor
+					growth-cycle
+					frames-to-linear
+					cycle-addon
+					addons
+					initial-size))
+	       (and initial-tvsize
+		    ((lambda (tvsize-horizontal)
+			     (tvsize (fix tvsize-horizontal)
+				     (fix (+$ .5 (*$ tvsize-horizontal .75)))))
+		     (min (compute-size frame-number
+					(length growth-cycle)
+					cycle-factor
+					growth-cycle
+					999999999
+					cycle-addon
+					addons
+					initial-tvsize)
+			  533.0)))
+	       (erasercolor (set-color 'erc frame-number color-bases erc-colors))
+	       (do ((each-size size (cond ((> size screen-size)
+					   (+$ (*$ (-$ distance-factor 1.0) screen-size)
+					       each-size))
+					  (t (*$ distance-factor each-size))))
+		    (c colors (cdr c)))
+		   ((null c))
+		   (pc (car c))
+		   (and (show-frame frame-number)
+			(between-circle+square each-size max-size)))
+	       (wait delay frame-number)
+	       (setq frame-number (1+ frame-number))
+	       (cs))))
+       (turn-to-addons growth-cycle (float (// (cadr (tvsize)) 2)))))
+
+(defun last-n (list number-skipped)
+       (do ((i number-skipped (1- i))
+	    (ans list (cdr ans)))
+	   ((= i 0) ans)))
+
+
+(defun what-size? (initial-size growth-cycle frame-number)
+      ((lambda (addons)
+       (do ((cycle-factor (apply '*$ growth-cycle))
+	    (cycle-addon (apply '+$ addons))
+	    (frames-to-linear (* (fix
+				  (+$ .99999 (//$ (log (//$ (float (// (cadr (tvsize))
+								       2))
+							    initial-size))
+						  (log	(apply '*$ growth-cycle)))))
+				 (length growth-cycle))))
+	   (t 
+	    (compute-size frame-number
+			  (length growth-cycle)
+			  cycle-factor
+			  growth-cycle
+			  frames-to-linear
+			  cycle-addon
+			  addons
+			  initial-size))))
+       (turn-to-addons growth-cycle (float (// (cadr (tvsize)) 2)))))
+
+(defun compute-size (frame-number cycle-length cycle-factor cycle frames-to-linear
+				  cycle-addon addons initial-size)
+       (cond ((> frame-number frames-to-linear)
+	      (+$ (*$ (expt cycle-factor (// frames-to-linear cycle-length))
+		      initial-size)
+		  (*$ cycle-addon (float
+				   (// (- frame-number frames-to-linear) cycle-length)))
+		  (do ((i addons (cdr i))
+		       (n (\ frame-number cycle-length) (1- n))
+		       (sum 0.0))
+		      ((= n 0) sum)
+		      (setq sum (+$ sum (car i))))))
+	     (t (*$ (expt cycle-factor (// frame-number cycle-length))
+		    initial-size
+		    (do ((i cycle (cdr i))
+			 (n (\ frame-number cycle-length) (1- n))
+			 (product 1.0))
+			((= n 0) product)
+			(setq product (*$ product (car i))))))))
+       
+
+
+
+(defun shrink-square
+                 (initial-size growth-cycle colors distance-factor delay frames-so-far)
+       (do ((size (float initial-size))
+	    (frame-number (1+ frames-so-far))
+	    (growth-cycle (mapcar (function (lambda (x)
+						    (//$ (*$ x x))))
+				  growth-cycle)))
+	   (nil)
+	   (do ((i growth-cycle (cdr i)))
+	       ((null i))
+	       (setq size (*$ size (car i)))
+	       (setq frame-number (1+ frame-number))
+	       (do ((each-size size (*$ each-size distance-factor))
+		    (c colors (cdr c)))
+		   ((null c))
+		   (pc (car c))
+		   (and (show-frame frame-number)
+			(square each-size)))
+	       (wait delay frame-number)
+	       (cs))))
+
+
+(defun between-circle+square (size max-size)
+       ((lambda (betweeness)
+		 (scale/.call/.simple (list 'centered-circle-to-square betweeness)
+				   size))
+	(min (max (//$ (-$ size (*$ .5 max-size)) (*$ .5 max-size)) 0.0)
+	     1.0)))
+
+(defun centered-circle-to-square (betweeness)
+       (pu)
+       (delxy -1.0 -.04)
+       (pd)
+       (circle-to-square betweeness)
+       (pu)
+       (delxy 1.0 .04)
+       (pd))
+
+(defun square (size)
+       (pu)
+       (delx (*$ size -.5))
+       (pd)
+       (draw/.poly size 90)
+       (pu)
+       (delx (*$ size .5))
+       (pd))
+
+(defun wait (x count)
+       (cond ((numberp x) (sleep x) (princ count) (princ '/  ))
+	     ((eq x 'camera)
+	      (shoot-a-frame)
+	      (princ count) (princ '/  )
+	      (shoot-a-frame))
+	     (t (princ count) (tyi)))
+       (princ '/  ))
+
+(defun shoot-a-frame nil
+       (click)
+       (sleep :exposure))
+
+(defun turn-to-addons (numbers size)
+       (mapcar (function (lambda (number)
+				 (-$ (*$ number size) size)))
+	       numbers))
+
+
+(declare (special :frequency))
+
+
+;message from rg:
+;FLUSHED FROB AT 7:10 ON FRAME 656.  IT WAS DOING
+;5 TO 6 FRAMES PER GC. TOTAL RUN TIME = 5 HOURS.
+;BTW, I DONT HAVE A KEY TO THE COLOR TV ROOM,
+;SO I HAD TO LEAVE THAT STUFF ON.
+
+(defun m1 (wait :frequency)
+       (cs)
+       (setq *nopoint t)
+       (wrap)
+       (ht)
+       (setq :outline nil)
+       (tvsize 533. 400.)
+       (turtlesize 400.)
+       (cs)
+       (grow-circle 14.5 nil cycle1
+		    (make-pairs-between
+		     '(red  yellow green blue purple)
+		     21)
+		    7 2.0
+		    '(9 9 21) '(red green blue) 4000.0 wait))
+
+
+(defun m2 (wait :frequency)
+       (cs)
+       (setq *nopoint t)
+       (wrap)
+       (ht)
+       (setq :outline nil)
+       (tvsize 533. 400.)
+       (turtlesize 400.)
+       (cs)
+       (grow-circle 14.5 nil cycle1
+		    (make-pairs-between
+		     '(red  yellow green blue purple)
+		     14)
+		    3 2.0
+		    '(9 9 14) '(red green blue) 3000.0 wait))
+
+(defun m3 (wait :frequency distance frame-begin frame-end)
+       (mc 'dark-red .5 0 0)
+       (mc 'dark-green 0 .5 0)
+       (mc 'dark-blue 0 0 .5)
+       (cs)
+       (setq *nopoint t)
+       (wrap)
+       (ht)
+       (setq :outline nil)
+       (tvsize 533. 400.)
+       (turtlesize 400.)
+       (cs)
+       (grow-circle 14.5 nil cycle1
+		    (make-pairs-between
+		     '(red  yellow green blue purple)
+		     21)
+		    7 distance
+		    '(9 9 21) '(dark-red dark-green dark-blue) 4000.0 wait frame-begin
+		    frame-end))
+
+;778 onward intial-tvsize = .03
+
+(defun m4 (wait :frequency frame-begin frame-end initial-tvsize)
+     ((lambda (color-bases erc-colors)
+       (mc 'dark-red .25 0 0)
+       (mc 'dark-green 0 .25 0)
+       (mc 'dark-blue 0 0 .25)
+       (erasercolor (set-color 'erc frame-begin color-bases erc-colors))
+       (cs)
+       (setq *nopoint t)
+       (wrap)
+       (ht)
+       (setq :outline nil)
+       (tvsize 533. 400.)
+       (turtlesize 400.)
+       (cs)
+       (grow-circle 14.5 initial-tvsize cycle1
+		    (make-pairs-between
+		     '(red yellow green blue purple)
+		     21)
+		    7 1.04
+		 color-bases erc-colors 4000.0 wait frame-begin
+		    frame-end))
+      '(9 9 21)
+      '(dark-red dark-green dark-blue)))
+
+(defun make-pairs-between (colors number)
+       (do ((c colors (cdr c))
+	    (ans (list (car colors))))
+	   ((null (cdr c)) (mapcar (function (lambda (color)
+						     (list 'erc color)))
+				   ans))
+	   (setq ans (append ans (cdr (mcolori (car c) (cadr c) number))))))
+
+
+
+(defun show-frame (number)
+       (= (\ number :frequency) 0))
+
+
+
+
+(setq cycle1
+      '(1.01 .95 .93 1.05 1.15 1.2 1.25 1.28 1.2 1.03 .9 .85 .87 .88 .9 .92 .93 .96
+	1.05 1.05 1.03))
+
+
+(defun my-circle (radius)
+       ((lambda (number-of-sides)
+		(pu)
+		(delx (-$ radius))
+		(do ((i number-of-sides (1- i))
+		     (size-1 (-$ (*$ 2.0 :pi (//$ radius (float number-of-sides)))
+				 1.0))
+		     (angle (//$ 360.0 (float number-of-sides))))
+		    ((= i 0) (pu) (delx radius) (pendown))
+		    (rt angle)
+		    (pu)
+		    (fd 1)
+		    (pendown)
+		    (fd size-1)))
+	(fix (+$ .5 (*$ 20.0 (log radius))))))
+		    
+
+
+(defun color-count (color-bases colors pause)
+       (do ((stop (apply '* color-bases))
+	    (number 0 (1+ number)))
+	   ((= number stop))
+	   (sleep pause)
+	   (erasercolor (set-color 'erc number color-bases colors))))
+
+
+(defun set-color (color value bases colors)
+       (mix-colors color
+		   (digit-fractions bases value)
+		   colors))
+
+(defun digit-fractions (bases value)
+       (do ((v value (// v (car b)))
+	    (b (reverse bases) (cdr b))
+	    (ans nil))
+	   ((zerop v) (reverse ans))
+	   (setq ans (cons (*$ (float (\ v (car b))) (//$ (float (car b)))) ans))))
+
+(defun mix-colors (color fractions colors)
+       (do ((f fractions (cdr f))
+	    (c (reverse colors) (cdr c))
+	    (red 0.0)
+	    (green 0.0)
+	    (blue 0.0))
+	   ((or (null f) (null c))
+	    (makecolor color red green blue))
+	   (setq red (+$ red (*$ (car f) (redpart (car c)))))
+	   (setq green (+$ green (*$ (car f) (greenpart (car c)))))
+	   (setq blue (+$ blue (*$ (car f) (bluepart (car c)))))))
+
+
+(defun define-cs nil
+       (mi 'circle-to-square
+	   '(draw/.poly (//$ (*$ 2.0 :pi) 60.0) 6) ;6*60.0 = 360
+	   '(draw/.poly 2.0 90)))
+
+(defun read-last-frame-done (filename)
+       (and (apply 'uprobe filename)
+	    (apply 'uread filename)
+	    ((lambda (^q) (read)) t)))
+
+
+
+

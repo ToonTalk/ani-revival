@@ -1,0 +1,22 @@
+(define-method (silent running) screen
+ (help-comments: |do everything but dont let you see it until normal running is restored|)
+ (ask :self set your mode to silent))
+
+(define-method (normal running) screen
+ (help-comments: |restore normal running and redisplay the screen|)
+ (ask :self set your mode to normal)
+ (ask :self wipe));;;now for stuff to make the new scheme compatible with old demon scheme
+
+(define-macro-method (add ?demon to your list of (?variable actions-if-recalling)) something
+ '(ask ,:self extend behavior when receiving (recall your ,variable) by doing
+       (let ((:old-value (ask ,:self recall your ,variable)))
+	   ,demon)))
+
+(define-macro-method (add ?demon to your list of (?variable actions-if-changing)) something
+ '(ask ,:self extend behavior when receiving ({or set change} your ,variable to ?:new-value)
+       by doing 
+       (ask ,:self set your ,variable to ,(comma (comma :new-value)))
+       ;;set it just to be compatible with old
+       (let ((result ,demon))
+	    (cond ((eq result no-value) :new-value)
+		  (t (ask ,:self set your ,variable to ,(comma (comma result))))))))

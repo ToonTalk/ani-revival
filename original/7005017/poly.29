@@ -1,0 +1,57 @@
+;; -*-lisp-*-
+;this includes the definition of a few test objects: poly, rocket and flower
+
+(include |ai:ken;declar >|)
+
+(defcomment poly)
+
+
+(define rocket object
+	(set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+	(when drawing use draw-rocket of size))
+
+
+(define poly object
+       (set your angle to 60)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use draw-poly of size angle))
+
+
+;;old way of doing parts-whole
+;;(define many-polys poly
+;; (set your size to 100)
+;; (set your angle to 60)
+;; (set your offset to 10.0)
+;; (extend behavior when receiving (display) by doing
+;;  (let ((state (ask :self recall your state))
+;;	(parts (ask :self recall your parts)))
+;;       (ask :self display) ;;display myself
+;;       (ask-each ,parts do the following: (set your state to ,state) (display))))
+;; (do when receiving (make your parts)
+;;  (let ((offset (float (ask :self recall your offset)))
+;;	(size (ask :self recall your size)))
+;;       (do ((size (-$ (float size) offset) (-$ size offset))
+;;	    (polys nil))
+;;	   ((< size 0.0) (ask :self set your parts to ,polys))
+;;	   (let ((poly (ask :self make copy ,(append-atoms :self '- (gen-number :self)))))
+;;		(ask ,poly set your parent to poly) ;;should be a normal poly
+;;		(push poly polys)
+;;		(ask ,poly set your size to ,size))))))
+;;
+
+(define color-poly object
+       (set your angle to 60)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use draw-color-poly of size angle (colors)))
+
+(define flower object
+       (set your number-of-petals to 3)
+       (set your petal-colors to (green red purple magenta pink orange))
+       (set your shade-pattern to nil)
+       (set your erasability to nil)
+       (set your arg-which-is-size-if-any to 1) ;;so that it can be compiled more cleverly
+       (when drawing use
+	     draw-flower of size number-of-petals (petal-colors '(white)) (shade-pattern nil)))
+
+
+(compile-actors)

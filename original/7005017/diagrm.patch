@@ -1,0 +1,67 @@
+(define-receiver (show) diagram
+ (do-as-if-you-were boxed-text :self ask each of your boxes to show)
+ (do-as-if-you-were link :self ask each of your links to show))
+
+(define-receiver ({or display erase}) link
+ (let ((source (ask :self recall your source))
+       (sink (ask :self recall your sink)))
+      (let ((source-position (do-as-if-you-were boxed-text ,source connect to ,sink by ,:self))
+	    (sink-position (do-as-if-you-were boxed-text ,sink connect to ,source by ,:self)))
+	   (thingup)
+	   (setturtle source-position)
+	   (let ((extra-distance (-$ (range sink-position)
+				     (*$ 1.33 (ask :self recall your very-minimum-distance)))))
+ 		(cond ((and (< extra-distance 0.0)
+			    (null (ask :self recall your spread-them-out-already)))
+		       ;;too close so move them apart a bit
+		       (ask ,source run do-the-following:
+			    (setheading (bearing (quote ,sink-position)))
+			    (back ,(*$ extra-distance -.5))
+			    (setheading 0.0))
+		       (ask ,sink run do-the-following:
+			    (setheading (bearing (quote ,source-position)))
+			    (back ,(*$ extra-distance -.5))
+			    (setheading 0.0))
+		       (ask :self
+			    set your spread-them-out-already to ,(-$ extra-distance)))
+		      (t (eval (ask :self recall your drawing-mode))
+			 (draw-labeled-arrow source-position
+					     sink-position
+					     (ask :self recall your label-position)
+					     (ask :self recall your label)
+					     (ask :self recall your font))))))))
+
+
+
+(define corner position ;;need to throw in the occupier's dimensions into this*********
+ (add (or :old-value 
+	  (ask :self set your position to
+	       ,(let (((nil vertical horizontal) :self))
+		     '(,(*$ (cond ((eq horizontal 'left) -.67) ;;use 2/3 of the screen
+				  ((eq horizontal 'right) .67))
+			    turtle-picture-right)
+		       ,(*$ (cond ((eq vertical 'lower) -.67)
+				  ((eq vertical 'upper) .67))
+			    turtle-picture-top)))))
+      to your list of (position actions-if-recalling)))
+
+
+(define (corner lower left) corner
+ (set your opposite-corner to (corner upper right))
+ (set your horizontal-neighbor to (corner lower right))
+ (set your vertical-neighbor to (corner upper left)))
+
+(define (corner lower right) corner
+ (set your opposite-corner to (corner upper left))
+ (set your horizontal-neighbor to (corner lower left))
+ (set your vertical-neighbor to (corner upper right)))
+
+(define (corner upper left) corner
+ (set your opposite-corner to (corner lower right))
+ (set your horizontal-neighbor to (corner upper right))
+ (set your vertical-neighbor to (corner lower left)))
+
+(define (corner upper right) corner
+ (set your opposite-corner to (corner lower left))
+ (set your horizontal-neighbor to (corner upper left))
+ (set your vertical-neighbor to (corner lower right)))

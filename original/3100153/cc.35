@@ -1,0 +1,81 @@
+(defun con-circle (inc  max pattern colors)
+       (pu)
+       (do ((size inc (+ size inc))
+	    (c colors (cdr c)))	   
+	   ((> size max))
+	   (pc (car c))
+	   (circle size)
+	   (fd (- size (// inc 2)))
+	   (shade pattern)
+	   (bk (- size (// inc 2)))))
+	   
+
+
+(setq :width 1.0)
+
+(defun wide-forward (distance)
+       (do ((travelled 0.0 (+$ travelled :tvstep)))
+	   ((> travelled distance))
+	   (setq :width (funcall :update-width :width))
+	   (setq :bar-angle (funcall :update-bar-angle :bar-angle))
+	   (draw-bar :width)
+	   (fd :tvstep)))
+
+
+(setq :update-width 'range-update-width)
+
+(defun range-update-width (:width)
+       (sqrt (range 0.0 0.0)))
+
+(defun cycle-update-width (:width)
+       (rotate-list :the-cycle)
+       (+$ :width (car :the-cycle)))
+
+
+(setq :update-bar-angle 'update-bar-angle)
+
+(defun update-bar-angle (:bar-angle) (towards 0 0))
+
+(setq :bar-angle 90.0)
+
+(defun draw-bar (width)
+       (rt :bar-angle)
+       (fd width)
+       ((lambda (penstate xorstate)
+		(penup)
+		(bk (*$ (float width) 2.0))
+		(cond (penstate (pd))
+		      (xorstate (xd))))
+	:penstate :xorstate)
+       (fd width)
+       (lt :bar-angle))
+
+
+(defun rotate-list (list)
+       (displace list (append (cdr list) (list (car list)))))
+
+(defun displace (old new)
+       (rplaca old (car new))
+       (rplacd old (cdr new)))
+
+(setq :the-cycle '(.2 1.3 1.4 1.0 1.5 2.5 3.0 1.8 -1.0 -3.7 -3.0 -2.4 -1.0 -1.5))
+
+
+(defun poly1 (:size :angle :begin-heading)
+		(wide-forward (float :size))
+       		(right :angle)
+		(cond ((= :begin-heading (heading)))
+		      (t (poly1 :size :angle :begin-heading))))
+
+(defun draw-poly (:size :angle)
+       (setq :width 1.0)
+       (poly1 :size :angle (heading)))
+
+(defun gpoly (size angle factor)
+       (setq :width 1.0)
+       (do ((size (float size) (*$ size factor)))	   
+	   ((greaterp :ycor (car (turtlesize))) '?)
+	   (wide-forward size)
+	   (rt angle)))
+
+

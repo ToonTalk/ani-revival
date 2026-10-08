@@ -1,0 +1,129 @@
+;;; -*-lisp-*-
+;;this section of dot ani summarizes the comparisons found by compar
+
+(include |ai:ken;declar >|)
+
+(defcomment sumcom) ;;for tags
+
+(define-function summarize-comparison (comparison)
+ (cond ((not (exists? comparison))
+	(shouldnt-happen 'summarize-comparison '(,comparison does not exist))))
+ (ask character-descriptor
+      ask each of your offspring to summarize comparison by type ,comparison)
+ (ask character-descriptor summarize comparison ,comparison))
+
+
+(define-function summarize-comparison-by-type (comparison findings constituents type)
+ (do ((f findings (rest f))
+      (similarity-score 0.0)
+      (dissimilarity-score 0.0)
+      (first-constituent-usage
+       (length (ask ,(first constituents) collect items memorized matching
+		    (description: type ,(cond ((eq type 'all) '?)
+					      (t type))
+				  descriptor ?
+				  source initial-description)))) 
+      ;;i think i want to skip non initial description sources
+      (second-constituent-usage
+       (length (ask ,(second constituents) collect items memorized matching
+		    (description: type ,(cond ((eq type 'all) '?)
+					      (t type))
+				  descriptor ?
+				  source initial-description)))))
+     ((null f)
+      (and findings
+	   (determine-similarity-levels similarity-score
+					dissimilarity-score
+					comparison
+					type
+					(*$ .5
+					    (+$ (float first-constituent-usage)
+						(float second-constituent-usage))))))
+	   
+     (let ((finding (first f)))
+	  (cond ((eq (get finding 'finding) 'identical)
+		 (setq similarity-score		
+		       (+$ (//$ 2.0 (float
+				     (first
+				      (ask ,(get finding 'descriptor) recall your usage))))
+			   similarity-score))) ;;up score by unusualness of descriptor
+		((eq (get finding 'finding) 'neighbors)
+		 (setq similarity-score
+		       (+$ (//$ .5
+				(float
+				 (first
+				  (ask ,(first (get finding 'descriptor)) recall your usage))))
+			    ;;there are two
+			   (//$ .5
+				(float
+				 (first
+				  (ask ,(second (get finding 'descriptor))
+				       recall your usage))))
+			   similarity-score)))
+		((eq (get finding 'finding) 'opposites)
+		 (setq dissimilarity-score
+		       (+$ (//$ .5
+				(float
+				 (first
+				  (ask ,(first (get finding 'descriptor)) recall your usage))))
+			   (//$ .5
+				(float
+				 (first
+				  (ask ,(second (get finding 'descriptor))
+				       recall your usage))))
+			   dissimilarity-score)))
+		(t (shouldnt-happen 'sumarize-comparisons
+				    '(,finding is not recognizable)))))))
+
+
+(define-function determine-similarity-levels 
+ (similarity-score dissimilarity-score comparison descriptor-type average-constituent-usage)
+
+ (let ((similarity-level
+	(similarity-level (//$ (-$ (float similarity-score) (float dissimilarity-score))
+			       average-constituent-usage))))
+      (cond ((null (second similarity-level)))
+	    (t (ask ,comparison memorize
+		    (comparison-summary: similarity-level ,similarity-level
+					 descriptor-type ,descriptor-type
+					 of-who ,comparison))))))
+
+(define-function similarity-level (score)
+ (cond ((minusp score) (list 'negative (similarity-three-value (abs score))))
+       (t (list 'positive (similarity-three-value score)))))
+
+
+(define-function similarity-three-value (score)
+ (cond ((> score .4) 'high)
+       ((> score .2) 'medium)
+       ((> score .1) 'low)))
+	     
+
+;;now to do the same for uniqueness findings
+
+
+(define-function summarize-uniqueness (character)
+ (mapc
+  (function
+   (lambda (descriptor-type)
+	   (example-of (ask ,descriptor-type summarize uniqueness by type of ,character)
+		       character-descriptor)))
+  (ask character-descriptor recall your offspring))
+ (ask character-descriptor summarize uniqueness of ,character))
+
+(define-function summarize-uniqueness-by-type (character findings type)
+ (let ((level	       
+	(similarity-three-value
+	 (//$
+	  (float (length findings))
+	  (float
+	   (length (ask ,character collect items memorized matching
+			(description: type ,(cond ((eq type 'all) '?)
+						  (t type))
+				      descriptor ?
+				      source initial-description))))))))
+      (cond (level
+	     (ask ,character memorize (uniqueness-summary: uniqueness-level ,level
+							   descriptor-type ,type
+							   of-who ,character))))))
+

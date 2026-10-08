@@ -1,0 +1,106 @@
+;; -*-lisp-*-
+;;this file supports an actor compare utility
+
+(include |ai:ken;declare >|)
+
+(defcomment actcom) ;;for tags
+
+(define-synonym masc make-and-save-comparisons)
+
+(define-form (make-and-save-comparisons file-1 file-2 save-file (clean-up?))
+ (compare-actor-files file-1 file-2)
+ (print-actor-comparisons file-1 file-2 save-file)
+ (and clean-up? (delete-actor-comparisons+versions file-1 file-2)))
+
+(define-synonym caf compare-actor-files)
+
+(define-function compare-actor-files (file-1 file-2)
+ (load-and-rename file-1)
+ (and file-2 (load-and-rename file-2))
+ (do ((i (union (mapcar 'cadr (ask-all (version-of ? in ,file-1) recall your name))
+		(and file-2
+		     (mapcar 'cadr (ask-all (version-of ? in ,file-2) recall your name))))
+	 (rest i)))
+     ((null i))
+     (let ((one '(version-of ,(first i) in ,file-1))
+	   (two (cond (file-2 '(version-of ,(first i) in ,file-2))
+		      (t (first i)))))
+	  (cond ((exists? one) (ask ,one compare yourself with ,two))
+		(t (ask ,two compare yourself with ,one))))))
+
+(define-function save-actor-comparisons (file-name)
+ ;;saves only those that found some difference
+ (do ((i (ask-all (comparison-between ? ?) recall your name) (rest i))
+      (:default-file-object  (open file-name 'out)))
+     ((null i) (close :default-file-object))
+     (let ((comparison (first i)))
+	  (and (ask ,comparison recall if any items match (difference: %))
+	       (ask ,comparison save)))))
+
+(define-function print-actor-comparisons (file-1 file-2 file-name)
+ (let ((:default-file-object (open file-name 'out)))
+      (print-without-parens '(,file-1 |	| ,file-2) :default-file-object)
+      (do ((i (ask-all (comparison-between ? ?) recall your name) (rest i)))
+	  ((null i) (close :default-file-object))
+	  (let ((comparison (first i))
+		(actor (second (second (first i)))))
+	       (do ((differences
+		     (ask ,comparison collect items memorized matching (difference: %))
+		     (rest differences))
+		    (version-1 '(version-of ,actor in ,file-1))
+		    (version-2 (cond (file-2 '(version-of ,actor in ,file-2))
+				     (t actor))))
+		   ((null differences))
+		   (let ((type (get (first differences) 'type))
+			 (difference (first differences)))
+			(cond ((eq type 'variable)			       
+			       (terpri :default-file-object)
+			       (princ (equal-get difference '(,version-1 value))
+				      :default-file-object)
+			       (princ '|	| :default-file-object)
+			       (princ (equal-get difference '(,version-2 value))
+				      :default-file-object)
+			       (princ '|  | :default-file-object)
+			       (princ (get difference 'variable) :default-file-object)
+			       (princ '| of | :default-file-object)
+			       (princ actor :default-file-object)))))))))
+
+
+(declare (special version-1 version-2))
+
+(define-function delete-actor-comparisons+versions (file-1 file-2)
+ (let ((version-1 '(version-of ? in ,file-1))
+       (version-2 (cond (file-2 '(version-of ? in ,file-2))
+			(t '?))))
+      (ask-all (comparison-between ,version-1 ,version-2) unmake)
+      (ask-all (comparison-between ,version-2 ,version-1) unmake)
+      (ask-all ,version-1 unmake)
+      (and file-2 (ask-all ,version-2 unmake))))
+
+(declare (unspecial version-1 version-2))
+
+(define-function load-and-rename (file-name)
+ (let ((old-define (get 'define 'macro)))
+      (eval '(define-macro define (actor-name parent !code)
+			   (define-1 '(version-of ,actor-name in ,file-name) parent code t)))
+      (director-load file-name)
+      (putprop 'define old-define 'macro)))
+
+(define-form (print-those-that-differ-by file-1 file-2 outfile variable)
+ (load-and-rename file-1)
+ (and file-2 (load-and-rename file-2))
+ (print-those-that-differ-by-1 file-1 file-2 outfile variable))
+
+(define-form (print-those-that-differ-by-1 file-1 file-2 outfile variable)
+ (do ((i (ask-all (version-of ? in ,file-1) recall your name) (rest i))
+      (:default-file-object (open outfile 'out)))
+     ((null i) (close :default-file-object))
+     (let ((variation-1 (first i))
+	   (variation-2 (cond (file-2 '(version-of ,(second (first i)) in ,file-2))
+			      (t (second (first i))))))
+	  (cond ((and (exists? variation-2)
+		      (not (equal (ask ,variation-1 recall your ,variable)
+				  (ask ,variation-2 recall your ,variable))))
+		 (ask ,variation-1 print memory)
+		 (ask ,variation-2 print memory)
+		 (princ '/ :default-file-object)))))) ;;new page

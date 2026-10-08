@@ -1,0 +1,117 @@
+;; -*-lisp-*-
+;;this is the part of ani that collects convey suggestions and tries to make some
+;;sense out of them.  Often a convey suggestion suggestions another convey method
+;;and so this recurses
+
+(include |ai:ken;declare >|) 
+
+(defcomment sugcon) ;;for tags
+
+;;a task-package looks like
+;;(task: description (meets cinderella prince)
+;;       for-who cinderella
+;;       source initial-description)
+
+(define-function convey-suggestions (task-package task-name)
+ (let ((task (get task-package 'description)))
+      (record-in-task task-name
+		      (collect-convey-suggestions task-name task '(convey ,task)))))
+
+(define-function collect-convey-suggestions (task-name task element)
+ (mapcan
+  (function (lambda (suggestion)
+		    (recollect-convey-suggestions
+		     (add-þ²òËquisites-and-best-when-to-suggestion
+		      (replaceprop suggestion element 'element))
+		     task-name
+		     element)))
+  (gather-convey-suggestions task)))
+
+(define-function add-prerequisites-and-best-when-to-suggestion (suggestion)
+ (let ((method (get suggestion 'value)))
+      (cond ((eq (first method) 'method:)
+	     (let ((old-prerequisites (get method 'prerequisites))
+		   (new-prerequisites
+		    (example-of
+		     (ask-if-exists ,(first (get method 'value))
+				    collect all prerequisites of ,(get method 'value))
+		     method))
+		   (old-best-when (get method 'best-when))
+		   (new-best-when
+		    (example-of
+		     (ask-if-exists ,(first (get method 'value))
+				    collect best-when of ,(get method 'value))
+		     method)))
+		  (cond ((or new-best-when new-prerequisites)
+			 (replaceprop suggestion
+				      (replaceprop
+				       (replaceprop method
+						    (union new-best-when old-best-when)
+						    'best-when)
+				       (union new-prerequisites old-prerequisites)
+				       'prerequisites)
+				      'value))
+			(t suggestion))))
+	    (t suggestion))))
+
+(define-function gather-convey-suggestions (task)
+  (uncompiled-ask-if-can ,(first task) yield suggestions for (convey ,task)))
+
+(define-function recollect-convey-suggestions (suggestion task-name element)
+ (let ((method (get suggestion 'value)))
+      (cond ((and (eq (first method) 'method:)
+		  (eq (get method 'type) 'convey))
+	     (let ((next-level-suggestions
+		    (collect-convey-suggestions
+		     task-name
+		     (get method 'value)
+		     '(in-order-to ,element (convey ,(get method 'value))))))
+		  (cond ((null next-level-suggestions) ;;no suggestions for this convey
+			 (ask ,task-name
+			      add (rejected-suggestion: reason no-idea-how-to-convey-method
+							suggestion ,suggestion)
+			      to your list of rejected-suggestions)
+			 nil)
+			(t (mapcar (function
+				    (lambda (new-suggestion)
+					    (chain-suggestions new-suggestion suggestion)))
+				   next-level-suggestions)))))
+	    (t (list suggestion)))))
+
+(define-function chain-suggestions (new-suggestion old-suggestion)
+ ;;chaining means that the new one is a suggestion for doing the old-suggestion and 
+ ;;as such should combine the strengths sources, etc.
+ '(suggestion: element ,(get new-suggestion 'element)
+	       value ,(chain-methods (get new-suggestion 'value) (get old-suggestion 'value))
+	       strength ,(minimum-strength (get new-suggestion 'strength)
+					   (get old-suggestion 'strength))
+	       source ,(get new-suggestion 'source)))
+
+
+;;a typical method is
+;;(method: type display
+;;         value (change-to: ...)
+;;         best-when (current-value path-length low))
+
+(define-function chain-methods (new-method old-method)
+ ;;for now this only merges the best-when clauses
+ ;;it also merges prerequistes finding 
+ (let ((new-prerequisites (get new-method 'prerequisites))
+       (old-prerequisites (get old-method 'prerequisites)))
+      (replaceprop
+       (replaceprop new-method
+		    (union new-prerequisites old-prerequisites)
+		    'prerequisites)
+       (union (get old-method 'best-when) (get new-method 'best-when))
+       'best-when)))
+
+(define-function minimum-strength (strength-1 strength-2)
+ (cond ((three-value-greaterp strength-1 strength-2) strength-2)
+       (t strength-1)))
+
+(define-function record-in-task (task-name suggestions)
+ (mapc
+  (function
+   (lambda (suggestion)
+	   (ask ,task-name memorize ,suggestion)))
+  suggestions))

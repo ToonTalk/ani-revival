@@ -1,0 +1,227 @@
+.sec Definitions
+.subsec  What is a Computer
+	A digital computer manipulates symbols in accordance with sets of 
+instructions and procedures defined by a programmer.  These symbols can
+represent numbers, words, relationships, or pictures when being used for computer
+graphics or animation.  Internally these pictures can be represented in a large
+variety of ways, for example, as a list of lines each one described by the
+coordinates of the end points, or as a large array where each element of the array
+describes the color or intensity of a point in the picture, or the pictures can
+be represented internally at a higher level of abstraction as either procedures
+to generate them, or as a formal description.  Combinations of these representations
+are also sometimes useful.
+	Externally the computer can communicate this internally represented picture
+to a large number of display or drawing devices.  The most common devices are
+plotters where a mechanical pen draws on paper, raster scan tvs which resemble normal
+tvs, vector displays where each line is drawn in a cathode ray tube by controlling the
+beam and micro film recorders where the beam is directed towards photographic film.
+Each of these devices differs greatly in speed, accuracy, resolution and expense.
+.subsec  What is Computer Animation
+	Sometimes both the computer and output device are fast enough that a picture
+can be generated and displayed in a small fraction of a second.  When this is done
+on a tv display one can see computer animation as it is being made.  However, one
+often wants to generate very complex pictures or is using a slower computer or
+display and in that case one must record frame by frame each drawing onto film
+to overcome the slowness of the device.  It should be remembered that computer
+animation is some real sense independent of the medium of film.  Film is typically
+used either to speed up the action, to record the action in order to distribute,
+or to view it on a large screen.  Even though resolution
+of film is presently much greater than video, computer images intended to be 
+animated are typically video originally and therefore film can not add anything.
+.subsubsec Demonstrative vs. Procedural
+	There are rather different ways in which computer animation is created today.
+One way is sometimes called "demonstrative" in which in some manner the user of the
+system demonstrates to the computer what is desired.  The most common examples of this
+are "key-frame systems" where the user sketches the "key" or pivital frames directly
+into the computer using a digital tablet or pen with which the computer is connected
+and able to observe and record the hand movements of the user.  The computer is then
+instructed to manipulate that picture, typically to interpolate the last picture into
+the new one.  Other manipulations are possible such as translation, rotation or the
+addition of random noise.
+	An equally common way of producing computer films is to describe procedures
+for generating each frame
+in some 
+stylized language that the computer understands.  For example one might describe
+a square as the following procedure: "REPEAT 4 [FORWARD SIZE] [RIGHT 90]" which
+in English means "repeat the following four times: go forward the current value
+of a variable called "size" and then turn right ninety degrees."  The convience
+of a computer animation system such as this depends on  the 
+appropriateness and simplicity
+of the language one must describe ones pictures in and on the users familiarity with
+programming.
+.subsubsec Digital vs. Analog
+	So far I have been discussing only digital computers and animation created
+by them, but there are also
+analog computer animation systems.  Analog circuitry that is very
+fast but limited in flexibility is used.  These systems are more analogous to 
+synthesizers of electronic music.  
+.subsubsec Hybrids
+	Some people recognize advantages to both digital and analog computer animation
+and have created hybrid systems that intended to take advantage of both.  One such
+system is at the University of Illinois' Circle Campus and is run by Sanden and De Fanti
+(sp?).  Most systems are purely digital because most people are not willing to put up
+with added complexity and the loss of control inherent in analog systems in return for
+only an increase in speed.  Better control
+is provided by simply filming a digital system, the major drawback being lack of
+immediacy (since film takes a while to be processed).
+	Another kind of hybrid computer animation that is being talked about these
+days is a combination of demonstrative and procedural animation.  The idea is that
+the user would use graphical input to describe the objects or their motion when
+appropriate and 
+use procedures when their power or exactness is desired.  MIT's Architecture
+Machine Group is currently trying to create such a system.
+.sec Procedural Computer Animation
+	(this section describes animation done without the aid of graphical inputs,
+solely be program generated images)
+.subsec  Historical view
+	Procedural computer animation began in the early 1960s, with Bell Labs being
+among the pioneers.  Computer languages and software intended for other purposes were
+extended to produce vector drawings on a cathode ray tube.  Typically objects were
+defined by their coordinates in space, occasionally in a three dimensional space that
+could be projected into a two dimension plane internally by the program.  Procedures
+were defined to manipulate these objects by rotating, scaling, translating them 
+typically using linear algebra.  The most common use of this type of computer animation
+was in the production of instructional films.  Early films of this type included one 
+that showed a communication satellite in orbit and another that displayed crystal growth.
+	From the beginning computers were being used to produce films that 
+took advantage
+of some of the unique advantages they have in animation.  These films displayed 
+something
+that could not be filmed (being too small, far away, or whatever) and required too great
+an amount of computation to be practical for conventional hand drawn animation.  These
+are films that could not have been done using either analog or demonstrative mechanisms.
+.subsec  Current State as exemplified by LOGO
+	Procedural computer animation has evolved down a few different paths since the
+early 1960s.  One pathtaken was to extend
+the original conception of computer animation as the
+manipulation of objects described by their coordinates or generating functions.
+These systems can display projections of three dimensional objects hiding those
+lines that would be obscured were the objects real solids.  Then the problems of 
+realistic
+shading and lighting were resolved, so that today there are systems that can generate
+pictures that look very much like photographs of real objects.  Static reality was
+one of the major goals of these researchers and little was done to provide good control
+of the motion and transformations of these objects.  Typically the motion would be
+defined mathematically.
+The University of Utah
+pioneered much of this research.
+	The other major direction that computer graphics and animation research has gone
+is towards designing system that are easier to use.  Special languages were designed 
+that were simple, mnemonic, and yet powerful enough to do all that the previous systems
+did.  Perhaps most importantly within these languages were imbedded concepts and ways
+of thinking of graphics and animation that were much closer to how one originally
+concieves of one's animation.  For example, instead of having to describe a triangle
+in terms of its end points, these newer languages allowed one to give rather intuitive
+instructions to a mechanical "pen".  The two best examples of such languages is
+SmallTalk developed at Xerox Parc and Logo developed at MIT.  One reason for this
+stress on simplicity and intuitiveness is because both language were originally intended
+to be used by young school children.  Both projects are still active in teaching
+children to use the computer to create music, drawings, animation, etc. however, it
+soon became apparent that these languages were often the most convient way for computer
+scientists to do computer graphics and animation.
+Since I am more familiar
+with Logo I will describe only it.
+.subsubsec Turtles or how you draw things
+	In Logo one draws by giving instructions to a computational entity called a
+turtle.  One can tell the turtle to go forward any specified amount, to turn left or
+right any amount.  These turtles will if they have their "pen down", leave a trail
+as they move around the screen.  It turns out that turtles are a very good, intuitive
+way to think about producing images on the screen.  Very simple, very clean, turtle
+programs, often produce very impressive complex images (some of which illustrate this
+article?)
+.subsubsec Turtles or a good way to animate things
+	Using Logo to animate one normally takes what are called "snapshots" of sections
+of the display and these snapshots are subsequently displayed in rapid succession often
+in different parts of the screen producing apparent motion.  However, in some more 
+recent extentions of Logo (and even earlier with Smalltalk)
+one is able to animate in a more
+intuitive way.  Multiple turtles can be created with almost any appearance and can move
+around the screen in any manner.  One ultimate goal along this line is to create
+an animation system where the user is like a movie director who can easily 
+specify what he or
+she wants each "actor" to look like and how they behave.
+.sec Demonstrative Computer Animation
+As mentioned earlier the other major approach to computer animation is one which
+one controls basically through graphical means.  One points with a light pen, or draws
+on a digitized tablet which sends the current coordinates of a stylus to the computer
+a large number of times a second.  Ivan Sutherland pioneered this method of communication
+with a computer at MIT's Lincoln Lab in the early 1960s.  He was followed in the late
+1960s by Ron Baecker, also at the Lincoln Lab, who concentrated on the problem of
+[fi]animating[fr] images drawn into the computer.  A major innovation of his was a
+technique for
+graphical input of the path and speed of objects.
+	These initial efforts lead to "key-frame" systems which added the capibility
+of the computer producing "in-between" drawings between two drawings that were
+graphically inputted into the machine.  This "in-betweening" is one of the most
+tedious and time consuming aspects of conventional animation and it is hoped that
+such systems will soon be of help to conventional (ie hand-drawing) animators.  Using 
+these programs in odds ways can produce quite unusual transitions such as those in
+Peter Foldes' film "Hunger".)
+	The lastest direction these system are going is towards what are called
+"paint brush" systems.  Up until recently when the computer drew a line or displayed
+a line a user drew on a tablet the line was typically a thin single-toned line.  With
+the creation of color raster scan systems 
+foot<Barry this is what I showed you on the Advent>
+sometimes called "frame
+buffers", it is now possible to replace the "pen" with a "paint brush".  The user can
+define the characteristics of the brush he or she wants--- its color, width, pattern
+and "paints" on a color tv monitor.
+New York Institute of Technology, MIT's Architecture Machine Group, and Xerox Parc
+are among a few who are developing such systems.
+.sec  The Future
+	(this section is rather opinated and while optomistic that optomism is shared
+by most computer scientists today)
+.subsec  Hardware
+	Computers have been getting cheaper, faster and more powerful every year.  If
+current trends continue computers will within a ten years be cheap enough for nearly
+anyone who wants to, to own one.  In addition, with faster computers and displays
+the need to film the display in order to see one's animation will hopefully become
+much rarer.  Also with faster and cheaper memory it becomes feasible to raise the
+quality of the image and number of possible colors.
+	Currently both computer and hand-made animation is too expensive and time
+consuming to allow one to really explore.  It is rare that an animated film goes
+thru many revisions as a result of producing "rough drafts" and then making improvements.
+There is good reason to believe that when one is able to produce quality [fi]
+interactive[fr] computer animation that the ease of modification and testing
+will greatly increase the quality of these animations.
+.subsec Digitized Live Action
+	The computer is beginning to be used to process real images of the world.
+These images get into the computer via a vidicon (tv) camera and an analog to digital
+converter.  The programmer is then free to manipulate these images in a variety of ways.
+This sort of animation is most analogous to roto-scoping where an animator bases each
+drawing
+frame by frame on live action footage.  Ken Knowlton and Lilian Schwartz both at Bell
+Labs have produced computer films based on this technique.
+.subsec Better Separation of each element of the Animation
+	One unique property of the newer
+computer animation is that each graphical element can
+be manipulated independently.  A user of a paint brush or color Logo system can
+draw an image and then without redrawing replace any of the colors with any others
+instantaneously.  Similarly if one is happy with the color but not the shape one
+can re-create the image with the same colors but with a new shape.  Similarly the
+motion, change, texture, and size of any element of the drawing can be manipulated
+independently of the others.  I see such systems as being very common and designed so 
+that it is even easier to exploite this great advantage of computer in the
+development and testing of animations
+.subsec Smarter systems
+	Another direction one could hope that animation will go is towards systems
+that know a fair amount about animation and the elements being animated.  Recent
+advances in Artificial Intelligence at MIT and elsewhere provide computational
+mechanisms that could be used to create a system that is knowledgable enough about
+animation to allow the user to interact with the computer at a more conceptual
+level.  For example, the user might simply indicate that a particular character
+should walk in a bouncy energetic manner over to another character.  Or if a more
+abstract film is desired one might indicate that one wants a film centered around
+a bright pulsating circle and the system will make guess as to what size it should
+be, how fast it aught to pulsate (and what that means) what the background color
+should be, etc.
+.subsec Animation by Computer
+	In the longer term there is reason to believe that some day the term
+"computer animation" will become an ambiguous term.  It will mean either "animation
+done on a computer" or "animation done by a computer".  The today either
+the latter
+does not exist or consists of films where nearly all the computer decisions were
+based on a simulated flip of a coin.  The day when such decisions might be based on
+a real understanding of perception and aesthetics may not be that far off.
+
+  

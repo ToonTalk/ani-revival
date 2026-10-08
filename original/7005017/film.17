@@ -1,0 +1,73 @@
+;;-*-lisp-*-
+
+(include |ai:ken;declare >|)
+
+(defcomment film);;for tags
+
+;;this provides default values for any film
+
+(define film something
+ (do when receiving (yield suggestions for ?choice-point)
+     (collect-film-level-suggestions (ask :self recall your descriptor-levels)
+				     ;;this collects from only those set by the film
+				     choice-point))
+ (do when receiving (set your level of ?descriptor to ?value)
+     (ask :self add (,descriptor level) to your list of descriptor-levels)
+     (ask :self set your (,descriptor level) to ,value)
+     (ask (,descriptor level) set your level to ,value))
+ (add (first (ask :self recall your offspring))
+      to your list of (current-film actions-if-recalling))
+ (set your (variety level) to medium)
+ (set your (complexity level) to low)
+ (set your (originality level) to medium)
+ (set your (coherence level) to high)
+ (set your (obviousness level) to medium)
+ (set your (energy level) to medium)
+ (set your (flashiness level) to medium)
+ (set your (rhythm level) to medium)
+ (set your film-length to (interval (minutes 1) (minutes 4)))
+ (set your mood to scene-dependent)
+ (set your focus to focus))
+
+
+(define focus-0 something ;;just to compile this it is kept seperate from the focus
+ (do when receiving (is ?choice part of the focus)
+     (let ((choice-for (cond ((ask ,choice are you a node)
+			      ;;not compiled since loading in node pulls in everything
+			      (uncompiled-ask ,choice yield your and ancestors node-for))
+			     (t (list choice)))) ;;is a choice-point
+	   (parts-of-the-focus (ask :self recall your parts-of-the-focus)))
+	  (cond ((intersect choice-for parts-of-the-focus) t)))))
+
+(declare (coutput (read)))
+;;dont compile this because of desired side-effects will be lost otherwise
+
+(define focus focus-0
+ (set your order-of-character+element-type+element to
+      (characters element-types elements))  ;;this affects the order of choosing
+ (ask absolute-choice-point to set your suggestion-sources to
+      ((absolute-suggestions neighbors-absolute-suggestions opposites-absolute-suggestions)
+       relative-suggestions global-suggestions))
+ (ask absolute-choice-point to set your source-priorities to
+      (default-source-priorities: absolute-suggestions 3
+				  neighbors-absolute-suggestions 2
+				  opposites-absolute-suggestions 1
+				  relative-suggestions 4
+				  global-suggestions 1))
+ (ask relative-choice-point to set your suggestion-sources to (absolute-suggestions))
+ ;;it makes not much sense to have relative suggestions for relative values
+ (ask relative-choice-point to set your source-priorities to
+      (default-source-priorities: absolute-suggestions 3))
+ (ask absolute-choice-point to set your minimally-happy-sample-suggestion to
+      (suggestion: element dont-care
+		   value dont-care-either
+		   strength medium
+		   source (and shy relative-choice-point))) ;;any one should work
+ (ask relative-choice-point to set your minimally-happy-sample-suggestion to
+      (suggestion: element dont-care
+		   value dont-care-either
+		   strength medium
+		   source hates)))
+
+
+;; (declare (compile-actors)) dont want this since focus will be compiled

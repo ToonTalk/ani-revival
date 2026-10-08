@@ -1,0 +1,101 @@
+;; Hey, Emacs, this file contains -*- Mode: Lisp; Package: User; -*- code!
+
+;; Ken's LISPM init file.  (based upon Henry's)
+
+
+(LOGIN-EVAL (PROG2 (ADD-INITIALIZATION "KEN'S INIT"
+				       '(progn (si:sb-on '(:CALL :KEYBOARD :CHAOS :CLOCK))
+					       (SETQ BASE 10. IBASE 10.))
+				       '(WARM NOW))
+                   '(PROGN (DELETE-INITIALIZATION "KEN'S INIT" '(WARM))
+                           (SETQ BASE 8. IBASE 8.))))
+
+(print-modification-record)
+
+(si:sb-on '(:CALL :KEYBOARD :CHAOS :CLOCK)) ;;enable sequence breaks
+
+(load "dick;lspmp") ;;dick waters printer
+
+(sstatus feature dicks-printer)
+
+
+;;the following are just for top-level interaction
+
+(defun p (thing)
+       (let ((prin1 nil))
+	    (print thing)))
+
+(defmacro s (variable value)
+	  (terpri)
+	  (cond ((boundp variable)
+		 (princ ";")
+		 (princ variable)
+		 (princ " previously had the value ")
+		 (princ (eval variable)))
+		(t (princ ";")
+		   (princ variable)
+		   (princ " has no previous value.")))
+	  (list 'setq variable value))
+
+(declare (special *compiler-on))
+
+(defvar *inside-qc-file nil)
+
+(defun c (file &optional *compiler-on)
+       ;;one of the paradoxs of life... by default, I must compile files with my compiler off
+       (zwei:com-save-all-files) ;;forget to do it once too many
+       (let ((*inside-qc-file t)) ;;some macros are curious about this
+	    (qc-file file))
+       (princ ";Do you want it loaded?")
+       (and (y-or-n-p)
+	    (load (file-set-fn2 file "qfasl"))))
+
+;;(DEFMACRO AUTOLOAD (FUNCTION FILE)
+;;          `(DEFUN ,FUNCTION (&REST IGNORE)
+;;		   (LET ((SI:INHIBIT-FDEFINE-WARNINGS T))
+;;		        (LOAD ,FILE))
+;;		   (APPLY #',FUNCTION IGNORE)))
+
+  ;;I know they are obsolete but don't want to keep hearing about it
+(remprop 'status 'COMPILER:STYLE-CHECKER)
+(remprop 'exploden 'COMPILER:STYLE-CHECKER)
+(remprop 'implode 'COMPILER:STYLE-CHECKER)
+(remprop 'getcharn 'COMPILER:STYLE-CHECKER)
+
+(macro ask (transmission)
+ ;;check sort of autoload hack
+ (let ((si:inhibit-fdefine-warnings t))
+      (load "direct;lmd"))
+ transmission)
+
+(defun bye nil
+       (zwei:com-save-all-files) ;;In case I forgot
+       (princ "And a pleasant day to you.")
+       (logout))
+
+(chaos:nwatch-login)
+
+  ;;the following should help avoid some obscure system bug that occurs when
+  ;;interactively calling the compiler,etc.
+(setq compiler:QCOMPILE-TEMPORARY-AREA WORKING-STORAGE-AREA)
+(setq COMPILER:QC-FILE-TEMPORARY-AREA WORKING-STORAGE-AREA)
+
+;;(defun reload-ed nil
+;;  (zwei:com-save-all-files)
+;;  (zed 'reload) ;;I have to type ctrl-z here from zwei
+;;  (load "ken;zwei")
+;;  (load "henry;ztop")
+;;  (ed))
+
+(defun abbrevs nil
+ (zwei:OPEN-FILE (STREAM  "ken;wordab defns" '(IN))
+	    (zwei:LOAD-QWABL STREAM))
+;; (zwei:turn-on-mode 'word-abbrev-mode)
+)
+
+
+(LOAD "KEN;ZWEI")
+
+(LOAD "HENRY;ZTOP")
+
+(ed)

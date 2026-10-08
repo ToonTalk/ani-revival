@@ -1,0 +1,104 @@
+;;; -*-lisp-*-
+
+(declare (macros t)) ;so that the following macro is always around
+
+(sstatus features director-loader)
+
+(defun defcomment macro (useless) nil) ;this is useful mostly for tags
+
+(defcomment load) ;for tags
+
+(declare (special *print-load-messages)) ;;this doesn't read in declare >
+
+(setq *print-load-messages t) ;;default is to print them
+
+(setq *actors-to-be-compiled nil
+      *actors-to-be-compiled-this-file nil)
+
+(setq *help-storage-place '(arc ken1))
+
+(setq *insert-methods-at-end nil) ;;so when debugging they are stuck in front
+
+(defun director (subsystems)
+ (let ((*print-load-messages nil))
+      (remprop 'cs 'autoload) ;;dont want to autoload cs since need to fancify
+      (remprop 'clearscreen 'autoload)
+      (cond ((status features lisp-tags-for-director)) ;;reloading so ignore
+	    (t (defprop read-emacs-tags |ai:ken1;rdtags| autoload)
+	       (read-basic-system-tags)
+	       (cond ((memq 'ani subsystems) (read-ani-tags)))
+	       (cond ((memq 'direct subsystems) (read-direct-tags)))
+	       (sstatus features lisp-tags-for-director)
+	       ;;this is before macros so readmacros doesnt confuse it
+	       (or (status features director-read-macros) (load '|ken1;readir|))
+	       (or (status features kens-utilities) (load '|ken1;util|))
+	       (or (status feature director) (load '|ai:ken1;drect|))
+	       ;;abbreviations are hard to autoload so...
+	       (load '|ai:ken;abbrev|))))
+ (cond ((and (memq 'direct subsystems)
+	     (probef '|ai:ken1;direct patch|))
+	(director-load '|ai:ken1;direct patch| '|to get a patch| nil nil t)))
+ (cond ((and (memq 'ani subsystems)
+	     (probef '|ai:ken1;ani patch|))
+	(director-load '|ai:ken1;ani patch| '|to get a patch| nil nil t))))
+
+(defprop defmacro autoload autoload-property)
+(defprop define-method-helper autoload autoload-property)
+(defprop define-function autoload autoload-property)
+(defprop define-form autoload autoload-property)
+(defprop define actor-load autoload-property)
+(defprop define-or-add-to actor-load autoload-property)
+(defprop define-synonym autoload autoload-property)
+
+(defun read-basic-system-tags nil
+       (read-tags 'smadir 
+		  '(|ken1;comp| |ken1;trace| |ken1;prop| |ken1;incomp| dump
+				|ken1;cmatch| some)))
+
+(defun read-direct-tags nil
+       (read-tags 'direct
+		  '(|ken;perfor| |ken;movie| |ken;poly| |ken1;tutil| |ken1;turmac|
+				 |ken1;colide| |ken1;cmovie| |ken1;dlist| |ken;dump|
+				 |ken1;fwuse| |ken1;fwmake| |ken1;inter| |ken;box|
+				 |ken1;instan|)))
+
+(defun read-ani-tags nil
+       (read-tags 'ani
+		  '(sugrel sugest emote dscrp relate csumry film scene elemnt char cindy cosug
+			   compar sumcom glosug choose cpoint chocho nodes postpo chomet
+			   convey sugcon disply prereq method action animov interf
+			   dichar disact place)))
+
+(defun read-tags (tag-file-name-1 only-these-files)
+       (cond ((probef (list '(dsk ken) tag-file-name-1 'fasl))
+	      (load (list '(dsk ken) tag-file-name-1 'fasl))) ;;if compiled load that
+	     ((probef (list '(dsk ken) tag-file-name-1 'ltags))
+	      (load (list '(dsk ken) tag-file-name-1 'ltags))) ;;if ltags files use that
+	     (t (let ((readtable (get 'original-readtable 'array)))
+		     (read-emacs-tags '|ken;ken tags|
+				      (list '(dsk ken) tag-file-name-1 'ltags)
+				      only-these-files))))) ;;make one instead
+
+(defprop macroexpanded t director-macro?) ;;so is compiled out by lispify-all-transmissions
+
+(defprop tvfont |plasma;tvfont winfon| font-autoload-file)
+(defprop tr18 |plasma;tr18 winfon| font-autoload-file)
+(defprop tr12b |plasma;tr12b winfon| font-autoload-file)
+(defprop 25vmic |plasma;25vmic winfon| font-autoload-file)
+(defprop 37vxms |plasma;37vxms winfon| font-autoload-file)
+
+;;the following are just handy for use at top level
+
+(defun rom (sw) ;;to avoid typing at top level
+ (s *replace-old-methods sw))
+
+(defun mo (actor) ;;i type this alot at top level too
+ (methods-of (actor-of actor)))
+
+(defun pv ()
+       (mapc
+	#'(lambda (variable)
+		  (type '(,variable |is| ,(cond ((boundp variable) (symeval variable))
+						(t '|not bound|)))))
+	'(myself *message *method-being-run *replace-old-methods *insert-methods-at-end))
+       no-value)

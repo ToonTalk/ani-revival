@@ -1,0 +1,473 @@
+;this is #comp >
+;part of the anima system that is for compiling actors
+;in greatly more efficient way than without using this
+
+
+(declare (genprefix comp)
+	 (fasload qq)
+	 (macros t)
+	 (special :message :self :variables :values))
+
+
+
+;Receive-macro replaces the usual receive function when called
+;after an ask
+;it throws back to the ask macro the first receiver to match
+;unless its actions is to pass the buck in which case it keeps looking
+
+(defun receive-macro macro (a)
+       (prog (:values :variables)
+       (and (match :message (cadr a))
+	    (setq :matched? t)
+	    (not (or (memq (car (caddr a))
+			   '(pass/.the/.buck/.to pass/.the/.message/.up/.to))
+		     (cond ((memq (car (caddr a)) '(return output))
+			    (memq (car (cadr (caddr a)))
+				     '(pass/.the/.buck/.to
+				       pass/.the/.message/.up/.to))))))
+	    (throw (list a :variables :values (most/.recent/.target)) ask-macro))))
+
+;this displaces the list a with b      no longer used
+;(defun displace (a b)
+;       (rplacd a (cdr b))
+;       (rplaca a (car b)))
+ 
+
+;this replaces the ask function and temporally replaces receive with the above macro
+
+;ask can have an optional third arguement which is advice to the "compiler"
+;it can be:
+; (ask foo (append a b) (example: (forget color sky blue)))
+;or if there is also a question about who the message is to be sent to then
+; (ask (class-of :self) :message (example: (ask something (find all foo bars))))
+;or if the above is true but there are no variables in message then:
+; (ask (class-of :self) (what time ?) (example: (ask something ...)))
+;advice should be used with care
+
+
+;if there is some advice then the example is run with the receive macro ready
+;to catch the action and then the action is returned by the macro
+;with no advice it just compiles to ask.not.to.be.compiled
+
+(declare (special ask-call))
+
+(defun ask macro (ask-call)
+(ask1  nil nil (get 'cases-of 'macro) (cadr ask-call) (caddr ask-call)
+       (cadr (cadddr ask-call))))
+
+(defun ask1 (receiver-info
+	     the-receiver cases-macro target-form message-form advice-to-compiler)
+ (cond ((and (not (atom message-form))
+	     (eq (car (listify-message message-form)) 'quote)
+	     (atom target-form)
+	     (boundp target-form)
+	     (not (eq target-form ':self))
+	     (not (ditto? (caddr advice-to-compiler))))
+	(ask1 nil nil (get 'cases-of 'macro) target-form
+	     (listify-message message-form)
+	      (list 'ask target-form '/././.)))
+       (advice-to-compiler
+	(putprop 'receive (get 'receive-macro 'macro) 'macro)
+	(remprop 'cases-of 'macro)
+	(setq the-receiver
+	      (car
+	       (setq receiver-info
+		    (catch (cond ((eq (car advice-to-compiler) 'ask)
+				  (ask/.not/.to/.be/.compiled
+				    (cadr advice-to-compiler)
+				   (cond ((ditto? (caddr advice-to-compiler))
+					   (cond ((eq (car message-form) 'quote)
+						  (cadr message-form))
+						 (t message-form)))
+					 (t (caddr advice-to-compiler)))))
+				   (t (ask/.not/.to/.be/.compiled
+				        target-form  advice-to-compiler)))
+		      ask-macro))))
+	(and cases-macro (putprop 'cases-of cases-macro 'macro))
+	(remprop 'receive 'macro)
+	(cond (the-receiver
+	       (cond ((eq target-form ':self)
+		      '((lambda (:message)
+			     `(cond ((ditto? (caddr advice-to-compiler))
+				       (apply-to-values
+					(cadr the-receiver)
+					(cadddr receiver-info)
+					(caddr receiver-info)))
+				      (t (receive2
+					   (cadr the-receiver)
+					   (cadr receiver-info)
+					   (cadddr receiver-info)))))
+		 `(listify-message message-form)))
+		     (t  '((lambda (:self :message)
+			     `(cond ((ditto? (caddr advice-to-compiler))
+				       (apply-to-values
+					(cadr the-receiver)
+					(cadddr receiver-info)
+					(caddr receiver-info)))
+				      (t (receive2
+					   (cadr the-receiver)
+					   (cadr receiver-info)
+					   (cadddr receiver-info)))))
+			   `(fix-up-target target-form)
+			   `(listify-message message-form)))))
+	      (t (list 'ask/.not/.to/.be/.compiled
+			(fix-up-target (cadr ask-call))
+		       (listify-message (caddr ask-call))))))
+       (t (list 'ask/.not/.to/.be/.compiled
+		 (fix-up-target (cadr ask-call))
+		 (listify-message (caddr ask-call))))))
+
+(defun fix-up-target (target-form)
+       (cond ((atom target-form)
+	      (cond ((eq (getchar target-form 1) ':)target-form)
+		    (t (list 'quote target-form))))
+	     (t target-form)))
+
+
+(defun ditto? (atom)
+       (or (eq atom '/././.)
+	   (equal atom 0)))
+
+;if there are no variables in message might as well compile out the match part
+
+
+(defun apply-to-values (pattern :actor values)
+     (list 'apply
+	   (list 'quote (function-name pattern :actor))
+	   (list 'quote values)))
+
+
+
+
+;this puts the receiver found by the receive macro in a more efficient form
+
+(defun receive2 (pattern variables actor)
+'((lambda (:variables :values)
+    (and `(match-macro ':message (list 'quote pattern))
+		(setq :matched? t)
+		 `(cond (variables
+		        '(apply `(list 'quote (function-name pattern actor))
+				 :values))
+		       (t (list (function-name pattern actor))))))
+  nil nil))
+
+
+;as a macro cases-of expands to a cond as follows:
+;the progn setq ans bit is because I want the side effects of match (i.e. the
+;two lists :variables and :values) to be scoped to the receiver 
+
+(defun cases-of macro (name+code)
+(cases-of1 (cadr name+code) (cddr name+code)))
+
+
+(defun cases-of1 (name code)
+(cond ((eq (caar code) 'else) (cadr (car code)))
+      (t
+(list (list 'lambda '(ans :matched?)
+      (cons 'cond
+	      (mapcar (function (lambda (receiver)
+		 (cond ((eq (car receiver) 'else)
+			(cons t (cdr receiver)))
+		       (t (list (list 'progn (list 'setq 'ans
+					   (receive/.with/.functional/.action
+						   (cadr receiver)	  
+						   name))
+				       ':matched?)
+				'ans)))))
+		      code)))
+      nil nil))))
+				 
+;this is very similar to receive2 up above and replaces receivers in a cases
+;with a form that compiles more efficiently
+
+(defun receive/.with/.functional/.action (pattern name)
+       (print (cons 'defun
+		   (cons (function-name pattern name)
+			 (cdr
+			  (macro-expand (get (function-name pattern name) 'expr))))))
+       '((lambda (:variables :values)
+		 (and `(match-macro  ':message (list 'quote pattern))
+		      (setq :matched? t)
+		      (apply `(list 'quote (function-name pattern name))
+			       :values)))
+	 nil nil))
+
+
+;this is just prettier
+(defun do/.the/.following: macro (a) (cons 'progn (cdr a)))
+
+;this is to macro expand code, it does not work on abitrary code (maybe should)
+;but does on actors consisting of cases, receives, asks etc.
+
+(defun macro-expand-once (code)
+       (cond ((atom code) code)
+	     ((get (car code) 'macro)
+	      (funcall (get (car code) 'macro)
+		        code))
+	     (t (cons (macro-expand-once (car code)) (macro-expand-once (cdr code))))))
+
+;you are finished macro-expanding if the result of macro expanding is equal to itself
+
+(defun macro-expand (code)
+       (do ((i code (macro-expand-once i))
+	    (last-i nil i))
+	   ((equal i last-i) i)))
+
+	   	    
+(defun careful-subst (exp variables values)
+       (progv variables values
+	      (cond ((atom exp)
+		     (cond ((memq exp variables) (symeval exp))
+			   (t exp)))
+		    ((atom (car exp))
+		     (cond ((memq (car exp) '(quote receive cases-of))
+			    exp)
+			   (t (cons (car exp)
+				    (mapcar (function
+					     (lambda (element)
+						     (careful-subst element
+								    variables values)))
+					    (cdr exp))))))
+		    (t (mapcar (function
+				(lambda (element)
+					(careful-subst element
+						       variables values)))
+			        exp)))))
+
+
+;(defun special-subst (exp variables values)
+;       (apply (function (lambda (useless target message)
+;		(cond ((and (atom (cadr exp))
+;			    (atom (caddr exp)))
+;		       (list 'ask target message))
+;		      ((atom (cadr exp))
+;		       (list 'ask target (caddr exp)))
+;		      ((atom (caddr exp))
+;		       (list 'ask (cadr exp) message))
+;		      (t exp))))
+;	(careful-subst (list 'place/.handler/.for/.ask
+;			     (cond ((atom (cadr exp)) (cadr exp))
+;				   (t (list 'quote (cadr exp))))
+;			     (cond ((atom (caddr exp)) (caddr exp))
+;				   (t (list 'quote (caddr exp)))))
+;		       variables
+;		       values)))
+
+(defun quotify-each (l)
+       (mapcar (function (lambda (element)
+				 (list 'quote element)))
+	       l))
+		      
+
+;the "pattern compiler"
+
+;maybe these should go up
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+
+;notice that pat gets evaled twice
+(defun match-macro (obj pat)
+       (cons 'and
+	     (match-macro+check-length obj (eval pat) nil)))
+
+(defun m fexpr (a) ;for debugging only
+       (cons 'and
+	     (match-macro+check-length (car a) (eval (cadr a)) nil)))
+
+(declare (special any%))
+
+(defun match-macro+check-length (obj pat any%)
+       (cons ((lambda (length-check)
+		      (cond (any% (cadr length-check))
+			    (t '((lambda (all-but-last)
+					 (and all-but-last
+					      (null (cdr all-but-last))))
+				 `(cadr length-check)))))
+	      (minimum-cdring obj pat))
+	     (match-macro1 obj pat)))
+
+(defun minimum-cdring (obj pat)
+       (cond ((null pat) obj)
+	     ((not (atom (car pat)))
+	      (minimum-cdring (list 'cdr obj) (cdr pat)))
+	     ((eq (getchar (car pat) 1) '%)
+	      (setq any% t)
+	      (minimum-cdring obj (cdr pat)))
+	     ((eq (car pat) '{)
+	      (minimum-cdring (list 'cdr obj) (cdr (memq '} pat))))
+	     (t (minimum-cdring (list 'cdr obj) (cdr pat)))))
+
+(defun match-macro1 (obj pat)
+       (cond ((null pat) '(t))
+	     ((atom (car pat))
+	      ((lambda (first-pat)
+		       (cond ((numberp first-pat)
+			      (list
+			       (cons 'and
+				    (cons
+				     (list '=
+					   (list 'float (list 'car obj))
+					   (float first-pat))
+				     (match-macro-bind-obj (list 'cdr obj)
+						   (cdr pat))))))
+			     ((eq first-pat '/{)
+			       (handle-restriction-macro
+				(list 'car obj)
+				(list 'cdr obj)
+				(up-til '} (cdr pat))
+				(cdr (memq '} (cdr pat)))))
+			     (t ((lambda (first-letter)
+					 (cond ((eq first-letter '?)
+						(list 
+						(cons 'and
+						      (cons 
+							    (bind-macro
+								 first-pat
+								 (list 'car obj))
+							    (match-macro-bind-obj
+							     (list 'cdr obj)
+							     (cdr pat))))))
+					       ((eq first-letter '%)
+						(cond ((cdr pat)
+						       (look-for-next-macro (cadr pat)
+								      (car pat)
+								      (cdr pat)
+								      obj
+								      nil))
+						      (t (list 
+							  (bind-macro
+								  first-pat
+								  obj)
+							  t))))
+					       (t (list
+						   (cons 'and
+							(cons (list 'eq
+							      (list 'quote first-pat)
+								    (list 'car obj))
+							(match-macro-bind-obj
+							     (list 'cdr obj)
+							     (cdr pat))))))))
+				 (getchar first-pat 1)))))
+	       (car pat)))
+	     (t (list
+		 (cons 'and
+		       (append (match-macro+check-length
+				(list 'car obj)
+				(car pat)
+				nil)
+			       (match-macro-bind-obj (list 'cdr obj)
+						     (cdr pat))))))))
+	      
+
+(defun handle-restriction-macro (first-obj rest-obj restriction rest-pat)
+       (do ((i restriction (cdr i)))
+	   ((null i) (warning 'handle-restriction-macro
+			      '(the restriction `restriction has nothing to bind))
+	    	     nil)
+	   (cond ((numberp (car i)))
+		 (t ((lambda (first-char)
+			     (cond ((eq first-char '?)
+				    (return
+				     (list
+				      (cons 'and
+					   (cons (careful-subst restriction
+								(list (car i))
+								(list first-obj))
+						 (cons (bind-macro (car i)
+								    first-obj)
+						       (match-macro-bind-obj
+							rest-obj rest-pat)))))))
+				   ((eq first-char '%)
+				    (warning 'handle-restriction-macro
+					     '(cant handle %s in `restriction))
+				    (return nil))))
+		     (getchar (car i) 1))))))
+				   
+	    
+
+(defun match-macro-bind-obj (new-obj pat)
+       ((lambda (name-of-new-obj)
+		((lambda (insides)
+			 (cond ((equal insides '(t)) insides)
+			       (t '(((lambda (`name-of-new-obj) 
+				    `(cond ((atom (car insides)) insides)
+					   (t (car insides))))
+			    `new-obj)))))
+	(match-macro1 name-of-new-obj pat)))
+		 (gensym)))
+
+
+(defun look-for-next-macro (:next :first-pat :rest-pat :obj :to.bind)
+(list      (cond ((null :rest-pat)
+	       (list 'match
+		    (list 'member-and-bind
+			  (list 'quote (gensym))
+			  :obj
+			  (list 'quote (nreverse :to.bind))
+			  (list 'quote :first-pat))
+		    (list 'quote :rest-pat)))
+	     ((atom :next)
+	      ((lambda (first-letter)
+			 (cond 
+			  ((eq first-letter '/:)
+			   (look-for-next-macro (eval :next)
+					  :first-pat
+					  (cons (eval :next) (cdr :rest-pat))
+					  :obj
+					  :to.bind))
+			  ((eq first-letter '?)
+			   (look-for-next-macro (cadr :rest-pat)
+					  :first-pat
+					  (cdr :rest-pat)
+					  :obj
+					  (cons :next :to.bind)))
+			  ((eq first-letter '%)
+			   (warning 'match '(cant handle two %s like this in
+					     `(cons :first-pat :rest-pat)))
+			   (look-for-next-macro (cadr :rest-pat)
+					  (car :rest-pat)
+					  (cdr :rest-pat)
+					  :obj nil))
+			  ((eq first-letter '{)
+			   (list 'match
+				 (list 'member-and-bind
+				       (list 'quote (up-til '} :rest-pat))
+				       :obj
+				       (list 'quote (nreverse :to.bind))
+				       (list 'quote :first-pat))
+				 (list 'quote :rest-pat)))
+			  (t  (list 'match
+				    (list 'member-and-bind
+					  (list 'quote :next)
+					  :obj
+					  (list 'quote (nreverse :to.bind))
+					  (list 'quote :first-pat))
+				    (list 'quote :rest-pat)))))
+		 (getchar :next 1)))
+	     (t  (list 'match
+		    (list 'member-and-bind
+			  (list 'quote :next)
+			  :obj
+			  (list 'quote (nreverse :to.bind))
+			  (list 'quote :first-pat))
+		    (list 'quote :rest-pat))))))
+
+(defun bind-macro (:atom :value.form)
+       '(progn
+	 (setq :variables (cons `(list 'quote (fix-name :atom))
+				:variables))
+	 (setq :values (cons `:value.form :values))))
+
+

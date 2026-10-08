@@ -1,0 +1,385 @@
+
+(declare (setq ibase 10.))
+
+(declare (*lexpr mw hw sw wf fw shade)
+	 (*fexpr ask))
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+
+(progn
+(setsyntax 123. 'single nil); for {}
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );to make . only a decimal point
+
+
+(declare (special no-value :tvstep :ycor :erasercolor))
+
+(or (boundp 'no-value) (setq no-value '?))
+
+(defun gpoly (size angle factor colors)
+       (do ((size (float size) (*$ size factor))
+	    (the.colors colors (and the.colors
+				    (append (cdr the.colors)
+						(list (car the.colors))))))	   
+	   ((greaterp :ycor (car (turtlesize))) '?)
+	   (and the.colors (pc (car the.colors)))
+	   (fd size)
+	   (rt angle)))
+
+(defun equiv.size (size angle factor)
+((lambda (nearest.mult)
+	 (*$ (float size)
+	     (expt factor
+		   (// nearest.mult (gcd nearest.mult (abs (- nearest.mult angle)))))))
+ (nearest.mult angle)))
+
+(defun nearest.mult (angle)
+    (cond ((= (\ 360 angle) 0) 0)
+	  ((< (abs (- 360 (* (// 360 angle) angle)))
+	      (abs (- 360 (* (1+ (// 360 angle)) angle))))
+	   (// 360 (// 360 angle)))
+	  (t (// 360 (1+ (// 360 angle))))))
+
+
+(defun pause (x)
+       (cond ((numberp x) (sleep x))
+	     (t (tyo 7)(princ 'shoot)(tyi))))
+
+(defun color.cs nil
+       (cond ((status feature color)
+	      (mapc 'hide.a.turtle :turtLes)
+	      (cs)
+	      (princ 'cs)
+	      (cond ((= (tyi) 32) no-value)
+		    (t (color.cs))))
+	     (t (tv-clearscreen))))
+	     
+
+(defun hide.a.turtle (:name)
+       (useturtle :name)
+       (ht))
+
+(defun loop1 (frames)
+       (grow.gpoly 5 119 1.02 frames t
+		  (MAPCAN 'LIST (cdr (make.color.interpolation 'red 'green 6))
+			   (cdr (make.color.interpolation 'green 'blue 6))
+			   (cdr (make.color.interpolation 'blue 'red 6)))
+		   240
+		   t))
+
+(defun grow.gpoly (size angle factor n pause colors total.rotation rotate.palette?)
+((lambda (palette.rotation.length)
+       ((lambda (size.inc palette.interpolation rotation)
+		(do ((i n (1- i))
+		     (pi palette.interpolation (and rotate.palette?
+						    (cond ((equal
+							    palette.interpolation pi)
+							   (make.palette.rotation
+							    palette.rotation.length))
+							  (t pi))))
+		     (new.size (float size) (+$  new.size size.inc))
+		     (heading 0.0 (+$ heading rotation))
+		     (the.colors colors (and the.colors
+					     (append (cdr the.colors)
+						(list (car the.colors))))))
+		    ((< i 0) no-value)
+		    (pc :erasercolor)
+		    (color.cs)
+		    (rt heading)
+		    (gpoly new.size angle factor the.colors)
+		    (and rotate.palette? (interpolate.palette pi))
+		    (pause pause)))
+	(//$  (equiv.size size angle factor)
+	      (float n))
+	(cond (rotate.palette?
+	       (ht)
+	       (pc :erasercolor)
+	       (cs)
+	       (mapc 'pc colors)
+	       (make.palette.rotation palette.rotation.length)))
+	(//$ (float total.rotation) (float n))))
+ (fix (+$ .999 (//$ (float n) 15.0)))))
+
+
+(defun fill.circle (radius n)
+       (do ((i n (1- i))
+	    (x (- (random (* 2 radius)) radius)
+	       (- (random (* 2 radius)) radius))
+	    (y (- (random (* 2 radius)) radius)
+	       (- (random (* 2 radius)) radius))
+	    (radius.squared (* radius radius)))
+	   ((= i 0))
+	   (pc (random 15))
+	   (cond ((< radius.squared (+ (* x x) (* y y))))
+		 (t (point x y)))))
+
+(defun empty.circle (radius n)
+       (pc :erasercolor)
+       (do ((i n (1- i))
+	    (x (- (random (* 2 radius)) radius)
+	       (- (random (* 2 radius)) radius))
+	    (y (- (random (* 2 radius)) radius)
+	       (- (random (* 2 radius)) radius))
+	    (radius.squared (* radius radius)))
+	   ((= i 0))
+	   (cond ((< radius.squared (+ (* x x) (* y y))))
+		 (t (point x y)))))
+
+(defun loop2 (length radius pause)
+       (fill.loop2 (// length 2) 10 radius pause)
+       (BREAK ABOUT.TO.EMPTY T)
+       (empty.loop2 pause))
+
+(defun fill.loop2 (frames n radius pause)
+       (do ((i 1 (1+ i))
+	    (PI (MAKE.PALETTE.ROTATION FRAMES)))
+	   ((= i frames))
+	   (fill.circle radius (* i (// n 3)))
+	   (pause pause)
+	   (INTERPOLATE.PALETTE PI)))
+
+;(defun empty.loop2 (frames n radius pause)
+;(or (status feature color) (erd))
+;       (do ((i 1 (1+ i))
+;	    (PI (MAKE.PALETTE.ROTATION FRAMES)))
+;	   ((= i frames))
+;	   (empty.circle radius (* i (// n 3)))
+;	   (INTERPOLATE.PALETTE PI)
+;	   (pause pause)))
+
+
+(defun empty.loop2 (pause)
+       (do ((foo (makepalette (random 15) (palette (min (random 18) 15)))
+		 (makepalette (random 15) (palette (min (random 18) 15 ))))
+	    (n 0 (1+ n))
+	    (stop.palette (subst :erasercolor t
+				 '(t t t t t t t t t t t t t t t t))))
+	   ((equal (listarray 'palette) stop.palette) n)
+	   (pause pause)))
+
+
+	   
+
+(defun set.up.ring (:actors :radius)
+(useturtle 'logoturtle)
+(pu)
+       (home)
+       (delx (- :radius))
+       (do ((i :actors (cdr i))
+	    (n (length :actors))
+	    (dist (//$ (*$ 2.0 3.14159 (float :radius)) 72.0)))
+	   ((null i) 'done)
+	   (ask (car i) (setxy :xcor :ycor))
+	   (ask (car i) (grow 0))
+	   (st)
+	   (useturtle 'logoturtle)
+	   (draw-arc dist (// 360 n))))
+
+(defun make.ring.actors (:actor1 :actor2 :number :begin :inc :colors)
+       (ask :actor1 (make actor1.1))
+       (ask actor1.1 (interpolate to :actor2 in 1 ticks))
+       (do ((i :number (1- i))
+	    (c :colors (cdr c))
+	    (ans nil)
+	    (:interpolation.amount :begin (plus :interpolation.amount :inc)))
+	   ((= i 0) (reverse ans))
+	   (ask actor1.1 (make (car (setq ans (cons (gensym) ans)))))
+	   (ask (car ans) (know that your interpolationamount is
+				(float :interpolation.amount)))
+	   (ask (car ans) (know that your color is (car c)))))
+
+(defun innerring nil
+       (ask poly (make star5))
+       (ask star5 (know that your angle is 144))
+       (ask star5 (shrink 25))
+       (ask poly (make circ))
+       (ask circ (shrink 25))
+       (ask circ (know that your angle is 12))
+(setq r5  (make.ring.actors 'star5 'circ 5 -2 1
+			 (mcolori 'yellow 'green 5))))
+
+
+
+(defun outerring nil
+       (ask poly (make star9))
+       (ask star9 (know that your angle is 160))
+       (ask poly (make ninegon))
+       (ask ninegon (know that your angle is 40))
+(setq r9   (make.ring.actors 'star9 'ninegon 9 -4 1
+			 (mcolori 'red 'blue 9))))
+	    
+
+(defun rings nil
+       (innerring)
+       (set.up.ring r5 175)
+       (outerring)
+       (set.up.ring r9 400))
+
+
+(defun loop3 (:frames pause)
+       (or (boundp 'r9) (rings))
+       (interpolate.to.neighbor r9 :frames (//$ (*$ 2.0 3.14159 400.0) 9.0
+						(float :frames))
+				(//$ 360.0 9.0 (float :frames)))
+       (interpolate.to.neighbor r5 :frames (//$ (*$ 2.0 3.14159 175.0) 5.0
+						(float :frames))
+				(//$ 360.0 5.0 (float :frames)))
+       (and pause (trace (wipe break t)))
+       (ask universe (go for :frames ticks)))
+
+
+(defun interpolate.to.neighbor (actors :number :distance :angle)
+       (do ((i (cons (car (last actors)) actors) (cdr i)))
+	   ((null (cdr i)) 'done)
+	   (ask (car i) (plan: interpolate to (cadr i) in :number ticks next))
+	   (ask (car i) (plan: repeat :number '(appear forward `:distance) next))
+	   (ask (car i) (plan: repeat :number '(appear right `:angle) next))))
+
+
+(defun loop4 (frames pause)
+       (spiral.in
+	'((0 200.0 green sq.circ -20.0 (1 1 0))
+	  (50 220.0 red line.circ -25.0 (1 1 0))
+	  (87 300.0 yellow star9.circ 12.0 (1 1 0))
+	  (125 175.0 blue sq.circ 15.0 (1 1 0))
+	  (190 250.0 cyan tri.circ -20.0  (1 1 0))
+	  (240 140.0 magenta star.circ -18.0 (1 1 0))
+	  (286 250.0 white tri.circ 10.0 (1 1 0))
+	  (325 234.0 pink line.circ 40.0 (1 1 0))
+	  (380 290.0 gold star.circ 6.0 (1 1 0))
+	  (423 240.0 orange star9.circ -23.0 (1 1 0))
+	  (490 300.0 purple tri.circ -5.0 (1 1 0))
+	  (540 240.0 red line.circ -50.0 (1 1 0))
+	  (585 320.0 yellow sq.circ -5.0 (1 1 0))
+	  (621 260.0 pink star9.circ 4.0 (1 1 0))
+	  (677 225.0 magenta tri.circ -13.0 (1 1 0)))
+	1.01
+	frames
+	pause))
+
+;spiral.in takes a list of objects each one being
+;start time
+;initial size
+;color
+;interpolation function
+;initial interpolation value
+;initial state
+
+(declare (special initial.velocity turn.amount objectS))
+
+(setq initial.velocity 3.0  turn.amount 6.0)
+	 
+(DECLARE (SPECIAL :RESTART))
+(SETQ :RESTART 0)
+
+
+
+(defun spiral.in (object.descriptions factor frames pause)
+      (do ((objects (mapcar 'generate.object object.descriptions))
+	   (n 1 (1+ n)))
+	  ((> n frames) 'done)
+	  (COND ((> N :RESTART)
+		 (color.cs)))
+		 (princ n)
+	  (do ((i objects (cdr i)))
+	      ((null i)(AND (> N :RESTART) (pause pause)))
+	      (apply 'update.object (cons n (cons factor (car i)))))))
+
+
+(defun test (n)
+       (do ((i n (1- i)))
+	   ((= i 0))
+	   (tv-clearscreen)
+	   (apply 'UPdate.object (cons 2 (cons .991 x)))))
+
+(defun generate.object (object.description)
+     ((lambda (turtle.name color.name interpolation.value.name size.name velocity.name)
+	      (hatch turtle.name)
+	      (ht)
+	      (clip)
+	      (pu)
+	      (setturtle (cadr (cddddr object.description)))
+	      (set velocity.name initial.velocity)
+	      (set size.name (cadr object.description))
+	      (set color.name (caddr object.description))
+	      (copy.color (symeval color.name) color.name)
+	      (set interpolation.value.name (car (cddddr object.description)))
+	      (apply
+	       'maketurtle (list
+			    (make.form
+			     (cadddr object.description)
+			     interpolation.value.name
+			     color.name
+			     size.name)
+			    '(dummy)))
+	      (list (car object.description) velocity.name
+		    turtle.name color.name interpolation.value.name size.name
+		    (symeval interpolation.value.name)
+		    (symeval size.name)
+		    (redpart (symeval color.name))
+		    (greenpart (symeval color.name))
+		    (bluepart (symeval color.name))))		    
+      (gensym)(gensym)(gensym)(gensym)(gensym)))
+
+
+(defun copy.color (old.color new.color)
+       (makecolor new.color
+		  (redpart old.color)
+		  (greenpart old.color)
+		  (bluepart old.color)))
+
+
+(defun dummy nil nil)
+
+(defun make.form (function.name value.name color.name size.name)
+       (list 'progn
+	     '(pd)
+	     (list 'pc (list 'quote color.name))
+	     (list 'draw.centered (list 'quote (list function.name value.name))
+		   size.name)))
+
+(defun update.object (frame factor start.frame
+			    velocity.name turtle.name color.name value.name size.name
+			    initial.value initial.size initial.red initial.green
+			    initial.blue)
+       (cond ((> frame start.frame)
+	      (useturtle turtle.name)
+		       (ht)
+		       (fd (symeval velocity.name))
+		       (rt turn.amount)
+		       ((lambda (range.ratio)
+		 	  ((lambda (better.ratio)
+				(makecolor color.name
+					   (*$ better.ratio initial.red)
+					   (*$ better.ratio initial.green)
+					   (*$ better.ratio initial.blue))
+				(set value.name (*$ initial.value better.ratio))
+				(set size.name (*$ initial.size better.ratio))
+				(set velocity.name (*$ (symeval velocity.name) factor))
+				(cond
+				     ((and (greaterp (abs :xcor)
+						     (plus (car (turtlesize))
+							   (symeval size.name)))
+					   (greaterp (abs :ycor)
+						     (plus (cadr (turtlesize))
+							   (symeval size.name))))
+				      (set color.name :erasercolor)
+				      (pc :erasercolor))
+				     ((> (symeval size.name) (*$ 3.0 :tvstep))
+				      (COND ((> FRAME :RESTART) (ST))))))
+			   (min (abs
+				 (-$ (*$ range.ratio 2.0)
+				     (*$ range.ratio range.ratio)))
+				1.0)))
+			(//$ (range 0.0 0.0) 1000.0)))))
+				      
+				 
+	      
+	      
+

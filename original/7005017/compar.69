@@ -1,0 +1,164 @@
+;;;   -*-lisp-*-
+
+(include |ai:ken;declar >|)
+
+;;this is the part of dani that does character comparisons
+;;it compares characters trying to find strong differences or similarities between characters
+
+(defcomment compar) ;;for tags
+
+;;this is not used anymore but kept for testing purposes
+(define-function study-all-characters nil
+ (study-descriptor-use)
+ (example-of (ask character ask your offspring to compare yourself with your siblings)
+	     character))
+
+(define-function compare-two-characters (character1 character2)
+ (cond ((not (exists? '(comparison-of ,character1 ,character2)))
+	(compare-descriptors (ask ,character1 collect items memorized matching
+				  (description: type ?
+						descriptor ?
+						source ?))
+			     character1
+			     character2)
+	(compare-relationships '(relationship-of ,character1 ,character2) ;;might not exist
+			       '(relationship-of ,character2 ,character1))
+	(summarize-comparison '(comparison-of ,character1 ,character2)))))
+       
+
+(define-function compare-relationships (relationship-1-to-2 relationship-2-to-1)
+       (and (exists? relationship-1-to-2)
+	    (exists? relationship-2-to-1)
+	    (compare-descriptors
+	     (ask ,relationship-1-to-2 collect items memorized matching
+		  (description: type ?
+				descriptor ?
+				source ?))
+	     relationship-1-to-2
+	     relationship-2-to-1)))
+
+(define-function compare-descriptors (descriptions describee other)
+ (look-for-same-descriptors descriptions describee other)
+ (look-for-opposites+neighbors descriptions describee other))
+
+
+(declare (special  describee other d))
+
+(define-function look-for-same-descriptors (descriptions describee other)
+ (do ((d descriptions (rest d)))
+     ((null d))
+     (ask ,other recall an item matching
+	     (description: type ,(get (first d) 'type)
+			   descriptor ,(get (first d) 'descriptor)
+			   source ?other-source)
+	     then
+	     (record-comparison-if-new
+	      '(comparison: finding identical
+			    descriptor ,(get (first d) 'descriptor)
+			    descriptor-type ,(get (first d) 'type))
+	      describee
+	      (get (first d) 'source)
+	      other
+	      other-source))))
+
+(declare (unspecial describee other d))
+
+;;neighbors are very similar descriptors such as beautiful and gorgesous
+
+(define-function look-for-opposites+neighbors (descriptions describee other)
+ (do ((d descriptions (rest d)))
+     ((null d))
+     (let ((descriptor (get (first d) 'descriptor)))
+	  (cond ((exists? descriptor)
+		 (check-the-descriptors describee other 'opposites
+				        (ask ,descriptor recall your opposites)
+					(first d))
+		 (check-the-descriptors describee other 'neighbors
+					 (ask ,descriptor recall your neighbors)
+					 (first d)))
+		(t (warning 'look-for-opposites+neighbors
+			    '(,descriptor is a descriptor that I know nothing about)))))))
+
+;;since they are used in the code which gets compiled seperately
+(declare (special describee other description comparison-type)) 
+
+(define-function check-the-descriptors
+		 (describee other comparison-type descriptors description)
+ (and descriptors
+      (ask ,other recall an item matching
+	   (description: type ,(get description 'type)
+			 descriptor {memq ?other-descriptor (quote ,descriptors)}
+			 source ?other-source)
+	   then
+	   (record-comparison-if-new
+	    '(comparison: finding ,comparison-type
+			  descriptor (,(get description 'descriptor) ,other-descriptor)
+			  descriptor-type ,(get description 'type))
+	    describee
+	    (get description 'source)
+	    other
+	    other-source))))
+
+(declare (unspecial describee other description comparison-type)) 
+
+
+
+(define-function record-comparison-if-new (comparison describee1 source1 describee2 source2)	
+ (cond ((and (eq source1 source2) (not (eq source1 'initial-description))))
+       ;;both the result of the same more primary descriptor
+       (t (record-comparison comparison describee1 describee2))))
+
+
+(define-function record-comparison (comparison describee1 describee2)
+ (cond ((ask ,describee1 are you a relationship)
+	(let ((participants (rest describee1)))
+	     (record-comparison comparison (first participants) (second participants))))
+       ((ask ,describee1 are you a character)
+	(let ((recipient '(comparison-of ,describee1 ,describee2)))
+	     (ask character-comparison if new make ,recipient)
+	     (ask ,recipient memorize ,comparison)))
+       (t (complain 'record-comparison '(,describee1 is neither relationship nor character)))))
+
+
+
+;;now for the part that finds out interesting things about descriptors
+;;such as how commonly they are used is anyone unique (or nearly so) in their use
+
+(define-function study-descriptor-use nil
+ (let ((characters (ask character recall your offspring)))
+      (mapc
+       (function (lambda (descriptor)
+			 (study-descriptor descriptor characters)))
+       (ask character-descriptor recall your childless-descendants))
+      (mapc
+       (function (lambda (character)
+			 (summarize-uniqueness character)))
+       characters)))
+
+(define-function study-descriptor (descriptor characters)
+ (do ((c characters (rest c))
+      (descriptor-type (ask ,descriptor recall your type))
+      (users nil))
+     ((null c) (record-descriptor-use descriptor descriptor-type users characters))
+     (and (ask ,(first c) recall if any items match
+	       (description: type ,descriptor-type
+			     descriptor ,descriptor
+			     source ?source))
+	  (setq users (cons (first c) users)))))
+
+(define-function record-descriptor-use (descriptor type users characters)
+ (cond ((null users))
+       ((one-long users)
+	(ask ,(first users) memorize (comparison: finding unique
+						  descriptor ,descriptor
+						  descriptor-type ,type))))
+ (ask ,descriptor set your usage to (,(length users) out-of ,(length characters))))
+
+;;useful to reset when debugging
+
+(define-function destroy-comparisons nil
+ (ask character-comparison ask each of your offspring to unmake)
+ (ask character ask each of your offspring to forget items matching (comparison: %))
+ (ask character ask each of your offspring to forget items matching(uniqueness-summary: %))
+ (ask character-descriptor ask each of your childless-descendants to forget your usage)
+ no-value)

@@ -1,0 +1,1068 @@
+;this is movie >
+
+(declare (setq ibase 10.))
+
+(declare (special shooting?)(setq special t)(muzzled t) (*fexpr gw maketurtle))
+
+(setq *nopoint t)
+
+(setq defun t)
+
+(declare (*lexpr wf))
+
+(setq *frame-number* 0)
+
+(sstatus terpri t)
+
+
+(defun re-start nil (sd) (tvsize 450 360))
+
+
+
+(setq lower-left-corner '(-580 -420))
+
+(setq lower-right-corner '(580 -420))
+
+(setq upper-left-corner '(-580 420))
+
+(setq upper-right-corner '(580 420))
+
+(setq lower-middle '(0 -420))
+
+(setq upper-middle '(0 420))
+
+(setq right-middle '(580 0))
+
+(setq left-middle '(-580 0))
+
+
+(setq xgp? nil)
+
+;(tvsize 450 360)
+
+
+
+(hatch 'numberturtle)
+(pu)(ht)(fd 470)
+(useturtle 'logoturtle)
+
+
+
+(hatch 'frame)
+(pu)
+
+
+(maketurtle (wf 620. 440.)(wf 620. 440.))
+
+(setq *frame-breaks* nil)
+
+(defun shoot nil
+((lambda (turtle)
+(setq *frame-number* (1+ *frame-number*))
+(and xgp? wipe? (wipe))
+(useturtle 'numberturtle)
+(or no-numbers (display-number *frame-number*))
+(useturtle turtle)
+(break shoot (member *frame-number* *frame-breaks*))
+(and xgp?
+(apply 'xgp scene-name))
+(or wipe? (wipe-number)))
+:turtle))
+
+(setq no-numbers nil)
+(setq scene-name '(frames >)) ;default
+
+(setq wipe? nil)
+
+(setq wipers '(7 8 9 10 11 12 125 13 14 23))
+
+
+
+(defun scene (n xgp? no-numbers)
+       (cond (xgp? (setq scene-name (list (append-atoms 's n) '>))
+		   (uwrite dsk ken)
+		   ((lambda (^r ^w)
+			    (print-heading))
+			  t t)
+		   (apply 'ufile scene-name)))
+    ((lambda (wipe?)
+       (eval (eval (intern (append-atoms 's n)))))
+       (member n wipers))
+       *frame-number*)
+
+(defun scenes (to-n xgp? no-numbers)
+       (do ((i 1 (1+ i)))
+	   ((= to-n i))
+	   (scene i xgp? no-numbers))))
+	    
+
+
+(defun display-number (n)
+((lambda (start)
+	(delx 500)
+	(do ((i (reverse ((lambda (base *nopoint)
+	  	 (explode n))
+		 2. t))
+		 (cdr i)))
+	    ((null i)(sett start))
+	    (cond ((eq (car i) '/0 ) (draw-x 20))
+		  (t (wf 20)))
+        (delx -100)))
+ (here)))
+
+(defun draw-x (size)
+((lambda (leg-size) (pd)
+       (rt 45) (fd leg-size) (bk leg-size)
+       (rt 90) (fd leg-size) (bk leg-size)
+       (rt 90) (fd leg-size) (bk leg-size)
+       (rt 90) (fd leg-size) (bk leg-size)
+       (rt 45)  (pu))
+ (times size (sqrt 2.0))))
+
+
+
+
+(defun wipe-number nil
+(mw 'foobar 0 470 550 22)
+(hw 'foobar 0 470))
+
+
+
+
+(defun move-actor-to (actor destination number-of-frames)
+  (ask actor '(here));selects right turtle
+      ((lambda (turn)
+		(do ((i number-of-frames (1- i))
+		     (amount (quotient (range destination) (float number-of-frames))))
+		    ((zerop i))
+		    (ask actor '(hide))
+		    (ask actor (list 'rt turn ))
+		    (ask actor (list 'fd amount))
+		    (ask actor (list 'lt turn))
+		    (ask actor '(show))
+		    (shoot)))
+	(towards destination)))
+
+
+(defun move-actors (actor-destination-pairs number-of-frames)
+		(do ((i number-of-frames (1- i))
+		     (actor-amount-turns
+		      (amount-turns actor-destination-pairs number-of-frames)))
+		    ((zerop i))
+		    (do ((i actor-amount-turns (cdr i)))
+			((null i))
+		    (ask (caar i) '(hide))
+		    (ask (caar i) (list 'rt (caddr (car i)) ))
+		    (ask (caar i) (list 'fd (cadr (car i))))
+		    (ask (caar i) (list 'lt (caddr (car i))))
+		    (ask (caar i) '(show)))
+		   (shoot)))
+
+(defun amount-turns (actor-destination-pairs n-of-f)
+       (mapcar
+	(function
+	 (lambda (actor-destination)
+	  (ask (eval (car actor-destination)) '(here))
+;they should take range,etc message
+	  (list (eval (car actor-destination))
+		(quotient (range (cadr actor-destination))
+			  (float n-of-f))
+		(towards (cadr actor-destination)))))
+      actor-destination-pairs))
+		  
+
+
+
+
+		    
+
+(hatch 'the-center)
+(pu)(ht)
+(useturtle 'logoturtle)
+		  
+(defun draw-circle (size n-of-f)
+(useturtle 'the-center)
+       (do ((i 0 (1+ i)))
+	   ((> i n-of-f))
+	   (arc size (times i (quotient 360.0 n-of-f)))
+	   (shoot))
+(useturtle 'logoturtle))
+
+
+
+(defun scene1 (circle-size frames-to-draw frames-to-move)
+       (draw-circle circle-size frames-to-draw)
+       (ask eye '(make l-eye))
+       (ask l-eye (list 'replace 'size circle-size))
+       (move-actor-to l-eye lower-left-corner frames-to-draw))
+
+(setq s1 '(scene1 20 12 9))
+
+(defun scene2 (nose-size frames-to-move)
+       (ask nose '(make nose-1))
+       (ask nose-1 (list 'replace 'size nose-size))
+       (ask nose-1 '(hide))
+       ((lambda (shooting?)
+		(ask nose-1 '(show)))
+	t)
+	(move-actor-to nose-1 lower-middle frames-to-move))
+
+(defun shoot? nil (and shooting? (shoot)))
+
+(setq shooting? nil)
+
+(setq s2 '(scene2 1.2 8))
+
+(defun scene3 (circle-size frames-to-draw frames-to-move)
+       (draw-circle circle-size frames-to-draw)
+       (ask eye '(make r-eye))
+       (ask r-eye (list 'replace 'size circle-size))
+       (move-actor-to r-eye lower-right-corner frames-to-draw))
+
+(setq s3 '(scene3 20 8 6))
+
+(defun scene4 (frames-to-move)
+       (ask lefteyebrow '(make leb))
+       (ask leb '(hide))
+       ((lambda (shooting?)
+		(ask leb '(show)))
+	t)
+	(move-actor-to leb upper-left-corner frames-to-move))
+
+(setq s4 '(scene4 5))
+
+(defun scene5 (frames-to-move)
+       (ask righteyebrow '(make reb))
+       (ask reb '(hide))
+       ((lambda (shooting?)
+		(ask reb '(show)))
+	t)
+	(move-actor-to reb upper-right-corner frames-to-move))
+
+(setq s5 '(scene5 4))
+
+
+(defun scene6 (frames-to-move)
+       (ask smile '(make smile-1))
+       (ask smile-1 '(grow -.25))
+       (ask smile-1'(hide))
+       ((lambda (shooting?)
+		(ask smile-1 '(show)))
+	t)
+	(move-actor-to smile-1 (list -80 (cadr upper-middle)) frames-to-move))
+
+
+(setq s6 '(scene6 4))
+
+(defun scene7 (frames-to-come-together)
+       (move-actors '((l-eye (-69 89))
+		      (r-eye (69 89))
+		      (leb (-140 120))
+		      (reb (135 115))
+		      (nose-1 (-40 -20))
+		      (smile-1 (-7 -80)))
+		     frames-to-come-together))
+
+(setq s7 '(scene7 15))
+
+
+(defun grow (actor initial-size final-size growth-rates)
+      (do ((i (normalize growth-rates) (cdr i))
+	   (growth (difference final-size initial-size)))
+	  ((null i))
+	  (ask actor (list 'grow (times (car i) growth)))
+	  (shoot)))
+
+(defun scene8 (final-size growth-rates)
+       (ask headline '(make hl-1))
+       (ask hl-1 '(replace size 0))
+       (ask hl-1 '(show))
+       (grow hl-1 0 final-size growth-rates))
+
+(setq s8 '(scene8 2.75 '(1 2 3 4 5 6 5 4 3 2 1)))
+
+(defun normalize (numbers)
+ ((lambda (sum)
+       (mapcar (function (lambda (number)
+		 (//$ (float number) sum)))
+	       numbers))
+(float  (apply 'plus numbers))))
+		     
+
+;this is the fd 100 by parts
+(defun scene9 (distance part-per-frame)
+       (mapc
+	(function (lambda (actor)
+			  (turtle-command actor
+					  'fd distance
+					  (normalize part-per-frame))))
+	(list leb reb r-eye l-eye nose-1 smile-1))
+(turtle-command hl-1 'fd distance (normalize '(1 2 3 3 3 3 3 3 3 3 2 1))))
+
+(setq s9 '(scene9 120 '(1 2 2 1 )))
+(defun turtle-command (actor command amount percentages)
+       (do ((i percentages (cdr i)))
+	   ((null i))
+	   (ask actor (list command (times amount (car i))))
+	   (shoot)))
+
+
+(defun spin+turtle-command (actor command amount percentages spin)
+       (do ((i percentages (cdr i))
+	    (turned 0))
+	   ((null i))
+	   (ask actor '(hide))
+	   (ask actor (list 'lt turned))
+	   (ask actor (list command (times amount (car i))))
+	   (ask actor (list 'rt (plus turned (times spin (car i)))))
+	   (setq turned (plus turned (times spin (car i))))
+	   (ask actor '(show))
+	   (shoot)))
+
+
+
+(defun spin+turtle-command-to-many (actor-command-amounts percentages spin)
+       (do ((i percentages (cdr i))
+	    (turned 0))
+	   ((null i))
+   (mapc (function (lambda (actor-command-amount)
+		((lambda (actor command amount)			   
+	   (ask actor '(hide))
+	   (ask actor (list 'lt turned))
+	   (ask actor (list command (times amount (car i))))
+	   (ask actor (list 'rt (plus turned (times spin (car i)))))
+    	   (ask actor '(show)))
+	   (car actor-command-amount)
+	   (cadr actor-command-amount)
+	   (caddr actor-command-amount))))
+  	actor-command-amounts)
+	   (shoot)
+	   (setq turned (plus turned (times spin (car i))))))
+
+
+(defun turtle-command-to-many (actors command amount percentages)
+       (do ((i percentages (cdr i)))
+	   ((null i))
+	   (mapc (function (lambda (actor)
+	   (ask actor (list command (times amount (car i))))))
+	   	actors)
+	   (shoot)))
+
+(defun grow+turtle-command-to-many (actors command amount percentages growth-factor)
+       (do ((i percentages (cdr i))
+	    (growths  (mapcar (function (lambda (actor)
+		(times (car (ask actor '(what size ?))) (plus -1 growth-factor))))
+			actors)))
+	   ((null i))
+	   (mapc (function (lambda (actor growth)
+			(ask actor '(hide))
+	   (ask actor (list 'grow (times (car i) growth)))   
+	   (ask actor (list command (times amount (car i))))
+	   (ask actor '(show))))
+	   	actors growths)	
+	   (shoot)))
+
+
+(defun after-s8 nil
+       (ask l-eye '(grow 4))
+       (ask r-eye '(grow 4))
+       (ask nose-1 '(replace size 1.2))
+       (ask smile-1 '(replace size  .75))
+(scene7 1)
+(scene8 2.75 '(1)))
+
+
+
+
+
+(defun revolve-command-to-many (actors center amount part-per-frame rotate-too?)
+       (do ((i (normalize part-per-frame) (cdr i)))
+	   ((null i))
+	   (mapc
+	    (function (lambda (actor)
+		(ask actor (list
+		       'revolve 'around
+		       center
+		       'by
+		       (times amount (car i))
+		       'degrees))
+		(cond ((eq rotate-too? 'revolve-only)
+		       (lt (times amount (car i)))))))
+	   	actors)
+	   (shoot)))
+
+(defun revolve-command-to-many-with-centers
+       (actors+center amount part-per-frame rotate-too?)
+       (do ((i (normalize part-per-frame) (cdr i)))
+	   ((null i))
+	   (mapc
+	    (function (lambda (actor+center)
+		(ask (car actor+center)
+		     (list
+		       'revolve 'around
+		       (cadr actor+center)
+		       'by
+		       (times amount (car i))
+		       'degrees))
+		(cond ((eq rotate-too? 'revolve-only)
+		       (lt (times amount (car i)))))))
+	   	actors+center)
+	   (shoot)))
+
+;this does a rt 180 by parts in parrallel, they do not rotate on revolve
+
+(defun scene10 (part-per-frame)
+(revolve-command-to-many
+	(list leb reb nose-1 smile-1 l-eye r-eye)
+	(ask hl-1 '(here))
+	180
+	part-per-frame
+	'revolve-only))
+
+(setq s10 '(scene10 '(1 1 1 2 2 2 2 2 1 1)))
+
+;now each part is rotated
+
+(setq s11 '(scene14 '(1 2 2 2 1)))
+
+;moves it fd or down in this case
+(defun scene12 (distance part-per-frame)
+  (turtle-command-to-many
+	(list leb reb r-eye l-eye nose-1 smile-1 hl-1)
+	'fd distance
+	(normalize part-per-frame)))
+
+
+
+(setq s12 '(scene12 120 '(1 2 2 3 3 3 3 3 2 2 1)))
+;there was a bug in the above since r-eye and l-eye did not rotate so...
+
+(setq s125 '(turtle-command-to-many (list r-eye l-eye) 'bk 240 (normalize '(1 1.5 2 2 1.5 1))))
+
+
+;this one rt 180 all the parts a little at a time
+(defun scene14 (part-per-frame)
+       (turtle-command-to-many
+	(list leb reb nose-1 smile-1 hl-1)
+	'rt
+	180
+	(normalize part-per-frame)))
+
+;this rt 180 by revolving the parts
+
+(setq s13 '(scene10 '(1 1 2 2 2 1 1)))
+
+
+(setq s14 '(scene14 '( 1 2 3 3 2 2 1 1 1)))
+
+;growing hl-1
+
+(setq s15 '(grow-by-factor hl-1 1.5 '(1 1 2 2 2 1 1)))
+
+(defun grow-by-factor (actor factor growth-rates)
+       ((lambda (present-size)
+		(grow actor present-size (times factor present-size) growth-rates))
+	(car (ask actor '(what size ?)))))
+
+;grows the rest by parts one at time
+(defun scene16 (factor growth-rates)
+       (mapc (function (lambda (actor)
+		(grow-by-factor actor factor growth-rates)))
+	     (list l-eye leb r-eye reb smile-1 nose-1)))
+
+(setq s16 '(scene16 1.5 '(1 2 2 1)))
+
+(defun spread-actors (actors factor center parts-per-frame)
+       (do ((i (normalize parts-per-frame) (cdr i))
+	    (log-factor (log factor)))
+	   ((null i))
+       (mapc (function (lambda (actor)
+	     (ask actor (list 'move 'away 'from center 'by 'factor
+			       (exp (times log-factor (car i)))))))
+	     actors)
+	(shoot)))
+
+(setq s17
+ '(spread-actors
+   (list l-eye leb r-eye reb smile-1 nose-1)
+   1.5 '(0 0) '(1 1 1 2 2 1 1 1)))
+
+(defun grow-actors-by-factor (actors factor growth-rates)
+((lambda (growths)
+      (do ((i (normalize growth-rates) (cdr i)))
+	  ((null i))
+	  (mapc (function (lambda (actor growth)
+		(ask actor (list 'grow (times (car i) growth)))))
+		actors
+		growths)
+	  (shoot)))
+ (mapcar (function (lambda (actor)
+	(times (car (ask actor '(what size ?))) (plus -1 factor))))
+	actors)))
+
+
+(setq s18 '(grow-actors-by-factor
+	    (list l-eye leb r-eye reb smile-1 nose-1)
+	    .30
+	    '(1 2 2 3 3 3 2 2 1)))
+(setq s19
+      '(spread-actors
+	(list l-eye leb r-eye reb smile-1 nose-1)
+	 .30 '(0 0) '(1 1 1 2 2 2 1 1 1)))
+
+(setq s20 '(grow-by-factor hl-1 .30 '(1 1 2 2 2 1 1)))
+
+(setq s21 '(turtle-command-to-many
+	    (list l-eye leb r-eye reb smile-1 nose-1 hl-1)
+	    'fd
+	    310
+	    (normalize '(1 2 2 3 2 2 1))))
+
+(defun scene22 (ear-size )
+       (ask lear (list 'replace 'size ear-size))
+       (ask lear '(hide))
+       ((lambda (shooting?)
+		(ask lear '(show)))
+	t))
+
+(setq s22 '(scene22 1 ))
+
+;this makes the right ear by rotating the left ear and then shifting it up 45
+
+(defun scene23 (part-per-frame)
+(ask leftear '(Make rear))
+(ask rear '(show))
+(spin+turtle-command rear 'fd 45 (normalize part-per-frame) 180 ))
+
+(setq s23 '(scene23 '(1 1 1 1 2 2 2 1)))
+
+
+
+(defun b2 nil
+       ((lambda (ibase )
+		(read))
+	2))
+       
+
+
+;do in parallel
+(defun scene24 (no-of-frames)
+       (move-actors '((rear (500 45))
+		      (lear (-500 0)))
+		     no-of-frames))
+(setq s24 '(scene24 8))
+
+;now to move the head back down
+
+
+(setq s25 '(turtle-command-to-many
+	    (list l-eye leb r-eye reb smile-1 nose-1 hl-1)
+	    'bk
+	    310
+	    (normalize '(1 2  3  2 1))))
+
+(setq s26 '(move-actors '((rear (100 15))
+			  (lear (-100 0)))
+			 6))
+
+(setq s27 '(grow-actors-by-factor (list lear rear) .33 '(1 1 1.5 1.5 2 2 1.5 1.5 1 1)))
+
+
+
+(defun scene28 (neck-size )
+       (ask neck '(make neck-1))
+       (ask neck-1 (list 'replace 'size neck-size))
+       (ask neck-1 '(hide))
+       (ask neck-1 '(bk 120))
+       ((lambda (shooting?)
+		(ask neck-1 '(show)))
+	t))
+
+(setq s28 '(scene28 .333))
+
+(setq s29 '(turtle-command-to-many
+	    (list l-eye leb r-eye reb smile-1 nose-1 hl-1 lear rear neck-1)
+	    'fd
+	    310
+	    (normalize '(1 2 2 2 2 1))))
+
+;the rear went the wrong way so...
+
+(setq s30 '(turtle-command rear 'bk 620 (normalize '(1 1 2 2 2 2 2 1 1))))
+
+(defun scene31 nil
+       (ask body '(make body-1))
+       (ask body-1 '(hide))
+       (ask body-1 '(fd 5))
+       ((lambda (shooting?)
+		(ask body-1 '(show)))
+	t))
+
+(setq s31 '(scene31))
+
+(defun scene32 nil
+       (ask arm '(make larm))
+       (ask larm '(hide))
+       (ask larm '(sett '(-500 60 15)))
+       ((lambda (shooting?)
+		(ask larm '(show)))
+	t))
+
+(setq s32 '(scene32))
+
+(setq s33 '(scene33))
+
+(defun scene33 nil
+       (ask arm '(make rarm))
+       (ask rarm '(hide))
+       (ask rarm '(sett '(500 60 225)))
+       ((lambda (shooting?)
+		(ask rarm '(show)))
+	t))
+
+
+(defun scene34 (part-per-frame spin)
+       (spin+turtle-command-to-many
+	(list (list larm 'delx 269)
+	      (list rarm 'delx -269))
+	 (normalize part-per-frame)
+	 spin))
+
+(setq s34 '(scene34 '(1 1 1.5 1.5 2 2 2.5 2 2 1.5 1.5 1 1)
+	    	    600))
+
+(defun scene35 nil
+       (ask leftleg '(make lleg))
+       (ask lleg '(hide))
+       (ask lleg '(sett '(-490 -275 180)))
+       ((lambda (shooting?)
+		(ask lleg '(show)))
+	t))
+
+(setq s35 '(scene35))
+
+
+
+(defun scene36 nil
+       (ask rightleg '(make rleg))
+       (ask rleg '(hide))
+       (ask rleg '(sett '(500 -275 180)))
+       ((lambda (shooting?)
+		(ask rleg '(show)))
+	t))
+
+(setq s36 '(scene36))
+
+(defun scene37 (part-per-frame spin)
+       (spin+turtle-command-to-many
+	(list (list rleg 'delx -400)
+	      (list lleg 'delx 400))
+	 (normalize part-per-frame)
+	 spin))
+
+(setq s37 '(scene37 '(1 1 1.5 1.5 2 2 2 2 2 2 2 2 2 2 1.5 1.5 1 1) 900))
+
+(setq s38 '(turtle-command-to-many
+	    (list l-eye r-eye)
+	    'delx 
+	    12
+	    (normalize '(1 1 2 2 2 1 .5 .5 .1 .1))))
+
+(setq s39 '(turtle-command-to-many
+	    (list l-eye r-eye)
+	    'delx 
+	    -24
+	    (normalize '(1 1 2 2 2 1 .5 .5 .1 .1))))
+
+(setq s40 '(turtle-command-to-many
+	    (list l-eye r-eye)
+	    'delx 
+	    12
+	    (normalize '(1 1 2 1 1 ))))
+
+(setq s41 '(turtle-command
+	    smile-1
+	    'rt
+	    180
+	    (normalize '(1 1 2 3 3 3 2 2 2 2 2 2 1 .5 .5 ))))
+
+(setq s42 '(turtle-command
+	    smile-1
+	    'fd
+	    28
+	    (normalize '(1 1 2 1 1))))
+
+(setq s43 '(grow+turtle-command-to-many
+	    (list l-eye r-eye leb reb smile-1 nose-1 hl-1 lear rear neck-1 body-1 lleg rleg larm rarm)
+	    'delx
+	    200
+	    (normalize '(.5 .5 .5 1 1 1 1.5 1.5 1.5 2 2 2 2 1.5 1.5 1.5 1 1 1 .5 .5))
+	    .6))
+
+(setq s44 '(spread-actors
+		(list l-eye r-eye leb reb smile-1 nose-1 hl-1 lear rear neck-1 body-1 lleg rleg larm rarm)
+		.6
+		'(200 0)
+		'(.5 1 2 3 3 3 3 2 2 2 1 .5)))
+
+(setq s45 '(copy+arc-actors
+	    (list
+	     (list l-eye 'l-eye-2))
+	    -60
+	    '(1 1 2 2 2 3 3 2 2 2 1 1)))
+
+(progn(hatch 'extraturtle)
+(ht)
+(pu))
+
+(defun find-center n
+((lambda (actor heading)
+((lambda (state)
+	 (useturtle 'extraturtle)
+	 (sett state)
+	 (setheading heading)
+	 (fd 400)
+	 (here))
+ (ask actor '(here))))
+ (arg 1)
+ (cond ((= n 2) (arg 2))
+       (t 210))))
+
+
+(defun copy+arc-actors (old+new-actors amount part-per-frame heading-to-center)
+(revolve-command-to-many-with-centers
+       (mapcar '(lambda (old+new-actor)
+	       (setq new-guy
+		     (ask (car (ask (car old+new-actor) '(what kind-of ?)))
+			  (list 'make (cadr old+new-actor))))
+		(ask new-guy (list 'replace 'size (car (ask (car old+new-actor)
+							    '(what size ?)))))
+		(ask new-guy (list 'sett (list 'quote (ask (car old+new-actor) '(here)))))
+		(list new-guy (find-center (car old+new-actor)
+					   heading-to-center)))
+		old+new-actors)	
+	amount
+	part-per-frame
+	'revolve-only))
+
+(setq s46 '(copy+arc-actors
+	    (list
+	     (list r-eye 'r-eye-2))
+	    -60
+	    '(1 1 2 2 2 3 2 2 2 1 1) 210))
+
+(setq s47 '(copy+arc-actors
+	    (list
+	     (list reb 'reb-2)
+	     (list leb 'leb-2))
+	    -60
+	    '(1 1 2 2 2 3 2 2 2 1 1) 210 ))
+
+
+(setq s48 '(copy+arc-actors
+	    (list
+	     (list smile-1 'smile-2))
+	    -60
+	    '(1 1 2 2 2 3 2 2 2 1 1)210 ))
+
+(setq s49 '(copy+arc-actors
+	    (list
+	     (list nose-1 'nose-2))
+	    -60
+	    '(1 1 2 2 2 2 2 2 1 1)210 ))
+
+(setq s50 '(copy+arc-actors
+	    (list
+	     (list lear 'lear-2)
+	     (list rear 'rear-2))
+	    -60
+	    '(1 1 2 2 2 3 2 2 2 1 1)210 ))
+
+(setq s51 '(copy+arc-actors
+	    (list
+	     (list larm 'larm-2)
+	     (list rarm 'rarm-2))
+	    -60
+	    '(1 1 2 2 2 3 2 2 2 1 1)210 ))
+
+(setq s52 '(copy+arc-actors
+	    (list
+	     (list lleg 'lleg-2)
+	     (list rleg 'rleg-2))
+	    60
+	    '(1 1 2 2 2 2 2 2 1 1)330))
+
+(setq s53 '(copy+arc-actors
+	    (list
+	     (list neck-1 'neck-2))
+	    -60
+	    '(1 1 2 2 2 2 2 1 1) 210))
+
+
+
+(setq s54 '(copy+arc-actors
+	    (list
+	     (list hl-1 'hl-2))
+	    -60
+	    '(1 1 2 2 2 3 3 2 2 2 1 1) 210))
+
+(defun scene55 nil
+       (ask body '(make body-2))
+       (ask body-2 '(setxy 200 3))
+       (ask body-2 '(replace size .6))
+(turtle-command body-2 'delx 400 (normalize '(1 1 2 2 3 3 3 2 2 1 1))))
+
+(setq s55 '(scene55))
+
+(defun scene56 nil
+       (ask penis '(make penis-1))
+       (ask penis-1 '(remember size .12))
+       (ask penis-1 '(sett '(-195 -100 180)))
+       (ask breast '(Make r-breast))
+       (ask r-breast '(setxy 233 45))
+       (ask r-breast '(remember size .05))
+       (ask breast '(make l-breast))
+       (ask l-breast '(setxy 167 45))
+       (ask l-breast '(remember size .05))
+       (grow-actors-by-factor
+	(list penis-1 r-breast l-breast)
+	5.
+	'(1 1 1 1.5 1.5 2 2 2 2.5 3 3 2.5 2 2 2 2 1.5 1.5)))
+
+(setq s56 '(scene56))
+       
+
+(setq s57 
+'(move-actors 
+'((leb (149 218))
+( reb (221 217))
+( smile-1 (184 148))
+( nose-1 (174 181))
+( nose-2 (-197 181))
+( leb-2 (-221 218))
+( reb-2 (-149 217))
+( smile-2 (-186 148))
+( l-eye (160 198))
+( r-eye (199 197))
+( l-eye-2 (-201 204))
+( r-eye-2 (-162 203)))
+			18))
+
+(setq s58 '(spin+turtle-command-to-many
+	    (list (list smile-1 'bk 15)
+		  (list smile-2 'bk 15))
+	    (normalize '(1 1 1 2.5 2.5 2.5 1 1 1))
+	    180))
+
+
+	    
+			      
+;move them back 
+(setq s59 
+'(move-actors 
+'((leb (164 218))
+( reb (236 217))
+( smile-1 (199 163))
+( nose-1 (189 181))
+( nose-2 (-212 181))
+( leb-2 (-236 218))
+( reb-2 (-164 217))
+( smile-2 (-200 163))
+( l-eye (180 210))
+( r-eye (219 210))
+( l-eye-2 (-220 210))
+( r-eye-2 (-181 210)))
+			12))			 
+
+(defun find-center90 (actor heading)
+((lambda (state)
+	 (useturtle 'extraturtle)
+	 (sett state)
+	 (setheading heading)
+	 (fd 141.42)
+	 (here))
+ (ask actor '(here))))
+
+
+
+
+(setq s60 '(revolve-command-to-many-with-centers
+	    (list
+	     (list lleg (find-center90 lleg 225))
+	     (list rleg (find-center90 rleg 225))
+	     (list larm (find-center90 larm 225))
+	     (list rarm  (find-center90 rarm 225))
+	     (list body-1  (find-center90 body-1 225))
+	     (list neck-1  (find-center90 neck-1 225))
+	     (list hl-1  (find-center90 hl-1 225))
+	     (list smile-1  (find-center90 smile-1 225))
+	     (list nose-1  (find-center90 nose-1 225))
+	     (list r-eye  (find-center90 r-eye 225))
+	     (list l-eye  (find-center90 l-eye 225))
+	     (list leb  (find-center90 leb 225))
+	     (list reb  (find-center90 reb 225))
+	     (list rear (find-center90 rear 225))
+	     (list lear (find-center90 lear 225))
+	     (list lear-2 (find-center90 lear-2 45))
+	     (list rear-2 (find-center90 rear-2 45))
+	     (list lleg-2 (find-center90 lleg-2 45))
+	     (list rleg-2 (find-center90 rleg-2 45))
+	     (list larm-2 (find-center90 larm-2 45))
+	     (list rarm-2  (find-center90 rarm-2 45))
+	     (list body-2  (find-center90 body-2 45))
+	     (list neck-2  (find-center90 neck-2 45))
+	     (list hl-2  (find-center90 hl-2 45))
+	     (list smile-2  (find-center90 smile-2 45))
+	     (list nose-2  (find-center90 nose-2 45))
+	     (list r-eye-2  (find-center90  r-eye-2 45))
+	     (list l-eye-2  (find-center90 l-eye-2 45))
+	     (list leb-2  (find-center90 leb-2 45))
+	     (list reb-2  (find-center90 reb-2 45)))
+	    -90
+	    '(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10)
+	    'revolve-only))
+
+
+
+(setq hidem '(mapc '(lambda (actor)
+	(ask actor '(hide)))
+(list leb-2 reb-2 l-eye-2 r-eye-2 neck-2 nose-2 smile-2 hl-2 body-2 larm-2 rarm-2 lear-2 rear-2 lleg-2 rleg-2 )))
+
+
+
+(setq s61 '(revolve-command-to-many-with-centers
+	    (list
+	     (list l-breast (find-center90 l-breast 225))
+	     (list r-breast (find-center90 r-breast 225))
+	     (list penis-1 (find-center90 penis-1 45)))
+	    -90
+	    '(10 11 14 16 19 20 22 25 27 30 28 25 23 20 19 17 14 12  10)
+	    'revolve-only))
+
+;I can hide the -2 and scale down only the others
+(setq s62 '(scale-proportionately-actors
+	    (list hl-1 leb reb l-eye r-eye smile-1 nose-1 neck-1 lear rear body-1 lleg rleg larm rarm penis-1 r-breast l-breast)
+	    .25
+	    '( 0 0)
+	    '(10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20)))
+
+
+(defun scale-proportionately-actors (actors factor center parts-per-frame)
+       (do ((i (normalize parts-per-frame) (cdr i))
+	    (log-factor (log factor))
+	    (growths  (mapcar (function (lambda (actor)
+				(times (car (ask actor
+						 '(what size ?)))
+				       (plus -1 factor))))
+			actors)))
+	   ((null i))
+       (mapc (function (lambda (actor growth)
+	     (ask actor (list 'move 'away 'from center 'by 'factor
+			       (exp (times log-factor (car i)))))
+	     (ask actor (list 'grow (times (car i) growth)))))
+	     actors growths)
+	(shoot)))
+
+
+(defun make-herm nil
+       (gw herm window)
+       (hatch 'hermturtle)
+       (maketurtle (xw 'herm :xcor :ycor) (xw 'herm :xcor :ycor)))
+
+(defun scene63 nil
+       (do ((i 0 (1+ i)))
+	   ((= i 12))
+	   (draw-arc 3 30)
+	   (shoot)))
+       
+
+(setq s63 '(scene63))
+
+;the draw-arc 3 is size 36/pi so
+
+(defun scene64 nil
+       (ask eye '(make l-eye-3))
+       (ask eye '(make r-eye-3))
+       (ask r-eye-3 '(replace size 34.377))
+       (ask l-eye-3 '(replace size 34.377))
+       (ask l-eye-3 '(delx 34.377))
+       (ask r-eye-3 '(delx 34.377))
+       (ask l-eye-3 '(rt 45))
+       (ask r-eye-3 '(lt 45))
+       (turtle-command-to-many (list l-eye-3 r-eye-3)
+			       'fd
+			       520
+			       (normalize '(1)))) ;there were ten numbers here but got lost
+
+(setq s64 '(scene64))
+
+(defun scene65 nil
+       (delx (//$ -25.0 11.459))
+       (setheading 60)
+       (do ((i 1 (1+ i)))
+	   ((> i 6))
+	   (draw-arc (//$ 25.0 11.459) 40)
+	   (shoot)))
+
+(setq s65 '(scene65))
+
+(defun scene66 nil
+       (ask rnose '(make rnose-1))
+       (ask rnose-1 '(lt 30))
+       (ask rnose-1 '(replace size 25))
+       (turtle-command rnose-1 'dely -360 (normalize '(1 1 2 2 2 1 1))))
+
+(setq s66 '(scene66))
+
+
+       
+
+(defun scene67 nil
+       (setheading 70)
+       (do ((i 1 (1+ i)))
+	   ((> i 4))
+	   (draw-arc 15 10)
+	   (shoot)))
+
+(setq s67 '(scene67))
+
+(defun scene68 nil
+       (ask eyebrow '(make leb-3))
+       (ask eyebrow '(make reb-3))
+       (ask eyebrow '(make smile-3))
+       (ask leb-3 '(replace size 15))
+       (ask reb-3 '(replace size 15))
+       (ask smile-3 '(replace size 15))
+	(move-actors '((leb-3 (-500 -400))
+		       (reb-3 (500 -400)))
+		       8))
+
+(setq s68 '(scene68))
+
+       
+       
+
+(setq s69 '(spin+turtle-command smile-3 'fd 360 (normalize '(1 2 3 4 5 4 3 2 1)) 180))
+
+(setq s70 '(move-actors '((leb-3 (-130 100))
+			  (reb-3 (20 100))
+			  (l-eye-3 (50 55))
+			  (r-eye-3 (-50 55))
+			  (smile-3 (60 -140))
+			  (rnose-1 (-5 -50)))
+			 18))
+
+(setq s71 '(progn (useturtle 'hermturtle)(pu)(delx 40)(shoot)
+	    (delx 50) (shoot)(delx 60) (shoot)(delx 70) (shoot)(delx 50) (shoot) (delx 30) (shoot)))
+
+(setq s72
+       '(do ((i 1 (1+ i)))
+	   ((> i 24))
+	   (draw-arc 36.477 15)
+	   (shoot)))
+
+(setq s73 '(progn (ask eye '(make hl-3))
+	    	  (ask hl-3 '(replace size 415))
+(grow-by-factor hl-3 .50 '(1 1 2 2 3 3 4 4 5 5 6 7 7 6 5 5 4 4 3 3 2 2 1 1))))
+
+

@@ -1,0 +1,74 @@
+;;  -*-lisp-*-
+;;this is part of dot ani
+;;this defines the emotions with suggestions 
+
+(include |ai:ken;declar >|)
+
+(defcomment emote) ;;this is for tags to find file name
+
+(define emotion descriptor)
+
+(define joy emotion
+ (process suggestions
+	  (for (establish (emotional-state ?character (joy ?joy-level)))
+	       '(method: type display-value-change
+			 value (change: element (,character activity-level)
+					amount ,joy-level
+					speed ,(second joy-level)))
+	       strength 'high)
+	  (for (establish (emotional-state ?character (joy ?joy-level)))
+	       '(method: type display-value-change
+			 value (change: element (,character speed)
+					amount ,joy-level
+					speed ,(second joy-level)))
+	       strength 'high)
+	  (for (establish (emotional-state ?character (joy ?joy-level)))
+	       '(method: type display-value-change
+			 value (change: element (,character rhythmic-level)
+					amount ,joy-level
+					speed ,(second joy-level)))
+	       strength 'medium)
+	  (for (establish (emotional-state ?character (joy ?joy-level)))
+	       '(method: type display-value-change
+			 value (change: element (,character acceleration)
+					amount ,joy-level
+					speed ,(second joy-level)))
+	       strength 'high)
+	  (for (establish (emotional-state ?character (joy (positive high))))
+	       (or
+		'(method: type display-value-change
+			  value (change-to: element (,character path-length)
+					    new-value long
+					    speed high))
+		strength 'medium
+		'(method: type display-value-change
+			  value (change-to: element (,character path-curvature)
+					    new-value high
+					    speed high))
+		strength 'medium))
+	  (for (establish (emotional-state ?character (joy (positive medium))))
+	       (or
+		'(method: type display-value-change
+			  value (change-to: element (,character path-length)
+					    new-value long
+					    speed high))
+		strength 'low
+		'(method: type display-value-change
+			  value (change-to: element (,character path-curvature)
+					    new-value high
+					    speed high))
+		strength 'low))
+	  (for (establish (emotional-state ?character (joy (negative high))))
+	       (or
+		'(method: type display-value-change
+			  value (change-to: element (,character path-length)
+					    new-value long
+					    speed low))
+		strength 'low
+		'(method: type display-value-change
+			  value (change-to: element (,character path-curvature)
+					    new-value low
+					    speed low))
+		strength 'low))))		       
+
+(compile-actors)

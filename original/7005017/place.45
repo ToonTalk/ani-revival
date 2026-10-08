@@ -1,0 +1,561 @@
+;; -*-lisp-*-
+;;this is part of Ani
+;;this file includes the stuff for placing characters and estimating time of method running
+
+(include |ai:ken;declare >|)
+
+(defcomment place) ;;for tags
+
+(define-function place-medium-distance-apart (action place-1 place-2 cut-distances subscene)
+ (let ((character-1 (character-involved-in place-1))
+       (character-2 (character-involved-in place-2)))
+      (cut-if-distance-known-to-be cut-distances place-1 place-2 subscene)
+      (initial-locations-for-two-characters '(,action ,character-1 ,character-2)
+					    ;;whats happening
+					    character-1 ;;who is involved
+					    character-2 ;;this too
+					    '(medium-distance ,place-2)
+					    ;;if cut where character goes
+					    '(medium-distance-and-offstage ,place-2)
+					    ;;if no cut
+					    '(medium-distance ,place-1) ;;for character-2
+					    '(medium-distance-and-offstage ,place-1)
+					    subscene)))
+
+(define-function place-large-distance-apart (action place-1 place-2 cut-distances subscene)
+ (let ((character-1 (character-involved-in place-1))
+       (character-2 (character-involved-in place-2)))
+      (cut-if-distance-known-to-be cut-distances place-1 place-2 subscene)
+      (initial-locations-for-two-characters '(,action ,character-1 ,character-2)
+					    ;;whats happening
+					    character-1 ;;who is involved
+					    character-2 ;;this too
+					    '(large-distance ,place-2)
+					    ;;if cut where character goes
+					    '(large-distance-and-offstage ,place-2)
+					    ;;if no cut
+					    '(large-distance ,place-1) ;;for character-2
+					    '(large-distance-and-offstage ,place-1)
+					    subscene)))
+
+(define-function place-small-distance-apart (action place-1 place-2 cut-distances subscene)
+ (let ((character-1 (character-involved-in place-1))
+       (character-2 (character-involved-in place-2)))
+      (cut-if-distance-known-to-be cut-distances place-1 place-2 subscene)
+      (initial-locations-for-two-characters '(,action ,character-1 ,character-2)
+					    ;;whats happening
+					    character-1 ;;who is involved
+					    character-2 ;;this too
+					    '(small-distance ,place-2)
+					    ;;if cut where character goes
+					    '(small-distance-and-offstage ,place-2)
+					    ;;if no cut
+					    '(small-distance ,place-1) ;;for character-2
+					    '(small-distance-and-offstage ,place-1)
+					    subscene)))
+
+(define-function character-involved-in (place)
+ (character-involved-in-1 place nil)) ;;at top level can not have any characters
+
+(define-function character-involved-in-1 (place ok-to-have-none?)
+ ;;this returns the character that is referred to by place
+ ;;it is an error if more than one (or none) are found
+ (do ((i place (rest i))
+      (character nil))
+     ((null i) (cond (character)
+		     (ok-to-have-none? nil)
+		     (t (shouldnt-happen 'character-involved-in
+					 '(no characters found in ,place)))))
+     (let ((canidate (first i)))
+	  (cond ((or (and (exists? canidate)
+			  (or (ask ,canidate are you a character)
+			      (ask ,canidate are you a director-character)))
+		     (and (not (atom canidate))
+			  (setq canidate (character-involved-in-1 canidate nil))))
+		 (cond ((and character (not (eq character canidate))) ;;second one found
+			(return
+			 (shouldnt-happen 'character-involved-in
+					  '(found ,character and ,canidate in ,place))))
+		       (t (setq character canidate))))))))
+
+
+(define-function cut-if-distance-known-to-be (cut-distances place-1 place-2 subscene)
+ ;;if distance between places is known to be any of the cut-distances then cut
+ (let ((distance (screen-fraction-between place-1 place-2 subscene)))
+      (cond ((eq (first distance) 'missing-location-of) 'dont-know-enuf)
+	    (t (do ((i cut-distances (rest i)))
+		   ((null i) 'no-cut-needed)
+		   (cond ((known-to-be-distance distance (first i))
+			  ;;false if don't know enuf to answer this
+			  (return ;;only need to cut once
+			   (cut-scene-here subscene
+					   '(known-to-be-distance
+					     (distance-between ,place-1 ,place-2 ,subscene)
+					     ,(first i)))))))))))
+
+(define-function known-to-be-distance (distance symbolic-size)
+ (cond ((eq symbolic-size 'small) (small-distance? distance))
+       ((eq symbolic-size 'medium) (medium-distance? distance))
+       ((eq symbolic-size 'large) (large-distance? distance))
+       (t (shouldnt-happen 'known-to-be-distance
+			   '(,symbolic-size |is not a known size|)))))
+
+(define-function small-distance? (distance)
+ (and (numberp distance)
+      (< distance .33)))
+
+(define-function medium-distance? (distance)
+ (and (not (large-distance? distance))
+      (not (small-distance? distance))))
+
+(define-function large-distance? (distance)
+ (and (numberp distance)
+      (> distance .67)))
+
+
+(define-function initial-locations-for-two-characters
+ (action character-1 character-2
+	 location-1-if-cut location-1-if-not-cut
+	 location-2-if-cut location-2-if-not-cut subscene)
+ (let ((character-1-located? (located? '(vicinity-of ,character-1) subscene))
+       (character-2-located? (located? '(vicinity-of ,character-2) subscene)))
+      (cond ((and (not character-1-located?)
+		  (not character-2-located?) ;;neither located
+		  (not (eq 'cut (ask ,subscene recall your transition-type)))) ;not cut already
+	     (cut-scene-here subscene
+			     '(since neither ,character-1 nor ,character-2 are located))))
+      (cond ((and character-1-located? character-2-located?)) ;;nothing to do
+	    ((eq 'cut (ask ,subscene recall your transition-type))
+	     (pick-location-for character-1
+				location-1-if-cut
+				'(so that ,action)
+				subscene)
+	     (pick-location-for character-2
+			        location-2-if-cut
+				'(so that ,action)
+				subscene))
+	    ((and (not character-1-located?) character-2-located?)
+	     (pick-location-for character-1
+				location-1-if-not-cut
+				'(so that ,action)
+				subscene))
+	    ((and (not character-2-located?) character-1-located?)
+	     (pick-location-for character-2
+				location-2-if-not-cut
+				'(so that ,action)
+				subscene))
+	    (t ;;neither on screen yet
+	     (shouldnt-happen 'initial-locations-for-two-characters
+			      '(|shouldn't ever get here|))))))
+
+(define-function move-character 
+ (name character place target-type stop-condition begin-time special-dynamics
+       regardless-or-careful subscene)
+ (let ((old-place-package (location-package-of character subscene))
+       (next-subscene (ask ,subscene recall your next-subscene))
+       (plan-name (activity-name-of name))
+       (destination (simplify-position place)))
+      (cond (old-place-package 
+	     (and (exists? next-subscene) ;;if last subscene then dont do the following
+		  (put-character character
+				 (new-place-package old-place-package destination target-type
+						    next-subscene)
+				 next-subscene))
+	     (ask ,subscene
+		  add (walk of ,character to ,destination as ,target-type
+			    ,regardless-or-careful of collisions
+			    starting at ,begin-time using ,special-dynamics 
+			    called ,plan-name stopping if ,stop-condition)
+		  to your list of (actions-of ,character))
+	     plan-name) ;;returns plan-name
+	     (t (shouldnt-happen 'move-character
+				 '(cant move ,character since has no previous position))))))
+
+
+(define-function new-place-package (old-place-package destination target-type next-subscene)
+ (cond ((eq target-type 'stationary-target)
+	'(place: where ,(find-xy-position destination next-subscene)
+		 ;;this records where it will be at end of this move
+		 why (and move-character ,(get old-place-package 'why))
+		 status ,(get old-place-package 'status)))
+       (t '(place: where ,destination ;;can't look up its location since its moving
+		   why (and move-character ,(get old-place-package 'why))
+		   status symbolic))))
+
+(define-function move-characters 
+ (name character-1 character-2 place target-type stop-condition begin-time
+       special-dynamics regardless-or-careful subscene)
+ (let ((old-place-package (location-package-of character-1 subscene))
+       (next-subscene (ask ,subscene recall your next-subscene))
+       (plan-name (activity-name-of name))
+       (destination (simplify-position place)))
+      (cond (old-place-package
+	     (cond ((exists? next-subscene) ;;if last subscene then dont do the following
+		    (put-character character-1
+				   (new-place-package old-place-package destination target-type
+						      next-subscene)
+				   next-subscene)
+		    (put-character character-2
+				   (new-place-package old-place-package destination target-type
+						      next-subscene)
+				   next-subscene)))
+	     (ask ,subscene add (walk of ,character-1 with ,character-2
+				      to ,destination as ,target-type
+				      ,regardless-or-careful of collisions 
+				      starting at ,begin-time using ,special-dynamics 
+				      called ,plan-name stopping if ,stop-condition)
+		  to your list of (actions-of ,character-1))
+	     plan-name) ;;returns plan-name
+	    (t (shouldnt-happen 'move-characters
+				'(cant move ,character-1 since has no previous position))))))
+
+(define-function turn-character 
+		 (plan character angle begin-time stop-condition special-dynamics subscene)
+ (ask ,subscene add (turning of ,character ,angle degrees starting at ,begin-time
+			     using ,special-dynamics called ,plan stopping if ,stop-condition)
+      to your list of (actions-of ,character))
+ plan)
+
+(define-function face-character-towards-others 
+		 (plan character others special-dynamics begin-time subscene)
+ (ask plan if new make ,plan)
+ (ask ,subscene add ,plan to your list of plans)
+ (ask ,subscene add ,special-dynamics to your list of special-dynamics)
+ (ask ,plan set your subscene to ,subscene)
+ (ask ,plan set your begin-time to ,begin-time)
+ (ask ,plan add
+      (sequence:
+       (ask ,character set your special-dynamics to ,special-dynamics)
+       !,(mapcar
+	  (function
+	   (lambda (other)
+		   '(ask ,plan
+			 gradually face ,character towards (vicinity-of ,other) plus 0.0)))
+	  others))
+      to your list of plans)
+ plan)
+
+(define-synonym plan-name-of activity-name-of) ;;for compatibility with older name
+
+(define-function activity-name-of (name)
+ (cond ((eq (first name) 'activity-of) name) ;;already has the name
+       (t '(activity-of ,name ,(gen-number name)))))
+
+
+(define-function put-character (character place subscene)
+ (ask ,subscene set your (location-of ,character) to ,place))
+
+(define-function pick-location-for (character constraint reason subscene)
+ ;;typical constraint is offstage
+ ;;a typical constraint is (large-distance <place>)
+ ;;the constraint might itself be a position in which case life is easy
+ (cond ((atom constraint)
+	(uncompiled-ask ,constraint
+			choose location of ,character because ,reason in ,subscene))
+       ((ask ,(first constraint) are you a constraint)
+	(uncompiled-ask ,(first constraint)
+			choose location of ,character so that ,constraint
+			because ,reason in ,subscene))
+       ((ask ,(first constraint) are you a position)
+	(put-character character
+		       '(place: where ,constraint
+				why ,reason
+				status (placed by ,subscene))
+		       subscene))
+       (t (shouldnt-happen 'pick-location-for
+			   '(the location of ,constraint is no good)))))
+
+
+(define-function choose-location-of-a-character 
+		 (character other reason subscene default-character-location 
+			    character-location-if-other-located cut-if-true)
+ ;;picks a location for character relative to other
+   (let ((character-located
+	 (not (eq (first (location-of character subscene)) 'missing-location-of)))
+	(other-located
+	 (not (eq (first (location-of other subscene)) 'missing-location-of))))
+       (cond (character-located
+	      (cond ((eval cut-if-true)
+		     (cut-scene-here subscene
+				     '(in picking location for ,character found it was located
+					  but ,cut-if-true))
+		     (choose-location-of-a-character character
+						     other
+						     reason
+						     subscene
+						     default-character-location
+						     character-location-if-other-located
+						     '(shouldnt-happen
+						       'choose-location-of-a-character
+						       (quote
+							(just cut so ,character
+							      shouldnt be located)))))))
+	     ;;otherwise nothing to do since located and ok
+	     ((and other-located ;;if other is located
+		   character-location-if-other-located) ;;and location for this case provided
+	      (place-character-distance-from character subscene reason
+					     character-location-if-other-located))
+	     (t ;;if character is not located then cut and place it
+;;the following didnt work right made cut when all was fine
+;;		  (cut-scene-here subscene '(have to place the ,character))
+	      (put-character character '(place: where ,default-character-location
+						why ,reason
+						status (placed by ,subscene))
+			     subscene)))))
+
+(define-function place-character-distance-from (character subscene reason new-location)
+ (put-character character
+		'(place: where ,new-location
+			 why ,reason
+			 status (placed by ,subscene))
+		subscene))
+
+(define-function cut-scene-here (subscene reason)
+ (ask ,subscene set your transition-type to cut)
+ (ask ,subscene üÛùgËt your (distance-between ? ?))
+ (let ((placed-by-this-subscene '(placed by ,subscene))) ;;no point reconsing this
+      (mapc
+       (function (lambda (character)
+			 (or (equal ;;if place already by this subscene then don't wipe it out
+			      (get (ask ,subscene recall your (location-of ,character))
+				   'status)
+			      placed-by-this-subscene)
+			     (put-character character
+					    '(place: where nowhere
+						     why (cut cuz ,reason)
+						     status undone)
+					    subscene))))
+       (ask character recall your offspring))))
+
+(define-function not-small-distance-constraint (character other subscene)
+ '(not ,(small-distance-constraint character other subscene)))
+
+(define-function small-distance-constraint (character other subscene)
+ '(small-distance?
+   (distance-between (quote (vicinity-of ,character))
+		     (quote (vicinity-of ,other))
+		     (quote ,subscene))))
+
+(define-function not-large-distance-constraint (character other subscene)
+ '(not ,(large-distance-constraint character other subscene)))
+
+(define-function large-distance-constraint (character other subscene)
+ '(large-distance?
+   (distance-between (quote (vicinity-of ,character))
+		     (quote (vicinity-of ,other))
+		     (quote ,subscene))))
+
+(define-function minimum-ideal-time (estimate-1 estimate-2)
+ (cond ((< (get estimate-1 'ideal) (get estimate-2 'ideal)) estimate-1)
+       (t estimate-2)))
+
+(define-function maximum-ideal-time (estimate-1 estimate-2)
+ (cond ((> (get estimate-1 'ideal) (get estimate-2 'ideal)) estimate-1)
+       (t estimate-2)))
+
+(define-function add-to-estimates (offset estimates)
+ '(time-estimates: ideal ,(+$ offset (get estimates 'ideal))
+		   most ,(+$ offset (get estimates 'most))
+		   least ,(+$ offset (get estimates 'least))))
+
+(define-function add-time-estimates (time-estimates-1 time-estimates-2)
+ '(time-estimates: ideal ,(+$ (get time-estimates-1 'ideal) (get time-estimates-2 'ideal))
+		   least ,(+$ (get time-estimates-1 'least) (get time-estimates-2 'least))
+		   most ,(+$ (get time-estimates-1 'most) (get time-estimates-2 'most))))
+
+
+(define-function average-time-estimates (time-estimates-1 time-estimates-2)
+ '(time-estimates: ideal ,(*$ .5
+			      (+$ (get time-estimates-1 'ideal) (get time-estimates-2 'ideal)))
+		   least ,(*$ .5
+			      (+$ (get time-estimates-1 'least) (get time-estimates-2 'least)))
+		   most ,(*$ .5
+			     (+$ (get time-estimates-1 'most) (get time-estimates-2 'most)))))
+
+(define-function estimate-time-for-cycles n
+ (estimate-time-for-cycles-1 (arg 1) (arg 2) (arg 3) (arg 4) (cond ((= n 5) (arg 5))
+								   (t nil))))
+
+(define-function estimate-time-for-cycles-1 (single-cycle-ideal extra display-method
+					     special-dynamics-1 special-dynamics-2)
+ (let (((least most) (ask ,display-method recall your cycle-numbers)))
+      (let ((ideal-number-of-cycles
+	     (float (cond (special-dynamics-2
+			   (ideal-number-of-cycles display-method
+						   special-dynamics-1
+						   special-dynamics-2))
+			  (t (ideal-number-of-cycles display-method special-dynamics-1))))))
+	   '(time-estimates: ideal ,(+$ extra
+					(*$ ideal-number-of-cycles single-cycle-ideal))
+			     most ,(+$ extra (*$ 3.0 (float most) single-cycle-ideal))
+			     ;;can up single-cycle time by a factor of 2
+			     least ,(+$ extra (*$ .333 (float least) single-cycle-ideal))))))
+
+(define-function some-number-of-cycles n
+ ;;the second arg is the factor
+ (let ((ideal-number (cond ((= n 3) (ideal-number-of-cycles (arg 1) (arg 3)))
+			   (t (ideal-number-of-cycles (arg 1) (arg 3) (arg 4))))))
+      (round (*$ (arg 2) (float ideal-number)))))
+
+
+(define-function ideal-number-of-cycles n
+ (cond ((= n 2) (ideal-number-of-cycles-1 (arg 1) (arg 2)))
+       (t ;;two characters involved so average them --- could generalize to n
+	(// (+ (ideal-number-of-cycles-1 (arg 1) (arg 2))
+	       (ideal-number-of-cycles-1 (arg 1) (arg 3)))
+	    2))))
+
+
+(define-function ideal-number-of-cycles-1 (display-method special-dynamics)
+ (let (((least most average) (ask ,display-method recall your cycle-numbers)))
+      (in-range least most
+		(round
+		 (*$ (float average)
+		     .2 ;;to get the average to the following
+		     (+$ (do-as-if-you-were special-dynamics
+					    ,special-dynamics yield your rhythmic-level value)
+			 (do-as-if-you-were special-dynamics
+					    ,special-dynamics yield your activity-level value)
+			 (do-as-if-you-were special-dynamics
+					    ,special-dynamics yield your repetiveness value)
+			 (//$ (weightify (film-level-of 'variety)));;complement sign of variety
+			 (weightify (film-level-of 'obviousness))))))))
+
+(define-function slower-character+dynamics (character-1 character-2 subscene)
+ ;;compares speeds and returns a list of the character and its dynamics
+ (let
+  ((special-dynamics-1 (special-dynamics-of character-1 subscene))
+   (special-dynamics-2 (special-dynamics-of character-2 subscene)))
+  (cond ((> (ask ,special-dynamics-1 yield your speed value)
+	    (ask ,special-dynamics-2 yield your speed value))
+	 '(,character-2 ,special-dynamics-2))
+       (t '(,character-1 ,special-dynamics-1)))))
+
+
+(define-function time-estimates-to-turn-character (special-dynamics degrees)
+ (let ((ideal (time-to-turn-character special-dynamics degrees)))
+      '(time-estimates: ideal ,ideal
+			least ,(*$ .333 ideal)
+			most ,(*$ 3.0 ideal))))
+
+(define-function time-to-turn-character (special-dynamics degrees)
+ (//$ degrees
+      (ask ,special-dynamics yield real value for rotational-speed)))
+
+(define-function special-dynamics-of (character subscene)
+ (do-as-if-you-were character
+		    ,character yield your special-dynamics in ,subscene))
+
+(define-function divide-speed-by-factor (character factor subscene)
+ (multiply-speed-by-factor character (//$ factor) subscene))
+
+(define-function multiply-speed-by-factor (character factor subscene)
+ (multiply-dynamics-by-factor (special-dynamics-of character subscene) factor))
+
+(define-function multiply-dynamics-by-factor (special-dynamics factor)
+ (let ((new-dynamics (ask ,special-dynamics make interned offspring)))
+      ;;interned so can print them out to director
+      (ask ,new-dynamics set your (speed factor) to
+	   ,(*$ factor
+		(or (ask ,special-dynamics recall your (speed factor)) 1.0)))
+      new-dynamics))
+
+
+(define constraint something)
+
+(define large-distance constraint)
+
+(define-receiver (choose location of ?character so that (large-distance (vicinity-of ?other))
+			 because ?reason in ?subscene)
+		 large-distance
+ (choose-location-of-a-character character other reason subscene
+				 '(screen-position upper far-right)
+				 '(good-distance-from (vicinity-of ,other))
+				 (not-small-distance-constraint character other subscene)))
+
+
+
+(define small-distance constraint)
+
+(define-receiver (choose location of ?character so that (small-distance (vicinity-of ?other))
+			 because ?reason in ?subscene)
+		 small-distance
+ (choose-location-of-a-character character other reason subscene
+				 '(screen-position middle left)
+				 '(small-distance-from (vicinity-of ,other))
+				 (small-distance-constraint character other subscene)))
+
+(define small-distance-and-offstage constraint)
+
+(define-receiver (choose location of ?character
+			 so that (small-distance-and-offstage (vicinity-of ?other))
+			 because ?reason in ?subscene)
+		 small-distance-and-offstage
+ (choose-location-of-a-character character other reason subscene
+				 '(off-screen-position lower middle)
+				 '(small-distance-from-and-offstage (vicinity-of ,other))
+				 (small-distance-constraint character other subscene)))
+
+(define medium-distance constraint)
+
+(define-receiver (choose location of ?character so that (medium-distance (vicinity-of ?other))
+			 because ?reason in ?subscene)
+		 medium-distance
+ (choose-location-of-a-character character other reason subscene
+				 '(screen-position middle left)
+				 '(medium-distance-from (vicinity-of ,other))
+				 '(and
+				   ,(not-small-distance-constraint character other subscene)
+				   ,(not-large-distance-constraint character other subscene))))
+
+(define medium-distance-and-offstage constraint)
+
+(define-receiver (choose location of ?character
+			 so that (medium-distance-and-offstage (vicinity-of ?other))
+			 because ?reason in ?subscene)
+		 medium-distance-and-offstage
+ (choose-location-of-a-character character other reason subscene
+				 '(off-screen-position lower middle)
+				 '(medium-distance-from-and-offstage (vicinity-of ,other))
+				 nil))
+
+
+
+(define-function estimate-time-to-move-character n
+ (estimate-time-to-move-character-1 (arg 1) (arg 2) (arg 3) (arg 4) (arg 5)
+				    (and (= n 6) (arg 6))))
+
+(define-function estimate-time-to-move-character-1
+		 (character goal stop-condition special-dynamics subscene default-distance)
+ (let ((estimate (+$ (time-to-walk character goal special-dynamics subscene default-distance)
+		     .33)) ;;add a third of a second for easing into all this
+       ;;easing should really also be estimated but...
+       (factor (cond ((eq (first stop-condition) 'move-only-fraction-of-distance)
+		      (second stop-condition))
+		     (t 1.0))))
+      '(time-estimates: ideal ,(*$ factor estimate)
+			most ,(*$ factor estimate 2.5)
+			least ,(*$ factor estimate .4))))
+
+(define-function time-to-walk n
+ ;;this has an optional 5th arg for the distance if character is not located
+ (time-to-walk-1 (arg 1) (arg 2) (arg 3) (arg 4)
+		 (cond ((= n 4) nil)
+		       (t (arg 5)))))
+
+(define-function time-to-walk-1 
+		 (character goal special-dynamics subscene distance-if-not-located)
+ (let ((distance (cond ((numberp goal) goal) ;;if goal is number then its the distance
+		       (t (screen-fraction-between '(vicinity-of ,character) goal subscene))))
+       (speed (do-as-if-you-were special-dynamics
+				 ,special-dynamics yield your speed value)))
+      (*$ (ask dynamic-constants recall your time-to-cross-screen)
+	  (//$ (cond ((or (eq (first distance) 'missing-location-of)
+			  (null distance))
+		      (cond (distance-if-not-located)
+			    (t (shouldnt-happen 'time-to-walk-1
+						'(,distance and no default given)))))
+		     (t distance))
+	       speed))))
+
+

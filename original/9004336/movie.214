@@ -1,0 +1,280 @@
+;; -*-lisp-*-
+
+(include |ai:ken;declar >|)
+
+;;this section handles the recording and reshowing of "movies"
+
+(defcomment movie) ;;for tags
+
+(define movie something
+ (set your speed to 999999) ;frames per second (i.e default is to go as fast as possible)
+ (set your new-frame-action to erase-old) ;;by default erase old rather than clearscreen 
+ (set your new-frame-handler to frame-handler) ;;just-store-away-frame is handy too
+ (set your stage-mode to silent) ;;stage is silent but we wipe by default
+ (set your frame-count to 0))
+
+(define-method (film the next ?length ?units) movie
+ (help-comments |have all the actors with anything planned run for the next LENGTH UNITS|
+		 |recording it as it goes for later projection|)
+ ;;this no longer asks the clock to run because I must store away the frame after
+ ;;everything has changed, not any old time during the frame
+  (ask movie set your current-movie to ,(name-of myself))
+  (let ((stage-mode (ask stage recall your mode))
+	(clock (ask myself recall your clock))
+	(max-frame-number (+ (ask myself recall your frame-count)
+			     (length-in-frames length units))))
+       (ask myself
+	    when representing (frame ?number) use an array of size ,(1+ max-frame-number))
+       (unwind-protect
+	(progn
+	 (ask stage set your mode to ,(ask myself recall your stage-mode))
+	 (do ((time 0 (1+ time))
+	      (frame-number (ask myself recall your frame-count) (1+ frame-number))
+	      (ticks-per-frame (ask ,clock recall your ticks-per-frame))
+	      (new-frame-handler (ask myself recall your new-frame-handler))
+	      (stopped? nil (ask myself recall your stopped?)))
+	     ((or stopped? ;;been stopped explicitly
+		  (> frame-number max-frame-number)) ;;time's run out
+	      no-value)
+	     (cond ((= (\ time ticks-per-frame) 0)
+		    (put-in-wholine frame-number)
+		    (compile-using frame-handler 
+				   (ask ,new-frame-handler
+					just made frame number ,frame-number for ,myself))
+		    (ask myself set your frame-count to ,frame-number)))
+	     (cond ((eq (compile-using clock (ask ,clock tick)) no-value)
+		    ;;this happens only if nothing is left to do
+		    (return no-value)))))
+	(ask stage set your mode to ,stage-mode)))) ;;restore the stage to normal
+
+(define-method (film secretly the next ?length ?units) movie
+ (help-comments |have all the actors with anything planned run for the next "length" ticks|
+		 |recording it as it goes for later projection|
+		 |however I don't change the stage while doing this (it runs in silent mode)|)
+ (ask myself set your new-frame-handler to just-store-away-frame)
+ (ask myself film the next ,length ,units))
+
+(define-method (store away the frame number ?number) movie
+ (ask myself set your (frame ,number) to ,(or (ask stage save stage) '(nil))))
+
+(define-method (stop filming) movie
+ (ask myself set your stopped? to t))
+
+(define-method (record ?event) movie
+ (ask myself memorize (happened ,event at frame ,(ask myself recall your frame-count))))
+
+(define-method (project) movie
+ (help-comments
+  |show all my frames at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie 0 999999999 1))
+
+(define-method (project frames ?begin to ?end showing every ?so-many) movie
+ (help-comments
+  |show my frames from "begin" to "end" (in that order) showing every "so-many"th frame|
+  |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin end so-many))
+
+(define-method (project frames ?begin to ?end) movie
+ (help-comments |show all my frames from frame number "begin" to "end" (in that order)|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin end 1))
+
+(define-method (project starting at frame ?begin showing every ?so-many) movie
+ (help-comments |start to show myself at frame number "begin" showing every "so-many"th frame|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie begin 999999999 so-many))
+
+(define-method (project showing every ?so-many) movie
+ (help-comments |start to show myself at frame number 0 showing every "so-many"th frame|
+		 |at my "speed" doing my "new-frame-action" after each frame|)
+ (show-movie 0 999999999 so-many))
+ 
+(define-method (project frame ?number) movie
+ (help-comments |clear the stage and show frame number "number"|)
+ (cond ((ask myself recall your compiled?)
+	(run-compiled-frame
+	 (arraycall t (get (ask myself recall your frames) 'array) number)
+	 0.0 (runtime) 'pendown))
+       (t
+	(run-frame (ask myself recall your (frame ,number)) 0.0 (runtime) '(display)))))
+
+(define-method-helper (show-movie first-frame last-frame skip-every) movie
+ (cond ((ask myself recall your compiled?)
+	(project-compiled-movie (ask myself recall your frames) ;;the name of the array
+				first-frame
+				(min last-frame (ask myself recall your frame-count))
+				skip-every
+				(//$ (float (ask myself recall your speed)))
+				(ask myself recall your new-frame-action)))
+       (t (show-normal-movie first-frame last-frame skip-every))))
+
+(define-method-helper (show-normal-movie first-frame last-frame skip-every) movie
+ (wipe)
+ (let ((increment (cond ((< first-frame last-frame) skip-every)
+			(t (- skip-every)))))
+      (do ((frame-number first-frame (+ frame-number increment))
+	   (last-runtime (runtime) (runtime))
+	   (begin-time (runtime))
+	   (speed (//$ (float (ask myself recall your speed))))
+	   (new-frame-action (ask myself recall your new-frame-action))
+	   (last-frame (min last-frame (ask myself recall your frame-count)))
+	   (frame nil)
+	   (previous-frame nil frame))
+	  ((cond ((> increment 0) (> frame-number last-frame))
+		 (t (< frame-number last-frame)))
+	   '(|I did it in| ,(//$ (float (- (runtime) begin-time)) 1000000.0) |cpu seconds.|))
+	  (setq frame (ask myself recall your (frame ,frame-number)))
+	  (put-in-wholine frame-number)
+	  (cond ((null frame)) ;;do nothing if the frame was never made (worse than empty)
+		((eq new-frame-action 'erase-old)
+		 (erase+draw-frame previous-frame frame speed last-runtime))
+		((eq (first new-frame-action) 'erase-previous) ;;eg (erase-previous 27)
+		 (erase+draw-frame
+		  (ask myself recall your (frame ,(- frame-number (second new-frame-action))))
+		  frame speed last-runtime))
+		(t (eval new-frame-action)
+		   (run-frame frame speed last-runtime '(display)))))))
+
+(define-form (erase+draw-frame previous-frame current-frame speed last-runtime)
+ (eraserdown)
+ (and previous-frame
+      (run-frame (set-minus previous-frame current-frame)
+		 ;;dont need to erase those in both
+		 -999.9 last-runtime '(erase)))
+ (pendown)
+ (run-frame (set-minus current-frame previous-frame)
+	    ;;dont need to draw those already there
+	    speed
+	    last-runtime
+	    '(display)))
+
+(define-method-helper (run-frame current-appearances speed last-runtime action) movie
+       (mapc (function (lambda (current-appearance)
+			       (and current-appearance (ask ,current-appearance !,action))))
+	     current-appearances)
+       (sleep (-$ speed (//$ (float (- (runtime) last-runtime)) 1000000.0))))
+
+(define-form (put-in-wholine x)
+       (sstatus who3 (append-atoms 'f= x))
+       x)
+
+(define-method (print frames ?begin to ?end) movie
+ (help-comments |print out the appearances of each actor on each frame from "begin" to "end"|)
+  (do ((i begin (1+ i)))
+      ((> i end))
+      (ask myself ask each of your (frame ,i) to print memory)
+      (terpri) (princ '|End of frame number |) (princ i)))
+
+(define-method (compile ?file-name) movie
+ (help-comments |write out to "file-name" Lisp code which can be compiled and|
+		|can be projected much more quickly, especially if sent to the COMPLR|)
+ (let ((clones-name (save-copy-of-the-movie myself file-name))
+       (movie-name (name-of myself)))
+      (let-files ;;like let but does the right thing with files
+       ((file-object (open file-name 'append)))
+       (do ((compiled-appearances nil)
+	    (frames nil)
+	    (frame-count (ask ,myself recall your frame-count))
+	    (frame-number 0 (1+ frame-number))
+	    (array-name (append-atoms movie-name '-frames))
+	    (draw-procedures nil))
+	   ((> frame-number frame-count)
+	    (mapc
+	     #'(lambda (draw-procedure)
+		       (defunize draw-procedure (get-interpretive-definition draw-procedure)
+				 file-object))
+	     draw-procedures)
+	    (print-the-movie-array
+	     frames movie-name array-name clones-name frame-number file-object)
+	    no-value)
+	   (do ((appearances (ask ,myself recall your (frame ,frame-number))
+			     (rest appearances))
+		(frame))
+	       ((null appearances) (push frame frames))
+	       (let ((compiled-appearance
+		      (compile-using appearance
+				     (ask ,(first appearances) ;the appearance itself
+					  compile as function))))
+		    (push (cons
+			   (cond ((second (assoc compiled-appearance compiled-appearances)))
+				 (t (let ((appearance-name (generate-symbol movie-name)))
+					 (setq draw-procedures
+					       (union draw-procedures
+						      (ask ,(first appearances)
+							   recall your draw-procedures)))
+					 (defunize appearance-name compiled-appearance
+						   file-object)
+					 (push (list compiled-appearance appearance-name)
+					       compiled-appearances)
+					 appearance-name)))
+			   (ask ,(first appearances) recall your state))
+			  frame)))))))
+
+(define-form (print-the-movie-array
+	      frames movie-name array-name clones-name frame-number file-object) 
+ (print '(array ,array-name t ,frame-number) file-object)
+ (print '(fillarray (quote ,array-name) (quote ,(nreverse frames))) file-object)
+ (print '(ask ,clones-name set your frames to ,array-name) file-object)
+ (print '(ask ,clones-name make synonym ,movie-name) file-object)
+ (print '(ask ,clones-name set your name to ,movie-name) file-object)
+ (print '(cond ((boundp '*compiled-movies)
+		(setq *compiled-movies (cons (quote ,array-name) *compiled-movies)))
+	       (t (setq *compiled-movies (quote (,array-name)))))
+	file-object))
+
+(define-method-helper (save-copy-of-the-movie movie file-name) movie
+ (let ((clone (ask ,movie clone and name it ,(ask ,movie make up a name))))
+      (ask ,clone set your compiled? to should-be)
+      (ask ,clone remove method for recall your (frame x))
+      (ask ,clone remove method for set your (frame x) to y)
+      (ask ,clone forget your (array-for (frame ?number)))
+      (ask ,clone save ,file-name)
+      clone))
+
+(define-synonym eof eval-on-frame)
+
+(define-method-helper (eval-on-frame movie form frame-number) movie
+ (let ((frame-handler (ask ,movie recall your new-frame-handler)))
+      (cond (frame-handler 
+	     (ask ,frame-handler do when receiving
+		  (just made frame number ,frame-number for ?movie)
+		  ,form
+		  (compile-using frame-handler
+			  (ask-old myself just made frame number ,frame-number for ,movie))))
+	    (t (warning 'eval-on-frame '(,movie is not a movie))))))
+
+(define-synonym dmaao display-movie-all-at-once)
+
+(define-method-helper (display-movie-all-at-once
+		       movie down? columns x-space y-space x-home y-home scale)
+		      movie
+ ;;if down? is T then frame 2 is under frame 1 otherwise its right of it
+ ;;if down? is T then columms are horizontal
+ (clearscreen)
+ (do ((frame 0 (1+ frame))
+      (last-frame (ask ,movie recall your frame-count)))
+     ((> frame last-frame))
+     (penup)
+     (let ((*director-home-state
+	    (cond (down? (list (float (plus (times (// frame columns) x-space) x-home))
+			       (float (plus (times (\ frame columns) y-space -1.0) y-home))))
+		  (t (list (float (plus (times (\ frame columns) x-space) x-home))
+			   (float (plus (times (// frame columns) y-space -1.0) y-home))))))
+	   (*director-turtle-scaling-factor (times *director-turtle-scaling-factor scale)))
+	  (ask ,movie project frame ,frame))))
+
+
+(define frame-handler something)
+
+(define-method (just made frame number ?frame-number for ?movie) frame-handler
+ (let ((original-mode (ask stage recall your mode)))
+      (cond ((not (eq original-mode 'normal))
+	     (ask stage set your mode to normal)
+	     (ask stage wipe)
+	     (ask stage set your mode to ,original-mode))))
+ (compile-using movie (ask ,movie store away the frame number ,frame-number)))
+
+(define just-store-away-frame frame-handler)
+
+(define-method (just made frame number ?frame-number for ?movie) just-store-away-frame
+ (compile-using movie (ask ,movie store away the frame number ,frame-number)))

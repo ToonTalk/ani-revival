@@ -1,0 +1,21 @@
+(COMMENT list 30000. fixnum 20000. flonum 20000. symbol 10000.)
+(PRINC '/;LOADING)
+(SETQ ^W T)
+(DEFPROP START-TECO (LISPT FASL DSK /.TECO/.) AUTOLOAD)
+(defprop cs (tvrtle fasl dsk llogo) autoload)
+(defprop sd (tvrtle fasl dsk llogo) autoload)
+(defprop top (step fasl dsk ken) autoload)
+(defun direct (fast?)
+       (fasload qq)
+       (cond (fast? (fasload fdirct fasl dsk ken))
+	     (t (fasload direct fasl dsk ken))))
+(SETQ NOUUO T)
+(SETQ BASE 10. IBASE 10.)
+;(fasload goodys fasl)
+(*RSET T)
+;(SETQ DEFUN T)  loses too often
+(DEFPROP *DEFUN DEF-FORM GRINDFN)
+(DEFPROP MACRODEF DEF-FORM GRINDFN)
+(DEFPROP LEXPRDEF DEF-FORM GRINDFN)
+(setq linel 94.) ;for the time being
+(SETQ ^W NIL)

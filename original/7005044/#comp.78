@@ -1,0 +1,121 @@
+;this is #comp >
+;part of the anima system that is for compiling actors
+
+(declare (genprefix comp)
+	 (fasload qq)
+	 (macros t)
+	 (special :message :self)
+	 (*lexpr ask))
+
+;Receive-macro replaces the usual receive function when called
+;after an ask
+;it sets latest-receiver to the instantiated action and returns that
+;which gets evaled, latest-action is used by ask displace calls to it
+;with the action finally performed
+				       
+
+(defun receive-macro macro (a)
+       (prog (:values :variables)
+       (and (match :message (cadr a))
+	    (setq :matched? t)
+	    (THROW (list 'receive2
+				 (list 'quote (cadr a))
+				 (list 'quote (caddr a))
+				 (list 'quote :message))
+		   ASK-MACRO))))
+
+;this substs the :values for the :variables in the :exp
+
+
+(defun displace (a b)
+       (rplacd a (cdr b))
+       (rplaca a (car b)))
+
+
+;this replaces the ask function and temporally replaces receive with the above macro
+;it displaces the call with the latest action set by the receive-macro
+;the atom check is because things like (class-of :self) should not be displaced
+;since :self may be actor or members of it 
+;"tell" is the same as ask except it doesnt "compile"
+
+;ask can have an optional third arguement which is advice to the "compiler"
+;it can be:
+; (ask foo (append a b) '(example: (forget color sky blue)))
+;or if there is also a question about who the message is to be sent to then
+; (ask (class-of :self) :message '(example: (ask something '(find all foo bars))))
+
+
+
+(defun ask macro (ask-call)
+(prog (the-receiver CASES-MACRO)
+(SETQ CASES-MACRO (get 'cases 'macro))
+(return
+ (cond ((or (and (atom (cadr ask-call))
+		 (boundp (cadr ask-call)))
+	    (cdddr ask-call))
+	(putprop 'receive (get 'receive-macro 'macro) 'macro)
+	(remprop 'cases 'macro)
+	(setq the-receiver
+		     (CATCH
+		      (cond ((cdddr ask-call)
+			     ((lambda (advice-to-compiler)
+			     (cond ((eq advice-to-compiler 'anything) nil)
+				   ((eq (car advice-to-compiler) 'ask)
+				    (apply 'tell (cdr advice-to-compiler)))
+				   (t (tell (eval (cadr ask-call))
+					    advice-to-compiler))))
+			      (cadadr (cadddr ask-call))))
+			    (t (tell
+				(eval (cadr ask-call))
+				(eval (caddr ask-call)))))
+				ASK-MACRO))
+	(and cases-macro (putprop 'cases cases-macro 'macro))
+	(remprop 'receive 'macro)
+	(cond (the-receiver
+	       (setq the-receiver
+		     (list
+		      (list 'lambda '(:self)
+			     (subst (caddr ask-call)
+				    (cadddr the-receiver)
+				    the-receiver))
+		      (cadr ask-call)))
+	       (displace ask-call  the-receiver))
+	      (t (cons 'tell (cdr ask-call)))))
+       (t (cons 'tell (cdr ask-call)))))))
+
+
+;(defun cases fexpr (a)
+;       (do ((:i a (cdr :i))
+;	    (:matched? nil)
+;	    (ans nil))
+;	   ((null :i) nil)
+;	   (setq ans (eval (car :i)))
+;	   (and :matched? (return ans))))
+
+;as a macro expands to a cond as follows:
+
+(defun cases macro (code)
+(list (list 'lambda '(ans :matched?)
+      (cons 'cond
+	      (mapcar (function (lambda (receiver)
+		 (list (list 'progn (list 'setq 'ans
+					   (list 'receive/.with/.functional/.action
+						  (list 'quote (cadr receiver))
+						  (list 'function
+							 (list 'lambda nil
+								(caddr receiver)))))
+			      ':matched?)
+		       'ans)))
+	       (cdr code))))
+      nil nil))
+				 
+(defun receive/.with/.functional/.action macro (a)
+'(prog (:variables :values)
+ (return   (and (match :message `(cadr a))
+		(setq :matched? t)
+	    (progv :variables :values (`(caddr a)))))))
+			
+	   
+	    
+
+(defun do/.the/.following: macro (a) (cons 'progn (cdr a)))

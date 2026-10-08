@@ -1,0 +1,21 @@
+;; -*- lisp -*-
+
+(let ((si:INHIBIT-FDEFINE-WARNINGS t))
+     (load "ken1;reamac")
+     (add-initialization "set-director-read-table"
+			 ;;the : seems to prevent it from using :si???
+			 '(setq readtable :director-readtable))
+     (or (fboundp 'include)
+	 (defmacro include (x) nil)) ;;otherwise it complains
+     (load "ken;let") ;;until let* is in the lispm and destructuring let
+     (load "ken;decla2")
+     (load "ken1;macros"))
+(load "ken1;util")
+(load "ken1;cmatch")
+(load "ken1;drect")
+(load "ken1;readir")
+(load "ken1;prop")
+(load "ken1;incomp")
+(load "ken1;comp")
+(director-load "ken;some")
+(director-load "ken1;trace")

@@ -1,0 +1,811 @@
+;;;  -*-lisp-*-
+;;this file contains the necessary Lisp primitives with which to build Director
+;;Util > contains those that are generally useful extensions of Lisp
+
+(include |ai:ken;declar >|)
+
+(defcomment drect) ;;for tags
+
+(setq *nopoint t)  
+
+(setq car t cdr nil)
+
+(sstatus features director)
+
+(setq :default-compilation-target 'something)
+;;or if this is non-nil dont even bother to require an example target
+
+(setq :tvrtle-file-name '|ai:llogo;tvrtle newio|)
+(setq :color-tvrtle-file-name '|ai:llogo;colort newio|)
+
+(defun run-color nil
+ (setq :tvrtle-file-name :color-tvrtle-file-name))
+
+(setq :frames-per-second 1 :ticks-per-frame 1) ;;if i want :ticks-per-second just multiply
+
+(setq nothing-found nil)
+
+;;nothing-found is another name for nil since 
+;;might want to say something different if nothing is found than if nil is found
+
+(setq no-value (copysymbol '|done| nil))
+
+(setq ? '|no special help available -- try typing (ask something help) or (ask object help)|)
+
+(setq :message-not-understood 'message-not-understood ;;special error handlers
+      :actor-not-defined 'actor-not-defined)
+
+(setq-if-unbound :protected-actors '(something object movie universe screen interpolation))
+
+(setq :want-to-make-help-file nil)
+
+(setq :actor-of-method-being-run nil)
+
+;;the following variable is non-nil then files when needed will be automatically loaded
+;;and any changes to actors (ie new methods added) will be slowed down by checking
+;;and if need be recompiling the no longer correct compilations
+
+(setq :update-all-dependent-selectors nil)
+
+(setq :collecting-actors nil :actors-collected nil)
+;;this is the variable handling stuff of director (except that which must be in something)
+
+;;this is used internally and if used by a user will not compile efficiently
+
+(defun ask1 (:self :message :skip-current-method?)
+ ;;this is where the special variables :self and :message get bound
+ (cases :self))
+
+(defun actors-that-match (index rest-pattern)
+       (get-property-all (get index 'non-atomic-actors) rest-pattern))
+
+;;non-nil if actor exists
+(defun exists? (actor)
+ (or (actor-of actor dont-autoload)
+     (get actor 'actor-load)))
+
+;;if actor is not defined then returning another actor or defining one and returning 'retry
+;;will recover from error
+
+(defun undefined-actor (undefined-actor)
+ (let ((new-actor-name (funcall :actor-not-defined undefined-actor)))
+      (and new-actor-name (setq :self (actor-of new-actor-name)))))
+
+(defun actor-not-defined (actor)
+ ;;returns the name of the actor that should have received the message
+ (warning 'ask '(,actor |is not an actor --- type (?) for help|))
+ (let ((? '(,actor |is not defined as an actor --- if it is misspelled then type/
+ (return '<correct-spelling>)/
+ if you want to define| ,actor |do so now and then type/
+ (return 'retry)/
+ otherwise type "p " and the transmission will not occur and NIL will be returned|)))
+      (let ((returned (break no-such-actor t)))
+	   (cond ((eq returned 'retry) actor)
+		 (t returned)))))
+
+;;if :message was not understood then correct message can be returned or 'retry 
+;;if things are fixed
+
+(defun not-understood-message (:self :message)
+ (funcall :message-not-understood :self :message))
+
+(defun message-not-understood (:self :message)
+ (recoverable-bad-message (name-of :self) :message
+			  '(,:message |is not understood/
+--- type (?) for help|)))
+
+(defun recoverable-bad-message (actor message warning)
+ (warning actor warning)
+ (let ((? '(since ,actor |did not understand/
+| ,message |/
+you can either modify|
+,actor |so that it can understand the message and then type (return 'retry)/
+ or if the message was misstyped then type/
+ (return '<right-version-of-message>)/
+ if you typed| ,actor |wrong and you want it to go to another type (return '<actor-name>)/
+ otherwise type "p " and the transmission will not occur and NIL will be returned|)))
+      (let ((returned (break bad-message t)))
+	   (cond ((eq returned 'retry) (ask1 :self message :skip-current-method?))
+		 ((exists? returned) (ask1 (actor-of returned) message :skip-current-method?))
+		 ((atom returned) returned)
+		 ;;can't be a message so is the value it should have been
+		 (returned (ask1 :self returned :skip-current-method?))))))
+
+(define-form (compiled-ask method-selector compilation-target)
+ (do ((actor :self (parent-of actor))
+      (internal-compilation-target (actor-of compilation-target)))
+     ((eq actor internal-compilation-target) ;;made up this far without being caught
+      (let ((method (cond ((definedp method-selector) (funcall method-selector :message actor))
+			  (t (select-winning-method (get method-selector 'matching-methods)
+						    actor
+						    :message)))))
+	   (cond (method (run-method method))
+		 (t (cases actor)))))
+     (let ((method (method-that-matches-just-actor actor :message)))
+	  (and method (return (run-method method))))))
+
+(define-form (skip-type-compiled-ask method-selector compilation-target :skip-current-method?)
+ (let ((internal-compilation-target (actor-of compilation-target)))
+      (do ((actor :self (parent-of actor)))
+	  ((eq actor internal-compilation-target)
+	   ;;made up this far without being caught
+	   (let ((method
+		  (progv (cons :method-being-run (rest (assq :self :actor+skipped-methods)))
+			 :circular-list-of-nils
+			 (cond ((definedp method-selector)
+				(funcall method-selector :message actor))
+			       (t (select-winning-method
+				   (get method-selector 'matching-methods)
+				   actor
+				   :message))))))
+		(cond (method (run-method-and-skip method))
+		      (t (cases actor)))))
+	  (let ((method (method-that-matches-just-actor actor :message)))
+	       (and method (return (run-method-and-skip method)))))))
+
+(or (boundp ':actors-currently-traced) (setq :actors-currently-traced nil))
+
+;;each method is represented as the name of the pattern-test and (when not compiled away)
+;;the original pattern (used for printing and removal of duplicates)
+;;the action-function is the same name as the method
+
+(setq :skip-current-method? nil)
+
+(setq :actor+skipped-methods nil)
+
+(setq :circular-list-of-nils (circular-list-of nil))
+
+;;cases is constructed by "Receive" type messages
+;;each method is matched against :message until one wins and the second part of the
+
+(defun cases (actor)
+ (and actor
+      (let ((method (cond (:skip-current-method?
+			   (progv (cons :method-being-run
+					(rest (assq :self :actor+skipped-methods)))
+				  :circular-list-of-nils
+				  (method-that-matches actor :message)))
+			  (t (method-that-matches actor :message)))))
+	   (cond (method (cond (:skip-current-method?
+				(run-method-and-skip method))
+			       (t (run-method method))))
+		 (t (not-understood-message :self :message))))))
+
+(define-form (run-method-and-skip method)
+ (let ((:actor+skipped-methods
+	(cond (:method-being-run
+	       (maintain-alist :actor+skipped-methods :self :method-being-run))
+	      (t :actor+skipped-methods))))
+      (run-method method)))
+
+(setq-if-unbound :method-being-run nil)
+
+(define-form (run-method :method-being-run)
+ ;;this does the following
+ ;;(a) gives my tracer a hook
+ ;;(b) binds special variable for compiler
+ ;;(c) checks for value hack (ie method not a name but a form to eval)
+ (cond ((atom :method-being-run)
+	(funcall :method-being-run)) ;; :message is assumed in the funcall
+       (t (eval :method-being-run)))) ;;is really a value
+
+(defprop director-symbol-for-value quote fexpr)
+
+(define-form (method-that-matches actor message)
+ ;;this finds the method that matches the message
+ (cond (actor ;;if actor is nil then made it to the top ie something
+	(or (method-that-matches-just-actor actor message)
+	    (method-that-matches (parent-of actor) message)))))
+
+(define-form (method-that-matches-just-actor actor message)
+ (do ((methods (methods-of actor) (rest methods)))
+     ((null methods) nil)
+     (let ((method-name (first methods)))
+	  (cond ((atom method-name)
+		 (let ((method (symeval method-name)))
+		      (cond ((null method)) ;;temporally not around anymore
+			    ((and (get method-name 'private?) (not (eq actor :self))));;private
+			    ((method-applicable? method-name message)
+			     (return method))))) ;;normal method
+		(t ;;compiled cases
+		 (let ((method (funcall (first method-name) message actor))) 
+		      (cond (method (return method))))))))) ;;found one
+
+(define-form (select-winning-method methods actor message)
+ ;;for compiled transmissions
+ (do ((methods methods (rest methods)))
+     ((null methods) nil)
+     (let ((method-name (first methods)))
+	  (let ((method (symeval method-name)))
+	       (cond ((null method)) ;;temporally not around anymore
+		     ((and (get method-name 'private?) (not (eq actor :self)))) ;;private
+		     ((method-applicable? method-name message)
+		      (return method)))))))
+
+
+(define-form (method-name-that-matches actor message)
+ ;;this finds the name of method that matches the message
+ (cond (actor ;;if actor is nil then made it to the top ie something
+	(or (method-name-that-matches-just-actor actor (methods-of actor) message)
+	    (method-name-that-matches (parent-of actor) message)))))
+
+(define-form (method-name-that-matches-just-actor actor methods message)
+ (do ((methods methods (rest methods)))
+     ((null methods) nil)
+     (let ((method-name (first methods)))
+	  (cond ((atom method-name)
+		 (let ((method (symeval method-name)))
+		      (cond ((null method)) ;;temporally not around anymore
+			    ((and (get method-name 'private?) (not (eq actor :self))));;private
+			    ((method-applicable? method-name message)
+			     (return method-name))))) ;;normal method
+		(t ;;compiled cases
+		 (return
+		  (method-name-that-matches-just-actor actor (rest method-name) message)))))))
+
+(defun humanify-method (method-name)
+ (cond ((null method-name) nil)
+       ((atom method-name)
+	(let ((method (symeval method-name)))
+	     (cond ((null method) '(,(or (method-pattern method-name) method-name)
+				    (temporally invisible)))
+		   ((atom method) ;;if not a variable 
+		    (cons (or (method-pattern method-name) method-name)
+			  (or (extract-the-action (body-of-method method-name))
+			      '(****compiled*****)))))))
+       (t '(,(first method-name) 
+	    ,(mapcan
+	      (function (lambda (method)
+				(let ((human-method (humanify-method method)))
+				     (and human-method (list human-method)))))
+	      (rest method-name))))))
+
+
+(define-function extract-the-action (action-lambda-expression)
+ (let ((body (third action-lambda-expression)))
+      (cond ((and (not (atom body)) (not (atom (first body)))
+		  (eq (first (first body)) 'lambda))
+	     (rest (rest (first body))))
+	    (body (list body)))))
+
+
+(define-form (set-director-symbol-for-value value-expression new-value)
+ ;;the value-expression is (director-symbol-for-value ...)
+ (replace-first (rest value-expression) new-value)
+ new-value)
+
+
+(defun insert-macro-receive (pattern action actor)
+ ;;this is the same as insert-receive expect that the function is placed on the
+ ;;'macro-expander indicator
+ (let ((normal-method-name (insert-the-normal-method pattern action actor)))
+      (putprop normal-method-name
+	       (make-macro-receiver pattern action normal-method-name)
+	       'macro-version)))
+
+ (define-form (make-macro-receiver pattern action method-name)
+  (eval
+   (funcall
+    (get 'define-macro 'macro) ;;the definition of define-macro
+    (let ((macro-name (intern-append-atoms method-name '-macro)))
+	 (putprop macro-name t 'director-macro?)
+	 '(define-macro ,macro-name
+			(old-recency-number holder-of-new-number target-form message-form)
+			(body-of-macro-method
+			 old-recency-number
+			 (symeval holder-of-new-number)
+			 (let ((:self target-form))
+			      ((lambda ,(find-variables-in-pattern pattern) !,action)
+			       !,(binding-part-of-pattern1 'message-form pattern nil)))))))))
+
+
+(define-form (body-of-macro-method old-recency-number new-recency-number expansion)
+ (cond ((= old-recency-number new-recency-number)
+	expansion)
+       (t (displace :whole-macro-form :old-macro-form))))
+
+(defun insert-lisp-like-macro-receive (pattern action actor)
+ ;;this is the same as insert-receive expect that the function is placed on the
+ ;;'macro-expander indicator
+ ;;it differs form insert-macro-receive in that the macro defined is more like Lisp's
+ ;;ie the normal method cons up the form to get evaled
+ (putprop (insert-receive pattern '((eval (progn !,action))) actor)
+	  (make-macro-receiver pattern action actor)
+	  'macro-version))
+
+(define-function insert-the-normal-method (pattern action actor)
+ (insert-receive pattern
+		 (let ((:self ':self))
+		      (list (eval
+			     '(let ,(mapcar
+				     (function
+				      (lambda (variable)
+					      '(,variable
+						(list 'director-symbol-for-eval
+						      (quote ,variable)))))
+				     (find-variables-in-pattern pattern))
+				   !,(eval (quote-allowing-eval-and-unpack action))))))
+		 actor))
+	    
+;;this inserts a new method into the case-methods property of the actor
+
+(define-form (insert-receive pattern action actor (actor-name) (private-method nil))
+ (cond ((atom pattern) (shouldnt-happen 'insert-receive
+					'(,pattern must be a list not an atom)))
+       (t (let ((actor-name (or actor-name (name-of actor) 'nameless)))
+	       (insert-the-method (make-method-info pattern actor-name)
+				  pattern action actor actor-name private-method)))))
+
+(setq :replace-old-methods nil) ;;too expensive as a default
+
+(setq-if-unbound :internal-methods-first '(internal-recall-your-normal-variable))
+
+(defun insert-the-method (method-info pattern action actor actor-name private-method)
+ (let (((method-name new?)
+	(cond ((and :replace-old-methods
+		    (let ((equivalent-method
+			   (find-equivalent-method (methods-of actor) (first method-info))))
+			 (cond (equivalent-method (list equivalent-method nil))))))
+	      (t (list (method-name actor (first pattern) actor-name) t)))))
+      (cond ((not new?) (set method-name nil) (setplist method-name nil)))
+      (define-method-body method-name (find-variables-in-pattern pattern)
+			  method-info action pattern)
+      (and new? (add-to-actor method-name pattern actor))
+      (and private-method (putprop method-name t 'private?))
+      (and new?
+	   :update-all-dependent-selectors ;;don't do anything if not updating
+	   (not (memq (first pattern) :internal-methods-first));;eg variable methods
+       	   (update-appropriate-dependent-compiled-transmissions actor
+								pattern
+								(first method-info)))
+      method-name))
+
+;;the action part of the method is turned into a lisp expr it is a list of exprs
+;;(the variable names are the reverse of the order in the pattern)
+
+(define-form (make-method-info pattern actor-name)
+ (let ((devariablized-pattern (devariablize-pattern pattern)))
+      (let ((pattern-predicate (test-part-of-pattern devariablized-pattern actor-name t)))
+	   (list devariablized-pattern pattern-predicate))))
+
+
+(define-form (define-method-body method-name variables method-info action pattern)
+ (putprop method-name (first method-info) 'method-pattern) ;;devariablized
+ (and (second method-info)
+      (putprop method-name (second method-info) 'method-pattern-predicate))
+ (cond ((eq (first (first action)) 'director-symbol-for-value)
+	(set method-name (first action)))
+       (t (set method-name method-name) ;;so that is can be rebound to make it invisible
+	  (put-function-definition method-name
+				   (binding-part-of-pattern pattern
+							    '(lambda ,variables !,action)
+							    nil)))))
+
+;;the name has to be interned so that compiled files can use it
+;;if the actor is not interned it cant be compiled and so let the stuff get garbage collected
+
+(define-form (method-name actor first-pattern actor-name)
+ ;;makes names like foo-3
+ (append-atoms actor-name '- first-pattern '-
+	       (increment-method-count (method-count+methods-of actor))))
+
+(defun increment-method-count (methods)
+ (replace-first methods (1+ (first methods)))
+ (first methods))
+
+(defun inside-the-compiler nil
+       (status features complr))
+
+(defun add-to-actor (method-name pattern actor)
+ ;;this adds a new method in the beginning of the case-methods or end if end? is non-nil
+ (let ((methods-plus (method-count+methods-of actor)))
+      (cond ((equal pattern '(recall your parent)) ;;is always the third element
+	     (replace-rest methods-plus (cons method-name (rest (rest methods-plus)))))
+	    (:insert-methods-at-end (nconc methods-plus (list method-name)))
+	    (t (replace-rest (rest methods-plus) ;;car is the parent clause
+			     (cons method-name (rest (rest methods-plus))))))))
+
+(define-form (find-equivalent-method methods method-pattern)
+ (do ((i methods (rest i)))
+     ((null i) nil)
+     (let ((method (first i)))
+	  (cond ((atom method)
+		 (cond ((equal method-pattern (method-pattern method))
+			(return method))))
+		(t (return
+		    (find-equivalent-method (rest method) method-pattern)))))))
+
+(define-form (remove-current-method)
+ (remove-method-named :method-being-run :self))
+
+(defun remove-method-named (method-name actor)
+ (cond ((and method-name (atom method-name))
+	(delq method-name (methods-of actor))
+	(set method-name nil)
+	(setplist method-name nil)
+	(update-appropriate-dependent-compiled-transmissions
+	 actor
+	 (method-pattern method-name)
+	 (method-pattern-predicate method-name)))))
+
+(define-form (make-actor parent (name))
+ (let ((new-actor (list 'director-symbol-for-actor 0))
+       (:update-all-dependent-selectors nil))
+      ;;dont trigger off dependent compiled-transmission checking
+      (insert-receive '(recall your parent)
+		      (list '(director-symbol-for-value ,parent))
+		      new-actor
+		      (or name 'nameless))
+      (and name (insert-receive '(recall your name)
+				(list '(director-symbol-for-value ,name))
+				new-actor
+				name))
+      (and :collecting-actors name (push name :actors-collected)) ;;mostly for compiling files
+      new-actor))
+
+
+
+(define-function place-actor-on-name (actor name)
+ (general-putprop name actor 'actor 'non-atomic-actors))
+
+(define-function general-putprop (where what atomic-indicator non-atomic-indicator)
+ (cond ((atom where) (putprop where what atomic-indicator))
+       (t (let ((plists (get (first where) non-atomic-indicator)))
+	       (cond (plists (place-property plists what (rest where)))
+		     (t (putprop (first where)
+				 (place-property nil what (rest where))
+				 non-atomic-indicator))))))
+ what)
+
+(define-form (general-get where atomic-indicator non-atomic-indicator)
+ (cond ((atom where) (get where atomic-indicator))
+       (t (get-property (get (first where) non-atomic-indicator)
+			(rest where)))))
+
+(define-form (general-remprop where atomic-indicator non-atomic-indicator)
+ (cond ((atom where) (remprop where atomic-indicator))
+       (t (remprop (first where) non-atomic-indicator))))
+
+
+(define-function synonym-for (old-actor new-name)
+ (place-actor-on-name old-actor new-name)
+ new-name)
+
+
+(define-form (eval-define name parent code (clobber-old t))
+ (let ((:insert-methods-at-end t)) ;;so that they come out in the order they are in text
+      (cond ((and clobber-old (exists? name))
+	     (ask1 (actor-of parent) '(make ,name) nil))
+	    ((actor-of name t));;already defined (this will autoload it if need be)
+	    (t (ask1 (actor-of parent) '(make ,name) nil)))
+      (let ((actor (actor-of name)))
+	   (mapc (function (lambda (message)
+				   (ask1 actor message nil)))
+		 code)
+	   name)))
+
+;;parent might be a list if something
+;;special is desired as is the case with define something
+;;code is reverse so that
+;;receives come out in same order as define (hopefully otherstuff wont mind)
+
+
+(defcomment print) ;;for tags
+;printer for director
+
+(declare (special :default-file-object)) ;;must be an open file object for output
+
+(setq :default-file-object nil)
+
+(define-function fancy-print (option)
+;;option can be either script, memory, variables or nil (for all)
+;;the second of option can be a file to write to
+ (let ((file-object
+	(cond (:default-file-object)
+	      ;;this is a stupid efficiency hack for printing many actors at once
+	      ((rest option)
+	       (cond ((probef (rest option)) (open (rest option) 'append))
+		     (t (open (rest option) 'out)))))))
+      (cond ((or (null option) (eq (first option) 'all))
+	     (fancy-print-variables file-object)
+	     (fancy-print-memory file-object)
+	     (terpri file-object)
+	     (fancy-print-script file-object))
+	    ((eq (first option) 'script) (fancy-print-script file-object))
+	    ((eq (first option) 'memory)
+	     (terpri file-object)
+	     (fancy-print-variables file-object)
+	     (fancy-print-memory file-object))
+	    ((eq (first option) 'database) (fancy-print-memory file-object))
+	    ((eq (first option) 'variables)
+	     (fancy-print-variables file-object))
+	    (t (shouldnt-happen 'fancy-print '(invalid print option ,option))))
+      (or :default-file-object (and file-object (close file-object)))
+      no-value))
+
+
+(define-function fancy-print-script (file-object)
+ ;;returns what the methods look like
+  (terpri file-object)
+  (princ '|My methods are | file-object)		 
+  (do ((i (methods-of :self) (rest i))
+       (no-methods t))
+      ((null i) (cond (no-methods (princ '|none.| file-object)))
+		no-value)
+      (let ((method-name (first i)))
+	   (cond ((or (not (atom method-name)) ;;either compiled cases or
+		      (and (atom (symeval method-name)) ;;a non recall variable clause
+			   (not (eq (first (method-pattern method-name))
+				    'internal-set-your-variable-to))))
+		  (setq no-methods nil)
+		  (terpri file-object)
+		  (let ((humanified-method (humanify-method method-name)))
+		       (dicks-print (first humanified-method) file-object 'grind)
+		       (mapc 
+			(function (lambda (code-line)
+					  (dicks-print code-line file-object 'grind)))
+			(rest humanified-method))))))))
+      
+(define-form (fancy-print-memory file-object)
+ (let ((items (ask :self collect items)))
+      (cond (items
+	     (terpri file-object)
+	     (princ '|And I was told that | file-object)
+	     (mapc
+	      (function (lambda (item)
+				(terpri file-object) ;;since they are seperate items
+				(princ-or-print item file-object 'block)))
+	      items)))))
+
+
+(define-form (collect-all-variable-names actor (methods nil) (answer nil))
+ (do ((i (or methods (methods-of actor)) (rest i)))
+     ((null i)
+      (append (nreverse answer)
+	      (nreverse (mapcar 'car (ask :self internal-recall-your-normal-variable)))))
+     (let ((method-name (first i)))
+	  (cond ((atom method-name)
+		 (let (((first second variable-name . rest)
+			(method-pattern method-name)))
+		      (cond ((and (eq first 'recall) (eq second 'your) (null rest))
+			     (push variable-name answer)))))
+		(t (return (collect-all-variable-names actor (rest method-name) answer)))))))
+	  
+(define-function fancy-print-variables (file-object)
+ (terpri file-object)
+ (mapc
+  (function
+   (lambda (variable-name)
+	   (print-name-value variable-name
+			     (ask :self recall your ,variable-name)
+			     file-object)))
+ (collect-all-variable-names :self)))
+
+
+(define-function print-name-value (name value file-object)
+ (cond (name
+	(terpri file-object)
+	(princ '|My | file-object)
+	(princ name file-object)
+	(princ '| is | file-object)
+	(cond ((actorp value) (princ-actor value file-object))
+	      ((actorp (first value)) (princ-actors value file-object))
+	      (t (princ-or-print value file-object (cond ((eq name 'things-to-do-next) 'grind)
+							 (t 'block))))))))
+
+(define-form (princ-actor actor file)
+ (/#princ (humanify-actor actor) file))
+
+(define-form (princ-actors actors file)
+ (mapc (function (lambda (actor) (terpri file) (princ '|  | file) (princ-actor actor file)))
+       actors))
+
+(define-form (humanify-actor actor)
+ (cond ((name-of actor))
+       (t '(|an unnamed actor| (|id=| ,(sxhash actor)) |whose parent is|
+			       ,(humanify-actor (parent-of actor))))))
+
+(setq-if-unbound :line-length 94) ;;reasonable for tvs
+
+(declare (special prinmode)) ;;this is for Dick's printer
+
+(define-function princ-or-print (thing file prinmode)
+ (cond ((> (+ (cond (file 0)
+		    (t (rest (cursorpos)))) ;;where its now at
+	      (flatsize thing)) ;;how much is needed
+	   :line-length)
+	(terpri file)))
+ (dicks-prin1 thing file))
+
+(define-function save-actor-on-file (actor file-name)
+ (compile-and-print-actor actor file-name))
+
+(define-function definize-actor (actor)
+ '(define ,(name-of actor) ,(ask ,actor recall your parent)
+	  !,(do ((i (collect-all-variable-names actor) (rest i))
+		 (variable-settings nil))
+		((null i) (nreverse variable-settings))
+		(let ((name (first i)))
+		     (cond ((memq name '(name parent))) ;;do nothing
+			   (t (push '(set your ,name to ,(ask :self recall your ,name))
+				    variable-settings)))))))
+ 
+(define-function save-by-printing (thing file-name)
+ (cond (:default-file-object (print thing :default-file-object)) ;;efficiency hack
+       (file-name
+	(let ((append-to-file? (and (probef file-name)
+				    (not (eq (first (last (namelist file-name))) '>)))))
+	     (let ((file-object (cond (append-to-file? (open file-name 'append))
+				      (t (open file-name 'out)))))
+		  (or append-to-file? (print '(include |ai:ken;declare >|) file-object))
+		  (print thing file-object)
+		  (close file-object))))
+	(t thing)))
+
+;;i catch undefined function errors and if it is a function that is the action
+;;part of a cases method 
+
+(declare (special system-undf-fnctn))
+(or (boundp 'system-undf-fnctn)
+    (setq system-undf-fnctn undf-fnctn))
+
+(setq undf-fnctn 'undf-fnctn-so-try-to-load)
+
+(defun undf-fnctn-so-try-to-load (arg)
+  (let ((unknown-function (first arg)))
+       (or (let ((actor-of-compiled-transmission
+		  (compiled-transmission-actor unknown-function)))
+		(and actor-of-compiled-transmission
+		     (exists? actor-of-compiled-transmission)
+		     (progn (warning actor-of-compiled-transmission
+				     '(|the definition of| ,unknown-function |not known yet|))
+			    ;;dummy function is put there for now
+			    (putprop unknown-function '(lambda (nil nil) nil) 'expr))))
+	   (let ((actor-of-action-part (actor-of-action-part unknown-function)))
+		(and actor-of-action-part
+		     (get actor-of-action-part 'actor-load)
+		     (actor-autoload actor-of-action-part t))))
+       (cond ((getl unknown-function '(expr subr lsubr lexpr macro))
+	      ;;if the above has suceeded
+	      arg)
+	     (t (funcall system-undf-fnctn arg)))))
+
+(defun actor-of-action-part (name)
+;;this returns the actor name in (recall your ?bar)foo
+ (let ((name-list (exploden name)))
+      (let ((last-part (up-til #(getcharn '|)| 1) (nreverse name-list))))
+	   (cond (last-part (implode (nreverse last-part)))))))
+
+(define-form (compiled-transmission-actor name)
+;;this returns the actor name in foo(recall your ?)
+ (let ((name-list (exploden name)))
+      (let ((first-part (up-til #(getcharn '|(| 1) name-list)))
+	   (cond (first-part (implode first-part))))))
+
+
+
+(defun actor-autoload (actors-name dont-complain)
+ (let ((file (cond ((atom actors-name) (get actors-name 'actor-load))
+		   ((get (first actors-name) 'actor-load)))))
+      (cond (file (director-load file '(to get ,actors-name))
+		  (cond ((inside-the-compiler)
+			 (let ((macro-file (get actors-name 'macro-file-name)))
+			      (and macro-file
+				   (director-load macro-file
+						  '(to get macros of ,actors-name))))))
+		  (cond ((atom actors-name) (remprop actors-name 'actor-load)
+					    (remprop actors-name 'macro-file-name))
+			(t (remprop (first actors-name) 'actor-load)
+			   (remprop (first actors-name) 'macro-file-name)))
+		  (actor-of actors-name)) ;;since actor-of calls on this to autoload
+	    ((not dont-complain) (undefined-actor actors-name)))))
+
+(declare (special :files-being-read))
+
+(setq-if-unbound :files-being-read nil)
+(setq-if-unbound :files-already-read nil)
+
+(define-form (director-load-and-return-actors file (comment))
+ (director-load file comment t))
+
+(define-synonym dload director-load)
+
+(define-form (director-load file (comment) (:collecting-actors nil))
+ (cond ((memq file :files-being-read)
+	(shouldnt-happen 'director-load
+			 '(trying to load ,file within itself while trying ,comment)))
+       (t (let ((:compiler-on nil) ;;compiler should be off while loading
+		(:actors-collected nil) ;;for compile-actors to work
+		(full-file-name (full-file-name file))
+		(:insert-methods-at-end t)) ;;so the order is the same as in the file
+	       (setq :files-already-read (cons full-file-name :files-already-read))
+	       (cond (:print-load-messages
+		      (cond ((inside-the-compiler)
+			     (coutput '(comment loading ,full-file-name ,comment)))
+			    (t (terpri)
+			       (princ '|;loading |)
+			       (princ full-file-name)
+			       (and comment (princ '|  |) (princ comment))))))
+	       (load full-file-name)
+	       (cond (:print-load-messages
+		      (cond ((inside-the-compiler)
+			     (coutput '(comment finished loading ,full-file-name)))
+			    (t (terpri)
+			       (princ '|;finished loading |)
+			       (princ full-file-name)))))
+	       (let ((second-file-name (first (last (namelist full-file-name)))))
+		    (cond ((eq second-file-name 'fasl)
+			   (let ((patch-file (mergef '((* *) * patch) full-file-name)))
+				(and (probef patch-file)
+				     (director-load patch-file))))))
+	       (cond (:collecting-actors :actors-collected)
+		     (t no-value))))))
+
+(declare (special :load-priorities))
+
+(or (boundp ':load-priorities) (setq :load-priorities '(nfasl))) ;;load nfasl before any others
+
+(defun full-file-name (file)
+;;usually a file to be autoloaded
+ (namestring (full-file-name-1 file (append :load-priorities '(fasl >)))))
+
+(defun full-file-name-1 (file last-names)
+ (cond (last-names
+	(let ((full-name (mergef file '((dsk *) * ,(first last-names)))))
+	     (cond ((probef full-name))
+		   (t (full-file-name-1 file (rest last-names))))))
+       (t (shouldnt-happen 'full-file-name
+			   '(|file| ,file |does not exist|)))))
+
+(setq autoload 'my-autoload-handler)
+(declare (special :tvrtle-functions))
+
+(defun my-autoload-handler (function+file)
+ (let ((function (first function+file))
+       (file (rest function+file)))
+      (cond ((memq function :tvrtle-functions)
+	     ;;this is because I want to call fancify after this is loaded
+	     (cond ((or (= (status ttytype tyo) 5.) ;;on a tv
+			(eq :tvrtle-file-name :color-tvrtle-file-name)) ;;running color
+		    (let ((no-value nil)) ;;so Henry doesn't change it on me
+			 (director-load :tvrtle-file-name '(to get ,function))))
+		   (t (shouldnt-happen 'my-autoload-handler
+				       '(you are neither on a tv nor running color so
+					     either stop it or else load in the turtle stuff
+					     yourself))))
+	     (remprop 'type 'expr) ;;the turtle has a different type than I do
+	     (director-startdisplay)
+	     (fancify))
+	    (t (director-load file '(to get ,function))))))
+
+(setq :tvrtle-functions
+      '(cs tvsize clearscreen sd startdisplay turtlesize penup pu pendown pd setturtle wipe))
+
+(mapc
+ (function
+  (lambda (tvrtle-function)
+	  (putprop tvrtle-function 'dummy-tvrtle-file-name 'autoload)))
+ :tvrtle-functions)
+
+
+(define-synonym nothing-more-to-do null) ;;sugar for saying
+;;(ask sue keep doing until nothing-more-to-do (tick)) rather than null in there
+
+;;turning the compiler on sets these switches so that fancy macros take over and use
+;;expansions
+
+(defun reset-compiler nil
+ (compiler-switch nil) ;;remove expansions etc
+ (compiler-switch t)) ;;turn it back on
+
+
+(defun compiler-switch (switch)
+ (cond ((null switch)
+	(mapc 'remove-expansions :ask-type-macros)))
+ (setq :use-expansions switch
+       :compiler-on switch
+       :update-all-dependent-selectors switch))
+
+(compiler-switch nil)
+
+

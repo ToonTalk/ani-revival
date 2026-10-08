@@ -1,0 +1,960 @@
+;;; -*-lisp-*-
+
+;;this part of dani collects suggestions from the descriptors of a character
+;;and combines them noting any conflicts
+
+(include |ai:ken;declar >|)
+
+(defcomment cosug) ;for tags
+
+(declare (*lexpr merge-suggestions))
+
+;;the descriptions are plists eg 
+;;   (description: type personality
+;;		  descriptor shy
+;;		  source initial-description)
+
+(declare (setq :reset-default-compilation-target? nil)) 
+;;this is because too many actors ask :self questions that they can handle but expect
+;;some relative to answer typically
+
+
+(define-function collect-suggestions (descriptions element relation-to-descriptors)
+ (do ((d (descriptor-sources descriptions relation-to-descriptors) (rest d))
+      (suggestions nil))
+     ((null d) suggestions)
+     (let ((atomic-descriptor (cond ((atom (first d)) (first d))
+				    (t (third (first d))))))
+	  (ask character-descriptor if new make ,atomic-descriptor)
+	  ;;this should be the right type of descriptor
+	  (setq suggestions
+		(append suggestions
+			(fix-suggestions-source-etc
+			 (ask ,atomic-descriptor collect items memorized matching
+			      (suggestion: element ,element
+					   value ?
+					   strength ?
+					   source ?))
+			 (first d) ;;this is the new source description
+			 relation-to-descriptors))))))
+
+(define-function descriptor-sources (descriptions relation-to-descriptors)
+ (cond ((eq relation-to-descriptors 'identical)	  
+	(mapcar (function (lambda (description) (get description 'descriptor)))
+		descriptions))
+       ((eq relation-to-descriptors 'neighbors)
+	(mapcan
+	 (function
+	  (lambda (description)
+		  (mapcar
+		   (function
+		    (lambda (descriptor)
+			    '(neighbor-of ,(get description 'descriptor) ,descriptor)))
+		   (ask ,(get description 'descriptor) recall your neighbors))))
+	 descriptions))
+      ((eq relation-to-descriptors 'opposites)
+       (mapcan
+	(function
+	 (lambda (description)
+		 (mapcar
+		  (function
+		   (lambda (descriptor)
+			   '(opposite-of ,(get description 'descriptor) ,descriptor))) 
+		  (ask ,(get description 'descriptor) recall your opposites))))
+	descriptions))
+      (t (shouldnt-happen 'descriptor-sources '(,relation-to-descriptors not any good)))))
+
+
+(define-function fix-suggestions-source-etc (suggestions new-source relation-to-descriptors)
+ (cond ((eq relation-to-descriptors 'opposites)
+	(mapcar
+	 (function
+	  (lambda (suggestion)
+	   (let ((new-value-suggestion
+		  (replaceprop
+		   suggestion
+		   (example-of
+		    (ask ,(get suggestion 'element) ask your value-description to
+			 yield opposite of ,(get suggestion 'value))
+		    something)  ;;since there are many value-descriptions
+		   'value)))
+		(putprop new-value-suggestion new-source 'source)
+		new-value-suggestion)))
+	 suggestions))
+       ((eq relation-to-descriptors 'neighbors)
+	(mapcar
+	 (function
+	  (lambda (suggestion)
+		  (replaceprop suggestion new-source 'source)))
+	 suggestions))
+       (t suggestions)))
+
+
+(define-function record+combine-suggestions (suggestions element choice-point)
+ (record-combined-suggestion
+  (example-of (ask ,element ask your value-description to combine suggestions !,suggestions)
+	      something)  ;;could be any value-description so...
+  choice-point))
+
+
+;;dont think is used too much anymore, maybe only by relative-choice-point if at all
+(define-function combine-and-collect-suggestions (descriptions element choice-point)
+ (record+combine-suggestions (collect-suggestions descriptions element 'identical)
+			     element
+			     choice-point))
+
+(define value-description something
+ (set your relative-value-description to value-description) ;;in case there arent any
+ (do when receiving (combine suggestions)
+     nil) ;;no suggestions
+ (do when receiving (combine suggestions ?suggestion)
+     suggestion)
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (cond ((equal value1 value2) 'identical)
+	   (t 'not-identical)))
+ (do when receiving (yield opposite of {atom ?value})
+     (ask ,value recall your opposite))) ;;atomic-values know there own opposites
+
+(define normal-value-description value-description ;this includes all kinds of numbers
+ (do when receiving  (first combine ?suggestion1 and ?suggestion2 then ?other-suggestions)
+     (let ((first-two
+	    (cond ((and suggestion1 suggestion2)
+		   (uncompiled-ask :self combine suggestions ,suggestion1 ,suggestion2))
+		  (suggestion1 suggestion2)
+		  (suggestion2 suggestion1))))
+	  (cond ((eq (first first-two) 'suggestion:)
+		 (uncompiled-ask :self combine suggestions ,first-two !,other-suggestions))
+		((eq (first first-two) 'conflict:)
+		 '(and ,first-two
+		       ,(uncompiled-ask :self combine suggestions !,other-suggestions)))
+		(t (shouldnt-happen 'normal-value-description
+				    '(,suggestion1 and ,suggestion2 combined to form
+						   ,first-two which is not recognized))))))
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2 %others)
+     (combine-any-two-suggestions '(,suggestion1 ,suggestion2 !,others) :self)))
+
+
+(define three-values normal-value-description ; as in high, medium and low
+ (set your relative-value-description to relative-three-values)
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (combine-three-value-suggestions (get suggestion1 'element)
+				      (get suggestion1 'value)
+				      (get suggestion2 'value)
+				      suggestion1
+				      suggestion2))
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (three-value-relationship value1 value2))
+ (do when receiving (compromise ?value1 in ?suggestion1 and ?value2 in ?suggestion2)
+     (compromise-three-values value1 value2
+			      (get suggestion1 'strength) (get suggestion2 'strength)
+			      (get suggestion1 'source) (get suggestion2 'source))))
+
+
+(declare
+ (coutput '(comment combine-three-value-suggestions causes compiler bug so not compiled)))
+
+(declare (coutput (read))) ;compiler barfed on this, why???
+
+
+(define-function combine-three-value-suggestions
+		 (element-name value1 value2 suggestion1 suggestion2)
+ (combine-two-suggestions (three-value-relationship value1 value2)
+			  element-name
+			  value1
+			  value2
+			  suggestion1
+			  suggestion2))
+
+
+(define-function combine-two-suggestions
+		 (value-relationship element-name value1 value2 suggestion1 suggestion2)
+ (cond ((eq value-relationship 'identical)
+	(merge-suggestions value1 suggestion1 suggestion2))
+       ((eq value-relationship 'near-enough)
+	(merge-suggestions
+	 (compromise-three-values value1 value2
+				  (get suggestion1 'strength) (get suggestion2 'strength)
+				  (get suggestion1 'source) (get suggestion2 'source))
+	 suggestion1 suggestion2))
+       (t '(conflict: type ,value-relationship
+		      elements-involved ,element-name
+		      offenders (,suggestion1 ,suggestion2)))))
+
+(define-function three-value-relationship (value1 value2)
+ (cond ((eq value1 value2) 'identical)
+       ((or (eq (ask ,value1 recall your three-value-rank) 'middle)
+	    (eq (ask ,value2 recall your three-value-rank) 'middle))
+	'near-enough)
+       (t 'top-bottom)))
+
+
+(define three-values-and-not normal-value-description
+ (set your relative-value-description to relative-three-values-and-not)
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (cond ((and (atom (get suggestion1 'value)) (atom (get suggestion2 'value)))
+	    (ask three-values !,:message))		;no nots used so...
+	   (t (combine-two-suggestions-three-values-and-not suggestion1 suggestion2))))
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (cond ((equal value1 value2) 'identical)
+	   ((and (atom value1) (atom value2) (three-value-relationship value1 value2)))
+	   ((and (not (atom value1)) (eq (first value1) 'not))
+	    (cond ((eq (second value1) value2) 'thing-and-not-thing)
+		  (t 'near-enough)))
+	   ((and (not (atom value2)) (eq (first value2) 'not))
+	    (cond ((eq (second value2) value1) 'thing-and-not-thing)
+		  (t 'near-enough)))
+	   ((eq-many (first value1) (first value2) 'not)
+	    (example-of (ask :self yield relationship ,(second value1) ,(second value2))
+			three-values-and-not)) ;;normally default but not for this file
+	   (t (shouldnt-happen 'three-values-and-not
+			       '(either ,value1 or ,value2 are not good values)))))
+ (do when receiving (yield opposite of (not ?value)) ;;the atomic ones will be caught
+     value))
+
+;;this combines two suggestions where at least one has a value that is in the form (not ...)
+
+(define-function combine-two-suggestions-three-values-and-not (suggestion1 suggestion2)
+ (let ((value-relationship
+	(ask three-values-and-not yield relationship
+			      ,(get suggestion1 'value) ,(get suggestion2 'value))))
+      (cond ((memq value-relationship '(identical near-enough))
+	     (merge-suggestions
+	      (compromise-three-values-and-not (get suggestion1 'value)
+					       (get suggestion2 'value))
+	      suggestion1
+	      suggestion2))
+	    (t '(conflict: type ,value-relationship
+			   elements-involved ,(get suggestion1 'element)
+			   offenders (,suggestion1 ,suggestion2))))))
+
+(define three-values-with-sign normal-value-description
+ (set your relative-value-description to three-values-with-sign)
+ ;;should not be used relatively yet so is its own now
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (combine-three-values-with-sign-suggestions (get suggestion1 'element)
+						 (get suggestion1 'value)
+						 (get suggestion2 'value)
+						 suggestion1
+						 suggestion2))
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (three-values-with-sign-relationship value1 value2))
+ (do when receiving (compromise ?value1 in ?suggestion1 and ?value2 in ?suggestion2)
+     (compromise-three-values value1 value2
+			      (get suggestion1 'strength) (get suggestion2 'strength)
+			      (get suggestion1 'source) (get suggestion1 'source)))
+ (do when receiving (yield opposite of ({memq ?sign '(negative positive)} ?value))
+     (cond ((eq sign 'positive) '(negative ,value))
+	   ((eq sign 'negative) '(positive ,value)))))
+
+(declare
+ (coutput
+  '(comment combine-three-values-with-sign-suggestions causes compiler bug so not compiled)))
+
+(declare (coutput (read))) ;;compiler barfed on this, why???
+
+(define-function combine-three-values-with-sign-suggestions 
+		 (element-name value1 value2 suggestion1 suggestion2)
+ (combine-two-suggestions (three-values-with-sign-relationship value1 value2)
+			  element-name
+			  value1
+			  value2
+			  suggestion1
+			  suggestion2))
+
+(define-function three-values-with-sign-relationship (value1 value2)
+ (cond ((eq (first value1) (first value2)) ;;same sign
+	(three-value-relationship (second value1) (second value2)))
+       ((and (atom value1) (atom value2)) ;;no sign at all
+	(three-value-relationship value1 value2))
+       (t 'different-signs)))
+
+(define relative-value normal-value-description
+ (set your relative-value-description to relative-value) ;;is its own relative version
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (let ((value-relationship
+	    (uncompiled-ask :self
+			    yield relationship ,(get suggestion1 'value)
+			    ,(get suggestion2 'value)
+			    in ,suggestion1 ,suggestion2)))
+	  (cond ((eq value-relationship 'identical)
+		 (merge-suggestions (get suggestion1 'value) suggestion1 suggestion2))
+		((eq value-relationship 'near-enough)
+		 (merge-suggestions
+		  (uncompiled-ask :self
+				  compromise ,(get suggestion1 'value) in ,suggestion1
+				  and ,(get suggestion2 'value) in ,suggestion2)
+		  suggestion1
+		  suggestion2))
+		(t '(conflict: type incompatible-relation
+			       elements-involved ,(get suggestion1 'element)
+			       offenders (,suggestion1 ,suggestion2))))))
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (cond ((eq value1 value2) 'identical)
+	   ((and (eq value1 'different-from) (not (eq value2 'same-as))) 'near-enough)
+	   ((and (eq value2 'different-from) (not (eq value1 'same-as))) 'near-enough)
+	   (t 'incompatible-relation)))
+ (do when receiving (compromise ?value1 in ?suggestion1 and ?value2 in ?suggestion2)
+     (cond ((eq value1 'different-from) value2)
+	   ((eq value2 'different-from) value1)
+	   (t (shouldnt-happen 'relative-value
+			       '(cant compromise values in ,suggestion1 and ,suggestion2))))))
+
+(define greater-than relative-value
+	(set your negative to less-than))
+
+(define less-than relative-value
+	(set your negative to greater-than))
+
+(define same-as relative-value
+	(set your negative to same-as)) ;;negative is not opposite
+
+(define different-from relative-value
+	(set your negative to different-from))
+
+(define relative-three-values-and-not normal-value-description)
+
+(define-receive (combine suggestions ?suggestion)
+ ((let ((value (get suggestion 'value)))
+       (let ((relation (first value)))
+	    (cond ((memq relation '(same-as different-from greater-than less-than))
+		   (let ((three-value (absolute-three-value-of relation
+							       (second value)
+							       suggestion)))
+			(cond (three-value
+			       (putprop suggestion three-value 'value)
+			       suggestion)
+			      (t '(conflict: type impossible-relative-value
+					     elements-involved ,(get suggestion 'element)
+					     offenders (,suggestion))))))
+		  (t suggestion)))))
+  relative-three-values-and-not)
+
+(define-receive (combine suggestions ?suggestion1 ?suggestion2)
+ ((let ((value1 (get suggestion1 'value))
+	(value2 (get suggestion2 'value)))
+       (cond ((and (or (atom value1) (eq (first value1) 'not))
+		   (or (atom value2) (eq (first value2) 'not)))
+	      (ask three-values-and-not combine suggestions ,suggestion1 ,suggestion2))
+	     (t (let ((value-relationship
+		       (example-of
+			(ask :self yield relationship ,value1 ,value2
+			     in ,suggestion1 ,suggestion2)
+			relative-three-values-and-not)))
+		     (cond ((memq value-relationship '(identical near-enough))
+			    (merge-suggestions
+			     (example-of (ask :self compromise ,value1 in ,suggestion1
+					      and ,value2 in ,suggestion2)
+					 relative-three-values-and-not)
+			     suggestion1
+			     suggestion2))
+			   ((eq (first value-relationship) 'compatible)
+			    (merge-suggestions (second value-relationship)
+					       ;;since it has to fiquire it out anyway
+					       suggestion1
+					       suggestion2))
+			   (t '(conflict: type ,value-relationship
+					  element ,(get suggestion1 'element)
+					  offenders (,suggestion1 ,suggestion2)))))))))
+ relative-three-values-and-not)
+
+(define-receive (yield relationship ?value1 ?value2 in ?suggestion ?)
+ ((let ((relative?1 (not (or (atom value1) (eq (first value1) 'not))))
+	(relative?2 (not (or (atom value2) (eq (first value2) 'not))))
+	(element (get suggestion 'element)))
+       (cond ((and relative?1 relative?2)
+	      (two-relative-three-values-relationship value1 value2 element))
+	     (relative?1
+	      (three-values-and-relative-relationship value2 value1 element))
+	     (relative?2
+	      (three-values-and-relative-relationship value1 value2 element))
+	     (t (ask three-values-and-not !,:message)))))
+ relative-three-values-and-not)
+
+(define-receive (compromise ?value1 in ?suggestion1 and ?value2 in ?suggestion2)
+ ((let ((value-relationship
+	 (example-of
+	  (ask :self yield relationship ,value1 ,value2 in ,suggestion1 ,suggestion2)
+	  relative-three-values-and-not)))
+       (cond ((eq value-relationship 'identical) value1)
+	     ((eq value-relationship 'near-enough)
+	      (ask three-values-and-not !,:message))
+	     ((eq (first value-relationship) 'compatible)
+	      (second value-relationship))
+	     (t (shouldnt-happen 'relative-three-values-and-not
+				 '(cant compromise ,value1 and ,value2 since
+					their relationship is ,value-relationship))))))
+ relative-three-values-and-not)
+
+(define-function absolute-three-value-of (relation other-value suggestion)
+ (absolute-three-value (get suggestion 'element)
+		       (possible-values-of
+			(ask ,(get suggestion 'element) recall your possible-values)
+			relation
+			other-value)))
+
+(define-function absolute-three-value (element possible-values-left)
+ (let ((original-three-possible-values (ask ,element recall your possible-values)))
+      (cond ((null possible-values-left) nil) ;;no value
+	    ((one-long possible-values-left) (first possible-values-left))
+	    ((two-long possible-values-left)
+	     '(not ,(first (set-minus original-three-possible-values possible-values-left))))
+	    (t (shouldnt-happen 'absolute-three-value-of
+				'(too many values left in ,possible-values-left)))))) 
+
+(define-function possible-values-of (possible-values relation other-value)
+ (do ((p possible-values (rest p))
+      (values-left nil))
+     ((null p) values-left)
+     (cond ((uncompiled-ask ,(first p) are you ,relation ,other-value) ;;is ok
+	    (setq values-left (cons (first p) values-left))))))
+
+
+(define-function two-relative-three-values-relationship (value1 value2 element)
+ (let ((absolute-value
+	(absolute-three-value element
+			      (possible-values-of
+			       (possible-values-of (ask ,element recall your possible-values)
+						   (first value1)
+						   (second value1))
+			       (first value2)
+			       (second value2)))))
+      (cond ((null absolute-value) 'incompatible-relative-values)
+	    (t '(compatible ,absolute-value)))))
+
+
+(define-function three-values-and-relative-relationship (value1 value2 element)
+ (cond ((atom value1)
+	(cond ((uncompiled-ask ,value1 are you !,value2) '(compatible ,value1))
+	      (t 'incompatible)))
+       ((eq (first value1) 'not)
+	(let ((other-two
+	       (safe-delete (second value1) (ask ,element recall your possible-values))))
+	     (cond ((three-long other-two)
+		    (shouldnt-happen 'three-values-and-relative-relationship
+				     '(,other-two should only be two long))))
+	     (cond ((uncompiled-ask ,(second other-two) are you !,value2))
+		   (t (setq other-two (list (first other-two))))) ;;second one not possible
+	     (cond ((uncompiled-ask ,(first other-two) are you !,value2))
+		   (t (setq other-two (rest other-two)))) ;;first one not possible
+	     (cond ((two-long other-two) '(compatible ,value1)) ;;they are prefectly compatible
+		   ((one-long other-two) '(compatible ,(first other-two)))
+		   (t 'incompatible))))
+       (t (shouldnt-happen 'three-values-and-relative-relationship
+			   '(,value1 is not a three values with or without a not)))))
+
+
+(define relative-three-value relative-three-values-and-not)
+
+
+;;format is: e.g.
+;;(method: (display (change: element (cinderella speed)
+;;			    amount (positive high)
+;;			    speed high))
+;;	  (best-when ((current-value speed low))))
+
+(define change:-package normal-value-description
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (let ((change-package1 (get (get suggestion1 'value) 'display))
+	   (change-package2 (get (get suggestion2 'value) 'display)))
+	  (cond ((not (equal (get change-package1 'element)
+			     (get change-package2 'element)))
+		 (shouldnt-happen 'change:-package
+				  '(the elements should be the same in
+					,change-package1 and ,change-package2))))
+	  (cond ((or (null change-package1) (null change-package2))
+		 (shouldnt-happen
+		  'change:-package
+		  '(bad change: package in either ,suggestion1 or ,suggestion2)))
+		((equal change-package1 change-package2)
+		 (merge-suggestions (get suggestion1 'value) suggestion1 suggestion2))
+		(t (combine-change-package-suggestions 'speed
+						       (get change-package1 'speed)
+						       (get change-package2 'speed)
+						       'amount
+						       (get change-package1 'amount)
+						       (get change-package2 'amount)
+						       suggestion1
+						       suggestion2)))))
+ (do when receiving (yield relationship ?value1 ?value2 %)
+     (let ((speed-relationship 
+	    (three-value-relationship (get (get value1 'display) 'speed)
+				      (get (get value2 'display) 'speed)))
+	   (amount-relationship
+	    (three-values-with-sign-relationship (get (get value1 'display) 'amount)
+						 (get (get value2 'display) 'amount))))
+	  (cond ((eq speed-relationship 'identical) amount-relationship)
+		((eq amount-relationship 'identical) speed-relationship)
+		((eq-many amount-relationship speed-relationship 'near-enough)
+		 amount-relationship)
+		(t (list speed-relationship amount-relationship))))))
+
+;;format of change-to:-packages is
+;;(method: (display (change-to: element (cinderella path-length)
+;;                           new-value long
+;;			    speed high))
+;;		  (best-when ...))
+
+(declare (setq :director-warnings nil))
+
+(define change-to:-package normal-value-description
+ (do when receiving (combine suggestions ?suggestion1 ?suggestion2)
+     (let ((change-to-package1 (get (get suggestion1 'value) 'display))
+	   (change-to-package2 (get (get suggestion2 'value) 'display)))
+	  (cond ((not (equal (get change-to-package1 'element)
+			     (get change-to-package2 'element)))
+		 (shouldnt-happen 'change-to:-package
+				  '(the elements should be the same in
+					,change-to-package1 and ,change-to-package2))))
+	  (cond ((equal change-to-package1 change-to-package2)
+		 (merge-suggestions change-to-package1 suggestion1 suggestion2))
+		(t (combine-change-to-package-suggestions
+		    'speed
+		    (get change-to-package1 'speed)
+		    (get change-to-package2 'speed)
+		    'new-value
+		    (ask ,(second (get change-to-package1 'element)) ;;just the element
+			 recall your value-description)
+		    (get change-to-package1 'new-value)
+		    (get change-to-package2 'new-value)
+		    suggestion1
+		    suggestion2)))))
+  (do when receiving (yield relationship ?value1 ?value2 %)
+      (let ((speed-relationship
+	     (three-value-relationship (get (get value1 'display) 'speed)
+				       (get (get value2 'display) 'speed)))
+	    (new-value-relationship
+	     (example-of
+	      (ask ,(second (get (get value1 'display) 'element))
+		   ask your value-description to yield relationship
+		   ,(get (get value1 'display) 'new-value)
+		   ,(get (get value2 'display) 'new-value))
+	      something)))
+	   (cond ((eq speed-relationship 'identical)  new-value-relationship)
+		 ((eq new-value-relationship 'identical) speed-relationship)
+		 ((eq-many speed-relationship new-value-relationship 'near-enough)
+		  speed-relationship)
+		 (t (list speed-relationship new-value-relationship))))))
+
+(declare (setq :director-warnings t)) ;;restore
+
+(define-function display-relationship (method1 method2)
+ (let ((display1 (get method1 'display))
+       (display2 (get method2 'display)))
+      (cond ((eq-many (first display1) (first display2) 'change:)
+	     (cond ((eq (get display1 'element) (get display2 'element))
+		    (amount-relationship (get display1 'amount) (get display2 'amount)))
+		   (t 'different-elements))))))
+
+(define-function combine-change-package-suggestions 
+ (three-value-element-name three-value1 three-value2
+			   three-values-with-sign-element-name three-values-with-sign1
+			   three-values-with-sign2 suggestion1 suggestion2)
+ (let ((three-value-relationship (three-value-relationship three-value1 three-value2))
+       (three-values-with-sign-relationship	
+	(three-values-with-sign-relationship three-values-with-sign1 three-values-with-sign2)))
+      (cond ((and (memq three-value-relationship '(identical near-enough))
+		  (memq three-values-with-sign-relationship '(identical near-enough)))
+	     (merge-suggestions
+	      (let ((method-copy (copy (get suggestion1 'value)))
+		    (method2 (copy (get suggestion2 'value))))
+		   (putprop (get method-copy 'display)
+			    (ask three-values compromise ,three-value1 in ,suggestion1 and
+					  ,three-value2 in ,suggestion2)
+			    three-value-element-name)
+		   (putprop (get method-copy 'display)
+			    (compromise-three-values three-values-with-sign1
+						     three-values-with-sign2
+						     (get suggestion1 'strength)
+						     (get suggestion2 'strength)
+						     (get suggestion1 'source)
+						     (get suggestion2 'source))
+			    three-values-with-sign-element-name)
+		   (putprop method-copy
+			    (union (get method-copy 'best-when) (get method2 'best-when))
+			    'best-when)
+		   method-copy)
+	      suggestion1
+	      suggestion2))
+	    ((memq three-value-relationship '(near-enough identical))
+	     '(conflict: type ,three-values-with-sign-relationship
+			 element-involved (display ,three-values-with-sign-element-name)
+			 offenders (,suggestion1 ,suggestion2)))
+	    ((memq three-values-with-sign-relationship '(near-enough identical))
+	     '(conflict: type ,three-value-relationship
+			 element-involved (display ,three-value-element-name)
+			 offenders (,suggestion1 ,suggestion2)))
+	    (t '(conflict: type (and ,three-value-relationship
+				     ,three-values-with-sign-relationship)
+			   element-involved (change:
+					     (and ,three-value-element-name
+						  ,three-values-with-sign-element-name))
+			   offenders (,suggestion1 ,suggestion2))))))
+
+
+(define-function combine-change-to-package-suggestions 
+ (three-value-element-name three-value1 three-value2 new-value-element-name
+			   value-description new-value1 new-value2 suggestion1 suggestion2)
+ (cond ((or (null new-value1) (null new-value2))
+	(shouldnt-happen 'combine-change-to-package-suggestions
+			 '(new-value is nil in either ,suggestion1 or ,suggestion2))))
+ (let ((three-value-relationship (three-value-relationship three-value1 three-value2))
+       (new-value-relationship
+	(uncompiled-ask ,value-description yield relationship ,new-value1 ,new-value2)))
+      (cond ((and (memq three-value-relationship '(identical near-enough))
+		  (memq new-value-relationship '(identical near-enough)))
+	     (merge-suggestions
+	      (let ((method-copy (copy (get suggestion1 'value)))
+		    (method2 (get suggestion2 'value)))
+		   (putprop (get method-copy 'display)
+			    (ask three-values compromise ,three-value1 in ,suggestion1 and
+				 ,three-value2 in ,suggestion2)
+			    three-value-element-name)
+		   (putprop (get method-copy 'display)
+			    (uncompiled-ask ,value-description
+					    compromise ,new-value1 in ,suggestion1 and
+					    ,new-value2 in ,suggestion2)
+			    new-value-element-name)
+		   (putprop method-copy
+			    (union (get method-copy 'best-when) (get method2 'best-when))
+			    'best-when)
+		   method-copy)
+	      suggestion1
+	      suggestion2))
+	    ((memq three-value-relationship '(near-enough identical))
+	     '(conflict: type ,new-value-relationship
+			 element-involved (display ,new-value-element-name)
+			 offenders (,suggestion1 ,suggestion2)))
+	    ((memq new-value-relationship '(near-enough identical))
+	     '(conflict: type ,three-value-relationship
+			 element-involved (display ,three-value-element-name)
+			 offenders (,suggestion1 ,suggestion2)))
+	    (t '(conflict: type (and ,three-value-relationship ,new-value-relationship)
+			   elements-involved (display (and ,three-value-element-name
+							   ,new-value-element-name))
+			   offenders (,suggestion1 ,suggestion2))))))
+
+
+(define predicate-list value-description
+ (set your relative-value-description to predicate-list)
+ ;;since there are no relative suggestions of this sort, it is its own 
+ (do when receiving (combine suggestions %suggestions)
+     (combine-suggestions-predicate-list suggestions)))
+
+(define-function combine-suggestions-predicate-list (suggestions)
+ ;;this used to combined equal strength suggestions only but now is simplier
+ ;;since choose etc need only one suggestion for this sort
+ (merge-suggestions1 (repeatedly-apply-binary-function
+		      'union
+		      (mapcar
+		       (function (lambda (suggestion)
+					 (get suggestion 'value)))
+		       suggestions))
+		     suggestions))
+
+;;the only conflicts are between elements, eg
+;;for avoids strangers and for attracted-to strangers
+;;these are detected by demons on avoids and attracted-to
+
+
+(define-function find-two-equal-suggestions (suggestions property)
+ (do ((s suggestions (rest s))
+      (property-suggestion-alist nil))
+     ((null s) '(nil nil nil))
+     (let ((current-pair (cons (get (first s) property) (first s))))
+	  (let ((winning-pair (assq (first current-pair) property-suggestion-alist)))
+	   (cond (winning-pair
+		  (return (list (first s) (rest winning-pair)
+				(append
+				 (delq
+				  (rest (assq (first current-pair) property-suggestion-alist))
+				  (mapcar 'cdr property-suggestion-alist))
+				 (rest s)))))
+		 (t (setq property-suggestion-alist
+			  (cons current-pair property-suggestion-alist))))))))
+
+
+;;this combines two suggestions (conflicting ones first if any)
+
+(define-function combine-any-two-suggestions (suggestions value-description)
+ (apply
+  (function
+   (lambda (suggestion1 suggestion2 other-suggestions)
+	   (cond ((null suggestion1)
+		  (uncompiled-ask ,value-description
+				  first combine ,(first suggestions) and ,(second suggestions)
+				  then ,(rest (rest suggestions))))
+		 ((eq (first suggestion1) 'and)
+		  (note-all-the-conflicts (rest suggestion1)
+					  (rest suggestion2)
+					  other-suggestions
+					  value-description))
+		 (t (uncompiled-ask ,value-description
+				    first combine ,suggestion1 and ,suggestion2
+				    then ,other-suggestions)))))
+  (find-two-identical-or-conflicting-suggestions suggestions value-description)))
+
+(define-function note-all-the-conflicts
+		 (suggestions conflicting-suggestions other-suggestions value-description)
+ (do ((s suggestions (rest s))
+      (conflicting-s conflicting-suggestions (rest conflicting-s))
+      (answer nil))
+     ((null s) '(and ,answer
+		     ,(uncompiled-ask ,value-description
+				      combine suggestions !,other-suggestions)))
+     (let ((combo (uncompiled-ask ,value-description
+				  combine suggestions ,(first s) ,(first conflicting-s))))
+	  (cond ((eq (first combo) 'conflict:)
+		 (setq answer '(and ,combo ,answer)))
+		(t (shouldnt-happen 'note-all-conflicts
+				    '(expected a conflict between ,(first s) and
+					       ,(first conflicting-s) instead got ,combo)))))))
+
+
+
+;;this finds two suggestions that are identical or compatible (so that they can be combined)
+;;if none then those that probably will conflict are returned to get handled next
+;;otherwise they may combine with others and the conflict may wrongly dissappear
+;;eg (compromise 'low 'medium) --> 'medium compromised with 'high ---> 'high so...
+;;if there are several conflicts they are returned as lists whose car is and
+
+(define-function find-two-identical-or-conflicting-suggestions (suggestions value-description)
+ (do ((s suggestions (rest s))
+      (value-suggestion-alist nil)
+      (conflicting-pairs)
+      (identical-pair))
+     ((null s) (cond ((one-long conflicting-pairs)
+		      (list (first (first conflicting-pairs))
+			    (second (first conflicting-pairs))
+			    (delete (first (first conflicting-pairs))
+				    (safe-delete (second (first conflicting-pairs))
+						 suggestions))))
+		     (conflicting-pairs
+		      (list
+		       (cons 'and (mapcar 'car conflicting-pairs))
+		       (cons 'and (mapcar 'cadr conflicting-pairs))
+		       (set-minus suggestions (union (mapcar 'car conflicting-pairs)
+						     (mapcar 'cadr conflicting-pairs)))))
+		     (t (list nil nil nil))))
+     (let ((current-pair (cons (get (first s) 'value) (first s))))
+	  (setq identical-pair
+		(do ((alist value-suggestion-alist (rest alist))
+		     (value (first current-pair))
+		     (value-relationship))
+		    ((null alist) nil)
+		    (setq value-relationship 
+			  (uncompiled-ask ,value-description
+					  yield relationship ,value ,(first (first alist))
+					  in ,(rest current-pair) ,(rest (first alist))))
+		    (cond ((or (eq value-relationship 'identical)
+			       (eq (first value-relationship) 'compatible))
+			   (return (list (rest current-pair) (rest (first alist)))))
+			  ((eq value-relationship 'near-enough))
+			  (t (setq conflicting-pairs
+				   (cons (list (rest current-pair) (rest (first alist)))
+					 conflicting-pairs))))))
+	  (cond (identical-pair
+		 (return (list (first identical-pair) (second identical-pair)
+			       (append
+				(delq (second identical-pair)
+				      (mapcar 'cdr value-suggestion-alist))
+				(rest s)))))
+		(t (setq value-suggestion-alist
+			 (cons current-pair value-suggestion-alist)))))))
+
+
+(define-function three-value (number)
+ (cond ((= number 1) 'low)
+       ((= number 2) 'medium)
+       ((= number 3) 'high)
+       (t (shouldnt-happen 'three-value '(,number is not 1 2 or 3)))))
+
+(define-function numberify (value)
+ (cond ((or (eq value 'low) (eq value 'short)) 1)
+       ((eq value 'medium) 2)
+       ((or (eq value 'high) (eq value 'long)) 3)
+       (t (shouldnt-happen 'numberify
+			   '(,value is not low medium or high)))))
+
+(define-function merge-suggestions n
+		 (merge-suggestions1 (arg 1) (rest (listify n))))
+
+(define-function merge-suggestions1 (value suggestions)
+ '(suggestion: element ,(combine-and-lists
+			 (mapcar
+			  (function (lambda (suggestion)
+					    (get suggestion 'element)))
+			  suggestions))
+	       value ,value
+	       strength ,(average-strengths suggestions)
+	       source ,(combine-and-lists
+			(mapcar
+			 (function (lambda (suggestion)	
+					   (get suggestion 'source)))
+			 suggestions))))
+
+(define-function combine-and-lists (and-lists)
+ (do ((i and-lists (rest i))
+      (answer nil))
+     ((null i) (cond ((one-long answer) (first answer))
+		     (answer '(and !,answer))))
+     (let ((and-list (first i)))
+	  (cond ((eq (first and-list) 'and) (setq answer (union (rest and-list) answer)))
+		(and-list (setq answer (cons-if-not-member and-list answer)))))))
+
+;;average-strengths is given a list of suggestions because the source must be
+;;inspected to weigh those with more sources
+;;for now cheat and go to numbers and back
+
+(define-function average-strengths (the-suggestions)
+ (do ((suggestions the-suggestions (rest suggestions))
+      (strength-sum 0)
+      (source-count 0))
+     ((null suggestions)
+      (three-value (round (//$ (float strength-sum) (float source-count)))))
+     (let ((number-of-sources (number-of-sources (get (first suggestions) 'source)))
+	   (strength-number (numberify (get (first suggestions) 'strength))))
+	  (setq strength-sum (+ (* strength-number number-of-sources) strength-sum))
+	  (setq source-count (+ source-count number-of-sources)))))
+
+(define-function number-of-sources (source)
+ (cond ((atom source) 1)
+       ((eq (first source) 'and) (length (rest source)))
+       (t 1)))
+
+;;value has three possible states but may be a list as in (positive high) (positive medium)
+
+(define-function compromise-three-values (value1 value2 strength1 strength2 source1 source2)
+ (cond ((equal value1 value2) value1)
+       (t (compromise-three-values-different
+	   value1 value2 strength1 strength2 source1 source2))))
+
+
+(define-function compromise-three-values-different
+		 (value1 value2 strength1 strength2 source1 source2)
+ (let ((source-count1 (number-of-sources source1))
+       (source-count2 (number-of-sources source2)))
+      (cond ((total-strength-equalp strength1 strength2 source-count1 source-count2)
+	     (let ((obviousness (film-level-of 'obviousness)))
+		  (cond ((eq obviousness 'high)
+			 (pick-non-medium value1 value2))
+			((or (eq value1 'medium) (eq value2 'medium))
+			 'medium)
+			((or (eq (second value1) 'medium)
+			     (eq (second value2) 'medium))
+			 (cond ((eq (first value1) (first value2))
+				'(,(first value1) medium))
+			       (t (shouldnt-happen 'compromise-three-values
+						   '(,value1 and ,value2 should have the
+							     same sign)))))
+			(t (shouldnt-happen 'compromise-three-values
+					    '(either ,value1 or ,value2 should be medium))))))
+	    (t (let ((originality (film-level-of 'originality)))
+		    (cond ((eq originality 'high)
+			   (pick-lowest-strength value1 value2 strength1 strength2
+						 source-count1 source-count2))
+			  ((eq originality 'medium)
+			   (average-by-strength-weights value1 value2 strength1 strength2
+							source-count1 source-count2))
+			  ((eq originality 'low)
+			   (pick-highest-strength value1 value2 strength1 strength2
+						  source-count1 source-count2))
+			  (t (shouldnt-happen
+			      'compromise-three-values
+			      '(originality level should not be ,originality)))))))))
+
+
+(define-function film-level-of (constraint-name)
+ (ask ,(or (example-of (ask film recall your current-film) something)
+       ;;so as not to load film while compiling
+       (shouldnt-happen 'film-level-of
+			'(|film has no offspring perhaps no film as been defined?|)))
+  recall your (,constraint-name level)))
+
+(define-function pick-highest-strength 
+		 (value1 value2 strength1 strength2 source-count1 source-count2)
+ (cond ((total-strength-greaterp strength1 strength2 source-count1 source-count2) value1)
+       ((total-strength-greaterp strength2 strength1 source-count2 source-count1) value2)
+       (t (shouldnt-happen 'pick-highest-strength
+			   '(strength ,strength1 with count ,source-count1
+				     should not equal ,strength2 with count ,source-count2)))))
+
+(define-function pick-lowest-strength 
+		 (value1 value2 strength1 strength2 source-count1 source-count2)
+ (pick-highest-strength value2 value1 strength1 strength2 source-count1 source-count2))
+
+(define-function average-by-strength-weights 
+		 (value1 value2 strength1 strength2 source-count1 source-count2)
+ (cond ((and (atom value1) (atom value2))
+	(three-value
+	 (round
+	  (//$ (+$ (*$ (float (numberify value1))
+		       (weightify strength1) (float source-count1))
+		   (*$ (float (numberify value2))
+		       (weightify strength2) (float source-count2)))
+	       (+$ (*$ (weightify strength1) (float source-count1))
+		   (*$ (weightify strength2) (float source-count2)))))))
+       (t (list (first value1)
+		(average-by-strength-weights (second value1) (second value2)
+					     strength1 strength2
+					     source-count1 source-count2)))))
+
+;;if value has a sign it is ignored here
+(define-function three-value-greaterp (value1 value2)
+ (cond ((and (atom value1) (atom value2))
+	(> (numberify value1) (numberify value2)))
+       (t (three-value-greaterp (second value1) (second value2)))))
+
+
+(define-function total-strength-greaterp (strength1 strength2 source-count1 source-count2)
+ (> (* (numberify strength1) source-count1)
+    (* (numberify strength2) source-count2)))
+
+(define-function total-strength-equalp (strength1 strength2 source-count1 source-count2)
+ (= (* (numberify strength1) source-count1)	
+    (* (numberify strength2) source-count2)))
+
+
+(define-function pick-non-medium (value1 value2)
+ (cond ((and (atom value1) (atom value2))
+	(cond ((eq value1 'medium) value2)
+	      ((eq value2 'medium) value1)
+	      (t (shouldnt-happen 'pick-non-medium
+				  '(neither ,value1 nor ,value2 are medium)))))
+       (t (list (first value1) (pick-non-medium (second value1) (second value2))))))
+
+;;since at least one of the values is a not which will be considered
+;;equivalent to OR of the other two
+
+(define-function compromise-three-values-and-not (value1 value2)
+ (cond ((and (atom value2) (eq (first value1) 'not))
+	value2)
+       ((and (atom value1) (eq (first value2) 'not))
+	value1)
+       ((and (eq (first value1) 'not) (eq (first value2) 'not))
+	(three-values-that-is-not (list (second value1) (second value2))))))
+
+;;what if values is right but not (high medium and low) ?
+
+(define-function three-values-that-is-not (values)
+ (cond ((not (memq 'high values)) 'high)
+       ((not (memq 'medium values)) 'medium)
+       ((not (memq 'low values)) 'low)))
+				 
+(define-function record-combined-suggestion (new-suggestion choice-point)
+ (cond ((null new-suggestion))
+       ((eq (first new-suggestion) 'and)
+	(mapc (function (lambda (suggestion)
+				(record-combined-suggestion suggestion choice-point)))
+	      (rest new-suggestion)))
+       ((eq (first new-suggestion) 'suggestion:)
+	(ask ,choice-point memorize ,new-suggestion))
+       ((eq (first new-suggestion) 'conflict:)
+	(ask ,choice-point memorize ,new-suggestion))
+       (t (shouldnt-happen 'record-combined-suggestion
+			   '(,new-suggestion is not a suggestion or conflict)))))
+
+(define-function destroy-character-suggestions nil
+ (ask choice-point ask each of your descendants to unmake)
+ (ask character ask each of your descendants to
+      forget items matching (suggestions collected for ?))
+ no-value)

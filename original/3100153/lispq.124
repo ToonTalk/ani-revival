@@ -1,0 +1,537 @@
+;stuff so that lisp ignores labels except for "remembering" them
+
+(setsyntax '/# 'macro 'label:)
+
+(defun label: nil
+       ((lambda (name+code)
+		(cond ((atom name+code) (setq *function-being-read* name+code))
+		      (t (store-label name+code)
+			 (cadr name+code))))
+	(read)))
+
+
+(cond ((not (boundp 'something))
+       (define.all)))
+(ask something (make qdb))   ;  this clobbers old one
+
+
+(defun store-label (name+code)
+       ((lambda (:message-form)
+       (ask qdb :message-form))
+	(list 'remember 'the-label (car name+code) 'in *function-being-read*
+	      'is-a-label-for (cadr name+code))))
+
+(defun store-in-qdb fexpr (form)
+       ((lambda (:message-form)
+		(ask qdb :message-form))
+	(cons 'remember form)))
+
+;the pure version where dq returns an un-interned atom whose element property
+;contains the element dq-ed and the rest property the remaining queue
+;the first  element is the oldest
+
+
+;this defines the type "pure-queue"
+(store-in-qdb
+	  REPRESENTATION-OF pure-queue (LIST
+					WHERE
+					(EQ (FIRST pure-queue) 'pure-queue:)
+					(EQ (BUTFIRST pure-queue)
+					    (QUEUEES pure-queue))
+					(PURITY-OF pure-queue PURE)))
+
+(store-in-qdb TYPE-OF queue pure-queue)
+
+	
+
+(defun #pure-nq (queuee queue)
+    #(BODY:	      (put-item-at-tail queuee queue)))
+
+'#pure-nq-specifications:                 ;this sets the *function-being-defined*
+
+(store-in-qdb
+ EXPECTED-INPUTS-OF pure-nq ARE
+ #(INPUT-SPECIFICATION:               ((AND queuee queue)
+				       WHERE
+;  queuee's type and purity are unknown and we dont care
+				       (TYPE-OF queue pure-queue))))
+
+(store-in-qdb
+ RETURNED-BY pure-nq is 
+ #(OUTPUT-SPECIFICATION:                (new-pure-queue
+					  WHERE
+					  (TYPE-OF new-pure-queue pure-queue)
+   #(QUEUEE-IS-LAST-IN-QUEUE:             (EQ (LAST-ITEM (QUEUEES new-pure-queue))
+					      queuee))
+   #(OLD-QUEUE-IS-BUTLAST-OF-NEW:         (EQUAL (BUTLAST (QUEUEES new-pure-queue))
+						 queue)))))
+
+(store-in-qdb CALLED-BY pure-nq IS put-item-at-tail)
+
+(store-in-qdb RESPONSIBLE-FOR (queuee-is-last-in-queue: IN pure-nq-specifications:)
+	      IS (body: IN pure-nq))
+
+(store-in-qdb RESPONSIBLE-FOR (old-queue-is-butlast-of-new: IN pure-nq-specifcations:)
+	      IS (body: IN pure-nq))
+
+(store-in-qdb DEPENDING-UPON
+	      (and (input-specification: IN put-item-at-tail-specifications:)
+		   (output-specification: IN put-item-at-tail-specifications:))
+	      IS (body: IN pure-nq))
+
+(defun put-item-at-tail (item list)
+       (append list (list item)))
+
+
+(store-in-qdb
+ EXPECTED-INPUTS #put-item-at-tail ARE
+ #(INPUT-SPECIFICATION:                ((AND item list)
+				       WHERE
+				        (TYPE-OF list list)
+				        (PURITY-OF list pure)))) ;the purity simply says
+;that put-item-at-tail has no side effects upon list
+
+(store-in-qdb
+ RETURNED-BY #put-item-at-tail IS
+ #(OUTPUT-SPECIFICATION:                 (new-list
+					  WHERE
+					  (TYPE-OF new-list list)
+					  (EQUAL (BUTLAST new-list) list)
+					  (EQ (LAST-ITEM new-list) item))))
+
+; I like to think of put-item-at-tail as part of "LISP"
+;  thats why its depends upon and is-responsible-for links are left out
+; however, it should not be forgoten that 
+; append does have to go down the entire list to work
+
+
+
+;;this returns a "Package" of the element being dq-ed and the rest of the queue
+;;the package is represented by an un-interned atom with property list indicators
+
+(defun #pure-dq (queue)
+       (cond #(EMPTY-QUEUE-CLAUSE:	   ((empty-queue? queue) 'exhausted:))
+	     #(NON-EMPTY-QUEUE-CLAUSE:     (t (package:
+			#(ELEMENT-ARM-OF-PACKAGE:
+						  (cons 'element
+							(first (queuees queue))))
+			#(REST-ARM-OF-PACKAGE:
+						  (cons 'rest
+							(set-queuees queue
+							       (butfirst
+								(queuees queue))))))))))
+
+
+(store-in-qdb EXPECTED-INPUTS-OF #pure-dq ARE #(INPUT-SPECIFICATION:
+					       (pure-queue
+						WHERE
+						(TYPE-OF pure-queue pure))))
+
+(store-in-qdb 
+ RETURNED-BY pure-dq IS
+ #(OUTPUT-SPECIFICATION:                  (EITHER
+  #(non-empty-queue-specification: 	    (IF (QUEUEES queue) ;ie not null
+						THEN:
+						(package
+						 WHERE
+   	   #(element-in-package:                   (EQ (PACKAGE-GET package 'ELEMENT)
+						       (FIRST (QUEUEES queue))))
+	   #(rest-in-package: 	                   (EQ (PACKAGE-GET package 'REST)
+						       (new-pure-queue
+							WHERE
+							(TYPE-OF new-pure-queue
+								 pure-queue)
+							(EQ (QUEUEES new-pure-queue)
+							    (BUTFIRST
+							     (QUEUEES queue)))))))))
+  #(empty-queue-specification:      	    (IF (NULL (QUEUEES queue))
+						THEN:
+						(complaint
+						 WHERE
+						 (EQ complaint 'exhausted:)))))))
+
+(store-in-qdb
+ RESPONSIBLE-FOR (empty-queue-secification: IN pure-dq-specifications:)
+ IS (empty-queue-clause: IN pure-dq))
+
+(store-in-qdb
+ RESPONSIBLE-FOR (non-empty-queue-secification: IN pure-dq-specifications:)
+ IS (non-empty-queue-clause: IN pure-dq))
+
+(store-in-qdb
+ RESPONSIBLE-FOR (element-in-package: IN pure-dq)
+ (element-arm-of-package: IN pure-dq-specifications:))
+
+(store-in-qdb
+ RESPONSIBLE-FOR (rest-in-package: IN pure-dq)
+ (rest-arm-of-package: IN pure-dq-specifications:))
+
+(store-in-qdb
+ CALLED-BY pure-dq (AND empty-queue? package: queue-type queuees))
+
+				 
+(defun package: n
+       (do ((i 1 (1+ i))
+	    (atom (gensym)))
+	   ((> i n) atom)
+	   (putprop atom (cdr (arg i)) (car (arg i)))))
+
+'#package:-specification:
+
+(store-in-qdb
+ EXPECTED-INPUTS-OF package:
+	    ARE
+ #(input-specification:                (arg WHERE
+					    (FOR-ALL arg
+						     (TYPE-OF (first arg) atom)))))
+	    
+(store-in-qdb
+ RETURNED-BY package: 
+ #(OUTPUT-SPECIFICATION:                   (package
+					     WHERE
+					     (TYPE-OF package atom)
+					     (FOR-ALL arg
+						      (EQ
+						       (PACKAGE-GET package (first arg))
+						       (cdr arg))))))
+		 
+;note that since there is are no links from specs to code the default here is that
+;the entire code is responsible for the entire specs which is ok in this case since
+;this should not be something that is plausible to change since presumably part of
+;language
+
+
+(defun empty-pure-queue nil '(pure-queue:))
+
+'#empty-pure-queue-specifications:
+
+(store-in-qdb EXPECTED-INPUTS empty-pure-queue ARE nil)
+
+(store-in-qdb RETURNED-BY empty-pure-queue ARE
+	      #(output-specification:	     (the-empty-pure-queue
+					      WHERE
+					      (TYPE-OF the-empty-pure-queue pure-queue)
+					      (EQ (QUEUEES the-empty-pure-queue) NIL))))
+
+
+;what to say about the following?
+
+(defprop pure-queue: pure-nq nq-function)
+
+(defprop pure-queue: pure-dq dq-function)
+
+(defprop pure-queue: butfirst queuees-function)
+
+(defprop pure-queue: cons-type+queuees set-queuees-function)
+
+(defun cons-type+queuees (queue queuees)
+       (cons (queue-type queue) queuees))
+
+
+
+;now comes the impure version
+;the queue is represented as a list with the atom impure-queue: as the car
+;when the queue is empty dq returns the atom exhausted:
+
+;this defines the type "impure-queue"
+; (REPRESENTATION-OF impure-queue (LIST
+;				   WHERE
+;				   (EQ (FIRST impure-queue) 'impure-queue:)
+;				   (EQ (BUTFIRST impure-queue)
+;				       (QUEUEES impure-queue))
+;				   (PURITY-OF impure-queue impure)))
+;	
+; (TYPE-OF impure-queue queue)
+
+
+
+(defun #impure-nq (queuee queue)
+	#(BODY:       (tack-on-end queuee queue)))
+
+
+
+; (impure-nq EXPECTS-INPUTS ((AND queuee queue)
+;					WHERE
+;  queuee's purity is unknown
+;				          (TYPE-OF queue impure-queue)
+;				          (PURITY-OF queue impure)))
+;				  
+; (impure-nq RETURNS (new-impure-queue
+;		            WHERE (TYPE-OF new-impure-queue impure-queue)
+;				   (EQ (LAST-ITEM
+;					     (QUEUEES new-impure-queue))
+;				       queuee)
+;				   (EQUAL
+;				    (BUTLAST (QUEUEES new-impure-queue))
+;				    (VALUE-OF (QUEUEES queue)
+;					      IN-SITUATION pre-side-effect))
+;				   (EQ new-impure-queue
+;				       (VALUE-OF queue IN-SITUATION post-side-effect))))
+;
+; (pre-side-effect IS-SITUATION (PRE (BODY: IN impure-nq)))
+; (post-side-effect IS-SITUATION (POST (BODY: IN impure-nq)))
+; where PRE and POST are interpreted to mean immediately before and after, respectively
+;
+; (impure-nq CALLS tack-on-end)
+
+
+(defun #tack-on-end (item list)
+	#(BODY:       (nconc list (list item))))
+
+; (tack-on-end EXPECTS-INPUTS ((AND item list)
+;				    WHERE
+;				    (TYPE-OF list list)
+;				    (PURITY-OF list impure)))
+; (tack-on-end RETURNS (new-list
+;			     WHERE
+;			     (TYPE-OF new-list list)
+;			     (EQUAL (BUTLAST new-list)
+;				    (VALUE-OF list IN-SITUATION pre-nconc))
+;			     (EQ new-list (list IN-SITUTATION post-nconc))
+;			     (EQ (LAST-ITEM new-list) item)))
+;
+; (pre-nconc IS-SITUATION (PRE (BODY: IN tack-on-end)))
+; (post-nconc IS-SITUATION (POST (BODY: IN tack-on-end)))
+
+
+; I like to think of tack-on-end as part of "LISP"
+; however, I should not forget that nconc does have to go down the entire list to work
+
+
+(defun #impure-dq (queue)
+  #(BODY:
+       (cond #(EMPTY-QUEUE-CLAUSE:		((empty-queue? queue) 'exhausted:))
+	     #(NON-EMPTY-QUEUE-CLAUSE:		(t (package:
+		    #(ELEMENT-ARM-OF-PACKAGE:
+						     (cons 'element
+							   (first (queuees queue))))
+		    #(REST-ARM-OF-PACKAGE:
+						     (cons 'rest
+							   (splice-out-first-in-queue
+							    queue)))))))))
+
+;(impure-dq EXPECTS-INPUTS impure-queue)
+;
+;(impure-dq RETURNS (EITHER
+;			   (IF (QUEUEES queue) ;ie not null
+;				THEN:
+;			        (NON-EMPTY-CLAUSE:
+;				 RETURNS
+;				 (atom
+;				WHERE
+;				(EQ (PACKAGE-GET atom 'ELEMENT)
+;				    (FIRST (QUEUEES
+;					  (VALUE-OF queue IN-SITUATION pre-splicing))))
+;                               (PACKAGE-GET atom 'REST) IS new-impure-queue)
+;                               (TYPE-OF new-impure-queue impure-queue)
+;				(EQ (QUEUEES new-impure-queue)
+;				    (BUTFIRST (QUEUEES
+;					  (VALUE-OF queue IN-SITUATION pre-splicing))))
+;                               (EQ new-impure-queue
+;				    (VALUE-OF queue IN-SITUATION post-splicing))))
+;			   (IF (NULL (QUEUEES queue))
+;			       THEN:
+;			       (EMPTY-CLAUSE:
+;				RETURNS
+;				 (complaint
+;				  WHERE
+;				  (EQ complaint 'exhausted:))))))
+;
+; (pre-splicing IS-SITUATION (PRE (impure-dq BODY:)))
+; (post-splicing IS-SITUATION (POST (impure-dq BODY:)))
+;
+;(impure-dq CALLS (AND empty-queue? package: splice-out-first-in-queue))
+;				 
+
+
+
+(defun splice-out-first-in-queue (queue)
+       (and (queuees queue)
+	    (displace queue
+		      (set-queuees queue
+			    (butfirst (queuees queue))))
+	    queue))
+
+
+
+(defun empty-impure-queue nil (list 'impure-queue:))
+
+;(empty-impure-queue EXPECTS-INPUTS nil)
+;
+;(empty-impure-queue RETURNS (impure-queue
+;			           WHERE (EQ (QUEUEES impure-queue) NIL)))
+;
+
+
+
+(defprop impure-queue: impure-nq nq-function)
+
+(defprop impure-queue: impure-dq dq-function)
+
+(defprop impure-queue: butfirst queuees-function)
+
+(defprop impure-queue: cons-type+queuees set-queuees-function)
+
+
+;now comes a faster impure version
+;the queue is represented as a list with FIRST being
+;the atom faster-impure-queue: and the second being a pointer to "end" of the list
+;when the queue is empty dq returns the atom exhausted:
+
+;this defines the type "impure-queue"
+; (TYPE-OF faster-impure-queue (LIST
+;			 WHERE
+;			  (EQ (FIRST faster-impure-queue) 'faster-impure-queue:)
+;			  (EQ (FIRST (BUTFIRST faster-impure-queue))
+;			      (LAST  (QUEUEES faster-impure-queue)))
+;                         (EQ (BUTFIRST (BUTFIRST faster-impure-queue))
+;			      (QUEUEES faster-impure-queue))
+;			  (PURITY-OF faster-impure-queue impure)))
+;	
+ 
+
+(defun #faster-impure-nq (queuee queue)
+	#(BODY:       ((lambda (new-end)
+			       (rplacd (end-of-queue queue) new-end)
+			       (set (pointer-to-end-of-queue queue) new-end)
+			       queue)
+		       (list queuee))))
+
+
+(defun end-of-queue (queue)
+       (symeval (pointer-to-end-of-queue queue)))
+
+(defun pointer-to-end-of-queue (queue)
+       (cadr queue))
+
+(defun #faster-impure-dq (queue)
+  #(BODY:
+    (cond #(EMPTY-QUEUE-CLAUSE:	                ((empty-queue? queue) 'exhausted:))
+	  #(NON-EMPTY-QUEUE-CLAUSE:		(t (package:
+		#(ELEMENT-ARM-OF-PACKAGE:
+						     (cons 'element
+							   (first (queuees queue)))
+		#(REST-ARM-OF-PACKAGE:
+						     (cons 'rest
+							   (reset-end-if-empty
+							     (splice-out-first-in-queue
+							      queue)))))))))))
+
+(defun reset-end-if-empty (queue)
+       (cond ((empty-queue? queue) (set (pointer-to-end-of-queue queue)
+					(last queue)))
+	     (t queue)))
+
+(defun empty-faster-impure-queue nil
+       ((lambda (pointer)
+		(set (car pointer) pointer)
+		(cons 'faster-impure-queue: pointer))
+	(list (gensym))))
+
+
+
+(defprop faster-impure-queue: faster-impure-nq nq-function)
+(defprop faster-impure-queue: faster-impure-dq dq-function)
+(defprop faster-impure-queue: cddr queuees-function) ;note the extra d in cddr
+(defprop faster-impure-queue: cons-type+pointer+queuees set-queuees-function)
+
+(defun cons-type+pointer+queuees (queue queuees)
+       (cons (queue-type queue)
+	     (cons (pointer-to-end-of-queue queue)
+		   queuees)))
+
+
+;now for the general dq and nq functions
+
+(defun dq (queue)
+       ((lambda (dq-function)
+		(cond (dq-function (funcall dq-function queue))
+		      (t (error '(dq expects a queue) queue))))
+	(get (queue-type queue) 'dq-function)))
+
+(store-in-qdb
+ EXPECTED-INPUTS #dq ARE
+ #(INPUT-SPECIFICATION:                (queue
+					 WHERE
+					 FOR-ANY queue-type
+						  WHERE (TYPE-OF queue-type queue))))))
+
+(store-in-qdb
+ RETURNED=BY dq IS
+ #(OUTPUT-SPECIFICATION:                (dq-package
+					 WHERE
+					 (AND (EQ (TYPE-OF (PACKAGE-GET dq-package 'Rest))
+						  (TYPE-OF queue))
+					      etc))))
+							 
+
+
+(defun nq (queuee queue)
+       ((lambda (nq-function)
+		(cond (nq-function (funcall nq-function queuee queue))
+		      (t (error '(nq expects a queue) queue))))
+	(get (queue-type queue) 'nq-function)))
+	   
+
+(defun queuees (queue)
+       ((lambda (queuees-function)
+		(cond (queuees-function (funcall queuees-function queue))
+		      (t (error '(queuees expects a queue) queue))))
+	(get (queue-type queue) 'queuees-function)))
+
+(defun set-queuees (queue queuees)
+       ((lambda (set-queuees-function)
+		(cond (set-queuees-function
+		       (funcall set-queuees-function queue queuees))
+		      (t (error '(set-queuees expects a queue) queue))))
+	(get (queue-type queue) 'set-queuees-function)))
+
+
+(defun empty-queue? (queue) (null (queuees queue)))
+
+(defprop queue-type car expr)
+(defprop butfirst cdr expr)
+(defprop first car expr)
+(defprop package-get get expr)
+
+(defun displace (old-list new-list)
+       (rplaca old-list (car new-list))
+       (rplacd old-list (cdr new-list)))
+
+
+
+
+
+
+;now for merge-queues which puts the second queue on the end of the first
+
+(defun #merge-queues (first-queue second-queue)
+      (#(FUNCTION-OF-DQ-PACKAGE:
+	 (lambda (dq-package)
+		 (cond #(EXHAUSTED-CLAUSE:    ((eq dq-package 'exhausted:) first-queue)
+		       #(RECURSIVE-CLAUSE:    (t (merge-queues
+			     #(NQING:	          (nq (package-get dq-package 'element)
+						      first-queue))
+			                          (package-get dq-package 'rest)))))))))
+	(dq second-queue))
+
+
+(store-in-qdb
+ EXPECTED-INPUTS #merge-queues ARE
+ #(INPUT-SPECIFICATION:                 ((AND first-queue second-queue)
+					  WHERE
+					  (FOR-ANY queue-type
+						    WHERE (TYPE-OF queue-type queue)
+							  (TYPE-OF first-queue
+									queue-type)
+						          (TYPE-OF second-queue
+								       queue-type)))))
+
+(store-in-qdb
+ RETURNED-BY #merge-queues IS
+ #(OUTPUT-SPECIFICATION:               (combined-queue
+					WHERE
+					(TYPE-OF combined-queue (TYPE-OF first-queue))
+					(EQUAL (QUEUEES combined-queue)
+					       (APPEND (QUEUEES first-queue)
+						       (QUEUEES second-queue))))))

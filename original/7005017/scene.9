@@ -1,0 +1,559 @@
+;;-*-lisp-*-
+;;this is the part of ani that defines scenes, subscenes, and their tasks
+
+(include |ai:ken;declare >|)
+
+(defcomment scene) ;;for tags
+
+(define scene something
+ (set your mood to normal) ;good default
+ (set your length to medium)
+ (add (append (ask :self recall your convey-tasks)
+	      (ask :self recall your establish-tasks))
+      to your list of (tasks actions-if-recalling))
+ (add (ask :self set your subscenes to ,(sort :old-value '<-of-third-element))
+      to your list of (subscenes actions-if-recalling)))
+
+(define-function <-of-third-element (list-1 list-2)
+ (< (third list-1) (third list-2)))
+
+(define-receiver (process initial description ?description) scene
+ (process-scene-description :self description))
+
+(define-receiver (collect subtasks suggestions) scene
+ (ask :self collect establish tasks suggestions)
+ (ask :self collect convey tasks suggestions)
+ (ask :self collect display tasks suggestions))
+
+(define-receiver (collect establish tasks suggestions) scene
+ (do-as-if-you-were
+  establish-task
+  :self ask each of your establish-tasks to collect task suggestions))
+
+(define-receiver (collect convey tasks suggestions) scene
+ (do-as-if-you-were
+  convey-task
+  :self ask each of your convey-tasks to collect task suggestions))
+
+(define-receiver (collect display tasks suggestions) scene
+ (do-as-if-you-were
+  display-task
+  :self ask each of your display-tasks to collect task suggestions))
+
+(define-receiver (choose values) scene
+  (do-as-if-you-were establish-task
+		     :self ask each of your establish-tasks to choose values)
+  (do-as-if-you-were convey-task
+		     :self ask each of your convey-tasks to choose values)
+   ;;otherwise it'll use itself
+   (approve-or-remake-tasks-choices :self))
+
+(define-receiver (choose subscenes) scene
+ ;;Within a subscene nothing is ordered and all actions occur in parallel
+ (create-subscenes :self
+		    (ask :self recall your task-ordering)
+		    (ask subscene make subscene of ,:self)))
+
+(define-receiver (make a place for tasks and current choices) scene
+ ;;this is used by from-scene to find out what was decided in earlier scenes
+ ;;all it needs it the task and how it was decided
+ (let ((choice-holder (ask something make (choices-made-in ,:self))))
+      (mapc
+       (function (lambda (task)
+			 (ask ,choice-holder
+			      set your ,(get (ask ,task recall your task) 'description)
+			      to ,(ask ,task recall your current-choice))))
+       (ask :self recall your tasks))
+      choice-holder))
+
+
+(define director-subscene something) ;;dummy node for the following
+
+(define-receiver (send yourself to director via %file-name) scene
+ ;;this prints out the essential aspects of the scene onto file-name for running by director
+ (cond ((probef file-name))
+	(t (let ((file (open file-name 'out)))
+		(princ '|;;this is all that Director need know to display the scene | file)
+		(princ :self file)
+		(terpri)
+		(dicks-print
+		 '(define ,:self director-scene
+			  (set your subscenes to ,(ask :self recall your subscenes)))
+		 file)
+		(terpri file)
+		(close file))))
+ (do-as-if-you-were subscene ;;but instead ask subscene since they handle it differently
+		    :self ask each of your subscenes to
+		    send yourself to director via !,file-name))
+
+(define-function recreate-subscenes (scene)
+ ;;this is needed if the order has been changed by subsequent choices (e.g. new convey-tasks)
+ (ask subscene set your subscene-count to 0) ;;reset this to start new numbers
+ (ask ,scene ask each of your subscenes to unmake)
+ (ask ,scene choose subscenes)) ;;rechoose them really
+
+
+(define-function create-subscenes (scene task-ordering subscene)
+ (cond ((null task-ordering)) 
+       ((atom task-ordering)
+	(introduce-task-and-subscene task-ordering subscene))
+       ((eq (first task-ordering) 'sequence:)
+	(create-subscenes scene (rest task-ordering) subscene))
+       ((eq (first task-ordering) 'and) ;;throw the following in the same scene
+	(mapc
+	 (function
+	  (lambda (task-ordering)
+		  (create-subscenes scene task-ordering subscene)))
+	 (rest task-ordering)))
+       (t (do ((ordering task-ordering (rest ordering))
+	       (subscene subscene
+			 ;;first time use the old subscene else make new ones if needed
+			 (and (rest ordering) (ask subscene make subscene of ,scene))))
+	      ((null ordering) subscene)
+	      (create-subscenes scene (first ordering) subscene)))))
+
+(define-function introduce-task-and-subscene (task subscene)
+ (ask ,task set your subscene to ,subscene)
+ (ask ,subscene add ,task to your list of
+      ,(cond ((ask ,task are you a convey-task) 'convey-tasks)
+	     ((ask ,task are you a establish-task) 'establish-tasks)
+	     (t 'random-tasks))))
+
+(define subscene something
+ (add (cond ((atom :self)
+	     (ask :self ask your parent to recall your order-in-scene))
+	    (t (third :self)))
+      to your list of (order-in-scene actions-if-recalling))
+ (add (let ((number (ask :self recall your order-in-scene)))
+	   (cond ((> number 1) '(subscene-of ,(ask :self recall your scene) ,(1- number)))))
+      to your list of (previous-subscene actions-if-recalling))
+ (add '(subscene-of ,(ask :self recall your scene)
+		    ,(1+ (ask :self recall your order-in-scene)))
+      to your list of (next-subscene actions-if-recalling))
+ (add (repeatedly-apply-binary-function ;;i no longer save this new one's generated
+       'union
+       (ask :self ask each of your tasks to recall your current-choice))
+      to your list of (methods actions-if-recalling))
+ (add (or :old-value
+	  (apply 'max
+		 (ask :self ask each of your tasks to recall your running-time)))
+      to your list of (running-time actions-if-recalling))
+ (add (append (ask :self recall your convey-tasks)
+	      (ask :self recall your establish-tasks))
+      to your list of (tasks actions-if-recalling)))
+
+
+(define-receiver (make subscene of ?scene) subscene
+  (let ((subscene
+	 (ask :self
+	      make (subscene-of ,scene ,(ask subscene increment your subscene-count by 1)))))
+       (ask ,subscene set your scene to ,scene)
+       (ask ,scene add ,subscene to your list of subscenes)
+       subscene))
+
+(define-extension-receiver (unmake) subscene
+ (ask :self ask your scene to remove ,:self from your list of subscenes)
+ (ask :self unmake))
+
+
+(define-receiver (run your methods) subscene
+ (ask :self make copy (copy-of ,:self)) ;;save a copy incase I have to be redone
+ (let ((allocated-time (ask :self recall your running-time))
+       (ideal-time (maximum-ideal-time-of (ask :self recall your methods) :self)))
+      (let ((factor (cond ((zerop ideal-time) 0.0)
+			  (t (//$ allocated-time ideal-time)))))
+	   (cond ((> factor 8.0)
+		  (warning :self '(strectch-factor is over 8.0)))
+		 ((= factor 0.0)) ;;nothing to do in this subscene (I hope)
+		 ((< factor .125)
+		  (warning :self '(strectch-factor is less than .125))))
+	   (ask :self set your stretched-by to ,factor)
+	   (mapc
+	    (function
+	     (lambda (method)
+		     (ask special-dynamics update special-dynamics in ,:self using
+			  ,(ask :self recall an item matching
+				(special-dynamics-packages-for ,method
+							       ?special-dynamics-packages)
+				then special-dynamics-packages))
+		     (cond ((ask ,(first method) are you a change-method)
+			    (uncompiled-ask ,(first method) run !,method in ,:self))
+			   (t (uncompiled-ask ,(first method)
+					      run !,method in ,:self stretched by ,factor)))))
+	    (ask :self recall your methods)))))
+
+(define-function maximum-ideal-time-of (methods subscene)
+ (do ((i methods (rest i))
+      (most-so-far 0.0))
+     ((null i) most-so-far)
+     (let ((method (first i)))
+	  (cond ((uncompiled-ask ,(first method) are you a change-method)) ;;dont count
+		(t (let ((ideal
+			  (get
+			   (uncompiled-ask ,(first method)
+					   recall or estimate time for ,method in ,subscene)
+			   'ideal)))
+			(and (> ideal most-so-far)
+			     (setq most-so-far ideal))))))))
+
+(define-receiver (plan your actions) subscene
+  (mapc
+   (function
+    (lambda (character)
+	    (let ((action-list (ask :self recall your (actions-of ,character))))
+		 (mapc
+		  (function
+		   (lambda (action)
+			   (let ((action-holder (ask ,(first action) make interned offspring)))
+				(ask :self add
+				     ,(uncompiled-ask ,action-holder plan !,action in ,:self)
+				     to your list of plans))))
+		  (cond (action-list)
+			((ask :self recall your (changes-for ,character)) ;;only if changes
+			 (plan-something-if-only-changes character :self)))))))
+   (ask character recall your offspring)))
+
+(define-function plan-something-if-only-changes (character subscene)
+ (cond ((= (ask ,subscene recall your order-in-scene) 1)
+	 '((wander-around ,character)))
+       (t (extend-last-actions-of (ask ,subscene recall your running-time)
+				  (ask ,subscene recall your previous-subscene)
+				  subscene))))
+
+(define-function extend-last-actions-of (additional-time subscene next-subscene)
+ (cond ((ask ,subscene recall if any items match
+	     (extra-time-added ? by ,next-subscene)) nil) ;;done already
+       (t (ask ,next-subscene set your begin-time to
+	       (after (beginning-of ,subscene) ,(ask ,subscene recall your running-time)))
+	  (ask ,next-subscene set your status to (parasite-on ,subscene))
+	  (ask (copy-of ,subscene) make copy ,subscene) ;;restore it to the way it started out
+	  (ask ,subscene ask your scene to add ,subscene to your list of subscenes)
+	  (ask ,subscene memorize (extra-time-added ,additional-time by ,next-subscene))
+	  (ask ,subscene add ,next-subscene to your list of parasites)
+	  (ask ,subscene increment your running-time by ,additional-time)
+	  (ask-if-exists ,subscene ask your next-subscene to do the following:
+			 ;;better forget what it told the next subscene 
+			 (forget your (location-of ?))
+			 (forget your (distance-between ? ?)))
+	  (ask ,subscene run your methods)
+	  (ask ,subscene plan your actions)
+	  nil))) ;;nothing new planned for next-subscene
+
+;;(define-receiver (unrun your methods) subscene
+;; (ask :self forget your (actions-of ?))
+;; (let ((placed-by-me '(placed by ,:self)))
+;;      (mapc
+;;       (function (lambda (character)
+;;			 (let ((location (ask :self recall your (location-of ,character))))
+;;			      (cond ((equal (get location 'status) placed-by-me)
+;;				     (ask :self recall your (location-of ,character)))))))
+;;       (ask character recall your offspring)))
+;; (ask-if-exists ,subscene ask your next-subscene to forget your (location-of ?)))
+;;
+;;
+;;
+;;(define-receiver (unplan your actions) subscene
+;; ;;undoes the planning by plan your actions
+;;  (do-as-if-you-were something ;;since otherwise will compile to subscene's unmake stuff
+;;		     :self ask each of your plans to unmake)
+;;  (ask :self forget your plans)
+;;  (ask :self forget your movements)
+;;  (ask :self forget your transition-type)
+;;  (ask :self forget your action-number))
+
+
+(define-receive (yield most current value of ?element)
+ ((cond ((ask :self recall your ,element))
+	((and (> (ask :self recall your order-in-scene) 1)
+	      (let ((previous-subscene (ask :self recall your previous-subscene)))
+		   (cond (previous-subscene
+			  (ask ,previous-subscene yield most current value of ,element))))))
+	(t ;;no more previous guys so check the choice-points
+	 (or (ask (choice-point-of !,element) recall your current-choice)
+	     (shouldnt-happen 'subscene
+			      '((choice-point-of !,element) has no current-choice))))))
+ subscene)
+
+(define-receive (yield average weight for ?element)
+ ((let ((begin-value (ask :self yield most current value of ,element))
+	(end-value (ask :self ask your next-subscene to yield most current value of
+			,element)))
+       (cond ((and begin-value end-value)
+	      (*$ .5 (weightify begin-value) (weightify end-value)))
+	     (begin-value (weightify begin-value)))))
+ subscene)
+
+(define-receiver (send yourself to director via %file-name) subscene
+ (ask :self set your running-time to ,(ask :self recall your running-time))
+ ;;since the running time is often only a virtual variable
+ (let ((copy (ask :self make copy (director-subscene-of !,(rest :self)))))
+      (ask ,copy forget your tasks)
+      (ask ,copy forget your methods)
+      (ask ,copy forget your (actions-of ?))
+      (ask ,copy forget your (distance-between ? ?))
+      (ask ,copy forget your (time-estimates-for ?))
+      (ask ,copy set your parent to director-subscene)
+      (ask ,copy set your name to ,:self)
+      (ask ,copy save !,file-name)
+      (ask :self ask your parent  ;;has wrong parent so isn't forgotten by unmake
+	   to remove ,(ask ,copy unmake) from your list of offspring))
+ (ask :self ask each of your plans to save !,file-name))
+ 
+
+(define task something
+ (add (or :old-value
+	  (ask :self set your allocated-time to ,(compute-bounds-on-time-for :self)))
+      to your list of (allocated-time actions-if-recalling)))
+
+(define-receiver (update special-dynamics for participants) task
+ ;;the participants in the task need to have their special-dynamics updated 
+  (ask special-dynamics update special-dynamics 
+       in ,(ask :self recall your subscene)
+       using ,(ask :self recall your special-dynamics-packages)))
+
+
+(define-receiver (choose values) task
+ (choose-methods-for-task :self)) ;;task holds the task and findings
+
+(define-receive (unchoose values) ;;undo the effects of choosing
+ ((mapc ;;restore rejects
+   (function
+    (lambda (rejected-suggestion)
+	    (ask :self memorize ,(get rejected-suggestion 'suggestion))))
+   (ask :self recall your rejected-suggestions))
+  (ask :self forget your rejected-suggestions)
+  (ask :self forget your scores)
+  (ask :self forget your running-time)
+  (let ((old-choice (ask :self recall your current-choice)))
+       (and old-choice
+	    (ask :self add ,old-choice to your list of previous-choices regardless)))
+  (ask :self forget your current-choice))
+ task)
+
+(define-function compute-bounds-on-time-for (task)
+ (let ((scene-length (cond ((ask ,task ask your scene to recall your length-bounds))
+			   (t (record-length-bounds-for-scenes
+			       (ask film recall your current-film)
+			       (ask scene recall your offspring))
+			      (or (ask ,task ask your scene to recall your length-bounds)
+				  (shouldnt-happen 'compute-bounds-on-time-for
+						   '(no length bounds for the scene of the
+							,task task))))))
+       (share (ask ,task recall your share)))
+      (list (times (first scene-length) share)
+	    (times (second scene-length) share))))
+
+(define-function record-length-bounds-for-scenes (film-name scenes)
+ (do ((s scenes (rest s))
+      (total (float (total-scene-lengths scenes)))
+      (lower-seconds (secondify (second (ask ,film-name recall your film-length))))
+      (upper-seconds (secondify (third (ask ,film-name recall your film-length)))))
+     ((null s))
+     (let ((scene-share (//$ (float (numberify (ask ,(first s) recall your length)))
+			     total)))
+	  (ask ,(first s)
+	       set your length-bounds to
+	       (,(*$ lower-seconds scene-share)
+		,(*$ upper-seconds scene-share))))))
+
+(define-function total-scene-lengths (scenes)
+ (do ((s scenes (rest s))
+      (subtotal 0))
+     ((null s) (float subtotal))
+     (setq subtotal (+ subtotal
+		       (numberify (ask ,(first s) recall your length))))))
+
+(define-function secondify (time-expression)
+ (cond ((eq (first time-expression) 'minutes)
+	(*$ 60.0 (float (second time-expression))))
+       ((eq (first time-expression) 'seconds)
+	(float (second time-expression)))
+       (t (shouldnt-happen 'secondify '(bad time-expression ,time-expression)))))
+
+(define convey-task task
+ (do when receiving (collect task suggestions)
+     (and (convey-suggestions (ask :self recall your task) :self)
+	  no-value)))
+
+(define establish-task task
+ (do when receiving (collect task suggestions)
+     (and (establish-suggestions (ask :self recall your task) :self)
+	  no-value)))
+
+(define display-task task)
+
+;;the only difference between "and" and "sequence:" is that the former Ani is
+;;free to order or merge subscenes
+
+(define-function process-scene-description (scene description)
+ (assign-shares-to-each-task
+  (cond ((ask ,scene are you an establish-task)
+	 ;;if this is really an establish task then must replace it self with the
+	 ;;generated tasks
+	 (let ((real-scene (ask ,scene recall your scene))
+	       (establish-task scene)) ;;whats really going on
+	      (let ((new-part
+		     (simplify-task-ordering
+		      (process-scene-description-1 real-scene description establish-task))))
+		   (let ((new-task-ordering
+			  (reorder-task-ordering
+			   (subst new-part
+				  establish-task
+				  (ask ,real-scene recall your task-ordering)))))
+			(ask ,real-scene set your task-ordering to ,new-task-ordering)
+			(recreate-subscenes real-scene)
+			;;reassign subscenes if need be
+			(cond ((atom new-part)
+			       (ask ,new-part collect task suggestions))
+			      (t (ask-each ,(rest new-part) ;;skip the "and" or "sequence:"
+					   collect task suggestions)))
+			new-task-ordering))))
+	 (t (ask ,scene set your task-ordering to
+		 ,(process-scene-description-1 scene description 'initial-description))))
+  1.0))
+
+(define-function assign-shares-to-each-task (task-ordering share)
+ (cond ((atom task-ordering) (ask ,task-ordering set your share to ,share)) ;;is a task
+       (t
+	(mapc
+	 (function
+	  (lambda (sub-ordering)
+		  (assign-shares-to-each-task
+		   sub-ordering
+		   (cond ((eq (first task-ordering) 'sequence:)
+			  (//$ share (float (length (rest task-ordering)))))
+			 ((eq (first task-ordering) 'and) share) ;;in parallel
+			 (t (shouldnt-happen 'assign-shares-to-each-task
+					     '(bad task ordering ,task-ordering)))))))
+	 (rest task-ordering)))))
+
+(define-function process-scene-description-1 (scene description source)
+ (let ((task-order (first (memq (first description) '(and sequence:)))))
+      (cond (task-order
+	     (cons task-order
+		   (mapcar
+		    (function (lambda (description)
+				      (process-scene-description-1 scene description source)))
+		    (rest description))))
+	    (t (process-task-description description scene source)))))
+
+(define-function process-task-description (description scene source)
+ (cond ((ask-if-exists ,description are you a task) description) ;;already processed 
+       (t (let
+	   ((task-type (first description)))
+	   (let ((task (cond ((eq task-type 'establish)
+			      (first
+			       (ask ,scene add ,(ask establish-task make interned offspring)
+				    to your list of establish-tasks)))
+			     ((eq task-type 'convey)
+			      (first
+			       (ask ,scene add ,(ask convey-task make interned offspring)
+				    to your list of convey-tasks)))
+			     ((eq task-type 'display)
+			      (first
+			       (ask ,scene add ,(ask display-task make interned offspring)
+				    to your list of display-tasks)))
+			     (t (shouldnt-happen
+				 'process-task-description
+				 '(,task-type not a recognized task type in ,scene scene))))))
+		(ask ,task set your task to
+		     (task: description ,(second description)
+				 for-who ,(second (second description))
+				 source ,source))
+		(ask ,(second (second description)) memorize ;;what about other participents?
+		     (scene-participation: scene ,scene
+					   task ,task))
+		(ask ,task set your scene to ,scene)
+	   task)))))
+
+(define-function reorder-task-ordering (old-ordering)
+ (simplify-task-ordering (reorder-task-ordering-1 old-ordering)))
+
+(define-function reorder-task-ordering-1 (old-ordering)
+ ;;this fixes the order of parallel guys if need be (those in an "and")
+ (cond ((atom old-ordering) old-ordering) ;;including null ordering of course
+       ((eq (first old-ordering) 'sequence:);;is already ordered (at this level)
+	'(sequence: !,(mapcar 'reorder-task-ordering-1 (rest old-ordering))))
+       ((eq (first old-ordering) 'and) ;;heres where it does some work
+	(order-parallel-tasks
+	 (mapcan ;;I do this so that and stuff becomes top-level
+	  (function (lambda (task-order)
+			    (cond ((eq (first task-order) 'and)
+				   (mapcar 'reorder-task-ordering-1 (rest task-order)))
+				  (t (list (reorder-task-ordering-1 task-order))))))
+	  (rest old-ordering))))
+       (t (shouldnt-happen 'reorder-task-ordering-1
+			   '(,old-ordering is not a good task ordering)))))
+
+
+(define-function order-parallel-tasks (tasks)
+ ;;right now this is really stupid and does all the tasks in order running only those that
+ ;;have no participants in common in parallel
+ ;;tasks can be their description or the actor that represents it (or sequence: of them)
+ (do ((i tasks (rest i))
+      (possibly-parallels nil)
+      (surely-parallels nil)
+      (sequentials nil))
+     ((null i)
+      '(and !,surely-parallels
+	    (sequence: !,sequentials (and !,(mapcar 'cadr possibly-parallels)))))
+     (let ((task (first i))
+	   (participants (participants-of-task (first i))))
+	  (cond (participants
+		 (do ((p possibly-parallels (rest p)))
+		     ((null p) (push (list participants task) possibly-parallels))
+		     (let ((old-participants (first (first p))))
+			  (cond ((intersect old-participants participants)
+				 ;;someone in common so
+				 (push task sequentials) ;;the task will run sequentially
+				 (return nil))))))
+		(t (push task surely-parallels)))))) ;;to be guaranteed to be run in parallel
+
+
+(define-function participants-of-task (task)
+ ;;for now kind a stupid and just makes a list of all the characters in the task
+ (cond ((atom task)
+	(and (ask ,task are you a convey-task)
+	     (participants-of-task-1 (get (ask ,task recall your task) 'description) nil)))
+       ((eq (first task) 'sequence:)
+	(repeatedly-apply-binary-function 'union
+					  (mapcar 'participants-of-task (rest task))))
+       ((eq (first task) 'and)
+	(repeatedly-apply-binary-function 'union
+					  (mapcar 'participants-of-task (rest task))))
+       (t (participants-of-task-1 task nil))))
+
+(define-function participants-of-task-1 (part-of-task participants)
+ (cond ((null part-of-task) participants)
+       ((atom part-of-task) (cond ((ask-if-exists ,part-of-task are you a character)
+				   (cons-if-not-member part-of-task participants))
+				  (t participants)))
+       (t (union (participants-of-task-1 (first part-of-task) participants)
+		 (participants-of-task-1 (rest part-of-task) nil)))))
+
+
+(define-function simplify-task-ordering (ordering)
+ (let ((new-ordering (simplify-task-ordering-1 (rest ordering) (first ordering) t)))
+      (cond ((one-long new-ordering) (first new-ordering))
+	    (t (cons (first ordering) new-ordering)))))
+
+(define-function simplify-task-ordering-1 (ordering one-level-up-type top-level?)
+ (cond ((null ordering) nil)
+       ((atom ordering) (list-if (not top-level?) ordering))
+       ((or (eq (first ordering) 'sequence:) (eq (first ordering) 'and))
+	(cond ((one-long ordering) nil)
+	      ((two-long ordering) ;;as in (sequence: foo)
+	       (simplify-task-ordering-1 (second ordering) one-level-up-type nil))
+	      ((eq (first ordering) one-level-up-type) ;;not listed so will append right
+	       (simplify-task-ordering-1 (rest ordering) one-level-up-type nil))
+	      (t (list-if (not top-level?)
+		  (cons (first ordering)
+			(simplify-task-ordering-1 (rest ordering) (first ordering) nil))))))
+       (t (append (simplify-task-ordering-1 (first ordering) one-level-up-type nil)
+		  (simplify-task-ordering-1 (rest ordering) one-level-up-type nil)))))
+
+(define-function list-if (switch thing)
+ (cond (switch (list thing))
+       (t thing)))
+
+(compile-actors)

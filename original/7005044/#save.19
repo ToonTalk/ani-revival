@@ -1,0 +1,58 @@
+(declare  (fasload qq))
+
+(defun write-actors (:filename :actors)
+	(uwrite)
+(setsyntax 46. 192. nil) ;slashifies
+	((lambda (^r ^w *nopoint)
+(print '(declare (*fexpr receive cases)
+		 (setq ibase 10.)
+	 	 (special :message :matched? :self)
+		 `(cons 'special :actors)
+		 (fasload qq)))
+(print '(declare (eval (read))))
+(print '(progn
+(DEFUN OPEN-BRACE-MACRO NIL '/{)
+(DEFUN close-BRACE-MACRO NIL '/}) 
+(setsyntax 123. 'macro 'open-brace-macro)
+(setsyntax 125. 'macro 'close-brace-macro)))
+	(mapc (function
+	       (lambda (actor)
+		       (print '(declare (setq :self `actor)))
+		       (print (list 'setq actor (list 'quote (eval actor))))
+		      (apply 'grindef (list (eval actor)))
+		      (save-memory (eval actor) (get (eval actor) '%memory))))
+	      :actors)
+	 (print '(declare (setsyntax 46. 139712. nil))))
+	 t t nil)
+	(apply 'ufile :filename)
+       (SETSYNTAX 46. 128. NIL))
+
+(defun save-memory (actor memory-list)
+       (print (list 'defprop actor memory-list '%memory))
+       (mapc (function (lambda (indicator)
+			 (print (list 'defprop actor (get actor indicator) indicator))))
+		memory-list))
+
+(defun compile (:filename :actors)
+(write-actors :filename :actors)
+(uwrite)
+((lambda (^r ^w *nopoint)
+(setsyntax 46. 192. nil)
+(print '(declare
+	 (setsyntax 46. 192. nil)
+	 (fasload anima)
+	 (define/.all)
+	 (*lexpr tell ask)
+	 (fasload #comp)
+	 `(cons 'uread :filename )))
+(SETSYNTAX 46. 128. NIL))
+ t t nil)
+(apply 'ufile (subst 'decl (cadr :filename) :filename))
+(VALRET (IMPLODE (APPEND '(/ : N C O M P L R / )
+				(EXPLODEc (CAR :FILENAME))
+				'(/ )
+				'(d e c l)
+				'(/  /( F d k U W E /) /
+   P)))))
+	 
+

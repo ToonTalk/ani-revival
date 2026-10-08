@@ -1,0 +1,925 @@
+;; -*-lisp-*-
+;;this file defines performer: the graphic turtle-like entities in director
+
+(if-for-maclisp (declare (load '|ai:ken1;turmac|))) ;;turtle macros 
+
+(defcomment perfor) ;;for tags
+
+(define performer something
+ (make synonym object) ;;to be compatible with old naming scheme
+ (set your default-whole to the-cast)
+ (set your size to 100.0) ;;relative size (1/10th of its whole)
+ (set your state to nil) ;;absolute state (needs to be computed)
+ (set your absolute-size to nil) ;;need to compute one
+ (set your heading-from-whole to 0.0)
+ (set your distance-from-whole to 0.0) ;;relative to the whole's size
+ (set your relative-heading to 0.0)
+ (set your colors to (white))
+ (set your draw-mode to (pendown))
+ (set your erase-mode to (eraserdown))
+ (set your pen-type to normal)
+ (set your erasability to t)
+ (consider (speed (move forward speed) (move back speed) (forward speed) (back speed))
+	   synonyms)
+ (set your speed to 100.0)
+ (consider ((move right speed) (move left speed) (delx speed)) synonyms)
+ (set your (move right speed) to 100.0)
+ (consider ((move up speed) (move down speed) (dely speed)) synonyms)
+ (set your (move up speed) to 100.0)
+ (consider ((turn left speed) (turn right speed) (right speed) (left speed)) synonyms)
+ (set your (turn right speed) to 30.0)
+ (consider ((grow speed) (shrink speed)) synonyms)
+ (set your (grow speed) to 100.0)
+ (consider ((grow by factor speed) (shrink by factor speed)) synonyms)
+ (set your (grow by factor speed) to (multiply-by 2.0)) ;;double each second
+ (consider ((xcor speed) (ycor speed)) synonyms)
+ (set your (xcor speed) to 100.0)
+ (set your (heading speed) to 30.0)
+ (set your variables-to-copy-upon-creation to (state visibility))
+ (set your standardize-size? to t)
+ (set your standardize-center? to t)
+ (set your (components of delxy) to (delx dely)) ;;for doing it gradually
+ (consider (xcor ycor) components of position)
+ (consider (xcor ycor heading) components of state))
+
+(define the-cast performer
+ ;;this is here so that performer can use it to determine its state
+ (set your whole to nil)
+ (set your size to 1000.0)
+ (set your absolute-size to 1000.0)
+ (set your state to (0.0 0.0 0.0)))
+
+;;back to performer
+
+(define-method (make ?) performer
+ (let ((instance (do-old-behavior))
+       (default-whole (ask myself recall your default-whole)))
+      (and default-whole (ask ,instance set your whole to ,default-whole))
+      instance))
+
+(define-method (recall your draw-procedure-body) performer
+ (let ((draw-procedure-name (ask myself recall your draw-procedure)))
+      (let ((draw-procedure (second (getl draw-procedure-name '(expr lexpr)))))
+	   (cond (draw-procedure (defunize draw-procedure-name draw-procedure))))))
+
+(define-method (show) performer
+ (let ((whole (or (ask myself recall your whole) 'the-cast)))
+      ;;so the cast knows about it for redisplay and movie making
+      (cond (whole (ask ,whole add ,myself to your list of visible-parts)))
+       (cond ((not (ask myself recall your visibility)) ;;if not visible
+	      (ask myself just show)))))
+
+(define-method (just show) performer
+ (help-comments |Show myself if not already shown and stage is in "normal" mode|)
+	(ask myself set your visibility to t)
+	(ask myself display))
+
+(define-method (show all) performer
+ (ask myself ask each of your parts show all)
+ (ask myself show))
+
+(define-method (hide) performer
+ (let ((whole (or (ask myself recall your whole) 'the-cast)))
+      (cond (whole (ask ,whole remove ,myself from your list of visible-parts)))
+      (cond ((ask myself recall your visibility) ;;if currently visible
+	     (ask myself just hide)))))
+
+(define-method (just hide) performer
+ (help-comments |Hide myself unless already hidden|)
+ (ask myself set your visibility to nil)
+ (ask myself erase))
+
+(define-method (hide all) performer
+ (ask myself ask each of your parts hide all)
+ (ask myself hide))
+
+(define-method (redisplay) performer
+ (help-comments |redraw if visible --- good if stage gets messed up|)
+ (cond ((ask myself recall your visibility)
+	(ask myself display))))
+
+(define-method (display) performer
+ (let ((visible-parts (ask myself recall your visible-parts)))
+      (cond (visible-parts (ask-each ,visible-parts just show))
+	    (t (penup)
+	       (setturtle (ask myself recall your state)) 
+	       (eval (ask myself recall your draw-mode))
+	       (ask the-turtle perform
+		    ,(ask myself recall your how-to-draw)))))
+ no-value)
+
+(define-method (erase) performer ;;the default way of erasing
+ (let ((visible-parts (ask myself recall your visible-parts)))
+      (cond (visible-parts (ask-each ,visible-parts just hide))
+	    (t (penup)
+	       (setturtle (ask myself recall your state))
+	       (eval (ask myself recall your erase-mode))
+	       (ask the-turtle perform
+		    ,(ask myself recall your how-to-draw)))))
+ no-value)
+
+(define-method (set your erasability to ?value) performer
+ (cond ((null value) ;;no longer erasable
+	(ask myself do when receiving (erase) (ask myself erase by clearing area))))
+ (do-old-behavior))
+
+(define-method (erase by clearing area) performer
+ (penup)
+ (setturtle (ask myself recall your state))
+ (eraserdown)
+ (ask the-turtle perform
+      (fillwindow (plus /:tvstep (min (distance-to-nearest-wall)
+				     ,(ask myself recall your absolute-size))))))
+
+
+(define-method (recall your ({and ?act {or display erase}} actions)) performer
+ (ask the-turtle set your actions-performed to nil)
+ (unwind-protect
+  (progn (ask the-turtle set your perform-or-recall to recall)
+	 (ask myself ,act)
+	 (nreverse (ask the-turtle recall your actions-performed)))
+  (ask the-turtle set your perform-or-recall to perform)))
+
+
+(define-method (recall your how-to-draw) performer
+ ;;this gets updated only when needed (ie when displaying) so that many changes can
+ ;;happen behind your back
+ (let ((how-to-draw (ask-old myself recall your how-to-draw))
+       (still-valid (ask myself recall your validity-of-how-to-draw)))
+      (cond ((and still-valid how-to-draw)) ;;if known already and valid return it
+	    (t ;;if the appearance has changed (or new) then need to recons this
+	     (let ((drawing-form (make-inner-drawer)))
+		  (cond (drawing-form
+			 (let* ((standardize-size? (ask myself recall your standardize-size?))
+				(standardize-center?
+				 (ask myself recall your standardize-center?))
+				(absolute-size (ask myself recall your absolute-size))
+				((how-to-get-to-center scale)
+				 (cond ((and standardize-center? standardize-size?)
+					(how-to-get-to-center-and-scale drawing-form 1.0))
+				       (standardize-center? 
+					'(,(how-to-get-to-center drawing-form)
+					  ,(//$ absolute-size)))
+				       (standardize-size?
+					'(nil
+					  ,(second (how-to-get-to-center-and-scale drawing-form
+										   1.0))))
+				       (t '(nil ,(//$ absolute-size))))))
+			       (ask-old myself ;;so set your how-to-draw can get at old value
+					set your how-to-draw to
+					(draw-scaled-and-centered
+					 ,absolute-size
+					 (quote ,drawing-form)
+					 ,scale
+					 (quote ,how-to-get-to-center)
+					 (quote
+					  ,(first (ask myself recall your colors)))))))))))))
+
+(define-form (draw-scaled-and-centered size drawing-form scale-factor how-to-get-to-center
+				       pen-color)
+ (let ((*director-turtle-scaling-factor
+	(*$ size scale-factor *director-turtle-scaling-factor)))
+      (thingup)
+      (let ((xcor ($xcor))
+	    (ycor ($ycor))
+	    (heading ($heading)))
+	   (eval how-to-get-to-center)
+	   (pencolor pen-color)
+	   (thingdown)
+	   (eval drawing-form)
+	   (thingup)
+	   (setxy xcor ycor)
+	   (setheading heading))))
+
+(define-method (recall your absolute-size) performer
+ (or (ask-old myself recall your absolute-size) ;;either know it or else
+     (let ((whole (ask myself recall your whole)))
+	  (cond (whole
+		 (ask myself recompute your absolute-size since ,whole is now
+		      ,(ask ,whole recall your absolute-size)))
+		 (t (ask myself set your absolute-size to
+			 ,(float (ask myself recall your size))))))))
+     
+(define-method (recompute your absolute-size since ? is now ?whole-size) performer
+ (ask myself set your absolute-size to
+      ,(*$ whole-size .001 ;;since 1000.0 is full size
+	   (float (ask myself recall your size)))))
+
+(define-method (notice that ?whole has grown by ?factor) performer
+ (ask myself multiply your absolute-size by ,factor)
+ (ask myself recompute your state since ,whole is now ,(ask ,whole recall your state))
+ no-value)
+
+;;(define-method (notice that absolute-size of ?whole is now ?whole-size) performer
+;; (ask myself recompute your absolute-size since ,whole is now ,whole-size)
+;; (ask myself recompute your state since ,whole is now ,(ask ,whole recall your state))
+;; no-value)
+
+(define-method (set your size to ?new-size) performer
+ (do-old-behavior)
+ (let ((whole (ask myself recall your whole)))
+      (cond (whole (ask myself recompute your absolute-size since ,whole is now
+			,(ask ,whole recall your absolute-size)))
+	    (t (ask myself set your absolute-size to ,(float new-size)))))
+ new-size)
+
+(define-method (set your absolute-size to ?new-size) performer
+ ;;can just change the appropriate part of the how-to-draw
+ (let ((old-size (ask-old myself recall your absolute-size))
+       (new-size (float new-size))) ;;in case its a fixnum
+      (cond ((and old-size (flonum-equal old-size new-size))) ;;ie very close to equal
+	    (t (do-old-behavior)
+	       ;;set it now in case called recursively (eg by recall your how-to-draw)
+	       (let ((how-to-draw (ask myself recall your how-to-draw))
+		     (visibility (ask myself recall your visibility)))
+		    (cond (visibility (ask myself hide)))
+		    (ask myself set your how-to-draw to
+			 ,(and how-to-draw (replace-nth 1 how-to-draw new-size)))
+		    (ask myself ask each of your parts
+			 notice that ,myself has grown by ,(//$ new-size old-size))
+		    (cond (visibility (ask myself show))))))
+      new-size))
+
+(define-method (set your how-to-draw to ?new-value) performer
+ (ask myself set your validity-of-how-to-draw to t)
+ (ask myself set your appearance-changed to t)
+ (cond ((and new-value (ask myself recall your visibility)
+	     (not (equal (ask myself recall your how-to-draw) new-value)))
+	(ask myself hide)
+	(do-old-behavior)
+	(ask myself show)
+	new-value)
+       (t (do-old-behavior))))
+
+
+(define-method (set your colors to ?new-colors) performer
+ ;;can just change the appropriate part of the how-to-draw
+ (let ((how-to-draw (ask myself recall your how-to-draw)))
+      (ask myself set your how-to-draw to
+	   ,(and how-to-draw
+		 (replace-nth 5 how-to-draw '(quote ,(first new-colors)))))
+      (do-old-behavior)))
+
+(define-method (set your validity-of-how-to-draw to ?new-value) performer
+ (cond ((and (not new-value) (ask myself recall your visibility))
+	;;if visibile and how-to-draw no longer valid
+	(ask myself hide)
+	(do-old-behavior)	
+	(ask myself show)
+	new-value)
+       (t (do-old-behavior))))
+
+(define-method-helper (make-inner-drawer) performer
+ (let ((draw-procedure (ask myself recall your draw-procedure)))
+      (cond (draw-procedure
+	     (cons
+	      draw-procedure
+	      (mapcar
+	       (function (lambda (arg)
+				 (cond ((or (atom arg) (rest arg)) ;;not one-long list
+					'(quote ,(ask myself recall your ,arg)))
+				       (t '(quote ,(ask myself recall your ,(first arg)))))))
+	       (ask myself recall your drawing-args)))))))
+
+
+(define-method {and ?form ({or fd forward bk back rt right lt left} ?)} performer
+ (help-comments
+  |move forward or back or turn left or right respectively whatever the "amount" is|)
+  (run-lisp-for-performer form))
+
+(define-macro-method (grow ?amount) performer
+ (help-comments |increase my size by "amount"|)
+ '(ask ,myself increment your size by ,amount))
+
+(define-macro-method ({or grow shrink} by factor ?factor) performer
+ (help-comments |multiply my size by "factor"|)
+ '(ask ,myself multiply your size by ,factor))
+
+(define-macro-method (shrink ?amount) performer
+ (help-comments |subtract "amount" from my size|)
+ '(ask ,myself increment your size by `(minus (quote-if-need-be ,amount))))
+
+(define-method (prepare to mix colors with ?colors) performer
+ (help-comments
+  |set up a variable called "color-mix" which controls the fraction of the original colors|
+  |and the "colors" that my current colors are -- so setting color-mix to .5 is 50-50|)
+ (ask myself do when receiving (set your color-mix to ?new-value)
+  (let ((old-colors (ask myself recall your colors)))
+       (ask myself set your colors to
+	    ,(comma (mix-colors old-colors
+				(color-differences old-colors (quote ,colors))
+				new-value)))
+       (do-old-behavior))))
+
+(define-method (sequentially (do in ?number ?units {or change set} your colors to ?colors)
+			     %followup)
+	       performer
+ (help-comments
+  (pattern-is (do in ?number ?units {or change set} your colors to ?colors))
+  |prepare to mix current colors with "colors" and|
+  |gradually change my colors to "colors" doing 1 / "number" of it on each "unit"|)
+ (ask myself prepare to mix colors with ,colors)
+ (ask myself set your (increment your color-mix by speed)
+      to ,(//$ (number-of-ticks number units)))
+ (ask myself sequentially (gradually increment your color-mix by 1.0)
+      !,followup))
+
+(define-method (yield distance to (?x ?y %)) performer
+ (help-comments |return the distance I am from the point at "x" and "y"|)
+ (penup)
+ (setturtle (ask myself recall your state))
+ (range x y))
+
+(define-method (yield heading to (?x ?y %)) performer
+ (help-comments
+  |return the heading I would need to face someone at "x" and "y" coordinates|)
+ (penup)
+ (setturtle (ask myself recall your state))
+ (bearing x y))
+
+(define-method (yield heading from (?x ?y %)) performer
+ (help-comments |return the heading someone at "x" and "y" would need to face towards me|)
+ (penup)
+ (setxy x y)
+ (bearing (ask myself recall your state)))
+
+(define-method (recall your state) performer
+ (or (ask-old myself recall your state)
+ ;;moves from center of whole by turning and going forward 
+     (let ((whole (ask myself recall your whole)))
+	  (cond (whole (ask myself recompute your state since ,whole is now
+			    ,(ask ,whole recall your state)))))))
+
+(define-method (recompute your state since ?whole is now ?whole-state) performer
+ (recompute-state whole whole-state))
+
+(define-method (notice that state of ?whole is now ?whole-state) performer
+ (recompute-state whole whole-state))
+
+(define-method-helper (recompute-state whole whole-state) performer
+ (cond (whole
+	(let (((whole-x whole-y whole-heading) whole-state))
+	     (thingup)
+	     (setxy whole-x whole-y)
+	     (setheading whole-heading)
+	     (right (ask myself recall your heading-from-whole))
+	     (forward (*$ (ask myself recall your distance-from-whole)
+			  (ask ,whole recall your absolute-size)))
+	     (setheading (+$ (ask myself recall your relative-heading) 
+			     whole-heading))
+	     (ask myself set your state to (,($xcor) ,($ycor) ,($heading)))))))
+
+(define-method-helper (recompute-relative-state new-state whole whole-state) performer
+ ;;this is used when someone gets a new "whole" so that the guy will not move 
+ ;; and the relative heading and the relative distance are correct
+ (let (((whole-x whole-y whole-heading) whole-state))
+      (thingup)
+      (setxy whole-x whole-y)
+      (ask myself set your distance-from-whole to
+	   ,(//$ (range new-state) (ask ,whole recall your absolute-size)))
+      (ask myself set your heading-from-whole to
+	   ,(-$ (bearing new-state) whole-heading))
+      (ask myself set your relative-heading to
+	   ,(-$ (third new-state) whole-heading))))
+
+(define-method (set your state to ?new-state) performer
+ (help-comments
+  |change my position and heading according to value of "new-state"|)
+ (let ((visible? (ask myself recall your visibility))
+       (whole (ask myself recall your whole))
+       (old-state (ask-old myself recall your state))
+       (new-state (mapcar 'float new-state))) ;;make sure they are flonums
+      (cond ((not (state-equal old-state new-state))
+	     (cond (visible? (ask myself hide)))
+	     (cond (whole ;;is part of something
+		    (recompute-relative-state new-state whole (ask ,whole recall your state))))
+	     (ask myself set your state-changed to t)  ;;in case a new apparance is asked for
+	     (ask-old myself set your state to ,new-state)
+	     (ask myself ask each of your parts notice that state of ,myself is now ,new-state)
+	     (cond (visible? (ask myself show)))))
+      new-state))
+
+(define-macro-method (setturtle ?new-state) performer
+ (help-comments |move to x and y coordinates and heading of "new-state"|)
+ '(ask ,myself set your state to ,new-state))
+
+(define-macro-method (setheading ?new-heading) performer
+ (help-comments |change my heading to "new-heading"|)
+ '(ask ,myself set your heading to ,new-heading))
+
+(define-method {and ?form ({or setxy delxy} ? ?)} performer
+ (help-comments |move to "x" and "y" if setxy or move over "x" and up "y" if delxy|)
+ (run-lisp-for-performer form))
+
+(define-method (move left ?amount) performer
+ (help-comments |move to the left side of the screen "amount" units|)
+ (run-lisp-for-performer '(delx ,(-$ (float amount)))))
+
+(define-method (move right ?amount) performer
+ (help-comments |move to the right side of the screen "amount" units|)
+ (run-lisp-for-performer '(delx ,amount)))
+
+(define-method (move up ?amount) performer
+ (help-comments |move to the top of the screen "amount" units|)
+ (run-lisp-for-performer '(dely ,amount)))
+
+(define-method (move down ?amount) performer
+ (help-comments |move to the bottom side of the screen "amount" units|)
+ (run-lisp-for-performer '(dely ,(-$ (float amount)))))
+
+(define-method (move {memq ?direction '(forward back)} ?amount) performer
+ ;;move in this case is just a "noise" word
+ (run-lisp-for-performer '(,direction ,amount)))
+
+(define-method (turn {memq ?direction '(right left)} ?amount) performer
+ ;;turn in this case is just a "noise" word
+ (run-lisp-for-performer '(,direction ,amount)))
+
+(define-method {and ?form ({or delx dely setx sety} ?)} performer
+ (help-comments |move accordingly|)
+ (run-lisp-for-performer form))
+
+(define-method (run ?action) performer
+ (help-comments |run the turtle commands in "action"|)
+ (run-lisp-for-performer action))
+
+(define-method-helper (run-lisp-for-performer action) performer
+ (let ((visible (ask myself recall your visibility))
+       (pen-state (ask myself recall your pen-state))
+       (start-state (ask myself recall your state)))
+      (and visible (ask myself hide))
+      (logo-penup) ;;"logo-penup" will not be seen by display list stuff
+      (setturtle start-state)
+      (ask the-turtle perform ,(or pen-state '(penup))) ;;for display-list stuff to work right
+      (eval action)
+      (let ((new-state (ask myself set your state to (,($xcor) ,($ycor) ,($heading)))))
+	   (cond (pen-state
+		  (ask the-trails moving from ,start-state to ,new-state with ,pen-state))))
+      (cond (visible (ask myself show))
+	    (t no-value))))
+
+(define-method (set your pen-type to ?new-pen-type) performer
+ (do-old-behavior)
+ (cond ((ask myself recall your pen-state)
+	(ask myself pen down)))
+ new-pen-type)
+
+(define-method (pen up) performer
+ (help-comments |Move the pen up (thereby I stop leaving trails as I move)|)
+ (ask myself set your pen-state to nil))
+
+(define-method (pen down) performer
+ (help-comments |Put down the pen of my pen-type (so I leave a trail)|)
+ (let ((pen-type (ask myself recall your pen-type)))
+      (ask myself set your pen-state to
+	   ,(cond ((eq pen-type 'normal) '(pendown))
+		  ((eq pen-type 'xor) '(xordown))
+		  ((eq pen-type 'eraser) '(eraserdown))
+		  (t (warning myself
+			      '(|My pen-type| ,pen-type
+					      |is invalid so Pen Down message ignored|)))))))
+
+(define-method (redisplay) performer
+ (help-comments |if visible then erase myself and redraw|)
+ (cond ((ask myself recall your visibility) ;;if visible then
+	(ask myself erase)
+	(ask myself display))))
+
+(define-method (create new appearance) performer
+  (let ((current-appearance (ask myself recall your current-appearance))
+	(current-appearance-and-state (ask myself recall your current-appearance-and-state))
+	(state-changed (ask myself recall your state-changed)))
+	(let ((appearance-changed (or (null current-appearance)
+				      (ask myself recall your appearance-changed))))
+	     (cond (appearance-changed
+		    ;;if the appearance has changed or this its first appearance
+		    (setq current-appearance (ask appearance make appearance of ,myself))
+		    (ask myself set your current-appearance to ,current-appearance)
+		    (ask myself set your appearance-changed to nil)))
+	     (cond ((or appearance-changed state-changed)
+		    (ask myself set your state-changed to nil)
+		    (setq current-appearance-and-state
+			  (ask myself set your current-appearance-and-state to
+			       ,(compile-using
+				 appearance
+				 (ask ,current-appearance make an instance at
+				      ,(ask myself recall your state)))))))
+	     current-appearance-and-state)))
+
+(define-method (fuse your parts) performer
+ (help-comments |maintain my appearance yet I destroy my visible-parts|)
+ (let ((visible-parts (ask myself recall your visible-parts)))
+      (cond (visible-parts
+	     (let ((draw-procedure (fuse-parts visible-parts
+					       (ask myself recall your absolute-size))))
+		  ;;this can call this recursively so should happen before mapcan
+		  (ask myself set your standardize-size? to nil)
+		  (ask myself set your standardize-center? to nil)
+		  (ask myself set your draw-procedures to
+		       ,(apply 'union (ask-each ,visible-parts recall your draw-procedures)))
+		  (ask myself when drawing use ,draw-procedure of absolute-size)
+		  (let ((*protect-all-actors nil))
+		       (ask myself ask each of your visible-parts unmake))
+		  (ask myself redisplay)))))) ;;since it got erase by the UNMAKEs above
+
+(define-form (fuse-parts parts whole-absolute-size)
+ (eval
+  '(defun ,(append-atoms (name-of myself) '-fused-appearance) (size)
+	  !,(mapcar #'(lambda (part)
+			      (generate-appearance-code-for-part part whole-absolute-size))
+		    parts))))
+
+(define-method-helper (generate-appearance-code-for-part part whole-absolute-size) performer
+ (let* (((nil part-size (nil drawing-form) scale (nil how-to-get-to-center) (nil pen-color))
+	 (cond ((ask ,part recall your how-to-draw))
+	       (t (ask ,part fuse your parts) ;;need to recurse
+		  (ask ,part recall your how-to-draw))))
+	(heading-from-whole (ask ,part recall your heading-from-whole))
+	(distance-from-whole (ask ,part recall your distance-from-whole))
+	(relative-heading (ask ,part recall your relative-heading))
+	(how-to-get-to-part
+	 '(progn !,(cond ((flonum-equal distance-from-whole 0.0) nil)
+			 ((flonum-equal heading-from-whole 0.0)
+			  '((forward (*$ ,distance-from-whole size))))
+			 (t '((right ,heading-from-whole)
+			      (forward (*$ ,distance-from-whole size))
+			      (left ,heading-from-whole))))
+		 !,(cond ((not (flonum-equal relative-heading 0.0))
+			  '((right ,relative-heading))))))
+	(scale-factor (//$ (*$ scale part-size) whole-absolute-size)))
+       '(progn (thingup)
+	       ,how-to-get-to-part
+	       (let ((*director-turtle-scaling-factor 
+		      (*$ *director-turtle-scaling-factor size ,scale-factor)))
+		    ,how-to-get-to-center
+		    (pencolor (quote ,pen-color))
+		    (thingdown)
+		    ,drawing-form
+		    (thingup)
+		    (progn !,(reverse-display-list (rest how-to-get-to-center))))
+	       (progn !,(reverse-display-list (rest how-to-get-to-part))))))
+
+(define-form (reverse-display-list turtle-commands)
+ ;;assumes that only forward, back, right, left etc. are in the list 
+ (nreverse
+  (mapcar
+   (function (lambda (command)
+		     '(,(first command) ,(cond ((numberp (second command))
+						(minus (second command)))
+					       (t '(minus ,(second command)))))))
+   turtle-commands)))
+
+(define-method (when drawing use ?draw-procedure of %draw-args) performer
+ (help-comments
+  |learn how to draw myself using "draw-procedure" of my variables in "draw-args"|)
+ (ask myself set your draw-procedure to ,draw-procedure)
+ (cond ((not (internedp draw-procedure))
+	(ask myself add ,draw-procedure to your list of draw-procedures)))
+ (let* (((shape-args non-shape-args) (seperate-shape-args draw-args))
+	(appearance-variables (union '(how-to-draw colors) non-shape-args)))
+       (ask myself set your drawing-args to ,draw-args)
+       (ask myself set your non-shape-drawing-args to ,non-shape-args)
+       (ask myself set your appearance-variables to ,appearance-variables)
+       (ask myself set your variables-to-copy-upon-creation to
+	    ,(union appearance-variables
+		    (ask myself recall your variables-to-copy-upon-creation)))
+       (mapc
+	(function
+	 (lambda (shape-arg)
+		 (cond ((eq shape-arg 'size)) ;;already handled above
+		       (t (ask myself do when receiving (set your ,shape-arg to ?new-value)
+			       (do-old-behavior)
+			       (ask myself set your validity-of-how-to-draw to nil)
+			       new-value)))))
+	shape-args)
+       (mapc
+	(function
+	 (lambda (non-shape-arg)
+		 (ask myself do when receiving (set your ,non-shape-arg to ?new-value)
+		      (let ((how-to-draw (ask myself recall your how-to-draw)))
+			   (do-old-behavior)
+			   (ask myself set your how-to-draw to
+				,(comma
+				  (and how-to-draw
+				       (replace-nth 2 how-to-draw (make-inner-drawer))))))
+		     new-value)))
+	non-shape-args))
+ no-value)
+
+(define-form (seperate-shape-args draw-args)
+ ;;the non shape args (those that do not influence the shape, eg color) are one-long lists
+ (do ((i draw-args (rest i))
+      (shape-args nil)
+      (non-shape-args nil))
+     ((null i) (list (nreverse shape-args) (nreverse non-shape-args)))
+     (cond ((atom (first i)) (push (first i) shape-args))
+	   ((one-long (first i)) (push (first (first i)) non-shape-args))
+	   (t (push (first i) shape-args)))))
+
+(define-method (when drawing do %messages) performer
+ (help-comments |I figure out how I should look by secretly asking myself MESSAGES|
+		|with my pen temporarily down|)
+ (let ((original-state (ask myself recall your state))
+       (original-pen-state (ask myself recall your pen-state))
+       (original-pen-type (ask myself recall your pen-type)))
+      (unwind-protect
+	(let* ((display-package
+		(display-package '(ask ,myself do the following
+				       (set your pen-type to normal)
+				       (pen down)
+				       !,messages
+				       (keep doing until null tick))))
+	       (display-list (nreverse (get display-package 'display-list)))
+	       (draw-procedure-name (append-atoms 'draw- (name-of myself))))
+	      (cond (display-list
+		     (put-function-definition draw-procedure-name
+					      '(lambda (nil)
+						       !,display-list))
+		     (ask myself when drawing use ,draw-procedure-name of size))
+		    (t (warning myself
+				'(|No appearance results from running| ,messages)))))
+	(ask myself set your state to ,original-state)
+	(ask myself set your pen-state to ,original-pen-state)
+	(ask myself set your pen-type to ,original-pen-type))))
+
+(define-method (set your whole to ?whole) performer
+ (help-comments
+  |become a part of "whole" so that|
+  |if it changes its size, position, visibility, or heading "myself" is told about it|
+  |and "myself" reacts to such changes a straight-forward way|)
+ ;;default behavior for an performer to become part of another
+ (let ((old-whole (ask myself recall your whole)) ;;since "whole" is private
+       (visible (ask myself recall your visibility)))
+      (do-old-behavior) ;;do the stuff in something for becoming part of something else
+      (cond ((not (actor-eq (actor-of old-whole t) (actor-of whole t)))
+	     (cond (visible
+		    (ask ,whole add ,myself to your list of visible-parts)
+		    (ask ,whole set your visibility to t)))
+	     ;;if any of its parts are then it must be
+	     (ask-if-exists ,old-whole remove ,myself from your list of visible-parts)
+	     (ask myself set your visibility to nil)
+	     (ask myself set your size to
+		  ,(//$ (*$ 1000.0 (ask myself recall your absolute-size))
+			(ask ,whole recall your absolute-size)))
+	     (recompute-relative-state (ask myself recall your state)
+				       whole
+				       (ask ,whole recall your state))
+	     (cond (visible (ask myself set your visibility to t))))))
+ whole)
+
+
+(define-method (make ?interpolation-name interpolation to ?another-performer) performer
+ (help-comments
+  |create an interpolation from me to "another-performer" named "interpolation-name"|
+  |which initially is the average appearance of me and "another-performer"|
+  |and is controlable with its variable called "amount"|)
+  (let ((interpolation-drawer (append-atoms 'draw- interpolation-name))
+	(to-draw-self (draw-form (ask myself recall your how-to-draw)))
+	(to-draw-other (draw-form (ask ,another-performer recall your how-to-draw))))
+       ;;it is important for gc that interpolation-drawer not be interned
+       (putprop interpolation-drawer
+		'(lambda (size amount colors color-change-frequency)
+			 (display-interpolation (float amount)
+						colors
+						color-change-frequency
+						(quote
+						 ,(interpolate-two-calls to-draw-self
+									 to-draw-other))))
+		'expr)
+       (ask interpolation make ,interpolation-name)
+       (ask ,interpolation-name set your size to
+	    ,(integer-average '(,(ask myself recall your size)
+				,(ask ,another-performer recall your size))))
+       (ask ,interpolation-name when drawing use ,interpolation-drawer
+	    of size amount (colors) (color-change-frequency))
+       interpolation-name))
+
+(define-form (draw-form how-to-draw)
+ ;;a how-to-draw has the form quoted as its second arg
+ (second (third how-to-draw)))
+
+(define-method (unmake) performer
+ (help-comments |do the same thing as Something but also hide first|)
+ (and (do-old-behavior) ;;if really unmade
+      (cond ((ask myself recall your visibility)
+	     (ask myself hide)))))
+
+(define-method (save ?file-name) performer
+ (help-comments
+  |do same thing as Something but also save away the draw-procedure if necessary|)
+ (let ((visible? (ask myself recall your visibility)))
+      (and visible? (ask myself hide)) ;;dont want it to think its visible
+      (let ((compilation (do-old-behavior))
+	    (draw-procedures (ask myself recall your draw-procedures)))
+	   (and visible? (ask myself show))
+	   (cond (file-name
+		  (let ((file-object (open file-name 'append)))
+		       (mapc
+			#'(lambda (procedure)
+				  (defunize procedure
+					    (get-interpretive-definition procedure)
+					    file-object))
+			draw-procedures)
+		       (close file-object)))
+		 (t '(progn-compile ,compilation
+			    (mapcar
+			     #'(lambda (procedure)
+				       (defunize procedure
+						 (get-interpretive-definition procedure)))
+			     draw-procedures)))))))
+
+(define appearance something
+ (set your draw-mode to (pendown))
+ (set your erase-mode to (eraserdown)))
+
+(define-method (compile as function) appearance
+  (let ((display-code (rest (rest (ask myself recall method for display))))
+	;;the first two are skipped -- they are the pattern and the setup
+	(erase-code (rest (rest (ask myself recall method for erase)))))
+       (cond ((and (null display-code) (null erase-code))
+	      (shouldnt-happen 'compile-appearance
+			       '(,myself |does not know how to erase or display|)))
+	     ((or (equal display-code erase-code) (null erase-code))
+	       '(lambda nil !,display-code))
+	    (t '(lambda nil
+		       (cond (:penstate !,display-code)
+			     (:eraserstate !,erase-code)))))))
+
+(define-method (make appearance of ?performer) appearance
+ (let ((appearance (ask myself make))
+       (draw-procedures (ask ,performer recall your draw-procedures)))
+      (ask ,appearance do when receiving (erase)
+	   (appearance-setup-erase)
+	   !,(ask ,performer recall your (erase actions)))
+      (ask ,appearance do when receiving (display)
+	   (appearance-setup-draw)
+	   !,(ask ,performer recall your (display actions)))
+      (cond (draw-procedures (ask ,appearance set your draw-procedures to ,draw-procedures)))
+      appearance))
+
+(define-method-helper (appearance-setup-erase) performer
+ (penup)
+ (director-setturtle (ask myself recall your state))
+ (eval (ask myself recall your erase-mode)))
+
+(define-method-helper (appearance-setup-draw) performer
+ (penup)
+ (director-setturtle (ask myself recall your state))
+ (eval (ask myself recall your draw-mode)))
+
+(define-method (make an instance at ?state) appearance
+ (let ((appearance-and-state (ask myself make)))
+      (ask ,appearance-and-state set your state to ,state)
+      appearance-and-state))
+
+(define interpolation performer
+ (set your color-change-frequency to 99999999) ;;default never change the color
+ (set your amount to .5)) ;;initially it is by default half of each
+
+(define the-turtle something
+ (set your perform-or-recall to perform)) ;;by default perform actions not return them
+
+(define-method (perform %actions) the-turtle
+ (cond ((null actions) no-value) ;;nothing to do
+       ((eq (ask myself recall your perform-or-recall) 'recall) ;;just recalling the actions
+	(ask myself add (progn !,actions) to your list of actions-performed)
+	no-value)
+       (t (let ((stage-mode (ask stage recall your mode)))
+	       (cond ((eq stage-mode 'normal) (mapc 'eval actions) no-value)
+		     ((eq stage-mode 'silent) 'stage-is-silent)
+		     (t (shouldnt-happen
+			 'the-turtle
+			 '(|stage's mode is| ,stage-mode
+					     |but should be normal or silent|))))))))
+
+
+(defcomment stage) ;;for tags (since this was once its own file)
+ 
+;;this part defines the stage which provides an interface between actors and the tv display
+;;it relies heavily upon tvrtle
+
+(define stage performer
+ (make synonym screen) ;;to be compatible with the old naming scheme
+ (set your standardize-size? to nil)
+ (when drawing use draw-rectangle of height-of-screen width-of-screen)			
+ (set your mode to normal))
+
+(define-method (recall your width) stage
+ (first (tvsize)))
+
+(define-method (recall your height) stage
+ (second (tvsize)))
+
+(define-method (recall your height-of-screen) stage
+ (-$ (second (turtlesize)) (*$ 2.0 :tvstep)))
+
+(define-method (recall your width-of-screen) stage
+ (-$ (first (turtlesize)) (*$ 2.0 :tvstep)))
+
+(define-method (set your height to ?) stage
+ (ask stage forget your how-to-draw)
+ (tvsize (ask stage recall your width) (do-old-behavior))
+ (ask stage wipe))
+
+(define-method (set your width to ?) stage
+ (ask stage forget your how-to-draw)
+ (tvsize (do-old-behavior) (ask stage recall your height))
+ (ask stage wipe))
+
+(define-method (save stage) stage
+ (ask the-cast broadcast or ask your visible-parts create new appearance))
+
+(define-method (wipe) stage
+ (help-comments |clear the stage and then redisplay all the visible perfomers|)
+ (wipe)
+ (ask the-cast ask each of your visible-parts redisplay)
+ (ask the-trails show) ;;in case its not already
+ no-value)
+
+(define-form (director-wipe) 
+ (ask stage wipe))
+
+(define-synonym dwipe director-wipe)
+
+(define-method (clear) stage
+ (help-comments |clear the stage and make everybody hide that is visible|)
+ (director-clear-stage))
+
+(define-method-helper (director-clear-stage) performer
+ (clearscreen)
+ (let ((stage-visible (ask stage recall your visibility)))
+      (ask the-cast ask each of your visible-parts set your visibility to nil)
+      (ask the-cast set your visible-parts to nil)
+      (cond (stage-visible (ask stage show)))
+      (ask the-trails show)))
+
+(define-synonym dcs director-clear-stage)
+
+(define-method (start display) stage
+(help-comments |start up the display again and hide all visible performers|)
+ ;;restarts the display if it has gone bad
+ (director-startdisplay)
+ (director-clear-stage))
+
+(define-method (restart display) stage
+ (help-comments
+  |start up the display again and redisplay visible performers - to be used if tv is misbehaving|)
+ (director-startdisplay)
+ (director-wipe))
+
+
+(if-for-maclisp
+(sstatus ttyint 18. 'restore-stage-to-normal)	 ;; ctrl-r restores (or redisplays) the stage
+
+(define-method-helper (restore-stage-to-normal nil nil) stage
+  ;;takes two arguments but I don't care
+ (nointerrupt nil)
+ (ask stage set your mode to normal)
+ (ask stage wipe))
+
+(sstatus ttyint 1. 'hide-all-stage-activities)
+	 ;; ctrl-a makes it continue but not showing anything (hide)
+
+(define-method-helper (hide-all-stage-activities nil nil) stage
+ (nointerrupt nil)
+ (ask stage set your mode to silent))
+)
+
+(define the-trails performer)
+
+(define-method (set your visibility to nil) the-trails
+ (ask myself set your steps to nil)
+ (ask myself set your steps-since-last-appearance to nil))
+
+(define-method (moving from ?old-position to ?new-position with ?penstate) the-trails
+ (let ((trail-code '(progn (penup) (setturtle (quote ,old-position))
+			   ,penstate (setturtle (quote ,new-position)))))
+      (ask myself add ,trail-code to your list of steps regardless)
+      (ask myself add ,trail-code to your list of steps-since-last-appearance regardless)))
+
+(define-method ({or display redisplay}) the-trails
+ (mapc 'eval (ask myself recall your steps)))
+
+(define-method (erase) the-trails
+	       no-value)
+
+(define-method (create new appearance) the-trails
+ (let ((steps (ask myself recall your steps-since-last-appearance)))
+      (cond (steps
+	     (ask myself set your steps-since-last-appearance to nil)
+	     (let ((appearance (ask trail-appearance make)))
+		  (ask ,appearance do when receiving (display) !,steps)
+		  appearance))
+	    (t no-value))))
+
+(define trail-appearance appearance)
+
+(define-method (compile as function) trail-appearance
+ '(lambda nil
+	 !,(rest (ask myself recall method for display))))
+
+(define-method (erase) trail-appearance
+	       nil)
+
+(define-method-helper (the-compiler-isnt-compiling-the-first-helper-right) something
+ (ask myself print your nothing))

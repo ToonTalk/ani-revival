@@ -1,0 +1,1132 @@
+;; -*- lisp -*-
+
+;;this is the part of ani that contains the dope on display guys like change: or makes-fence
+
+(include |ai:ken;declare >| )
+
+(defcomment disply) ;;for tags
+
+(define display-method method)
+ ;;should handle prerequisite and best-when stuff like activity does
+
+(define-receiver (recall or estimate time for ?activity in ?subscene) display-method
+ ;;since it takes a while to estimae the time this memoizes it
+ (or (ask ,subscene recall your (time-estimates-for ,activity))
+     (ask ,subscene set your (time-estimates-for ,activity)
+	  to ,(ask :self estimate time for !,activity in ,subscene))))
+
+(define makes-fence display-method
+ (add prerequisite for (makes-fence ?who ?) (pen-down-for ,who))
+ (add prerequisite for (makes-fence ?who ?where) (can-move ,who ,where)))
+
+(define-receiver (estimate time for makes-fence ? ? in ?) makes-fence
+ '(time-estimates: ideal 10.0 ;;should really be lots smarter but ok for now
+		   least 3.0
+		   most 15.0))
+
+(define chases-to display-method)
+
+(define-receiver (estimate time for chases-to ?chaser ?chasee ?destination in ?subscene)
+		  chases-to
+ (minimum-ideal-time
+  (estimate-time-to-move-character chasee
+				   destination
+				   '(move-only-original-distance (quote ,subscene))
+				   (modify-dynamics-of-chasee chasee 1.0 subscene)
+				   subscene
+				   .33) ;;third of the screen good default distance
+  (add-to-estimates
+   .5 ;;starts a half second later
+   (estimate-time-to-move-character chaser
+				    destination ;;might be less but good enough
+				    '(move-only-original-distance (quote ,subscene))
+				    (modify-dynamics-of-chaser chaser 1.0 subscene)
+				    subscene
+				    .25))))
+
+
+(define-receiver (run chases-to ?chaser ?chasee ?destination in ?subscene stretched by ?factor)
+		 chases-to
+ ;;the chaser chases the chasee to the destination
+ (initial-locations-for-chases-to chaser chasee destination subscene)
+ (let ((chasee-modified-dynamics (modify-dynamics-of-chasee chasee factor subscene))
+       (chaser-modified-dynamics (modify-dynamics-of-chaser chaser factor subscene))
+       (chasee-runs-away-plan (plan-name-of 'chasee-runs-away))
+       (chaser-pursues-plan (plan-name-of 'chaser-pursues)))
+      (ask ,subscene
+	   add (and
+		,(move-character chasee-runs-away-plan 
+				 chasee
+				 destination
+				 'moving-target
+				 ;;should be interesting when the destination
+				 ;;is away from pursurer
+				 '(move-only-original-distance (quote ,subscene))
+				 0.0 ;;at beginning of subscene
+				 chasee-modified-dynamics
+				 'careful ;;of collisions
+				 subscene)
+		,(move-character chaser-pursues-plan
+				 chaser
+				 '(small-way-from-plus-size (vicinity-of ,chasee)
+							    (vicinity-of ,chaser)
+							    ,chasee)
+				 'moving-target
+				 '(stop-when-there-then
+				   (quote ,subscene)
+				   (stop-plan (quote ,chasee-runs-away-plan)))
+				 '(after (beginning-of ,chasee-runs-away-plan) .5)
+				 ;;starts a second after previous action starts
+				 chaser-modified-dynamics
+				 'regardless ;;of collisions
+				 subscene))
+	   to your list of movements))
+ (record-distance-estimates '(distance-between (vicinity-of ,chasee) (vicinity-of ,chaser))
+			    '(screen-fraction .2) ;;good estimate
+			    subscene))
+
+(define-function modify-dynamics-of-chasee (chasee factor subscene)
+ (multiply-speed-by-factor chasee (//$ 1.5 factor) subscene))
+
+(define-function modify-dynamics-of-chaser (chaser factor subscene)
+  (let ((new-dynamics (multiply-speed-by-factor chaser (//$ 1.4 factor) subscene)))
+       ;;move faster than usual and faster than the chasee
+       (ask ,new-dynamics set your path-curvature to low) ;;go straight
+       (ask ,new-dynamics set your path-jaggedness to low) ;;dont jag much
+       new-dynamics))
+
+(define-function initial-locations-for-chases-to (chaser chasee destination subscene)
+ (let ((chaser-located? (located? '(vicinity-of ,chaser) subscene))
+       (chasee-located? (located? '(vicinity-of ,chasee) subscene))
+       (destination-located? (located? destination subscene)))
+      (cond ((and chaser-located? chasee-located? destination-located?)) ;;nothing to do
+	    ((not destination-located?)
+	     (place-medium-distance-apart 'chases-to
+					       '(vicinity-of ,chaser)
+					       '(vicinity-of ,chasee)
+					       nil ;;any initial locations are fine
+					       subscene))
+	     ;;changed the location of chaser to be offstage if no cut (is this right?)
+	    (t (break cant-handle-yet-in-chases-to-intial-locs)))))
+
+
+(define move-to-and-hits display-method
+ (set your cycle-numbers to (3 10 7))) ;;least most and average number of cycles
+
+(define-receiver (estimate time for move-to-and-hits ?character ?victum in ?subscene)
+		 move-to-and-hits 
+ (let ((special-dynamics (special-dynamics-of character subscene)))
+      (estimate-time-for-cycles (ideal-time-for-hit-cycle character special-dynamics subscene)
+				(time-to-walk character ;;overhead
+					      '(contact-with ,victum by ,character)
+					      special-dynamics 
+					      subscene
+					      .33) ;;a third is no positioned
+				:self
+				special-dynamics)))
+
+(define-receiver (run move-to-and-hits ?character ?victum in ?subscene stretched by ?factor)
+		 move-to-and-hits 
+ (initial-locations-for-goes-to-and-hits character victum subscene)
+ (let ((special-dynamics (divide-speed-by-factor character (sqrt factor) subscene))
+       ;;sqrt since this is shared equally with the hitting cycle (almost...)
+       (go-to-plan (plan-name-of 'goes-to-to-hit)))
+      (ask ,subscene
+	   add (sequence:
+		,(move-character go-to-plan
+				 character
+				 '(contact-with ,victum by ,character)
+				 'moving-target
+				 '(stop-when-there (quote ,subscene))
+				 0.0 ;;start right away
+				 special-dynamics 
+				 'regardless ;;of collisions
+				 subscene)
+		(repeat ,(some-number-of-cycles :self (sqrt factor) special-dynamics)
+			,(hitting-cycle character victum special-dynamics subscene)))
+	   to your list of movements))
+ (record-distance-estimates '(distance-between (vicinity-of ,character) (vicinity-of ,victum))
+			    '(screen-fraction .15)
+			    subscene))
+
+(define-function hitting-cycle (character victum special-dynamics subscene)
+ (let ((hit-plan (plan-name-of 'hitting-other)))
+      (ask ,subscene
+	   add (hit ,victum by ,character using ,special-dynamics called ,hit-plan)
+	   to your list of (actions-of ,character))
+      hit-plan))
+
+(define-function ideal-time-for-hit-cycle (character special-dynamics subscene)
+ (*$ 2.0 (time-to-walk character .075 special-dynamics subscene)))
+
+(define-function initial-locations-for-goes-to-and-hits (character victum subscene)
+ (place-medium-distance-apart 'goes-to-and-hits
+			      '(vicinity-of ,character)
+			      '(vicinity-of ,victum)
+			      nil ;;dont cut regardless
+			      subscene))
+
+(define goes-to-and-accompanys display-method) 
+
+(define-receiver (estimate time for goes-to-and-accompanys ?character ? ?place in ?subscene)
+		 goes-to-and-accompanys
+ (minimum-ideal-time ;;either they time out or get to the destination
+  '(time-estimates: ideal 10.0 ;;this is ok since they walk together until timing out
+		    least 3.0
+		    most 25.0)
+  (add-to-estimates
+   2.0 ;;a second to get together and a second of waiting (minimum)
+   (estimate-time-to-move-character character
+				    place
+				    '(move-only-original-distance (quote ,subscene))
+				    (multiply-speed-by-factor character .8 subscene)
+				    subscene
+				   .33))))
+
+(define-receiver (run goes-to-and-accompanys ?character ?friend ?place in ?subscene
+		      stretched by ?factor)
+		 goes-to-and-accompanys
+ (initial-locations-for-goes-to-and-accompanies character friend subscene)
+ (let ((special-dynamics (divide-speed-by-factor character factor subscene))
+       (friends-special-dynamics (divide-speed-by-factor friend factor subscene))
+       (get-on-stage-plan (activity-name-of 'getting-on-stage))
+       (go-to-plan (activity-name-of 'goes-to-to-accompany))
+       (accompany-plan (activity-name-of 'accompanying-each-other)))
+      (move-character get-on-stage-plan
+		      friend
+		      '(on-stage-near ,friend (vicinity-of ,character))
+		      'stationary-target
+		      '(stop-when-there (quote ,subscene))
+		      0.0 ;;start right away
+		      friends-special-dynamics ;;no need to do anything special here
+		      'careful ;;of collisions
+		      subscene)
+      (move-character go-to-plan
+		      character
+		      '(contact-with ,friend by ,character)
+		      'moving-target
+		      '(stop-when-there-then (quote ,subscene)
+					     (stop-plan (quote ,get-on-stage-plan)))
+		      0.5 ;;start half a second after it begins
+		      special-dynamics ;;no need to do anything special here
+		      'careful ;;of collisions
+		      subscene)
+      (move-characters accompany-plan
+		       character
+		       friend
+		       place
+		       'stationary-target
+		       '(stop-if-either-wants-to
+			 (stop-after-so-many-seconds ;;one second min for the other stuff
+			  ,(-$ (ask ,subscene recall your running-time) 1.0))
+			 (stop-when-there (quote ,subscene)))
+		       ;;from the beginning of the subscene to the end
+		       '(after (end-of ,go-to-plan) .5)
+		       ;;half a second later start it
+		       (multiply-dynamics-by-factor special-dynamics .8)
+		       'careful ;;of collisions but not themselves of course
+		       subscene)
+      (ask ,subscene add (and ,get-on-stage-plan ,go-to-plan ,accompany-plan)
+	   to your list of movements))
+ (record-distance-estimates '(distance-between (vicinity-of ,character) (vicinity-of ,friend))
+			    '(screen-fraction .05)
+			    subscene))
+
+(define-function initial-locations-for-goes-to-and-accompanies (character friend subscene)
+ (place-medium-distance-apart 'goes-to-and-accompanies
+			      '(vicinity-of ,character)
+			      '(vicinity-of ,friend)
+			      nil ;;no need to cut
+			      subscene))
+
+
+(define pushes-around display-method
+ (set your cycle-numbers to (1 6 3))) ;;least, most and ideal
+
+
+(define-receiver (run pushes-around ?pusher ?pushee in ?subscene stretched by ?factor)
+		 pushes-around
+ ;;pusher comes in contact with pushee and they move together a short distance 
+ ;;then the pusher stops first and then soon after the pushee does and then it all
+ ;;is repeated a few times
+ (initial-locations-for-pushes-around pusher pushee subscene)
+ ;;sqrt to split between repeat and speed
+ (let ((pusher-special-dynamics (divide-speed-by-factor pusher (sqrt factor) subscene))
+       (pushee-special-dynamics (divide-speed-by-factor pushee (sqrt factor) subscene)))
+      (let ((push-cycle
+	     (plan-pushes-around-cycle pusher pusher-special-dynamics 
+				       pushee pushee-special-dynamics
+				       subscene)))
+	   (ask ,subscene
+		add (repeat ,(some-number-of-cycles :self
+						    (sqrt factor)
+						    pushee-special-dynamics)
+			    ,push-cycle)
+		to your list of movements))
+      (record-distance-estimates
+       '(distance-between (vicinity-of ,pusher) (vicinity-of ,pushee))
+       '(screen-fraction .3)
+       subscene)))
+
+(define-function plan-pushes-around-cycle (pusher pusher-special-dynamics pushee
+                                           pushee-special-dynamics subscene)
+ (let ((pusher-comes-in-contact-plan (activity-name-of 'pusher-comes-in-contact))
+       (pushes-plan (activity-name-of 'moving-together))
+       (pushee-coasts-plan (activity-name-of 'pushee-coasts))
+       (pushee-moves-away-plan (activity-name-of 'pushee-moves-away)))
+      (move-character pusher-comes-in-contact-plan
+		      pusher
+		      '(contact-with ,pushee by ,pusher)
+		      'moving-target
+		      '(stop-when-there (quote ,subscene))
+		      0.5
+		      (let ((new-dynamics ;;move faster than usual
+			     (multiply-dynamics-by-factor pusher-special-dynamics 1.5)))
+			   (ask ,new-dynamics set your path-curvature to low) ;;pretty direct
+			   new-dynamics)
+		      'regardless ;;of collisions
+		      subscene)
+      (move-characters pushes-plan
+		       pusher
+		       pushee
+		       '(distance-towards-from (vicinity-of ,pusher)
+					       (vicinity-of ,pushee)
+					       .134)
+		       'stationary-target
+		       '(stop-when-there (quote ,subscene))
+		       '(after (end-of ,pusher-comes-in-contact-plan) .05)
+		       ;;no pause important according to Michotte
+		       (multiply-dynamics-by-factor pusher-special-dynamics .9)
+		       ;;slower to push
+		       'careful ;;of collisions
+		       subscene)
+      (move-character pushee-coasts-plan 
+		      pushee
+		      '(distance-away-from (vicinity-of ,pushee)
+					   (vicinity-of ,pusher)
+					   .1)
+		      'stationary-target
+		      '(stop-when-there (quote ,subscene))
+		      '(after (end-of ,pushes-plan) 0.05)
+		      ;;no pause important according to Michotte
+		      (multiply-dynamics-by-factor pusher-special-dynamics .8)
+		      ;;still others dynamics are used
+		      'careful ;;of collisions
+		      subscene)
+      (move-character pushee-moves-away-plan
+		      pushee
+		      '(a-small-distance-away-from-and-towards-center
+			(vicinity-of ,pushee) ;;self
+			(vicinity-of ,pusher))
+		      'stationary-target
+		      '(stop-when-there (quote ,subscene))
+		      '(after (end-of ,pushee-coasts-plan) 0.0) ;;right after previous activity
+		      pushee-special-dynamics
+		      'careful
+		      subscene)
+      '(and ,pusher-comes-in-contact-plan ,pushes-plan
+	    ,pushee-coasts-plan ,pushee-moves-away-plan)))
+
+(define-function initial-locations-for-pushes-around (pusher pushee subscene)
+ ;;changed this for the pusher when no cut from onstage to ofstage (is this right?)
+ (place-medium-distance-apart 'pushes-around
+			      '(vicinity-of ,pusher)
+			      '(vicinity-of ,pushee)
+			      nil ;;dont cut
+			      subscene))
+
+(define-receiver (estimate time for pushes-around ?pusher ?pushee in ?subscene)
+		 pushes-around
+ (let ((pusher-dynamics (special-dynamics-of pusher subscene))
+       (pushee-dynamics (special-dynamics-of pushee subscene)))
+      (estimate-time-for-cycles
+       (ideal-time-for-pushes-cycle pusher pusher-dynamics pushee pushee-dynamics subscene)
+       (time-to-walk pusher ;;overhead on first contact
+		     '(contact-with ,pushee by ,pusher)
+		     pusher-dynamics
+		     subscene
+		     .25)
+       :self
+       pusher-dynamics)))
+
+(define-function ideal-time-for-pushes-cycle 
+		 (pusher pusher-dynamics pushee pushee-dynamics subscene)
+ ;;pusher's speed etc is used since pushee is moved using pushers dynamics
+ (+$ (time-to-walk pusher ;;for contact
+		   .1
+		   (multiply-dynamics-by-factor pusher-dynamics 1.5)
+		   subscene)
+     (time-to-walk pusher ;;pushing itself
+		   .134
+		   (multiply-dynamics-by-factor pusher-dynamics .9)
+		   subscene)
+     (time-to-walk pusher 
+		   .1
+		   (multiply-dynamics-by-factor pusher-dynamics .8)
+		   subscene)
+     (time-to-walk pushee ;;heading away
+		   .25
+		   pushee-dynamics
+		   subscene)
+     .5)) ;;wait at start
+
+
+(define stands-guard display-method 
+ (add prerequisite for (stands-guard ?guard ?who ?) (faster ,guard ,who))
+ (add prerequisite for (stands-guard ?guard ? ?where) (can-move ,guard ,where))
+ (add best-when for (stands-guard ?guard ?who ?) (dominates ,guard ,who))
+ (set your cycle-numbers to (2 6 3))) ;;least, most and average
+
+(define-receiver (yield undoing suggestions for
+			{and ?task
+			     (convey
+			      (undoes ?who
+				      (stands-guard ?guard ?prisoner ?place)))})
+		 stands-guard
+ '((suggestion: element ,task
+		value (method: type display
+			       value (chases-to ,who ,guard 
+						(good-distance-from-and-offstage ,place))
+			       best-when ((dominates ,who ,guard)))
+		strength high
+		source stands-guard)
+   (suggestion: element ,task
+		value (method: type convey
+			       value (kills ,who ,guard)
+			       best-when ((dominates ,who ,guard)
+					  (hates ,who ,guard)
+					  (evil ,who)))
+		strength high
+		source stands-guard)
+   (suggestion: element ,task
+		value (method: type display
+			       value (goes-to-and-accompanys
+				      ,who ,prisoner
+				      (away-from (vicinity-of ,prisoner) ,place))
+			       best-when ((likes ,who ,prisoner)))
+		strength medium
+		source stands-guard)
+   (suggestion: element ,task
+		value (method: type display ;;slightly recursive
+			       value (stands-guard ,who ,guard
+						   (away-from (vicinity-of ,guard)
+							      (vicinity-of ,prisoner)))
+			       best-when ((dominates ,who ,guard)
+					  (faster ,who ,guard)))
+		strength medium
+		source stands-guard)))
+
+(define-receiver (run stands-guard ?guard ?prisoner ?place in ?subscene stretched by ?factor)
+		 stands-guard
+ (initial-locations-for-standing-guard guard prisoner place subscene)
+ (let ((guard-special-dynamics
+	(multiply-dynamics-by-factor (guard-special-dynamics guard subscene)
+				     (//$ (sqrt factor))))
+       (prisoner-special-dynamics
+	(multiply-dynamics-by-factor (prisoner-special-dynamics prisoner subscene)
+				      (//$ (sqrt factor)))))
+      ;;the guard will keep the prisoner within place by moving to stop any escape
+      ;;if the place is away from another then if that other isn't busy will walk by
+      (let ((guard-cycle (plan-stands-guard-cycle guard guard-special-dynamics
+						  prisoner prisoner-special-dynamics
+						  place
+						  subscene))
+	    (move-place (move-place-being-guarded-if-can guard prisoner place subscene)))
+	   (ask ,subscene
+		add (repeat ,(some-number-of-cycles :self (sqrt factor) guard-special-dynamics)
+			    ,guard-cycle then !,(stop-plan move-place))
+		     to your list of movements)
+	   (ask ,subscene add ,move-place to your list of movements)))
+ (record-distance-estimates '(distance-between (vicinity-of ,guard) (vicinity-of ,prisoner))
+			    '(screen-fraction .25)
+			    subscene))
+
+(define-function prisoner-special-dynamics (prisoner subscene)
+ ;;the prisoner and the guard both move fast only the guard is 1.5 times faster
+ (let ((special-dynamics (special-dynamics-of prisoner subscene)))
+      (ask ,special-dynamics set your speed to high)
+      (ask ,special-dynamics set your (path-curvature factor) to .5) ;;more direct
+      special-dynamics))
+
+(define-function guard-special-dynamics (guard subscene)
+ ;;the prisoner and the guard both move fast only the guard is 1.5 times faster
+ (let ((special-dynamics (special-dynamics-of guard subscene)))
+      (ask ,special-dynamics set your speed to high)
+      (ask ,special-dynamics set your (path-curvature factor) to .5) ;;more direct
+      special-dynamics))
+
+
+(define-function plan-stands-guard-cycle 
+ (guard guard-special-dynamics prisoner prisoner-special-dynamics place subscene)
+ (let ((prisoner-escapes-plan (activity-name-of 'prisoner-escapes))
+       (guard-chases-plan (activity-name-of 'guard-chases))
+       (prisoner-escapes-again-plan (activity-name-of 'prisoner-escapes-again-plan))
+       (resume-guard-plan (activity-name-of 'resume-guard)))
+      (move-character prisoner-escapes-plan
+		      prisoner
+		      '(away-from (vicinity-of ,prisoner) ,place)
+		      'moving-target
+		      '(move-only-original-distance (quote ,subscene))
+		      ;;should be stopped by step-mother
+		      0.0 ;;at beginning of subscene
+		      (multiply-dynamics-by-factor prisoner-special-dynamics .67)
+		      'careful ;;of collisions
+		      subscene)
+      (move-character guard-chases-plan
+		      guard
+		      '(small-way-from-plus-size (vicinity-of ,prisoner)
+						 (away-from (vicinity-of ,prisoner) ,place)
+						 ,prisoner)
+		      'moving-target
+		      ;;stop the prisoner escape plan when this guy stops
+		      '(stop-when-there-then (quote ,subscene)
+					     (stop-plan (quote ,prisoner-escapes-plan)))
+		      .75 ;;start 3/4 second after previous action
+		      (multiply-dynamics-by-factor guard-special-dynamics 1.4)
+		      ;;move faster than usual and faster than the prisoner
+		      'regardless ;;of collisions
+		      subscene)
+      (move-character prisoner-escapes-again-plan
+		      prisoner  ;;if can moves away from goal of place (ie if moving)
+		      '(away-from (vicinity-of ,prisoner) (current-goal-of ,place))
+		      ;;if place has no goal then the place itself
+		      'moving-target
+		      '(move-only-original-distance (quote ,subscene))
+		      '(after (end-of ,guard-chases-plan) .5)
+		      ;;wait a second before trying it
+		      (multiply-dynamics-by-factor prisoner-special-dynamics .5) 
+		      'careful ;;of collisions
+		      subscene)
+      (move-character resume-guard-plan
+		      guard
+		      '(small-way-from-plus-size (vicinity-of ,prisoner)
+						 (current-goal-of ,prisoner)
+						 ,prisoner)
+		      'moving-target
+		      ;;stop the prisoner escape plan when this guy stops
+		      '(stop-when-moved-original-distance-then
+			(quote ,subscene)
+			(stop-plan (quote ,prisoner-escapes-again-plan)))
+		      '(after (end-of ,guard-chases-plan) 1.25)
+		      ;;3/4 a second later
+		      (multiply-dynamics-by-factor guard-special-dynamics 1.6)
+		      'regardless ;;of collisions
+		      subscene)
+      '(and ,prisoner-escapes-plan ,guard-chases-plan
+	    ,prisoner-escapes-again-plan ,resume-guard-plan)))
+
+
+(define-function move-place-being-guarded-if-can (guard prisoner place subscene)
+ (cond ((and (eq (first place) 'away-from)
+	     (eq-many 'vicinity-of (first (second place)) (first (third place))))
+	(let ((character-1 (second (second place)))
+	      (character-2 (second (third place))))
+	     (cond ((not (or (eq character-1 guard) (eq character-1 prisoner)))
+		    (move-character-in-place-guarded character-1
+						     character-2
+						     subscene))
+		   ((not (or (eq character-2 guard) (eq character-2 prisoner)))
+		    (move-character-in-place-guarded character-2
+						     character-1
+						     subscene)))))))
+
+(define-function move-character-in-place-guarded (character other-character subscene)
+ (cond ((ask ,subscene recall your (actions-of ,character)) nil)
+       ;;do nothing if something planned already for it
+       (t (let ((special-dynamics
+		 (ask ,(special-dynamics-of character subscene) make interned offspring)))
+	       (ask ,special-dynamics
+		    add (or :old-value
+			    (ask ,special-dynamics
+				 set speed so that it takes ,character 
+				 (ask ,subscene recall your running-time) seconds to go to
+				 (far-from-both (vicinity-of ,character)
+						(vicinity-of ,other-character))
+				 in ,subscene))
+		    to your list of ((speed factor) actions-if-recalling))
+	       (move-character 'make-guarding-more-interesting
+			       character
+			       '(far-from-both (vicinity-of ,character)
+					       (vicinity-of ,other-character))
+			       'stationary-target ;;not to notice the others
+			       '(move-only-original-distance (quote ,subscene))
+			       0.0 ;;happens while the rest do
+			       special-dynamics
+			       'careful ;;of collisions
+			       subscene)))))
+
+(define-function initial-locations-for-standing-guard (guard prisoner place subscene)
+ ;;this does not use the general mechanism since there are three places to deal with
+ (let ((guard-located? (located? '(vicinity-of ,guard) subscene))
+       (prisoner-located? (located? '(vicinity-of ,prisoner) subscene))
+       (place-located? (located? place subscene))
+       (cut? (eq (ask ,subscene recall your transition-type) 'cut)))
+      (cond ((and guard-located? prisoner-located? place-located?)) ;;nothing to do
+	    ((and (not guard-located?) prisoner-located?)
+	     (pick-location-for guard
+				(cond (cut?
+				       '(small-distance (vicinity-of ,prisoner)))
+				      (t '(small-distance-and-offstage
+					   (vicinity-of ,prisoner))))
+				'(must-stand-guard ,prisoner ,place)
+				subscene))
+	    ((and place-located? (not prisoner-located?))
+	     (pick-location-for prisoner
+				(cond (cut? '(large-distance ,place))
+				      (t '(large-distance-and-offstage ,place)))
+				'(must-be-guarded-from ,place)
+				subscene))
+	    (place-located? ;;and not the others
+	     (pick-location-for guard
+				'(small-distance-and-within-region (vicinity-of ,prisoner)
+								   ,place)
+				'(so-that
+				  (not (small-distance?
+					(distance-between (quote (vicinty-of ,guard))
+							  (quote (vicinty-of ,prisoner))
+							  (quote ,subscene)))))
+				subscene))
+	    (t (break cant-handle-location-picking-in-standing-guard)))))
+
+
+(define-receiver (estimate time for stands-guard ?guard ? ? in ?subscene)
+		 stands-guard
+ (let ((guard-special-dynamics (guard-special-dynamics guard subscene)))
+      (estimate-time-for-cycles (ideal-time-for-guard-cycle guard guard-special-dynamics
+							    subscene)
+				1.0 ;;add a second to all the estimates for end of it all
+				:self
+				guard-special-dynamics)))
+;;guard is more in control than prisoner so...
+
+
+(define-function ideal-time-for-guard-cycle (guard guard-special-dynamics subscene)
+ ;; the first (third) part is over when the guard finishes since the prisoner is not 
+ ;; supposed to suceed 
+ (+$ (time-to-walk guard ;;for escape attempt
+		   .25 ;;is a quarter of the screen reasonable?
+		   (multiply-dynamics-by-factor guard-special-dynamics 1.6)
+		   subscene)
+     (time-to-walk guard
+		   .25
+		   (multiply-dynamics-by-factor guard-special-dynamics 1.4)
+		   subscene)
+     2.0)) ;;waiting, overhead in pauses, easing in/out and avoiding others
+
+
+(define chases-off display-method
+ ;;maybe this should use the chases-to method with a spirally out kind of destination
+ (add prerequisite for (chases-off ?chaser ?chasee) (faster ,chaser ,chasee))
+ (add best-when for (chases-off ?chaser ?chasee) (stronger ,chaser ,chasee))
+ (add best-when for (chases-off ?chaser ?chasee) (bigger ,chaser ,chasee)))
+
+;;should fix up the following:
+(define-receiver (estimate time for chases-off ? ? in ?) chases-off
+ '(time-estimates: ideal 15.0
+		   least 5.0
+		   most 30.0))
+
+(define move-to-each-other display-method
+ (add prerequisite for (move-to-each-other ?character-1 ?character-2)
+                       (can-move ,character-1 (vicinity-of ,character-2)))
+ (add prerequisite for (move-to-each-other ?character-1 ?character-2)
+                       (can-move ,character-2 (vicinity-of ,character-1))))
+
+(define-receiver (estimate time for move-to-each-other ?character-1 ?character-2
+			   in ?subscene)
+		 move-to-each-other
+ (let ((time-to-walk-1 (time-to-walk character-1
+				     .75
+				     (special-dynamics-of character-1 subscene)
+				     subscene))
+       (time-to-walk-2 (time-to-walk character-2
+				     .75
+				     (special-dynamics-of character-2 subscene)
+				     subscene)))
+      (let ((minimum (min time-to-walk-1 time-to-walk-2))
+	    (maximum (max time-to-walk-1 time-to-walk-2)))
+	   (let ((ideal (*$ minimum (//$ maximum (+$ minimum maximum)))))
+		'(time-estimates: ideal ,ideal
+				  least ,(*$ ideal .4)
+				  most ,(*$ ideal 3.0))))))
+
+(define-receiver (run move-to-each-other ?character-1 ?character-2
+		      in ?subscene stretched by ?factor)
+		 move-to-each-other
+ (initial-locations-for-move-to-each-other character-1 character-2 subscene)
+ (let ((move-1 (activity-name-of 'moving-towards-each-other))
+       (move-2 (activity-name-of 'moving-towards-each-other)))
+      (move-character move-1
+		      character-1
+		      '(contact-with ,character-2 by ,character-1)
+		      'moving-target
+		      '(stop-when-there-then (quote ,subscene)
+					     (stop-plan (quote ,move-2))) ;;stop the other
+		      0.0 ;;start right away
+		      (divide-speed-by-factor character-1 factor subscene)
+		      'careful 
+		      subscene)
+      (move-character move-2
+		      character-2
+		      '(contact-with ,character-1 by ,character-2)
+		      'moving-target
+		      '(stop-when-there-then (quote ,subscene)
+					     (stop-plan (quote ,move-1)))
+		      0.0 ;;start right away
+		      (divide-speed-by-factor character-2 factor subscene)
+		      'careful
+		      subscene)
+      (ask ,subscene add (and ,move-1 ,move-2) to your list of movements))
+ (record-distance-estimates
+  '(distance-between (vicinity-of ,character-1) (vicinity-of ,character-2))
+  '(screen-fraction .3)
+  subscene))
+
+
+(define-function initial-locations-for-move-to-each-other (character-1 character-2 subscene)
+ (place-large-distance-apart 'move-to-each-other
+			     '(vicinity-of ,character-1)
+			     '(vicinity-of ,character-2)
+			     '(small) ;;if small distance apart then cut
+			     subscene))
+
+
+(define move-small-part-towards display-method
+ (add prerequisite for (move-small-part-towards ?who ?where)
+                       (can-move ,who (small-way-between (vicinity-of ,who) ,where))))
+
+(define-receiver (estimate time for move-small-part-towards ?character ?place in ?subscene)
+		 move-small-part-towards
+ (estimate-time-to-move-character character
+				  '(small-way-from (vicinity-of ,character) ,place)
+				  '(move-only-original-distance)
+				  (special-dynamics-of character subscene)
+				  subscene
+				  .15))
+
+(define-receiver (run move-small-part-towards ?character ?place
+		      in ?subscene stretched by ?factor)
+		 move-small-part-towards
+ (initial-locations-for-move-small-part-towards character place subscene)
+ (move-character 'moving-small-part-towards
+		 character
+		 '(small-way-from (vicinity-of ,character) ,place)
+		 'moving-target
+		 '(move-only-original-distance (quote ,subscene))
+		 0.0 ;;start at beginning of subscene
+		 (divide-speed-by-factor character factor subscene)
+		 'careful ;;of collisions
+		 subscene))
+
+(define-function initial-locations-for-move-small-part-towards (character place subscene)
+ (place-large-distance-apart 'move-small-part-towards
+			     '(vicinity-of ,character)
+			     place
+			     '(small) ;;if small distance apart then cut
+			     subscene))
+
+(define repeatedly-come-in-contact display-method
+ (set your cycle-numbers to (2 7 3)))
+
+(define-receiver (estimate time for repeatedly-come-in-contact ?character-1 ?character-2
+			   in ?subscene)
+		 repeatedly-come-in-contact
+ (let (((slower-character slower-dynamics)
+	(slower-character+dynamics character-1 character-2 subscene)))
+      (let ((ideal-time-for-contact-cycle
+	     (ideal-time-for-contact-cycle slower-character slower-dynamics subscene)))
+	   (estimate-time-for-cycles
+	    ideal-time-for-contact-cycle
+	    (+$ (time-to-walk character-1 ;;either character
+			      '(half-way-between (vicinity-of ,character-1)
+						 (vicinity-of ,character-2))
+			      slower-dynamics
+			      subscene
+			      .33)
+		ideal-time-for-contact-cycle)
+	    ;;for the last comming together which is at half speed but only half a cycle
+	    :self
+	    slower-dynamics))))
+
+(define-function ideal-time-for-contact-cycle (character special-dynamics subscene)
+ ;;each cycle it goes back and forth .075 so .3 is fine (average speed modification is .5)
+ (+$ 1.0 ;;for the wait after contact
+     (time-to-walk character
+		   .2 ;;on the average the slower character will be stopped before completing
+		   special-dynamics
+		   subscene)))
+
+(define-receiver (run repeatedly-come-in-contact ?character-1 ?character-2
+		      in ?subscene stretched by ?factor)
+		 repeatedly-come-in-contact
+ ;;this displays the two characters repeatedly moving in contact and then apart
+ (initial-locations-for-coming-in-contact character-1 character-2 subscene)
+ (let ((special-dynamics-1 (divide-speed-by-factor character-1 (sqrt factor) subscene))
+       (special-dynamics-2 (divide-speed-by-factor character-2 (sqrt factor) subscene)))
+      (let ((move-together-plans
+	     (move-together-cycle character-1 character-2
+				  special-dynamics-1 special-dynamics-2
+				  subscene))
+	    (move-together-half-speed-plans
+	     (move-together-cycle character-1 character-2
+				  (multiply-dynamics-by-factor special-dynamics-1 .5)
+				  (multiply-dynamics-by-factor special-dynamics-2 .5)
+				  subscene))
+	    (move-apart-plans
+	     (move-apart-a-bit character-1 character-2
+			       special-dynamics-1 special-dynamics-2 subscene)))
+	   (ask ,subscene
+		add (sequence:
+		     (repeat ,(some-number-of-cycles :self (sqrt factor) special-dynamics-1)
+			     (sequence: ,move-together-plans ,move-apart-plans))
+		     ,move-together-half-speed-plans)
+		to your list of movements)))
+ (record-distance-estimates
+  '(distance-between (vicinity-of ,character-1) (vicinity-of ,character-2))
+  '(screen-fraction .2)
+  subscene))
+
+
+(define-function move-together-cycle (character-1 character-2
+				     special-dynamics-1 special-dynamics-2 subscene)
+ '(and
+   ,(move-character 'goes-to-contact-other
+		    character-1
+		    '(contact-with ,character-2 by ,character-1)
+		    'moving-target
+		    '(stop-when-there (quote ,subscene))
+		    0.0 ;;dont wait
+		    (modify-special-dynamics-for-contact special-dynamics-1)
+		    'regardless ;;of collisions since want to meet
+		    subscene)
+   ,(move-character 'goes-to-contact-other
+		    character-2
+		    '(contact-with ,character-1 by ,character-2)
+		    'moving-target
+		    '(stop-when-there (quote ,subscene))
+		    0.0 ;;dont wait
+		    (modify-special-dynamics-for-contact special-dynamics-2)
+		    'regardless ;;of collisions since want to meet
+		    subscene)))
+
+(define-function move-apart-a-bit (character-1 character-2
+				   special-dynamics-1 special-dynamics-2 subscene)
+ (let ((move-apart-1 (activity-name-of 'move-apart-a-little))
+       (move-apart-2 (activity-name-of 'move-apart-a-little)))
+      '(and
+	,(move-character move-apart-1
+			 character-1
+			 '(a-little-bit-away-from (vicinity-of ,character-1)
+						  (vicinity-of ,character-2))
+			 'stationary-target
+			 '(stop-when-moved-original-distance-then 
+			   (quote ,subscene)
+			   (stop-plan (quote ,move-apart-2)))
+			 1.0 ;;stay together a second
+			 (modify-special-dynamics-for-move-apart special-dynamics-1)
+			 'careful
+			 subscene)
+	,(move-character move-apart-2
+			 character-2
+			 '(a-little-bit-away-from (vicinity-of ,character-2)
+						  (vicinity-of ,character-1))
+			 'stationary-target
+			 '(stop-when-moved-original-distance-then 
+			   (quote ,subscene)
+			   (stop-plan (quote ,move-apart-1)))	
+			 1.0
+			 (modify-special-dynamics-for-move-apart special-dynamics-2)
+			 'careful
+			 subscene))))
+
+
+(define-function modify-special-dynamics-for-contact (special-dynamics)
+		  ;;they move together slowly
+  (let ((new-special-dynamics (multiply-dynamics-by-factor special-dynamics .7)))
+       (ask ,new-special-dynamics set your path-curvature to low)
+       new-special-dynamics))
+
+
+(define-function modify-special-dynamics-for-move-apart (special-dynamics)
+		 ;;they move together slowly
+  (let ((new-special-dynamics (multiply-dynamics-by-factor special-dynamics .3)))
+       ;;even slower since they are reluctant
+       (ask ,new-special-dynamics set your path-curvature to medium)
+       new-special-dynamics))
+
+(define-function initial-locations-for-coming-in-contact (character-1 character-2 subscene)
+ (place-medium-distance-apart 'repeatedly-come-in-contact
+			      '(vicinity-of ,character-1)
+			      '(vicinity-of ,character-2)
+			      nil ;;dont need to cut
+			      subscene))
+
+(define alternately-turn display-method
+ (set your cycle-numbers to (2 12 6)))
+;;this turns the first character 60 degrees (ideally) then back again then the second character
+
+(define-receiver (estimate time for alternately-turn ?character-1 ?character-2 in ?subscene)
+		 alternately-turn 
+ (let ((special-dynamics-1 (special-dynamics-of character-1 subscene))
+       (special-dynamics-2 (special-dynamics-of character-2 subscene)))
+      (estimate-time-for-cycles
+       (ideal-time-for-turn-cycle special-dynamics-1 special-dynamics-2)
+       0.0 ;;no overhead
+       :self
+       special-dynamics-1
+       special-dynamics-2)))
+
+
+(define-function ideal-time-for-turn-cycle (special-dynamics-1 special-dynamics-2)
+ (*$ 2.0 ;;since it happens twice
+     (+$ (time-to-turn-character special-dynamics-1 60.0)
+	 (time-to-turn-character special-dynamics-2 60.0))))
+
+(define-receiver (run alternately-turn ?character-1 ?character-2
+		      in ?subscene stretched by ?factor)
+		 alternately-turn
+ ;;for now dont worry about initial locations though it should I suppose
+ (let ((new-factor (expt factor .3333))) ;;will be distributed between three things
+      ;;the speed, the number of repeats and the amount of the turn
+      (let ((special-dynamics-1 (divide-speed-by-factor character-1 new-factor subscene))
+	    (special-dynamics-2 (divide-speed-by-factor character-2 new-factor subscene)))
+	   (ask ,subscene
+		add (repeat ,(some-number-of-cycles :self
+						    new-factor
+						    special-dynamics-1
+						    special-dynamics-2)
+			    ,(alternately-turn-cycle character-1
+						     special-dynamics-1
+						     character-2
+						     special-dynamics-2
+						     new-factor
+						     subscene))
+		to your list of movements)))
+ (record-distance-estimates
+  '(distance-between (vicinity-of ,character-1) (vicinity-of ,character-2))
+  '(screen-fraction .2)
+  subscene))
+
+(define-function alternately-turn-cycle (character-1 special-dynamics-1
+                                         character-2 special-dynamics-2 factor subscene)
+ (let ((turn-1 (plan-name-of 'turn-character))
+       (turn-2 (plan-name-of 'turn-character))
+       (turn-back-1 (plan-name-of 'turn-character-back))
+       (turn-back-2 (plan-name-of 'turn-character-back)))
+      '(sequence:
+	,(turn-character turn-1
+			 character-1
+			 (*$ 60.0 factor) ;;ideally 60 degrees
+			 0.0 ;;start right away
+			 '(stop-when-turned (quote ,subscene))
+			 special-dynamics-1
+			 subscene)
+	,(turn-character turn-2
+			 character-2
+			 (*$ 60.0 factor) ;;ideally 60 degrees
+			 0.0 ;;start right away
+			 '(stop-when-turned (quote ,subscene))
+			 special-dynamics-2
+			 subscene)
+	,(turn-character turn-back-1
+			 character-1
+			 (*$ -60.0 factor) ;;turn back now
+			 0.0 ;;start right away
+			 '(stop-when-turned (quote ,subscene))
+			 special-dynamics-1
+			 subscene)
+	,(turn-character turn-back-2
+			 character-2
+			 (*$ -60.0 factor) ;;turn back now
+			 0.0 ;;start right away
+			 '(stop-when-turned (quote ,subscene))
+			 special-dynamics-2
+			 subscene))))
+
+(define move-near-and-turn display-method)
+
+(define-receiver (estimate time for move-near-and-turn ?character ?others in ?subscene)
+		 move-near-and-turn
+ (let ((special-dynamics (special-dynamics-of character subscene)))
+      (add-time-estimates
+       (estimate-time-to-move-character character
+					'(small-distance-from-center-of
+					  !,(mapcar
+					     (function
+					      (lambda (other)
+						      '(vicinity-of ,other)))
+					     others))
+					'(stop-when-there (quote ,subscene))
+					special-dynamics
+					subscene
+					.33)
+       (time-estimates-to-turn-character special-dynamics 90.0))))
+
+(define-receiver (run move-near-and-turn ?character ?others in ?subscene stretched by ?factor)
+		 move-near-and-turn
+ ;;moves the character to the near the average of the others postion and then turns to face
+ ;;each one in turn
+ ;;should have an initial-locations function but not needed for now
+ (let ((special-dynamics (divide-speed-by-factor character factor subscene)))
+      (ask ,subscene add ,(run-move-near-and-turn character special-dynamics others subscene)
+	   to your list of movements))
+ (mapc
+  (function (lambda (other)
+		    (record-distance-estimates
+		     '(distance-between (vicinity-of ,character) (vicinity-of ,other))
+		     '(screen-fraction .3)
+		     subscene)))
+  others))
+
+(define-function run-move-near-and-turn (character special-dynamics others subscene)
+ (let ((move-plan (activity-name-of 'move-near-the-group))
+       (turn-plan (activity-name-of 'turn-towards-others)))
+      '(and
+	,(move-character move-plan
+			 character
+			 '(small-distance-from-center-of !,(mapcar
+							    (function
+							     (lambda (other)
+								     '(vicinity-of ,other)))
+							    others))
+			 'moving-target
+			 '(stop-when-there (quote ,subscene))
+			 0.0 ;;start right away
+			 special-dynamics
+			 'careful ;;of collisions
+			 subscene)
+	,(face-character-towards-others turn-plan
+					character
+					others
+					special-dynamics
+					'(after (end-of ,move-plan) .5) ;;wait half a sec
+					subscene))))
+
+
+(define exit-by display-method)
+
+(define-receiver (estimate time for exit-by ?characters in ?subscene) exit-by
+ (maximum-in-set
+  (mapcar (function
+	   (lambda (character)
+		   (estimate-time-to-move-character
+		    character
+		    '(small-distance-from-and-offstage (vicinity-of ,character))
+		    '(stop-when-there (quote ,subscene))
+		    (special-dynamics-of character subscene)
+		    subscene
+		    .33)))
+	  characters)
+  'maximum-ideal-time)) ;;relationship to select maximum
+ 
+(define-receiver (run exit-by ?characters in ?subscene stretched by ?factor) exit-by
+ (do ((i characters (rest i))
+      (plans nil))
+     ((null i) (ask ,subscene add (and !,plans) to your list of movements))
+     (let ((character (first i)))
+	  (and (located? '(vicinity-of ,character) subscene)
+	       (push
+		(move-character (plan-name-of 'exit-by-character)
+				character
+				'(small-distance-from-and-offstage
+				  (vicinity-of ,character))
+				'stationary-target
+				'(stop-when-there (quote ,subscene))
+				0.0
+				(divide-speed-by-factor character factor subscene)
+				'regardless ;;just get out of there
+				;;I confess this is somewhat of a cheat
+				subscene)
+		plans)))))
+
+(define change-method display-method)
+
+(define change: change-method
+ (set your value-description to change:-package))
+
+(define-receiver (run change: element ?element
+		              amount (?sign ?amount)
+			      speed ?speed in ?subscene) change:
+ ;;this has a new interpreation that low means increase by 12.5%, medium 25% and high 50%
+ ;;negative is the reciprical 
+  (let ((current-value (do-as-if-you-were subscene
+					  ,subscene yield most current value of ,element)))
+       (let ((factor (cond ((eq sign 'positive) (+$ 1.0 (*$ .25 (weightify amount))))
+			   ((eq sign 'negative) (//$ (+$ 1.0 (*$ .25 (weightify amount)))))
+			   (t (shouldnt-happen 'change: '(bad sign ,sign of ,amount))))))
+	    (run-change-to current-value factor element speed subscene))))
+ ;;current-values not quite right oh well
+
+(define change-to: change-method
+	(set your value-description to change-to:-package))
+
+(define-receiver (run change-to:
+		      element ?element
+		      new-value ?new-value
+		      speed ?speed in ?subscene %) change-to:
+  (let ((current-value (do-as-if-you-were subscene
+					  ,subscene yield most current value of ,element)))
+       (let ((weight-for-current-value (weightify current-value))
+	     (weight-for-new-value (weightify new-value)))
+	    (cond ((= weight-for-current-value weight-for-new-value))
+		   ;;is already at new value and so no change can be done
+		  (t (run-change-to new-value
+				    (//$ weight-for-new-value weight-for-current-value)
+				    element
+				    speed
+				    subscene))))))
+
+(define-function run-change-to (new-value factor element speed subscene)
+ ;;this slowly changes the element by factor at speed 
+ ;;the change is in the factor for that element
+ (let ((next-subscene (ask ,subscene recall your next-subscene))
+       (character (first element)))
+      (cond ((and (exists? next-subscene)
+		  (> (ask ,next-subscene recall your order-in-scene) 1))
+	     (ask ,next-subscene set your ,element to ,new-value)))
+      (ask ,subscene add (ask ,character to set your special-dynamics to
+			      ,(ask ,character yield your special-dynamics in ,subscene))
+	   to your list of initial-actions)
+      (ask ,subscene
+	   add (gradually change
+			  by ,factor factor
+			  for !,(rest element) 
+			  at ,speed speed)
+	   to your list of (changes-for ,(first element)))
+      nil))
+
+(define-function estimate-time-for-change-by (change-factor speed)
+ ;;this estimate time for slowly changing the element to new-value from old-value at speed
+ (cond ((= change-factor 1.0) ;;no change really needed
+	'(time-estimates: ideal 0.0
+			  least 0.0
+			  most 0.0))
+       (t (let ((time-to-grow-e
+		 (//$ (ask dynamic-constants recall your time-to-grow-e-times)
+		      (weightify speed))))
+	       (let ((ideal-time (*$ time-to-grow-e (abs (log change-factor)))))
+		    '(time-estimates: ideal ,ideal-time
+				      least ,(*$ ideal-time .2)
+				      most ,(*$ ideal-time 5.0)))))))
+
+(define-receiver (estimate time for
+			  change-to: element ?element
+		                     new-value ?new-value
+				     speed ?speed in ?subscene)
+		 change-to:
+ (estimate-time-for-change-by
+  (//$ (weightify new-value)
+       (weightify
+	(do-as-if-you-were subscene ,subscene yield most current value of ,element)))
+  speed))
+
+(define-receiver (estimate time for change:
+			   element ?
+			   amount (?sign ?amount)
+			   speed ?speed in ?) change:
+  (let ((factor (cond ((eq sign 'positive) (+$ 1.0 (*$ .25 (weightify amount))))
+		      ((eq sign 'negative) (//$ (+$ 1.0 (*$ .25 (weightify amount)))))
+		      (t (shouldnt-happen 'change: '(bad sign ,sign of ,amount))))))
+       (estimate-time-for-change-by factor speed)))
+
+

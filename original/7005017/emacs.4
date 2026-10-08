@@ -1,0 +1,42 @@
+!*  This is ken's emacs init and is full of -*-text-*- since I dont understand teco mode !
+FS XJNAME :F6 [J  !* get the real job name and put in in q-register j !
+   F~jMAILT "n !* and if the job name is mailt then do nothing!
+	        !* else do all the following!
+
+m(m.mload lib) xworda
+m(m.mload lib) kbdmac
+m(m.mword abbrev mode)
+m(m.mquick read word abbrev file)
+m(m.mauto fill)
+1uAuto Save Default
+94ufill column            !* I like a wide screen !
+m.m^r query replaceu..S  !* makes meta-s be query replace !
+m.msave all filesu...S   !* makes control-meta-s be save all files !
+m.mview fileu..p         !* make meta-p call view file !
+m.mcompileu...c          !* make control-meta c be for compiling files!
+
+(M.M^R MM Via Minibuffer)u...X
+
+!^R Directory Display:! !^R Displays Directory. Arg gives most-recent-first listing.!
+
+^:i...D` -4"E m(m.mview file)dir:cdate down
+   '"# EY ' 
+`
+
+
+m(m.m & process options) !* so it notices the variables I just set !
+
+
+   F~jEMAIL "em(m.mrmail)'  !* and if the job name is email then read mail!
+	      "# !* else load in the following stuff for lisp etc hacking !
+		  1m(m.mvisit tag table) ken !*this my tag table of everything !
+		  m(m.mload lib) doclsp
+		  m(m.mload lib) lispt
+		  ,*5+1:F..D''		    !* Treat , like ' and end lisp stuff !
+
+[*5+1:F..D(		    !* Treat [ like (!
+]*5+1:F..D)		    !* Treat ] like )!
+{*5+1:F..D(		    !* Treat { like (!
+}*5+1:F..D)		    !* Treat } like )!
+'
+ER EMACS;* EMACS  ^Y M(HFX*)

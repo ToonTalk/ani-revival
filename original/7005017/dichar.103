@@ -1,0 +1,527 @@
+;;-*-lisp-*-
+;;this is a combination of  the dummy appearance stuff for the character 
+;;and director-characters defintion
+
+(include |ai:ken;declare >|)
+
+(defcomment dichar) ;;for tags
+
+(define director-character poly
+ (set your ani-size to .05)
+ (set your last-jagging-sign to -1.0) ;;so that it has initial value to alternate from
+  ;;this is the director version of ani's characters is a poly for now
+ (add (*$ (ask :self recall your ani-size) (sqrt (apply '*$ (turtlesize))))
+      to your list of (size actions-if-recalling))
+ (add (ask :self ask your special-dynamics to yield real value for rotational-speed)
+      to your list of (rotational-speed actions-if-recalling))
+ (add (let ((position (ask :self recall your position)))
+	   (cond (position '(xy-position ,(//$ (first position) (first (turtlesize)))
+					 ,(//$ (second position) (second (turtlesize)))))
+		 (t (ask :self recall your initial-location))))
+      to your list of (location actions-if-recalling))
+ (add (or :old-value
+	  (ask ,:self set your special-dynamics-for-current-scene to
+	       ,(ask ,:self ask your special-dynamics
+		     to find ancestor matching (special-dynamics-of ,:self in ?))))
+      to your list of (special-dynamics-for-current-scene actions-if-recalling))
+ (add (progn
+       (ask ,:new-value multiply each of your variables matching (? factor) by those in
+	    ,(ask ,:new-value recall your parent))
+       :new-value)
+      to your list of (special-dynamics actions-if-changing)))
+
+
+(define-receiver (show yourself at location ?location in ?subscene) director-character
+  (cond (location
+	 (ask :self set your initial-location to ,location);;remember where you wanted to start
+	 (let ((position (find-screen-coordinate-of location subscene))
+	       (size (ask :self recall your size)))
+	      (ask :self set your position to ,position)
+	      (ask :self show)
+	      (let ((xmax (+$ size (*$ .5 (first (turtlesize)))))
+		    (ymax (+$ size (*$ .5 (second (turtlesize))))))
+		   (cond ((and (> (abs (first position)) xmax)
+			       (> (abs (second position)) ymax))
+			  ;;is off screen so want to continually change position until on stage
+			  (ask :self
+			       plan next
+			       recompute position of ,location in ,subscene
+			       if still offstage ,xmax ymax))))))))
+
+(define-receiver
+ {and ?the-whole-message
+      (recompute position of ?location in ?subscene if still offstage ?xmax ?ymax)}
+ director-character
+  (let ((position (find-screen-coordinate-of location subscene)))
+       (ask :self set your position to ,position)
+       (cond ((and (> (abs (first position)) xmax)
+		   (> (abs (second position)) ymax))
+	      (ask :self plan next !,the-whole-message))))) ;;still offstage
+
+
+(define-function find-screen-coordinate-of n
+ (find-screen-coordinate-of-1 (arg 1) (cond ((= n 2) (arg 2)))))
+
+(define-function find-screen-coordinate-of-1 (location subscene)
+ (cond ((numberp (first location)) location) ;;is already a position
+       (t (screen-coordinate-of (find-xy-position location subscene)))))
+
+(define-function screen-coordinate-of (xy-position)
+ ;;in comes fractions of the screen (from the center) out comes tvrtle coordinates
+ (cond ((numberp (first xy-position)) xy-position)
+       ((eq (first xy-position) 'xy-position)
+	'(,(times (second xy-position) (first (turtlesize)))
+	  ,(times (third xy-position) (second (turtlesize)))))
+       (t (shouldnt-happen 'screen-coordinate-of
+			   '(,xy-position is not an xy-position)))))
+
+(define-receiver (gradually face towards ?position plus ?angle) director-character
+ (ask :self gradually setheading ,(plus angle (ask :self yield heading to ,position))))
+
+(define-receiver (gradually turn right ?degrees degrees stopping if ? %followup)
+		 director-character
+ ;;good enuf for now since dont really use the stop-condition (the ?)
+ ;;it is currently not stop-able (since it runs here rather than with a PLAN)
+ (ask :self gradually right ,degrees !,followup))
+
+(define-receiver (face towards ?position) director-character
+  (ask :self set your heading to ,(ask :self yield heading to ,position)))
+
+(define-receiver (face towards ?position plus ?angle) director-character
+ (ask :self set your heading to ,(plus (eval angle) (ask :self yield heading to ,position))))
+
+
+(define-receive ({or set change} your ?variable to ?value then %followup)
+ ((ask :self set your ,variable to ,value)
+  (ask :self !,followup)) ;;this is ok since the setting is instantaneous
+ director-character)
+
+
+(setq :e 2.718)
+
+(define-receiver (gradually change by ?factor factor for ?element at ?speed speed %followup)
+		 director-character
+ ;;slowly change the element factor by factor at speed (clear huh?)
+ (let ((ticks-to-grow-e
+	 (*$ (ask dynamic-constants recall your time-to-grow-e-times)
+	     (weightify speed)
+	     (float :frames-per-second)
+	     (float :ticks-per-frame))))
+       (let ((growth-rate (cond ((> factor 1.0) (expt :e (//$ ticks-to-grow-e)))
+				(t (expt (//$ :e) (//$ ticks-to-grow-e))))))
+	    (ask ,(ask :self recall your special-dynamics-for-current-scene)
+		 ;;so that if changing special-dynamics in the scene this change is
+		 ;;carried forth with the help of the demon on special-dynamics
+		 ;;in director-character
+		 repeat (multiply your (,element factor) by ,growth-rate)
+		 ,(round (*$ ticks-to-grow-e (abs (log factor)))) times !,followup)
+	    (ask ,:self
+		 repeat (ask your special-dynamics to
+			     multiply your (,element factor) by ,growth-rate)
+		 ,(round (*$ ticks-to-grow-e (abs (log factor)))) times))))
+
+
+;;(define-receive (remove any plans for gradually changing ?variable %followup)
+;; ;;this is so that old easing in or out plans dont interfere
+;; ((let ((things-to-do-next (ask :self recall your things-to-do-next)))
+;;       (let ((old-plan (first (match-member '(gradually {or set change} your ,variable to %)
+;;					    things-to-do-next))))
+;;	    (cond (old-plan
+;;		   (let ((old-followup (rest (memq 'then old-plan))))
+;;			(ask :self set your things-to-do-next
+;;			     to ,(cond (old-followup
+;;					(cons old-followup
+;;					      (safe-delete old-plan things-to-do-next)))
+;;				       (t (safe-delete old-plan things-to-do-next)))))))))
+;;  (cond ((eq (first followup) 'then) (ask :self !,(rest followup)))))
+;; director-character)
+
+
+(define-receiver (initialize your curvature-sign towards ?location %followup)
+		 director-character
+   (ask :self set your last-curvature-sign to
+	,(pick-curvature-towards-center :self (find-screen-coordinate-of location)))
+   (cond ((eq (first followup) 'then)
+	  (ask :self !,(rest followup)))))
+
+(define-function pick-curvature-towards-center (character position)
+ ;;since its got curve one way or other initially might as well pick one that
+ ;;is more likely to keep the actor on stage
+ (let ((towards-goal (progn (ask ,character face towards ,position plus 0)
+			    (ask ,character recall your heading)))
+       (towards-center (progn (ask ,character face towards (0.0 0.0) plus 0)
+			      (ask ,character recall your heading))))
+      (let ((difference (-$ (float towards-center) (float towards-goal))))
+	   (cond ((> difference 0.0) 1.0)
+		 (t -1.0)))))
+
+(define-receiver
+ {and ?the-whole-message
+      (go in arc ?careful-or-regardless of collisions dragging ?others along
+	  to ?goal stopping if ?condition %)}
+ director-character
+  (let ((special-dynamics (ask :self recall your special-dynamics)))
+       (example-of ;;to make special-dynamics the default-compilation-target
+	(let ((speed (//$ (ask ,special-dynamics yield real value for speed)
+			  (float :frames-per-second) (float :ticks-per-frame)))
+	      (path-curvature (ask ,special-dynamics yield real value for path-curvature))
+	      (path-length (ask ,special-dynamics yield real value for path-length))
+	      (path-jaggedness (ask ,special-dynamics yield real value for path-jaggedness))
+	      (destination (find-screen-coordinate-of goal nil)))
+	     (let ((distance (*$ (correction-for-longer-path path-curvature)
+				 (ask :self yield distance to ,destination))))
+		  (let ((stopping?
+			 (uncompiled-ask ,condition
+					 should ,:self stop after moving ,(min speed distance)
+					 of ,distance to ,destination)))
+		       (cond ((or stopping? ;;just the last little bit
+				  (< distance 1.0))
+			      (go-in-arc :self
+					 (cond ((numberp stopping?) stopping?)
+					       (t (min speed distance)))
+					 destination
+					 goal
+					 path-curvature
+					 path-length
+					 path-jaggedness
+					 (eq careful-or-regardless 'careful)
+					 others)
+			      (example-of
+			       (ask ,condition do stuff now planned for finish)
+			       arc-stop-condition)
+			      (ask :self forget your current-goal) ;;time for a new one
+			      nil) ;;so the plan knows not to go on
+			     (t (go-in-arc :self
+					   speed
+					   destination
+					   goal
+					   path-curvature
+					   path-length
+					   path-jaggedness
+					   (eq careful-or-regardless 'careful)
+					   others)
+				the-whole-message)))))
+	special-dynamics)))
+
+(define-function correction-for-longer-path (curvature)
+ ;;since it goes along an arc the correction is
+ (cond ((= curvature 0.0) 1.0) ;;no correction
+       (t (//$ (*$ (abs curvature) pi-over-180) ;;change angle to radians
+	       (*$  2.0 (sine (*$ .5 (abs curvature))))))))
+
+
+
+(define-function go-in-arc
+ (character distance goal original-goal path-curvature path-length path-jaggedness
+	    careful-of-collisions? others)
+ ;;this moves in an arc the distance towards the goal
+ ;;the path-curvature is the most it will deviate from direct on target
+ ;;the path-length determines how much the curvature should change each time
+ ;;the path-jaggedness is an alternating heading offset
+ ;;it drags along other characters (good for pushing and walking together)
+ (let ((last-curvature (or (ask :self recall your last-curvature)
+			   (*$ path-curvature
+			       (ask :self recall your last-curvature-sign))))
+       (last-curvature-sign (ask :self recall your last-curvature-sign))
+       (last-jagging-sign (or (ask ,character recall your last-jagging-sign) 1.0)))
+      (let ((current-curvature-sign
+	     (current-curvature-sign :self distance path-length last-curvature-sign))
+	    (curvature-change (*$ 2.0 path-curvature
+				  (fractional-part (//$ distance path-length))))
+	    ;;half since must go negative
+	    (current-jagging-sign (ask :self set your last-jagging-sign to
+				       ,(*$ -1.0 last-jagging-sign))))
+	   (let ((curvature
+		  (ask :self set your last-curvature to
+		       ,(last-curvature :self
+					current-curvature-sign
+					curvature-change
+					last-curvature
+					path-curvature))))
+		(let ((curvature-jagging-offset
+		       (+$ curvature (*$ path-jaggedness current-jagging-sign))))
+		     (ask ,character face towards ,goal
+			  plus ,curvature-jagging-offset)
+		     (ask-each ,others
+			       set your heading to
+			       ,(ask ,character recall your heading))
+		     (cond (careful-of-collisions?
+			    (ask ,character forward ,distance towards ,goal
+				 originally ,original-goal 
+				 dragging ,others along avoiding
+				 ,(set-minus (ask screen recall your visible-objects)
+					     (cons character others))
+				 ,curvature-jagging-offset degrees off target))
+			   (t (ask ,character forward ,distance)
+			      (ask-each ,others forward ,distance))))))))
+
+
+(define-function current-curvature-sign (character distance path-length last-curvature-sign)
+ (cond ((> distance path-length) ;;going more than 1 arc at a time
+	(ask ,character set your last-curvature-sign to
+	     ,(*$ (let ((number-of-arcs
+			 (// (fix path-length) (fix distance))))
+		       (cond ((= (\ number-of-arcs 2) 0) 1.0)
+			     ;;even number
+			     (t -1.0)))
+		  last-curvature-sign)))
+       (t last-curvature-sign))) ;;otherwise still fine
+
+
+(define-function last-curvature 
+ (character current-curvature-sign curvature-change last-curvature path-curvature)
+ (let ((new-curvature (+$ (*$ current-curvature-sign curvature-change)
+			  last-curvature)))
+      (cond ((> new-curvature path-curvature) ;;time to turn round
+	     (ask :self set your last-curvature-sign to -1.0)
+	     ;;get less
+	     (-$ new-curvature (*$ 2.0 (-$ new-curvature path-curvature))))
+	    ((> (abs new-curvature) path-curvature) ;;time to turn round
+	     (ask ,character set your last-curvature-sign to 1.0)
+	     (+$ new-curvature (*$ 2.0 (-$ (abs new-curvature) path-curvature))))
+	    (t new-curvature)))) ;;ok as is
+
+
+(define-receiver (forward ?distance towards ?goal originally ?original-goal
+			  dragging ?others-being-dragged along
+			  avoiding ?others-on-stage ?offset degrees off target)
+		 director-character
+  (ask :self forward ,distance) ;;do it so that testing is easier can always back up
+  (do ((i others-on-stage (rest i)))
+      ((null i) (ask-each ,others-being-dragged forward ,distance)) ;;no one to avoid
+      (cond ((are-they-colliding :self (first i))
+	     (cond ((is-other-at-destination (ask :self recall your size) (first i) goal)
+		    (cond ((member (first i)
+				   (ask :self ask your special-dynamics to
+					recall your dominates))) ;;dominate so just go
+			  ((is-other-part-of-destination (first i) original-goal)
+			   (cond ((eq (first original-goal) 'stationary-target) ;;redo it
+				  (let ((new-goal
+					 '(stationary-target
+					   ,(second original-goal)
+					   ,(find-xy-position (second original-goal) nil))))
+				       (cond ((equal new-goal original-goal) ;;accept it
+					      (warning
+					       'director-character
+					       '(,:self |keeps colliding with| ,(first i)
+							|in going to/
+| ,new-goal)))
+					     (t (ask :self back ,distance) ;;undo the test
+						(return
+						 (ask :self forward ,distance towards
+						      ,(find-screen-coordinate-of new-goal)
+						      originally ,new-goal
+						      dragging ,others-being-dragged along
+						      avoiding ,others-on-stage ,offset
+						      degrees off target))))))))
+			  (t (ask :self back ,distance) ;;just stay there
+			     (return '(waiting for ,(first i) to move)))))
+		   (t (ask :self back ,distance) ;;back up
+		      (ask :self left ,offset) ;;head towards the goal
+		      (ask-each ,others-being-dragged left ,offset)
+		      (keep-turning-til-not-colliding
+		       :self (first i) others-being-dragged distance original-goal)))))))
+							       
+
+(define-function keep-turning-til-not-colliding 
+		 (character other others-being-dragged distance original-goal)
+ (do ((turn 0.0 (cond ((> turn 0.0) (-$ -10.0 turn))
+		      (t (+$ 10.0 (abs turn)))))
+      (everybody '(,character !,others-being-dragged)))
+     ((> turn 360.0)
+      (warning 'Keep-turning-til-not-colliding
+	       '(,character |keeps colliding with| ,other |in going|
+			    ,distance |to/
+| ,original-goal
+			    |/
+so moving away from| ,other |instead|))
+      (let ((others-position (ask ,other recall your position)))
+	   (ask-each ,everybody face towards ,others-position)
+	   (ask-each ,everybody back ,distance)))
+     (ask-each ,everybody right ,turn)
+     (ask ,character forward ,distance)
+     (cond ((are-they-colliding character other)
+	    ;;should really take others-dragged-along into account here
+	    (ask ,character back ,distance))
+	   (t (return 'ok)))))
+
+(define-function are-they-colliding (object-1 object-2)
+ ;;if the distance between them is less then their combined sizes
+ (< (float (ask ,object-1 yield distance to ,(ask ,object-2 recall your position)))
+    (+$ (ask ,object-1 recall your size)
+	(ask ,object-2 recall your size))))
+
+
+(define-function is-other-at-destination (my-size other goal)
+ ;;if other is at the goal then return t
+ (> (+$ my-size (ask ,other recall your size))
+    (float (ask ,other yield distance to ,goal))))
+
+(define-function is-other-part-of-destination (other goal)
+ ;;if the goal contains other then return t
+ (cond ((null goal) nil)
+       ((atom goal) (eq goal other))
+       (t (or (is-other-part-of-destination other (first goal))
+	      (is-other-part-of-destination other (rest goal))))))
+
+
+(define-function bounce-between (max x bounced?)
+ (cond ((< x max) (cond (bounced? (-$ max x))
+			(t x)))
+       (t (bounce-between max (-$ x max) (not bounced?)))))
+ 
+;;(define-receive (plan the easing out %followup)
+;; ;; where easing out can't be done easily since easing in took
+;; ;;more than half of the trip then this just wont do it
+;; ((let ((distance-gone (ask :self recall your distance-travelled-this-walk)))
+;;       (cond ((< (*$ .5 (ask :self recall your total-distance-for-arc)) distance-gone)
+;;	      (warning 'character '(cant ease ,:self out of arc since distance travalled
+;;					 ,distance-gone is already more than half of total)))
+;;	      ;;cant ease out so dont try
+;;	     (t (ask :self plan to
+;;		     (quote
+;;		      (do the following:
+;;			  (ask movie to ask your current-movie to record
+;;			       (easing out of ,:self starting))
+;;			  (gradually set your ani-speed to 0.1)))
+;;		     after receiving
+;;		     go in arc {< ?distance ,distance-gone} to %)))) ;;really on its last 
+;;  (cond ((eq (first followup) 'then) (ask :self !,(rest followup)))))
+;; director-character)
+;;
+;;
+
+
+
+(define-receive (plan the easing out %followup)
+ ;;for now dont do any easing out
+((cond ((eq (first followup) 'then) (ask :self !,(rest followup)))))
+director-character)
+
+
+(define stop-condition something)
+
+(define-receiver (do stuff now planned for finish) stop-condition
+  (let ((when-finished-stuff (ask :self recall your when-finished-stuff)))
+       (and when-finished-stuff
+	    (ask :self ask your subscene to !,when-finished-stuff))))
+
+(define arc-stop-condition stop-condition)
+
+(define-receiver (should ? stop after moving ?distance of ?distance-left to ?) ;;goal
+		  arc-stop-condition
+  (cond ((> distance-left distance) nil) ;; still have more to go
+	(t distance))) ;;just go the distance
+
+(declare (*lexpr stop-if-either-wants-to))
+
+(define-function stop-if-either-wants-to n
+ (let ((condition (ask stop-if-either-wants-to make uninterned offspring)))
+      (ask ,condition set your stop-conditions to ,(listify n))
+      condition))
+
+(define stop-if-either-wants-to arc-stop-condition)
+
+(define-receiver {and ?message (should ? stop after moving ? of ? to ?)}
+		 stop-if-either-wants-to
+ ;;if any of them wants to stop then stop
+ (do ((i (ask :self recall your stop-conditions) (rest i)))
+     ((null i) nil)
+     (let ((answer (ask ,(first i) !,message)))
+	  (and answer (return answer)))))
+
+(define move-only-original-distance arc-stop-condition)
+
+(define-receive (should ? stop after moving ?distance of ? to ?)
+ ;;this is a condition for arcs that restricts the motion to stop if original distance to
+ ;;goal is exceeded -- needed only if the goal is moving of course
+ ((let ((distance-left (or (ask :self recall your distance-left)
+			   (ask :self recall your original-distance)
+			   (shouldnt-happen 'move-only-certain-distance
+					    '(,:self has no original-distance)))))
+       (cond ((> distance-left distance)
+	      (ask :self set your distance-left to ,(-$ distance-left distance))
+	      nil) ;;not finished yet
+	     (t distance-left))))
+ move-only-original-distance)
+
+(define move-only-fraction-of-distance move-only-original-distance
+ (add (*$ :old-value (or (ask :self recall your fraction-of-trip)
+			 (shouldnt-happen 'move-only-fraction-of-distance
+					  '(,:self has no fraction-of-trip))))
+      to your list of (original-distance actions-if-recalling)))
+
+(define-function move-only-original-distance (subscene)
+ (let ((condition (ask move-only-original-distance make uninterned offspring)))
+      (ask ,condition set your subscene to ,subscene)
+      condition))
+
+(define-function move-only-fraction-of-distance (subscene fraction)
+ (let ((condition (ask move-only-fraction-of-distance make uninterned offspring)))
+      (ask ,condition set your fraction-of-trip to ,fraction)
+      (ask ,condition set your subscene to ,subscene)
+      condition))
+
+(define-function stop-when-there (subscene)
+ (let ((condition (ask arc-stop-condition make uninterned offspring)))
+      (ask ,condition set your subscene to ,subscene)
+      condition))
+
+(define-function stop-when-there-then (subscene plans-when-finished)
+ (let ((condition (stop-when-there subscene)))
+      (ask ,condition set your when-finished-stuff to ,plans-when-finished)
+      condition))
+
+
+(define-function stop-when-moved-original-distance-then (subscene plans-when-finished)
+ (let ((condition (move-only-original-distance subscene)))
+      (ask ,condition set your when-finished-stuff to ,plans-when-finished)
+      condition))
+
+(define-function stop-after-so-many-seconds (seconds)
+ (let ((condition (ask counting-down-condition make uninterned offspring)))
+      (ask ,condition set your seconds-left to ,seconds)
+      (ask ,condition set your seconds-to-a-tick to
+	   ,(//$ ;;want the reciprical
+	     (*$ (float (ask movie ask your current-movie to recall your frames-per-second))
+		 (float (ask movie ask your current-movie to recall your ticks-per-frame)))))
+      condition))
+
+(define counting-down-condition stop-condition)
+
+(define-receiver (should ? stop after moving ? of ? to ?) ;;dont care who or how far
+		 counting-down-condition
+ ;;this one just counts down on the time
+ (let ((time-left (ask :self recall your seconds-left))
+       (time-this-tick (ask :self recall your seconds-to-a-tick)))
+      (let ((new-time-left (-$ time-left time-this-tick)))
+	   (cond ((< new-time-left 0.0) 0.0) ;;done and don't go anymore
+		 (t (ask :self set your seconds-left to ,new-time-left)
+		    nil))))) ;;and dont stop yet
+
+(define always-happy-condition arc-stop-condition
+ (do when receiving (should %) nil)) ;;never stop
+
+(define-function will-be-stopped-by-other nil
+ (ask always-happy-condition make uninterned offspring))
+
+
+(define-receiver (hit ?other and then retreat by at least original distance %followup)
+		 director-character
+ ;;this causes the character to OTHER and then go back original distance 
+ ;;or more if they are too close
+ ;;it is currently not stop-able (since it runs here rather than with a PLAN)
+ (let ((special-dynamics (ask :self recall your special-dynamics))
+       (position-of-other (ask ,other recall your position)))
+      (let ((distance (ask :self yield distance to ,position-of-other))
+	    (sizes-of-both (plus (ask :self recall your size)
+				 (ask ,other recall your size))))
+	   (ask :self set your speed to ,(ask ,special-dynamics yield real value for speed))
+	   ;;for using the following the speed is normal DIRECTOR forward speed
+	   (let ((distance-to-go (-$ distance (*$ sizes-of-both .8)))) ;;so that they touch
+		(ask :self gradually forward ,distance-to-go then
+		     plan next gradually back ,(max distance-to-go
+						    ;;go back at least average size
+						    (*$ sizes-of-both .5))
+		     !,(cond ((eq (first followup) 'then)
+			      '(then plan next !,(rest followup)))))))))

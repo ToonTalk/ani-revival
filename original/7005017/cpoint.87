@@ -1,0 +1,118 @@
+;;-*-lisp-*-
+;;This is the part of dani that maintains Choice Points
+
+(include |ai:ken;declare >|)
+
+(defcomment cpoint);;for tags
+
+(define choice-point something
+ (add (ask :self set your minimum-happiness-number to
+	   ,(total-strength :new-value ;;the suggestion
+			    (cond ((eq :self 'choice-point) ;;not an instance
+				   (ask absolute-choice-point recall your source-priorities))
+				  (t (ask :self recall your source-priorities)))))
+      to your list of (minimally-happy-sample-suggestion actions-if-changing)))
+
+(define-receive (choose a value)
+ ((choose-value :self))
+ choice-point)
+
+(define-receive (rejecting ?suggestion because ?reason)
+ ((cond ((null suggestion)) ;;do nothing if no suggestion being rejected
+	((ask :self recall if any items match ,suggestion)
+	 (ask :self memorize (,suggestion not rejected cuz is a suggestion)))
+	(t (ask :self add (rejected-suggestion: reason ,reason
+						suggestion ,suggestion)
+		to your list of rejected-suggestions))))
+ choice-point)
+
+
+(define-receive (forget inessentials)
+ ((ask :self forget items matching(suggestion: %))
+  (ask :self forget items matching (conflict: %))
+  (ask :self forget your suggestion-sources)
+  (ask :self forget your non-empty-sources)
+  (ask :self forget your postponement-reasons)
+  (ask :self forget your rejected-suggestions)
+  (ask :self forget your conflicts-resolved)
+  (ask :self forget items matching (winner %)))
+ choice-point)
+
+(define-receive (reset all)
+ ((cond ((memq :self '(relative-choice-point absolute-choice-point)))
+	(t (ask :self forget inessentials)
+	   (let ((current-choice (ask :self recall your current-choice)))
+		(and current-choice
+		     (ask :self add ,current-choice to
+			  your list of previous-choices regardless)))
+	   (ask :self forget your current-choice)
+	   (ask :self increment your reset-count by 1))))
+ choice-point)
+
+(define-receive (combine suggestions %)
+ ((let ((element-name (ask :self recall your element-name)))
+       (let ((value-description (ask ,element-name recall your value-description)))
+	    (let ((relative-value-description
+		   (ask ,value-description recall your relative-value-description)))
+		 (cond (relative-value-description
+			(ask ,relative-value-description !,:message))
+		       (t (ask ,value-description !,:message)))))))
+ choice-point)
+
+
+(define-receive (first combine ? and ? then ?)
+ ((let ((element-name (ask :self recall your element-name)))
+       (let ((value-description (ask ,element-name recall your value-description)))
+	    (let ((relative-value-description
+		   (ask ,value-description recall your relative-value-description)))
+		 (cond (relative-value-description
+			(ask ,relative-value-description !,:message))
+		       (t (ask ,value-description !,:message)))))))
+ choice-point)
+
+(define-receive (yield elements ?variable)
+ ((ask :self ask your element-name to recall your ,variable))
+ choice-point)
+
+
+(define-receive (yield your strength)
+ ((ask :self recall an item matching (suggestion: element ?
+						  value ?
+						  strength ?strength
+						  source ?)
+       then strength))
+ choice-point)
+
+(define absolute-choice-point choice-point
+ (add (third :self) to your list of (element-name actions-if-recalling))
+ (add (third :self) to your list of (element actions-if-recalling))
+ (add (third :self) to your list of (node-for actions-if-recalling))
+ (add (second :self) to your list of (thing actions-if-recalling)))
+
+;;a relative-choice-point looks like (relative-choice-point-of (john mary) relative-speed)
+
+(define relative-choice-point choice-point
+ (add (third :self) to your list of (element-name actions-if-recalling)))
+
+
+(define-extension-receiver (make {and ?instance (relative-choice-point-of ?who ?element-name)})
+			   relative-choice-point
+ (ask :self make ,instance) ;;do normal make
+ (ask ,instance set your element to (,element-name !,who)) ;;same element for both
+ (ask ,instance set your thing to (comparison-of !,who)) ;;so synonym isnt confused
+ (ask ,instance make synonym (relative-choice-point-of ,(reverse who) ,element-name))
+ instance)
+	
+(define-receive (yield current choice for ?a and ?b)
+ ((let ((current-choice (ask :self recall your current-choice)))
+       (cond ((or (null current-choice)
+		  (memq current-choice '(same-as different-from)))
+	      current-choice) ;;doesn't matter 
+	     ((equal (rest (ask :self recall your thing)) (list a b)) ;;in same order
+	      current-choice)
+	     (t (ask ,current-choice recall your negative)))))
+ relative-choice-point)
+
+
+(define-function reset-choice-points nil
+ (ask choice-point ask each of your childless-descendants to reset all))

@@ -1,0 +1,107 @@
+(declare (genprefix qq)
+	 (special eval-me pack-me
+		  inside-quasi-quote-macro dont-print/' any-inverse-quotes? ))
+
+
+;(or (status feature grindef)
+;    (status feature ncomplr)
+;    (progn (print '(you must load grindef first) )(ioc g)))
+
+(setq inside-quasi-quote-macro nil)
+(setq eval-me (maknam '(i n t e r n a l - /` - m a c r o)))
+(setq pack-me (maknam '(p a c k - m e)))
+
+(defun quasi-quote-macro nil
+       ((lambda (inside-quasi-quote-macro)
+		((lambda (form)
+		 (cond ((atom form) (list (quote quote)  form))
+		       ((eq (car form) eval-me) (cdr form))
+		       (t ((lambda (any-inverse-quotes? ans)
+				   (setq ans (cons-list-exps form))
+				   (cond (any-inverse-quotes? ans)
+					 (t (list (quote quote) form))))
+			   nil nil))))
+			   (read)))
+		 t))
+
+(defun cons-list-exps (list)
+((lambda (any-packs?)
+((lambda (form)
+(cond (any-packs? (cons-append-exp form))
+      (t
+       (cons (quote list) form))))
+ (mapcar (function (lambda (element)
+				(cond ((atom element)
+				       (list (quote quote)
+					     element))
+				      ((eq (car element) eval-me)
+				       (setq any-inverse-quotes? t)
+				       (cond ((not (atom (cdr element)))
+					      (cdr element))
+					     ((eq (getchar (cdr element) 1) '%)
+					      (setq any-packs? t)
+					      (cons pack-me
+						    (implode
+						     (cdr
+						      (explode (cdr element))))))
+					     (t (cdr element))))
+				      (t (cons-list-exps element)))))
+	      list)))
+nil))
+
+(defun cons-append-exp (form)
+(cons 'append
+       (mapcar
+	(function (lambda (element)
+			  (cond ((atom element)
+				 (list 'list  element))
+				((eq (car element) pack-me) (cdr element))
+				((eq (car element) 'quote)
+				(cons 'list (list element)))
+				(t (list 'list element)))))
+	form)))
+
+(defun eval-me-macro nil
+       (cond (inside-quasi-quote-macro (cons eval-me (read)))
+	     (t (tack/`on (read)))))
+
+(setsyntax '/' 'macro 'quasi-quote-macro)
+
+(setsyntax '/` 'macro 'eval-me-macro)
+
+;(or (status feature ncomplr)
+;    (grindmacro list
+;		(quasi-quotify (cdr l))
+;		t))
+
+;(defun quasi-quotify (l)
+;(or (boundp 'dont-print/')
+;    (princ '/'))
+;((lambda (dont-print/')
+;(princ '/()
+;       (quasi-quotify1 (cond ((atom l) l)
+;			    (t (car l))))
+;       (mapcar (function (lambda (element)
+;				 (princ '/ )
+;				 (quasi-quotify1 element)))
+;	       (cdr l))
+;(princ '/))
+;(aascii 0))
+; t))
+
+
+;(defun quasi-quotify1 (element)
+;(cond ((atom element)
+;       (princ '/`)
+;       (pprin element 'code))
+;      ((eq (car element) (quote quote))
+;       (pprin (cadr element) 'code))
+;      ((eq (car element) 'list)
+;       (pprin  element 'code))
+;      (t (princ '/` )
+;	 (pprin element 'code))))
+       
+
+
+
+(defun tack/`on (x) (maknam (cons '/` (explodec x))))

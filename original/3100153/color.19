@@ -1,0 +1,143 @@
+;option to leave background alone?
+
+(DEFUN rotate-palette (pause shift-pause)
+       (DO ()
+	   (NIL)
+	   (SLEEP PAUSE)
+	   (shift-palette shift-pause)))
+
+(defun shift-palette (pause)
+       (do ((i 0 (1+ i))
+	    (first-color (palette 0)))
+	   ((= i 14) (makepalette 14 first-color))
+	   (sleep pause)
+	   (makepalette I (PALETTE  (1+ I)))))
+
+
+(defun color-count (color-base colors pause)
+       (do ((color-inc (//$ (float color-base)))
+	    (stop (* color-base color-base color-base))
+	    (number 0 (1+ number)))
+	   ((= number stop))
+	   (sleep pause)
+	   (erasercolor (set-color 'erc number color-base color-inc colors))))
+
+
+(defun set-color (color value base color-inc colors)
+       (mix-colors color
+		   (digit-fractions base value color-inc)
+		   colors))
+
+(defun digit-fractions (base value factor)
+       (do ((v value (// v base))
+	    (ans nil))
+	   ((zerop v) ans)
+	   (setq ans (cons (*$ (float (\ v base)) factor) ans))))
+
+(defun mix-colors (color fractions colors)
+       (do ((f fractions (cdr f))
+	    (c colors (cdr c))
+	    (red 0.0)
+	    (green 0.0)
+	    (blue 0.0))
+	   ((or (null f) (null c))
+	    (makecolor color red green blue))
+	   (setq red (+$ red (*$ (car f) (redpart (car c)))))
+	   (setq green (+$ green (*$ (car f) (greenpart (car c)))))
+	   (setq blue (+$ blue (*$ (car f) (bluepart (car c)))))))
+
+
+
+(declare (special :functionofpointcolor :colors
+		  :colorxor :readfrequency :erasercolor :pencolor :tvstep :ycor))
+
+
+;color xor mode or sorts
+
+(defun color-xordown (function-of-point-color read-frequency)
+       (setq :functionofpointcolor function-of-point-color)
+       (setq :colorxor t)
+       (setq :readfrequency (float read-frequency)))
+       
+
+(defun color-xorup nil
+       (setq :functionofpointcolor nil)
+       (setq :colorxor nil)
+       (setq :readfrequency nil))
+
+(defun kens-forward (amount)
+       (cond (:colorxor (kens-forward$ (float amount)))
+	     (t (forward amount))))
+
+(defun kens-forward$ (amount)
+       (do ((gone 0.0 (+$ gone :readfrequency))
+	    (pencolor :pencolor))
+	   ((> :readfrequency (-$ amount gone))
+	    (fd (-$ amount gone))
+	    (pc pencolor))
+	   (pc (funcall :functionofpointcolor (pointstate) pencolor))
+	   (fd :readfrequency)))
+	    
+	    
+(declare (special :max-intensity))
+
+(setq :max-intensity 1.0)
+
+
+(defun complement-if-not-erc (color-of-point pencolor)
+       (cond ((eq color-of-point t) (print '(cant do much in black & white))
+	      pencolor)
+	      (color-of-point
+	      (make-color-or-find-one
+		    (-$ :max-intensity (redpart color-of-point))
+		    (-$ :max-intensity (greenpart color-of-point))
+		    (-$ :max-intensity (bluepart color-of-point))))
+	     (t pencolor)))
+
+
+(defun make-color-or-find-one (redpart greenpart bluepart)
+       ((lambda (color-name)
+		(cond ((memq color-name :colors) color-name)
+		      (t (mc color-name redpart greenpart bluepart))))
+	(make-color-name redpart greenpart bluepart)))
+
+(defun make-color-name (redpart greenpart bluepart)
+       (implode (append  '(r e d =)
+			 (explodec redpart)
+			 '(/  g r e e n =)
+			 (explodec greenpart)
+			 '(/  b l u e =)
+			 (explodec bluepart))))
+
+
+(defun normal-color-xordown nil
+       (color-xordown 'complement-if-not-erc :tvstep))
+       
+
+(defprop ncxd normal-color-xordown expr)
+
+(defun gpoly (size angle factor colors)
+       (do ((size (float size) (*$ size factor))
+	    (the-colors colors (cond (the-colors (cdr the-colors))
+				     (t colors))))	   
+	   ((greaterp :ycor (car (turtlesize))) '?)
+	   (and the-colors (pc (car the-colors)))
+	   (kens-forward size)
+	   (rt angle)))
+
+(defun test1 (size angle factor)
+       (ncxd)
+       (gpoly size angle factor
+	      (list (make-color-or-find-one 1.0 0.0 0.0)
+		    (make-color-or-find-one 0.0 1.0 0.0)
+		    (make-color-or-find-one 0.0 0.0 1.0))))
+
+(defun test2 (size angle factor)
+       (ncxd)
+       (gpoly size angle factor
+	      (list (make-color-or-find-one 1.0 0.0 0.0)
+		    (make-color-or-find-one 0.0 1.0 0.0)
+		    (make-color-or-find-one 0.0 0.0 1.0)
+		    (make-color-or-find-one 1.0 .5 0.0)
+		    (make-color-or-find-one 0.0 1.0 .5)
+		    (make-color-or-find-one .5 0.0 1.0))))

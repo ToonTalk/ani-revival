@@ -1,0 +1,30 @@
+
+(define hex performer
+ (set your default-whole to nil))
+
+
+(define-method (clone and move) hex
+ (ask myself shrink by factor .5)
+ (let ((next-level (ask hex make ,(ask hex make up a name)))
+       (distance (*$ (ask myself recall your size) #,(sqrt 3.0)))
+       (part-1 (ask myself clone))
+       (part-2 (ask myself clone))
+       (part-3 (ask myself clone)))
+      (ask ,part-1 move forward ,distance)
+      (ask ,part-2 turn right 120)
+      (ask ,part-2 move forward ,distance)
+      (ask ,part-2 turn left 120)
+      (ask ,part-3 turn left 120)
+      (ask ,part-3 move forward ,distance)
+      (ask ,part-3 turn right 120)
+      (ask-each (,part-1 ,part-2 ,part-3 ,myself) set your whole to ,next-level)
+      (ask ,next-level fuse your parts)
+      next-level))
+
+(defun make-seed nil
+       (ask poly make hexagon)
+       (ask hexagon turn right 30)
+       (ask hexagon show)
+       (ask hex make hex-0)
+       (ask hexagon set your whole to hex-0)
+       (ask hex-0 fuse your parts))

@@ -1,0 +1,94 @@
+;; -*-lisp-*-
+;;this part of ani has the display action such as walking and hitting
+
+(include |ai:ken;declare >|)
+
+(defcomment disact) ;;for tags
+
+(define plan something)
+
+(define display-action something)
+
+(define hit display-action)
+
+(define-receiver
+  (plan hit ?victum by ?character using ?special-dynamics called ?name in ?subscene) hit
+  (ask ,subscene add ,special-dynamics to your list of special-dynamics)
+  (let ((plan (ask plan if new make ,name)))
+       (ask ,plan set your begin-time to 0.0)
+       (ask ,plan set your subscene to ,subscene)
+       (ask ,plan add (sequence:
+		       (ask ,character set your special-dynamics to ,special-dynamics)
+		       (ask ,plan cause ,character to hit ,victum 
+			    and then retreat by at least original distance))
+	    to your list of plans)
+       plan))
+
+(define walk display-action)
+ ;;walk contains the initial values of all the dynamics descriptors eg speed acceleration
+
+(define-receiver (plan walk of ?character to ?destination as ?target-type
+		       ?careful-or-regardless of collisions starting at ?begin-time
+		       using ?special-dynamics called ?name
+		       stopping if ?condition in ?subscene)
+		 walk
+     (ask ,subscene add ,special-dynamics to your list of special-dynamics)
+     (plan-the-walk (ask plan if new make ,name) '(,character) destination target-type
+		    begin-time special-dynamics condition careful-or-regardless subscene))
+
+(define-receiver (plan walk of ?character WITH ?other-character to ?destination as ?target-type
+		       ?careful-or-regardless of collisions starting at ?begin-time
+		       using ?special-dynamics called ?name
+		       stopping if ?condition in ?subscene)
+		 walk
+     (ask ,subscene add ,special-dynamics to your list of special-dynamics)
+     (plan-the-walk (ask plan if new make ,name) '(,character ,other-character)
+		    destination target-type
+		    begin-time special-dynamics condition careful-or-regardless subscene))
+
+
+(define-function plan-the-walk
+ (plan characters destination destination-type begin-time special-dynamics condition
+       collision-attitude subscene)
+ ;;the descriptors are the offspring of normal-movement-element
+ ;;they are only the initial values and may change in the course of running
+  (ask ,plan set your begin-time to ,begin-time)
+  (ask ,plan set your subscene to ,subscene)
+  (ask ,plan add
+       ,(plan-walk-itself plan characters destination destination-type
+			  condition special-dynamics collision-attitude)
+       to your list of plans)
+   plan)
+
+(define-function plan-walk-itself 
+ (plan characters destination destination-type condition special-dynamics collision-attitude)
+ ;;this moves the character to the destination moving in accord with the descriptors
+ (let ((character (first characters))) ;;first character is the "leader"
+      '(sequence:
+	(ask ,character set your special-dynamics to ,special-dynamics)
+	(ask ,character initialize your curvature-sign towards ,destination)
+;;the following is now subsumed in the subsequent transmission
+;;	(ask ,plan gradually face ,character towards ,destination
+;;	     plus (*$ (ask ,special-dynamics yield real value for path-curvature)
+;;		      (ask ,character recall your last-curvature-sign)))
+	;;so that anything special to this walk affects only the following
+	(ask ,plan cause ,characters
+	     to gradually go in arc ,collision-attitude of collisions
+	     to ,destination as ,destination-type stopping if ,condition))))
+
+(define turning display-action)
+
+(define-receiver
+ (plan turning of ?character ?degrees degrees starting at ?begin-time
+       using ?special-dynamics called ?plan-name stopping if ?stop-condition in ?subscene)
+ turning
+ (ask ,subscene add ,special-dynamics to your list of special-dynamics)
+ (let ((plan (ask plan if new make ,plan-name)))
+      (ask ,plan set your begin-time to ,begin-time)
+      (ask ,plan set your subscene to ,subscene)
+      (ask ,plan add (sequence:
+		      (ask ,character set your special-dynamics to ,special-dynamics)
+		      (ask ,plan cause ,character to
+			   gradually turn ,degrees degrees stopping if ,stop-condition))
+	    to your list of plans)
+       plan))

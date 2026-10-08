@@ -1,0 +1,55 @@
+(declare (macros t))
+
+(defun ask macro (x)
+       (list 'ask/.not/.to/.be/.compiled
+	      (fix-up-target (cadr x))
+	      (listify-message (caddr x))))
+
+(defun fix-up-target (target-form)
+       (cond ((atom target-form)
+	      (cond ((eq (getchar target-form 1) ':)target-form)
+		    (t (list 'quote target-form))))
+	     (t target-form)))
+	      
+(declare (special can-be-quoted-list))
+
+(defun listify-message (message)
+((lambda (can-be-quoted-list)
+       (cond ((atom message) message)
+	     ((eq (car message) 'quote) message)
+	     (t ((lambda (listified-message)
+			 (cond (can-be-quoted-list
+				(list 'quote (eval listified-message)))
+			       (t listified-message)))
+		 (listify-message1 message)))))
+ t))
+
+(defun listify-message1 (message)
+       (cond ((null message) nil)
+	     ((atom message) message)
+	     ((eq (car message) 'quote) message)
+	     ((numberp (car message)) (list 'cons
+					    (car message)
+					    (listify-message1 (cdr message))))
+	     ((atom (car message))
+	      (cond ((eq (getchar (car message) 1) ':)
+		     (setq can-be-quoted-list nil)
+		     (cond ((eq (getchar (car message) 2) '%)
+			    (list 'append (car message)
+				  (listify-message1 (cdr message))))
+			   (t (list 'cons (car message)
+				    (listify-message1 (cdr message))))))
+		    (t (list 'cons
+			     (list 'quote (car message))
+			     (listify-message1 (cdr message))))))
+	     ((eq (caar message) 'quote)
+	      (list 'cons (car message)
+		    (listify-message1 (cdr message))))
+;the above clause does not set can-be-quoted-list so that (a b '(c d)) will 
+;become a quoted list
+	     (t (setq can-be-quoted-list nil)
+		(list 'cons
+		      (car message)
+		      (listify-message1 (cdr message))))))
+
+

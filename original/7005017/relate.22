@@ -1,0 +1,116 @@
+;;  -*-lisp-*-
+;;this is part of dot ani
+;;this defines the relationship descriptors with suggestions 
+
+(include |ai:ken;declar >|)
+
+(defcomment relate) ;;this is for tags to find file name
+
+;;now for relationship descriptors
+
+(define relationship-descriptor descriptor
+	(set your type to unknown))
+
+(define affection-relationship-descriptor relationship-descriptor
+	(set your type to affection))
+
+(define domination-relationship-descriptor relationship-descriptor
+	(set your type to domination))
+
+(define loves affection-relationship-descriptor
+ (process suggestions
+	  (for ({or relative-speed relative-acceleration relative-activity-level
+		    relative-rhythmic-level relative-deliberateness relative-path-length
+		    relative-path-curvature relative-path-jaggedness}
+		? ?)
+	       'same-as
+	       strength 'low)
+	  (for (establish (loves ?character ?other-character))
+	       (or 
+		'(method: type convey
+			  value (accompanys ,character ,other-character))
+		strength 'medium
+		'(method: type convey
+			  value (wants ,character
+				       (getting-it-on ,character ,other-character))
+			  best-when ((difficult (to-move ,character))))
+		strength 'medium))))
+
+(define hates affection-relationship-descriptor
+ (process suggestions
+	  (for (establish (hates ?character ?other-character))
+	       (or
+		'(method: type convey
+			  value (avoids ,character ,other-character)
+			  best-when ((not (dominates ,character ,other-character))))
+		strength 'medium
+		'(method: type convey
+			  value (hurts ,character ,other-character)
+			  best-when ((dominates ,character ,other-character)))
+		strength 'high
+		'(method: type convey
+			  value (pushes ,character ,other-character)
+			  best-when ((dominates ,character ,other-character)))
+		strength 'low))))
+
+
+(define dominates domination-relationship-descriptor
+ (process suggestions
+	  (for ({or relative-speed relative-acceleration relative-activity-level
+		    relative-vertical-position}
+		? ?)
+	       'greater-than
+	       strength 'medium) ;even more typical would be size
+	  (for (establish (dominates ?character ?other-character))
+	       (or
+		'(method: type convey
+			  value (pushes ,character ,other-character)
+			  best-when ((not (likes ,character ,other-character))))
+		;;loves? implies likes?
+		strength 'low
+		'(method: type convey
+			  value (bind ((task
+					(activity-that-satisfies
+					 (wanted-by-x-and-not-want-to-do-by-y
+					  ,character
+					  ,other-character
+					  '(is-described-as (difficult))))))
+				      (causes ,character (does ,other-character `task))))
+			  strength 'high
+		'(method: type convey
+			  value (bind ((task
+					(activity-that-satisfies
+					 (wants-to-do ,other-character nil))))
+				       (prevents ,character
+						 (,other-character does `task))))
+		strength 'medium))))
+
+(define is-obedient-to domination-relationship-descriptor)
+
+(define is-tolerant-of domination-relationship-descriptor)
+
+(define is-intolerant-of domination-relationship-descriptor)
+
+(define is-polite-to domination-relationship-descriptor)
+
+(define is-impolite-to domination-relationship-descriptor)
+
+(define is-grateful-to affection-relationship-descriptor)
+
+(define is-protective-to domination-relationship-descriptor);is domination the right word here?
+
+(define is-helpful-towards domination-relationship-descriptor)
+
+(declare (read)) ;;dont want this is the compiled file only its effects which are in the actors
+
+(progn
+ (uncompiled-ask loves add hates to your list of opposites)
+ (uncompiled-ask loves add adores to your list of neighbors)
+ (uncompiled-ask hates add dispises to your list of neighbors)
+ (uncompiled-ask dominates add is-obedient-to to your list of opposites)
+ (uncompiled-ask dominates add rules to your list of neighbors)
+ (uncompiled-ask is-tolerant-of add is-intolerant-of to your list of opposites)
+ (uncompiled-ask is-polite-to add is-impolite-to to your list of opposites)
+ (uncompiled-ask is-helpful-towards add is-generous-towards to your list of neighbors))
+
+(compile-actors)

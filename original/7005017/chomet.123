@@ -1,0 +1,623 @@
+;;-*-lisp-*-
+;;this is the part of Dot Ani that chooses among methods for 
+;;establishing, conveying and displaying
+
+(include |ai:ken;declare >|)
+
+(defcomment chomet) ;;for tags
+
+(define-function approve-or-remake-tasks-choices (scene)
+ (do ((tasks (ask :self recall your tasks) (rest tasks))
+      (requested-time-changes nil))
+     ((null tasks) (cond (requested-time-changes 
+			  (or (redistribute-time-for-tasks requested-time-changes scene nil)
+			      (redistribute-time-for-tasks
+			       (resurect-bad-time-fits
+				(apply 'append ;;to flatten the top level list structure
+				       (ask ,scene ask each of your tasks to
+					    recall your rejected-suggestions))
+				'will-accept)
+			       scene
+			       t))) ;;if this doesn't work nothing will			 
+			 (t (give-every-task-its-ideal-time scene))))
+     (let ((current-choice (ask ,(first tasks) recall your current-choice))
+	   (task (first tasks)))       
+	  (cond ((eq (ask ,task recall your status) 'being-handled-by-convey-tasks))
+		((null current-choice) ;;couldn't make a choice but have to so
+		 (let ((requested-time-change
+			 (resurect-bad-time-fits (ask ,task recall your rejected-suggestions)
+						 'ideal-difference)))
+		      (cond (requested-time-change
+			     ;;increase it a percent to avoid round-off screws
+			     (push '(,(*$ 1.01 requested-time-change) ,task)
+				   requested-time-changes))
+			    (t (ask ,task set your status to cant-do)
+			       (warning 'approve-or-remake-task-choices
+					'(|can't do| ,task |which is/
+| ,(ask ,task recall your task)))))))))))
+
+(define-function redistribute-time-for-tasks (time-changes scene last-time?)
+ (let ((total-time-change (apply '+$ (mapcar 'car time-changes)))
+       ((scene-minimum scene-maximum) (ask ,scene recall your length-bounds)))
+      (let ((new-length (+$ (*$ (+$ scene-minimum scene-maximum) .5) total-time-change)))
+	   (mapc
+	    (function
+	     (lambda (time-change)
+		     (let (((change task) time-change))
+			  (cond ((memq (ask ,task recall your status)
+				       '(cant-do being-handled-by-convey-tasks)))
+				(t (example-of ;;so that task is used when compiling this
+				    (do-the-following:
+				     (ask ,task set your allocated-time to
+					  ,(mapcar
+					    (function (lambda (time) (+$ time change)))
+					    (ask ,task recall your allocated-time)))
+				     (ask ,task unchoose values) ;;undo the old
+				     (ask ,task choose values)) ;;do it again
+				    task)))))) ;;example-target
+	    time-changes)
+	   (cond ((and (> new-length scene-minimum) (< new-length scene-maximum))
+		  (give-every-task-its-ideal-time scene))
+		 ((< new-length scene-minimum)
+		  (adjust-task-lengths scene (-$ new-length scene-minimum) last-time?))
+		 ((> new-length scene-maximum)
+		  (adjust-task-lengths scene (-$ new-length scene-maximum) last-time?))
+		 (t (shouldnt-happen 'redistribute-time-for-tasks '(arithmetic goofed up)))))))
+
+
+(define-function give-every-task-its-ideal-time (scene)
+ ;;this gives the task its ideal time if it within in its allocated time otherwise as
+ ;;close to that it can
+ (give-every-task-its-ideal-time-1 (ask ,scene recall your task-ordering) scene nil)
+ (ask ,scene set your running-time to
+      ,(apply 'plus
+	      (ask ,scene ask each of your subscenes to recall your running-time))))
+
+(define-function give-every-task-its-ideal-time-1 (ordering scene in-parallel?)
+ (cond ((null ordering))
+       ((eq (first ordering) 'and)
+	(mapc
+	 (function (lambda (sub-ordering)
+			   (give-every-task-its-ideal-time-1 sub-ordering scene t)))
+	 (rest ordering)))
+       ((eq (first ordering) 'sequence:)
+	(give-every-task-its-ideal-time-1 (second ordering) scene in-parallel?)
+	(mapc
+	 (function (lambda (sub-ordering)
+			   (give-every-task-its-ideal-time-1 sub-ordering scene nil)))
+	 (rest (rest ordering))))
+       ((atom ordering) ;;its a task
+	(ask ,ordering set your running-time to
+	     ,(ideal-time-for-task ordering in-parallel?)))
+       (t (shouldnt-happen 'give-every-task-its-ideal-time-1
+			   '(,ordering is not good)))))
+
+(define-function ideal-time-for-task (task in-parallel?)
+ ;;this is either the current running-time, ideal time or the bound closest to the ideal
+ (cond ((ask ,task recall your running-time))
+       ((memq (ask ,task recall your status) '(cant-do being-handled-by-convey-tasks))
+	0.0)
+       (t
+	(do-as-if-you-were task ;;so that task is used as the target in compiling
+			   ,task update special-dynamics for participants)
+	(do ((methods (ask ,task recall your current-choice) (rest methods))
+	     (max-ideal-time 0.0))
+	    ((null methods)
+	     (cond (in-parallel? max-ideal-time)
+		    ;;being run with others so no need to stretch or shorten this guy
+		   (t (pick-time-within (ask ,task recall your allocated-time)
+					max-ideal-time))))
+	    (let ((time-estimates
+		   (uncompiled-ask ,(first (first methods))
+				   recall or estimate time for ,(first methods)
+				   in ,(ask ,task recall your subscene))))
+		 (let ((ideal-time (get time-estimates 'ideal)))
+		      (cond ((> ideal-time max-ideal-time)
+			     (setq max-ideal-time ideal-time)))))))))
+
+(define-function time-bounds-for-task (task)
+ (do ((methods (ask ,task recall your current-choice) (rest methods))
+      (max-most-time 0.0)
+      (min-least-time 0.0))
+     ((null methods) (list min-least-time max-most-time))
+     (let ((time-estimates
+	    (uncompiled-ask ,(first (first methods)) estimate time for !,(first methods)
+			    in ,(ask ,task recall your subscene))))
+	  (let ((least-time (get time-estimates 'least))
+		(most-time (get time-estimates 'most)))
+	       (cond ((> most-time max-most-time) (setq max-most-time most-time)))
+	       (cond ((< least-time min-least-time) (setq min-least-time least-time)))))))
+
+(define-function pick-time-within (bounds ideal)
+ (let ((lower (first bounds))
+       (upper (second bounds)))
+      (cond ((and (not (< ideal lower))
+		  (not (> ideal upper)))
+	     ideal) ;;within range so the ideal is fine
+	    ((> ideal upper) upper)
+	    ((< ideal lower) lower)
+	    (t (shouldnt-happen 'pick-time-within '(i did my arithmetic wrong))))))
+
+(define-function adjust-task-lengths (scene adjustment last-time?)
+ (let
+  ((tasks (ask ,scene recall your tasks)))
+  (do ((i tasks (rest i))
+       (task-adjustment (//$ adjustment (float (length tasks))))
+       (total 0.0)
+       (extra-adjustment 0.0))
+      ((null i) (cond ((zerop extra-adjustment)
+		       (ask ,scene set your running-time to ,total))
+		      ((not last-time?) nil) ;;this causes it to try to adjust again
+		      (t (shouldnt-happen 'adjust-task-lengths
+					  '(cant adjust scene ,scene lengths
+						 by ,adjustment)))))
+      (let
+       ((task (first i)))
+       (cond ((memq (ask ,task recall your status)
+		    '(cant-do being-handled-by-convey-tasks))) ;;do nothing then
+	     (t (let (((minimum-time maximum-time) (time-bounds-for-task task))
+		      (ideal-time (ideal-time-for-task task nil)))
+		     (let ((new-time (+$ ideal-time task-adjustment)))
+			  (cond ((and (< minimum-time new-time)
+				      (> maximum-time new-time)) ;;in range
+				 (setq total
+				       (+$ total 
+					   (ask ,task
+						set your running-time to ,new-time))))
+				((> minimum-time new-time) ;;must be too large
+				 (setq total
+				       (+$ total
+					   (ask ,task
+						set your running-time to ,maximum-time)))
+				 (setq extra-adjustment
+				       (+$ extra-adjustment (-$ new-time maximum-time))))
+				((< maximum-time new-time) ;;must be too small
+				 (setq total
+				       (+$ total
+					   (ask ,task
+						set your running-time to ,minimum-time)))
+				 (setq extra-adjustment
+				       (+$ extra-adjustment (-$ minimum-time new-time))))
+				(t (shouldnt-happen
+				    'adjust-task-lengths
+				    '(cant relate ,new-time to min ,minimum-time and
+					   max ,maximum-time))))))))))))
+ 
+      
+(define-function resurect-bad-time-fits (rejects what-to-accept)
+ (do ((r rejects (rest r))
+      (best-so-far nil)
+      (least-change-requested 999999.9))
+     ((null r) (cond (best-so-far least-change-requested)))
+     (let ((reason (get (first r) 'reason)))
+	  (cond ((or (eq (first reason) 'more-time-needed:)
+		     (eq (first reason) 'too-much-time:))
+		 (let ((off-by (get reason what-to-accept)))
+		      (cond ((< (abs off-by) (abs least-change-requested))
+			     (setq best-so-far (first r)
+				   least-change-requested off-by)))))))))
+
+(define-function choose-methods-for-task (task) ;;task holds the task and findings
+ (choose-a-display-method (get-display-method-suggestions task) task)
+ (reject-bad-value-changes (get-display-change-suggestions task) task)
+ (choose-a-few-convey-methods (get-convey-method-suggestions task) task))
+
+(define-function get-display-method-suggestions (task)
+ (ask ,task collect items memorized matching
+      (suggestion: element ? value {eq (get ? 'type) 'display} %)))
+
+(define-function get-display-change-suggestions (task)
+ (ask ,task collect items memorized matching
+      (suggestion: element ? value {eq (get ? 'type) 'display-value-change} %)))
+
+(define-function get-convey-method-suggestions (task)
+ (ask ,task collect items memorized matching (related-suggestions: %)))
+
+(define-function choose-a-display-method (suggestions task)
+ ;;the suggestions are display: methods 
+ ;; see how feasible and reasonable
+ ;;they are considering state of the world and amount of time available
+ (let ((suggestion-scores (score-suggestions suggestions task)))
+      (do ((s suggestion-scores (rest s))
+	   (best-so-far nil)
+	   (best-score -1))
+	  ((null s)
+	   (cond ((> best-score 0)
+		  (let ((value (get (get best-so-far 'suggestion) 'value)))
+		       (ask ,task set your scores to ,suggestion-scores)
+		       (ask ,(first (get value 'value))
+			    add ,task to your list of tasks-used-in)
+		       (ask ,task set your current-choice to (,(get value 'value)))
+		       (let ((special-dynamics-packages
+			      (get value 'special-dynamics-packages)))
+			    (cond (special-dynamics-packages
+				   (ask ,task ask your subscene to memorize
+					(special-dynamics-packages-for
+					 ,(get value 'value)
+					 ,special-dynamics-packages)))))))
+		 (suggestions '(no-feasible-suggestions-among ,suggestions))))
+	  (let ((score-package (first s)))
+	       (let ((suggestions-score
+		      (+ (* (get score-package 'strength)
+			    (numberify (film-level-of 'obviousness)))
+			 (* (get score-package 'prerequisite)
+			    (numberify (film-level-of 'coherence)))
+			 (* (get score-package 'best-when)
+			    (numberify (film-level-of 'coherence)))
+			 (* (get score-package 'time-fit)
+			    (numberify (film-level-of 'coherence)))
+			 (* (get score-package 'originality)
+			    (numberify (film-level-of 'originality)))
+			 (* (get score-package 'variety)
+			    (numberify (film-level-of 'variety))))))
+		    (cond ((> suggestions-score best-score)
+			   (setq best-so-far score-package)
+			   (setq best-score suggestions-score))))))))
+
+(define-function score-suggestions (suggestions task)
+ (do ((s suggestions (rest s))
+      (strengths nil)
+      (prerequisite-scores nil)
+      (best-when-scores nil)
+      (time-fit-scores nil)
+      (originality-scores nil)
+      (variety-scores nil)
+      (score-packages nil))
+     ((null s) (change-scores-to-percentiles score-packages
+					     strengths
+					     prerequisite-scores
+					     best-when-scores
+					     time-fit-scores
+					     originality-scores
+					     variety-scores))
+     (let
+      ((suggestion (first s)))
+      (let
+       ((strength (numberify (or (get suggestion 'strength) 'medium)))
+	(prerequisite-score (prerequisite-score (get (get suggestion 'value) 'prerequisites)))
+	(best-when-score (best-when-score (get (get suggestion 'value) 'best-when)))
+	(time-fit-score (time-fit-score (get-estimated-time-of suggestion task)
+					(ask ,task recall your allocated-time)))
+	(originality-score (originality-score (get (get suggestion 'value) 'value) task))
+	(variety-score (variety-score (get (get suggestion 'value) 'value))))
+       (cond ((not (numberp prerequisite-score))
+		 ;;reject those that fail to meet prerequisites
+	      (reject-suggestion task suggestion '(prerequisites-not-met ,prerequisite-score)))
+	     ((not (numberp time-fit-score)) ;;reject those that fail to take too long or short
+	      (reject-suggestion task suggestion time-fit-score))
+	     (t (setq score-packages
+		      (cons '(scores: suggestion ,suggestion
+				      strength ,strength
+				      prerequisite ,prerequisite-score
+				      best-when ,best-when-score
+				      time-fit ,time-fit-score
+				      originality ,originality-score
+				      variety ,variety-score)
+			    score-packages))
+		(setq strengths (cons strength strengths)
+		      prerequisite-scores (cons prerequisite-score prerequisite-scores)
+		      best-when-scores (cons best-when-score best-when-scores)
+		      time-fit-scores (cons time-fit-score time-fit-scores)
+		      originality-scores (cons originality-score originality-scores)
+		      variety-scores (cons variety-score variety-scores))))))))
+
+
+(define-function reject-suggestion (where suggestion reason)
+ (ask ,where forget items matching ,suggestion)
+ (ask ,where add (rejected-suggestion: reason ,reason
+				       suggestion ,suggestion)
+      to your list of rejected-suggestions))
+
+
+(define-function change-scores-to-percentiles 
+ (score-packages strengths prerequisite-scores best-when-scores time-fit-scores
+		 originality-scores variety-scores)
+ ;;this changes the scores into 1, 2 3 4 or 5 for the respective fifth
+ (let ((number-competing (length score-packages)))
+      (mapcar
+       (function
+	(lambda (score-package)
+		(putprop score-package
+			 (percentile (get score-package 'strength)
+				     strengths
+				     number-competing)
+			 'strength)
+		(putprop score-package
+			 (percentile (get score-package 'prerequisite)
+				     prerequisite-scores
+				     number-competing)
+			 'prerequisite)
+		(putprop score-package
+			 (percentile (get score-package 'best-when)
+				     best-when-scores
+				     number-competing)
+			 'best-when)
+		(putprop score-package
+			 (percentile (get score-package 'time-fit)
+				     time-fit-scores
+				     number-competing)
+			 'time-fit)
+		(putprop score-package
+			 (percentile (get score-package 'originality)
+				     originality-scores
+				     number-competing)
+			 'originality)
+		(putprop score-package
+			 (percentile (get score-package 'variety)
+				     variety-scores
+				     number-competing)
+			 'variety)
+		score-package))
+       score-packages)))
+
+
+(define-function percentile (value list length)
+ (do ((i list (rest i))
+      (lowers 0)
+      (equals 0))
+     ((null i) (// (+ (* lowers 100) (* equals 50)) length))
+     (cond ((> value (first i)) (setq lowers (1+ lowers)))
+	   ((= value (first i)) (setq equals (1+ equals))))))
+
+
+(define-function prerequisite-score (prerequisites)
+ (do ((p prerequisites (rest p))
+      (subtotal 0))
+     ((null p) subtotal)
+     (let ((status
+	    (ask ,(first (first p))
+		 recall an item matching (status-of ,(first p) ?status) then status)))
+	  (cond ((or (null status) (eq status 'dont-know))) ;;do nothing
+		((eq status 'met) (setq subtotal (1+ subtotal)))
+		((eq status 'not-met) (return '(,(first p)))) ;;return list of losers found
+		(t (shouldnt-happen 'prerequisite-score
+				    '(status ,status of ,(first p) no good)))))))
+
+(define-function best-when-score (best-whens)
+ (do ((p best-whens (rest p))
+      (subtotal 0))
+     ((null p) subtotal)
+     (let ((status
+	    (ask ,(first (first p))
+		 recall an item matching (status-of ,(first p) ?status) then status)))
+	  (cond ((or (null status) (eq status 'dont-know))) ;;do nothing
+		((eq status 'met) (setq subtotal (1+ subtotal)))
+		((eq status 'not-met) (setq subtotal (1- subtotal)))
+		(t (shouldnt-happen 'best-when-score
+				    '(status ,status of ,(first p) no good)))))))
+
+
+(define-function time-fit-score (time-estimates allocated)
+ (cond (time-estimates
+	(let ((lower-estimated (get time-estimates 'least))
+	      (upper-estimated (get time-estimates 'most))
+	      (lower-allocated (first allocated))
+	      (upper-allocated (second allocated))
+	      (ideal (get time-estimates 'ideal)))
+	     (let ((score (time-fit-score-1 lower-estimated upper-estimated
+					    lower-allocated upper-allocated ideal)))
+		  (cond ((not (numberp score)) score)
+			(t (+ score
+			      (time-fit-score-2 ideal lower-allocated upper-allocated)))))))
+       (t 0.0)))
+
+(define-function time-fit-score-1 
+		 (lower-estimated upper-estimated lower-allocated upper-allocated ideal)
+ (cond ((and (> upper-allocated upper-estimated)
+	     (< lower-allocated lower-estimated))
+	 2)
+       ((< upper-estimated lower-allocated)
+	'(too-much-time: ideal-difference ,(-$ ideal lower-allocated)
+			 will-accept ,(-$ upper-estimated lower-allocated)))
+       ((> lower-estimated upper-allocated)
+	'(need-more-time: ideal-difference ,(-$ ideal upper-allocated)
+			  will-accept ,(-$ lower-estimated upper-allocated)))
+       (t 1)))
+
+(define-function time-fit-score-2 (ideal lower-estimated upper-estimated)
+ (cond ((and (> ideal lower-estimated)
+	     (< ideal upper-estimated)) ;;in the range then
+	 2)
+       (t 0)))
+
+(define-function originality-score (method task)
+ ;;if the method has been used before thats bad for its originality
+ (let ((previous-choices (ask ,task recall your previous-choices)))
+      (do ((i previous-choices (rest i))
+	   (score 0))
+	  ((null i) score)
+	  (do ((j (first i) (rest j)))
+	      ((null j))
+	      (let ((old-method (first j)))
+		   (cond ((equal old-method method) (decrease score 3))
+			 ((eq (first old-method) (first method)) ;;similar methods
+			  (decrease score 1))))))))
+
+(define-function variety-score (method)
+ ;;the more its been chosen the worse it is with respect to variety
+ (- (occurences-of (first method)
+		   (ask ,(first method) recall your tasks-used-in))))
+
+
+(define-function get-prerequisites-of (suggestion)
+ (get (get suggestion 'value) 'prerequisites))
+
+(define-function get-best-of (suggestion)
+ (get (get suggestion 'value) 'best-when))
+
+(define-function get-estimated-time-of (suggestion task)
+ (let ((method (get (get suggestion 'value) 'value)))
+      (cond ((exists? (first method))
+	     (ask ,task set your special-dynamics-packages to
+		  ,(get (get suggestion 'value) 'special-dynamics-packages))
+	     (example-of (ask ,task update special-dynamics for participants) task)
+	     (or (uncompiled-ask ,(first method)
+				 estimate time for !,method
+				 in ,(ask ,task recall your subscene))
+		 (shouldnt-happen 'get-estimated-time-of
+				  '(|couldn't get a time bound out of/
+				    |
+				    ,suggestion)))))))
+
+
+(define-function reject-bad-value-changes (suggestions task)
+ ;;hopefully all conflicting ones are so noted for now rather than resolving them I'll reject
+ ;;this might also see if any changes conflict with any display methods but not now
+ (ask ,task set your current-choice to
+      ,(union (ask ,task recall your current-choice)
+	      (mapcar
+	       (function
+		(lambda (suggestion)
+			(get (get suggestion 'value) 'value)))
+	       suggestions))))
+
+(define-function choose-a-few-convey-methods (related-suggestions task)
+ (let ((suggestions-left (eliminate-convey-suggestions
+			  (eliminate-by-prerequisites related-suggestions task)
+			  ;;these have to go
+			  '(eliminate-conflicting-suggestions
+			    eliminate-not-best-whens 
+			    eliminate-not-related-suggestions
+			    eliminate-multiple-suggestions-of-same-source)
+			  task
+			  nil
+			  (// (+ 1 ;;so as to round up
+				 (numberify (film-level-of 'complexity))
+				 (numberify (film-level-of 'obviousness))
+				 (numberify
+				  (or (ask ,task ask your scene to recall your length)
+				      'medium)))
+			      3))))
+      (and suggestions-left
+	   (mapc
+	    (function
+	     (lambda (related-suggestion)
+		     (cond ((eq (get related-suggestion 'relationship) 'opposites)
+			    (shouldnt-happen
+			     'choose-a-few-convey-methods
+			     '(cant choose between ,related-suggestion yet))))
+		     (let ((value (get (get related-suggestion 'main-suggestion) 'value)))
+			  (ask ,(first (get value 'value))
+			       add ,task to your list of tasks-used-in)
+			  (ask ,task add ,value to your list of current-choice)
+			  (ask ,task set your status to being-handled-by-convey-tasks)
+			  (ask ,task add (,(get value 'type) ,(get value 'value))
+			       to your list of convey-tasks)
+			  (ask ,task ask your subscene to do the following:
+			       (add ,:self to your list of converted-establish-tasks)
+			       (remove ,:self from your list of establish-tasks)))))
+	    suggestions-left)
+	   (let ((convey-tasks (ask ,task recall your convey-tasks)))
+		(and convey-tasks  ;;if some process them by adding to the scene-description
+		     (process-scene-description task
+						(order-parallel-tasks convey-tasks)))))))
+
+
+(define-function eliminate-convey-suggestions 
+ (related-suggestions elimination-methods task elimination-methods-used how-many-is-a-few)
+;;the problem is to reduce the set of possible methods using the elimination-methods
+;;to as small a number (but not zero!) as possible to choose from
+;;its trys the elimination-methods until either nothing is left (and then uses previous
+;;remander of suggestions) or those left
+;;backup of a sort is possible since try-method knows what elimination-methods were used
+ (cond ((null related-suggestions) nil)
+       ((not (> (length related-suggestions) how-many-is-a-few)) ;;winning
+	related-suggestions)
+       ((null elimination-methods)
+	(explore-method-suggestions related-suggestions
+				    task
+				    elimination-methods-used
+				    how-many-is-a-few))
+       (t (let ((related-suggestions-left
+		 (funcall (first elimination-methods) related-suggestions task)))
+	       (cond ((null related-suggestions-left) ;;dont really apply it then
+		      (eliminate-convey-suggestions related-suggestions
+						    (rest elimination-methods)
+						    task
+						    elimination-methods-used
+						    how-many-is-a-few))
+		     (t (eliminate-convey-suggestions
+			 related-suggestions-left
+			 (rest elimination-methods)
+			 task
+			 (cond ((equal related-suggestions related-suggestions-left)
+				;;didnt eliminate anyone
+				elimination-methods-used)
+			       (t (cons (first elimination-methods)
+					elimination-methods-used)))
+			 how-many-is-a-few)))))))
+
+
+(define-function eliminate-by-prerequisites (suggestions task)
+ (do ((i suggestions (rest i))
+      (good-suggestions nil))
+     ((null i) good-suggestions)
+     (and (pass-prerequisite-test (get (first i) 'main-suggestion))
+	  (push (first i) good-suggestions))))
+
+(define-function pass-prerequisite-test (suggestion)
+ (do ((p (get (get suggestion 'value) 'prerequisite) (rest p)))
+     ((null p) t) ;;nothing wrong pass the test with flying colors
+     (and (ask ,(first (first p)) recall if any items match (status-of ,(first p) not-met))
+	  (return nil))))
+
+
+(define-function eliminate-not-best-whens (suggestions task)
+ (do ((i suggestions (rest i))
+      (good-suggestions nil))
+     ((null i) good-suggestions)
+     (and (pass-best-when-test (get (first i) 'main-suggestion))
+	  (push (first i) good-suggestions))))
+
+
+(define-function pass-best-when-test (suggestion)
+ (do ((p (get (get suggestion 'value) 'best-when) (rest p)))
+     ((null p) t) ;;nothing wrong pass the test with flying colors
+     (and (ask ,(first (first p)) recall if any items match (status-of ,(first p) not-met))
+	  (return nil))))
+
+(define-function eliminate-conflicting-suggestions (suggestions task)
+ ;;flush those that are suggested along with their opposites
+ (do ((i suggestions (rest i))
+      (non-conflicting-suggestions nil))
+     ((null i) non-conflicting-suggestions)
+     (or (eq (get (first i) 'relationship) 'opposites)
+	 (push (first i) non-conflicting-suggestions))))
+
+
+(define-function eliminate-not-related-suggestions (suggestions task)
+ ;;flush those that are not suggested along with
+ ;; their identicals, neighbors, specializations,  or generalizations
+ (do ((i suggestions (rest i))
+      (non-conflicting-suggestions nil))
+     ((null i) non-conflicting-suggestions)
+     (and (memq (get (first i) 'relationship)
+		'(identical neighbors specializations generalizations))
+	  (push (first i) non-conflicting-suggestions))))
+
+(define-function eliminate-multiple-suggestions-of-same-source (suggestions task)
+ ;;for now just using strength to choose amoung suggestions of the same source
+ (do ((i suggestions (rest i))
+      (source-suggestions nil))
+     ((null i) (mapcar
+		(function
+		 (lambda (source-suggestion)
+			 (cond ((one-long (second source-suggestion))
+				(first (second source-suggestion)))
+			       (t (pick-strongest-related-suggestion
+				   (second source-suggestion))))))
+		source-suggestions))
+     (let ((source (get (get (first i) 'main-suggestion) 'source)))
+	  (let ((association (assq source source-suggestions)))
+	       (cond (association (nconc (second association) (list (first i))))
+		     (t (push '(,source (,(first i))) source-suggestions)))))))
+
+(define-function pick-strongest-related-suggestion (related-suggestions)
+ (do ((i (rest related-suggestions) (rest i))
+      (best-so-far (first related-suggestions))
+      (best-strength (get (get (first related-suggestions) 'main-suggestion) 'strength)))
+     ((null i) best-so-far)
+     (let ((strength (get (get (first i) 'main-suggestion) 'strength)))
+	  (cond ((three-value-greaterp strength best-strength)
+		 (setq best-so-far (first i)
+		       best-strength strength))))))

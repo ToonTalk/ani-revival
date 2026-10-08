@@ -1,0 +1,66 @@
+(declare (special cycle1 :pi :outline))
+
+
+(defun grow-circle (initial-size growth-cycle delay)
+       (do ((size (float initial-size))
+	    (count 0))	   
+	   (nil nil)
+	   (cond ((< size 150.0) ;ie the size of the screen
+		  (do ((i growth-cycle (cdr i)))
+		      ((null i))
+		      (setq size (*$ size (car i)))
+		      (setq count (1+ count))
+		      (my-circle size)
+		      (wait delay count)
+		      (wipe)))
+		 (t (do ((i (turn-to-addons growth-cycle) (cdr i)))
+		      ((null i))
+		      (setq size (+$ size (car i))) ;this is + not * 
+		      (setq count (1+ count))
+		      (my-circle size)
+		      (wait delay count)
+		      (wipe))))))
+
+(defun wait (x count)
+       (cond ((numberp x) (sleep x))
+	     (t (princ count) (tyi))))
+
+(defun turn-to-addons (numbers)
+       (mapcar (function (lambda (number)
+				 (-$ (*$ number 150.0) 150.0)))
+	       numbers))
+
+
+(defun m1 (wait)
+       (cs)
+       (setq *nopoint t)
+       (wrap)
+       (ht)
+       (setq :outline nil)
+       (xordown)
+       (tvsize 400. 300.)
+       (turtlesize 300.)
+       (fd 5) ;circle is not centered somehow
+       (wipe)
+       (grow-circle 10 cycle1 wait))
+
+(setq cycle1
+      '(1.05 1.05 1.03 1.01 .95 .93 1.05 1.15 1.2 1.25 1.28 1.2 1.03 .9 .85 .87 .88 .9 .92 .93 .96))
+
+
+(defun my-circle (radius)
+       ((lambda (number-of-sides)
+		(pu)
+		(delx (-$ radius))
+		(do ((i number-of-sides (1- i))
+		     (size-1 (-$ (*$ 2.0 :pi (//$ radius (float number-of-sides)))
+				 1.0))
+		     (angle (//$ 360.0 (float number-of-sides))))
+		    ((= i 0) (pu) (delx radius) (xordown))
+		    (rt angle)
+		    (pu)
+		    (fd 1)
+		    (xordown)
+		    (fd size-1)))
+	(fix (+$ .5 (*$ 20.0 (log radius))))))
+		    

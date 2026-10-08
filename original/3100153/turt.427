@@ -1,0 +1,1002 @@
+;this is turt >
+;part of the director system that defines objects that are turtle like
+
+;bug: second show does not appear but does work, ie wipe looks right
+;just forget about using turtles, screwed badly in trying to run things hidden
+;and then restoring , also the way they keep hiding and showing unnecessarily
+
+;bad bugs in interpolate to ... stuff iwhich change future.colors are....
+
+(declare (or (boundp 'turt*) (fasload ask)))
+
+ 
+(declare (fasload qq))
+
+(declare (setq ibase 10.) (macros t))  
+
+(declare ((lambda (syntax-stuff)
+			 (eval syntax-stuff)
+			 (coutput syntax-stuff)
+			 (setsyntax 46. 192. nil)) ;this makes . be slashified for lap
+		 (read))) 
+
+
+(progn
+(setsyntax 123. 'single nil);makes {} single objects
+(setsyntax 125. 'single nil)
+(SETSYNTAX 46. 128. NIL) );makes . a normal character except within numbers
+
+
+(DECLARE (GENPREFIX turt-)
+	 (special :penstate :xorstate :eraserstate :heading :seeturtle :turtle :turtles
+		  :last.runtime :drawturtle :eraseturtle :xcor :ycor :turtle.windows
+		  :last.thing.upped :tvstep)
+	 (muzzled t))
+
+(declare (*lexpr make-actor turtlesize mw hw sw)
+	 (*fexpr ask superbreak)
+	 (special :self :pattern :action :message :values :variables :matched? 
+		  :name :class something :reversed.already? object flower rocket poly
+		  screen movie screen.doer composite.something composite.object
+		  :? :% no-value nothing-found))
+
+
+
+(defun do.the.following: macro (a)
+       (cons 'progn (cdr a)))
+
+
+(defun define.object nil
+        (ask something (make object))
+	(ask object (only change your size to 100))
+	(ask object (change your draw.form to '(draw-point)))
+        (ask object (change your speed to 100))
+        (ask object (change your rotational.speed to 30))
+	(ask object (change your growth.speed to 100))
+        (ask object (change your color to white))
+	(ask object '(if receive appear
+				{memq ?command
+		      			'(fd forward rt right lt left bk back)}
+				?amt then 
+				      ask screen
+		      			  (put :self :?command :?amt)
+		      			  (example: (put sam forward 100))))
+        (ask object '(if receive 
+				{memq ?command
+		      			'(fd forward rt right lt left bk back)}
+				?amt then 
+				    move.gradually :?command :?amt :self nil))
+        (ask object '(if receive 
+				{memq ?command
+		      			'(fd forward rt right lt left bk back)}
+				?amt {memq ? '(then: then)} %follow.up then 
+				    move.gradually :?command :?amt :self :%follow.up))
+	(ask object '(if receive {memq ?command
+					 '(setxy delxy)}
+					?x ?y then 
+					      ask screen 
+						  (put :self :?command :?x :?y)
+		      				  (example: (put sam setxy 50 100))))
+	(ask object '(if receive {memq ?command
+					 '(pu pd penup pendown)}
+					then ask screen
+		      				(move pen :self :?command)
+		      				(example: (move pen sam penup))))
+	(ask object '(if receive {memq ?command
+					 '(setx sety delx dely setheading sett
+					   setturtle)}
+					?rest then 
+					      ask screen 
+						 (put :self :?command :?rest)
+		      				 (example: (put sam delx 100))))
+	(ask object '(if receive show then ask screen (show :self)
+		      			       (example: (show sam))))
+	(ask object '(if receive hide then ask screen (hide :self)
+		      				      (example: (hide sam))))
+        (ask object '(if receive run %function.call then
+		      ask screen (run for :self :%function.call)
+		      		 (example: (run for sam circle 100))))
+        (ask object '(if receive change your size to ?new.size
+		      	         then do.the.following:
+				 (pass.the.message.to.parent
+				  (cons 'only :message) :self)
+				 (ask screen (scale by :?new.size appearance of :self)
+				             (example:
+					      (scale by 5 appearance of sam)))))
+       	(ask object '(if receive change your 
+				 {memq ? (get.or.ask.parent :self 'drawing.args)}
+;the ask macro loses when run recursively, until then the above  fix is necessary
+		      		 to ? then
+				 progn 
+				 (pass.the.message.to.parent
+				  (cons 'only :message) :self)
+				 (ask screen (display new appearance for :self)
+				             (example:
+					      (display new appearance for sam)))))
+        (ask object '(if receive move away from (?x ?y %) by factor ?factor
+		       then move.away :?x :?y :?factor :self))
+	(ask object '(if receive revolve around (?x ?y %) by ?turn degrees then
+		      revolve.around :?x :?y :?turn :self))
+	(ask object '(if receive recall your
+				 {memq ?command
+				       '(here heading xcor ycor)}
+				  % then output ask screen (what is :?command of :self)
+		      				    (example: (what is here of sam))))
+	(ask object '(if receive change your here to ?new.state then
+				 ask :self (setturtle :?new.state)
+		      				(example:
+						 (ask object (setturtle '(0 50 90))))))
+	(ask object '(if receive change your your heading to ?new.heading then
+				 ask :self (setheading :?new.heading)
+		      				(example: (ask object
+							       (setheading 45)))))
+	(ask object '(if receive change your xcor to ?new.x then
+				 ask :self (setx :?new.x)
+		      				(example: (ask object (setx 99)))))
+	(ask object '(if receive change your ycor to ?new.y then
+				 ask :self (sety :?new.y)
+		      				(example: (ask object (sety 99)))))
+       (ask object '(if receive grow ?amount then grow.gradually :?amount :self))
+       (ask object '(if receive shrink ?amount then grow.gradually
+		     					(minus :?amount) :self))
+       (ask object '(if receive interpolate to ?another.object in ?number ticks
+		     then (lambda (:interpolation)
+				  (ask :self
+				       (change your interpolationamount to 0.0))
+				  (ask :self
+				       (draw using
+					     :interpolation of
+					     interpolationamount color))
+				  (ask :self (interpolate to color
+							  (ask :?another.object
+							       (recall your color))
+							  in :?number ticks))
+				;  (ask screen (display new appearance for :self)
+				;             (example:
+				;	      (display new appearance for sam)))
+				  (ask :self
+				       (repeat :?number
+					       '(increment your interpolationamount by
+						 `(//$ (float :?number)))))
+				  (ask :self
+				       (repeat :?number
+					       '(increment your size by
+						 `(//$
+						   (-$
+						    (float
+						     (ask :?another.object
+							  (recall your size)))
+						    (float
+						     (ask :self
+							  (recall your size))))
+						   (float :?number))))))
+		          ((lambda (:interpolation)
+			   (make.interpolation
+			       ':new.interpolation
+			       (ask :self (yield your draw form))
+			       (ask :?another.object 
+				   (yield your draw form)))
+			   (putprop :interpolation
+				    (cons 'lambda
+					  (cons '(interpolationamount color)
+						(cons '(pencolor color)
+							(cddr :new.interpolation))))
+				    'expr)
+			    :interpolation)
+			   (append-atoms :self :?another.object))))
+       (ask object '(if receive interpolate to color ?color in ?number ticks then
+		     do.the.following:
+		     (ask :self (change your future.colors are
+				      (make.color.interpolation
+				       (ask :self (recall your color))
+				       :?color
+				       :?number)))
+		     (ask :self (repeat :?number
+					'(pop onto color your future.colors)))))
+       (ask object '(if receive yield your draw form then
+		     output do.the.following:
+		     (tell-logo-which-turtle :self)
+		     (car (last (cadr :drawturtle)))))
+       (ask object '(if receive draw using ?draw.procedure of %draw.args
+		     then do.the.following:
+		     (ask :self
+			  (change your draw.form to
+				    (cons.drawer :?draw.procedure :%draw.args))
+			  (example: (ask something
+					 (change your draw.form to
+						   '(square
+						     (ask :self (recall your size)))))))
+		     (ask :self (change your drawing.args to (no-op :%draw.args))
+			  	(example: (ask something
+					       (change your drawing.args to
+						     '(size))))))))
+
+
+(defun move.gradually (:command :amt :object :%followup)
+       ((lambda (:speed)
+		(cond ((not (< :speed :amt))
+		       (ask :object
+			    (appear :command :amt)
+			    (example: (ask object (appear fd 100))))
+		       (and :%followup 
+			    (ask  :object
+				(plan: :%followup next))))
+		      (t (ask :object
+			      (appear :command :speed)
+			      (example: (ask object (appear fd 100))))
+			 (ask :object
+			     (plan: :command (difference :amt :speed) then:
+				    :%followup next)))))
+	(cond ((memq :command '(fd forward bk back))
+	       (ask :object (recall your speed) (example: (ask something ...))))
+	      (t (ask :object (recall your rotational.speed)
+		      	      (example: (ask something ...)))))))
+
+(defun grow.gradually (:amount :object)
+       ((lambda (:growth.speed :old.size)
+		(cond ((not (< (abs :growth.speed) (abs :amount)))
+		       (ask :self
+			    (only change your size to
+				     (plus :amount :old.size)))
+		       (ask screen (scale by (plus :amount :old.size)
+					  appearance of :self)
+			    (example: (scale by 5 appearance of sam))))
+;example: removed since it doesnt result in run time check for "daemons"
+		      (t 
+		       (ask :self
+			    (only change your size to
+				     (plus :growth.speed :old.size)))
+		       (ask screen (scale by (plus :growth.speed :old.size)
+					  appearance of :self)
+			    (example: (scale by 5 appearance of sam)))
+		       (ask :self
+			    (plan: grow (difference :amount :growth.speed) next)
+			    (example: (ask something (plan: grow 50 next)))))))
+	((lambda (:g.speed)
+		 (cond ((plusp :amount) :g.speed)
+		       (T (minus :g.speed))))
+	 (ask :object (recall your growth.speed)
+	     	     (example: (ask something ...))))
+	(ask :self (recall your size))))
+
+
+;perhaps screen should be doing this and able to take many things for same turtle 
+;at once
+(defun move.away.from (:x :y :factor :object)
+       ((lambda (:towards :range seeturtle)
+		(ask :object (hide) (example: (ask object ...)))
+		(ask :object (appear rt :towards)
+		     	     (example: (ask object (appear rt 100))))
+		(ask :object (appear bk (times :range (plus -1.0 :factor)))
+		     	     (example: (ask object (appear bk 50))))
+		(ask :object (appear lt :towards)
+		     	     (example: (ask object (appear lt 100))))
+		(and seeturtle (ask :object (show) (example: (ask object ...)))))
+	(ask :object (what heading to :x :y))
+;	     	     (example: (ask object (what heading to 100 300)))
+	(ask :object (how far to :x :y))
+;	     	     (example: (ask object (how far to 100 300)))
+	(ask :object (can be seen))))
+; (example: (ask object ...))
+
+
+;(defun revolve.around (:x :y :turn :object)
+;       ((lambda (:towards :range seeturtle)
+;		(ask object (hide) (example: (ask object ...)))
+;		(ask object (appear rt :towards)
+;		     	     (example: (ask object (appear rt 90))))
+;		(ask object (appear fd :range)
+;		     	     (example: (ask object (appear fd 30))))
+;		(ask object (appear rt :turn)
+;		     	     (example: (ask object (appear rt 45))))
+;		(ask object (appear bk :range)
+;		     	     (example: (ask object (appear bk 30))))
+;		(ask object (appear lt :towards)
+;		     	     (example: (ask object (appear lt 90))))
+;		(and seeturtle (ask :object (show) (example (ask object ...)))))
+;	(ask object (what heading to :x :y))
+;	     	     (example: (ask object (what heading to 100 300)))
+;	(ask object (how far to :x :y))
+;	     	     (example: (ask object (how far to 100 300)))
+;	(ask object (can be seen) )))
+;(example: (ask object ...))
+
+;not example:-ized since needs more work
+
+(defun define.composite.object nil
+       (ask composite.something (make composite.object))
+       (ask composite.object 
+	    '(if receive make ?name out of %parts then do.the.following:
+		(ask :self (make :?name) (example: (make sally)))
+		((lambda (:centers-name)
+			 (ask object (make :centers-name)
+			      	     (example: (make sallys.center)))
+			 (ask (eval :name)
+			      (change your size to 1)
+			      (example: (ask something ...)))
+			 (ask (eval :name)
+			      (change your centers.name to (eval :centers-name))
+			      (example:
+				(ask something
+				     (change your centers.name to
+					   internal-sallys.center))))
+			 (ask (eval :name)
+			      (remember parts :centers-name)
+			      (example:
+				(ask something
+				     (remember parts sallys.center)))))
+		 (append-atoms :name 's.center))))
+      (ask composite.object '(if receive center ?x ?y then 
+			      ask (ask :self (recall your centers.name))
+				  (setxy :?x :?y)
+				 (example:
+				   (ask object
+				     (setxy 250 -100)))))
+      (ask composite.object
+	    '(if receive {memq ?
+	      '(fd forward bk back rt right left lt pu pd penup pendown show hide)}
+		 % then ask :self (ask parts :message) 
+				      (example: (ask parts (show)))))
+;;       (ask composite.object
+;	    '(if receive grow ?amount
+;	      then progn
+;	      (ask :self '(ask parts `:message));this loses
+;	      ((lambda (centers-name)
+;	      (ask :self '(ask parts
+;			       (move away from
+;				       `(ask
+;					centers-name
+;					'(here))
+;				       by factor
+;				       `((lambda (:old-size)
+;					(ask :self
+;					     '(change your size to
+;						    `(plus :old-size
+;							  :amount)))
+;						 (//$ (float :amount)
+;						      (float :old-size)))
+;					 (ask :self '(recall your size)))))))
+;	    (ask :self '(recall your centers.name)))))
+				       )
+
+
+(defun define.movie nil
+       (ask something (make movie))
+       (ask movie '(if receive remember that screen did ?command for ?object then
+		       ask :self (remember did :?command at time
+					   (ask :self (recall your time)
+						      (example: (ask something ...)))
+					   for :?object)
+		    		 (example: (ask something
+						(remember did '(fd 100)
+							  at time 7 for sam)))))
+       (ask movie '(if receive make ?name ?length ticks long in ?universe then
+		    do.the.following:
+		    (ask movie (make :?name) (example: (make sam)))
+		    (ask screen (change your movie to :?name)
+			 	(example: (change your movie to ben.hur)))
+		    (ask :?name
+			 (repeat (1- :?length) '(wipe)))
+		    (ask :?name (change your begin.state to
+				     (ask screen (save all turtles))))
+		    (ask :?universe (run for :?length ticks)
+			 	    (example: (ask universe (run for 12 ticks))))
+		    (ask :?name (change your time to 0)
+			 (example: (ask something ...)))
+		    (ask screen (forget movie :?name)
+			 	(example: (forget movie ben.hur)))))
+       (ask movie '(if receive run for ?length ticks in ?universe then
+		    do.the.following:
+		    (ask screen (change your movie to :self)
+			 	(example: (change your movie to ben.hur)))
+		    (ask :self
+			 (repeat (1- :?length) '(wipe)))
+		    (ask :self (change your begin.state to
+				     (ask screen (save all turtles))))
+		    (ask :?universe (run for :?length ticks)
+			 	    (example: (ask universe (run for 12 ticks))))
+		    (ask :self (change your time to 0)
+			 (example: (ask something ...)))
+		    (ask screen (forget movie :self)
+			 	(example: (forget movie ben.hur)))))
+       (ask movie '(if receive show then
+		    ask :self
+		      (change your sorted.out.version to (show.movie :self 0.0))))
+       (ask movie '(if receive show at speed ?number then
+		    ask :self
+		      (change your sorted.out.version to
+			    (show.movie :self (//$ (float :?number))))))
+       (ask movie '(if receive begin then do.the.following:
+		    (useturtle 'logoturtle)
+		    (eval (ask :self (recall your begin.state)))
+		    (wipe)))
+       (ask movie '(if receive wipe then wipe)))
+
+(declare (special :speed))
+
+(defun show.movie (:movie :speed)
+(setq :last.runtime (runtime))
+(mapc 'eval (or (ask :movie (recall your sorted.out.version))
+		(sort.out.movie  :movie))))
+
+
+;kludged to work, should really be completely rewritten to take advantage of resume last find
+
+(declare (coutput (read)))
+
+
+
+(defun sort.out.movie (:movie)
+       ((lambda (:act :time :actor)
+	(do ((:i (ask :movie (remembered? did ?act at time ?time for ?actor then:
+					  do.the.following:
+					   '(setq :act :?act :time :?time :actor :?actor)))
+		 (ask :movie
+		      (resume last find then: do.the.following:
+			      '(setq :act :?act :time :?time :actor :?actor))))
+	     (:last.actor nil)
+	     (:last.time nil)
+	     (:a.full.frame nil)
+	     (ans nil))
+	    ((null :i) (nreverse (cons (list 'run.frame
+						 (list 'quote (nreverse :a.full.frame)))
+					    ans)))
+	    (cond ((eq :last.time :time))
+		  (t (setq ans (cons (list 'run.frame
+				      (list 'quote (nreverse :a.full.frame)))
+				     ans))
+		     (setq :a.full.frame nil)))
+	    (cond ((eq :last.actor :actor))
+		  (t (setq :a.full.frame
+			   (cons (list 'useturtle
+				       (ask :actor
+						  (recall your turtles.name)))
+				   :a.full.frame))))
+	    (setq :a.full.frame (cons :act :a.full.frame))
+	    (setq :last.actor :actor)
+	    (setq :last.time :time)))
+	nil nil nil))
+
+(declare (special :drawturtle :eraseturtle :actions))
+
+(defun run.frame (:actions)
+       (run.with.turtles.hidden
+	      '(mapc 'eval :actions))
+       (sleep (-$ :speed (//$ (float (- (runtime) :last.runtime)) 1000000.0)))
+       (setq :last.runtime (runtime))
+       (wipe))
+
+(declare (unspecial :speed :actions))
+
+;this makes changes that are invisible until a wipe occurs
+
+
+(defun run.with.turtles.hidden (form)
+       ((lambda (errlist)
+		(mapc 'hide.and.remember.true.visibility :turtles)
+		(eval form)
+		(mapc 'restore.seeturtle :turtles))
+	(cons '(mapc 'restore.seeturtle :turtles) errlist)))
+
+
+
+(defun hide.and.remember.true.visibility (turtle)
+       (useturtle turtle)
+       (putprop :turtle :seeturtle 'true.visibility)
+       (hideturtle))
+       
+       
+(defun restore.seeturtle (turtle)
+       (useturtle turtle)
+       (and (get turtle 'true.visibility)
+	    (showturtle)))
+
+(defun smart.maketurtle (:drawer :eraser)
+       ((lambda (:turtle.window)
+		(cond ((null :turtle.windows)
+		       (apply 'maketurtle (list  :drawer :eraser)))
+		      (:turtle.window
+		       (apply 'maketurtle (list (cdr :turtle.window)
+						(cdr :turtle.window)))
+		       (setq :turtle.windows (cons :turtle.window :turtle.windows)))
+		      (t ((lambda (:new.turtle.window)
+				  (apply 'maketurtle (list (cdr :new.turtle.window)
+							   (cdr :new.turtle.window)))
+				  (setq :turtle.windows (cons :new.turtle.window
+							     :turtle.windows))
+				  (rplacd (last :turtle.windows) nil))
+			  (make.a.new.turtle.window :drawer)))))
+	(assoc (cons (fix.heading (heading))
+		     :drawer )
+	       :turtle.windows)))
+
+
+
+(defun make.a.new.turtle.window (:drawer)
+       ((lambda (:window.name :actors.heading)
+		(shoot.window :drawer :window.name)
+		(cons (cons :actors.heading :drawer)
+		      (list 'xor.window.with.heading
+			    (list 'quote :drawer)
+			    ((lambda (new.name)
+				     (putprop new.name
+					      (list (cons
+						     (fix.heading :actors.heading)
+						     :window.name))
+					      'headings.windows)
+				     (list 'quote new.name))
+			     (gensym)))))
+	(gensym)
+	(heading)))
+
+(defun xor.window.with.heading (:drawer :headings.windows.atom)
+       ((lambda (:headings.windows :actors.heading)
+		((lambda (:heading.window)
+			 (cond (:heading.window (xw (cdr :heading.window) :xcor :ycor))
+			       (t ((lambda (:new.window)
+					   (shoot.window :drawer :new.window)
+					   (putprop :headings.windows.atom
+						    (cons
+						     (cons :actors.heading :new.window)
+						     :headings.windows)
+						    'headings.windows)
+					   (xw :new.window :xcor :ycor))
+				   (gensym)))))
+		 (assq :actors.heading :headings.windows)))
+	(get :headings.windows.atom 'headings.windows)
+	(fix.heading (heading))))
+
+
+
+(defun shoot.window (:drawer :window.name)
+     ((lambda (:old.turtle :old.state :old.seeturtle :size)
+	      (ht)
+	      (useturtle 'logoturtle)
+	      (ht)
+	      (pu)
+	      (sett :old.state)
+	      (mw 'the.screen)
+	      (hw 'the.screen)
+	      (pd)
+	      (eval :drawer)
+	      (mw :window.name (car :old.state) (cadr :old.state)
+		  (+$ :tvstep :size)
+		  (+$ :tvstep :size))
+	      (hw :window.name)
+	      (sw 'the.screen)
+	      (useturtle :old.turtle)
+	      (and :old.seeturtle (st)))
+      :turtle
+      (here)
+      :seeturtle
+      (car (caddr :drawer))))  ;;;watch out may change
+
+
+;do fancier version later
+(defun fix.heading (heading)
+       (* (// heading 10) 10))
+
+
+(defun repeat.list (obj number)
+       (cond ((= number 0) nil)
+	     (t (cons obj (repeat.list obj (1- number))))))
+
+
+;(or (boundp ':turtle.windows)
+;    (setq :turtle.windows (repeat.list nil 100.)))
+;until windows stuff is better debuged
+
+(setq :turtle.windows nil)
+
+(defun dummye nil nil)
+(defun dummyd nil nil)
+		    
+(defun define.screen nil
+       (ask something (make screen))
+       (ask screen '(if receive {memq ? '(put show hide move hatch run display scale)}
+		     % then do.the.following:
+		     ((lambda (:movie)
+			 (cond (:movie
+				(ask screen.doer
+				    (do :message and tell :movie)))
+			       (t (ask screen.doer :message))))
+		      (ask screen (recall your movie)))))
+       (ask screen '(if receive what is ?turtlestate of ?object then output
+		     do.the.following:
+		        (tell-logo-which-turtle :?object)
+		        (funcall :?turtlestate)))
+       (ask screen '(if receive save all turtles then output state.of.turtles)))
+		     
+(defun define.screen.doer nil
+	(ask something (make screen.doer))
+        (ask screen.doer '(if receive put ?object %command then do.the.following:
+			 (tell-logo-which-turtle :?object)
+		         (apply (car :%command) (cdr :%command))))
+;this is apply not eval so that args arent double evaled, sett gets unhappy
+        (ask screen.doer '(if receive run for ?object %function.call
+			   then do.the.following:
+			   (tell-logo-which-turtle :?object)
+			   (eval :%function.call)))
+        (ask screen.doer '(if receive show ?object then do.the.following:
+			 (tell-logo-which-turtle :?object)
+			 (putprop :turtle t 'true.visibility)
+		         (showturtle)))
+        (ask screen.doer '(if receive hide ?object then do.the.following:
+			 (tell-logo-which-turtle :?object)
+			 (putprop :turtle nil 'true.visibility)
+		         (hideturtle)))
+        (ask screen.doer '(if receive move pen ?object ?command then do.the.following:
+			 (tell-logo-which-turtle :?object)
+		         (funcall :?command)))
+       (ask screen.doer '(if receive hatch ?turtle for ? then hatch :?turtle))
+       (ask screen.doer '(if receive display new appearance for ?object then
+			  do.the.following:
+			  (tell-logo-which-turtle :?object)
+			  (apply 'smart.maketurtle (draw+erase :?object))))
+       (ask screen.doer '(if receive maketurtle ?procedures for ?object then
+			  do.the.following:
+			  (tell-logo-which-turtle :?object)
+			  (apply 'smart.maketurtle :?procedures)))
+       (ask screen.doer '(if receive scale by ?factor appearance of ?object then
+			  do.the.following:
+			  (tell-logo-which-turtle :?object)
+			  (cond ((eq (car :drawturtle) 'scale.call)
+				 (apply 'smart.maketurtle
+				  (list (list 'scale.call
+					      (cadr :drawturtle)
+					      (new.scale.info :?factor
+							      (caddr :drawturtle)))
+					(list 'scale.call 
+					     (cadr :eraseturtle)
+					     (new.scale.info :?factor
+							      (caddr :drawturtle))))))
+				(t (apply 'smart.maketurtle (draw+erase :?object))))))
+       (ask screen.doer '(if receive do (scale by ?factor appearance of ?object )
+				and tell ?movie then do.the.following:
+			  (tell-logo-which-turtle :?object)
+			  ((lambda (new-draw+erase)
+				   (apply 'smart.maketurtle new-draw+erase)
+				   (ask :?movie
+					(remember that screen did
+						  (cons 'smart.maketurtle
+							new-draw+erase)
+						  for
+						  :?object)))
+			   (cond ((eq (car :drawturtle) 'scale.call)
+				  (list (list 'scale.call
+					      (cadr :drawturtle)
+					      (new.scale.info :?factor
+							      (caddr :drawturtle)))
+					(list 'scale.call 
+					      (cadr :eraseturtle)
+					      (new.scale.info :?factor
+							      (caddr :drawturtle)))))
+				(t (draw+erase :?object))))))
+       (ask screen.doer '(if receive do (put ?object %command) and tell ?movie
+			   then do.the.following:
+			 (tell-logo-which-turtle :?object)
+		         (apply (car :%command) (cdr :%command))
+			 (ask :?movie
+			      (remember that screen did
+					(no-op :%command)
+					for :?object))))
+;this is apply not eval so that args arent double evaled, sett gets unhappy
+        (ask screen.doer '(if receive do (run for ?object %function.call)
+			   and tell ?movie
+			   then do.the.following:
+			   (tell-logo-which-turtle :?object)
+			   (eval :%function.call)
+			   (ask :?movie
+			      (remember that screen did :%function.call
+					for :?object))))
+        (ask screen.doer '(if receive do (show ?object) and tell ?movie
+			   then do.the.following:
+			 (tell-logo-which-turtle :?object)
+			 (putprop :turtle t 'true.visibility)
+		         (showturtle)
+			 (ask :?movie
+			      (remember that screen did '(showturtle) for :?object))))
+        (ask screen.doer '(if receive do (hide ?object) and tell ?movie
+			   then do.the.following:
+			 (tell-logo-which-turtle :?object)
+		         (putprop :turtle nil 'true.visibility)
+			 (hideturtle)
+			   (ask :?movie
+			      (remember that screen did '(hideturtle) for :?object))))
+        (ask screen.doer '(if receive do (move pen ?object ?command) and tell ?movie
+			   then do.the.following:
+			 (tell-logo-which-turtle :?object)
+		         (funcall :?command)
+			   (ask :?movie
+			      (remember that screen did (list :?command)
+					for :?object))))
+       (ask screen.doer '(if receive do (hatch ?turtle for ?object) and tell ?movie
+			  then do.the.following:
+			  (hatch :?turtle)
+			  (ask :?movie
+			      (remember that screen did (list 'hatch :?turtle)
+					for :?object))))
+       (ask screen.doer '(if receive do (display new appearance for ?object)
+			  and tell ?movie then  do.the.following:
+			  (tell-logo-which-turtle :?object)
+			  (apply 'smart.maketurtle (draw+erase :?object))
+			  (ask :?movie
+			      (remember that screen did
+					(cons 'smart.maketurtle
+					      (draw+erase :?object))
+					for :?object)))))
+
+
+;this exists because  (a b :%foo) where :%foo is (c d) becomes (a b c d)
+;so that (a b (no-op :%foo)) becomes (a b (c d))
+
+(defun no-op (x) x)
+
+(declare (special :last.turtle))
+
+(setq :last.turtle (gensym))
+
+;the :last.turtle is so that turtles need not be switched when the same guy is being
+;asked to do stuff in a row
+
+
+(defun tell-logo-which-turtle (:self)
+((lambda (:turtle.name)
+	 (cond ((eq :turtle.name :turtle))
+	       (:turtle.name (useturtle :turtle.name))
+	       (t (make-a-new-turtle :self)))
+	 (setq :last.turtle :turtle.name))
+ (get (symeval :self) 'turtles.name)))
+;;;  ask :self '(recall your turtles.name) is gone cuz finds superior's turtle
+
+
+(defun make-a-new-turtle (:self)
+((lambda (:new-turtle :parents.turtle)
+	 (ask screen (hatch :new-turtle for :self))
+	 (hideturtle)
+	 (wrap)
+	 (penup)
+	 (ask :self
+	      (change your turtles.name to :new-turtle)
+	      (example: (ask something (change your turtles.name to
+					     turtle.of.fred))))
+	 (and :parents.turtle
+	      (fillarray :new-turtle (listarray :parents.turtle)))
+	 (ask screen
+	      (display new appearance for :self)))
+ (append-atoms 'turtle.of. :self)
+ (ask :self (recall your turtles.name))))
+
+
+
+
+(defun state.of.turtles nil
+(useturtle :turtle) ;this makes the turtle prop up to date
+       (list 'mapc ''fillturtle
+	     (list 'quote :turtles)
+	     (list 'quote (mapcar 'listturtle :turtles))))
+
+(defun listturtle (turtle) (listarray (get turtle 'turtle)))
+
+(defun fillturtle (turtle list) (fillarray (get turtle 'turtle) list))
+
+
+;think about how the forms could be compiled
+
+(defun cons.drawer (:draw.procedure :draw.args)
+       (cons :draw.procedure
+	     (mapcar
+	      (function
+	       (lambda (arg)
+		       (cond ((eq arg 'size) 100.0)
+			     (t '(ask :self (recall your `arg))))))
+	      :draw.args)))
+
+(defun draw+erase (:self)
+((lambda (draw.form)
+	 ((lambda (how.to.draw size)
+		  ((lambda (how.to.center+scale)
+			   (list (cons-draw-form how.to.draw
+						  size
+						  (car how.to.center+scale)
+						  (cdr how.to.center+scale))
+				 (cons-erase-form how.to.draw
+						  size
+						  (car how.to.center+scale)
+						  (cdr how.to.center+scale))))
+		   (how.to.get.to.center.and.scale how.to.draw size)))
+	  (cons (car draw.form) (mapcar 'eval-then-quote-result
+					       (cdr draw.form)))
+	  (ask :self (recall your size))))
+  (ask :self (recall your draw.form) (example: (ask something ...)))))
+
+(defun eval-then-quote-result (:exp)
+       (list 'quote (eval :exp)))
+
+(defun cons-draw-form (:how.to.draw :size :how.to.center :scale)
+	'(scale.call
+	  (do.the.following:
+	    (thingup)
+	    `:how.to.center
+	    (thingdown)
+	    `:how.to.draw)
+	  `(list (float :size) :scale)))
+
+(defun cons-erase-form (:how.to.draw :size :how.to.center :scale)
+	'(scale.call
+	  (do.the.following:
+	    (thingup)
+	    `:how.to.center
+	    (undothingdown)
+	    `:how.to.draw)
+	  `(list (float :size) :scale)))
+
+(defun new.scale.info (:new.size :old.info)
+       (list (float :new.size)
+	     (*$ (cadr :old.info) (//$ (float :new.size) (car :old.info)))))
+
+;may at some point this should be internal to each actor?
+
+
+(defun thingup nil
+       (cond (:penstate (setq :last.thing.upped 'pen)
+			(penup))
+	     (t (setq :last.thing.upped 'pen) ;pen (not xor) is the default
+		(xorup))))
+
+(defun thingdown nil
+       (cond ((eq :last.thing.upped 'pen)
+	      (pendown))
+	     (t (xordown))))
+
+(defun undothingdown nil
+       (cond ((eq :last.thing.upped 'pen)
+	      (eraserdown))
+	     (t (xordown))))
+
+(defun xor-point nil
+       (xordown) (point)(xorup))
+
+(defun draw-point nil (list 'xor-point))
+
+(defun petals (:size :n :color-list)
+(right 45)
+(do ((i :n (1- i))
+     (turn (quotient 360.0 :n))
+     (present-colors  :color-list (or (cdr present-colors)
+					  :color-list)))
+    ((zerop i)(lt 45.))
+    (pencolor (car present-colors))
+    (petal :size)
+    (right turn)))
+
+(defun petal (:size)
+       ((lambda (begin eraserstate)
+		(lt 45.)
+		(draw-arc :size 90.)
+		(rt 90.)
+		(draw-arc :size 90.)
+		(rt 135.)
+		(pu)
+		(sett begin)
+		(cond (eraserstate (erd))
+		      (t (pd))))
+(here) :eraserstate))
+
+(defun draw-arc (:size :angle)
+       (do ((stop-heading (plus :heading :angle)))
+	   ((not (< :heading stop-heading)))
+	   (fd :size)
+	   (rt 5)))
+
+(defun draw.flower (:size-in-turtle-steps :n :color-list)
+       ((lambda (begin eraserstate :size)
+		(petals :size :n :color-list)
+		(pencolor 'green)
+		(bk (*$ :size 32.0))
+		(rt 22)
+		(petal (*$ :size .55))
+		(lt 22)
+		(bk (*$ :size 8.0))
+		(lt 33)
+		(petal (*$ :size .9))
+		(rt 33)
+		(bk (*$ :size 13.0))
+		(pu)
+		(sett begin)
+		(cond (eraserstate (erd))
+		      (t  (pd))))
+    (here) :eraserstate (quotient :size-in-turtle-steps 55.0)))
+
+(defun right/.tri (:side1 :side2) 
+       ((lambda (:begin/.state) (forward :side1)
+				(right 90.)
+				(forward :side2)
+				(setturtle :begin/.state))
+	(here))) 
+
+(defun rect (:a :b) 
+       (forward :a)
+       (right 90.)
+       (forward :b)
+       (right 90.)
+       (forward :a)
+       (right 90.)
+       (forward :b)
+       (right 90.)) 
+
+(defun eq.tri (:side)
+       (forward :side) (right 120.)
+       (forward :side) (right 120.)
+       (forward :side) (right 120.))
+
+(defun draw.rocket (:size) 
+;       ((lambda (:begin.state) 
+;		(pendown)
+		(rect (times :size 0.5) (times :size 0.2))
+		(forward (times :size 0.25))
+		(right.tri (times :size -0.25) (times :size -0.15))
+		(forward (times :size 0.25))
+		(right 30.)
+		(eq.tri (times :size 0.2))
+		(right 60.)
+		(forward (times :size 0.2))
+		(right 90.)
+		(forward (times :size 0.25))
+		(right/.tri (times :size 0.25) (times :size -0.15))
+;		(penup)
+;		(setturtle :begin/.state)
+)
+;	(here))
+)
+
+
+(defun define.rocket nil
+       (ask object (make rocket))
+       (ask rocket (only change your size to 100))
+       (ask rocket (draw using draw.rocket of size)))
+
+
+
+(defun define.poly nil
+       (ask object (make poly))
+       (ask poly (only change your angle to 60))
+       (ask poly (draw using draw.poly of size angle)))
+
+(defun poly1 (:size :angle :begin.heading)
+		(rt :angle)
+		(fd :size)
+		(cond ((= :begin.heading (heading)))
+		      (t (poly1 :size :angle :begin.heading))))
+
+(defun draw.poly (:size :angle)
+       (poly1 :size :angle (heading)))
+
+	      
+(defun define.flower nil
+       (ask object (make flower))
+       (ask flower (only change your number.of.petals to 3))
+       (ask flower (only change your colors to '(red yellow orange)))
+       (ask flower (only change your size to 200))
+       (ask flower (draw using draw.flower of size number.of.petals colors)))
+
+
+(or (status feature color)
+(defun pencolor (color)
+nil))
+
+(defun d.objects nil
+       (define.object)
+       (define.screen)
+       (define.screen.doer)
+       (define.movie)
+       (define.poly)
+       (define.flower)
+       (define.rocket))
+
+
+
+(declare (setsyntax 46. 139712. nil))
+
+
+

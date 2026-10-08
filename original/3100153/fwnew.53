@@ -1,0 +1,430 @@
+;bugs
+;it loses with very large fonts eg ent kst
+;windowize really should behave better (fexpr, restore old crfile, etc.)
+;tvsize should be big and no :outline as a defualt
+;eof should not be 'eof
+
+
+;this stuff uses the llogo tvrtle package to use fonts from lisp or llogo
+;the major drawback is that the fonts are larger than usually desired but...
+
+
+;the following set of functions are for two purposes
+;the first ones, "windowize" being the normal interface, are for reading ast versions
+;of fonts and displaying them, and taking Llogo windows. It also putprops the width and
+;height on the appropriate atoms.
+;also the a-list of windows and fonts is kept on each character's ascii value as an atom
+;eg on the atom /1 would be the windows for ^a and the font name associated with that 
+;window
+;The second set of functions are for writing to the tv screen in the desired font
+;they include:
+;	fontmark ---- marks an atom in the desired font
+;	fontprinc ---- princ-s a list in the desired font
+;	fontterpri ---- moves the cursor "turtle" down the height of the current font
+; plus the *line-spacing* and also puts the cursor at the *left-margin*
+;	fontprint ---- prints a list in the desired font, ie does a fontprinc and 
+;fontterpri
+;	fontcs ---- moves the turtle to the *left-margin* and *top-margin*
+;all these functions affect the turtles state, the desired font is an optional
+;arguement, if omitted the last one specified is assumed
+
+
+
+(declare (setq Ibase 10.) (*lexpr fontmark fontprinc fontprint fonttyo)
+	 (special *spacing* *line-spacing* *left-margin* *last-fontused*
+		  *top-margin* *right-margin* *font-xor* *bottom-margin*
+		  :xcor :ycor :penstate :eraserstate :tvstep))
+
+
+;this function reads ast font descriptions displays them and takes llogo windows of them
+
+(defun windowize (filename)
+(or (status feature tvrtle)
+    (progn (defprop clearscreen (tvrtle fasl dsk llogo) autoload)
+	   (clearscreen) (hideturtle) (wrap) (penup)))
+       (apply 'uread filename)
+((lambda (header)
+((lambda (height baseline column-position-adjustment)
+	 (putprop (car filename) (float height) 'height)
+	 (clearscreen)
+       (do ((i 1 (1+ i))
+	    (char-header (read-char-heading)(read-char-heading))
+	    (eof? nil)
+	    (char-name nil)
+	    (window-name)
+	    (char-width)
+	    (raster-width)
+	    (left-kern nil))
+	   ((eq char-header 'eof) '?)	   
+	   (setq char-name (atomize-number (car char-header)))
+	   (setq window-name (implode (append (explodec (car filename))
+					      ((lambda (*nopoint base)
+						       (explodec (car char-header)))
+					       t 8))))
+	   (putprop char-name (cons (list (car filename) window-name)
+				    (get char-name 'fonts-windows))
+		    'fonts-windows)
+	   (setq left-kern (cadddr char-header))
+	   (setq char-width (caddr char-header))
+	   (setq raster-width (cadr char-header))
+	   (setq eof? (eq (read-and-display baseline (- (+ column-position-adjustment
+							   left-kern)))
+					    'eof))
+	   (makewindow  window-name 0 0
+	       		(times :tvstep
+			       (+ raster-width
+				  (abs left-kern)
+				  (abs column-position-adjustment)
+				  1))
+	       		(times :tvstep (+ Height baseline)))
+	   (hidewindow window-name)
+	   (putprop window-name (float char-width) 'char-width)
+	   (and eof? (return '?))))
+ (car header)
+ (cadr header)
+ (caddr header)))
+(read-heading)))
+
+
+;this turns numbers into everyday atoms
+
+
+(defun atomize-number (n)
+       (implode ((lambda (*nopoint base)
+			 (explodec n))  t 8)))
+
+
+;this reads a character and displays it
+; the char nil is so that ^q is set when readch-ing
+
+
+
+(defun read-and-display (baseline total-left-kern)
+       (do ((char nil (readch 'eof))
+	    (x total-left-kern)
+	    (y baseline)
+	    (^q t))
+	   ((memq char '(/ eof)) (setq ^q nil) char)
+	   (cond ((eq char '*) (point (times :tvstep x)
+				      (times :tvstep y)))
+		 ((eq char '/ ))
+		 ((eq char '/
+)
+		  (setq x total-left-kern y (1- y))))
+	   (setq x (1+ x))))
+	   
+	    
+;this reads the heading of the file and returns the height, baseline and column-position
+(declare (special height base-line column-position-adjustment))
+
+(defun read-heading nil
+       (do ((char nil (readch 'eof))
+	   (info (list 'height 'base-line 'column-position-adjustment))
+	    (height nil)
+	    (base-line nil)
+	    (column-position-adjustment nil)
+	    (^q t))
+	   ((eq char 'eof) char)
+       (cond ((eq char '/
+)
+	      (cond ((null info) (return (list height base-line column-position-adjustment))))
+		    
+	      (and (eq (set (car info) (read 'eof)) 'eof)
+		   (return 'eof))	      
+	      (setq info (cdr info))))))
+
+
+(declare (special width char-width left-kern))
+	   
+;this reads the headings in front of each character and returns
+;the char-number (later to be atomized), the width, char-width and left-kern	   
+	    
+(defun read-char-heading nil
+       (do ((char nil (readch 'eof))
+	   (info (list 'width 'char-width 'left-kern))
+	    (width nil)
+	    (char-width nil)
+	    (left-kern nil)
+	    (char-name ((lambda (ibase ^q) (read 'eof)) 8. t))
+	    (^q t))
+	   ((or (eq char 'eof)
+		(eq char-name 'eof)) (setq ^q nil) char)
+       (cond ((eq char '/
+)
+	      (cond ((null info) (return (list char-name width char-width left-kern))))
+		    
+	      (and (eq (set (car info) (read 'eof)) 'eof)
+		   (return 'eof))
+	      (setq info (cdr info))))))
+
+
+;fontmark will display the its first arg, with the font of its second arg 
+;if there is one otherwise the last font used
+;the position is wherever the turtle is and mark leaves the
+;turtle at the end of the text
+
+(defun fontmark n
+       ((lambda (text font penstate eraserstate)
+		(penup)
+		(do ((i (cond ((atom text)(exploden text))
+			      (t (print (list 'fontmark 'likes 'only 'atoms
+					       text 'is 'not 'one))
+				 nil))
+			(cdr i)))
+		    ((null i) (cond (penstate (pendown))
+				    (eraserstate (eraserdown))
+				    (t (penup))))
+		    (and (= (car i) 13.)
+			 (cadr i)
+			 (= (cadr i) 10.)
+			 (fontterpri))
+		    (and (= n 3)
+			 (arg 3)
+			 (slashified? (car i))
+			 (fonttyo 47. font))
+		    (fonttyo (car i) font)))
+	(arg 1)
+	(cond ((= n 2) (setq *last-fontused* (arg 2)))
+	      ((equal *last-fontused* '(no font given to fontmark))
+	       (break no-font-given t))
+	      (t *last-fontused*))
+	:penstate
+	:eraserstate))
+
+(defun fonttyo n
+  ((lambda (char font)
+   ((lambda (char-window)
+	    (cond
+	     ((and (null char-window) (= char 13.))
+	      (fontterpri))
+	     ((null char-window)
+	      (print (list (ascii char)
+			   'not 'defined 'for 'font font)))
+	     (t  (cond ((> (+$ :xcor
+			       (get char-window 'char-width))
+			   (right-margin))
+			(fontterpri)))
+		 (cond (*font-xor*
+			(xorwindow char-window :xcor :ycor))
+		       (t (showwindow char-window :xcor :ycor)))
+		 (delx-in-tvsteps
+		  (+$ (get char-window 'char-width)
+		      *spacing*)))))
+    (cadr (assq font (get (atomize-number char) 'fonts-windows)))))
+   (arg 1)
+   (cond ((= n 2) (setq *last-fontused* (arg 2)))
+	 ((equal *last-fontused* '(no font given to fontmark))
+	  (break no-font-given t))
+	 (t *last-fontused*))))
+
+(defun slashified? (ascii)
+       ((lambda (syntax)
+		(= syntax (boole 7 syntax 320.)))
+  ;320 is 500 in octal the bits for slashifing
+	(apply 'status (list 'syntax ascii))))
+
+
+(defun fontprintcentered n
+       (setx (*$ (text-length (arg 1)
+			      (cond ((= n 2) (setq *last-fontused* (arg 2)))
+				    ((equal *last-fontused*
+					    '(no font given to fontmark))
+				     (break no-font-given t))
+				    (t *last-fontused*)))
+		 :tvstep
+		 -.5))
+       (fontprinc (arg 1)))
+
+(defun text-length (list font)
+       (do ((i (exploden list) (cdr i))
+	    (sum 0.0))
+	   ((null i) sum)
+	   (setq sum
+		 (+$ sum (get
+			  (cadr (assq font (get (atomize-number (car i))
+						'fonts-windows)))
+			  'char-width)))))
+
+
+(defun delx-in-tvsteps (turtlesteps) (delx (times turtlesteps :tvstep)))
+
+(defun dely-in-tvsteps (turtlesteps) (dely (times turtlesteps :tvstep)))
+
+
+;this clears the screen and leave the turtle in the upper left most corner
+(defun fontcs nil
+       (clearscreen)
+       (fonthome))
+
+(defun fonthome nil
+       (setxy (left-margin)
+	      (top-margin)))
+
+(defun left-margin nil
+       (-$ (*$ :tvstep *left-margin*)
+	   (*$ (car (turtlesize)) .5)))
+
+(defun right-margin nil
+       (-$ (*$ (car (turtlesize)) .5) (*$  *right-margin* :tvstep)))
+
+(defun top-margin nil
+       (-$ (*$ (cadr (turtlesize)) .5)
+	   (*$ :tvstep *top-margin*)))
+
+
+(defun bottom-margin nil
+       (-$ (*$ :tvstep *bottom-margin*)
+	   (*$ (cadr (turtlesize)) .5)))
+       
+
+;this moves the turtle down and to the left margin
+
+(defun fontterpri nil
+     ((lambda (fonts-height-in-turtlesteps)
+	      (dely (-$ (+$ (*$ *line-spacing* :tvstep)
+			    fonts-height-in-turtlesteps)))
+	      (setx (left-margin))
+	      (cond ((< :ycor (bottom-margin))
+		     (fonthome)))
+	      (eraserdown)
+	      (fillwindow 0.0
+			  :ycor 
+			  (-$ (*$ (car (turtlesize)) .5) .5)
+			  (*$ fonts-height-in-turtlesteps .5))
+	      (eraserup))
+      (*$ (get *last-fontused* 'height)
+	  :tvstep)))
+
+
+;this fontmarks each atom in the list and the necessary parens and blanks
+
+(defun fontprinc n
+       ((lambda (thing font)
+		(cond ((atom thing) (fontmark thing font))
+		      (t (fontmark '/( font)
+			 (fontmark (car thing))
+			 (mapc (function (lambda (element)
+						 (fontmark '/ )
+						 (fontprinc element font)))
+			       (cdr thing))
+			 (fontmark '/) font))))
+	(arg 1)
+	(cond ((= n 2) (setq *last-fontused* (arg 2.)))
+	      ((equal *last-fontused* '(no font given to fontmark))
+	       (break no-font-given t))
+	      (t *last-fontused*))))
+
+
+(defun fontprin1 n
+       ((lambda (thing font)
+		(cond ((atom thing) (fontmark thing font 'slashify))
+		      (t (fontmark '/( font)
+			 (fontmark (car thing))
+			 (mapc (function (lambda (element)
+						 (fontmark '/ )
+						 (fontprin1 element font)))
+			       (cdr thing))
+			 (fontmark '/) font))))
+	(arg 1)
+	(cond ((= n 2) (setq *last-fontused* (arg 2.)))
+	      ((equal *last-fontused* '(no font given to fontmark))
+	       (break no-font-given t))
+	      (t *last-fontused*))))
+
+;this fontterpris and then fontprinc
+(defun fontprint n
+       (cond ((= n 2) (setq *last-fontused* (arg 2.)))
+	     ((equal *last-fontused* '(no font given to fontmark))
+	      (break no-font-given t)))
+       (fontterpri)
+       (apply 'fontprinc (listify n)))
+
+
+;these are default values for paramters, feel free to change them
+
+
+(setq *font-xor* t); if this is false fontmark will show not xor text into screen
+(setq *spacing* 0.0)  ;distance between character in addition to char-width
+(setq *left-margin* 20.0) ;left-most position of turtle
+(setq *right-margin* 20.0);right-most position, princ will terpri when this is about to
+;be suceeded
+(setq *top-margin* 20.0);the top most position
+(setq *bottom-margin* 20.0)
+;the bottom most position but not used see wrap in llogo manual
+(setq *line-spacing* 0.0); this is the distance between lines over and above font height
+(setq *last-fontused* '(no font given to fontmark))
+
+;the following is for saving away the windows and information to be quickly
+;loaded into a lisp (or llogo?)
+
+;this writes out two files, one being the appropriate windows and the second the
+;appropriate defprops putprops and initializing so that the file (second file name is
+;always winfon) can be re-read into another lisp, and the slow windowizing process is
+;avoided
+;(windowize assumed the fonts name is the car of filename read so use that)
+;this writes two files 
+;whose first name is the same as fontname's and the second is "window" and "winfon"
+
+(defun write-font (fontname)
+       (uwrite)
+       ((lambda (^r ^w)
+		(print-defprop fontname 'height)
+		(store-props-of-each-char fontname)
+		(print '(or (status feature tvrtle)
+			     (progn (defprop clearscreen
+						(tvrtle fasl dsk llogo)
+						autoload)
+				       (clearscreen)
+				       (penup)
+				       (wrap)
+				       (hideturtle))))
+		(print (list 'getwindows fontname 'window)))
+	t t)
+       (apply 'ufile (list fontname 'winfon)))
+
+;this writes out the defprops
+
+
+
+(defun print-defprop (atom indicator)
+       (print
+	(list
+	 'defprop
+	  atom (get atom indicator) indicator)))
+
+;this writes out the putprops so that they cons on what was previously on that atom
+
+(defun print-putprop-with-cons (atom value indicator)
+       (print
+	(list
+	 'putprop
+	  (list 'quote atom)
+	  (list 'cons (list 'quote value)
+		 (list 'get (list 'quote atom) (list 'quote indicator)))
+	  (list 'quote indicator))))
+
+(declare (special :windows))
+
+;by making :windows special locally savewindows will save only those in :windows
+
+
+;this writes off the properties of each char
+
+
+(defun store-props-of-each-char (font)
+       (do ((the-ascii 1. (1+ the-ascii))
+	    (char nil)
+	    (fontwindow)
+	    (:windows nil))
+	   ((= the-ascii 128)
+	    (apply 'savewindows (list font 'window)))
+	   (setq char (atomize-number the-ascii))
+	   (setq fontwindow (assq font (get char 'fonts-windows)))
+	   (cond (fontwindow
+		   (print-putprop-with-cons char fontwindow 'fonts-windows)
+		   (print-defprop (cadr fontwindow) 'char-width)
+		   (setq :windows (cons (cadr fontwindow) :windows))))))
+;good luck
+
+		  
+       

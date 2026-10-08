@@ -1,0 +1,104 @@
+;;  -*-lisp-*-
+;;this is part of dot ani
+;;this defines the comparison source of suggestions 
+
+(include |ai:ken;declar >|)
+
+(defcomment csumry) ;;this is for tags to find file name
+
+;;now for comparison summary suggestions
+
+(define summary descriptor
+ (do when receiving
+     (process suggestion (suggestion: element ?element-pattern
+				      value ?value-form
+				      strength ?strength-form
+				      source ?source-pattern))
+     (ask :self add (if-asked-about
+		     (suggestion: element {and ?the-full-element ,element-pattern}
+				  value ?
+				  strength ?
+				  source {and ?the-full-source ,source-pattern})
+		     '(suggestion: element ,the-full-element
+				   value ,,value-form
+				   strength ,,strength-form
+				   source ,the-full-source))
+	  to your list of (suggestion: if-recalling-items))))
+
+(define uniqueness-summary: summary
+ (process suggestions
+	  (suggestion: element (? ? ?)
+		       value 'different-from
+		       strength level
+		       source (uniqueness-summary: uniqueness-level ?level
+						   descriptor-type all
+						   of-who ?))
+	  (suggestion: element (? ? ?)
+		       value 'different-from
+		       strength level
+		       source (uniqueness-summary: uniqueness-level ?level
+						   descriptor-type personality
+						   of-who ?))
+	  (suggestion: element ({or relative-speed
+				    relative-acceleration relative-activity-level}
+				? ?)
+		       value 'different-from
+		       strength level
+		       source (uniqueness-summary: uniqueness-level ?level
+						   descriptor-type physical
+						   of-who ?))
+	  (suggestion: element ({or relative-speed
+				    relative-acceleration relative-activity-level}
+				? ?)
+		       value 'different-from
+		       strength level
+		       source (uniqueness-summary: uniqueness-level ?level
+						   descriptor-type movement
+						   of-who ?))))
+
+
+(define comparison-summary: summary
+ (process suggestions
+	  (suggestion: element (? ? ?)
+		       value (cond ((eq sign 'positive) 'same-as)
+				   ((eq sign 'negative) 'different-from)
+				   (t (shouldnt-happen 'comparison-summary:
+						       '(,sign is not a good sign))))
+		       strength level
+		       source (comparison-summary: similarity-level (?sign ?level)
+						   descriptor-type all
+						   of-who ?))
+	  (suggestion: element (? ? ?)
+		       value (cond ((eq sign 'positive) 'same-as)
+				   ((eq sign 'negative) 'different-from)
+				   (t (shouldnt-happen 'comparison-summary:
+						       '(,sign is not a good sign))))
+		       strength level
+		       source (comparison-summary: similarity-level (?sign ?level)
+						   descriptor-type personality
+						   of-who ?))
+	  (suggestion: element ({or relative-speed relative-acceleration
+				    relative-activity-level}
+				? ?)
+		       value (cond ((eq sign 'positive) 'same-as)
+				   ((eq sign 'negative) 'different-from)
+				   (t (shouldnt-happen 'comparison-summary:
+						       '(,sign is not a good sign))))
+		       strength level
+		       source (comparison-summary: similarity-level (?sign ?level)
+						   descriptor-type physical
+						   of-who ?))
+	  (suggestion: element ({or relative-speed relative-acceleration
+				    relative-activity-level}
+				? ?)
+		       value (cond ((eq sign 'positive) 'same-as)
+				   ((eq sign 'negative) 'different-from)
+				   (t (shouldnt-happen 'comparison-summary:
+						       '(,sign is not a good sign))))
+		       strength level
+		       source (comparison-summary: similarity-level (?sign ?level)
+						   descriptor-type movement
+						   of-who ?))))
+
+
+(compile-actors)

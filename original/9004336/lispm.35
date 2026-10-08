@@ -1,0 +1,150 @@
+;; Hey, Emacs, this file contains -*- Mode: Lisp; Package: User; -*- code!
+
+;; Ken's LISPM init file.  (based upon Henry's)
+
+
+(LOGIN-EVAL (PROG2 (ADD-INITIALIZATION "KEN'S INIT" '(SETQ BASE 10. IBASE 10.) '(WARM NOW))
+                   '(PROGN (DELETE-INITIALIZATION "KEN'S INIT" '(WARM))
+                           (SETQ BASE 8. IBASE 8.))))
+
+(print-modification-record)
+
+(load "dick;lspmp") ;;dick waters printer
+
+(defvar gcheckrecursion t) ;;for printing circular lists
+
+(defvar prinmode nil)
+
+(defun dicks-print (thing &optional file (prinmode prinmode))
+ (let ((*pretty-print-all-lists nil))
+      (gprint thing (or file standard-output))))
+
+(defun dicks-prin1 (thing &optional file (prinmode prinmode))
+ (let ((*pretty-print-all-lists nil))
+      (gprin1 thing (or file standard-output))))
+
+(defun dicks-princ (thing &optional file (prinmode prinmode))
+ (let ((*pretty-print-all-lists nil))
+      (gprinc thing (or file standard-output))))
+
+
+(fset '|#PRIN1| (function gprin1))
+
+(fset '|#PRINC| (function gprinc))
+
+(defun dicks-miserly-print (thing &optional file)
+ (let ((g1fn-template g11level-miser-template)
+       (g1default-symbol-car-grind-template g11level-tblock-template)
+       (g1default-non-symbol-car-grind-template g11level-tblock-template))
+      (dicks-print thing file)))
+
+(defvar *pretty-print-all-lists t)
+
+(defun safe-gprin1 (&rest arguments)
+ (let ((prin1 nil)
+       (*pretty-print-all-lists nil))
+      (cond ((errset (apply #'gprin1 arguments)))
+	    (t (princ
+		";WARNING: some error occurred while trying to print.  Prin1 off temporarily")
+	       (terpri)
+	       (princ "Arguments to printer were ")
+	       (print arguments)))))
+
+(setq prin1 (function safe-gprin1))  ;;hard to live without
+
+(fset 'original-print-list #'si:print-list)
+
+(defun si:print-list (EXP I-PRINDEPTH SLASHIFY-P STREAM FASTP)
+ (cond ((and prin1 *pretty-print-all-lists)
+;;	 (cond ((> (cdr (cursorpos)) 45.) (terpri)))
+	 (terpri stream)
+	 (funcall prin1 exp stream))
+       (t (funcall #'original-print-list EXP I-PRINDEPTH SLASHIFY-P STREAM FASTP ))))
+
+
+;;the following are just for top-level interaction
+
+(defun p (thing)
+       (let ((prin1 nil))
+	    (print thing)))
+
+(defmacro s (variable value)
+	  (terpri)
+	  (cond ((boundp variable)
+		 (princ ";")
+		 (princ variable)
+		 (princ " previously had the value ")
+		 (princ (eval variable)))
+		(t (princ ";")
+		   (princ variable)
+		   (princ " has no previous value.")))
+	  (list 'setq variable value))
+
+(declare (special *compiler-on))
+
+(defvar *inside-qc-file nil)
+
+(defun c (file &optional *compiler-on)
+       ;;one of the paradoxs of life... by default, I must compile files with my compiler off
+       (zwei:save-all-files) ;;forget to do it once too many
+       (let ((*inside-qc-file t)) ;;some macros are curious about this
+	    (qc-file file))
+       (princ ";Do you want it loaded?")
+       (and (y-or-n-p)
+	    (load (file-set-fn2 file "qfasl"))))
+
+(DEFMACRO AUTOLOAD (FUNCTION FILE)
+          `(DEFUN ,FUNCTION (&REST IGNORE)
+		   (LET ((SI:INHIBIT-FDEFINE-WARNINGS T))
+		        (LOAD ,FILE))
+		   (APPLY #',FUNCTION IGNORE)))
+
+  ;;I know they are obsolete but don't want to keep hearing about it
+(remprop 'status 'COMPILER:STYLE-CHECKER)
+(remprop 'exploden 'COMPILER:STYLE-CHECKER)
+(remprop 'implode 'COMPILER:STYLE-CHECKER)
+(remprop 'getcharn 'COMPILER:STYLE-CHECKER)
+
+(macro ask (transmission)
+ ;;check sort of autoload hack
+ (let ((si:inhibit-fdefine-warnings t))
+      (load "ken;lmd"))
+ transmission)
+
+(defun bye nil
+       (zwei:save-all-files) ;;In case I forgot
+       (princ "And a pleasant day to you.")
+       (logout))
+
+(chaos:nwatch-login)
+
+
+  ;;the following should help avoid some obscure system bug that occurs when
+  ;;interactively calling the compiler,etc.
+(setq compiler:QCOMPILE-TEMPORARY-AREA WORKING-STORAGE-AREA)
+(setq COMPILER:QC-FILE-TEMPORARY-AREA WORKING-STORAGE-AREA)
+
+(defun reload-ed nil
+  (zwei:save-all-files)
+  (zed 'reload) ;;I have to type ctrl-z here from zwei
+  (load "ken;zwei")
+  (load "henry;ztop")
+  (ed))
+
+(defun hello nil
+ ;;until I can put this in a zwei init
+       (let ((wordab-file (open "ken;wordab qwabl" 'in)))
+	    (zwei:load-qwabl wordab-file)
+	    (zwei:turn-on-mode 'word-abbrev-mode)
+	    (close wordab-file)))
+
+(defvar *put-in-who-line "")
+
+(setq tv-who-line-list
+      (append tv-who-line-list '((TV-WHO-LINE-STRING "" 480. 768. *put-in-who-line))))
+
+
+(LOAD "KEN;ZWEI")
+(LOAD "HENRY;ZTOP")
+
+(ed)

@@ -1,0 +1,248 @@
+;this is aface > 
+;an actor face
+
+(defun define-smile nil
+       (ask object '(make smile))
+       (ask smile '(remember how-to-draw draw-smile))
+       (ask smile '(remember size 1)))
+
+(defun draw-smile nil
+       (list 'smile (car (ask :self '(what size ?)))))
+
+(defun define-nose nil
+	(ask object '(make nose))
+	(ask nose '(remember how-to-draw draw-nose))
+	(ask nose '(remember size 1)))
+
+(defun draw-nose nil
+       (list 'nose (car (ask :self '(what size ?)))))
+
+(defun define-headline nil
+	(ask object '(make headline))
+	(ask headline '(remember how-to-draw draw-headline))
+	(ask headline '(remember size 1)))
+
+(defun draw-headline nil
+       (list 'headline (car (ask :self '(what size ?)))))
+
+(defun define-righteyebrow nil
+	(ask object '(make righteyebrow))
+	(ask righteyebrow '(remember how-to-draw draw-righteyebrow))
+	(ask righteyebrow '(remember size 1)))
+
+(defun draw-righteyebrow nil
+       (list 'righteyebrow (car (ask :self '(what size ?)))))
+
+(defun define-lefteyebrow nil
+	(ask object '(make lefteyebrow))
+	(ask lefteyebrow '(remember how-to-draw draw-lefteyebrow))
+	(ask lefteyebrow '(remember size 1)))
+
+(defun draw-lefteyebrow nil
+       (list 'lefteyebrow (car (ask :self '(what size ?)))))
+
+(defun define-eye nil
+	(ask object '(make eye))
+	(ask eye '(remember how-to-draw draw-eye))
+	(ask eye '(remember size 16)))
+
+(defun draw-eye nil
+       (list 'circle (car (ask :self '(what size ?)))))
+
+(defun define-neck nil
+	(ask object '(make neck))
+	(ask neck '(remember how-to-draw draw-neck))
+	(ask neck '(remember size 1)))
+
+(defun draw-neck nil
+       (list 'neck (car (ask :self '(what size ?)))))
+
+
+
+
+
+(defun define-leftear nil
+	(ask object '(make leftear))
+	(ask leftear '(remember how-to-draw draw-leftear))
+	(ask leftear '(remember size 1)))
+
+(defun draw-leftear nil
+       (list 'leftear (car (ask :self '(what size ?)))))
+
+(defun define-rightear nil
+	(ask object '(make rightear))
+	(ask rightear '(remember how-to-draw draw-rightear))
+	(ask rightear '(remember size 1)))
+
+(defun draw-rightear nil
+       (list 'rightear (car (ask :self '(what size ?)))))
+
+
+
+(defun define-body nil
+       (ask object '(make body))
+       (ask body '(remember how-to-draw draw-body))
+       (ask body '(remember size 1)))
+
+
+(defun draw-body nil
+       (list 'body (car (ask :self '(what size ?)))))
+
+(defun define-arm nil
+       (ask object '(make arm))
+       (ask arm '(remember how-to-draw draw-arm))
+       (ask arm '(remember size 1)))
+
+
+(defun draw-arm nil
+       (list 'arm (car (ask :self '(what size ?)))))
+
+(defun define-leftleg nil
+       (ask object '(make leftleg))
+       (ask leftleg '(remember how-to-draw draw-leftleg))
+       (ask leftleg '(remember size 1)))
+
+
+(defun draw-leftleg nil
+       (list 'leftleg (car (ask :self '(what size ?)))))
+
+(defun define-rightleg nil
+       (ask object '(make rightleg))
+       (ask rightleg '(remember how-to-draw draw-rightleg))
+       (ask rightleg '(remember size 1)))
+
+
+(defun draw-rightleg nil
+       (list 'rightleg (car (ask :self '(what size ?)))))
+
+(defun define-penis nil
+       (ask object '(make penis))
+       (ask penis '(remember how-to-draw draw-penis))
+       (ask penis '(remember size 1)))
+
+
+(defun draw-penis nil
+       (list 'penis (car (ask :self '(what size ?)))))
+
+
+
+
+(defun define-breast nil
+       (ask object '(make breast))
+       (ask breast '(remember how-to-draw draw-breast))
+       (ask breast '(remember size 1)))
+
+(defun draw-breast nil
+       (list 'breast (car (ask :self '(what size ?)))))
+
+
+
+(DEFPROP BREAST
+	 (LAMBDA (:SIZE) 
+		 (PROG NIL 
+		       (do-invisibly
+			(list '(RIGHT 90.)
+			      (list 'FORWARD (TIMES 100. :SIZE))))
+		  40.  (RIGHT 90.)
+		  60.  (FORWARD (TIMES 50. :SIZE))
+		  70.  (RIGHT 90.)
+		  	(do-invisibly
+		   (list (list 'FORWARD (TIMES 100. :SIZE))
+		   '(RIGHT 180.)
+		   (list 'ARC (TIMES 100. :SIZE) 180.)
+		   '(RIGHT 90.)
+		   (list 'FORWARD (TIMES 105. :SIZE))
+		  (list 'CIRCLE (TIMES 20. :SIZE))
+		  (list 'FORWARD (TIMES -100. :SIZE))
+		   '(RIGHT 90.)
+		  (list 'FORWARD (TIMES 100. :SIZE))
+		   '(RIGHT 90.)))
+		  200. (FORWARD (TIMES 50. :SIZE))))
+	 EXPR)
+
+(defun define-zigzag nil
+       (ask object '(make zigzag))
+       (ask zigzag '(remember how-to-draw draw-zigzag))
+       (ask zigzag '(remember size 1)))
+
+(defun draw-zigzag nil
+       (list 'zigzag (car (ask :self '(what size ?)))))
+
+(DEFPROP ZIGZAG
+	 (LAMBDA NIL (PROG NIL 
+		      60.  (FORWARD 20.)
+		      70.  (RIGHT 90.)
+		      80.  (FORWARD 30.)
+		      90.  (LEFT 90.)
+		      100. (FORWARD 30.)
+		      110. (RIGHT 90.)
+		      120. (FORWARD 30.)
+		      130. (LEFT 90.)
+		      140. (FORWARD 20.)))
+	 EXPR)
+
+(defun define-rnose nil
+       (ask object '(make rnose))
+       (ask rnose '(remember how-to-draw draw-rnose))
+       (ask rnose '(remember size 1)))
+
+(defun draw-rnose nil
+       (list 'rnose (car (ask :self '(what size ?)))))
+
+(defun rnose (:size)
+       (arc :size 240.))
+
+
+
+
+
+
+(defun define-eyebrow nil
+       (ask object '(make eyebrow))
+       (ask eyebrow '(remember how-to-draw draw-eyebrow))
+       (ask eyebrow '(remember size 1)))
+
+(defun draw-eyebrow nil
+       (list 'eyebrow (car (ask :self '(what size ?)))))
+
+(defun eyebrow (:size)
+       (rt 70)
+       (draw-arc :size 40.))
+
+
+
+
+
+(defun define-face-parts nil
+       (define-headline)
+       (define-eye)
+       (define-lefteyebrow)
+       (define-righteyebrow)
+       (define-nose)
+       (define-smile)
+       (define-neck)
+       (define-leftear)
+       (define-rightear)
+       (define-arm)
+       (define-body)
+       (define-leftleg)
+       (define-rightleg)
+       (define-penis)
+       (ask headline '(make hl-1))
+       (ask eye '(make r-eye))
+       (ask eye '(make l-eye))
+       (ask lefteyebrow '(make leb))
+       (ask righteyebrow '(make reb))
+       (ask nose '(make nose-1))
+       (ask smile '(make smile-1))
+       (ask neck '(make neck-1))
+       (ask leftear '(Make lear))
+       (ask leftear '(make rear))   ;crazy huh?
+       (ask body '(make body-1))
+       (ask arm '(make larm))
+       (ask arm '(make rarm))
+       (ask leftleg '(make lleg))
+       (ask rightleg '(make rleg)))
+
+ 
+
