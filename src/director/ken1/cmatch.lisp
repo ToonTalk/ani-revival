@@ -123,73 +123,32 @@
   (mapcar (function (lambda (v) (list 'pattern-variable-value (list 'quote v) (list 'quote pattern) message-form)))
 	  (find-variables-in-pattern pattern)))
 
-;; The value of variable v when the message matches the pattern.
-(defun pattern-variable-value (v pattern message)
-  (let ((bindings (match-bindings pattern message)))
-       (cdr (assq v (cdr bindings)))))
-
 ;;; -------------------------------------------------------------- matching
 
-;; (match object pattern): non-NIL if the object matches the pattern. Bindings are
-;; made only inside braced predicates. evidence: 1980 (its arguments are (OBJECT
-;; PATTERN &OPTIONAL VALUES REVERSED?)); uses, all object first: SOME's (match name
-;; name-pattern), INTERF's (match variable variable-pattern), SUGREL's (match
-;; correct-element element) "I use match since element may have ?".
-(defun match n
-  (not (null (match-bindings (arg 2) (arg 1)))))
-
-;; (match-bindings pattern x): NIL if no match, else (t . alist of bindings).
-(defun match-bindings (pattern x)
-  (let ((result (match-1 pattern x (list t))))
-       result))
-
-;; (director-symbol-for-quoted-pattern x) matches x itself, literally: no ? or {...}
-;; inside it is special. evidence: SOME installs methods with such patterns for
-;; messages that themselves contain patterns ("recall each item matching ...").
-(defun match-1 (p x bindings)
-  (cond ((null bindings) nil)
-	((and (not (atom p)) (eq (car p) 'director-symbol-for-quoted-pattern))
-	 (cond ((equal (cadr p) x) bindings)))
-	((pattern-variable? p)
-	 (cond ((eq (getchar p 1) '%) (bind-match-variable p x bindings))
-	       (t (bind-match-variable p x bindings))))
-	((atom p)
-	 (cond ((or (eq p x) (and (numberp p) (numberp x) (equal p x))) bindings)))
-	((eq (car p) 'director-symbol-for-or-pattern)
-	 (do ((alternatives (cdr p) (cdr alternatives)))
-	     ((null alternatives) nil)
-	     (let ((b (match-1 (car alternatives) x bindings)))
-		  (and b (return b)))))
-	((eq (car p) 'director-symbol-for-and-pattern)
-	 (do ((parts (cdr p) (cdr parts))
-	      (b bindings (match-1 (car parts) x b)))
-	     ((or (null parts) (null b)) b)))
-	((eq (car p) 'director-symbol-for-braces)
-	 (match-predicate (cdr p) x bindings))
-	;; a rest variable at this position takes the remaining list, even if empty
-	((and (pattern-variable? (car p)) (eq (getchar (car p) 1) '%))
-	 (bind-match-variable (car p) x bindings))
-	((atom x) nil)
-	(t (match-1 (cdr p) (cdr x) (match-1 (car p) (car x) bindings)))))
-
-(defun bind-match-variable (p x bindings)
-  (add-binding (variable-name p) x bindings))
-
-(defun add-binding (v x bindings)
-  (cond ((null v) bindings)
-	(t (let ((old (assq v (cdr bindings))))
-		(cond ((null old) (cons t (cons (cons v x) (cdr bindings))))
-		      ((equal (cdr old) x) bindings))))))
-
-;; {expr}: bind its ?variables to x, then evaluate it.
-(defun match-predicate (expr x bindings)
-  (let ((vars (find-variables-in-pattern expr)))
-       (cond ((progv vars (mapcar (function (lambda (v) x)) vars)
-		     (eval (devariablize-predicate expr)))
-	      (do ((v vars (cdr v)) (b bindings (add-binding (car v) x b)))
-		  ((null v) b))))))
-
-(defun devariablize-predicate (expr)
-  (cond ((pattern-variable? expr) (variable-name expr))
-	((atom expr) expr)
-	(t (cons (devariablize-predicate (car expr)) (devariablize-predicate (cdr expr))))))
+;; MATCH, MATCH-BINDINGS and PATTERN-VARIABLE-VALUE are built into the interpreter
+;; (src/director/cmatch.js), for speed: every message is matched against method
+;; patterns until one fits, so matching is most of what Director does, and in
+;; 1979 it was compiled code. They work as follows, clause for clause:
+;;
+;;  (match object pattern): non-NIL if the object matches the pattern. evidence:
+;;    1980 (its arguments are (OBJECT PATTERN &OPTIONAL VALUES REVERSED?)); uses,
+;;    all object first: SOME's (match name name-pattern), INTERF's (match variable
+;;    variable-pattern), SUGREL's (match correct-element element) "I use match
+;;    since element may have ?".
+;;  (match-bindings pattern object): NIL if no match, else (t . bindings), an alist
+;;    of each ?variable and %variable to what it matched.
+;;  (pattern-variable-value v pattern message): the value v gets when the message
+;;    matches, for the code binding-part-of-pattern1 writes.
+;;
+;; Matching an element against a pattern:
+;;  - (director-symbol-for-quoted-pattern x) matches x itself, literally (SOME
+;;    installs methods with such patterns for messages that themselves contain
+;;    patterns, "recall each item matching ...");
+;;  - ?x matches anything, and %x the rest of a list (even if empty), binding x
+;;    to it; a variable already bound must match the same value again (EQUAL);
+;;  - any other atom matches itself (EQ, or EQUAL numbers);
+;;  - {or a b ...} matches if any alternative does, keeping its bindings;
+;;  - {and a b ...} matches if every part does, in turn;
+;;  - any other {expr} is evaluated with its ?variables bound to the element, and
+;;    matches if the value is non-NIL, binding them;
+;;  - a list matches a list element by element.

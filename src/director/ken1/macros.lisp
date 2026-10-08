@@ -203,11 +203,10 @@
 	     (return (cadr (symeval (car m))))))))
 
 ;; (method-applicable? method-name message): does the message match the method's
-;; pattern? The predicate is made by test-part-of-pattern (CMATCH).
-(defun method-applicable? (method-name message)
-  (let ((predicate (method-pattern-predicate method-name)))
-       (cond (predicate (funcall predicate message))
-	     (t (match message (method-pattern method-name))))))
+;; pattern? It funcalls the method's predicate, made by test-part-of-pattern
+;; (CMATCH), or else matches the message against the method's pattern. Built into
+;; the interpreter with the matcher (src/director/cmatch.js), since DRECT calls it
+;; for every method it tries.
 
 ;; (initialize-something): make the root actor SOMETHING and give it the methods
 ;; that let actors receive new methods. evidence: tags; SOME ("defined in macros >").

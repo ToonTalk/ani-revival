@@ -14,6 +14,8 @@ export class Sym {
     this.value = UNBOUND;
     this.plist = null; // a Lisp list (NIL once the interpreter exists); null means empty
     this.interned = interned;
+    this.fcellCache = undefined; // the interpreter's note of its function definition
+
   }
   toString() {
     return this.name;

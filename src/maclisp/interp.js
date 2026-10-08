@@ -133,7 +133,10 @@ export class Lisp {
   }
 
   setPlistOf(s, plist) {
-    if (s instanceof Sym) s.plist = plist;
+    if (s instanceof Sym) {
+      s.plist = plist;
+      s.fcellCache = undefined;
+    }
     else if (s instanceof Cons) s.cdr = plist;
     else throw new LispError(`cannot hold properties: ${this.print(s)}`, s);
   }
@@ -146,6 +149,7 @@ export class Lisp {
   }
 
   putprop(s, val, ind) {
+    if (s instanceof Sym) s.fcellCache = undefined;
     for (let p = this.plistOf(s); p instanceof Cons && p.cdr instanceof Cons; p = p.cdr.cdr) {
       if (p.car === ind) {
         p.cdr.car = val;
@@ -157,6 +161,7 @@ export class Lisp {
   }
 
   remprop(s, ind) {
+    if (s instanceof Sym) s.fcellCache = undefined;
     let prev = null;
     for (let p = this.plistOf(s); p instanceof Cons && p.cdr instanceof Cons; prev = p.cdr, p = p.cdr.cdr) {
       if (p.car === ind) {
@@ -171,16 +176,25 @@ export class Lisp {
   // The first function property on the plist: { kind, def } or null. An AUTOLOAD
   // property counts only when there is no definition: tags files give functions
   // AUTOLOAD properties whether or not their files are already loaded.
+  // The answer is kept on the symbol until its property list changes (PUTPROP,
+  // REMPROP, SETPLIST), since a call looks it up every time.
   fcell(s) {
+    if (s instanceof Sym && s.fcellCache !== undefined) return s.fcellCache;
     let autoload = null;
+    let found = null;
     for (let p = this.plistOf(s); p instanceof Cons && p.cdr instanceof Cons; p = p.cdr.cdr) {
       if (this.fnIndicators.has(p.car)) {
         if (p.car === this.S.AUTOLOAD) {
           if (!autoload) autoload = { kind: p.car, def: p.cdr.car };
-        } else return { kind: p.car, def: p.cdr.car };
+        } else {
+          found = { kind: p.car, def: p.cdr.car };
+          break;
+        }
       }
     }
-    return autoload;
+    found = found || autoload;
+    if (s instanceof Sym) s.fcellCache = found;
+    return found;
   }
 
   defsubr(name, fn, kind = "lsubr") {
@@ -258,7 +272,7 @@ export class Lisp {
       if (cell === null || cell.kind === this.S.AUTOLOAD) cell = this.autoload(f, cell);
       const kind = cell.kind;
       if (kind === this.S.FSUBR) return cell.def.fn.call(this, x.cdr, x);
-      if (kind === this.S.MACRO) return this.eval(this.macroexpand1(cell.def, x));
+      if (kind === this.S.MACRO) return this.eval(this.expansionOf(cell.def, x));
       if (kind === this.S.FEXPR) return this.callFexpr(cell.def, x.cdr, f);
       return this.callCell(cell, this.evlis(x.cdr), f);
     }
@@ -289,6 +303,20 @@ export class Lisp {
       return this.apply(def, [args]);
     }
     return this.applyLambda(def, [args, this.NIL], name, true);
+  }
+
+  // A form's macro expansion is computed once and kept with the form, as MacLisp's
+  // displacing macros did (in 1980 Director's DEFINE-MACRO made them so). It is
+  // kept with the definition that made it, so redefining the macro (as
+  // REVIVE;BRIDGE does to ASK) takes effect. macroCache = false turns this off.
+  expansionOf(def, form) {
+    if (this.macroCache === false) return this.macroexpand1(def, form);
+    if (!this.macroCache) this.macroCache = new WeakMap();
+    const kept = this.macroCache.get(form);
+    if (kept && kept.def === def) return kept.expansion;
+    const expansion = this.macroexpand1(def, form);
+    this.macroCache.set(form, { def, expansion });
+    return expansion;
   }
 
   macroexpand1(def, form) {
@@ -332,6 +360,8 @@ export class Lisp {
   callCell(cell, args, name) {
     const kind = cell.kind;
     const def = cell.def;
+    // profiling: callCounts, if set, is a Map from a function's name to its calls
+    if (this.callCounts && name) this.callCounts.set(name.name, (this.callCounts.get(name.name) || 0) + 1);
     if (kind === this.S.SUBR || kind === this.S.LSUBR) return def.fn.apply(this, args);
     if (kind === this.S.EXPR) {
       if (def instanceof Sym) return this.apply(def, args);

@@ -5,6 +5,7 @@ import * as numbers from "./builtins/numbers.js";
 import * as symbols from "./builtins/symbols.js";
 import * as control from "./builtins/control.js";
 import * as io from "./builtins/io.js";
+import { installMatcher } from "../director/cmatch.js";
 
 export function createLisp(options = {}) {
   const L = new Lisp(options);
@@ -13,6 +14,8 @@ export function createLisp(options = {}) {
   symbols.install(L);
   control.install(L);
   io.install(L);
+  // Director's pattern matcher, which its 1979 runtime had compiled
+  installMatcher(L);
   return L;
 }
 

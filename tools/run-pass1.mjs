@@ -12,7 +12,7 @@ import { buildGlassBox } from "./build-glassbox.mjs";
 const trace = process.argv.includes("--trace");
 const fs = makeProjectFileSystem();
 const L = createLisp({ fs });
-L.formStack = [];
+L.formStack = process.argv.includes("--no-backtrace") ? null : []; // a backtrace for errors, at some cost in speed
 L.breakHandler = (tag) => {
   const e = new Error(`break ${L.print(tag)}`);
   e.lispBacktrace = L.formStack.slice(-40).reverse();
