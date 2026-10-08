@@ -1,11 +1,13 @@
 // Run Ani's pass 1 the way KEN;DATEST did: load the Cinderella film description,
 // make the choices about the characters' dynamics, and save the answers; then
 // compare them with CP 29, the file pass 1 wrote in September 1978.
-// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all]
+// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all] [--glass-box]
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { writeFileSync } from "node:fs";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
+import { installAttemptLog, collectChoicePoints, collectStory } from "./glassbox-pass1.mjs";
+import { buildGlassBox } from "./build-glassbox.mjs";
 
 const trace = process.argv.includes("--trace");
 const fs = makeProjectFileSystem();
@@ -38,14 +40,30 @@ function step(what, src) {
 L.load(L.intern("KEN;LISP >"));
 L.load(L.intern("KEN;LOAD >"));
 L.evalString("(setq :print-load-messages nil)");
+const glassBox = process.argv.includes("--glass-box");
+let attempts = null;
 const ok =
   step("(director '(ani direct))", "(director '(ani direct))") &&
   step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
   step("load DATEST", "(load '|ken;datest >|)") &&
   step("(init nil): load CINDY, study descriptor use", "(init nil)") &&
+  (glassBox ? (attempts = installAttemptLog(L), true) : true) &&
   step("(z): make the choices", "(z)") &&
   step("(save-answers ...)", "(save-answers '((ken1) cp test))") &&
   (!process.argv.includes("--save-all") || step("(save-it-all ...): every choice point with its reasons", "(save-it-all '((ken1) run test))"));
+
+if (ok && glassBox) {
+  const data = {
+    about: "Ani's pass 1 on CINDY, rerun on the revived Director. Written by tools/run-pass1.mjs --glass-box.",
+    cp29: [...choicesOfItsFile("original/7005017/cp.29").entries()],
+    story: collectStory(L),
+    attempts,
+    choicePoints: collectChoicePoints(L),
+  };
+  writeFileSync("app/data/pass1.json", JSON.stringify(data));
+  console.log(`saved app/data/pass1.json (${attempts.length} attempts, ${data.choicePoints.length} choice points)`);
+  console.log("built " + buildGlassBox("."));
+}
 
 const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 2500 chars):\n" + out.slice(-2500));

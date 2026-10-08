@@ -1,0 +1,522 @@
+<title>Ani's Choice Points</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:wght@500;600&display=swap">
+<style>
+/* Layout: a lab notebook. The cast's choices as a ledger on the left, the selected
+   choice's reasoning pinned on the right, and the whole run drawn to scale beneath. */
+:root {
+  --paper: #f3f5f2;
+  --sheet: #ffffff;
+  --ink: #1c2320;
+  --muted: #5b6661;
+  --rule: #d5dbd6;
+  --accent: #1f5a8e;
+  --accent-soft: #e2ebf3;
+  --match: #2b7a49;
+  --postponed: #a9b2ae;
+  --cinderella: #23893c;
+  --stepmother: #bf3a2c;
+  --godmother: #c8641a;
+  --prince: #a68200;
+  --display: "Spectral", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+    --accent: #84b4e2; --accent-soft: #1b2733; --match: #6cc38c; --postponed: #4e5853;
+    --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+  --accent: #84b4e2; --accent-soft: #1b2733; --match: #6cc38c; --postponed: #4e5853;
+  --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.55 var(--body);
+  padding-inline: max(16px, 3.5vw);
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 1320px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: 1.3rem; line-height: 1.2; }
+h3 { font-size: 1.05rem; }
+p { margin: 0; }
+.mono, code { font-family: var(--mono); font-size: 0.86em; }
+.label {
+  font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+a { color: var(--accent); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+header { display: grid; gap: 12px; max-width: 74ch; }
+header .intro { font-size: 1.02rem; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: 0.92rem; color: var(--muted); }
+.facts b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+.facts .ok b { color: var(--match); }
+
+/* main two columns */
+.main { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 960px) { .main { grid-template-columns: minmax(0, 1fr); } }
+.ledger { display: grid; gap: 30px; min-width: 0; }
+.ledger section { display: grid; gap: 10px; min-width: 0; }
+.ledger .note { color: var(--muted); font-size: 0.9rem; max-width: 70ch; }
+
+/* the grids */
+.scroll { overflow-x: auto; min-width: 0; }
+table.grid { border-collapse: separate; border-spacing: 3px; font-variant-numeric: tabular-nums; }
+.grid th { font-weight: 500; font-size: 0.74rem; color: var(--muted); text-align: center; vertical-align: bottom; padding: 0 2px 4px; line-height: 1.2; }
+.grid th.row { text-align: left; vertical-align: middle; font-size: 0.88rem; color: var(--ink); font-weight: 400; padding: 0 12px 0 0; white-space: nowrap; }
+.grid th.col { font-size: 0.8rem; color: var(--ink); padding-bottom: 6px; }
+.grid .who { display: inline-flex; align-items: center; gap: 6px; }
+.grid .who.col { flex-direction: column; gap: 4px; }
+.grid .who.pair { gap: 2px; }
+.grid .pairname { display: block; margin-top: 3px; font-size: 0.72rem; color: var(--muted); line-height: 1.2; }
+.grid th.group { text-align: left; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 10px 0 2px; border-bottom: 1px solid var(--rule); }
+.cell {
+  width: 5.2rem; min-height: 2.6rem; padding: 4px 3px 3px; border: 1px solid var(--rule); border-radius: 4px;
+  background: var(--sheet); cursor: pointer; display: grid; gap: 1px; justify-items: center; align-content: center;
+}
+.cell .v { font-size: 0.84rem; font-weight: 600; line-height: 1.15; }
+.cell .v.sym { font-size: 1.1rem; font-family: var(--mono); font-weight: 500; }
+.cell .n { font-family: var(--mono); font-size: 0.66rem; color: var(--muted); }
+@media (max-width: 480px) {
+  .cell { width: 3.6rem; }
+  .grid th.row { white-space: normal; max-width: 5.8rem; font-size: 0.8rem; padding-right: 6px; }
+  .grid th.col { font-size: 0.72rem; }
+}
+.cell:hover { border-color: var(--accent); }
+.cell[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.cell.none .v { color: var(--muted); font-weight: 500; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.84rem; color: var(--muted); }
+.legend span.k { font-family: var(--mono); color: var(--ink); }
+
+/* glyphs for the cast, as in the film */
+.glyph { width: 15px; height: 15px; flex: none; }
+
+/* the reasoning panel */
+.detail {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  max-height: calc(100vh - 24px); overflow: auto;
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px;
+  padding: 20px 20px 24px; display: grid; gap: 18px; min-width: 0;
+}
+@media (max-width: 960px) { .detail { position: static; max-height: none; } }
+.detail .head { display: grid; gap: 6px; }
+.detail .lisp { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); overflow-wrap: anywhere; }
+.verdict { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.verdict .value { font-family: var(--display); font-size: 1.7rem; font-weight: 600; line-height: 1; }
+.verdict .when { color: var(--muted); font-size: 0.9rem; }
+.sentence { font-size: 0.98rem; margin-top: -8px; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 0.78rem; font-weight: 600; border-radius: 999px; padding: 2px 9px; border: 1px solid currentColor; }
+.pill.match { color: var(--match); }
+.pill.diff { color: var(--stepmother); }
+.block { display: grid; gap: 8px; }
+.block h3 { display: flex; align-items: baseline; gap: 8px; }
+.block h3 .count { font-family: var(--body); font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+ol.story { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-left: 2px solid var(--rule); }
+ol.story li { position: relative; padding: 3px 0 7px 16px; font-size: 0.92rem; }
+ol.story li::before { content: ""; position: absolute; left: -6px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--postponed); border: 2px solid var(--sheet); }
+ol.story li.chose::before { background: var(--match); }
+ol.story li.again { color: var(--muted); }
+ol.story li.again::before { background: var(--sheet); border-color: var(--postponed); }
+ol.story .step { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin-right: 6px; }
+ol.story .inside { display: block; font-size: 0.8rem; color: var(--muted); }
+.sugg { border: 1px solid var(--rule); border-radius: 6px; padding: 8px 10px; display: grid; gap: 4px; font-size: 0.9rem; }
+.sugg .top { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.sugg .top b { font-size: 0.98rem; }
+.sugg .strength { font-size: 0.78rem; color: var(--muted); }
+.sugg ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.sugg ul li { margin: 1px 0; }
+.sugg.rejected { border-style: dashed; }
+.conflict { display: grid; gap: 6px; }
+.conflict .how { font-size: 0.88rem; }
+.thesis { border-left: 3px solid var(--accent); padding: 6px 0 6px 12px; display: grid; gap: 6px; font-size: 0.92rem; }
+.thesis ol { margin: 0; padding-left: 20px; display: grid; gap: 3px; }
+details.raw summary { cursor: pointer; color: var(--accent); font-size: 0.88rem; }
+details.raw pre { margin: 8px 0 0; font-family: var(--mono); font-size: 0.74rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--muted); max-height: 22rem; overflow: auto; }
+
+/* timeline */
+.timeline { display: grid; gap: 10px; min-width: 0; }
+.timeline .frame { position: relative; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 12px 8px; min-width: 0; }
+.timeline canvas { display: block; width: 100%; cursor: crosshair; }
+.tip {
+  position: absolute; pointer-events: none; background: var(--ink); color: var(--paper);
+  font-size: 0.78rem; line-height: 1.35; padding: 5px 8px; border-radius: 4px; max-width: 260px;
+}
+.keyline { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.84rem; color: var(--muted); align-items: center; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+footer { color: var(--muted); font-size: 0.85rem; max-width: 80ch; display: grid; gap: 6px; }
+@media (prefers-reduced-motion: no-preference) { .cell { transition: background-color .12s, border-color .12s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="label">Ani · pass 1 · Cinderella</span>
+    <h1>Ani's Choice Points</h1>
+    <p class="intro">In 1978 Ani, the program from Ken Kahn's MIT thesis, decided how each character in its Cinderella film should move: how fast, how actively, how directly, and how each compares with the others. These are its 102 decisions, rerun from its original code on a revived Director. Pick any one to see why Ani made it, attempt by attempt.</p>
+    <div class="facts" id="facts"></div>
+  </header>
+
+  <div class="main">
+    <div class="ledger">
+      <section aria-labelledby="cast-h">
+        <h2 id="cast-h">How each character moves</h2>
+        <p class="note">Each cell is one choice point. The small number is the attempt at which Ani settled it, out of all the attempts in the run.</p>
+        <div class="scroll"><table class="grid" id="cast-grid"></table></div>
+      </section>
+      <section aria-labelledby="rel-h">
+        <h2 id="rel-h">How the characters compare</h2>
+        <p class="note">Relative choice points compare two characters on one quality. Ani makes them while choosing a character's own values, and uses them as suggestions.</p>
+        <div class="legend"><span><span class="k">≠</span> different</span><span><span class="k">=</span> the same</span><span><span class="k">&lt;</span> less than</span><span><span class="k">&gt;</span> more than</span></div>
+        <div class="scroll"><table class="grid" id="rel-grid"></table></div>
+      </section>
+    </div>
+    <aside class="detail" id="detail" aria-live="polite"></aside>
+  </div>
+
+  <section class="timeline" aria-labelledby="time-h">
+    <h2 id="time-h">The whole run, attempt by attempt</h2>
+    <p class="note" style="color:var(--muted);max-width:75ch">Each row is a choice point and each mark an attempt to make it, from left to right in the order Ani made them. Grey marks are postponements; a colored mark is the attempt that decided. The diagonal sweeps are Ani going round the characters again and again, each time with more to go on. Click a mark to see that choice.</p>
+    <div class="frame"><canvas id="timeline" aria-label="Every attempt in the run, by choice point and time"></canvas><div class="tip" id="tip" hidden></div></div>
+    <div class="keyline"><span><span class="swatch" style="background:var(--postponed)"></span>postponed</span><span><span class="swatch" style="background:var(--cinderella)"></span><span class="swatch" style="background:var(--stepmother)"></span><span class="swatch" style="background:var(--godmother)"></span><span class="swatch" style="background:var(--prince)"></span>decided, colored by character</span></div>
+  </section>
+
+  <footer>
+    <p>Rerun with <code>node tools/run-pass1.mjs --glass-box</code> in the ani-revival repository: Ken Kahn's 1978 Ani code and 1979 Director, on a MacLisp interpreter in JavaScript, with the lost parts of Director rebuilt from evidence. The thesis is <a href="https://dspace.mit.edu/handle/1721.1/6875">AI-TR-540, “Creation of Computer Animation from Story Descriptions”</a> (1979).</p>
+  </footer>
+</div>
+
+<script type="application/json" id="pass1-data">/*PASS1-DATA*/</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("pass1-data").textContent);
+
+// ---------------------------------------------------------------- reading Ani's data
+const lisp = (x) => x === null ? "nil" : Array.isArray(x) ? "(" + x.map(lisp).join(" ") + ")" : String(x);
+const plist = (l, key) => { for (let i = 1; i + 1 < l.length; i += 2) if (l[i] === key) return l[i + 1]; return undefined; };
+
+const CAST = ["cinderella", "step-mother", "fairy-godmother", "prince"];
+const WHO = { cinderella: "Cinderella", "step-mother": "the stepmother", "fairy-godmother": "the fairy godmother", prince: "the Prince" };
+const WHO_ROW = { cinderella: "Cinderella", "step-mother": "Stepmother", "fairy-godmother": "Fairy godmother", prince: "Prince" };
+const COLOR = { cinderella: "--cinderella", "step-mother": "--stepmother", "fairy-godmother": "--godmother", prince: "--prince" };
+const ELEMENTS = ["speed", "activity-level", "rhythmic-level", "acceleration", "repetiveness", "deliberateness",
+  "path-length", "path-curvature", "path-jaggedness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
+const ELEMENT = { speed: "speed", "activity-level": "activity level", "rhythmic-level": "rhythmic level", acceleration: "acceleration",
+  repetiveness: "repetitiveness", deliberateness: "deliberateness", "path-length": "path length", "path-curvature": "path curvature",
+  "path-jaggedness": "path jaggedness", "attraction-towards-friends": "attraction to friends", "attraction-towards-enemies": "attraction to enemies",
+  "attraction-towards-strangers": "attraction to strangers" };
+const HEAD = { speed: ["speed"], "activity-level": ["activity"], "rhythmic-level": ["rhythm"], acceleration: ["accel-", "eration"],
+  repetiveness: ["repeti-", "tiveness"], deliberateness: ["deliber-", "ateness"], "path-length": ["path", "length"],
+  "path-curvature": ["path", "curvature"], "path-jaggedness": ["path", "jaggedness"], "attraction-towards-friends": ["to", "friends"],
+  "attraction-towards-enemies": ["to", "enemies"], "attraction-towards-strangers": ["to", "strangers"] };
+const RELATIVE = ELEMENTS.slice(0, 9);
+const PAIRS = [["cinderella", "step-mother"], ["cinderella", "fairy-godmother"], ["cinderella", "prince"],
+  ["step-mother", "fairy-godmother"], ["step-mother", "prince"], ["fairy-godmother", "prince"]];
+
+const who = (c, cap) => { const w = WHO[c] || String(c).replace(/-/g, " "); return cap ? w[0].toUpperCase() + w.slice(1) : w; };
+const elementName = (e) => ELEMENT[String(e).replace(/^relative-/, "")] || String(e).replace(/-/g, " ");
+const cap = (t) => t[0].toUpperCase() + t.slice(1);
+const listText = (xs) => xs.length < 3 ? xs.join(" and ") : xs.slice(0, -1).join(", ") + " and " + xs[xs.length - 1];
+
+function valueText(v) {
+  if (v === null || v === undefined) return "undecided";
+  if (Array.isArray(v)) {
+    if (v[0] === "positive" || v[0] === "negative") return v[0] + " " + v[1];
+    if (v[0] === "not") return "not " + valueText(v[1]);
+    if (v[0] === "different-from") return "different from " + valueText(v[1]);
+    if (v[0] === "less-than" || v[0] === "greater-than") return v[0].replace("-", " ") + " " + valueText(v[1]);
+    return v.map(valueText).join(" ");
+  }
+  return { "different-from": "different", "same-as": "the same", "less-than": "less", "greater-than": "more", none: "none" }[v] || String(v).replace(/-/g, " ");
+}
+function cellValue(v) {
+  if (v === "different-from") return ["≠", true];
+  if (v === "same-as") return ["=", true];
+  if (v === "less-than") return ["<", true];
+  if (v === "greater-than") return [">", true];
+  if (Array.isArray(v) && (v[0] === "positive" || v[0] === "negative")) return [(v[0] === "positive" ? "+" : "−") + " " + v[1], false];
+  return [valueText(v), false];
+}
+
+function sourceText(s) {
+  if (s === null || s === undefined) return "no source";
+  if (!Array.isArray(s)) {
+    if (s === "initial-description") return "the story's description";
+    if (s === "given-up") return "nothing: Ani gave up";
+    return "“" + String(s).replace(/-/g, " ") + "”";
+  }
+  if (s[0] === "and") return s.slice(1).map(sourceText).join("; ");
+  if (s[0] === "opposite-of") return `“${s[1].replace(/-/g, " ")}”, by the opposite of what “${s[2].replace(/-/g, " ")}” suggests`;
+  if (s[0] === "neighbor-of") return `“${s[1].replace(/-/g, " ")}”, by what its neighbor “${s[2].replace(/-/g, " ")}” suggests`;
+  if (s[0] === "relative-choice-point-of") return `how ${who(s[1][0])} compares with ${who(s[1][1])} in ${elementName(s[2])}`;
+  if (s[0] === "uniqueness-summary:") {
+    const type = plist(s, "descriptor-type");
+    return `${who(plist(s, "of-who"), true)} stands out (${plist(s, "uniqueness-level")}) ${type === "all" ? "overall" : "in " + String(type).replace(/-/g, " ")}`;
+  }
+  if (s[0] === "comparison-summary:") {
+    const [sign, level] = plist(s, "similarity-level") || [];
+    const pair = plist(s, "of-who") || [];
+    const type = plist(s, "descriptor-type");
+    return `${who(pair[1], true)} and ${who(pair[2])} are ${sign === "positive" ? "alike" : "unlike"} (${level}) ${type === "all" ? "overall" : "in " + String(type).replace(/-/g, " ")}`;
+  }
+  if (s.length === 2 && s[1] === "level") return `the film's ${s[0]} level`;
+  return lisp(s);
+}
+function relSentence(p, v) {
+  const rel = { "different-from": "different from", "same-as": "the same as", "less-than": "less than", "greater-than": "more than" }[v];
+  if (!rel) return valueText(v);
+  return `${who(p.pair[0], true)}'s ${elementName(p.elem)} is ${rel} ${who(p.pair[1])}'s`;
+}
+const sources = (s) => (Array.isArray(s) && s[0] === "and" ? s.slice(1) : [s]).map(sourceText);
+
+function reasonText(r) {
+  if (r === "not-happy-enough") return "Postponed: its best suggestion was not yet strong enough.";
+  if (r === "more-info-needed") return "Postponed: it needed more suggestions.";
+  if (r === "conflicts-found") return "Postponed: its suggestions conflicted.";
+  if (r === "conflict-after-resolving-conflict") return "Postponed: settling one conflict led to another.";
+  if (Array.isArray(r) && r[0] === "values-missing") return "Postponed: waiting for " + listText(r[1].map(cpTitle)) + ".";
+  return "Postponed: " + lisp(r) + ".";
+}
+const HOW = { "much-less-strongly-suggested": "rejected the much weaker side", "less-strongly-suggested": "rejected the weaker side",
+  compromised: "made a compromise", "rejected-by-previous-choices": "rejected by earlier choices" };
+const KIND = { incompatible: "incompatible values", "top-bottom": "a high value against a low one", "incompatible-relation": "incompatible relations",
+  "incompatible-relative-values": "incompatible relative values" };
+
+// ---------------------------------------------------------------- the choice points
+const cp29 = new Map(DATA.cp29);
+const points = DATA.choicePoints.map((c) => {
+  const key = lisp(c.name);
+  const absolute = c.name[0] === "choice-point-of";
+  return {
+    ...c, key, absolute,
+    character: absolute ? c.name[1] : null,
+    pair: absolute ? null : c.name[1],
+    elem: absolute ? c.name[2] : String(c.name[2]).replace(/^relative-/, ""),
+    cp29: cp29.get(key),
+    attempts: [],
+  };
+});
+const byKey = new Map(points.map((p) => [p.key, p]));
+for (const p of points) for (const s of p.synonyms || []) byKey.set(lisp(s), p);
+for (const a of DATA.attempts) { const p = byKey.get(lisp(a.choicePoint)); if (p) { a.point = p; p.attempts.push(a); } }
+for (const p of points) {
+  const first = p.attempts.find((a) => a.chose !== undefined && a.chose !== null);
+  p.decidedAt = first ? first.step : null;
+}
+const total = DATA.attempts.length;
+
+function cpTitle(name) {
+  const p = byKey.get(lisp(name));
+  if (p && !p.absolute) return `${who(p.pair[0])} and ${who(p.pair[1])} in ${elementName(p.elem)}`;
+  const n = Array.isArray(name) ? name : p.name;
+  return n[0] === "choice-point-of" ? `${who(n[1])}'s ${elementName(n[2])}` : lisp(n);
+}
+function slug(p) {
+  return p.absolute ? `${p.character}-${p.elem}` : `rel-${p.pair[0]}-${p.pair[1]}-${p.elem}`;
+}
+
+// ---------------------------------------------------------------- facts
+{
+  const matches = points.filter((p) => p.cp29 !== undefined && lisp(p.currentChoice) === p.cp29).length;
+  document.getElementById("facts").innerHTML =
+    `<span><b>${points.length}</b> choice points</span><span><b>${total}</b> attempts</span>` +
+    `<span class="ok"><b>${matches} of ${cp29.size}</b> the same as the file Ani wrote on 14 September 1978</span>`;
+}
+
+// ---------------------------------------------------------------- glyphs: star, square, circle, triangle
+function glyph(c) {
+  const col = `var(${COLOR[c]})`;
+  const shape = {
+    cinderella: `<polygon points="7.5,1 9.3,5.6 14.3,5.8 10.4,8.9 11.7,13.8 7.5,11 3.3,13.8 4.6,8.9 0.7,5.8 5.7,5.6" fill="none" stroke="${col}" stroke-width="1.4"/>`,
+    "step-mother": `<rect x="2" y="2" width="11" height="11" fill="none" stroke="${col}" stroke-width="1.6"/><path d="M2 2 L13 13 M13 2 L2 13" stroke="${col}" stroke-width="1"/>`,
+    "fairy-godmother": `<circle cx="7.5" cy="7.5" r="5.6" fill="none" stroke="${col}" stroke-width="1.6"/>`,
+    prince: `<polygon points="7.5,1.8 13.6,13 1.4,13" fill="none" stroke="${col}" stroke-width="1.6"/>`,
+  }[c];
+  return `<svg class="glyph" viewBox="0 0 15 15" aria-hidden="true">${shape}</svg>`;
+}
+
+// ---------------------------------------------------------------- grids
+function cellHTML(p, flip) {
+  if (!p) return `<td></td>`;
+  let v = p.currentChoice;
+  if (flip && v === "less-than") v = "greater-than"; else if (flip && v === "greater-than") v = "less-than";
+  const [text, sym] = cellValue(v);
+  const label = cpTitle(p.name) + ": " + valueText(p.currentChoice);
+  return `<td><button class="cell${p.currentChoice === "none" ? " none" : ""}" data-key="${p.key}" aria-pressed="false" aria-label="${label}" title="${label}">` +
+    `<span class="v${sym ? " sym" : ""}">${text}</span><span class="n">${p.decidedAt ?? ""}</span></button></td>`;
+}
+{
+  // qualities down the side, characters (or pairs) across the top
+  let html = `<thead><tr><th></th>${CAST.map((c) => `<th scope="col" class="col"><span class="who col">${glyph(c)}${WHO_ROW[c]}</span></th>`).join("")}</tr></thead><tbody>`;
+  ELEMENTS.forEach((e, i) => {
+    if (i === 0 || i === 9) html += `<tr><th class="group" colspan="5">${i === 0 ? "movement" : "attraction"}</th></tr>`;
+    html += `<tr><th scope="row" class="row">${ELEMENT[e].replace(/^attraction to /, "to ")}</th>`;
+    for (const c of CAST) html += cellHTML(byKey.get(lisp(["choice-point-of", c, e])), false);
+    html += `</tr>`;
+  });
+  document.getElementById("cast-grid").innerHTML = html + "</tbody>";
+
+  let rel = `<thead><tr><th></th>${PAIRS.map(([a, b]) => `<th scope="col" class="col" title="${WHO_ROW[a]} compared with ${who(b)}"><span class="who pair">${glyph(a)}${glyph(b)}</span><span class="pairname">${WHO_ROW[a].split(" ")[0]}<br>${WHO_ROW[b].split(" ")[0].toLowerCase()}</span></th>`).join("")}</tr></thead><tbody>`;
+  for (const e of RELATIVE) {
+    rel += `<tr><th scope="row" class="row">${ELEMENT[e]}</th>`;
+    for (const [a, b] of PAIRS) {
+      const here = byKey.get(lisp(["relative-choice-point-of", [a, b], "relative-" + e]));
+      rel += cellHTML(here, here && here.pair[0] !== a);
+    }
+    rel += `</tr>`;
+  }
+  document.getElementById("rel-grid").innerHTML = rel + "</tbody>";
+}
+
+// ---------------------------------------------------------------- the reasoning panel
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+function suggestionHTML(s, extra = "") {
+  const value = plist(s, "value"), strength = plist(s, "strength");
+  return `<div class="sugg ${extra}"><div class="top"><b>${esc(valueText(value))}</b>` +
+    (strength && strength !== "none" ? `<span class="strength">strength ${esc(strength)}</span>` : "") +
+    `</div><ul>${sources(plist(s, "source")).map((t) => `<li>${esc(t)}</li>`).join("")}</ul></div>`;
+}
+const THESIS_STEPMOTHER = `<div class="thesis"><span class="label">As the thesis tells it, pages 20–23</span><ol>
+<li>Only “strong” suggests a speed (high). That isn't enough, so she postpones.</li>
+<li>She asks how she compares with the others. They decide she should be faster than Cinderella, but nobody has a speed yet, so she postpones again.</li>
+<li>All four speeds wait on one another. The focus breaks the deadlock: Cinderella's speed is decided from her own description.</li>
+<li>The comparisons now give suggestions, and one conflicts with the earlier ones. She postpones.</li>
+<li>The film's variety, energy and flashiness levels disagree. She postpones once more.</li>
+<li>With nothing left to ask, she compromises, rejects the weaker suggestions, and picks high.</li></ol></div>`;
+
+function show(p, push = true) {
+  for (const b of document.querySelectorAll(".cell")) b.setAttribute("aria-pressed", String(b.dataset.key === p.key));
+  selected = p;
+  if (push) { try { history.replaceState(null, "", "#" + slug(p)); } catch (e) { /* not allowed here */ } }
+  const verdict = valueText(p.currentChoice);
+  const verdictLine = p.absolute ? "" : `<p class="sentence">${esc(relSentence(p, p.currentChoice))}.</p>`;
+  const same = p.cp29 !== undefined && p.cp29 === lisp(p.currentChoice);
+  let firstChose = false;
+  const story = p.attempts.map((a) => {
+    const within = a.within && DATA.attempts[a.within - 1].point && DATA.attempts[a.within - 1].point !== p
+      ? `<span class="inside">while choosing ${esc(cpTitle(DATA.attempts[a.within - 1].point.name))}</span>` : "";
+    if (a.chose !== undefined && a.chose !== null) {
+      const again = firstChose; firstChose = true;
+      const said = p.absolute ? valueText(a.chose) : relSentence(p, a.chose).replace(/^.*? is /, "");
+      return `<li class="${again ? "again" : "chose"}"><span class="step">${a.step}</span>${again ? "Asked again; already " + esc(said) + "." : "Decided: <b>" + esc(said) + "</b>."}${within}</li>`;
+    }
+    return `<li><span class="step">${a.step}</span>${esc(reasonText(a.postponed))}${within}</li>`;
+  }).join("");
+  const chosen = (p.memory || []).filter((m) => Array.isArray(m) && m[0] === "suggestion:");
+  const conflicts = p.conflictsResolved || [];
+  const rejected = p.rejectedSuggestions || [];
+  const title = p.absolute ? `${who(p.character, true)}'s ${elementName(p.elem)}` : `${who(p.pair[0], true)} compared with ${who(p.pair[1])} in ${elementName(p.elem)}`;
+  document.getElementById("detail").innerHTML = `
+    <div class="head"><span class="label">${p.absolute ? "Choice point" : "Relative choice point"}</span><h2>${esc(title)}</h2>
+      <span class="lisp">${esc(p.key)}</span></div>
+    <div class="verdict"><span class="value">${esc(verdict)}</span>
+      <span class="when">${p.decidedAt ? `decided at attempt ${p.decidedAt} of ${total}, after ${p.attempts.filter((a) => a.postponed !== undefined && a.step < p.decidedAt).length} postponements` : "never decided"}</span>
+      ${p.cp29 !== undefined ? `<span class="pill ${same ? "match" : "diff"}">${same ? "✓ same as in 1978" : "1978: " + esc(p.cp29)}</span>` : ""}</div>
+    ${verdictLine}
+    ${p.key === "(choice-point-of step-mother speed)" ? THESIS_STEPMOTHER : ""}
+    <div class="block"><h3>What happened <span class="count">${p.attempts.length} attempts</span></h3><ol class="story">${story || "<li>Never attempted.</li>"}</ol></div>
+    ${chosen.length ? `<div class="block"><h3>The suggestion it kept</h3>${chosen.map((s) => suggestionHTML(s)).join("")}</div>` : ""}
+    ${conflicts.length ? `<div class="block"><h3>Conflicts it settled <span class="count">${conflicts.length}</span></h3>${conflicts.map((c) =>
+      `<div class="conflict"><p class="how">${esc(cap(KIND[plist(c, "type")] || String(plist(c, "type")).replace(/-/g, " ")))}: Ani ${esc(HOW[plist(c, "how-resolved")] || String(plist(c, "how-resolved")).replace(/-/g, " "))}.</p>` +
+      (plist(c, "offenders") || []).map((s) => suggestionHTML(s)).join("") + `</div>`).join("")}</div>` : ""}
+    ${rejected.length ? `<div class="block"><h3>Suggestions it rejected <span class="count">${rejected.length}</span></h3>${rejected.map((r) =>
+      `<p class="how" style="font-size:.88rem">Because the suggestion was ${esc(String(plist(r, "reason")).replace(/-/g, " "))}:</p>` + suggestionHTML(plist(r, "suggestion") || [], "rejected")).join("")}</div>` : ""}
+    <details class="raw"><summary>Ani's own record</summary><pre>${esc(rawRecord(p))}</pre></details>`;
+  drawTimeline();
+}
+function rawRecord(p) {
+  const lines = [`(define ${p.key} ${p.parent}`];
+  const show = (k, v) => v !== undefined && v !== null && lines.push(`  (set your ${k} to ${lisp(v)})`);
+  show("element", p.element); show("thing", p.thing); show("non-empty-sources", p.nonEmptySources);
+  show("suggestion-sources", p.suggestionSources); show("postponement-reasons", p.postponementReasons);
+  show("conflicts-resolved", p.conflictsResolved); show("rejected-suggestions", p.rejectedSuggestions);
+  show("synonyms", p.synonyms); show("current-choice", p.currentChoice);
+  for (const m of p.memory || []) lines.push(`  (memorize ${lisp(m)})`);
+  return lines.join("\n") + ")";
+}
+
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".cell");
+  if (b) { const p = byKey.get(b.dataset.key); if (p) { show(p); if (window.innerWidth <= 960) document.getElementById("detail").scrollIntoView({ block: "start" }); } }
+});
+
+// ---------------------------------------------------------------- timeline
+const rows = [];
+for (const c of CAST) for (const e of ELEMENTS) { const p = byKey.get(lisp(["choice-point-of", c, e])); if (p) rows.push(p); }
+const relStart = rows.length;
+for (const [a, b] of PAIRS) for (const e of RELATIVE) { const p = byKey.get(lisp(["relative-choice-point-of", [a, b], "relative-" + e])); if (p) rows.push(p); }
+const rowOf = new Map(rows.map((p, i) => [p, i]));
+let selected = null;
+const canvas = document.getElementById("timeline");
+const tip = document.getElementById("tip");
+const ROW = 4, GAP = 14, LEFT = 104, TOP = 6;
+const yOf = (i) => TOP + i * ROW + (i >= relStart ? GAP : 0);
+const colorOf = (p) => p.absolute ? `var(${COLOR[p.character]})` : `var(${COLOR[p.pair[0]]})`;
+function cssColor(v) { const m = /var\((--[^)]+)\)/.exec(v); return m ? getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() : v; }
+function drawTimeline() {
+  const width = canvas.clientWidth || 800;
+  const height = yOf(rows.length) + 22;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(width * dpr); canvas.height = Math.round(height * dpr); canvas.style.height = height + "px";
+  const g = canvas.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const ink = cssColor("var(--ink)"), muted = cssColor("var(--muted)"), rule = cssColor("var(--rule)"), post = cssColor("var(--postponed)"), accent = cssColor("var(--accent)");
+  g.clearRect(0, 0, width, height);
+  const span = width - LEFT - 6, x = (step) => LEFT + ((step - 0.5) / total) * span;
+  g.font = `11px ${getComputedStyle(document.body).fontFamily}`; g.textBaseline = "middle"; g.fillStyle = muted;
+  CAST.forEach((c, k) => { g.fillStyle = cssColor(`var(${COLOR[c]})`); g.fillText(WHO_ROW[c], 4, yOf(k * 12 + 6)); });
+  g.fillStyle = muted; g.fillText("comparisons", 4, yOf(relStart + 27));
+  g.strokeStyle = rule; g.lineWidth = 1;
+  for (let k = 1; k < 4; k++) { const y = yOf(k * 12) - 0.5; g.beginPath(); g.moveTo(LEFT, y); g.lineTo(width - 6, y); g.stroke(); }
+  g.beginPath(); g.moveTo(LEFT, yOf(relStart) - GAP / 2); g.lineTo(width - 6, yOf(relStart) - GAP / 2); g.stroke();
+  if (selected && rowOf.has(selected)) { g.fillStyle = cssColor("var(--accent-soft)"); g.fillRect(LEFT, yOf(rowOf.get(selected)) - 1, span, ROW + 2); }
+  for (const a of DATA.attempts) {
+    const p = a.point; if (!p || !rowOf.has(p)) continue;
+    const y = yOf(rowOf.get(p));
+    if (a.chose !== undefined && a.chose !== null) {
+      if (a.step !== p.decidedAt) continue;
+      g.fillStyle = cssColor(colorOf(p)); g.fillRect(x(a.step) - 2, y - 1, 5, ROW + 1);
+    } else { g.fillStyle = p === selected ? accent : post; g.fillRect(x(a.step) - 1, y, 2, ROW - 1); }
+  }
+  g.fillStyle = muted; g.textBaseline = "alphabetic";
+  for (const t of [1, 200, 400, 600, 800]) if (t <= total) { g.fillText(String(t), x(t) - 4, height - 6); }
+  g.fillText("attempt", LEFT - 50, height - 6);
+}
+function hit(ev) {
+  const r = canvas.getBoundingClientRect(); const mx = ev.clientX - r.left, my = ev.clientY - r.top;
+  const span = r.width - LEFT - 6; if (mx < LEFT) return null;
+  let i = rows.findIndex((p, k) => my >= yOf(k) - 1 && my < yOf(k) + ROW + 1); if (i < 0) return null;
+  const p = rows[i]; const step = ((mx - LEFT) / span) * total + 0.5;
+  let best = null; for (const a of p.attempts) if (!best || Math.abs(a.step - step) < Math.abs(best.step - step)) best = a;
+  return best && Math.abs(best.step - step) < 8 ? { p, a: best, mx, my } : { p, a: null, mx, my };
+}
+canvas.addEventListener("mousemove", (ev) => {
+  const h = hit(ev); if (!h) { tip.hidden = true; return; }
+  tip.hidden = false;
+  tip.textContent = cpTitle(h.p.name) + (h.a ? ` · attempt ${h.a.step}: ` + (h.a.postponed !== undefined ? "postponed" : "decided " + valueText(h.a.chose)) : "");
+  const fr = canvas.parentElement.getBoundingClientRect(), cr = canvas.getBoundingClientRect();
+  tip.style.left = Math.min(h.mx + 14 + (cr.left - fr.left), fr.width - 270) + "px"; tip.style.top = (h.my + 12 + (cr.top - fr.top)) + "px";
+});
+canvas.addEventListener("mouseleave", () => { tip.hidden = true; });
+canvas.addEventListener("click", (ev) => { const h = hit(ev); if (h) show(h.p); });
+window.addEventListener("resize", () => drawTimeline());
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => drawTimeline());
+
+// ---------------------------------------------------------------- start
+const fromHash = points.find((p) => "#" + slug(p) === location.hash);
+show(fromHash || byKey.get("(choice-point-of step-mother speed)") || points[0], false);
+if (document.fonts) document.fonts.ready.then(() => drawTimeline());
+</script>

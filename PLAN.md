@@ -32,8 +32,9 @@
   - database demons (virtual items, and actions on memorizing) are rebuilt from the 1978 guide;
   - "recall an item matching" quotes the request it remembers, as `SOME 666` already does for "recall each item matching";
   - `INTERSECT` keeps its second set's order, which decides the order Ani makes her choices in (the 1980 one keeps the first's).
-- **Phase 3, mostly done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs`; about 75 seconds).
-  - Open: the glass-box list of choice points. The data is ready: `--save-all` writes every choice point with its suggestions, conflicts and postponements, as `RUN24 2` does, to `reports/pass1-reasons.txt`.
+- **Phase 3, done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs`; about 75 seconds).
+  - The glass box is `app/pass1.html` (open it directly, or at `http://localhost:8379/app/pass1.html`). It shows every choice point and its value, and for any one of them each attempt Ani made, why it postponed, the suggestion it kept, the conflicts it settled, and the suggestions it rejected. A timeline draws all 836 attempts. The stepmother's speed is shown beside the thesis's own account of it (pages 20–23), and they agree.
+  - `node tools/run-pass1.mjs --glass-box` regenerates the data and the page.
 - **Next, Phase 4:** pass 2, with `RUN`.
 
 ## In brief
