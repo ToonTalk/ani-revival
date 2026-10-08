@@ -88,6 +88,19 @@
 (defun place-actor-on-name (actor name)
   (general-putprop name (actor-object actor) 'actor 'non-atomic-actors))
 
+;; SOME 666's "make copy", which copies the actor :self stands for. (It copied :self
+;; itself, the actor in 1979; a copy of a name, displacing the new actor, ruins it.
+;; SUBSCENE's "send yourself to director via" saves each subscene this way.)
+(let ((:replace-old-methods t))
+     (define-method (make copy ?sibling) something
+      (help-comments: |make an identical copy of myself except for its name and offspring|)
+      ;;this copies by copying the plist and changing its offspring
+      (ask :self ask your parent to make ,sibling) ;;makes one for parent's sake
+      (displace (actor-of sibling) ;;then clobbers it with a copy with the follow substs
+		(let ((name (name-of :self)))
+		     (copy (actor-object :self) '((,name !,sibling)))))
+      sibling))
+
 ;; SOME 666's is-any-ancestor-of, comparing actors whether given as names or not,
 ;; so (ask x are you a x) is true again.
 (defun is-any-ancestor-of (actor other)

@@ -149,6 +149,9 @@
 ;;  - any other atom matches itself (EQ, or EQUAL numbers);
 ;;  - {or a b ...} matches if any alternative does, keeping its bindings;
 ;;  - {and a b ...} matches if every part does, in turn;
-;;  - any other {expr} is evaluated with its ?variables bound to the element, and
-;;    matches if the value is non-NIL, binding them;
+;;  - any other {expr}, a restriction, is evaluated as written, with each atom in it
+;;    that begins with ? (a bare ? too) bound to the element, and matches if the
+;;    value is non-NIL, binding its named variables: {greaterp ?n 33}, or CHOMET's
+;;    {eq (get ? 'type) 'display}. evidence: 1980 (HANDLE-RESTRICTION binds the
+;;    atom FIRST-ATOM-BEGINNING-WITH-? finds, then evaluates the restriction);
 ;;  - a list matches a list element by element.

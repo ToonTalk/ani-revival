@@ -142,10 +142,14 @@
   (cond ((actorp x) x)
 	(t (actor-of-1 x 'dont-autoload))))
 
-;; (self-name actor): what :self is bound to, the actor's name, or the actor
-;; itself if it has none.
+;; (self-name actor): what :self is bound to: the actor's name, if the name stands
+;; for this actor, or else the actor itself. An actor being made is not yet filed
+;; under its name (SOME's "make an instance named" sets its variables first).
 (defun self-name (actor)
-  (cond ((actorp actor) (or (name-of actor) actor))
+  (cond ((actorp actor)
+	 (let ((name (name-of actor)))
+	      (cond ((and name (eq (actor-object name) actor)) name)
+		    (t actor))))
 	(t actor)))
 (defun method-pattern (method-name) (get method-name 'method-pattern))
 (defun method-pattern-predicate (method-name) (get method-name 'method-pattern-predicate))
@@ -307,6 +311,12 @@
 ;; run; when evaluated it runs them. evidence: guide ("the word script: is used to
 ;; protect the commas"); 1980 (a SCRIPT macro).
 (define-macro script: forms
+  '(progn !,forms))
+
+;; (do-the-following: form ...): runs the forms, as PROGN does; CHOMET writes
+;; (do-the-following: (ask ...) (ask ...)). evidence: tags (define-alias, beside
+;; script:); 1980 (DO-THE-FOLLOWING is a macro making (PROGN . forms)).
+(define-macro do-the-following: forms
   '(progn !,forms))
 
 ;; (comma form): in code that a macro method generates, ,form, so that form is

@@ -212,10 +212,20 @@
 
 ;;; -------------------------------------------------------------- symbols and numbers
 
-;; (gen-number [name]): 1, 2, 3, ... separately for each name.
+;; (gen-number [name]): 1, 2, 3, ... separately for each name; with no name, one
+;; count for everything. A list name such as (special-dynamics-of cinderella in
+;; ...) counts under its first symbol, and the list itself is left alone (SOME's
+;; "make interned offspring" passes an actor's name). evidence: 1980 (the count is
+;; a *GEN-NUMBER-VALUE property of the name, of the list's car, or of
+;; ANY-OLD-ATOM-HERE-WILL-DO; with no argument, the special *GEN-NUMBER-VALUE).
+(setq-if-unbound *gen-number-value 0)
+
 (defun gen-number n
-  (let ((name (cond ((> n 0) (arg 1)) (t 'gen-number))))
-       (putprop name (1+ (or (get name 'gen-number) 0)) 'gen-number)))
+  (cond ((= n 0) (setq *gen-number-value (1+ *gen-number-value)))
+	(t (let ((key (cond ((atom (arg 1)) (arg 1))
+			    ((atom (car (arg 1))) (car (arg 1)))
+			    (t 'any-old-atom-here-will-do))))
+		(putprop key (1+ (or (get key '*gen-number-value) 0)) '*gen-number-value)))))
 
 ;; (generate-symbol prefix): a new interned symbol prefix-n. VERIFY.
 (defun generate-symbol (prefix)

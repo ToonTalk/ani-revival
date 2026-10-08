@@ -58,23 +58,36 @@ export function installMatcher(L) {
     variablesOf.set(expr, vs);
     return vs;
   }
-  const devariablized = new WeakMap();
-  function devariablize(expr) {
-    if (isVariable(expr)) return variableName(expr) ?? NIL;
-    if (!(expr instanceof Cons)) return expr;
-    let d = devariablized.get(expr);
-    if (!d) devariablized.set(expr, (d = new Cons(devariablize(expr.car), devariablize(expr.cdr))));
-    return d;
+  // The atoms in a restriction that begin with ?, a bare ? included.
+  const questionAtomsOf = new WeakMap();
+  function questionAtoms(expr) {
+    let atoms = questionAtomsOf.get(expr);
+    if (atoms) return atoms;
+    atoms = [];
+    (function walk(p) {
+      if (p instanceof Sym) {
+        if (p.name[0] === "?" && !atoms.includes(p)) atoms.push(p);
+      } else if (p instanceof Cons && p.car !== QUOTED) {
+        walk(p.car);
+        walk(p.cdr);
+      }
+    })(expr);
+    questionAtomsOf.set(expr, atoms);
+    return atoms;
   }
 
-  // {expr}: bind its variables to x and evaluate it; if true, record the bindings.
+  // {expr}, a restriction: evaluate expr as written, with its atoms that begin with ?
+  // bound to the element, so {greaterp ?n 33} and {eq (get ? 'type) 'display} both
+  // test the element. evidence: 1980 (HANDLE-RESTRICTION evaluates the restriction
+  // with the atom FIRST-ATOM-BEGINNING-WITH-? finds bound to the element). If it is
+  // true, its named variables are bound to the element too.
   function matchPredicate(expr, x, bindings) {
     const vars = findVariables(expr);
     const mark = L.specpdl.length;
     let ok;
     try {
-      for (const v of vars) L.bind(v, x);
-      ok = L.eval(devariablize(expr));
+      for (const atom of questionAtoms(expr)) L.bind(atom, x);
+      ok = L.eval(expr);
     } finally {
       L.unbindTo(mark);
     }
