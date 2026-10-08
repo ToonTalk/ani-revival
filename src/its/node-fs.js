@@ -36,6 +36,15 @@ export function makeProjectFileSystem(root = process.cwd()) {
       fs.addFile("KEN1", f.replace(/\.lisp$/, ""), "1", { getText: () => readFileSync(p, "utf8"), origin: "reconstruction", path: p });
     }
   }
+  // REVIVE; holds files of ours that never existed on ITS (src/director/revive).
+  const revive = join(root, "src", "director", "revive");
+  if (existsSync(revive)) {
+    for (const f of readdirSync(revive)) {
+      if (!f.endsWith(".lisp")) continue;
+      const p = join(revive, f);
+      fs.addFile("REVIVE", f.replace(/\.lisp$/, ""), "1", { getText: () => readFileSync(p, "utf8"), origin: "ours", path: p });
+    }
+  }
   // The compiled tags files, recovered as source (tools/gen-tags.mjs).
   const tags = join(root, "src", "director", "tags");
   if (existsSync(tags)) {

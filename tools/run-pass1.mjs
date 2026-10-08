@@ -1,9 +1,11 @@
 // Run Ani's pass 1 the way KEN;DATEST did: load the Cinderella film description,
 // make the choices about the characters' dynamics, and save the answers; then
 // compare them with CP 29, the file pass 1 wrote in September 1978.
-// Usage: node tools/run-pass1.mjs [--trace]
+// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save]
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { writeFileSync } from "node:fs";
+import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const trace = process.argv.includes("--trace");
 const fs = makeProjectFileSystem();
@@ -38,6 +40,7 @@ L.load(L.intern("KEN;LOAD >"));
 L.evalString("(setq :print-load-messages nil)");
 const ok =
   step("(director '(ani direct))", "(director '(ani direct))") &&
+  step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
   step("load DATEST", "(load '|ken;datest >|)") &&
   step("(init nil): load CINDY, study descriptor use", "(init nil)") &&
   step("(z): make the choices", "(z)") &&
@@ -51,5 +54,22 @@ if (ok) {
   const entry = fs.find({ dir: "KEN1", fn1: "CP", fn2: "TEST" });
   console.log(`\nwrote KEN1;CP TEST (${entry ? fs.textOf(entry).length : 0} characters)`);
   if (entry && process.argv.includes("--show")) console.log("\n" + fs.textOf(entry).slice(0, 3000));
+  if (entry) {
+    const ours = choicesOfText(fs.textOf(entry));
+    if (process.argv.includes("--save")) {
+      writeFileSync("reports/pass1-choices.txt", fs.textOf(entry));
+      console.log("saved reports/pass1-choices.txt");
+    }
+    for (const [label, path] of [["CP 29 (Sep 1978)", "original/7005017/cp.29"], ["RUN24 2 (Dec 1978)", "original/9004336/run24.2"]]) {
+      const theirs = choicesOfItsFile(path);
+      const c = compareChoices(theirs, ours);
+      console.log(`\nagainst ${label}: ${c.same} of ${theirs.size} choices the same; ${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra (we made ${ours.size})`);
+      if (process.argv.includes("--diff")) {
+        for (const [k, a, b] of c.differ) console.log(`  ${k}: ${a} then, ${b} now`);
+        for (const [k, a] of c.onlyA) console.log(`  missing ${k} = ${a}`);
+        for (const [k, b] of c.onlyB) console.log(`  extra ${k} = ${b}`);
+      }
+    }
+  }
 }
 process.exit(ok ? 0 : 1);

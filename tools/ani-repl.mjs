@@ -28,6 +28,7 @@ L.load(L.intern("KEN;LISP >"));
 L.load(L.intern("KEN;LOAD >"));
 L.evalString("(setq :print-load-messages nil)");
 L.evalString("(director '(ani direct))");
+if (!args.includes("--no-bridge")) L.evalString("(load '|revive;bridge >|)");
 L.evalString("(load '|ken;datest >|)");
 if (!args.includes("--no-init")) L.evalString("(init nil)");
 if (args.includes("--z")) L.evalString("(z)");

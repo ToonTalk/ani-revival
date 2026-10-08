@@ -103,16 +103,17 @@
       ((> i n) t)
       (or (eq (arg (1- i)) (arg i)) (return nil))))
 
-;; (append-atoms a b ...): a symbol whose name joins the names. The result is
-;; interned unless the first atom isn't (DRECT: "the name has to be interned so
-;; that compiled files can use it; if the actor is not interned ... let the stuff
-;; get garbage collected").
+;; (append-atoms a b ...): a new uninterned symbol whose name joins the names.
+;; intern-append-atoms makes the interned one. evidence: 1980 (a macro expanding
+;; into (maknam (append (printer-explode a) ...))); uses: OBJECT ("it is important
+;; for gc that interpolation-drawer not be interned"), SOME's "make uninterned
+;; offspring" and "make interned offspring", NODES's (intern (append-atoms ...)).
+;; DRECT names methods with it, so each method's name is a symbol of its own:
+;; every nameless actor's first method is NAMELESS-...-2, but never the same one.
 (defun append-atoms n
-  (let ((chars (do ((i n (1- i))
-		    (acc nil (append (explodec (arg i)) acc)))
-		   ((zerop i) acc))))
-       (cond ((and (symbolp (arg 1)) (not (internedp (arg 1)))) (maknam chars))
-	     (t (implode chars)))))
+  (maknam (do ((i n (1- i))
+	       (acc nil (append (explodec (arg i)) acc)))
+	      ((zerop i) acc))))
 
 (defun intern-append-atoms n
   (implode (mapcan 'explodec (listify n))))
@@ -131,8 +132,21 @@
 ;; add-to-actor, run-method); exp (PLACE-ACTOR-ON-NAME forms).
 
 (defun actorp (x) (and (not (atom x)) (eq (car x) 'director-symbol-for-actor)))
-(defun method-count+methods-of (actor) (cdr actor))
-(defun methods-of (actor) (cddr actor))
+
+;; These take an actor or its name. In 1978 :self was the receiver's name (see
+;; REVIVE;BRIDGE), so DRECT's method search starts from a name.
+(defun method-count+methods-of (actor) (cdr (actor-object actor)))
+(defun methods-of (actor) (cddr (actor-object actor)))
+
+(defun actor-object (x)
+  (cond ((actorp x) x)
+	(t (actor-of-1 x 'dont-autoload))))
+
+;; (self-name actor): what :self is bound to, the actor's name, or the actor
+;; itself if it has none.
+(defun self-name (actor)
+  (cond ((actorp actor) (or (name-of actor) actor))
+	(t actor)))
 (defun method-pattern (method-name) (get method-name 'method-pattern))
 (defun method-pattern-predicate (method-name) (get method-name 'method-pattern-predicate))
 (defun body-of-method (method-name) (get method-name 'expr))
@@ -170,8 +184,9 @@
   '(parent-of-1 ,actor (quote ,(car options))))
 
 (defun parent-of-1 (actor option)
-  (let ((parent (cadr (symeval (caddr actor)))))
-       (and parent (actor-of-1 parent option))))
+  (let ((object (actor-object actor)))
+       (let ((parent (and object (cadr (symeval (caddr object))))))
+	    (and parent (actor-of-1 parent option)))))
 
 ;; (name-of actor): the value of its "recall your name" method; a name is its own name.
 (defun name-of (actor)
@@ -319,7 +334,7 @@
 ;; message with the given actor's methods, as if it were that actor.
 ;; evidence: uses (SCENE, ACTION, PLACE, DISPLY, ...).
 (define-macro do-as-if-you-were (actor receiver . message)
-  '(let ((:self (actor-of ,(ask-target receiver)))
+  '(let ((:self (self-name (actor-of ,(ask-target receiver))))
 	 (:message ,(ask-message message)))
 	(cases (actor-of ,(ask-target actor)))))
 

@@ -242,7 +242,7 @@ export class Lisp {
       try {
         return this.evalCons(x);
       } catch (e) {
-        if (!e.lispBacktrace) e.lispBacktrace = this.formStack.slice(-60).reverse();
+        if (!e.lispBacktrace) e.lispBacktrace = this.formStack.slice(-(this.backtraceDepth || 60)).reverse();
         throw e;
       } finally {
         this.formStack.pop();
@@ -632,10 +632,17 @@ function installSpecialForms(L) {
 
   sp("PROGV", function (args) {
     const syms = this.toArray(this.eval(args.car));
-    const vals = this.toArray(this.eval(args.cdr.car));
+    // The values are taken one per symbol, so a circular list works (Director
+    // passes :circular-list-of-nils); symbols beyond the values become unbound.
+    let vals = this.eval(args.cdr.car);
     const mark = this.specpdl.length;
     try {
-      syms.forEach((s, i) => this.bind(s, i < vals.length ? vals[i] : UNBOUND));
+      for (const s of syms) {
+        if (vals instanceof Cons) {
+          this.bind(s, vals.car);
+          vals = vals.cdr;
+        } else this.bind(s, UNBOUND);
+      }
       return this.progn(args.cdr.cdr);
     } finally {
       this.unbindTo(mark);
