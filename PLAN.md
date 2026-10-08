@@ -36,11 +36,15 @@
 - **Phase 3, done (8 October).** Pass 1 reproduces `CP 29` exactly: run on `CINDY`, it makes the same 102 choices, with the same names, and saves them in the same order (`node tools/run-pass1.mjs --no-backtrace`; about 20 seconds).
   - The glass box is `app/pass1.html` (open it directly, or at `http://localhost:8379/app/pass1.html`). It shows every choice point and its value, and for any one of them each attempt Ani made, why it postponed, the suggestion it kept, the conflicts it settled, and the suggestions it rejected. A timeline draws all 836 attempts. The stepmother's speed is shown beside the thesis's own account of it (pages 20–23), and they agree.
   - `node tools/run-pass1.mjs --glass-box` regenerates the data and the page.
-- **Phase 4, under way.** Two of the five scenes are planned by Ani and filmed by Director, each scene planned from where the last one left the characters:
+- **Phase 4, done in outline (8 October).** All five scenes are planned by Ani and filmed by Director, each scene planned from where the last one left the characters:
   - `node tools/run-pass2.mjs <scene>` plans a scene with `RUN` and saves its program, summary and printout (`KEN;KEPT APART`, `KEN1;KEPT MINI`, `KEN1;KEPT PRINT`), copied to `reports/pass2/`.
   - `node tools/run-scene.mjs <scene>` films the program with `ANINIT` and saves where the characters ended up (`KEN1;INTRO POSIT`, `KEN1;KA POSIT`).
   - **The introduction:** five subscenes, estimated at 42.2 seconds (the thesis: 43.3 estimated, 42 real); 203 frames.
   - **Kept apart:** the three subscenes of thesis pp. 66–67. Subscene 1 has the values Appendix VI prints: the cut and its reason, the locations, the plan, 1.53 seconds. Subscene 2 stands guard six times, "originally planned ... only four", stretched by 1.97; subscene 3 is the emotional changes, a parasite on subscene 2. 188 frames.
+  - **No longer kept apart:** one subscene, the method the thesis names (p. 68): the fairy godmother goes to Cinderella and takes her to the Prince while the stepmother does nothing; 3.98 seconds, 18 frames.
+  - **The meeting:** the seven subscenes of pp. 69–70, in order: the others exit; Cinderella and the Prince turn in turn; she accompanies him; she moves to him after a cut; the same two with the roles swapped, again with a cut; the joy changes, a parasite on the sixth. 216 frames.
+  - **Justice:** one subscene, as on p. 71: the stepmother moves near the lovers and turns to each, they come into contact and part four times, and she slows down. 107 frames.
+  - Appendix III: pass 2 "begins with 418 actors and creates 154 new ones (not including temporary ones)". With Ani's eighteen files, `CINDY` and `CP` loaded we begin with 343, and planning the five scenes in one job, as `RUN` allows, leaves 147 more at the end.
   - What the bridge needed for this, each with its evidence in `bridge.lisp`:
     - "make copy" makes an independent twin that differs only in name, as the 1978 guide says. This needed `COPY` as `TS D2500` has it: it copies an actor's methods and so its variables. Subscenes save a copy before planning and are restored from it when they must stretch.
     - "forget your" takes patterns such as `(actions-of ?)` (1978 guide).
@@ -50,10 +54,10 @@
   - Open:
     - Appendix VI gives Cinderella high speed in subscene 1; ours is low (times 2.0). The 1.53 s estimates agree, which points to low at estimate time, so in 1978 it became high later. The only code that sets it high is the guarding's `prisoner-special-dynamics`, for subscene 2. So in 1978 her subscene 2 dynamics may have been her subscene 1 dynamics.
     - Subscene 2 runs 45.5 s against our estimate of 28.2; the thesis has 30 and 32.
-    - Appendix VI numbers her dynamics `-26`; ours are `-7`. The counter runs across a whole Ani job, and `RUN` cleans up "from before" so that scenes can follow each other in one job. That fits 19 numbers used first, where our introduction uses 21.
+    - Appendix VI numbers her dynamics `-26`; ours are `-7`. The counter runs across a whole Ani job, and `RUN` cleans up "from before" so that scenes can follow each other in one job. Planned after our introduction in one job, they are `-28`: 1978's introduction used two numbers fewer.
     - Within subscene 1 the locations come in another order than Appendix VI's.
     - The introduction has a fifth, empty subscene; the thesis describes four.
-  - Next: no longer kept apart (it reads `KEN1;KEPT MINI` and `KEN1;KA POSIT`), the meeting and justice; then Appendix III's actor counts and Chapter II's plans.
+  - Next, Phase 5: draw the frames, compare them with the YouTube film and the thesis's flipbook, and look into the open items above.
 
 ## In brief
 

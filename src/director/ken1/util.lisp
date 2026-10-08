@@ -182,10 +182,21 @@
 	(t (or (list-beginning-with head (car x))
 	       (list-beginning-with head (cdr x))))))
 
-(defun maximum-in-set (l)
+;; (maximum-in-set l relationship): the best of l, starting with its first element
+;; and taking each later one x for which (relationship x best) is true.
+;; (minimum-in-set l relationship) takes x when (relationship best x) is true.
+;; evidence: TS D2500 (both SUBRs of two arguments). DISPLY's exit-by passes
+;; PLACE's maximum-ideal-time, which returns the larger of two estimates, never NIL,
+;; so it gets the last character's estimate.
+(defun maximum-in-set (l relationship)
   (do ((i (cdr l) (cdr i)) (best (car l)))
       ((null i) best)
-      (and (greaterp (car i) best) (setq best (car i)))))
+      (and (funcall relationship (car i) best) (setq best (car i)))))
+
+(defun minimum-in-set (l relationship)
+  (do ((i (cdr l) (cdr i)) (best (car l)))
+      ((null i) best)
+      (and (funcall relationship best (car i)) (setq best (car i)))))
 
 (defun integer-average (l)
   (round (quotient (float (apply 'plus l)) (length l))))
