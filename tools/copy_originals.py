@@ -93,8 +93,7 @@ def main():
                     "sha256": hashlib.sha256(data).hexdigest(),
                 })
     os.makedirs(DEST, exist_ok=True)
-    with open(os.path.join(DEST, "MANIFEST.json"), "w", newline="
-") as out:
+    with open(os.path.join(DEST, "MANIFEST.json"), "w", newline="\n") as out:
         json.dump({"files": manifest, "skipped": skipped}, out, indent=1)
     print(f"copied {len(manifest)} files, skipped {len(skipped)}")
     for s in skipped:
