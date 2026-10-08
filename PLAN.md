@@ -12,7 +12,7 @@
 
 ## Status
 
-- **Phase 0, done (8 October).** See `INVENTORY.md` and `reports/XREF.md`. The binary formats (FASLs, ITS directories, archives) are in `reports/BINARY-FORMATS.md`.
+- **Phase 0, done (8 October).** See `INVENTORY.md` and `reports/XREF.md`. The write-up of the binary formats (FASLs, ITS directories, archives) is still in progress; it will go in `reports/BINARY-FORMATS.md`.
 - **Phase 1, done (8 October).** The MacLisp interpreter is in `src/maclisp/`:
   - the reader, with Director's read macros;
   - the evaluator, with MacLisp's special forms and about 200 built-in functions;
