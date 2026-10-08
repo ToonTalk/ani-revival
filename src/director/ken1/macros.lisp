@@ -207,7 +207,7 @@
 (defun method-applicable? (method-name message)
   (let ((predicate (method-pattern-predicate method-name)))
        (cond (predicate (funcall predicate message))
-	     (t (match (method-pattern method-name) message)))))
+	     (t (match message (method-pattern method-name))))))
 
 ;; (initialize-something): make the root actor SOMETHING and give it the methods
 ;; that let actors receive new methods. evidence: tags; SOME ("defined in macros >").

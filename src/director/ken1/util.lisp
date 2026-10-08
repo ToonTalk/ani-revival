@@ -74,24 +74,35 @@
 
 ;;; -------------------------------------------------------------- sets and lists
 
-;; Sets are lists compared with EQUAL; results keep the order of the first set.
-;; VERIFY: EQ or EQUAL.
+;; Sets are lists compared with EQUAL (MEMBER). evidence: 1980 (read from the
+;; machine code; the decompiler stops at loops). UNION and INTERSECT fold their
+;; two-set versions over their arguments from the left. (union-two a b) is the
+;; elements of a that b lacks, in a's order, in front of b: it walks (reverse a)
+;; (a kernel routine between *APPEND and NREVERSE, surely REVERSE), consing each
+;; new element onto b. INTERSECT-TWO and SET-MINUS keep the first set's order.
 (defun union n
-  (do ((i 2 (1+ i))
-       (result (arg 1)))
-      ((> i n) result)
-      (do ((l (arg i) (cdr l)))
-	  ((null l))
-	  (or (member (car l) result) (setq result (append result (list (car l))))))))
+  (repeatedly-apply-binary-function 'union-two (listify n)))
+
+(defun union-two (a b)
+  (do ((l (reverse a) (cdr l))
+       (result b))
+      ((null l) result)
+      (or (member (car l) result) (setq result (cons (car l) result)))))
 
 (defun intersect n
-  (do ((i 2 (1+ i))
-       (result (arg 1)))
-      ((> i n) result)
-      (setq result (mapcan (function (lambda (x) (and (member x (arg i)) (list x)))) result))))
+  (repeatedly-apply-binary-function 'intersect-two (listify n)))
+
+(defun intersect-two (a b)
+  (do ((l a (cdr l))
+       (result nil))
+      ((null l) (nreverse result))
+      (and (member (car l) b) (setq result (cons (car l) result)))))
 
 (defun set-minus (set1 set2)
-  (mapcan (function (lambda (x) (and (not (member x set2)) (list x)))) set1))
+  (do ((l set1 (cdr l))
+       (result nil))
+      ((null l) (nreverse result))
+      (or (member (car l) set2) (setq result (cons (car l) result)))))
 
 (defun cons-if-not-member (x l)
   (cond ((member x l) l) (t (cons x l))))
@@ -124,9 +135,11 @@
 (defun copy n
   (subst nil nil (arg 1)))
 
+;; (repeatedly-apply-binary-function f l): (f (f (f l1 l2) l3) ...). evidence: 1980
+;; (it applies f to the first two at once, so one element gives (f l1 nil)).
 (defun repeatedly-apply-binary-function (f l)
-  (do ((result (car l) (funcall f result (car i)))
-       (i (cdr l) (cdr i)))
+  (do ((result (funcall f (car l) (cadr l)) (funcall f result (car i)))
+       (i (cddr l) (cdr i)))
       ((null i) result)))
 
 (defun middle-element (l)

@@ -1,7 +1,7 @@
 // Run Ani's pass 1 the way KEN;DATEST did: load the Cinderella film description,
 // make the choices about the characters' dynamics, and save the answers; then
 // compare them with CP 29, the file pass 1 wrote in September 1978.
-// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save]
+// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all]
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { writeFileSync } from "node:fs";
@@ -44,7 +44,8 @@ const ok =
   step("load DATEST", "(load '|ken;datest >|)") &&
   step("(init nil): load CINDY, study descriptor use", "(init nil)") &&
   step("(z): make the choices", "(z)") &&
-  step("(save-answers ...)", "(save-answers '((ken1) cp test))");
+  step("(save-answers ...)", "(save-answers '((ken1) cp test))") &&
+  (!process.argv.includes("--save-all") || step("(save-it-all ...): every choice point with its reasons", "(save-it-all '((ken1) run test))"));
 
 const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 2500 chars):\n" + out.slice(-2500));
@@ -59,6 +60,11 @@ if (ok) {
     if (process.argv.includes("--save")) {
       writeFileSync("reports/pass1-choices.txt", fs.textOf(entry));
       console.log("saved reports/pass1-choices.txt");
+    }
+    const all = fs.find({ dir: "KEN1", fn1: "RUN", fn2: "TEST" });
+    if (all) {
+      writeFileSync("reports/pass1-reasons.txt", fs.textOf(all));
+      console.log("saved reports/pass1-reasons.txt (as RUN24 2 records them)");
     }
     for (const [label, path] of [["CP 29 (Sep 1978)", "original/7005017/cp.29"], ["RUN24 2 (Dec 1978)", "original/9004336/run24.2"]]) {
       const theirs = choicesOfItsFile(path);

@@ -26,7 +26,7 @@
 ;; matches the pattern (? for any element).
 (defun get-property-all (plists pattern)
   (mapcan (function (lambda (entry)
-			    (and (match pattern (car entry)) (list (cdr entry)))))
+			    (and (match (car entry) pattern) (list (cdr entry)))))
 	  (cdr plists)))
 
 (defun remove-property (plists keys)

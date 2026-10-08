@@ -43,7 +43,7 @@
 ;; the message, true if it matches. evidence: SOME funcalls a method's
 ;; method-pattern-predicate on database items.
 (defun test-part-of-pattern n
-  (list 'lambda '(message) (list 'match (list 'quote (arg 1)) 'message)))
+  (list 'lambda '(message) (list 'match 'message (list 'quote (arg 1)))))
 
 ;; (any-variables-in-pattern? pattern): does it contain a ?variable, a %variable,
 ;; or a {...}? evidence: tags (CMATCH: define-form any-variables-in-pattern?).
@@ -130,10 +130,13 @@
 
 ;;; -------------------------------------------------------------- matching
 
-;; (match pattern x): non-NIL if x matches. Bindings are made only inside
-;; braced predicates. evidence: uses (SUGREL "I use match since element may have ?").
-(defun match (pattern x)
-  (not (null (match-bindings pattern x))))
+;; (match object pattern): non-NIL if the object matches the pattern. Bindings are
+;; made only inside braced predicates. evidence: 1980 (its arguments are (OBJECT
+;; PATTERN &OPTIONAL VALUES REVERSED?)); uses, all object first: SOME's (match name
+;; name-pattern), INTERF's (match variable variable-pattern), SUGREL's (match
+;; correct-element element) "I use match since element may have ?".
+(defun match n
+  (not (null (match-bindings (arg 2) (arg 1)))))
 
 ;; (match-bindings pattern x): NIL if no match, else (t . alist of bindings).
 (defun match-bindings (pattern x)

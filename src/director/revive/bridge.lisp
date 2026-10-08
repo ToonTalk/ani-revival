@@ -23,18 +23,67 @@
 
 ;;; -------------------------------------------------------------- 1. :self
 
-;; In 1978 :self was bound to the name of the actor receiving the message. The
-;; Guide's compiled transmission binds it to a quoted name, (LET ((:SELF
-;; 'MY-FIRST-FILM) ...) ...) (AIM-482 p. 56), and Ani builds names and data from
-;; it: CPOINT's (third :self) is the element of (choice-point-of cinderella speed),
-;; and a descriptor records itself as a suggestion's source with ,:self. In 1979
-;; DRECT's ask1 binds :self to the actor itself (the revised Guide's (LET ((MYSELF
-;; (ACTOR-OF 'MY-FIRST-FILM))) ...)). Here ask1 binds the name and starts the
-;; method search from it; the accessors in MACROS accept a name, and DRECT's test
-;; for private methods, (eq actor :self), then holds for the receiver alone.
-(defun ask1 (actor :message :skip-current-method?)
-  (let ((:self (self-name actor)))
-       (cases :self)))
+;; In 1978 a message was sent to an actor's name, and :self was bound to that name.
+;; The Guide's compiled transmission binds it to the name as written, (LET ((:SELF
+;; 'MY-FIRST-FILM) ...) ...) (AIM-482 p. 56), and the compiled 1978 Ani files send
+;; (ASK1 'SOMETHING '(...)). Ani builds names and data from it: CPOINT's (third
+;; :self) is the element of (choice-point-of cinderella speed), a descriptor records
+;; itself as a suggestion's source with ,:self, and a character comparison, which
+;; has a synonym with its two characters the other way round, names a relative
+;; choice point after (rest :self), the pair in the order it was addressed in. CP 29
+;; has both orders, e.g. (relative-choice-point-of (prince step-mother)
+;; relative-path-curvature) and (relative-choice-point-of (step-mother prince)
+;; relative-path-length). In 1979 asks expand into (ask1 (actor-of target) ...)
+;; and DRECT's ask1 binds :self to the actor itself (the revised Guide's (LET
+;; ((MYSELF (ACTOR-OF 'MY-FIRST-FILM))) ...)).
+;;
+;; Here the asks give ask1 the target as written, and ask1 binds :self to it (to
+;; its name, if it is an actor rather than a name) and starts the method search
+;; there. The accessors in MACROS accept a name, so DRECT's search works as it
+;; did, and its test for private methods, (eq actor :self), holds for the
+;; receiver alone.
+(defun ask1 (target :message :skip-current-method?)
+  (and (actor-of target) ;;loads the actor's file if need be
+       (let ((:self (self-name target)))
+	    (cases :self))))
+
+(define-macro ask (target . message)
+  '(ask1 ,(ask-target target) ,(ask-message message) nil))
+
+(define-macro uncompiled-ask (target . message)
+  '(ask1 ,(ask-target target) ,(ask-message message) nil))
+
+(define-macro ask-old (target . message)
+  '(ask1 ,(ask-target target) ,(ask-message message) t))
+
+(define-macro ask-if-exists (target . message)
+  '(and (exists? ,(ask-target target))
+	(ask1 ,(ask-target target) ,(ask-message message) nil)))
+
+(define-macro ask-if-understood (target . message)
+  '(let ((:message-not-understood 'not-understood-so-nil))
+	(ask1 ,(ask-target target) ,(ask-message message) nil)))
+
+(define-macro ask-if-can (target . message)
+  '(and (exists? ,(ask-target target))
+	(let ((:message-not-understood 'not-understood-so-nil))
+	     (ask1 ,(ask-target target) ,(ask-message message) nil))))
+
+(define-macro ask-each (targets . message)
+  '(mapcar (function (lambda (:ask-each-target)
+			     (ask1 :ask-each-target ,(ask-message message) nil)))
+	   ,(ask-target targets)))
+
+(define-macro do-as-if-you-were (actor receiver . message)
+  '(let ((:self (self-name ,(ask-target receiver)))
+	 (:message ,(ask-message message)))
+	(cases (actor-of ,(ask-target actor)))))
+
+;; DRECT's place-actor-on-name files an actor under a name. SOME hands it :self to
+;; make a synonym, (synonym-for :self name), or to rename an actor (remob); given
+;; a name, it must file the actor that the name stands for.
+(defun place-actor-on-name (actor name)
+  (general-putprop name (actor-object actor) 'actor 'non-atomic-actors))
 
 ;; SOME 666's is-any-ancestor-of, comparing actors whether given as names or not,
 ;; so (ask x are you a x) is true again.
