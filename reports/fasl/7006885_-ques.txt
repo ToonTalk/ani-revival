@@ -1,0 +1,675 @@
+FASL dump: original/7006885/-ques.fasl  (ITS KEN;-QUES FASL, tape 7006885, undated)
+Decoded 1572 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1572 of 1572 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL*, Lisp version word 302120,,520000 ('810J', flag bits 000), 96 blocks, 857 items
+Item counts: absolute 176, relocatable 90, special 54, smashable call 153, quoted atom 73, quoted list 11, globalsym 42, atom table 218, entry 27, eval mungeable 12, end 1
+
+-- Functions defined (27) --
+  name                         property args         address
+  READ-ANSWER                  SUBR     (NIL . 0)    000000
+  OUTPUT-ANSWER                SUBR     (NIL . 1)    000002
+  LOWER-CASE-TYO               SUBR     (NIL . 1)    000020
+  READ-ANSWER1                 SUBR     (NIL . 0)    000037
+  QUIT?                        SUBR     (NIL . 0)    000151
+  BREAK?                       SUBR     (NIL . 0)    000165
+  ERASE                        SUBR     (NIL . 0)    000201
+  ?-TYPED                      SUBR     (NIL . 0)    000250
+  |/|G1|                       LSUBR                 000252
+  *REMARK                      SUBR     (NIL . 1)    000267
+  TOP-LEVEL                    SUBR     (NIL . 0)    000301
+  RE-START?                    SUBR     (NIL . 0)    000320
+  SAY-INTRO                    SUBR     (NIL . 0)    000342
+  DO-GROUP                     SUBR     (NIL . 1)    000360
+  REDISPLAY                    SUBR     (NIL . 0)    000404
+  OTHERS-ANSWERS               SUBR     (NIL . 0)    000427
+  DO-QUES                      SUBR     (NIL . 1)    000434
+  FIX-UP+READ-ANSWER           SUBR     (NIL . 0)    000462
+  NTH                          SUBR     (NIL . 2)    000512
+  SHUFFLE                      SUBR     (NIL . 1)    000547
+  N-NUMBERS                    SUBR     (NIL . 1)    000574
+  FINISH-UP                    SUBR     (NIL . 1)    000641
+  RECORD-ACCUM-ANSWERS         SUBR     (NIL . 1)    000652
+  SUICIDE                      SUBR     (NIL . 0)    000705
+  COUNT-DOWN                   SUBR     (NIL . 2)    000723
+  THE-TIMER                    SUBR     (NIL . 1)    000776
+  DISPLAY                      SUBR     (NIL . 2)    001035
+
+-- Top-level forms evaluated at load time (12) --
+  (SETQ *NOPOINT T)
+  (SETQ ERRLIST
+    '((*REMARK '(SESSION LOST COMPLETELY))
+      (ALARMCLOCK 'TIME -1)
+      (AND (STATUS UWRITE) (UFILE -SLOST >))
+      (RE-START?)))
+  (SETQ IBASE 8 BASE 8)
+  (SSTATUS TTY 19634136210 19634136210)
+  (SETQ IBASE 10 BASE 10)
+  (RANDOM (FIX (TIMES (TIME) 1000)) (RUNTIME))
+  (UWRITE)
+  (UREAD -AQUES >)
+  (IOC Q)
+  (EVAL (READ))
+  (SETQ ^Q NIL)
+  (TOP-LEVEL)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  READ-ANSWER
+      calls:        READ-ANSWER1 OUTPUT-ANSWER
+  OUTPUT-ANSWER
+      calls:        TERPRI
+      specials:     ^W
+      quoted atoms: T LOWER-CASE-TYO NIL
+  LOWER-CASE-TYO
+      calls:        > < .+ TYO
+      quoted atoms: 64 91 32
+  READ-ANSWER1
+      calls:        TYIPEEK ASCII TYI ?-TYPED = REVERSE ERASE REDISPLAY QUIT? BREAK? OTHERS-ANSWERS CONS
+      specials:     ANS
+      quoted atoms: ? 13 127 12 7 8 19 -1
+  QUIT?
+      calls:        *REMARK TYI = IOC REDISPLAY
+      quoted atoms: 32 G
+      quoted list:  (|IF YOU REALLY WANT TO QUIT HIT THE SPACE BAR|)
+  BREAK?
+      calls:        *REMARK TYI = IOC REDISPLAY
+      quoted atoms: 32 H
+      quoted list:  (|IF YOU REALLY WANT TO ^H BREAK THEN HIT THE SPACE BAR|)
+  ERASE
+      calls:        CURSORPOS = 1- TYO
+      specials:     ^R
+      quoted atoms: 0 NIL 127
+  ?-TYPED
+      calls:        *REMARK
+      quoted list:  (TYPE WHATEVER
+                      ANSWER
+                      YOU
+                      FEEL
+                      |APPROPRIATE,|
+                      IF
+                      YOU
+                      FEEL
+                      THAT
+                      THE
+                      PROBLEM
+                      IS
+                      UNCLEAR
+                      EXPLAIN
+                      WHY
+                      YOU
+                      THINK
+                      IT
+                      UNCLEAR)
+  |/|G1|
+      calls:        EXPLODE LENGTH > TERPRI PRINC
+      specials:     CHRCT
+      quoted atoms: | |
+  *REMARK
+      calls:        TERPRI ASCII
+      quoted atoms: |/|G1| 0
+  TOP-LEVEL
+      calls:        SAY-INTRO REVERSE SHUFFLE LAST *APPEND FINISH-UP
+      specials:     *LIST-OF-QUES*
+      quoted atoms: DO-GROUP
+  RE-START?
+      calls:        *REMARK TYI = UWRITE IOC FINISH-UP SUICIDE
+      specials:     *LIST-OF-QUES*
+      quoted atoms: 32 NIL R DO-GROUP
+      quoted list:  (IF YOU WANT TO TRY AGAIN HIT THE SPACE BAR)
+  SAY-INTRO
+      calls:        *REMARK IOC READ-ANSWER IMPLODE
+      specials:     *USER-NAME*
+      quoted atoms: R |NAME NOT GIVEN|
+      quoted list:  (OK |I'M|
+                      GOING
+                      TO
+                      ASK
+                      YOU
+                      A
+                      FEW
+                      QUESTIONS
+                      JUST
+                      REPLY
+                      HOWEVER
+                      YOU
+                      FEEL
+                      IS
+                      APPROPRIATE.
+                      THE
+                      MACHINE
+                      IS
+                      ONLY
+                      RECORDING
+                      YOUR
+                      ANSWERS.
+                      TRY
+                      TO
+                      GIVE
+                      THE
+                      REASONS
+                      FOR
+                      YOUR
+                      ANSWERS
+                      WHEN
+                      CONVIENIENT.
+                      YOU
+                      MAY
+                      TYPE
+                      CNTL-L
+                      AT
+                      ANY
+                      TIME
+                      TO
+                      REDISPLAY
+                      SCREEN
+                      AND
+                      |QUESTION.^M|
+                      ALL
+                      ANSWERS
+                      ARE
+                      TERMINATED
+                      BY
+                      TWO
+                      CARRIAGE
+                      RETURNS
+                      IN
+                      SUCESSION.
+                      IF
+                      YOU
+                      ARE
+                      INTERESTED
+                      IN
+                      HOW
+                      MY
+                      PROGRAM
+                      ANSWERS
+                      THE
+                      SAME
+                      QUESTIONS
+                      SEE
+                      ME
+                      (KEN RM 835)
+                      .
+                      THANKS
+                      FOR
+                      YOUR
+                      HELP.)
+      quoted list:  (WHAT IS YOUR NAME? YOU MAY SKIP THIS IF YOU PLEASE)
+  DO-GROUP
+      calls:        CURSORPOS DISPLAY SHUFFLE XCONS
+      specials:     GROUP-OF-QUES
+      quoted atoms: T DO-QUES C
+  REDISPLAY
+      calls:        CURSORPOS DISPLAY *REMARK REVERSE IMPLODE PRINC
+      specials:     ^R GROUP-OF-QUES QUES-TEXT ANS
+      quoted atoms: NIL C
+  OTHERS-ANSWERS
+      calls:        ASCII
+      specials:     LIST-OF-ANSWERS
+      quoted atoms: *REMARK 0
+  DO-QUES
+      calls:        CADAR *REMARK CONS FIX-UP+READ-ANSWER NCONS *APPEND
+      specials:     ONE-QUES QUES-TEXT LIST-OF-ANSWERS
+  FIX-UP+READ-ANSWER
+      calls:        TIME READ-ANSWER IMPLODE .-$ NCONS XCONS
+      specials:     *USER-NAME*
+      quoted atoms: SECONDS TOOK |^MBY|
+  NTH
+      calls:        NUMBERP = 1+
+      quoted atoms: NIL 1
+  SHUFFLE
+      calls:        LENGTH N-NUMBERS NTH NCONS
+  N-NUMBERS
+      calls:        RANDOM 1+ MEMQ CONS 1-
+      specials:     ANS
+  FINISH-UP
+      calls:        *REMARK UFILE RECORD-ACCUM-ANSWERS
+      specials:     LIST-OF-ANSWERS
+      quoted list:  (THANKS FOR YOUR HELP. GOODBYE.)
+      quoted list:  (-OQUES >)
+  RECORD-ACCUM-ANSWERS
+      calls:        *REMARK UWRITE IOC NCONS XCONS PRINT UFILE SUICIDE
+      specials:     *LIST-OF-QUES* ^W
+      quoted atoms: NIL R T QUOTE *LIST-OF-QUES* SETQ
+      quoted list:  (PLEASE WAIT A SECOND WHILE I RECORD THINGS)
+      quoted list:  (-AQUES >)
+  SUICIDE
+      calls:        *REMARK TYI = VALRET
+      quoted atoms: 32 |^W:KILL^V^M|
+      quoted list:  (HIT THE SPACE BAR TO SUICIDE)
+  COUNT-DOWN
+      calls:        NCONS XCONS *REMARK CURSORPOS ALARMCLOCK *PLUS SLEEP
+      specials:     SECONDS ALARMCLOCK
+      quoted atoms: |SECONDS TO READ THIS| |YOU HAVE| THE-TIMER 1 TIME 0.5 -1 20 4 C
+  THE-TIMER
+      calls:        > 1- CURSORPOS PRINC ALARMCLOCK
+      specials:     ^R SECONDS
+      quoted atoms: 1 TIME NIL 20 0 C
+  DISPLAY
+      calls:        NUMBERP COUNT-DOWN *REMARK
+      quoted atoms: NIL
+
+-- Symbols and how they are used (198) --
+  |^MBY|                         quoted
+  |^W:KILL^V^M|                  quoted
+  | |                            quoted
+  *APPEND                        called
+  *LIST-OF-QUES*                 quoted, special
+  *NOPOINT                       in top-level form
+  *PLUS                          called
+  *REMARK                        called, defined, in top-level form, quoted
+  *USER-NAME*                    special
+  -AQUES                         in constant, in top-level form
+  -OQUES                         in constant
+  -SLOST                         in top-level form
+  .                              in constant
+  .+                             called
+  .-$                            called
+  1+                             called
+  1-                             called
+  <                              called
+  =                              called
+  >                              called, in constant, in top-level form
+  ?                              quoted
+  ?-TYPED                        called, defined
+  A                              in constant
+  AGAIN                          in constant
+  ALARMCLOCK                     called, in top-level form, special
+  ALL                            in constant
+  AND                            in constant, in top-level form
+  ANS                            special
+  ANSWER                         in constant
+  ANSWERS                        in constant
+  ANSWERS.                       in constant
+  ANY                            in constant
+  |APPROPRIATE,|                 in constant
+  APPROPRIATE.                   in constant
+  ARE                            in constant
+  ASCII                          called
+  ASK                            in constant
+  AT                             in constant
+  BAR                            in constant
+  BASE                           in top-level form
+  BREAK?                         called, defined
+  BY                             in constant
+  C                              quoted
+  CADAR                          called
+  CARRIAGE                       in constant
+  CHRCT                          special
+  CNTL-L                         in constant
+  COMPLETELY                     in top-level form
+  CONS                           called
+  CONVIENIENT.                   in constant
+  COUNT-DOWN                     called, defined
+  CURSORPOS                      called
+  DISPLAY                        called, defined
+  DO-GROUP                       defined, quoted
+  DO-QUES                        defined, quoted
+  ERASE                          called, defined
+  ERRLIST                        in top-level form
+  EVAL                           in top-level form
+  EXPLAIN                        in constant
+  EXPLODE                        called
+  FEEL                           in constant
+  FEW                            in constant
+  FINISH-UP                      called, defined
+  FIX                            in top-level form
+  FIX-UP+READ-ANSWER             called, defined
+  FOR                            in constant
+  G                              quoted
+  GIVE                           in constant
+  GOING                          in constant
+  GOODBYE.                       in constant
+  GROUP-OF-QUES                  special
+  H                              quoted
+  HELP.                          in constant
+  HIT                            in constant
+  HOW                            in constant
+  HOWEVER                        in constant
+  I                              in constant
+  |I'M|                          in constant
+  IBASE                          in top-level form
+  IF                             in constant
+  |IF YOU REALLY WANT TO QUIT HIT THE SPACE BAR| in constant
+  |IF YOU REALLY WANT TO ^H BREAK THEN HIT THE SPACE BAR| in constant
+  IMPLODE                        called
+  IN                             in constant
+  INTERESTED                     in constant
+  IOC                            called, in top-level form
+  IS                             in constant
+  IT                             in constant
+  JUST                           in constant
+  KEN                            in constant
+  LAST                           called
+  LENGTH                         called
+  LIST-OF-ANSWERS                special
+  LOST                           in top-level form
+  LOWER-CASE-TYO                 defined, quoted
+  MACHINE                        in constant
+  MAY                            in constant
+  ME                             in constant
+  MEMQ                           called
+  MY                             in constant
+  N-NUMBERS                      called, defined
+  |NAME NOT GIVEN|               quoted
+  NAME?                          in constant
+  NCONS                          called
+  NIL                            in top-level form, quoted
+  NTH                            called, defined
+  NUMBERP                        called
+  OK                             in constant
+  ONE-QUES                       special
+  ONLY                           in constant
+  OTHERS-ANSWERS                 called, defined
+  OUTPUT-ANSWER                  called, defined
+  PLEASE                         in constant
+  PRINC                          called
+  PRINT                          called
+  PROBLEM                        in constant
+  PROGRAM                        in constant
+  Q                              in top-level form
+  QUES-TEXT                      special
+  |QUESTION.^M|                  in constant
+  QUESTIONS                      in constant
+  QUIT?                          called, defined
+  QUOTE                          in top-level form, quoted
+  R                              quoted
+  RANDOM                         called, in top-level form
+  RE-START?                      defined, in top-level form
+  READ                           in top-level form
+  READ-ANSWER                    called, defined
+  READ-ANSWER1                   called, defined
+  REASONS                        in constant
+  RECORD                         in constant
+  RECORD-ACCUM-ANSWERS           called, defined
+  RECORDING                      in constant
+  REDISPLAY                      called, defined, in constant
+  REPLY                          in constant
+  RETURNS                        in constant
+  REVERSE                        called
+  RM                             in constant
+  RUNTIME                        in top-level form
+  SAME                           in constant
+  SAY-INTRO                      called, defined
+  SCREEN                         in constant
+  SECOND                         in constant
+  SECONDS                        quoted, special
+  |SECONDS TO READ THIS|         quoted
+  SEE                            in constant
+  SESSION                        in top-level form
+  SETQ                           in top-level form, quoted
+  SHUFFLE                        called, defined
+  SKIP                           in constant
+  SLEEP                          called
+  SPACE                          in constant
+  SSTATUS                        in top-level form
+  STATUS                         in top-level form
+  SUCESSION.                     in constant
+  SUICIDE                        called, defined, in constant
+  T                              in top-level form, quoted
+  TERMINATED                     in constant
+  TERPRI                         called
+  THANKS                         in constant
+  THAT                           in constant
+  THE                            in constant
+  THE-TIMER                      defined, quoted
+  THINGS                         in constant
+  THINK                          in constant
+  THIS                           in constant
+  TIME                           called, in constant, in top-level form, quoted
+  TIMES                          in top-level form
+  TO                             in constant
+  TOOK                           quoted
+  TOP-LEVEL                      defined, in top-level form
+  TRY                            in constant
+  TTY                            in top-level form
+  TWO                            in constant
+  TYI                            called
+  TYIPEEK                        called
+  TYO                            called
+  TYPE                           in constant
+  UFILE                          called, in top-level form
+  UNCLEAR                        in constant
+  UREAD                          in top-level form
+  UWRITE                         called, in top-level form
+  VALRET                         called
+  WAIT                           in constant
+  WANT                           in constant
+  WHAT                           in constant
+  WHATEVER                       in constant
+  WHEN                           in constant
+  WHILE                          in constant
+  WHY                            in constant
+  XCONS                          called
+  YOU                            in constant
+  |YOU HAVE|                     quoted
+  YOUR                           in constant
+  ^Q                             in top-level form
+  ^R                             special
+  ^W                             special
+  |/|G1|                         defined, quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (218 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  *NOPOINT
+     3 symbol  T
+     4 symbol  ERRLIST
+     5 symbol  QUOTE
+     6 symbol  *REMARK
+     7 symbol  SESSION
+     8 symbol  LOST
+     9 symbol  COMPLETELY
+    10 symbol  ALARMCLOCK
+    11 symbol  TIME
+    12 fixnum  -1
+    13 symbol  AND
+    14 symbol  STATUS
+    15 symbol  UWRITE
+    16 symbol  UFILE
+    17 symbol  -SLOST
+    18 symbol  >
+    19 symbol  RE-START?
+    20 symbol  IBASE
+    21 fixnum  8
+    22 symbol  BASE
+    23 symbol  SSTATUS
+    24 symbol  TTY
+    25 fixnum  19634136210
+    26 fixnum  10
+    27 symbol  RANDOM
+    28 symbol  FIX
+    29 symbol  TIMES
+    30 fixnum  1000
+    31 symbol  RUNTIME
+    32 symbol  READ-ANSWER
+    33 symbol  SUBR
+    34 symbol  READ-ANSWER1
+    35 symbol  OUTPUT-ANSWER
+    36 symbol  ^W
+    37 symbol  TERPRI
+    38 symbol  LOWER-CASE-TYO
+    39 fixnum  64
+    40 fixnum  91
+    41 symbol  <
+    42 fixnum  32
+    43 symbol  .+
+    44 symbol  TYO
+    45 symbol  TYIPEEK
+    46 symbol  ASCII
+    47 symbol  ?
+    48 symbol  TYI
+    49 symbol  ?-TYPED
+    50 symbol  ANS
+    51 fixnum  13
+    52 symbol  =
+    53 symbol  REVERSE
+    54 fixnum  127
+    55 symbol  ERASE
+    56 fixnum  12
+    57 symbol  REDISPLAY
+    58 fixnum  7
+    59 symbol  QUIT?
+    60 symbol  BREAK?
+    61 fixnum  19
+    62 symbol  OTHERS-ANSWERS
+    63 symbol  CONS
+    64 symbol  |IF YOU REALLY WANT TO QUIT HIT THE SPACE BAR|
+    65 symbol  G
+    66 symbol  IOC
+    67 symbol  |IF YOU REALLY WANT TO ^H BREAK THEN HIT THE SPACE BAR|
+    68 symbol  H
+    69 symbol  CURSORPOS
+    70 symbol  ^R
+    71 fixnum  0
+    72 symbol  1-
+    73 symbol  TYPE
+    74 symbol  WHATEVER
+    75 symbol  ANSWER
+    76 symbol  YOU
+    77 symbol  FEEL
+    78 symbol  |APPROPRIATE,|
+    79 symbol  IF
+    80 symbol  THAT
+    81 symbol  THE
+    82 symbol  PROBLEM
+    83 symbol  IS
+    84 symbol  UNCLEAR
+    85 symbol  EXPLAIN
+    86 symbol  WHY
+    87 symbol  THINK
+    88 symbol  IT
+    89 symbol  |/|G1|
+    90 symbol  LSUBR
+    91 symbol  EXPLODE
+    92 symbol  LENGTH
+    93 symbol  CHRCT
+    94 symbol  PRINC
+    95 symbol  | |
+    96 symbol  TOP-LEVEL
+    97 symbol  SAY-INTRO
+    98 symbol  *LIST-OF-QUES*
+    99 symbol  SHUFFLE
+   100 symbol  LAST
+   101 symbol  *APPEND
+   102 symbol  DO-GROUP
+   103 symbol  FINISH-UP
+   104 symbol  WANT
+   105 symbol  TO
+   106 symbol  TRY
+   107 symbol  AGAIN
+   108 symbol  HIT
+   109 symbol  SPACE
+   110 symbol  BAR
+   111 symbol  R
+   112 symbol  SUICIDE
+   113 symbol  OK
+   114 symbol  |I'M|
+   115 symbol  GOING
+   116 symbol  ASK
+   117 symbol  A
+   118 symbol  FEW
+   119 symbol  QUESTIONS
+   120 symbol  JUST
+   121 symbol  REPLY
+   122 symbol  HOWEVER
+   123 symbol  APPROPRIATE.
+   124 symbol  MACHINE
+   125 symbol  ONLY
+   126 symbol  RECORDING
+   127 symbol  YOUR
+   128 symbol  ANSWERS.
+   129 symbol  GIVE
+   130 symbol  REASONS
+   131 symbol  FOR
+   132 symbol  ANSWERS
+   133 symbol  WHEN
+   134 symbol  CONVIENIENT.
+   135 symbol  MAY
+   136 symbol  CNTL-L
+   137 symbol  AT
+   138 symbol  ANY
+   139 symbol  SCREEN
+   140 symbol  |QUESTION.^M|
+   141 symbol  ALL
+   142 symbol  ARE
+   143 symbol  TERMINATED
+   144 symbol  BY
+   145 symbol  TWO
+   146 symbol  CARRIAGE
+   147 symbol  RETURNS
+   148 symbol  IN
+   149 symbol  SUCESSION.
+   150 symbol  INTERESTED
+   151 symbol  HOW
+   152 symbol  MY
+   153 symbol  PROGRAM
+   154 symbol  SAME
+   155 symbol  SEE
+   156 symbol  ME
+   157 symbol  KEN
+   158 symbol  RM
+   159 fixnum  835
+   160 symbol  .
+   161 symbol  THANKS
+   162 symbol  HELP.
+   163 symbol  WHAT
+   164 symbol  NAME?
+   165 symbol  SKIP
+   166 symbol  THIS
+   167 symbol  PLEASE
+   168 symbol  *USER-NAME*
+   169 symbol  IMPLODE
+   170 symbol  |NAME NOT GIVEN|
+   171 symbol  GROUP-OF-QUES
+   172 symbol  DISPLAY
+   173 symbol  DO-QUES
+   174 symbol  XCONS
+   175 symbol  C
+   176 symbol  QUES-TEXT
+   177 symbol  LIST-OF-ANSWERS
+   178 symbol  ONE-QUES
+   179 symbol  CADAR
+   180 symbol  FIX-UP+READ-ANSWER
+   181 symbol  NCONS
+   182 symbol  .-$
+   183 symbol  SECONDS
+   184 symbol  TOOK
+   185 symbol  |^MBY|
+   186 symbol  NTH
+   187 symbol  NUMBERP
+   188 symbol  1+
+   189 fixnum  1
+   190 symbol  N-NUMBERS
+   191 symbol  MEMQ
+   192 symbol  GOODBYE.
+   193 symbol  -OQUES
+   194 symbol  RECORD-ACCUM-ANSWERS
+   195 symbol  WAIT
+   196 symbol  SECOND
+   197 symbol  WHILE
+   198 symbol  I
+   199 symbol  RECORD
+   200 symbol  THINGS
+   201 symbol  PRINT
+   202 symbol  -AQUES
+   203 symbol  VALRET
+   204 symbol  |^W:KILL^V^M|
+   205 symbol  COUNT-DOWN
+   206 symbol  |SECONDS TO READ THIS|
+   207 symbol  |YOU HAVE|
+   208 symbol  THE-TIMER
+   209 flonum  0.5
+   210 symbol  *PLUS
+   211 symbol  SLEEP
+   212 fixnum  20
+   213 fixnum  4
+   214 symbol  UREAD
+   215 symbol  Q
+   216 symbol  EVAL
+   217 symbol  READ
+   218 symbol  ^Q
+
+The LAP-like listing of the loaded words is in code/7006885_-ques.code.txt.

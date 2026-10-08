@@ -1,0 +1,216 @@
+FASL dump: original/7005044/#comp.fasl  (ITS KEN;#COMP FASL, tape 7005044, Dec 1975)
+Decoded 628 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 628 of 628 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 9 blocks, 74 items
+Item counts: absolute 5, globalsym 1, atom table 61, entry 1, eval mungeable 5, end 1
+
+-- Functions defined (1) --
+  name                         property args         address
+  DISPLACE                     SUBR     (NIL . 2)    000000
+
+-- Top-level forms evaluated at load time (5) --
+  (DEFPROP RECEIVE-MACRO
+    (LAMBDA (A)
+      (PROG (:VALUES :VARIABLES)
+        (AND (MATCH :MESSAGE (CADR A))
+          (SETQ :MATCHED? T)
+          (THROW (LIST 'RECEIVE2
+                   (LIST 'QUOTE (CADR A))
+                   (LIST 'QUOTE (CADDR A))
+                   (LIST 'QUOTE :MESSAGE))
+            ASK-MACRO))))
+    MACRO)
+  (DEFPROP ASK
+    (LAMBDA (ASK-CALL)
+      (PROG (THE-RECEIVER CASES-MACRO)
+        (SETQ CASES-MACRO (GET 'CASES 'MACRO))
+        (RETURN (COND ((OR (AND (ATOM (CADR ASK-CALL)) (BOUNDP (CADR ASK-CALL))) (CDDDR ASK-CALL))
+                       (PUTPROP 'RECEIVE (GET 'RECEIVE-MACRO 'MACRO) 'MACRO)
+                       (REMPROP 'CASES 'MACRO)
+                       (SETQ THE-RECEIVER
+                         (CATCH (COND ((CDDDR ASK-CALL)
+                                       ((LAMBDA (ADVICE-TO-COMPILER)
+                                          (COND ((EQ ADVICE-TO-COMPILER 'ANYTHING) NIL)
+                                            ((EQ (CAR ADVICE-TO-COMPILER) 'ASK)
+                                             (APPLY 'TELL (CDR ADVICE-TO-COMPILER)))
+                                            (T (TELL (EVAL (CADR ASK-CALL)) ADVICE-TO-COMPILER))))
+                                        (CADADR (CADDDR ASK-CALL))))
+                                  (T (TELL (EVAL (CADR ASK-CALL)) (EVAL (CADDR ASK-CALL)))))
+                           ASK-MACRO))
+                       (AND CASES-MACRO (PUTPROP 'CASES CASES-MACRO 'MACRO))
+                       (REMPROP 'RECEIVE 'MACRO)
+                       (COND (THE-RECEIVER (SETQ THE-RECEIVER
+                                             (LIST (LIST 'LAMBDA
+                                                     '(:SELF)
+                                                     (SUBST (CADDR ASK-CALL)
+                                                       (CADDDR THE-RECEIVER)
+                                                       THE-RECEIVER))
+                                               (CADR ASK-CALL)))
+                               (DISPLACE ASK-CALL THE-RECEIVER))
+                         (T (CONS 'TELL (CDR ASK-CALL)))))
+                  (T (CONS 'TELL (CDR ASK-CALL)))))))
+    MACRO)
+  (DEFPROP CASES
+    (LAMBDA (CODE)
+      (LIST (LIST 'LAMBDA
+              '(ANS :MATCHED?)
+              (CONS 'COND
+                (MAPCAR (FUNCTION (LAMBDA (RECEIVER)
+                                    (LIST (LIST 'PROGN
+                                            (LIST 'SETQ
+                                              'ANS
+                                              (LIST 'RECEIVE.WITH.FUNCTIONAL.ACTION
+                                                (LIST 'QUOTE (CADR RECEIVER))
+                                                (LIST 'FUNCTION (LIST 'LAMBDA NIL (CADDR RECEIVER)))))
+                                            ':MATCHED?)
+                                      'ANS)))
+                  (CDR CODE))))
+        NIL
+        NIL))
+    MACRO)
+  (DEFPROP RECEIVE.WITH.FUNCTIONAL.ACTION
+    (LAMBDA (A)
+      (LIST 'PROG
+        (LIST ':VARIABLES ':VALUES)
+        (LIST 'RETURN
+          (LIST 'AND
+            (LIST 'MATCH ':MESSAGE (CADR A))
+            (LIST 'SETQ ':MATCHED? 'T)
+            (LIST 'PROGV ':VARIABLES ':VALUES (LIST (CADDR A)))))))
+    MACRO)
+  (DEFPROP DO.THE.FOLLOWING: (LAMBDA (A) (CONS 'PROGN (CDR A))) MACRO)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DISPLACE
+
+-- Symbols and how they are used (61) --
+  :MATCHED?                      in top-level form
+  :MESSAGE                       in top-level form
+  :SELF                          in top-level form
+  :VALUES                        in top-level form
+  :VARIABLES                     in top-level form
+  A                              in top-level form
+  ADVICE-TO-COMPILER             in top-level form
+  AND                            in top-level form
+  ANS                            in top-level form
+  ANYTHING                       in top-level form
+  APPLY                          in top-level form
+  ASK                            in top-level form
+  ASK-CALL                       in top-level form
+  ASK-MACRO                      in top-level form
+  ATOM                           in top-level form
+  BOUNDP                         in top-level form
+  CADADR                         in top-level form
+  CADDDR                         in top-level form
+  CADDR                          in top-level form
+  CADR                           in top-level form
+  CAR                            in top-level form
+  CASES                          in top-level form
+  CASES-MACRO                    in top-level form
+  CATCH                          in top-level form
+  CDDDR                          in top-level form
+  CDR                            in top-level form
+  CODE                           in top-level form
+  COND                           in top-level form
+  CONS                           in top-level form
+  DEFPROP                        in top-level form
+  DISPLACE                       defined, in top-level form
+  DO.THE.FOLLOWING:              in top-level form
+  EQ                             in top-level form
+  EVAL                           in top-level form
+  FUNCTION                       in top-level form
+  GET                            in top-level form
+  LAMBDA                         in top-level form
+  LIST                           in top-level form
+  MACRO                          in top-level form
+  MAPCAR                         in top-level form
+  MATCH                          in top-level form
+  NIL                            in top-level form
+  OR                             in top-level form
+  PROG                           in top-level form
+  PROGN                          in top-level form
+  PROGV                          in top-level form
+  PUTPROP                        in top-level form
+  QUOTE                          in top-level form
+  RECEIVE                        in top-level form
+  RECEIVE-MACRO                  in top-level form
+  RECEIVE.WITH.FUNCTIONAL.ACTION in top-level form
+  RECEIVE2                       in top-level form
+  RECEIVER                       in top-level form
+  REMPROP                        in top-level form
+  RETURN                         in top-level form
+  SETQ                           in top-level form
+  SUBST                          in top-level form
+  T                              in top-level form
+  TELL                           in top-level form
+  THE-RECEIVER                   in top-level form
+  THROW                          in top-level form
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (61 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  RECEIVE-MACRO
+     3 symbol  LAMBDA
+     4 symbol  A
+     5 symbol  PROG
+     6 symbol  :VALUES
+     7 symbol  :VARIABLES
+     8 symbol  AND
+     9 symbol  MATCH
+    10 symbol  :MESSAGE
+    11 symbol  CADR
+    12 symbol  SETQ
+    13 symbol  :MATCHED?
+    14 symbol  T
+    15 symbol  THROW
+    16 symbol  LIST
+    17 symbol  QUOTE
+    18 symbol  RECEIVE2
+    19 symbol  CADDR
+    20 symbol  ASK-MACRO
+    21 symbol  MACRO
+    22 symbol  DISPLACE
+    23 symbol  SUBR
+    24 symbol  ASK
+    25 symbol  ASK-CALL
+    26 symbol  THE-RECEIVER
+    27 symbol  CASES-MACRO
+    28 symbol  GET
+    29 symbol  CASES
+    30 symbol  RETURN
+    31 symbol  COND
+    32 symbol  OR
+    33 symbol  ATOM
+    34 symbol  BOUNDP
+    35 symbol  CDDDR
+    36 symbol  PUTPROP
+    37 symbol  RECEIVE
+    38 symbol  REMPROP
+    39 symbol  CATCH
+    40 symbol  ADVICE-TO-COMPILER
+    41 symbol  EQ
+    42 symbol  ANYTHING
+    43 symbol  CAR
+    44 symbol  APPLY
+    45 symbol  TELL
+    46 symbol  CDR
+    47 symbol  EVAL
+    48 symbol  CADADR
+    49 symbol  CADDDR
+    50 symbol  :SELF
+    51 symbol  SUBST
+    52 symbol  CONS
+    53 symbol  CODE
+    54 symbol  ANS
+    55 symbol  MAPCAR
+    56 symbol  FUNCTION
+    57 symbol  RECEIVER
+    58 symbol  PROGN
+    59 symbol  RECEIVE.WITH.FUNCTIONAL.ACTION
+    60 symbol  PROGV
+    61 symbol  DO.THE.FOLLOWING:
+
+The LAP-like listing of the loaded words is in code/7005044_#comp.code.txt.

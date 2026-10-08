@@ -1,0 +1,173 @@
+FASL dump: original/7005017/sugrel.fasl  (ITS KEN;SUGREL FASL, tape 7005017, Feb 1979)
+Decoded 1041 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1041 of 1041 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 262323,,000016 ('633', flag bits 016), 72 blocks, 641 items
+Item counts: absolute 311, relocatable 27, special 2, smashable call 55, quoted atom 66, quoted list 14, globalsym 99, atom table 53, entry 6, eval mungeable 7, end 1
+
+-- Functions defined (6) --
+  name                         property args         address
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS SUBR     (NIL . 2)    000000
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1 LSUBR    (6 . 6)      000040
+  FLUSH-INAPPROPRIATE-SUGGESTIONS SUBR     (NIL . 4)    000236
+  GATHER-RELATIVE-SUGGESTIONS-CHARACTER SUBR     (NIL . 3)    000364
+  GATHER-RELATIVE-SUGGESTIONS-COMPARISON SUBR     (NIL . 4)    000502
+  GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP SUBR     (NIL . 4)    000623
+
+-- Top-level forms evaluated at load time (7) --
+  (DEFPROP DEFCOMMENT (LAMBDA (USELESS) NIL) MACRO)
+  (REMPROP 'COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1 'AUTOLOAD)
+  (REMPROP 'FLUSH-INAPPROPRIATE-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'GATHER-RELATIVE-SUGGESTIONS-CHARACTER 'AUTOLOAD)
+  (REMPROP 'GATHER-RELATIVE-SUGGESTIONS-COMPARISON 'AUTOLOAD)
+  (REMPROP 'GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP 'AUTOLOAD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS
+      calls:        COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1
+      quoted atoms: RELATIONSHIP-OF
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1
+      calls:        *TEST-PART-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD COLLECT-REMEMBERED EXISTS? GATHER-RELATIVE-SUGGESTIONS-CHARACTER GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP GATHER-RELATIVE-SUGGESTIONS-COMPARISON APPEND FLUSH-INAPPROPRIATE-SUGGESTIONS
+      quoted atoms: NIL UNIQUENESS-SUMMARY: DESCRIPTION: COMPARISON-SUMMARY:
+      quoted list:  (UNIQUENESS-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+      quoted list:  (UNIQUENESS-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+      quoted list:  (UNIQUENESS-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+      quoted list:  (UNIQUENESS-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+      quoted list:  (TYPE ? DESCRIPTOR ?RELATIONSHIP-DESCRIPTOR SOURCE ?)
+      quoted list:  (TYPE ? DESCRIPTOR ?RELATIONSHIP-DESCRIPTOR SOURCE ?)
+      quoted list:  (TYPE ? DESCRIPTOR ?RELATIONSHIP-DESCRIPTOR SOURCE ?)
+      quoted list:  (TYPE ? DESCRIPTOR ?RELATIONSHIP-DESCRIPTOR SOURCE ?)
+      quoted list:  (SIMILARITY-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+      quoted list:  (SIMILARITY-LEVEL ? DESCRIPTOR-TYPE ? OF-WHO ?)
+  FLUSH-INAPPROPRIATE-SUGGESTIONS
+      calls:        GET MATCH REPLACEPROP RECALL-VARIABLE
+      quoted atoms: ELEMENT VALUE NEGATIVE STRENGTH SOURCE SUGGESTION:
+  GATHER-RELATIVE-SUGGESTIONS-CHARACTER
+      calls:        *TEST-PART-OF-PATTERN GET ACTOR-AUTOLOAD COLLECT-REMEMBERED *APPEND
+      quoted atoms: SOURCE ? STRENGTH VALUE ELEMENT ACTOR UNIQUENESS-SUMMARY: NIL SUGGESTION:
+      quoted list:  (?)
+      quoted list:  (?)
+  GATHER-RELATIVE-SUGGESTIONS-COMPARISON
+      calls:        *TEST-PART-OF-PATTERN GET ACTOR-AUTOLOAD COLLECT-REMEMBERED *APPEND
+      quoted atoms: SOURCE ? STRENGTH VALUE ELEMENT ACTOR COMPARISON-SUMMARY: NIL SUGGESTION:
+  GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP
+      calls:        GET |(IF NEW MAKE ?NAME)SOMETHING| *TEST-PART-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD COLLECT-REMEMBERED *APPEND
+      specials:     :SELF :MESSAGE
+      quoted atoms: DESCRIPTOR MAKE NEW IF RELATIONSHIP-DESCRIPTOR ELEMENT NIL SUGGESTION:
+      quoted list:  (VALUE ? STRENGTH ? SOURCE ?)
+      quoted list:  (VALUE ? STRENGTH ? SOURCE ?)
+
+-- Symbols and how they are used (52) --
+  |(IF NEW MAKE ?NAME)SOMETHING| called
+  *APPEND                        called
+  *TEST-PART-OF-PATTERN          called
+  :MESSAGE                       special
+  :SELF                          special
+  ?                              in constant, quoted
+  ?RELATIONSHIP-DESCRIPTOR       in constant
+  ACTOR                          quoted
+  ACTOR-AUTOLOAD                 called
+  APPEND                         called
+  AUTOLOAD                       in top-level form
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS defined, in top-level form
+  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1 called, defined, in top-level form
+  COLLECT-REMEMBERED             called
+  COMPARISON-SUMMARY:            quoted
+  DEFCOMMENT                     in top-level form
+  DEFPROP                        in top-level form
+  DESCRIPTION:                   quoted
+  DESCRIPTOR                     in constant, quoted
+  DESCRIPTOR-TYPE                in constant
+  ELEMENT                        quoted
+  EXISTS?                        called
+  FLUSH-INAPPROPRIATE-SUGGESTIONS called, defined, in top-level form
+  GATHER-RELATIVE-SUGGESTIONS-CHARACTER called, defined, in top-level form
+  GATHER-RELATIVE-SUGGESTIONS-COMPARISON called, defined, in top-level form
+  GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP called, defined, in top-level form
+  GET                            called
+  GET-ACTOR                      called
+  IF                             quoted
+  LAMBDA                         in top-level form
+  MACRO                          in top-level form
+  MAKE                           quoted
+  MATCH                          called
+  NEGATIVE                       quoted
+  NEW                            quoted
+  NIL                            in top-level form, quoted
+  OF-WHO                         in constant
+  QUOTE                          in top-level form
+  RECALL-VARIABLE                called
+  RELATIONSHIP-DESCRIPTOR        quoted
+  RELATIONSHIP-OF                quoted
+  REMPROP                        in top-level form
+  REPLACEPROP                    called
+  SIMILARITY-LEVEL               in constant
+  SOURCE                         in constant, quoted
+  STRENGTH                       in constant, quoted
+  SUGGESTION:                    quoted
+  TYPE                           in constant
+  UNIQUENESS-LEVEL               in constant
+  UNIQUENESS-SUMMARY:            quoted
+  USELESS                        in top-level form
+  VALUE                          in constant, quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (53 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  DEFCOMMENT
+     3 symbol  LAMBDA
+     4 symbol  USELESS
+     5 symbol  MACRO
+     6 symbol  REMPROP
+     7 symbol  QUOTE
+     8 symbol  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS
+     9 symbol  AUTOLOAD
+    10 symbol  SUBR
+    11 symbol  RELATIONSHIP-OF
+    12 symbol  COLLECT-RELATIONSHIP-AND-COMPARISON-SUGGESTIONS1
+    13 symbol  LSUBR
+    14 symbol  UNIQUENESS-LEVEL
+    15 symbol  ?
+    16 symbol  DESCRIPTOR-TYPE
+    17 symbol  OF-WHO
+    18 symbol  *TEST-PART-OF-PATTERN
+    19 symbol  GET-ACTOR
+    20 symbol  ACTOR-AUTOLOAD
+    21 symbol  UNIQUENESS-SUMMARY:
+    22 symbol  COLLECT-REMEMBERED
+    23 symbol  EXISTS?
+    24 symbol  TYPE
+    25 symbol  DESCRIPTOR
+    26 symbol  ?RELATIONSHIP-DESCRIPTOR
+    27 symbol  SOURCE
+    28 symbol  DESCRIPTION:
+    29 symbol  SIMILARITY-LEVEL
+    30 symbol  COMPARISON-SUMMARY:
+    31 symbol  GATHER-RELATIVE-SUGGESTIONS-CHARACTER
+    32 symbol  GATHER-RELATIVE-SUGGESTIONS-RELATIONSHIP
+    33 symbol  GATHER-RELATIVE-SUGGESTIONS-COMPARISON
+    34 symbol  APPEND
+    35 symbol  FLUSH-INAPPROPRIATE-SUGGESTIONS
+    36 symbol  ELEMENT
+    37 symbol  GET
+    38 symbol  MATCH
+    39 symbol  REPLACEPROP
+    40 symbol  VALUE
+    41 symbol  NEGATIVE
+    42 symbol  RECALL-VARIABLE
+    43 symbol  STRENGTH
+    44 symbol  SUGGESTION:
+    45 symbol  ACTOR
+    46 symbol  *APPEND
+    47 symbol  MAKE
+    48 symbol  NEW
+    49 symbol  IF
+    50 symbol  RELATIONSHIP-DESCRIPTOR
+    51 symbol  :SELF
+    52 symbol  :MESSAGE
+    53 symbol  |(IF NEW MAKE ?NAME)SOMETHING|
+
+The LAP-like listing of the loaded words is in code/7005017_sugrel.code.txt.

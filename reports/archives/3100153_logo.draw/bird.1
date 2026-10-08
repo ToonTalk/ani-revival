@@ -1,0 +1,54 @@
+
+
+(DEFPROP FULLBIRD
+	 (LAMBDA (:SIZE) (PROG NIL 
+			  10.  (BIRD (TIMES :SIZE 2.))
+			  20.  (FORWARD (TIMES 90. :SIZE))
+			  30.  (RIGHT -30.)
+			  40.  (FORWARD (TIMES 160. :SIZE))
+			  50.  (RIGHT -15.)
+			  60.  (FORWARD (TIMES 20. :SIZE))
+			  70.  (RIGHT -15.)
+			  80.  (FORWARD (TIMES 120. :SIZE))
+			  90.  (RIGHT -15.)
+			  100. (FORWARD (TIMES 30. :SIZE))
+			  110. (RIGHT -15.)
+			  120. (FORWARD (TIMES 90. :SIZE))
+			  130. (RIGHT 130.)
+			  140. (FORWARD (TIMES 170. :SIZE))
+			  150. (RIGHT -30.)
+			  160. (FORWARD (TIMES 180. :SIZE))
+			  170. (RIGHT -30.)
+			  180. (FORWARD (TIMES 100. :SIZE))
+			  190. (RIGHT -45.)
+			  200. (FORWARD (TIMES 60. :SIZE))))
+	 EXPR) 
+
+(DEFPROP BIRD2
+	 (LAMBDA (:SIZE) (PROG NIL 
+			  10.  (BIRD (TIMES :SIZE 1.))
+			  20.  (PENUP)
+			  30.  (HOME)
+			  40.  (FORWARD (TIMES 20. :SIZE))
+			  50.  (PENDOWN)
+			  60.  (BIRD (TIMES :SIZE 1.))))
+	 EXPR) 
+
+(DEFPROP BIRD
+	 (LAMBDA (:SIZE) (PROG NIL 
+			  10.  (RIGHT 90.)
+			  20.  (WING (TIMES :SIZE 4.))
+			  30.  (WING (TIMES :SIZE -4.))))
+	 EXPR) 
+
+(DEFPROP WING
+	 (LAMBDA (:SIZE) (PROG NIL 
+			  10.  (FORWARD (TIMES 10. :SIZE))
+			  20.  (RIGHT 30.)
+			  30.  (FORWARD (TIMES 20. :SIZE))
+			  40.  (RIGHT 15.)
+			  50.  (FORWARD (TIMES 10. :SIZE))
+			  60.  (RIGHT 30.)
+			  70.  (FORWARD (TIMES 30. :SIZE))
+			  80.  (RIGHT 30.)))
+	 EXPR) 

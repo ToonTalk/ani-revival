@@ -1,0 +1,258 @@
+.ds
+.xgp
+.ds
+.sp 10
+.ce
+     1Learning Medicine from People and Books0
+.sp 4
+.ce
+by
+.ce
+Kenneth Kahn
+.ce
+May 5, 1974
+.ce
+6.871 Term Paper
+.pa
+
+.he               Ken Kahn's 6.871 Term Paper      Page  
+.ad
+.sp
+.ce
+Introduction
+     The process of hand coding medical frames is slow
+and tedious.  Problems of coordinating many workers
+with many different styles and opinions as to how best
+construct a frame are very serious hinderances to
+developing a very large medical knowledge data base.
+An obvious solution to this problem is to automate
+the process of writing frames.  
+This paper will informally discuss a few ideas
+as how this might be done.
+     Another motivation for studying the learning of
+medical knowledge is that the understanding of the
+development of the knowledge in doctors may lead
+to a better understanding of its content and structure.
+Piaget has been very successful in this regard.  The
+development of medical knowledge takes place over a
+longer time and is more complex than the systems that
+Piaget studies however I hope to show that it is
+plausible that such research is feasable.
+.sp
+.ce
+Designing Meta-frames
+     One idea would be to design a few models of what
+medical frames look like.  A disease meta-frame might
+specify that the usual frame has a few principal parts,
+many "findings" and their associated likelihoods,
+a few differential diagnosis pointers,
+a few casual explanations, a few prerequistes, and
+other pointer types.  Also the relations between these
+concepts might be included.  The system would work
+like a usual frame system.  Quickly the system would
+form an hypothesis as to whether it is learning about
+a disease, a clinical finding, a laboratory finding,
+complicated symptoms, etc..  The meta-frame would include
+advise about how to fill in an instantiation of the
+frame-type and
+how to characterize the problem so that more particular advise becomes
+available.  Either as it goes, or afterwards, the system
+would ask rather directed questions trying to fill in its
+slots.  The system would need to make heavy use of a
+discrepancy subsystem so that consistency of the knowledge
+is high. 
+.sp
+.ce
+Learning by Analogy
+     Another mechanism may be necessary to have a useful
+system and that is the notion of this piece of knowledge
+is structurally similar to one that is already know.  In other
+words, suppose the system knew a lot about AGN and was
+learning about the Nephrotic Syndrome.  Then perhaps
+in addition to using the meta-frame for constructing
+disease frames, the system could expect a similar structure
+for the Nephrotic Syndrome as AGN.  It would be using
+AGN as a prototype and be reasoning by example.
+.sp
+.ce
+A Partial Solution
+     One may argue and probably rigthfully so, that this is
+too far off to be very interesting to someone trying to
+mechanize medical knowledge with the present state of the art.
+But only part of the system might be useful and more practical
+to implement.  Something that might be worth thinking about
+today is a system that could learn if spoon feed. Basically
+the system would be conversational and wait for knowledge
+for the user, presumably a doctor. The system would be able
+to ask questions to fill in slots and to find out where to
+put things that are tricky.  This partial system would
+still require a good parser but less need be known about
+frame writing by the designers. The following is a typical
+conversation with our hypothetical system:
+.sp
+.indent 4
+Doctor: Hello I'm going to teach you about AGN today.
+.br
+Computer: Okay what is AGN?
+.br
+(Here the system simply asks what frame-type the user
+is talking about.)
+.br
+Doctor: AGN is a kidney disease.
+.br
+Computer: Good, tell me please, what are the principal
+parts of this disease.
+.br
+(There is a standard scenario of asking for such things
+as principal parts, time and duration of signs and
+symptoms, things that are likely to be confused with
+the disease, etc.  This is associated with the frame-type
+frame and is similar to the notion of scenario in OWL.
+These questions are only asked if the user doesn't
+say anything.)
+.br
+Doctor: A prior streptococcal infection, edema, and
+glomerulitis.
+.br
+Computer: I know about streptococcal infections, is
+there anything special about the streptococcal
+infection that occurs in AGN?
+.br
+(A reasonable default strategy in lieu of any other
+advise is to go through the principle parts at this
+point one at a time storing the information as that
+principal part or that principal part in AGN.  First it
+sees if its streptococcal infection frame is happy,
+that is the system knows of no holes in its knowledge about
+streptococcal infections. In this scenario we assume
+the system had previously learned about streptococcal
+infections but has no parasites (in Falhman's sense of parasitic
+frames) to that frame of the
+type streptococcal infection except modified by only
+occuring as part of AGN.  So it tries to construct
+such a parasite.)
+.br
+Doctor: Well, the temperature range is narrower, about
+99 degrees to 104 degrees.  The culture is beta-hemalytic.
+.br
+Computer: Anything else?
+.br
+(Supposedly the streptococcal infection frame has statements
+about temperature ranges and cultures so the construction of
+the parasite is not too difficult.  As a general rule the
+system asks is there anything more before going on to the next
+one to lessen the possibility that the doctor forgot something
+important.)
+.br
+Doctor: Nothing important.
+.br
+Computer: You mentioned earlier that edema is a principal
+part of AGN, I don't think I know anything about edema.
+.br
+(Here we suppose that upon searching that no general edema
+frame was found.)
+.br
+Doctor: The edema in AGN is usually periorbital.
+.br
+Computer: Excuse me, what does "periorbital" mean?
+.br
+(Rather than let things it doesn't know get by the system
+asks immediately what things mean.)
+.br
+Doctor: That it is of the eyes.
+.br
+Computer: Please go on, you were saying that the edema
+occuring in AGN is usually of the eyes.
+.br
+Doctor: Yes, it is usually worst upon wakening and is
+symmetric. Sometimes there is pedal edema in AGN.
+.br
+Computer:  I think I understand but what is edema, is
+it a laboratory finding, a symptom, a disease or what?
+.br
+(The system has to interrupt occasionally when something
+it thinks is essential is missing in this case what kind
+of thing edema is.  The system prompts the doctor by giving
+the most common things a principal part can be kinds of.)
+.br
+Doctor:  It's a symptom that manifests itself by swelling
+that is indentable.
+.br
+(The system often does simple deductions. For example,
+in this case, suppose a slot for symptoms is who the agent
+is that can observe the symptom.  The system would become
+too much of a pain if it asked "simple" questions all the
+time so it deduces from knowledge about swelling and indenting
+that it can be observed by the patient or doctor.)
+.br
+Computer: Is there anything else about edema occurring in
+AGN that might be important?
+.br
+Doctor: Can't think of anything.
+.br
+Computer: Is there anything special about glomerulitis
+when it occurs in AGN?
+.br
+Doctor: No.
+.br
+Computer:  Please tell me about the time course of AGN,
+I assume that the streptococcal infection, edema, glomerulitis
+and whatever other findings that occur in AGN (which we will
+get to in a minute) don't all begin and end together.
+.br
+(Here the top level scenario takes over and asks about
+time courses, the order of the questions is not essential.)
+.sp
+.indent 0
+     And it goes on and on.  Aside from the natural language
+aspect, the system knows a fair amount about what a disease
+description should look like, and uses common sense knowledge
+heavily to avoid asking stupid questions and not assumming
+inconsistencies.  Notice that the problem of where to put the
+knowledge is not so difficult since the context tells you that
+this is streptococcal infection in AGN and that's where the 
+knowledge goes.  Notice that this is not the case in reading 
+medical  literature necessarily.  With books you have
+the added burden of deciding what is worth indexing what is
+and what is redundant or immaterial.
+Consistent representations in provided by
+the parser.  The question of the feasability of such a parser
+is up in the air right now.
+.sp
+.ce
+Learning from Experience
+     Hopefully, the system could learn from experience.  The
+system could summarize statistics based on cases it handled
+and change likelihoods, typical-values, typical-ranges, etc.
+appropriately.  It could also remember odd cases and add
+to the appropriate frame that sometimes or rarely particular
+things occur with this frame.       
+     I am not proposing that such a system be implemented
+because the present state of knowledge of frame writing
+is too crude.  However, in a couple years with the help
+of a decent parser this project doesn't seem too far
+fetched.  Without more experience it is difficult to
+decide how many meta-frames are necessary, what exactly
+they should know, and how well incoming knowledge should
+fit these frames.  
+.sp
+.ce
+"Short-term" Research Methods
+     One can do more than just wait for experience as
+we write more frames, that is we could study medical
+students and neophyte doctors as they learn about new
+things.  Basically a long term protocol analysis
+combined with an understanding of what the subject has
+been studying between protocols would provide the
+necessary information.  A shorter term experiment
+might be to do a protocol analysis of a learning
+doctor as he learns rather than do diagnosis.  The
+subject is either told statement by statement facts
+about a disease that he or she knows little about.
+The subject is required to explain what he or she
+thinks it means.  This would be similar to CPC
+mode protocols.  Similarly one could tell the
+subject that he or she can ask whatever they like
+about a disease they know little about and are somehow
+tested latter, perhaps by a diagnosis protocol.
+

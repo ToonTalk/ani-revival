@@ -1,0 +1,248 @@
+
+(defprop harmr *harmr word-entry)
+
+(defprop *harmr masculine gender)
+
+(defprop *harmr noun part-of-speech)
+
+(defprop *harmr (sorrow grief) english)
+
+(defprop *harmr (h a r m) root)
+
+
+
+
+(defprop barn *barn word-entry)
+
+(defprop *barn neuter gender)
+
+(defprop *barn noun part-of-speech)
+
+(defprop *barn (child) english)
+
+(defprop *barn (b a r n) root)
+
+
+
+(defprop himinn *himinn word-entry)
+;have to figure this out first
+
+
+;this stuff is from sec 80 page 283
+
+
+
+(defun sd fexpr (a)
+(print-as-word (strong-declensions (car a) (cadr a) (caddr a))))
+
+(defun print-as-word (list)
+(terpri)  (mapc 'princ list) (ascii 0))
+
+
+
+(defun strong-declensions (node number case)
+;presently this only for a-stems
+;node is the atom which info on word is hung
+;number is singular or plural
+;case is nominative, accusative, genitive, or dative
+;accusative is typically a direct object or expresses the extent of time or space
+;genitive is usually for possesive but is also for specification of amount or indentity
+;dative usually the instrument or sometimes the indirect object
+((lambda (root gender)
+(mutate
+  (cond ((eq gender 'masculine)
+	 (cond ((eq number 'singular)
+		(case-rules (nominative (append root '(r)))
+			    (accusative root)
+			    (genitive (append root '(s)))
+			    (dative (append root '(i)))))
+	       ((eq number 'plural)
+		(case-rules (nominative (append root '(a r)))
+			    (accusative (append root '(a)))
+			    (genitive (append root '(a)))
+			    (dative (mutate (append root '(n u m))))))
+	       (t (complain (list number 'not 'number)))))
+       ((eq gender 'neuter)
+	(cond ((eq number 'singular)
+	       (case-rules (nominative root)
+			   (accusative root)
+			   (genitive (append root '(s)))
+			   (dative (append root '(i)))))
+	      ((eq number 'plural)
+	       (case-rules (nominative (subst '#q# 'a root))
+			   (accusative (subst '#q# 'a root))
+			   (genitive (append root '(a)))
+			   (dative (append root '(u m)))))))
+      ((eq gender 'feminine) '(|havent done yet|)))))
+ (or (get node 'root)
+     (complain (list node 'has 'no 'root)))
+ (or (get node 'gender)
+     (complain (list node 'has 'no 'gender)))))
+			    
+
+(defun case-rules fexpr (a)
+       (eval (cons 'cond
+		    (append
+		     (mapcar
+		      (function (lambda (rule)
+				       (cons (list 'eq 'case (list 'quote (car rule)))
+					     (cdr rule))))
+			a)
+			'((t (complain (list case 'not 'a 'case))))))))
+
+(defun complain (complaint)
+       (print complaint)
+       (break complain complain-sw))
+
+(setq complain-sw t)
+
+
+;From page 273 sec 40 u-mutation only
+
+(defun mutate (letters)
+(or (u-mutate letters)
+      letters))
+       
+(defun u-mutate (letters)
+       (cond ((memq 'u (memq 'a letters))
+	      (subst '#q# 'a letters))
+	     ((memq 'u (memq '|#A'#| letters))
+	      (subst '|#q'#| '|#A'#| letters))
+	     ((memq 'u (memq 'e letters))
+	      (subst '#0# 'e letters))))
+
+;the following stuff is from 108 page 293
+
+
+(defun *first-person (number case)
+       (cond ((eq number 'singular)
+	      (case-rules (nominative 'ek);I
+			  (accusative 'mik);me
+			  (genitive '|MI'N|);mine
+			  (dative '|ME'R|))) ;me as in "by me"? 
+	     ((eq number 'dual)
+	      (case-rules (nominative 'vit);we two
+			  (accusative 'okkr);us two
+			  (genitive 'okkar);the two of us's
+			  (dative 'okkr)));by the two of us
+	     ((eq number 'plural)
+	      (case-rules (nominative '|VE'R|);we
+			  (accusative 'oss);us
+			  (genitive '|VA'R|);our
+			  (dative 'oss)))));by us
+
+(defun *second-person (number case)
+       (cond ((eq number 'singular)
+	      (case-rules (nominative '|#TH#U'|);YOU
+			  (accusative '#TH#IK);TO YOU
+			  (genitive '|#TH#E'R|);YOUR
+			  (dative '|#TH#E'R|)));BY YOU
+	     ((eq number 'dual)
+	      (case-rules (nominative 'it);you two
+			  (accusative 'ykkr);you two
+			  (genitive 'ykkar);the two of you's
+			  (dative 'ykkr)));by the two of you
+	     ((eq number 'plural)
+	      (case-rules (nominative '|E'R|);you all
+			  (accusative '|Y#VOICED-TH#R|);YOU ALL
+			  (genitive '|Y#VOICED-TH#AR|);YOU all's
+			  (dative '|Y#VOICED-TH#R|)))));by you all
+
+(defun first fexpr (a)
+(*first-person (car a) (cadr a)))
+
+(defun second fexpr (a)
+(*second-person (car a) (cadr a)))
+
+;the following is 109 on page 294
+
+(defun third fexpr (a)
+(*third-person (car a)(cadr a) (caddr a)))
+
+
+(defun *third-person (number case gender)
+       (cond ((eq gender 'masculine)
+	      (cond ((eq number 'singular)
+		     (case-rules (nominative 'hann);he
+				 (accusative 'hann);him
+				 (genitive 'hans);his
+				 (dative 'honum)));to him
+		    ((eq number 'plural)
+		     (case-rules (nominative '|#TH#EIR|);THEY
+				 (accusative '|#TH#A'|);THEM
+				 (genitive '|#TH#EIR(R)A|);THEIR
+				 (dative '|#TH#EIM|)))));to them
+	     ((eq gender 'feminine)
+	      (cond ((eq number 'singular)
+		     (case-rules (nominative 'hon);she
+				 (accusative 'hana);her
+				 (genitive 'hennar);her
+				 (dative 'henni)));to her
+		    ((eq number 'plural)
+		     (case-rules (nominative '|#TH##AE#R|);they
+				 (accusative '|#TH##AE#R|);them
+				 (genitive '|#TH#EIR(R)A|);their
+				 (dative '|#TH#EIM|)))));to them
+	    ((eq gender 'neuter)
+	     (cond ((eq number 'singular)
+		    (case-rules (nominative '|#TH#AT|);IT
+				(accusative '|#TH#AT|);it
+				(genitive '|#TH#EIR(R)A|);its
+				(dative '|#TH#EIM|)));by it
+		   ((eq number 'plural)
+		    (case-rules (nominative '|#TH#AU|);they
+				(accusative '|#TH#AU|);them
+				(genitive '|#TH#EIR(R)A|);their
+				(dative '|#TH#EIM|)))))))
+
+(defun test (subject)
+       (cond ((eq subject 'noun)
+	      ((lambda (noun number case)
+	       (print (list noun number case '?))
+	       (read)
+	       (print-as-word (strong-declensions noun number case)))
+	       (pick-one *nouns*)
+	       (pick-one '(singular plural))
+	       (pick-one *cases*)))
+	     ((eq subject 'pronoun)
+	      ((lambda (person)
+		       (cond ((eq person '*third-person)
+			      ((lambda (number case gender)
+				       (print (list person number case gender '?))
+				       (read)
+				       (*third-person number case gender))
+			       (pick-one '(singular plural))
+			       (pick-one *cases*)
+			       (pick-one *genders*)))
+			     (t ((lambda (number case)
+					 (print (list person number case '?))
+					 (read)
+					 (funcall person number case))
+				 (pick-one '(singular dual plural))
+				 (pick-one *cases*)))))
+	      (pick-one '(*first-person *second-person *third-person))))))
+
+(defun tp nil
+(print (test 'pronoun))
+(tp))
+
+(defun tn nil
+(print (test 'noun))
+(tn))
+
+
+(setq *nouns* '(*barn *harmr))
+
+(setq *cases* '(nominative accusative genitive dative))
+
+(setq *genders* '(masculine feminine neuter))
+
+(defun pick-one (list)
+(nth list (1+ (random (length list)))))
+
+(defun nth (list n)
+ (do ((i list (cdr i))
+     (count 1 (1+ count)))
+     ((= count n) (car i))))
+
+     

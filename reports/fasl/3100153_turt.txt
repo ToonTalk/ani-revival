@@ -1,0 +1,1781 @@
+FASL dump: original/3100153/turt.fasl  (ITS KEN;TURT FASL, tape 3100153, late 1976)
+Decoded 5480 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 5480 of 5480 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 222331,,000007 ('239', flag bits 007), 219 blocks, 1970 items
+Item counts: absolute 521, relocatable 64, special 56, smashable call 438, quoted atom 228, quoted list 90, globalsym 85, atom table 428, entry 53, eval mungeable 6, end 1
+
+-- Functions defined (53) --
+  name                         property args         address
+  DEFINE.OBJECT                SUBR     (NIL . 0)    000000
+  MOVE.GRADUALLY               SUBR     (NIL . 4)    000135
+  GROW.GRADUALLY               SUBR     (NIL . 2)    000261
+  MOVE.AWAY.FROM               SUBR     (NIL . 4)    000447
+  DEFINE.COMPOSITE.OBJECT      SUBR     (NIL . 0)    000573
+  DEFINE.MOVIE                 SUBR     (NIL . 0)    000607
+  SHOW.MOVIE                   SUBR     (NIL . 2)    000637
+  RUN.FRAME                    SUBR     (NIL . 1)    000656
+  RUN.WITH.TURTLES.HIDDEN      SUBR     (NIL . 1)    000703
+  HIDE.AND.REMEMBER.TRUE.VISIBILITY SUBR     (NIL . 1)    000722
+  RESTORE.SEETURTLE            SUBR     (NIL . 1)    000730
+  SMART.MAKETURTLE             SUBR     (NIL . 2)    000741
+  MAKE.A.NEW.TURTLE.WINDOW     SUBR     (NIL . 1)    001032
+  XOR.WINDOW.WITH.HEADING      SUBR     (NIL . 2)    001106
+  SHOOT.WINDOW                 SUBR     (NIL . 2)    001156
+  FIX.HEADING                  SUBR     (NIL . 1)    001267
+  REPEAT.LIST                  SUBR     (NIL . 2)    001274
+  DUMMYE                       SUBR     (NIL . 0)    001315
+  DUMMYD                       SUBR     (NIL . 0)    001317
+  DEFINE.SCREEN                SUBR     (NIL . 0)    001321
+  DEFINE.SCREEN.DOER           SUBR     (NIL . 0)    001335
+  NO-OP                        SUBR     (NIL . 1)    001423
+  TELL-LOGO-WHICH-TURTLE       SUBR     (NIL . 1)    001424
+  MAKE-A-NEW-TURTLE            SUBR     (NIL . 1)    001444
+  STATE.OF.TURTLES             SUBR     (NIL . 0)    001542
+  LISTTURTLE                   SUBR     (NIL . 1)    001567
+  FILLTURTLE                   SUBR     (NIL . 2)    001577
+  TURT-1                       LSUBR                 001604
+  CONS.DRAWER                  SUBR     (NIL . 2)    001626
+  DRAW+ERASE                   SUBR     (NIL . 1)    001637
+  EVAL-THEN-QUOTE-RESULT       SUBR     (NIL . 1)    001703
+  CONS-DRAW-FORM               SUBR     (NIL . 4)    001707
+  CONS-ERASE-FORM              SUBR     (NIL . 4)    001750
+  NEW.SCALE.INFO               SUBR     (NIL . 2)    002011
+  THINGUP                      SUBR     (NIL . 0)    002030
+  THINGDOWN                    SUBR     (NIL . 0)    002042
+  UNDOTHINGDOWN                SUBR     (NIL . 0)    002051
+  XOR-POINT                    SUBR     (NIL . 0)    002060
+  DRAW-POINT                   SUBR     (NIL . 0)    002063
+  PETALS                       SUBR     (NIL . 3)    002065
+  PETAL                        SUBR     (NIL . 1)    002146
+  DRAW-ARC                     SUBR     (NIL . 2)    002200
+  DRAW.FLOWER                  SUBR     (NIL . 3)    002217
+  RIGHT.TRI                    SUBR     (NIL . 2)    002320
+  RECT                         SUBR     (NIL . 2)    002336
+  EQ.TRI                       SUBR     (NIL . 1)    002360
+  DRAW.ROCKET                  SUBR     (NIL . 1)    002374
+  DEFINE.ROCKET                SUBR     (NIL . 0)    002463
+  DEFINE.POLY                  SUBR     (NIL . 0)    002474
+  POLY1                        SUBR     (NIL . 3)    002505
+  DRAW.POLY                    SUBR     (NIL . 2)    002530
+  DEFINE.FLOWER                SUBR     (NIL . 0)    002537
+  D.OBJECTS                    SUBR     (NIL . 0)    002556
+
+-- Top-level forms evaluated at load time (6) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (DEFPROP DO.THE.FOLLOWING: (LAMBDA (A) (CONS 'PROGN (CDR A))) MACRO)
+  (DEFUN SORT.OUT.MOVIE
+    (:MOVIE)
+    ((LAMBDA (:ACT :TIME :ACTOR)
+       (DO ((:I (ASK :MOVIE
+                  (REMEMBERED? DID
+                    ?ACT
+                    AT
+                    TIME
+                    ?TIME
+                    FOR
+                    ?ACTOR
+                    THEN:
+                    DO.THE.FOLLOWING:
+                    '(SETQ :ACT :?ACT :TIME :?TIME :ACTOR :?ACTOR)))
+              (ASK :MOVIE
+                (RESUME LAST
+                  FIND
+                  THEN:
+                  DO.THE.FOLLOWING:
+                  '(SETQ :ACT :?ACT :TIME :?TIME :ACTOR :?ACTOR))))
+            (:LAST.ACTOR NIL)
+            (:LAST.TIME NIL)
+            (:A.FULL.FRAME NIL)
+            (ANS NIL))
+         ((NULL :I) (NREVERSE (CONS (LIST 'RUN.FRAME (LIST 'QUOTE (NREVERSE :A.FULL.FRAME))) ANS)))
+         (COND ((EQ :LAST.TIME :TIME))
+           (T (SETQ ANS (CONS (LIST 'RUN.FRAME (LIST 'QUOTE (NREVERSE :A.FULL.FRAME))) ANS))
+             (SETQ :A.FULL.FRAME NIL)))
+         (COND ((EQ :LAST.ACTOR :ACTOR))
+           (T (SETQ :A.FULL.FRAME
+                (CONS (LIST 'USETURTLE (ASK :ACTOR (RECALL YOUR TURTLES.NAME))) :A.FULL.FRAME))))
+         (SETQ :A.FULL.FRAME (CONS :ACT :A.FULL.FRAME))
+         (SETQ :LAST.ACTOR :ACTOR)
+         (SETQ :LAST.TIME :TIME)))
+     NIL
+     NIL
+     NIL))
+  (SETQ :TURTLE.WINDOWS NIL)
+  (SETQ :LAST.TURTLE (GENSYM))
+  (OR (STATUS FEATURE COLOR) (DEFUN PENCOLOR (COLOR) NIL))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DEFINE.OBJECT
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: SOMETHING OBJECT
+      quoted list:  (MAKE OBJECT)
+      quoted list:  (ONLY CHANGE YOUR SIZE TO 100)
+      quoted list:  (CHANGE YOUR DRAW.FORM TO (DRAW-POINT))
+      quoted list:  (CHANGE YOUR SPEED TO 100)
+      quoted list:  (CHANGE YOUR ROTATIONAL.SPEED TO 30)
+      quoted list:  (CHANGE YOUR GROWTH.SPEED TO 100)
+      quoted list:  (CHANGE YOUR COLOR TO WHITE)
+      quoted list:  (IF RECEIVE
+                      APPEAR
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FD FORWARD RT RIGHT LT LEFT BK BACK)
+                      }
+                      ?AMT
+                      THEN
+                      ASK
+                      SCREEN
+                      (PUT :SELF :?COMMAND :?AMT)
+                      (EXAMPLE: (PUT SAM FORWARD 100)))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FD FORWARD RT RIGHT LT LEFT BK BACK)
+                      }
+                      ?AMT
+                      THEN
+                      MOVE.GRADUALLY
+                      :?COMMAND
+                      :?AMT
+                      :SELF
+                      NIL)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FD FORWARD RT RIGHT LT LEFT BK BACK)
+                      }
+                      ?AMT
+                      {
+                      MEMQ
+                      ?
+                      '(THEN: THEN)
+                      }
+                      %FOLLOW.UP
+                      THEN
+                      MOVE.GRADUALLY
+                      :?COMMAND
+                      :?AMT
+                      :SELF
+                      :%FOLLOW.UP)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(SETXY DELXY)
+                      }
+                      ?X
+                      ?Y
+                      THEN
+                      ASK
+                      SCREEN
+                      (PUT :SELF :?COMMAND :?X :?Y)
+                      (EXAMPLE: (PUT SAM SETXY 50 100)))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(PU PD PENUP PENDOWN)
+                      }
+                      THEN
+                      ASK
+                      SCREEN
+                      (MOVE PEN :SELF :?COMMAND)
+                      (EXAMPLE: (MOVE PEN SAM PENUP)))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(SETX SETY DELX DELY SETHEADING SETT SETTURTLE)
+                      }
+                      ?REST
+                      THEN
+                      ASK
+                      SCREEN
+                      (PUT :SELF :?COMMAND :?REST)
+                      (EXAMPLE: (PUT SAM DELX 100)))
+      quoted list:  (IF RECEIVE SHOW THEN ASK SCREEN (SHOW :SELF) (EXAMPLE: (SHOW SAM)))
+      quoted list:  (IF RECEIVE HIDE THEN ASK SCREEN (HIDE :SELF) (EXAMPLE: (HIDE SAM)))
+      quoted list:  (IF RECEIVE
+                      RUN
+                      %FUNCTION.CALL
+                      THEN
+                      ASK
+                      SCREEN
+                      (RUN FOR :SELF :%FUNCTION.CALL)
+                      (EXAMPLE: (RUN FOR SAM CIRCLE 100)))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      SIZE
+                      TO
+                      ?NEW.SIZE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (PASS.THE.MESSAGE.TO.PARENT (CONS 'ONLY :MESSAGE) :SELF)
+                      (ASK SCREEN
+                        (SCALE BY :?NEW.SIZE APPEARANCE OF :SELF)
+                        (EXAMPLE: (SCALE BY 5 APPEARANCE OF SAM))))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      {
+                      MEMQ
+                      ?
+                      (GET.OR.ASK.PARENT :SELF 'DRAWING.ARGS)
+                      }
+                      TO
+                      ?
+                      THEN
+                      PROGN
+                      (PASS.THE.MESSAGE.TO.PARENT (CONS 'ONLY :MESSAGE) :SELF)
+                      (ASK SCREEN
+                        (DISPLAY NEW APPEARANCE FOR :SELF)
+                        (EXAMPLE: (DISPLAY NEW APPEARANCE FOR SAM))))
+      quoted list:  (IF RECEIVE
+                      MOVE
+                      AWAY
+                      FROM
+                      (?X ?Y %)
+                      BY
+                      FACTOR
+                      ?FACTOR
+                      THEN
+                      MOVE.AWAY
+                      :?X
+                      :?Y
+                      :?FACTOR
+                      :SELF)
+      quoted list:  (IF RECEIVE
+                      REVOLVE
+                      AROUND
+                      (?X ?Y %)
+                      BY
+                      ?TURN
+                      DEGREES
+                      THEN
+                      REVOLVE.AROUND
+                      :?X
+                      :?Y
+                      :?TURN
+                      :SELF)
+      quoted list:  (IF RECEIVE
+                      RECALL
+                      YOUR
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(HERE HEADING XCOR YCOR)
+                      }
+                      %
+                      THEN
+                      OUTPUT
+                      ASK
+                      SCREEN
+                      (WHAT IS :?COMMAND OF :SELF)
+                      (EXAMPLE: (WHAT IS HERE OF SAM)))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      HERE
+                      TO
+                      ?NEW.STATE
+                      THEN
+                      ASK
+                      :SELF
+                      (SETTURTLE :?NEW.STATE)
+                      (EXAMPLE: (ASK OBJECT (SETTURTLE '(0 50 90)))))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      YOUR
+                      HEADING
+                      TO
+                      ?NEW.HEADING
+                      THEN
+                      ASK
+                      :SELF
+                      (SETHEADING :?NEW.HEADING)
+                      (EXAMPLE: (ASK OBJECT (SETHEADING 45))))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      XCOR
+                      TO
+                      ?NEW.X
+                      THEN
+                      ASK
+                      :SELF
+                      (SETX :?NEW.X)
+                      (EXAMPLE: (ASK OBJECT (SETX 99))))
+      quoted list:  (IF RECEIVE
+                      CHANGE
+                      YOUR
+                      YCOR
+                      TO
+                      ?NEW.Y
+                      THEN
+                      ASK
+                      :SELF
+                      (SETY :?NEW.Y)
+                      (EXAMPLE: (ASK OBJECT (SETY 99))))
+      quoted list:  (IF RECEIVE GROW ?AMOUNT THEN GROW.GRADUALLY :?AMOUNT :SELF)
+      quoted list:  (IF RECEIVE SHRINK ?AMOUNT THEN GROW.GRADUALLY (MINUS :?AMOUNT) :SELF)
+      quoted list:  (IF RECEIVE
+                      INTERPOLATE
+                      TO
+                      ?ANOTHER.OBJECT
+                      IN
+                      ?NUMBER
+                      TICKS
+                      THEN
+                      (LAMBDA (:INTERPOLATION)
+                        (ASK :SELF (CHANGE YOUR INTERPOLATIONAMOUNT TO 0.0))
+                        (ASK :SELF (DRAW USING :INTERPOLATION OF INTERPOLATIONAMOUNT COLOR))
+                        (ASK :SELF
+                          (INTERPOLATE TO
+                            COLOR
+                            (ASK :?ANOTHER.OBJECT (RECALL YOUR COLOR))
+                            IN
+                            :?NUMBER
+                            TICKS))
+                        (ASK :SELF
+                          (REPEAT :?NUMBER
+                            (LIST 'INCREMENT
+                              'YOUR
+                              'INTERPOLATIONAMOUNT
+                              'BY
+                              (|//$| (FLOAT :?NUMBER)))))
+                        (ASK :SELF
+                          (REPEAT :?NUMBER
+                            (LIST 'INCREMENT
+                              'YOUR
+                              'SIZE
+                              'BY
+                              (|//$| (-$ (FLOAT (ASK :?ANOTHER.OBJECT (RECALL YOUR SIZE)))
+                                       (FLOAT (ASK :SELF (RECALL YOUR SIZE))))
+                                (FLOAT :?NUMBER))))))
+                      ((LAMBDA (:INTERPOLATION)
+                         (MAKE.INTERPOLATION ':NEW.INTERPOLATION
+                           (ASK :SELF (YIELD YOUR DRAW FORM))
+                           (ASK :?ANOTHER.OBJECT (YIELD YOUR DRAW FORM)))
+                         (PUTPROP :INTERPOLATION
+                           (CONS 'LAMBDA
+                             (CONS '(INTERPOLATIONAMOUNT COLOR)
+                               (CONS '(PENCOLOR COLOR) (CDDR :NEW.INTERPOLATION))))
+                           'EXPR)
+                         :INTERPOLATION)
+                       (APPEND-ATOMS :SELF :?ANOTHER.OBJECT)))
+      quoted list:  (IF RECEIVE
+                      INTERPOLATE
+                      TO
+                      COLOR
+                      ?COLOR
+                      IN
+                      ?NUMBER
+                      TICKS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF
+                        (CHANGE YOUR
+                          FUTURE.COLORS
+                          ARE
+                          (MAKE.COLOR.INTERPOLATION (ASK :SELF (RECALL YOUR COLOR))
+                            :?COLOR
+                            :?NUMBER)))
+                      (ASK :SELF (REPEAT :?NUMBER '(POP ONTO COLOR YOUR FUTURE.COLORS))))
+      quoted list:  (IF RECEIVE
+                      YIELD
+                      YOUR
+                      DRAW
+                      FORM
+                      THEN
+                      OUTPUT
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      (CAR (LAST (CADR :DRAWTURTLE))))
+      quoted list:  (IF RECEIVE
+                      DRAW
+                      USING
+                      ?DRAW.PROCEDURE
+                      OF
+                      %DRAW.ARGS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF
+                        (CHANGE YOUR DRAW.FORM TO (CONS.DRAWER :?DRAW.PROCEDURE :%DRAW.ARGS))
+                        (EXAMPLE: (ASK SOMETHING
+                                    (CHANGE YOUR
+                                      DRAW.FORM
+                                      TO
+                                      '(SQUARE (ASK :SELF (RECALL YOUR SIZE)))))))
+                      (ASK :SELF
+                        (CHANGE YOUR DRAWING.ARGS TO (NO-OP :%DRAW.ARGS))
+                        (EXAMPLE: (ASK SOMETHING (CHANGE YOUR DRAWING.ARGS TO '(SIZE))))))
+  MOVE.GRADUALLY
+      calls:        ASK.NOT.TO.BE.COMPILED NCONS CONS XCONS *APPEND *DIF
+      quoted atoms: FD FORWARD BK BACK APPEAR NEXT PLAN: NIL THEN:
+      quoted list:  (RECALL YOUR SPEED)
+      quoted list:  (RECALL YOUR ROTATIONAL.SPEED)
+  GROW.GRADUALLY
+      calls:        ASK.NOT.TO.BE.COMPILED PLUSP MINUS ABS *PLUS NCONS XCONS *DIF
+      specials:     :SELF
+      quoted atoms: TO SIZE YOUR CHANGE ONLY OF APPEARANCE BY SCALE SCREEN NEXT GROW PLAN:
+      quoted list:  (RECALL YOUR GROWTH.SPEED)
+      quoted list:  (RECALL YOUR SIZE)
+  MOVE.AWAY.FROM
+      calls:        NCONS CONS XCONS ASK.NOT.TO.BE.COMPILED *PLUS *TIMES
+      quoted atoms: TO HEADING WHAT FAR HOW RT APPEAR -1.0 BK LT NIL
+      quoted list:  (CAN BE SEEN)
+      quoted list:  (HIDE)
+      quoted list:  (SHOW)
+  DEFINE.COMPOSITE.OBJECT
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: COMPOSITE.SOMETHING COMPOSITE.OBJECT
+      quoted list:  (MAKE COMPOSITE.OBJECT)
+      quoted list:  (IF RECEIVE
+                      MAKE
+                      ?NAME
+                      OUT
+                      OF
+                      %PARTS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF (MAKE :?NAME) (EXAMPLE: (MAKE SALLY)))
+                      ((LAMBDA (:CENTERS-NAME)
+                         (ASK OBJECT (MAKE :CENTERS-NAME) (EXAMPLE: (MAKE SALLYS.CENTER)))
+                         (ASK (EVAL :NAME) (CHANGE YOUR SIZE TO 1) (EXAMPLE: (ASK SOMETHING 0)))
+                         (ASK (EVAL :NAME)
+                           (CHANGE YOUR CENTERS.NAME TO (EVAL :CENTERS-NAME))
+                           (EXAMPLE: (ASK SOMETHING
+                                       (CHANGE YOUR CENTERS.NAME TO INTERNAL-SALLYS.CENTER))))
+                         (ASK (EVAL :NAME)
+                           (REMEMBER PARTS :CENTERS-NAME)
+                           (EXAMPLE: (ASK SOMETHING (REMEMBER PARTS SALLYS.CENTER)))))
+                       (APPEND-ATOMS :NAME 'S.CENTER)))
+      quoted list:  (IF RECEIVE
+                      CENTER
+                      ?X
+                      ?Y
+                      THEN
+                      ASK
+                      (ASK :SELF (RECALL YOUR CENTERS.NAME))
+                      (SETXY :?X :?Y)
+                      (EXAMPLE: (ASK OBJECT (SETXY 250 -100))))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?
+                      '(FD FORWARD BK BACK RT RIGHT LEFT LT PU PD PENUP PENDOWN SHOW HIDE)
+                      }
+                      %
+                      THEN
+                      ASK
+                      :SELF
+                      (ASK PARTS :MESSAGE)
+                      (EXAMPLE: (ASK PARTS (SHOW))))
+  DEFINE.MOVIE
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: SOMETHING MOVIE
+      quoted list:  (MAKE MOVIE)
+      quoted list:  (IF RECEIVE
+                      REMEMBER
+                      THAT
+                      SCREEN
+                      DID
+                      ?COMMAND
+                      FOR
+                      ?OBJECT
+                      THEN
+                      ASK
+                      :SELF
+                      (REMEMBER DID
+                        :?COMMAND
+                        AT
+                        TIME
+                        (ASK :SELF (RECALL YOUR TIME) (EXAMPLE: (ASK SOMETHING 0)))
+                        FOR
+                        :?OBJECT)
+                      (EXAMPLE: (ASK SOMETHING (REMEMBER DID '(FD 100) AT TIME 7 FOR SAM))))
+      quoted list:  (IF RECEIVE
+                      MAKE
+                      ?NAME
+                      ?LENGTH
+                      TICKS
+                      LONG
+                      IN
+                      ?UNIVERSE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK MOVIE (MAKE :?NAME) (EXAMPLE: (MAKE SAM)))
+                      (ASK SCREEN
+                        (CHANGE YOUR MOVIE TO :?NAME)
+                        (EXAMPLE: (CHANGE YOUR MOVIE TO BEN.HUR)))
+                      (ASK :?NAME (REPEAT (1- :?LENGTH) '(WIPE)))
+                      (ASK :?NAME (CHANGE YOUR BEGIN.STATE TO (ASK SCREEN (SAVE ALL TURTLES))))
+                      (ASK :?UNIVERSE
+                        (RUN FOR :?LENGTH TICKS)
+                        (EXAMPLE: (ASK UNIVERSE (RUN FOR 12 TICKS))))
+                      (ASK :?NAME (CHANGE YOUR TIME TO 0) (EXAMPLE: (ASK SOMETHING 0)))
+                      (ASK SCREEN (FORGET MOVIE :?NAME) (EXAMPLE: (FORGET MOVIE BEN.HUR))))
+      quoted list:  (IF RECEIVE
+                      RUN
+                      FOR
+                      ?LENGTH
+                      TICKS
+                      IN
+                      ?UNIVERSE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK SCREEN
+                        (CHANGE YOUR MOVIE TO :SELF)
+                        (EXAMPLE: (CHANGE YOUR MOVIE TO BEN.HUR)))
+                      (ASK :SELF (REPEAT (1- :?LENGTH) '(WIPE)))
+                      (ASK :SELF (CHANGE YOUR BEGIN.STATE TO (ASK SCREEN (SAVE ALL TURTLES))))
+                      (ASK :?UNIVERSE
+                        (RUN FOR :?LENGTH TICKS)
+                        (EXAMPLE: (ASK UNIVERSE (RUN FOR 12 TICKS))))
+                      (ASK :SELF (CHANGE YOUR TIME TO 0) (EXAMPLE: (ASK SOMETHING 0)))
+                      (ASK SCREEN (FORGET MOVIE :SELF) (EXAMPLE: (FORGET MOVIE BEN.HUR))))
+      quoted list:  (IF RECEIVE
+                      SHOW
+                      THEN
+                      ASK
+                      :SELF
+                      (CHANGE YOUR SORTED.OUT.VERSION TO (SHOW.MOVIE :SELF 0.0)))
+      quoted list:  (IF RECEIVE
+                      SHOW
+                      AT
+                      SPEED
+                      ?NUMBER
+                      THEN
+                      ASK
+                      :SELF
+                      (CHANGE YOUR
+                        SORTED.OUT.VERSION
+                        TO
+                        (SHOW.MOVIE :SELF (|//$| (FLOAT :?NUMBER)))))
+      quoted list:  (IF RECEIVE
+                      BEGIN
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (USETURTLE 'LOGOTURTLE)
+                      (EVAL (ASK :SELF (RECALL YOUR BEGIN.STATE)))
+                      (WIPE))
+      quoted list:  (IF RECEIVE WIPE THEN WIPE)
+  SHOW.MOVIE
+      calls:        RUNTIME ASK.NOT.TO.BE.COMPILED SORT.OUT.MOVIE
+      specials:     :SPEED :LAST.RUNTIME
+      quoted atoms: EVAL
+      quoted list:  (RECALL YOUR SORTED.OUT.VERSION)
+  RUN.FRAME
+      calls:        RUN.WITH.TURTLES.HIDDEN RUNTIME SLEEP WIPE
+      specials:     :ACTIONS :SPEED :LAST.RUNTIME
+      quoted list:  (MAPC 'EVAL :ACTIONS)
+  RUN.WITH.TURTLES.HIDDEN
+      calls:        CONS *EVAL
+      specials:     ERRLIST :TURTLES
+      quoted atoms: HIDE.AND.REMEMBER.TRUE.VISIBILITY RESTORE.SEETURTLE
+      quoted list:  (MAPC 'RESTORE.SEETURTLE :TURTLES)
+  HIDE.AND.REMEMBER.TRUE.VISIBILITY
+      calls:        USETURTLE PUTPROP HIDETURTLE
+      specials:     :SEETURTLE :TURTLE
+      quoted atoms: TRUE.VISIBILITY
+  RESTORE.SEETURTLE
+      calls:        USETURTLE GET SHOWTURTLE
+      quoted atoms: TRUE.VISIBILITY
+  SMART.MAKETURTLE
+      calls:        HEADING FIX.HEADING CONS ASSOC NCONS *APPLY XCONS MAKE.A.NEW.TURTLE.WINDOW LAST
+      specials:     :TURTLE.WINDOWS
+      quoted atoms: MAKETURTLE
+  MAKE.A.NEW.TURTLE.WINDOW
+      calls:        GENSYM HEADING SHOOT.WINDOW XCONS NCONS FIX.HEADING CONS PUTPROP
+      quoted atoms: QUOTE HEADINGS.WINDOWS XOR.WINDOW.WITH.HEADING
+  XOR.WINDOW.WITH.HEADING
+      calls:        GET HEADING FIX.HEADING ASSQ XW GENSYM SHOOT.WINDOW CONS PUTPROP
+      specials:     :YCOR :XCOR
+      quoted atoms: HEADINGS.WINDOWS
+  SHOOT.WINDOW
+      calls:        HERE HT USETURTLE PU SETT MW HW PD *EVAL SW ST
+      specials:     :TURTLE :SEETURTLE :TVSTEP
+      quoted atoms: LOGOTURTLE NIL THE.SCREEN
+  FIX.HEADING
+  REPEAT.LIST
+      calls:        REPEAT.LIST CONS
+      quoted atoms: NIL
+  DUMMYE
+      quoted atoms: NIL
+  DUMMYD
+      quoted atoms: NIL
+  DEFINE.SCREEN
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: SOMETHING SCREEN
+      quoted list:  (MAKE SCREEN)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?
+                      '(PUT SHOW HIDE MOVE HATCH RUN DISPLAY SCALE)
+                      }
+                      %
+                      THEN
+                      DO.THE.FOLLOWING:
+                      ((LAMBDA (:MOVIE)
+                         (COND (:MOVIE (ASK SCREEN.DOER (DO :MESSAGE AND TELL :MOVIE)))
+                           (T (ASK SCREEN.DOER :MESSAGE))))
+                       (ASK SCREEN (RECALL YOUR MOVIE))))
+      quoted list:  (IF RECEIVE
+                      WHAT
+                      IS
+                      ?TURTLESTATE
+                      OF
+                      ?OBJECT
+                      THEN
+                      OUTPUT
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (FUNCALL :?TURTLESTATE))
+      quoted list:  (IF RECEIVE SAVE ALL TURTLES THEN OUTPUT STATE.OF.TURTLES)
+  DEFINE.SCREEN.DOER
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: SOMETHING SCREEN.DOER
+      quoted list:  (MAKE SCREEN.DOER)
+      quoted list:  (IF RECEIVE
+                      PUT
+                      ?OBJECT
+                      %COMMAND
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (APPLY (CAR :%COMMAND) (CDR :%COMMAND)))
+      quoted list:  (IF RECEIVE
+                      RUN
+                      FOR
+                      ?OBJECT
+                      %FUNCTION.CALL
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (EVAL :%FUNCTION.CALL))
+      quoted list:  (IF RECEIVE
+                      SHOW
+                      ?OBJECT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (PUTPROP :TURTLE T 'TRUE.VISIBILITY)
+                      (SHOWTURTLE))
+      quoted list:  (IF RECEIVE
+                      HIDE
+                      ?OBJECT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (PUTPROP :TURTLE NIL 'TRUE.VISIBILITY)
+                      (HIDETURTLE))
+      quoted list:  (IF RECEIVE
+                      MOVE
+                      PEN
+                      ?OBJECT
+                      ?COMMAND
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (FUNCALL :?COMMAND))
+      quoted list:  (IF RECEIVE HATCH ?TURTLE FOR ? THEN HATCH :?TURTLE)
+      quoted list:  (IF RECEIVE
+                      DISPLAY
+                      NEW
+                      APPEARANCE
+                      FOR
+                      ?OBJECT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (APPLY 'SMART.MAKETURTLE (DRAW+ERASE :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      MAKETURTLE
+                      ?PROCEDURES
+                      FOR
+                      ?OBJECT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (APPLY 'SMART.MAKETURTLE :?PROCEDURES))
+      quoted list:  (IF RECEIVE
+                      SCALE
+                      BY
+                      ?FACTOR
+                      APPEARANCE
+                      OF
+                      ?OBJECT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (COND ((EQ (CAR :DRAWTURTLE) 'SCALE.CALL)
+                             (APPLY 'SMART.MAKETURTLE
+                               (LIST (LIST 'SCALE.CALL
+                                       (CADR :DRAWTURTLE)
+                                       (NEW.SCALE.INFO :?FACTOR (CADDR :DRAWTURTLE)))
+                                 (LIST 'SCALE.CALL
+                                   (CADR :ERASETURTLE)
+                                   (NEW.SCALE.INFO :?FACTOR (CADDR :DRAWTURTLE))))))
+                        (T (APPLY 'SMART.MAKETURTLE (DRAW+ERASE :?OBJECT)))))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (SCALE BY ?FACTOR APPEARANCE OF ?OBJECT)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      ((LAMBDA (NEW-DRAW+ERASE)
+                         (APPLY 'SMART.MAKETURTLE NEW-DRAW+ERASE)
+                         (ASK :?MOVIE
+                           (REMEMBER THAT
+                             SCREEN
+                             DID
+                             (CONS 'SMART.MAKETURTLE NEW-DRAW+ERASE)
+                             FOR
+                             :?OBJECT)))
+                       (COND ((EQ (CAR :DRAWTURTLE) 'SCALE.CALL)
+                              (LIST (LIST 'SCALE.CALL
+                                      (CADR :DRAWTURTLE)
+                                      (NEW.SCALE.INFO :?FACTOR (CADDR :DRAWTURTLE)))
+                                (LIST 'SCALE.CALL
+                                  (CADR :ERASETURTLE)
+                                  (NEW.SCALE.INFO :?FACTOR (CADDR :DRAWTURTLE)))))
+                         (T (DRAW+ERASE :?OBJECT)))))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (PUT ?OBJECT %COMMAND)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (APPLY (CAR :%COMMAND) (CDR :%COMMAND))
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID (NO-OP :%COMMAND) FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (RUN FOR ?OBJECT %FUNCTION.CALL)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (EVAL :%FUNCTION.CALL)
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID :%FUNCTION.CALL FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (SHOW ?OBJECT)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (PUTPROP :TURTLE T 'TRUE.VISIBILITY)
+                      (SHOWTURTLE)
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID '(SHOWTURTLE) FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (HIDE ?OBJECT)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (PUTPROP :TURTLE NIL 'TRUE.VISIBILITY)
+                      (HIDETURTLE)
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID '(HIDETURTLE) FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (MOVE PEN ?OBJECT ?COMMAND)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (FUNCALL :?COMMAND)
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID (LIST :?COMMAND) FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (HATCH ?TURTLE FOR ?OBJECT)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (HATCH :?TURTLE)
+                      (ASK :?MOVIE (REMEMBER THAT SCREEN DID (LIST 'HATCH :?TURTLE) FOR :?OBJECT)))
+      quoted list:  (IF RECEIVE
+                      DO
+                      (DISPLAY NEW APPEARANCE FOR ?OBJECT)
+                      AND
+                      TELL
+                      ?MOVIE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :?OBJECT)
+                      (APPLY 'SMART.MAKETURTLE (DRAW+ERASE :?OBJECT))
+                      (ASK :?MOVIE
+                        (REMEMBER THAT
+                          SCREEN
+                          DID
+                          (CONS 'SMART.MAKETURTLE (DRAW+ERASE :?OBJECT))
+                          FOR
+                          :?OBJECT)))
+  NO-OP
+  TELL-LOGO-WHICH-TURTLE
+      calls:        SYMEVAL GET USETURTLE MAKE-A-NEW-TURTLE
+      specials:     :SELF :TURTLE :LAST.TURTLE
+      quoted atoms: TURTLES.NAME
+  MAKE-A-NEW-TURTLE
+      calls:        APPEND-ATOMS ASK.NOT.TO.BE.COMPILED NCONS XCONS HIDETURTLE WRAP PENUP LISTARRAY FILLARRAY
+      specials:     :SELF
+      quoted atoms: TURTLE.OF. FOR HATCH SCREEN TO TURTLES.NAME YOUR CHANGE APPEARANCE NEW DISPLAY
+      quoted list:  (RECALL YOUR TURTLES.NAME)
+  STATE.OF.TURTLES
+      calls:        USETURTLE NCONS XCONS
+      specials:     :TURTLE :TURTLES
+      quoted atoms: QUOTE LISTTURTLE MAPC
+      quoted list:  'FILLTURTLE
+  LISTTURTLE
+      calls:        GET LISTARRAY
+      quoted atoms: TURTLE
+  FILLTURTLE
+      calls:        GET FILLARRAY
+      quoted atoms: TURTLE
+  TURT-1
+      calls:        NCONS XCONS
+      quoted atoms: SIZE 100.0 YOUR RECALL :SELF ASK
+  CONS.DRAWER
+      calls:        CONS
+      quoted atoms: TURT-1
+  DRAW+ERASE
+      calls:        ASK.NOT.TO.BE.COMPILED XCONS HOW.TO.GET.TO.CENTER.AND.SCALE CONS-DRAW-FORM CONS-ERASE-FORM NCONS
+      specials:     :SELF
+      quoted atoms: EVAL-THEN-QUOTE-RESULT
+      quoted list:  (RECALL YOUR DRAW.FORM)
+      quoted list:  (RECALL YOUR SIZE)
+  EVAL-THEN-QUOTE-RESULT
+      calls:        *EVAL NCONS XCONS
+      quoted atoms: QUOTE
+  CONS-DRAW-FORM
+      calls:        NCONS XCONS CONS FLOAT
+      quoted atoms: THINGUP THINGDOWN DO.THE.FOLLOWING: SCALE.CALL
+  CONS-ERASE-FORM
+      calls:        NCONS XCONS CONS FLOAT
+      quoted atoms: THINGUP UNDOTHINGDOWN DO.THE.FOLLOWING: SCALE.CALL
+  NEW.SCALE.INFO
+      calls:        FLOAT NCONS XCONS
+  THINGUP
+      calls:        PENUP XORUP
+      specials:     :PENSTATE :LAST.THING.UPPED
+      quoted atoms: PEN
+  THINGDOWN
+      calls:        PENDOWN XORDOWN
+      specials:     :LAST.THING.UPPED
+      quoted atoms: PEN
+  UNDOTHINGDOWN
+      calls:        ERASERDOWN XORDOWN
+      specials:     :LAST.THING.UPPED
+      quoted atoms: PEN
+  XOR-POINT
+      calls:        XORDOWN POINT XORUP
+  DRAW-POINT
+      calls:        NCONS
+      quoted atoms: XOR-POINT
+  PETALS
+      calls:        RIGHT *QUO LT PENCOLOR PETAL
+      quoted atoms: 45 360.0
+  PETAL
+      calls:        HERE LT DRAW-ARC RT PU SETT ERD PD
+      specials:     :ERASERSTATE
+      quoted atoms: 45 90 135
+  DRAW-ARC
+      calls:        *PLUS FD RT
+      specials:     :HEADING
+      quoted atoms: 5 NIL
+  DRAW.FLOWER
+      calls:        HERE *QUO PETALS PENCOLOR BK RT PETAL LT PU SETT ERD PD
+      specials:     :ERASERSTATE
+      quoted atoms: 55.0 GREEN 22 33
+  RIGHT.TRI
+      calls:        HERE FORWARD RIGHT SETTURTLE
+      quoted atoms: 90
+  RECT
+      calls:        FORWARD RIGHT
+      quoted atoms: 90
+  EQ.TRI
+      calls:        FORWARD RIGHT
+      quoted atoms: 120
+  DRAW.ROCKET
+      calls:        *TIMES RECT FORWARD RIGHT.TRI RIGHT EQ.TRI
+      quoted atoms: 0.5 0.2 0.25 -0.25 -0.15 30 60 90
+  DEFINE.ROCKET
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: OBJECT ROCKET
+      quoted list:  (MAKE ROCKET)
+      quoted list:  (ONLY CHANGE YOUR SIZE TO 100)
+      quoted list:  (DRAW USING DRAW.ROCKET OF SIZE)
+  DEFINE.POLY
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: OBJECT POLY
+      quoted list:  (MAKE POLY)
+      quoted list:  (ONLY CHANGE YOUR ANGLE TO 60)
+      quoted list:  (DRAW USING DRAW.POLY OF SIZE ANGLE)
+  POLY1
+      calls:        RT FD HEADING POLY1
+      quoted atoms: T
+  DRAW.POLY
+      calls:        HEADING POLY1
+  DEFINE.FLOWER
+      calls:        ASK.NOT.TO.BE.COMPILED
+      quoted atoms: OBJECT FLOWER
+      quoted list:  (MAKE FLOWER)
+      quoted list:  (ONLY CHANGE YOUR NUMBER.OF.PETALS TO 3)
+      quoted list:  (ONLY CHANGE YOUR COLORS TO (RED YELLOW ORANGE))
+      quoted list:  (ONLY CHANGE YOUR SIZE TO 200)
+      quoted list:  (DRAW USING DRAW.FLOWER OF SIZE NUMBER.OF.PETALS COLORS)
+  D.OBJECTS
+      calls:        DEFINE.OBJECT DEFINE.SCREEN DEFINE.SCREEN.DOER DEFINE.MOVIE DEFINE.POLY DEFINE.FLOWER DEFINE.ROCKET
+
+-- Symbols and how they are used (393) --
+  %                              in constant
+  %COMMAND                       in constant
+  %DRAW.ARGS                     in constant
+  %FOLLOW.UP                     in constant
+  %FUNCTION.CALL                 in constant
+  %PARTS                         in constant
+  *APPEND                        called
+  *APPLY                         called
+  *DIF                           called
+  *EVAL                          called
+  *PLUS                          called
+  *QUO                           called
+  *TIMES                         called
+  -$                             in constant
+  |//$|                          in constant
+  1-                             in constant
+  :%COMMAND                      in constant
+  :%DRAW.ARGS                    in constant
+  :%FOLLOW.UP                    in constant
+  :%FUNCTION.CALL                in constant
+  :?ACT                          in top-level form
+  :?ACTOR                        in top-level form
+  :?AMOUNT                       in constant
+  :?AMT                          in constant
+  :?ANOTHER.OBJECT               in constant
+  :?COLOR                        in constant
+  :?COMMAND                      in constant
+  :?DRAW.PROCEDURE               in constant
+  :?FACTOR                       in constant
+  :?LENGTH                       in constant
+  :?MOVIE                        in constant
+  :?NAME                         in constant
+  :?NEW.HEADING                  in constant
+  :?NEW.SIZE                     in constant
+  :?NEW.STATE                    in constant
+  :?NEW.X                        in constant
+  :?NEW.Y                        in constant
+  :?NUMBER                       in constant
+  :?OBJECT                       in constant
+  :?PROCEDURES                   in constant
+  :?REST                         in constant
+  :?TIME                         in top-level form
+  :?TURN                         in constant
+  :?TURTLE                       in constant
+  :?TURTLESTATE                  in constant
+  :?UNIVERSE                     in constant
+  :?X                            in constant
+  :?Y                            in constant
+  :A.FULL.FRAME                  in top-level form
+  :ACT                           in top-level form
+  :ACTIONS                       in constant, special
+  :ACTOR                         in top-level form
+  :CENTERS-NAME                  in constant
+  :DRAWTURTLE                    in constant
+  :ERASERSTATE                   special
+  :ERASETURTLE                   in constant
+  :HEADING                       special
+  :I                             in top-level form
+  :INTERPOLATION                 in constant
+  :LAST.ACTOR                    in top-level form
+  :LAST.RUNTIME                  special
+  :LAST.THING.UPPED              special
+  :LAST.TIME                     in top-level form
+  :LAST.TURTLE                   in top-level form, special
+  :MESSAGE                       in constant
+  :MOVIE                         in constant, in top-level form
+  :NAME                          in constant
+  :NEW.INTERPOLATION             in constant
+  :PENSTATE                      special
+  :SEETURTLE                     special
+  :SELF                          in constant, quoted, special
+  :SPEED                         special
+  :TIME                          in top-level form
+  :TURTLE                        in constant, special
+  :TURTLE.WINDOWS                in top-level form, special
+  :TURTLES                       in constant, special
+  :TVSTEP                        special
+  :XCOR                          special
+  :YCOR                          special
+  ?                              in constant
+  ?ACT                           in top-level form
+  ?ACTOR                         in top-level form
+  ?AMOUNT                        in constant
+  ?AMT                           in constant
+  ?ANOTHER.OBJECT                in constant
+  ?COLOR                         in constant
+  ?COMMAND                       in constant
+  ?DRAW.PROCEDURE                in constant
+  ?FACTOR                        in constant
+  ?LENGTH                        in constant
+  ?MOVIE                         in constant
+  ?NAME                          in constant
+  ?NEW.HEADING                   in constant
+  ?NEW.SIZE                      in constant
+  ?NEW.STATE                     in constant
+  ?NEW.X                         in constant
+  ?NEW.Y                         in constant
+  ?NUMBER                        in constant
+  ?OBJECT                        in constant
+  ?PROCEDURES                    in constant
+  ?REST                          in constant
+  ?TIME                          in top-level form
+  ?TURN                          in constant
+  ?TURTLE                        in constant
+  ?TURTLESTATE                   in constant
+  ?UNIVERSE                      in constant
+  ?X                             in constant
+  ?Y                             in constant
+  A                              in top-level form
+  ABS                            called
+  ALL                            in constant
+  AND                            in constant
+  ANGLE                          in constant
+  ANS                            in top-level form
+  APPEAR                         in constant, quoted
+  APPEARANCE                     in constant, quoted
+  APPEND-ATOMS                   called, in constant
+  APPLY                          in constant
+  ARE                            in constant
+  AROUND                         in constant
+  ASK                            in constant, in top-level form, quoted
+  ASK.NOT.TO.BE.COMPILED         called
+  ASSOC                          called
+  ASSQ                           called
+  AT                             in constant, in top-level form
+  AWAY                           in constant
+  BACK                           in constant, quoted
+  BE                             in constant
+  BEGIN                          in constant
+  BEGIN.STATE                    in constant
+  BEN.HUR                        in constant
+  BK                             called, in constant, quoted
+  BY                             in constant, quoted
+  CADDR                          in constant
+  CADR                           in constant
+  CAN                            in constant
+  CAR                            in constant
+  CDDR                           in constant
+  CDR                            in constant, in top-level form
+  CENTER                         in constant
+  CENTERS.NAME                   in constant
+  CHANGE                         in constant, quoted
+  CIRCLE                         in constant
+  COLOR                          in constant, in top-level form
+  COLORS                         in constant
+  COMPOSITE.OBJECT               in constant, quoted
+  COMPOSITE.SOMETHING            quoted
+  COND                           in constant, in top-level form
+  CONS                           called, in constant, in top-level form
+  CONS-DRAW-FORM                 called, defined
+  CONS-ERASE-FORM                called, defined
+  CONS.DRAWER                    defined, in constant
+  D.OBJECTS                      defined
+  DEFINE.COMPOSITE.OBJECT        defined
+  DEFINE.FLOWER                  called, defined
+  DEFINE.MOVIE                   called, defined
+  DEFINE.OBJECT                  called, defined
+  DEFINE.POLY                    called, defined
+  DEFINE.ROCKET                  called, defined
+  DEFINE.SCREEN                  called, defined
+  DEFINE.SCREEN.DOER             called, defined
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DEGREES                        in constant
+  DELX                           in constant
+  DELXY                          in constant
+  DELY                           in constant
+  DID                            in constant, in top-level form
+  DISPLAY                        in constant, quoted
+  DO                             in constant, in top-level form
+  DO.THE.FOLLOWING:              in constant, in top-level form, quoted
+  DRAW                           in constant
+  DRAW+ERASE                     defined, in constant
+  DRAW-ARC                       called, defined
+  DRAW-POINT                     defined, in constant
+  DRAW.FLOWER                    defined, in constant
+  DRAW.FORM                      in constant
+  DRAW.POLY                      defined, in constant
+  DRAW.ROCKET                    defined, in constant
+  DRAWING.ARGS                   in constant
+  DUMMYD                         defined
+  DUMMYE                         defined
+  EQ                             in constant, in top-level form
+  EQ.TRI                         called, defined
+  ERASERDOWN                     called
+  ERD                            called
+  ERRLIST                        special
+  EVAL                           in constant, quoted
+  EVAL-THEN-QUOTE-RESULT         defined, quoted
+  EXAMPLE:                       in constant
+  EXPR                           in constant
+  FACTOR                         in constant
+  FAR                            quoted
+  FD                             called, in constant, quoted
+  FEATURE                        in top-level form
+  FILLARRAY                      called
+  FILLTURTLE                     defined, in constant
+  FIND                           in top-level form
+  FIX.HEADING                    called, defined
+  FLOAT                          called, in constant
+  FLOWER                         in constant, quoted
+  FOR                            in constant, in top-level form, quoted
+  FORGET                         in constant
+  FORM                           in constant
+  FORWARD                        called, in constant, quoted
+  FROM                           in constant
+  FUNCALL                        in constant
+  FUTURE.COLORS                  in constant
+  GENSYM                         called, in top-level form
+  GET                            called
+  GET.OR.ASK.PARENT              in constant
+  GREEN                          quoted
+  GROW                           in constant, quoted
+  GROW.GRADUALLY                 defined, in constant
+  GROWTH.SPEED                   in constant
+  HATCH                          in constant, quoted
+  HEADING                        called, in constant, quoted
+  HEADINGS.WINDOWS               quoted
+  HERE                           called, in constant
+  HIDE                           in constant
+  HIDE.AND.REMEMBER.TRUE.VISIBILITY defined, quoted
+  HIDETURTLE                     called, in constant
+  HOW                            quoted
+  HOW.TO.GET.TO.CENTER.AND.SCALE called
+  HT                             called
+  HW                             called
+  IF                             in constant
+  IN                             in constant
+  INCREMENT                      in constant
+  INTERNAL-SALLYS.CENTER         in constant
+  INTERPOLATE                    in constant
+  INTERPOLATIONAMOUNT            in constant
+  IS                             in constant
+  LAMBDA                         in constant, in top-level form
+  LAST                           called, in constant, in top-level form
+  LEFT                           in constant
+  LIST                           in constant, in top-level form
+  LISTARRAY                      called
+  LISTTURTLE                     defined, quoted
+  LOGOTURTLE                     in constant, quoted
+  LONG                           in constant
+  LT                             called, in constant, quoted
+  MACRO                          in top-level form
+  MAKE                           in constant
+  MAKE-A-NEW-TURTLE              called, defined
+  MAKE.A.NEW.TURTLE.WINDOW       called, defined
+  MAKE.COLOR.INTERPOLATION       in constant
+  MAKE.INTERPOLATION             in constant
+  MAKETURTLE                     in constant, quoted
+  MAPC                           in constant, quoted
+  MEMQ                           in constant
+  MINUS                          called, in constant
+  MOVE                           in constant
+  MOVE.AWAY                      in constant
+  MOVE.AWAY.FROM                 defined
+  MOVE.GRADUALLY                 defined, in constant
+  MOVIE                          in constant, quoted
+  MW                             called
+  NCONS                          called
+  NEW                            in constant, quoted
+  NEW-DRAW+ERASE                 in constant
+  NEW.SCALE.INFO                 defined, in constant
+  NEXT                           quoted
+  NIL                            in constant, in top-level form, quoted
+  NO-OP                          defined, in constant
+  NREVERSE                       in top-level form
+  NULL                           in top-level form
+  NUMBER.OF.PETALS               in constant
+  OBJECT                         in constant, quoted
+  OF                             in constant, quoted
+  ONLY                           in constant, quoted
+  ONTO                           in constant
+  OR                             in top-level form
+  ORANGE                         in constant
+  OUT                            in constant
+  OUTPUT                         in constant
+  PARTS                          in constant
+  PASS.THE.MESSAGE.TO.PARENT     in constant
+  PD                             called, in constant
+  PEN                            in constant, quoted
+  PENCOLOR                       called, in constant, in top-level form
+  PENDOWN                        called, in constant
+  PENUP                          called, in constant
+  PETAL                          called, defined
+  PETALS                         called, defined
+  PLAN:                          quoted
+  PLUSP                          called
+  POINT                          called
+  POLY                           in constant, quoted
+  POLY1                          called, defined
+  POP                            in constant
+  PROGN                          in constant, in top-level form
+  PU                             called, in constant
+  PUT                            in constant
+  PUTPROP                        called, in constant
+  QUOTE                          in constant, in top-level form, quoted
+  RECALL                         in constant, in top-level form, quoted
+  RECEIVE                        in constant
+  RECT                           called, defined
+  RED                            in constant
+  REMEMBER                       in constant
+  REMEMBERED?                    in top-level form
+  REPEAT                         in constant
+  REPEAT.LIST                    called, defined
+  RESTORE.SEETURTLE              defined, in constant, quoted
+  RESUME                         in top-level form
+  REVOLVE                        in constant
+  REVOLVE.AROUND                 in constant
+  RIGHT                          called, in constant
+  RIGHT.TRI                      called, defined
+  ROCKET                         in constant, quoted
+  ROTATIONAL.SPEED               in constant
+  RT                             called, in constant, quoted
+  RUN                            in constant
+  RUN.FRAME                      defined, in top-level form
+  RUN.WITH.TURTLES.HIDDEN        called, defined
+  RUNTIME                        called
+  S.CENTER                       in constant
+  SALLY                          in constant
+  SALLYS.CENTER                  in constant
+  SAM                            in constant
+  SAVE                           in constant
+  SCALE                          in constant, quoted
+  SCALE.CALL                     in constant, quoted
+  SCREEN                         in constant, quoted
+  SCREEN.DOER                    in constant, quoted
+  SEEN                           in constant
+  SETHEADING                     in constant
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  SETT                           called, in constant
+  SETTURTLE                      called, in constant
+  SETX                           in constant
+  SETXY                          in constant
+  SETY                           in constant
+  SHOOT.WINDOW                   called, defined
+  SHOW                           in constant
+  SHOW.MOVIE                     defined, in constant
+  SHOWTURTLE                     called, in constant
+  SHRINK                         in constant
+  SINGLE                         in top-level form
+  SIZE                           in constant, quoted
+  SLEEP                          called
+  SMART.MAKETURTLE               defined, in constant
+  SOMETHING                      in constant, quoted
+  SORT.OUT.MOVIE                 called, in top-level form
+  SORTED.OUT.VERSION             in constant
+  SPEED                          in constant
+  SQUARE                         in constant
+  ST                             called
+  STATE.OF.TURTLES               defined, in constant
+  STATUS                         in top-level form
+  SW                             called
+  SYMEVAL                        called
+  T                              in constant, in top-level form, quoted
+  TELL                           in constant
+  TELL-LOGO-WHICH-TURTLE         defined, in constant
+  THAT                           in constant
+  THE.SCREEN                     quoted
+  THEN                           in constant
+  THEN:                          in constant, in top-level form, quoted
+  THINGDOWN                      defined, quoted
+  THINGUP                        defined, quoted
+  TICKS                          in constant
+  TIME                           in constant, in top-level form
+  TO                             in constant, quoted
+  TRUE.VISIBILITY                in constant, quoted
+  TURT-1                         defined, quoted
+  TURTLE                         quoted
+  TURTLE.OF.                     quoted
+  TURTLES                        in constant
+  TURTLES.NAME                   in constant, in top-level form, quoted
+  UNDOTHINGDOWN                  defined, quoted
+  UNIVERSE                       in constant
+  USETURTLE                      called, in constant, in top-level form
+  USING                          in constant
+  WHAT                           in constant, quoted
+  WHITE                          in constant
+  WIPE                           called, in constant
+  WRAP                           called
+  XCONS                          called
+  XCOR                           in constant
+  XOR-POINT                      defined, quoted
+  XOR.WINDOW.WITH.HEADING        defined, quoted
+  XORDOWN                        called
+  XORUP                          called
+  XW                             called
+  YCOR                           in constant
+  YELLOW                         in constant
+  YIELD                          in constant
+  YOUR                           in constant, in top-level form, quoted
+  {                              in constant
+  }                              in constant
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (428 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  DEFPROP
+    10 symbol  DO.THE.FOLLOWING:
+    11 symbol  LAMBDA
+    12 symbol  A
+    13 symbol  CONS
+    14 symbol  CDR
+    15 symbol  MACRO
+    16 symbol  DEFINE.OBJECT
+    17 symbol  SUBR
+    18 symbol  MAKE
+    19 symbol  OBJECT
+    20 symbol  SOMETHING
+    21 symbol  ASK.NOT.TO.BE.COMPILED
+    22 symbol  ONLY
+    23 symbol  CHANGE
+    24 symbol  YOUR
+    25 symbol  SIZE
+    26 symbol  TO
+    27 fixnum  100
+    28 symbol  DRAW.FORM
+    29 symbol  DRAW-POINT
+    30 symbol  SPEED
+    31 symbol  ROTATIONAL.SPEED
+    32 fixnum  30
+    33 symbol  GROWTH.SPEED
+    34 symbol  COLOR
+    35 symbol  WHITE
+    36 symbol  IF
+    37 symbol  RECEIVE
+    38 symbol  APPEAR
+    39 symbol  {
+    40 symbol  MEMQ
+    41 symbol  ?COMMAND
+    42 symbol  FD
+    43 symbol  FORWARD
+    44 symbol  RT
+    45 symbol  RIGHT
+    46 symbol  LT
+    47 symbol  LEFT
+    48 symbol  BK
+    49 symbol  BACK
+    50 symbol  }
+    51 symbol  ?AMT
+    52 symbol  THEN
+    53 symbol  ASK
+    54 symbol  SCREEN
+    55 symbol  PUT
+    56 symbol  :SELF
+    57 symbol  :?COMMAND
+    58 symbol  :?AMT
+    59 symbol  EXAMPLE:
+    60 symbol  SAM
+    61 symbol  MOVE.GRADUALLY
+    62 symbol  ?
+    63 symbol  THEN:
+    64 symbol  %FOLLOW.UP
+    65 symbol  :%FOLLOW.UP
+    66 symbol  SETXY
+    67 symbol  DELXY
+    68 symbol  ?X
+    69 symbol  ?Y
+    70 symbol  :?X
+    71 symbol  :?Y
+    72 fixnum  50
+    73 symbol  PU
+    74 symbol  PD
+    75 symbol  PENUP
+    76 symbol  PENDOWN
+    77 symbol  MOVE
+    78 symbol  PEN
+    79 symbol  SETX
+    80 symbol  SETY
+    81 symbol  DELX
+    82 symbol  DELY
+    83 symbol  SETHEADING
+    84 symbol  SETT
+    85 symbol  SETTURTLE
+    86 symbol  ?REST
+    87 symbol  :?REST
+    88 symbol  SHOW
+    89 symbol  HIDE
+    90 symbol  RUN
+    91 symbol  %FUNCTION.CALL
+    92 symbol  FOR
+    93 symbol  :%FUNCTION.CALL
+    94 symbol  CIRCLE
+    95 symbol  ?NEW.SIZE
+    96 symbol  PASS.THE.MESSAGE.TO.PARENT
+    97 symbol  :MESSAGE
+    98 symbol  SCALE
+    99 symbol  BY
+   100 symbol  :?NEW.SIZE
+   101 symbol  APPEARANCE
+   102 symbol  OF
+   103 fixnum  5
+   104 symbol  GET.OR.ASK.PARENT
+   105 symbol  DRAWING.ARGS
+   106 symbol  DISPLAY
+   107 symbol  NEW
+   108 symbol  AWAY
+   109 symbol  FROM
+   110 symbol  %
+   111 symbol  FACTOR
+   112 symbol  ?FACTOR
+   113 symbol  MOVE.AWAY
+   114 symbol  :?FACTOR
+   115 symbol  REVOLVE
+   116 symbol  AROUND
+   117 symbol  ?TURN
+   118 symbol  DEGREES
+   119 symbol  REVOLVE.AROUND
+   120 symbol  :?TURN
+   121 symbol  RECALL
+   122 symbol  HERE
+   123 symbol  HEADING
+   124 symbol  XCOR
+   125 symbol  YCOR
+   126 symbol  OUTPUT
+   127 symbol  WHAT
+   128 symbol  IS
+   129 symbol  ?NEW.STATE
+   130 symbol  :?NEW.STATE
+   131 fixnum  0
+   132 fixnum  90
+   133 symbol  ?NEW.HEADING
+   134 symbol  :?NEW.HEADING
+   135 fixnum  45
+   136 symbol  ?NEW.X
+   137 symbol  :?NEW.X
+   138 fixnum  99
+   139 symbol  ?NEW.Y
+   140 symbol  :?NEW.Y
+   141 symbol  GROW
+   142 symbol  ?AMOUNT
+   143 symbol  GROW.GRADUALLY
+   144 symbol  :?AMOUNT
+   145 symbol  SHRINK
+   146 symbol  MINUS
+   147 symbol  INTERPOLATE
+   148 symbol  ?ANOTHER.OBJECT
+   149 symbol  IN
+   150 symbol  ?NUMBER
+   151 symbol  TICKS
+   152 symbol  :INTERPOLATION
+   153 symbol  INTERPOLATIONAMOUNT
+   154 flonum  0.0
+   155 symbol  DRAW
+   156 symbol  USING
+   157 symbol  :?ANOTHER.OBJECT
+   158 symbol  :?NUMBER
+   159 symbol  REPEAT
+   160 symbol  LIST
+   161 symbol  INCREMENT
+   162 symbol  |//$|
+   163 symbol  FLOAT
+   164 symbol  -$
+   165 symbol  MAKE.INTERPOLATION
+   166 symbol  :NEW.INTERPOLATION
+   167 symbol  YIELD
+   168 symbol  FORM
+   169 symbol  PUTPROP
+   170 symbol  PENCOLOR
+   171 symbol  CDDR
+   172 symbol  EXPR
+   173 symbol  APPEND-ATOMS
+   174 symbol  ?COLOR
+   175 symbol  FUTURE.COLORS
+   176 symbol  ARE
+   177 symbol  MAKE.COLOR.INTERPOLATION
+   178 symbol  :?COLOR
+   179 symbol  POP
+   180 symbol  ONTO
+   181 symbol  TELL-LOGO-WHICH-TURTLE
+   182 symbol  CAR
+   183 symbol  LAST
+   184 symbol  CADR
+   185 symbol  :DRAWTURTLE
+   186 symbol  ?DRAW.PROCEDURE
+   187 symbol  %DRAW.ARGS
+   188 symbol  CONS.DRAWER
+   189 symbol  :?DRAW.PROCEDURE
+   190 symbol  :%DRAW.ARGS
+   191 symbol  SQUARE
+   192 symbol  NO-OP
+   193 symbol  NCONS
+   194 symbol  XCONS
+   195 symbol  NEXT
+   196 symbol  *APPEND
+   197 symbol  PLAN:
+   198 symbol  *DIF
+   199 symbol  PLUSP
+   200 symbol  ABS
+   201 symbol  *PLUS
+   202 symbol  MOVE.AWAY.FROM
+   203 symbol  FAR
+   204 symbol  HOW
+   205 symbol  CAN
+   206 symbol  BE
+   207 symbol  SEEN
+   208 flonum  -1.0
+   209 symbol  *TIMES
+   210 symbol  DEFINE.COMPOSITE.OBJECT
+   211 symbol  COMPOSITE.OBJECT
+   212 symbol  COMPOSITE.SOMETHING
+   213 symbol  ?NAME
+   214 symbol  OUT
+   215 symbol  %PARTS
+   216 symbol  :?NAME
+   217 symbol  SALLY
+   218 symbol  :CENTERS-NAME
+   219 symbol  SALLYS.CENTER
+   220 symbol  EVAL
+   221 symbol  :NAME
+   222 fixnum  1
+   223 symbol  CENTERS.NAME
+   224 symbol  INTERNAL-SALLYS.CENTER
+   225 symbol  REMEMBER
+   226 symbol  PARTS
+   227 symbol  S.CENTER
+   228 symbol  CENTER
+   229 fixnum  250
+   230 fixnum  -100
+   231 symbol  DEFINE.MOVIE
+   232 symbol  MOVIE
+   233 symbol  THAT
+   234 symbol  DID
+   235 symbol  ?OBJECT
+   236 symbol  AT
+   237 symbol  TIME
+   238 symbol  :?OBJECT
+   239 fixnum  7
+   240 symbol  ?LENGTH
+   241 symbol  LONG
+   242 symbol  ?UNIVERSE
+   243 symbol  BEN.HUR
+   244 symbol  1-
+   245 symbol  :?LENGTH
+   246 symbol  WIPE
+   247 symbol  BEGIN.STATE
+   248 symbol  SAVE
+   249 symbol  ALL
+   250 symbol  TURTLES
+   251 symbol  :?UNIVERSE
+   252 symbol  UNIVERSE
+   253 fixnum  12
+   254 symbol  FORGET
+   255 symbol  SORTED.OUT.VERSION
+   256 symbol  SHOW.MOVIE
+   257 symbol  BEGIN
+   258 symbol  USETURTLE
+   259 symbol  LOGOTURTLE
+   260 symbol  :SPEED
+   261 symbol  RUNTIME
+   262 symbol  :LAST.RUNTIME
+   263 symbol  SORT.OUT.MOVIE
+   264 symbol  DEFUN
+   265 symbol  :MOVIE
+   266 symbol  :ACT
+   267 symbol  :TIME
+   268 symbol  :ACTOR
+   269 symbol  DO
+   270 symbol  :I
+   271 symbol  REMEMBERED?
+   272 symbol  ?ACT
+   273 symbol  ?TIME
+   274 symbol  ?ACTOR
+   275 symbol  SETQ
+   276 symbol  :?ACT
+   277 symbol  :?TIME
+   278 symbol  :?ACTOR
+   279 symbol  RESUME
+   280 symbol  FIND
+   281 symbol  :LAST.ACTOR
+   282 symbol  :LAST.TIME
+   283 symbol  :A.FULL.FRAME
+   284 symbol  ANS
+   285 symbol  NULL
+   286 symbol  NREVERSE
+   287 symbol  RUN.FRAME
+   288 symbol  COND
+   289 symbol  EQ
+   290 symbol  T
+   291 symbol  TURTLES.NAME
+   292 symbol  :ACTIONS
+   293 symbol  MAPC
+   294 symbol  RUN.WITH.TURTLES.HIDDEN
+   295 symbol  SLEEP
+   296 symbol  ERRLIST
+   297 symbol  RESTORE.SEETURTLE
+   298 symbol  :TURTLES
+   299 symbol  HIDE.AND.REMEMBER.TRUE.VISIBILITY
+   300 symbol  *EVAL
+   301 symbol  TRUE.VISIBILITY
+   302 symbol  :SEETURTLE
+   303 symbol  :TURTLE
+   304 symbol  HIDETURTLE
+   305 symbol  GET
+   306 symbol  SHOWTURTLE
+   307 symbol  SMART.MAKETURTLE
+   308 symbol  FIX.HEADING
+   309 symbol  :TURTLE.WINDOWS
+   310 symbol  ASSOC
+   311 symbol  MAKETURTLE
+   312 symbol  *APPLY
+   313 symbol  MAKE.A.NEW.TURTLE.WINDOW
+   314 symbol  GENSYM
+   315 symbol  SHOOT.WINDOW
+   316 symbol  HEADINGS.WINDOWS
+   317 symbol  XOR.WINDOW.WITH.HEADING
+   318 symbol  ASSQ
+   319 symbol  :YCOR
+   320 symbol  :XCOR
+   321 symbol  XW
+   322 symbol  HT
+   323 symbol  MW
+   324 symbol  HW
+   325 symbol  :TVSTEP
+   326 symbol  SW
+   327 symbol  ST
+   328 symbol  THE.SCREEN
+   329 symbol  REPEAT.LIST
+   330 symbol  DUMMYE
+   331 symbol  DUMMYD
+   332 symbol  DEFINE.SCREEN
+   333 symbol  HATCH
+   334 symbol  SCREEN.DOER
+   335 symbol  AND
+   336 symbol  TELL
+   337 symbol  ?TURTLESTATE
+   338 symbol  FUNCALL
+   339 symbol  :?TURTLESTATE
+   340 symbol  STATE.OF.TURTLES
+   341 symbol  DEFINE.SCREEN.DOER
+   342 symbol  %COMMAND
+   343 symbol  APPLY
+   344 symbol  :%COMMAND
+   345 symbol  ?TURTLE
+   346 symbol  :?TURTLE
+   347 symbol  DRAW+ERASE
+   348 symbol  ?PROCEDURES
+   349 symbol  :?PROCEDURES
+   350 symbol  SCALE.CALL
+   351 symbol  NEW.SCALE.INFO
+   352 symbol  CADDR
+   353 symbol  :ERASETURTLE
+   354 symbol  ?MOVIE
+   355 symbol  NEW-DRAW+ERASE
+   356 symbol  :?MOVIE
+   357 symbol  :LAST.TURTLE
+   358 symbol  SYMEVAL
+   359 symbol  MAKE-A-NEW-TURTLE
+   360 symbol  TURTLE.OF.
+   361 symbol  WRAP
+   362 symbol  LISTARRAY
+   363 symbol  FILLARRAY
+   364 symbol  LISTTURTLE
+   365 symbol  FILLTURTLE
+   366 symbol  TURTLE
+   367 symbol  TURT-1
+   368 symbol  LSUBR
+   369 flonum  100.0
+   370 symbol  EVAL-THEN-QUOTE-RESULT
+   371 symbol  HOW.TO.GET.TO.CENTER.AND.SCALE
+   372 symbol  CONS-DRAW-FORM
+   373 symbol  CONS-ERASE-FORM
+   374 symbol  THINGUP
+   375 symbol  THINGDOWN
+   376 symbol  UNDOTHINGDOWN
+   377 symbol  :PENSTATE
+   378 symbol  :LAST.THING.UPPED
+   379 symbol  XORUP
+   380 symbol  XORDOWN
+   381 symbol  ERASERDOWN
+   382 symbol  XOR-POINT
+   383 symbol  POINT
+   384 symbol  PETALS
+   385 flonum  360.0
+   386 symbol  *QUO
+   387 symbol  PETAL
+   388 symbol  :ERASERSTATE
+   389 symbol  DRAW-ARC
+   390 fixnum  135
+   391 symbol  ERD
+   392 symbol  :HEADING
+   393 symbol  DRAW.FLOWER
+   394 flonum  55.0
+   395 symbol  GREEN
+   396 fixnum  22
+   397 fixnum  33
+   398 symbol  RIGHT.TRI
+   399 symbol  RECT
+   400 symbol  EQ.TRI
+   401 fixnum  120
+   402 symbol  DRAW.ROCKET
+   403 flonum  0.5
+   404 flonum  0.2
+   405 flonum  0.25
+   406 flonum  -0.25
+   407 flonum  -0.15
+   408 fixnum  60
+   409 symbol  DEFINE.ROCKET
+   410 symbol  ROCKET
+   411 symbol  DEFINE.POLY
+   412 symbol  POLY
+   413 symbol  ANGLE
+   414 symbol  DRAW.POLY
+   415 symbol  POLY1
+   416 symbol  DEFINE.FLOWER
+   417 symbol  FLOWER
+   418 symbol  NUMBER.OF.PETALS
+   419 fixnum  3
+   420 symbol  COLORS
+   421 symbol  RED
+   422 symbol  YELLOW
+   423 symbol  ORANGE
+   424 fixnum  200
+   425 symbol  OR
+   426 symbol  STATUS
+   427 symbol  FEATURE
+   428 symbol  D.OBJECTS
+
+The LAP-like listing of the loaded words is in code/3100153_turt.code.txt.

@@ -1,0 +1,129 @@
+FASL dump: original/7005044/cran.fasl  (ITS KEN;CRAN FASL, tape 7005044, Dec 1975)
+Decoded 291 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 291 of 291 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212026,,000007 ('106', flag bits 007), 20 blocks, 174 items
+Item counts: absolute 26, relocatable 6, special 26, smashable call 41, quoted atom 12, globalsym 8, atom table 40, entry 6, eval mungeable 8, end 1
+
+-- Functions defined (6) --
+  name                         property args         address
+  WORM                         SUBR     (NIL . 3)    000000
+  PICK                         SUBR     (NIL . 2)    000043
+  COLORNUM                     SUBR     (NIL . 1)    000067
+  COLORSQI                     SUBR     (NIL . 3)    000075
+  RANCOLOR                     SUBR     (NIL . 0)    000116
+  FILL                         SUBR     (NIL . 0)    000125
+
+-- Top-level forms evaluated at load time (8) --
+  (COMPILED-FUNCTION-SETUP WORM)
+  (COMPILED-FUNCTION-SETUP PICK)
+  (COMPILED-FUNCTION-SETUP COLORNUM)
+  (COMPILED-FUNCTION-SETUP COLORSQI)
+  (COMPILED-FUNCTION-SETUP RANCOLOR)
+  (COMPILED-FUNCTION-SETUP FILL)
+  (UNITE ':N ':NAMES)
+  (SETQ :N '350)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  WORM
+      calls:        LOGO-RANDOM *TIMES FORWARD RIGHT REMAINDER EQUAL INTEGER COLORNUM PENCOLOR *PLUS
+      specials:     :A :B :C :N
+      quoted atoms: 0 8 1
+  PICK
+      calls:        EQUAL FIRST BUTFIRST *DIF PICK
+      specials:     :L :N
+      quoted atoms: 0 1
+  COLORNUM
+      calls:        PICK
+      specials:     :N :COLORS
+  COLORSQI
+      calls:        FORWARD RIGHT RANCOLOR PENCOLOR *PLUS COLORSQI
+      specials:     :N :A :I
+      quoted atoms: ?
+  RANCOLOR
+      calls:        LOGO-RANDOM *TIMES INTEGER COLORNUM
+      quoted atoms: 9
+  FILL
+      calls:        RANCOLOR PENCOLOR LOGO-RANDOM *TIMES INTEGER *DIF POINT
+      quoted atoms: 1000 500
+
+-- Symbols and how they are used (32) --
+  *DIF                           called
+  *PLUS                          called
+  *TIMES                         called
+  :A                             special
+  :B                             special
+  :C                             special
+  :COLORS                        special
+  :I                             special
+  :L                             special
+  :N                             in top-level form, special
+  :NAMES                         in top-level form
+  ?                              quoted
+  BUTFIRST                       called
+  COLORNUM                       called, defined, in top-level form
+  COLORSQI                       called, defined, in top-level form
+  COMPILED-FUNCTION-SETUP        in top-level form
+  EQUAL                          called
+  FILL                           defined, in top-level form
+  FIRST                          called
+  FORWARD                        called
+  INTEGER                        called
+  LOGO-RANDOM                    called
+  PENCOLOR                       called
+  PICK                           called, defined, in top-level form
+  POINT                          called
+  QUOTE                          in top-level form
+  RANCOLOR                       called, defined, in top-level form
+  REMAINDER                      called
+  RIGHT                          called
+  SETQ                           in top-level form
+  UNITE                          in top-level form
+  WORM                           defined, in top-level form
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (40 entries; 0 is NIL) --
+     1 symbol  COMPILED-FUNCTION-SETUP
+     2 symbol  WORM
+     3 symbol  SUBR
+     4 symbol  :A
+     5 symbol  :B
+     6 symbol  :C
+     7 fixnum  0
+     8 symbol  :N
+     9 symbol  LOGO-RANDOM
+    10 symbol  *TIMES
+    11 symbol  FORWARD
+    12 symbol  RIGHT
+    13 symbol  REMAINDER
+    14 symbol  EQUAL
+    15 fixnum  8
+    16 symbol  INTEGER
+    17 symbol  COLORNUM
+    18 symbol  PENCOLOR
+    19 fixnum  1
+    20 symbol  *PLUS
+    21 symbol  PICK
+    22 symbol  :L
+    23 symbol  FIRST
+    24 symbol  BUTFIRST
+    25 symbol  *DIF
+    26 symbol  :COLORS
+    27 symbol  COLORSQI
+    28 symbol  :I
+    29 symbol  RANCOLOR
+    30 symbol  ?
+    31 fixnum  9
+    32 symbol  FILL
+    33 fixnum  1000
+    34 fixnum  500
+    35 symbol  POINT
+    36 symbol  UNITE
+    37 symbol  QUOTE
+    38 symbol  :NAMES
+    39 symbol  SETQ
+    40 fixnum  350
+
+The LAP-like listing of the loaded words is in code/7005044_cran.code.txt.

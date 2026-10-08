@@ -1,0 +1,77 @@
+.comment this was in earlier versions of thesis in *inter appendix
+.comment but was flushed since most people did not find it useful
+.next page
+The following is an Actor-like definition of
+the constructor of temporal specifications:
+.begin nofill
+
+[fl][cons-temporal-specification 
+   (> [=event =time-exp]
+	(cases
+	 (> event? event)	;[fi]if asked for event return the event[fl]
+	 (> time-exp? time-exp)		;[fi]if asked for the time-exp[fl]
+						;[fi]return the time-exp[fl]
+	 (> type? (time-exp <= type?))		;[fi]if asked for "type" pass[fl]
+						;[fi]question on to time-exp[fl]
+	 (> (replace-event: =new-event)	;[fi]if asked to replace [fl]
+						;[fi] the event with a new-event[fl]
+	      (cons-temporal-specification new-event time-exp))
+;[fi]then return a new temporal specification consisting of the new event[fl]
+;[fi]but the old time-expression[fl]
+	 (> (replace-time-exp: =new-time-exp)
+;[fi]if asked to replace the time-expression with a new one[fl]
+	      (cons-temporal-specification event new-time-exp))
+;[fi]then return a new temporal specification consisting of the old event[fl]
+;[fi]and a new time-expression[fl]
+	 (> representation-type?	;[fi]if asked for representation-type[fl]
+	     (time-exp <= representation-type?))	;[fi]pass the question[fl]
+							;[fi]on to the time-exp[fl]
+	 (> amount-exp?	;[fi]if asked for the amount-expression[fl]
+	      (time-exp <= amount-exp?))	;[fi]pass the question on to[fl]
+						;[fi]the time-expression[fl]
+	 (> events?	;[fi]if asked for an "events" construct not in the time[fl]
+;[fi]specialist.  This is an example of how this mechanism allows
+;the code to be "structure independent".[fl]
+	      (cons-events
+	       event
+	       (time-exp <= reference-event?)))
+;[fi]then construct an "events" expression consisting of the event[fl]
+;[fi]and the reference event obtained from the time-expression[fl]
+.next page
+[fn]The definition continues:[fl]
+
+	 (> englishify?	;[fi]if asked to "Englishify"[fl]
+	      (rules (time-exp <= type?)	;[fi]then depending on[fl]
+						;[fi]the type of the time-exp[fl]
+		     (> (date:) 	;[fi]if the type is "date"[fl]
+			 ['the 'date 'of
+			  	(event <= englishify?)
+			  	'is
+			  	(time-exp <= englishify?) ])
+;[fi]then return the sequence that is the "words", "the date of",[fl]
+;[fi]followed by the "Englishify" of the event, followed by the[fl]
+;[fi]word, "is", followed by the "Englishify" of the time-expression[fl]
+		     (> (relative:)	;[fi]if the type is "relative"[fl]
+			  ['the 'time 'of
+				(event <= englishify?)
+			  	'is
+			  	(time-exp <= englishify?) ])))
+;[fi]then return the sequence that is the "words", "the time of",[fl]
+;[fi]followed by the "Englishify" of the event, followed by the[fl]
+;[fi]word, "is", followed by the "Englishify" of the time-expression[fl]
+	 (> (translate-to: =new-type) ;[fi]if asked to translate to[fl]
+						;[fi]a new type[fl]
+	      (rules new-type	;[fi]then depending on the new type[fl]
+		     (> (time-exp <= type?) 	;[fi]if the new type is[fl]
+						;[fi]the same as the old[fl]
+			  (cons-temporal-specification event time-exp))
+;[fi]then return a copy of the temporal specification[fl]
+		     (else		;[fi]else[fl]
+		      (cons-temporal-specification
+			    event
+			    (time-expression <= (translate-to: new-type)))
+;[fi]return a new temporal specification consisting of the old event[fl]
+;[fi]and the result of sending the time expression the translate message[fl]
+		)))) ]
+
+.end

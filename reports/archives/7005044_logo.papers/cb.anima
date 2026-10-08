@@ -1,0 +1,214 @@
+.Xgp
+.FONT 0 40FG KST
+.he
+
+Charlie Brown walks up to Lucy and greets her by
+saying, "Happy New Year, Lucy!".
+.sp
+(The background is a grass field.)
+.sp
+(He has his arm extended as a sign of greeting.)
+.sp
+Lucy asks,"Does that make it so?". 
+.sp
+(Charlie Brown has look of puzzlement and interest.)
+.sp
+Lucy continues, "Does your saying, 'Happy New Year'
+MAKE it happy?".
+.sp
+(Lucy's arms are upraised as sign of emphasis.)
+.sp
+Lucy goes on, "Just because you SAY it does that
+mean it WILL be?".  
+.sp
+(Lucy's arms are outstretched as sign of question.)
+.sp
+(Charlie Brown has a facial expression of confusion.)
+.sp
+Lucy shouts, "IS THIS A GUARANTEE?  
+IS THIS ..."
+.sp
+Charlie Brown says, "Oh, good grief".
+.sp
+(He has his Charlie Brown expression)
+.pa
+.ce
+A Possible Parse
+.sp 
+ (Background grass-field)
+.sp
+ (key-frame1
+     (CB (walking (towards Lucy))
+	 (says "Happy New Year, Lucy!)
+	 (greeting Lucy)
+	 (arm extended)) ; implied by the above
+     (Lucy (standing (facing CB))))
+ (key-frame2
+     (CB (standing (facing Lucy)))
+     (Lucy (asks "Does that make it so?")))
+ (key-frame3
+     (CB (arm hand-on-chin)
+	 (expression (and interest puzzlement)))
+     (Lucy (arms up-stretched)
+	   (expression emphatic)
+	   (asks "Does ... ?")))
+ (key-frame4
+     (CB (expression confusion))
+     (Lucy (asks "Just because ...")
+	   (arms out-stretched)
+	   (expression questioning)))
+ (key-frame5
+     (CB ())
+     (Lucy (shouts "IS THIS A GUARANTEE?")))
+ (key-frame6 
+     (CB (expression good-grief)
+	 (says "Oh, good grief"))
+     (Lucy (continues "IS THIS ...")))
+.pa
+.ce
+Fills in Key-frames
+.sp 2
+ (key-frame1
+     (CB (walking (towards Lucy))
+	 (says "Happy New Year, Lucy!)
+	 (greeting Lucy)
+	 (arm extended)
+	 <<expression mildly-friendly>>
+		;since greeting is going on
+	 <<position screen-left>>
+		; pretty arbitrary
+	 <<orientation full-right-profile>>
+		 ;based on above position and
+		 ;"(walking (towards Lucy))"
+	 <<clothes default-cb>>
+	 ;a smarter version would know that
+	 ;"Happy New Year ===> (clother winter))
+     (Lucy (standing (facing CB))
+	   <<expression mild>>
+	;either default or for contrast
+	;with  future frames
+	   <<arms down>>; standard default
+	   <<position screen-right>>
+	; since there are only 2 people
+	; and CB is "screen-left"
+	   <<orientation full-left-profile>>
+	; since facing CB
+	   <<clothes default-lucy>>))
+.pa
+  (key-frame2
+     (CB (standing (facing Lucy))
+	 <<arms down>>)
+	; people get tired of extending their
+	; arms if nothing to the contrary
+	; indicated. the rest is "no-change"
+     (Lucy (asks "Does that make it so?")))
+	; the rest is "no-change"
+.sp 2
+.ce
+Differences Between Key-frame1 and Key-frame2
+.sp 2
+ (Transformation key-frame1 key-frame2
+ 	(CB (walking standing)
+	; assumes "facing" and "towards"
+	; are close enough
+	    (arms (one extended) down)
+	; note there is no position
+	; change except implicit
+	; in "walking"
+		 (talking listening))
+	(Lucy (listening talking)))
+.pa
+.ce
+Two examples of a difference being run
+.sp 2
+	(arms (one extended) (both down))
+ is sent to "arms" specialist resulting in:
+.sp
+ (body-part1 right-arm 
+  ; since most people are right handed
+   (body-orientation full-right-profile)
+   (orientation +30))
+.sp
+ (body-part2 right-arm
+	     (orientation -90))
+.sp
+ (transformation right-arm
+		 (orientation 30 -90))
+.sp
+which combined with a time constraint of say 14 frames results
+in calls to draw-arm with orientations of say,
+.sp
+ (30 26 20 8 -4 -16 -28 -40
+ 		 -52 -64 -76  -80 -86 -90)
+.sp
+ Note the "ease-in" and "ease-out"
+.pa
+Suppose that one of the differences was
+  (CB (expression happy neutral))
+.br
+Then the "expression" expert would return
+ (body-part1 head
+	     (orientation full-front)
+	     (mouth smiling)
+	     (eyes happy))
+	;could have ears, nose, etc. too 
+ (body-part2 head
+	     (orientation full-front)
+	     (mouth dash)
+	     (eyes normal))
+ (transformation head
+		 (mouth (smiling dash))
+		 (eyes (happy normal)))
+.sp
+Then the system recurses on "mouth" and "eyes". For "mouth"
+ (body-part1 mouth
+	     (head-orientation full-front)
+	     (length 100) ; in turtle units ?
+	     (curvature 120)) ; in terms of sum
+			      ; of RT and LT
+ (body-part2 mouth
+ 	     (head-orientation full-front)
+	     (length 50)
+	     (curvature 0))
+ (transformation mouth
+		 (length 100 50)
+		 (curvature 120 0))
+.br
+It could be that "length" and "curvature" are interpolated
+in parallel or there may be advise otherwise.
+.pa
+.ds
+.ce
+Examples of Advise and Criticism from User
+.sp
+ "No, have CB come in from screen right"
+ "CB should walk in front of the tree not behind"
+ "Ok, but the eyes in the last part should open wider."
+ "Lucy turned her head too fast."
+ "We should zoom in on Lucy when she shouts"
+ "Half way through they should turn towards the "audience"."
+ "Something is wrong in the last scene but I don't know which"
+ "Instead of first cut try a fast dissolve."
+.pa
+.ss
+.ce
+Problems in full head rotation
+.sp 2
+A to B and B to C ---- The mouth is difficult to transform
+especially when trying to preserve the expression.
+.sp
+B to C ---- When should hair change form?
+	When should shadow appear under chin?
+.sp
+B to C ---- When does other eye appear?
+.sp
+C to E When should back hair disappear?
+.sp
+C to F ---- Is this mostly shifting ear, eyes, nose, and
+mouth to until the centered?
+.sp
+Can B, C, and D be made to look reasonable? If not
+can they have only a few frames (i.e. go by quickly)
+and never have action STOP on them.
+.end
+

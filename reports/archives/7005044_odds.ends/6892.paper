@@ -1,0 +1,376 @@
+.xgp
+.ds
+.sp 10
+.ce
+   1An AI View of Structured Programming0
+.sp 4
+.ce
+by
+.ce
+Kenneth Kahn
+.ce
+May 8, 1974
+.ce
+6.892 Term Paper
+.ad
+.ds
+.he         Kenneth Kahn's 6.892 Term Paper     Page  
+.pa
+.ce
+Introduction
+     Structured programming is a collection of 
+techniques for writing programs that are correct,
+modifiable, readable and comprehensible all with
+a reasonable amount of effort.  While the
+proponents of structured programming claim that
+their techniques are general for programming
+of all problems (at least those that are understandable),
+it is not clear that they apply to AI programming.
+The background of those in structured programming is
+usually systems programming and the question arises as
+to whether what they claim works for operating systems
+works for intelligent systems.  This paper will
+discuss this issue.
+     There are many different techniques associated with
+structured programming and it is likely that some methods
+are general to all programming and some only to problems
+with a particular structure.  To decide what structured
+programming has to say to AI and related fields we shall
+go through the techniques one by one.
+.sp
+.ce
+Proofs of Correctness
+     Structured programming includes techniques for proving
+that a program is correct, that is it satisfies its
+input/output specifications.  Most of the literature deals
+with techniques of specifying pre- and post-conditions and
+invariants in a first order logic and then proving correctness.
+The question that arises when one considers AI problems is
+whether the specifications can be expressed in first order
+logic or any logic at all.  Consider SHRDLU, a very
+famous AI program written by Terry Winograd considered by many to be a great breakthrough in the problem
+of teaching machines to understand English.  But what could
+be its specification?  One goal of the program is to create
+a system that can understand a subset of English as well as
+humans do. Surely such a goal can not be represented as
+a logical proposition to be proved.  Even the input can not
+be well defined, that is it can not be logically specified
+as being a subset of English. 
+     However, it could be argued that although the system as
+a whole can not be shown to be correct, many of the sub-modules
+can. Perhaps it could be proved that the read routine will
+read until a period, question mark, or exclamation mark and
+return each word as they are typed.  Perhaps it could
+be proved that the routine that clears the top of a block does
+indeed clear off all those blocks that are above that block.
+But could it be proved that the syntactic parser will return
+a "correct" parse of the sentence?  The question then arises
+is it much use to prove some of the subsystems correct when
+all that really matters is that the entire system performs as
+it should.  It could be argued that this would reduce the 
+number of bugs in the entire system by removing them from many
+of the subsystems.  However, at the present state of the art,
+the effort involved in proving the straight forward subsystems correct
+is probably greater than the benefits.  Winograd wanted to
+work on understanding English not read routines.  Generally
+it is the uninteresting "system" parts of an AI program that
+can be proved by the available structured programming 
+techniques.  The interesting problems in AI are usually those
+that are not well defined (in the sense of McCarthy), that is
+there is not algorithm that can be applied to check if the
+output is correct.  The interesting solutions to AI problems
+are those that work most of the time 
+but sometimes fail, as with people.
+An AI chess program has a high chess rating or wins often 
+but does not win
+every game.
+.sp
+.ce
+Hierarchy Versus Heterarchy
+    To be structured, among other things, a program must be
+hierarchical, that is no two modules may call each other.  For
+example, in systems design it is argued that the code supporting
+processes and the code for supporting files should have only
+a one way dependence.  That is the file system may use
+processes but if it does then processes may not use the file
+system (and vise versa).  The rational is that this greatly
+eases the tasks of modifying, verifying, and understanding
+the system.  However, heterarchy is a popular concept in AI.
+Many claim that the reason that SHRDLU succeeded where
+earlier programs failed was that it was heterarchical.
+Previously most attempts to understand English were
+hierarchical, that is they allowed the semantic module to
+call on the syntactic module but there were few links the
+other way.  Winograd believed that to parse the sentence
+efficiently (and at all in some cases) the semantic module
+and the inference module
+must be used.  So his system became heterarchical, worked,
+but suffered much of what proponents of structured programming
+would expect---it is very difficult to modify or understand.
+     This use of heterarchy is not limited to language
+understanding systems but has been a powerful technique in
+vision systems.  In trying to recognize a scene it was
+found that the local knowledge interacts heavily with the
+global knowledge. So programs were written in which the
+line and vertex finders call upon the global scene recognizer
+for help and of course the global module calls upon the local
+modules for information. It would seem from these examples that
+there are situations that inherently require heterarchy and
+even though it leads to unstructured programs it sometimes is
+the best way to solve the problem.
+     However, there is a middle ground that can be taken.
+That would be to create a higher level "control" module
+and have the potentially heterarchical routines interact only
+by going through the higher level module.  A good example
+of this would be the speech understanding system under 
+development at BBN by Woods and others.  There are
+six potentially heterarchical modules, the phonetic module,
+the lexicographical module, the syntactic module, the
+semantic module, the pragmatic module and a bookkeeping
+module.  For example, the lexicographical module usually can't on its
+own decide what the beginning and end of words
+should be.  Sometimes the syntactic module
+will suggest looking for a short word because it expects a
+preposition.  Sometimes the pragmatic module will suggest a
+word because it seems the most likely to be next in this
+context. (For example, in listening to one talk about
+structured programming one would expect the word spoken
+after the word "structured" to most likely be "programming").
+Yet these modules and the the syntactic and phonetic modules
+need to get information from the lexicographical module. But
+Woods system in not exactly heterarchical since all these
+modules return in addition to answers to calls, requests for
+more information from another module which the control module
+calls and then calls the asking routine with the answer.
+Such a system seems more understandable, more modifiable,
+than a strictly heterarchical system and less so than a
+hierarchical system that would obviously fail in speech
+recognition.  Notice that this does not necessarily imply
+that the use of heterarchy is because the problem is not
+"well understood", it is more likely just the result of the
+structure of
+some problems.
+.sp
+.ce
+Control Structures
+     Structured programming suggests that control structures
+should be limited to a small set usually consisting of only
+concatenation, "if---then---else---" conditionals, case
+statements, simple loops, and structured subroutine or function
+calls.  This is sufficient to be theoretically complete
+so only the questions of ease of use and perversion of use
+remain.  By perversion of use, it is meant that one constructs
+very unstructured control structures out of the allowed ones.
+Theoretically it should be possible to implement gotos using
+only the structured control structures.  In other words, in
+writing AI programs is there a need for other control
+structures that would cause a programmer to violate the
+spirit of the restriction to only structured control structures?
+     The development of recent AI languages would seems to
+indicate that other control structures are needed.  In 
+PLANNER, CONNIVER and ACTORS strong
+emphasis is placed on pattern-directed invocation of
+procedures.  This delegation of control to local components
+has uses that vary from maintaining a relatively consistent
+and complete data base, to putting forth hypothesises,
+to protection from assumptions (by adding demons that watch
+for violations of assumptions).
+The effects of putting knowledge in autonomous routines
+that are not directly controlled by the program are many.
+Modifiability and modularity (and thus understandability)
+are greatly increase since demons are usually indexed by what they
+can do and thus new ones can be added or old ones
+modified without requiring changes in any other part of
+the program.  However, proofs of correctness become much
+more difficult with demons sitting around waiting to take
+control.  Demons can be viewed as generalized software
+interrupts.  However, interrupts are a dirty word in structured
+programming according to Dijkstra <2>.  But his objections
+are based on problems of timing and the resulting
+difficulties in complete testing.  But demons have no
+timing problems and it is not clear if testing would
+become any easier if the knowledge embedded in the demons
+were incorporated in a structured program.
+     Again there is a middle ground on this issue.
+Demons need not grab control away when their triggers
+are satisfied but might simply send suggestions up to
+their superiors who can follow them or not as it sees
+fit.  One fairly structured way of handling this would
+be to ask for suggestions from demons after adding to,
+removing from,
+or interrogation of the data base.  The interrupt aspect
+of demons is thus removed yet the modularity is preserved.
+But when you know that a particular demon's suggestions
+would always be followed then why not make it automatic and
+simplify the higher level modules. Whichever implementation
+is preferred it seems that pattern directed invocation
+is very useful in AI and perhaps more structured than
+conventional control structures.
+     AI languages such as CONNIVER have other
+unconventional control structures that may be useful.  
+For instance, in CONNIVER, it is possible to
+decide that perhaps this path of search or investigation
+is wrong and another should be tried.  However, if the
+new path fails one may want to try some more of the old
+path where it was left off.  For example, an integration
+program may try to use integration by parts but after
+not getting too far it may try to do it some trigonometric
+substitutions and this might succeed.  However, if it
+doesn't we may want to try integration by parts again
+but don't want to start over again.  This ability
+to hang routines is often very important yet is not
+structured necessarily, since anybody even a clock
+interrupt may hang routines and someone else may resume
+the routine. User controlled backtracking also hinges
+on this control structure.  The problems of proofs of
+correctness and understandably are difficult to assess
+since parallelism is not very well understood.  Perhaps
+if its not well understood it shouldn't be used but
+it seems very useful in many situations.
+     There are other new control structures developing
+in the AI community.  Carl Hewitt's ACTORS
+formalism is based on the notion of generalized 
+uni___-directional message passing <3>.  While this
+clearly violates structured programming's definition
+of structured control structures there are good claims
+that systems written in this language will be very
+modular, modifiable, understandable (once one becomes
+used to a very different way of looking at computation),
+and verifiable.  It seems to have the same goals of
+structured programming and yet is a very different
+approach which seems not to conflict with AI
+programming (which I have been attempting to show
+that conventional structured programming tenets sometimes do).
+There other issues of efficiency of ACTORS
+versus a conventional programming but they are beyond
+the scope of this paper.
+.sp
+.ce
+Stepwise Refinement Versus the Debugging Paradigm
+     Structured programming contains techniques for
+designing systems top-down by recognizing various levels
+of abstraction and making one design decision at a time.
+By being explicit about all design decisions and allowing
+only a minimum of interface assumptions between modules the hope is
+that essentially correct code will be produced from the
+start.  A few system development project seem to
+substantiate this claim.  One of AI's powerful
+ideas (after Papert) is linerization.
+The slogan is, "try a first order theory 
+first and then debug the mistakes".  A paradigm example
+of this would be Sussman's HACKER <4> where the
+system writes blocks world programs by ignoring interactions
+and second order effects and then using debugging knowledge
+to patch the problems.  It should be noted that if it 
+has seen a similar problem before it will remember previously
+debugged solutions and try those.  In other words, if the
+problem is familiar step-wise refinement may work but for
+poorly understood problems approximation followed by debugging
+seems more successful.  This is probably a good model of
+problem solving in general not just programming.  
+     Once more there is a middle ground on this controversy.
+Step-wise refinement and top-down design are good for
+both well understood problems and the second pass for previously
+poorly understood problems that have been "solved" by debugging.
+The patched up program is thrown away to be replaced by a 
+cleaner structured program.  But debugging has an important
+role in learning (which may continue after the program is 
+"finished" if it is to be continuously improved). Also
+from the point of view of automatic programming the distinction
+lessens since the machine can either run and patch bugs or
+look ahead by simulating and planning first and then producing
+the code.  Yet a plan is code itself at a higher level of
+abstraction.
+.sp
+.ce
+How AI Could Help Extend Structured Programming
+     The top level goal of structured programming is
+to produce reliable modifiable programs. Goals such as
+proofs of correctness and understandability are subsidiary
+to this top goal.  Recent work in AI and automatic
+programming on self-understanding programs capable of
+explaining what they do, how they do, and how to modify
+what they do should help produce reliable modifiable
+programs.  Machine readable and executable comments
+and intentions should obviously help a programmer (whether
+human or not) to more easily modify code. This built
+in understanding should also increase reliability by
+having the system explain what it is doing and why when asked. 
+Reliability should mean that the code satisfies what the
+designers think it should do.  A medical diagnosis program
+isn't reliable simply because someone wrote down the
+algorithm or strategies and proved that the program
+follows them but because it does good diagnosis (at least
+as good as a doctor).  But the doctor does more than
+good diagnosis to be considered reliable, he or she
+explains his or her reasoning for the diagnosis. Perhaps
+trustworthy is a better word than reliable yet it is
+what the user wants, not a proof of correctness, just
+simple English explanations and justifications.
+     When one does AI or knowledge based programming
+the data structures often become very complex.  The line
+between code and data fades since data is inspected, 
+suggestions are returned and sometimes the data is
+"executed". Especially in automatic programming where
+the data that the program massages is itself a program to
+be tested, proved correct, and run.  In putting medical
+knowledge into the computer <5>, the data, or frames in Minsky's
+sense <6> are just as hard as the program to design and
+be sure that it is reliable.  Surely some of structured
+programming's techniques apply readily to complex data
+structures but it seems that there are special problems
+here. In Martin's OWL language <7> ,for example, procedures are 
+sometimes just looked at, sometimes partially executed,
+sometimes executed, and sometimes compiled.  The execution
+or compliation is often dependent on global information.
+Does proof of correctness or step-wise refinement make
+sense for such a language?  Perhaps if the methodology
+of the field of structured programming were applied to
+this problem it might help.
+.pa
+.ce
+Conclusions
+     The interactions between AI and structured programming
+are many and varied.  In doing AI programming the 
+structured programming style
+of programming helps in some cases and
+hinders in others.  An AI program with restricted use of gotos
+and global variables and structured as hierarchically as
+feasible which avoids hairy control structures when ever 
+possible will be more effective, reliable and modifiable.
+The program will probably be more comprehensible which
+is very important for AI researchers since they are
+usually more interested in understanding their programs
+than having them used.  In addition to the advice
+structured programming has to AI researchers similarly
+AI suggests some new avenues of research for structured
+programming researchers.
+.pa
+.sp
+.ce
+References
+.sp
+.ss
+1) Winograd, T., "Procedures as a Representation for Data
+in a Computer Program for Understanding Natural Language",
+MIT Project MAC, MAC TR-84, Febuary 1971.
+.sp
+2) Dijkstra, E.W., "The Structure of the 'THE'-multiprogramming
+system", Comm____. of__ the___ ACM___, 11__, 5 ,May 1968, pp.341-346.
+.sp
+3) Hewitt, C. et. al.,"A Universal Modular ACTOR
+Formalism", IJCAI-73________, Stanford, 
+August 1973.
+.sp
+4) Sussman, G.J., "A Computational Model of Skill
+Acquistion", Artificial Intelligence Laboratory, AI TR-297, August, 1973.
+.sp
+5) Gorry, G.A. et. al., "NIH Proposal", April 1974.
+.sp
+6) Minsky, M., "A Framework for Representing Knowledge",
+(forthcoming 1974).
+.sp
+7) Martin, W.A., "Owl, a System for Building Expert
+Problem Solving Systems Involving Verbal Reasoning",
+Course 6.871 Notes, Spring 1974.
+.end

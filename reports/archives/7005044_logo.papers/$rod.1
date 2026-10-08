@@ -1,0 +1,318 @@
+.sec Sessions using the System
+	The purpose of the system is to be used by
+elementary school children, as a supplement to the
+usual Logo sessions.  For various reasons, I only
+worked with one child, Rod. Rod was a 7th grader at the King
+public school in Cambridge.  He was 13 years old,
+during these sessions.  He came on Wednesdays and
+Thursdays for sessions of between 45 minutes and one hour.
+I worked with him on Logo from May 7th to June 12th.
+.subsec The Wednesday May 14 Session
+	After two previous sessions of rather standard Logo turtle
+work making squares, flowers, windows, etc., Rod was introduced
+to my talk system.  On the previous Thursday, I attempted to
+show him the system,
+but system problems quickly aborted that attempt. I started off
+talking only about generation.  I asked him for an example of a
+sentence that we could generate.  He said, "Bob has a cat."
+Then I told him how to remember that an "S" can be that, literally.
+He typed "Talk,"
+(and after problems with the tree-drawing routines due to workspace 
+limitations) it typed back "Bob has a cat," of course.
+	I then asked how could we get it to say something
+different (other than by remembering another "S" literally).
+We talked about saying "REMEMBER [S NAME VERB DET NOUN]" 
+Rod providing much of the content.  We had a discussion about
+the word "a" and what to call it. Then I told him that we can use
+other words for the noun, verb, etc. than in the original sentence. So he told me to type (since he is a slow typer) things like
+[NOUN CAT], [NOUN COW],
+etc.. All together he came up with about 10 "dictionary"
+entries. He typed "Talk," and we saw about 4 or 5 variations on the original.
+I then asked him how we could get it to make different kinds of sentences.
+He was confused, then I asked him for an example of a sentence
+and he suggested
+"I went fishing today."  He quickly did a parts of speech breakdown
+on it, but was unsure about "today."
+He asked me if it is a noun and I said yes but a special kind
+and we don't want it to say, "I went fishing cow."  I suggested
+calling it a "TIME.NOUN".
+	Then he had me type in [PRONOUN I], [VERB WENT],
+[VERB FISHING], and [TIME.NOUN TODAY]. 
+He forget about
+defining the sentence and when he ran "Talk" he got, "Bob went
+a cat" and he said that was wrong and realized that one of 
+the new verbs was being used in the wrong place in the original
+sentence.  After a few more talks I asked why we were not
+getting anything like the fishing sentence.  He didn't know and
+I asked him if we had "Remembered" what "S" can become and then
+he told me to type, "[S PRONOUN I VERB WENT VERB FISHING TIME.NOUN TODAY]".
+I tried to ask if he was sure that was right and he
+thought it was.
+	A few "Talks" later we got, "I I went went has fishing today today".  He wasn't clear why it was happening.  At this
+point I thought at least the grind-showtree feature might help
+but again workspace limitations did us in.foot<This was unexpected on my part
+since I neglected to take into account the portion of his workspace devoted
+to teaching aids.> 
+Anyway I asked him
+for the "S" that made the sentence and explained how it caused
+the funny sentence. So we "Forgot" it and "Remembered"
+the "right" version.
+	The next "Talk" was "I fishing went today," to which he
+smiled and said "I went fishing today". I asked him what did
+it say and he repeated it and then said "oh."  I asked him why
+it happened and he said it picked the wrong verb.  So I suggested
+making different kinds of verbs.  For "went" after some discussion
+we picked "going.verb" and he suggested "doing.verb" for "fishing".
+	The next talk produced "Bob fishing a cat" and then it
+was time to leave.
+.subsec The Thursday May 15 Session
+	Today the grind-showtree feature was winning so I explained it and it seemed to help.
+The first talk returned "I going.verb doing.verb today" and
+he remembered we hadn't finished yesterday.  We "Remembered"
+"went" and "fishing".
+	A few "Talks" later we got "Gil went a cat" and Rod
+said to remove the [VERB WENT].
+The next talk was "I went
+fishing today" and then Rod came up with "running," "jumping"
+and "swimming" as "doing.verbs".  He also added "he" and "she"
+as pronouns.  Then the sentence "Bob has a cat," the one
+without any
+structure, poped up 3 times and we agreed to "Forget" it.
+	After a few more successful "Talks" we went on to
+matching. I suggested we try to find someone's name in
+sentences.  We came up with the following list:
+.begin
+.nofill
+	1) My name is Ken.
+	2) I am called Ken.
+	3) They call me Ken.
+	4) Ken is my name.
+	5) I am Ken
+.end
+I explained how to write a pattern for the first one which is
+[$ MY $ NAME IS ?NAME $]. He caught on quickly to
+the idea that a "$" means anything (including nothing) can be there.  Since he had little experience with "Make" and "Thing"
+when doing turtle Logo, he was a little confused about "?name".  The second one we did together (me helping when he got stuck)
+and Rod did the rest by himself (except for asking a few specific
+questions).
+We tested the first one at Logo top level all worked well so
+I suggested we "Teach".  I had to explain "If" and "Output"
+and I think Rod was confused but after using it a while they
+became clearer.  We first taught only the first two patterns
+and tested it out and it did return the name when it should.
+When nothing matched we got a "NE didn't output" error
+message and without much explanation I simply said we
+need to output a name (I picked the empty word which perhaps
+was a mistake) if no patterns matched.  
+	We tested out the procedure and all worked well.  I then
+suggested we put it in a procedure that asked for your name then
+called our procedure (NE) and then said "hi" to the name found
+in the user's response.  We were debugging that when the session
+ended.
+.subsec The Wednesday May 21 and the Thursday Sessions
+	We did slight cosmetic changes to talk
+loop procedure (HK) and tested it out a little.  At one
+point Rod expected the thing to be much smarter than it could
+be.  After about 10 minutes, Rod asked if we could work with
+the display turtle.  For the rest of the session and the next
+one (May 23), we worked on a procedure for drawing
+a house, and then parameterizing by size so that we could make
+a city, (about 12 houses of different sizes distributed on
+the screen).
+.subsec The Wednesday May 28 Session
+	I suggested we combine the talk stuff
+and the turtle stuff, so that one can give English commands
+like "Draw a big house in the center" and it would.  We talked
+about it for a while and got to work. I asked Rod for a 
+sentence to make a pattern of, and he said, "Build a small house."  We worked out a pattern for it, Rod being  a little
+rusty a first.  I explained to him the "OR" feature and we 
+came up with the following pattern:
+.begin nofill skip
+[fl][$ :DRAW.WORDS $ A ?SIZE :HOUSEWORDS]
+[fn]Where we previously did [fl]
+MAKE "DRAW.WORDS [OR DRAW BUILD MAKE CONSTRUCT] and
+MAKE "HOUSEWORDS [OR HOME BUILDING HOUSE TOWER].  
+.end 
+	We wrote a procedure called "She2" for size of He2, the name
+of the house drawing procedure. It did the makes, and then used
+the above pattern in a match, outputed the ":?size" or else
+printed "I don't understand you" and returned the empty word.
+We tested it and it failed to match "Build a small house".
+Both of us were stumped, so I told Rod about "match.trace"
+which if true switches on comments from the matcher as to why
+something is failing to match.  It's message was strange,
+it looked as if it should have worked and yet didn't. So I
+assumed it was a bug in my code, tried a slight change in the
+pattern, and the message this time was, "The remaining pattern
+[OR DRAW BULID MAKE CONSTRUCT]
+ doesn't match the rest of the object BUILD".  I was sure their were bugs in my code and was about 
+to give up when I noticed "bulid" had been typed
+instead of "build" and pointed it out
+to Rod. We fixed it and it worked.
+	Next we wrote "Builder," the main loop that asked for
+instructions and then interpreted the input, and tried to do it and
+then looped.  So Rod decided that "big" would mean "He2 100,"
+"small" would be "He2 20" and "Large" would be "He2 120". We
+tested it and it worked except, we forgot to print a message
+asking for a command, and it did not clear the screen before
+drawing a new house.
+	During this session we talked a bit about the problem
+of location, however I suggested we put that off until we got
+the rest working.  We also planned to fix it so that if one
+does not give a size, e.g. "Draw a house," it would have a
+pattern
+for that and draw a medium size house.
+.subsec The Thursday May 29 Session
+	We continued work on "Builder". First Rod
+tested it out and all worked fine. Then I suggested the
+sentence "Make me a house" and it said that it did not understand.
+Rod was confused about this but knew it had something to do
+with not having "?Size". He understood that we should make
+a pattern without "?Size" but was confused what to do with this
+pattern. . We put it in She2 and had it return "[NO SIZE GIVEN"].
+Then he was confused as to how to change "Builder". He seemed
+to think that the computer understood "[NO SIZE GIVEN]". 
+Eventually he had it make a house of size 60. We also changed
+large and big to be smaller to fit on the screen.
+	He tried it out and it worked fine.  I asked him
+what would happen if we said something like, "make me a tiny
+house". He answered that it would say we hadn't defined "tiny".
+I think he was confused as to whether Logo or "Builder" interprets the
+sentences typed in.  A few times later he would type "CS" (clearscreen) to
+Builder, either forgetting the mode he was in or else not understanding it.
+	He wanted to stop "Builder" but had to use the "break"
+key.  I suggested we put in "She2" a pattern for stopping
+and we came up with "[$ [OR STOP QUIT] $]" 
+and then it would
+return to top level Logo.
+	Next I suggested we have "Builder" ask where to put
+the house, instead of the middle and clearing the screen each time.
+I asked him to write some sentences that would be answers to the
+question of where to put it. He wrote down:
+.begin nofill
+	Build it to the right
+	Build it on the top of the screne (sic)		
+	Build it in the middle
+	Could you please build it on the bottom
+	You may make it on the bottom
+.end
+	I then asked what word are we trying to get out
+of each of these sentences. I suggested "right" for the
+first one and he came up with the others.  We decided on
+"?Place" for a name for that word.  After some discussion
+we came up with the pattern:
+
+"[$ [OR TO ON IN] THE ?PLACE $]"
+.once indent 0
+which worked fine. We wrote "Fplace" that matched it's
+input against that pattern and outputed ":?place" or
+the empty word (in addition to printing "I don't understand").
+We tested it on one sentence and it worked. 
+	We changed "Builder" to call "Tof" instead of "Clearscreen".  
+We then taught "Tof" which printed "Where should I put it?" 
+and then called "Fplace" with "Request". It then went
+through many "Ifs," checking the place found against the words:
+"middle," "left," "right," "top," and "bottom".  For each we
+moved the turtle the appropriate way.  For "left" and "right"
+it moved the turtle over 50 steps, for the others it set the
+turtle state in the appropriate part of the screen.
+	He then tested it out and it worked rather well. At
+one point he wanted to clearscreen, typed "CS" and it responded
+"I don't understand," "Where should I put it?". We agreed
+that was wrong and I suggested that if it did not understand
+it should start Builder over again and Rod agreed.  We
+changed it.
+	Just before the end of the session Rod 
+tested it out again (I think Rod enjoyed using his program).  At one point
+he responded "on top" to the question, "Where should I put it?".
+It typed "I don't understand" twice and then asked for a new 
+command. We agreed to fix that next time.
+.subsec The Wednesday June 4 Session
+	Rod asked about Doctor.  He said he wanted to do a thing like it.
+I asked for an example and he wrote the following conversation:
+.begin nofill
+c- I am the Doctor. Can I help you?
+m- I have a problem.
+c- Can I help you in any way
+m- Yes, that's why I came to you.
+.end
+	So we started working on generating the first sentence.
+We did:
+.begin nofill
+[S WHO.I.AM HELP?]
+[WHO.I.AM I AM DOCTOR A.NAME]
+[WHO.I.AM I AM A.THE.YOUR DOCTOR]
+[A.THE.YOUR A]
+[A.THE.YOUR THE]
+[A.THE.YOUR YOUR]
+[A.NAME ROD]
+[A.NAME KEN]
+[HELP? MSMC I HELP YOU?]
+[MSMC MAY]
+[MSMC SHOULD]
+[MSMC CAN]
+[SMMC MIGHT]
+.end
+.begin turn off "{}"
+	We had a hard time thinking of names for "the," "your" and
+"a" and later for "may," "should," "can" and "might". I was thinking
+that the syntactic ability to have a disjunction (usually denoted
+by "{}" in linguistics) would be very useful here.
+It was looking like a lot of work that
+neither of us felt like doing. I asked where he heard about Doctor
+and he said a friend talked to it.  
+.end
+	So I started up Logo's
+doctor and he had a long conversation with it. He seemed to
+enjoy it very much.  Then I asked him if he was interested in
+how it worked and he gave me a rather enthusiastic "yes".
+	So we spent the rest of the session going over the
+code, Rod seemingly understanding it rather well.  I gave
+him a listing to look over, saying that  maybe next time we will try to
+modify it in small ways.
+.subsec	The Thursday June 5th Session
+	Due to some confusion on Logo's part the session
+was only 20 - 25 minutes.  When Rod came in a blocks world
+program happened to be running on a console with no one there.
+Rod asked about it, and we noticed (I had never seen it before),
+that it was a mini-SHRDLU.foot<Winograd, Terry Procedures
+as a Representation for Data in a Computer Program for 
+Understanding Natural Language, MAC TR-84, February 1971>
+Rod spent the next 15 to 20 minutes
+interacting with the program.  He told it to put blocks at
+various places, and then asked it what it did earlier and why.
+We stopped it and started looking at the code, getting the
+general idea, but not being too successful.  With the remaining
+five minutes Rod wanted to talk to doctor again and did.
+.subsec The Thursday June 12th Session
+	Rod came in while I was working on my
+animation system and asked what I was doing.  I spent about
+5 or 10 minutes showing him how it worked.
+	Then I asked if he wanted to work on Builder some more.
+Initially, he forget much of how it worked and what it does, but
+soon was using some of the variation in commands that we had
+built into the system.  At an early point, in response to the
+question, "Where should I put it?," Rod typed, "in the center".  To which Builder replied, "I don't understand center" and
+proceeded to build it in the center anyway.  I asked him if he
+knew why it did that; he said, "no".
+	We then started searching for the code that printed
+that message.  We found that "Tof" understood "middle, right,
+left, top and bottom," but not "center".  I then tried to
+explain "memberp" to Rod and suggested we change the
+':PLACE = "MIDDLE'
+phrase to 'MEMBERP :PLACE [MIDDLE CENTER]'.
+Rod only partially understood, I think, but we made the change
+and he knew it would work now.  He typed, however, "Make me a
+house in the center" and it responded "I don't understand you".
+I asked him why and he was confused.  I gave an explanation
+and suggested we fix it later. Rod then built some more houses
+and when he used "right" I asked him if that was what he thought
+it should do, and we decided it should be more to the right.
+We then changed the code for "right" and "left".  Rod then
+built some more houses and time ran out.  I gave him a listing
+of the workspace and suggested he look at it and see if he
+could figure out how to change it so that you can say the
+location in the same sentence that you say to build it.
+	There was no next time, Logo was down Wednesday
+and Thursday.
+    

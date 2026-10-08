@@ -1,0 +1,1546 @@
+FASL dump: original/7005044/anima.fasl  (ITS KEN;ANIMA* FASL, tape 7005044, Dec 1975)
+Decoded 6738 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 6738 of 6738 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 313 blocks, 2815 items
+Item counts: absolute 983, relocatable 210, special 187, smashable call 401, quoted atom 179, quoted list 157, globalsym 288, getddtsym 4, atom table 337, entry 59, eval mungeable 9, end 1
+
+-- Functions defined (59) --
+  name                         property args         address
+  DEFINE.ALL                   SUBR     (NIL . 0)    000000
+  DEFINE.SOMETHING             SUBR     (NIL . 0)    000006
+  DEFINE.SOMETHINGS.REPLACE.HANDLER SUBR     (NIL . 0)    000252
+  DEFINE.SOMETHINGS.REMOVE.HANDLER SUBR     (NIL . 0)    000372
+  DEFINE.SOMETHINGS.PLAN:.HANDLER SUBR     (NIL . 0)    000432
+  FIND.CLAUSE                  SUBR     (NIL . 2)    000476
+  REPLACE.PART.OF.CLAUSE.NUMBER SUBR     (NIL . 4)    000556
+  REPLACE.PART.OF.CLAUSE       SUBR     (NIL . 4)    000746
+  INSERT.AFTER.CLAUSE          SUBR     (NIL . 3)    001051
+  REPLACE.CLAUSE.NUMBER        SUBR     (NIL . 3)    001165
+  REMOVE.CLAUSE.NUMBER         SUBR     (NIL . 2)    001277
+  REMOVE.CLAUSE                SUBR     (NIL . 2)    001367
+  FANCY-PRINT                  SUBR     (NIL . 2)    001400
+  FANCY-PRINT-SCRIPT           SUBR     (NIL . 1)    001445
+  FANCY-PRINT-MEMORY           SUBR     (NIL . 1)    001606
+  MAKE-ACTOR                   LSUBR                 001710
+  APPEND-ATOMS                 SUBR     (NIL . 2)    001763
+  ELSE                         SUBR     (NIL . 1)    002003
+  MAKE-INSTANCE                SUBR     (NIL . 2)    002006
+  CLASS-OF                     SUBR     (NIL . 1)    002045
+  INSERT-RECEIVE               SUBR     (NIL . 3)    002074
+  ADD-TO-ACTOR                 SUBR     (NIL . 2)    002110
+  GET-RECEIVERS                SUBR     (NIL . 1)    002134
+  CONS-LAMBDA-EXP              SUBR     (NIL . 1)    002202
+  INSERT-SECOND-TO-LAST        SUBR     (NIL . 2)    002212
+  TELL                         LSUBR                 002247
+  ASK                          LSUBR                 002265
+  PASS.THE.BUCK.TO             SUBR     (NIL . 3)    002303
+  CASES                        FSUBR                 002311
+  SUPERBREAK                   FSUBR                 002334
+  COMPLAIN                     SUBR     (NIL . 2)    002350
+  RECEIVE                      FSUBR                 002406
+  RECEIVE.WITH.FUNCTIONAL.ACTION SUBR     (NIL . 2)    002412
+  RECEIVE1                     SUBR     (NIL . 2)    002435
+  RECEIVE2                     SUBR     (NIL . 3)    002461
+  MATCH                        SUBR     (NIL . 2)    002506
+  HANDLE-RESTRICTION           SUBR     (NIL . 4)    002704
+  EVAL.IN.ENV                  SUBR     (NIL . 3)    003036
+  BIND                         SUBR     (NIL . 2)    003045
+  LOOK-FOR-NEXT                SUBR     (NIL . 4)    003060
+  FIX-NAME                     SUBR     (NIL . 1)    003243
+  MATCH-MEMBER                 SUBR     (NIL . 2)    003256
+  SPLIT-AT-FIRST-TO-MATCH      SUBR     (NIL . 2)    003301
+  UP-TIL                       SUBR     (NIL . 2)    003333
+  WARNING                      SUBR     (NIL . 2)    003365
+  REMEMBER                     SUBR     (NIL . 2)    003377
+  FIND-ALL                     SUBR     (NIL . 2)    003445
+  INTERSECT                    SUBR     (NIL . 2)    003602
+  UNION                        SUBR     (NIL . 2)    003627
+  FIND.ONE                     SUBR     (NIL . 2)    003655
+  REPLACE                      SUBR     (NIL . 2)    003707
+  FORGET                       SUBR     (NIL . 2)    003720
+  VALUE.OR.NIL                 SUBR     (NIL . 1)    003736
+  ADDTO                        SUBR     (NIL . 2)    003745
+  ATOM-IF-ONLY-ONE             SUBR     (NIL . 1)    003767
+  DEFINE.COMPOSITE.SOMETHING   SUBR     (NIL . 0)    003777
+  DEFINE.COMPOSITE.OBJECT      SUBR     (NIL . 0)    004017
+  DEFINE.HELP.FOR.SOMETHING    SUBR     (NIL . 0)    004055
+  DEFINE.UNIVERSE              SUBR     (NIL . 0)    004065
+
+-- Top-level forms evaluated at load time (9) --
+  (SSTATUS FEATURE ANIMA)
+  (SETQ *NOPOINT T)
+  (OR (STATUS FEATURE GRINDEF) (DEFPROP SPRINT (GRINDEF FASL COM) AUTOLOAD))
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (OR (BOUNDP ':ACTORS) (SETQ :ACTORS '(SOMETHING)))
+  (SETQ :REMEMBER.ACTORS T)
+  (SETQ :VARIABLES NIL :VALUES NIL)
+  (SETQ :REVERSED.ALREADY? NIL)
+  (SETQ *MAXIMUM-TICKS* 16)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DEFINE.ALL
+      calls:        DEFINE.SOMETHING DEFINE.SOMETHINGS.REPLACE.HANDLER DEFINE.SOMETHINGS.REMOVE.HANDLER DEFINE.SOMETHINGS.PLAN:.HANDLER DEFINE.UNIVERSE DEFINE.COMPOSITE.SOMETHING
+  DEFINE.SOMETHING
+      calls:        MAKE-ACTOR INSERT-RECEIVE RECEIVE2
+      specials:     SOMETHING :SOMETHING :SELF
+      quoted atoms: TOP-THING
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE REMEMBER %ITEM THEN REMEMBER :ITEM :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE FORGET %ITEM THEN FORGET :ITEM :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FIND WHAT RECALL)
+                      }
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      THEN
+                      FIND.CLAUSE
+                      :CLAUSE.NUMBER
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      FIND
+                      ALL
+                      %PATTERN
+                      THEN
+                      COND
+                      ((EQ :SELF SOMETHING) (CAR (FIND-ALL :PATTERN :SELF)))
+                      (T (UNION (CAR (FIND-ALL :PATTERN :SELF))
+                           (ASK (CLASS-OF :SELF)
+                             :MESSAGE
+                             '(EXAMPLE: (ASK SOMETHING '(FIND ALL FOO BARS)))))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FIND WHAT RECALL)
+                      }
+                      %PATTERN
+                      THEN
+                      OR
+                      (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      %ANYTHING
+                      THEN
+                      PASS.THE.BUCK.TO
+                      SOMETHINGS.REPLACE.HANDLER
+                      :MESSAGE
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      MAKE
+                      ?NAME
+                      THEN
+                      (LAMBDA (INTERNAL-NAME)
+                        (ASK INTERNAL-NAME
+                          (LIST 'REMEMBER 'NAME :NAME)
+                          '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                        (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                        (SET :NAME INTERNAL-NAME))
+                      (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REMOVE
+                      %ANYTHING
+                      THEN
+                      PASS.THE.BUCK.TO
+                      SOMETHINGS.REMOVE.HANDLER
+                      :MESSAGE
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      INTERCHANGE
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER1
+                      }
+                      ?AND.OR.WITH
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER2
+                      }
+                      THEN
+                      (LAMBDA (FIRST.CLAUSE SECOND.CLAUSE)
+                        (ASK :SELF
+                          (LIST 'REPLACE 'CLAUSE :CLAUSE.NUMBER1 'WITH SECOND.CLAUSE)
+                          '(EXAMPLE: (REPLACE CLAUSE 5 WITH (RECEIVE (FOO BAR) (MUMBLE)))))
+                        (ASK :SELF
+                          (LIST 'REPLACE 'CLAUSE :CLAUSE.NUMBER2 'WITH FIRST.CLAUSE)
+                          '(EXAMPLE: (REPLACE CLAUSE 7 WITH (RECEIVE (MUMBLE) (FOO BAR))))))
+                      (ASK :SELF
+                        (LIST 'RECALL 'CLAUSE 'NUMBER :CLAUSE.NUMBER1)
+                        '(EXAMPLE: (RECALL CLAUSE 5)))
+                      (ASK :SELF
+                        (LIST 'RECALL 'CLAUSE 'NUMBER :CLAUSE.NUMBER2)
+                        '(EXAMPLE: (RECALL CLAUSE 7))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      INSERT
+                      CLAUSE
+                      (% RECEIVE %PATTERN THEN %ACTION)
+                      AFTER
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      }
+                      THEN
+                      INSERT.AFTER.CLAUSE
+                      (LIST 'RECEIVE :PATTERN :ACTION)
+                      :NUMBER
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      INSERT
+                      CLAUSE
+                      (RECEIVE ?PATTERN ?ACTION)
+                      AFTER
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      }
+                      THEN
+                      INSERT.AFTER.CLAUSE
+                      (LIST 'RECEIVE :PATTERN :ACTION)
+                      :NUMBER
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      PLAN:
+                      %ANYTHING
+                      THEN
+                      PASS.THE.BUCK.TO
+                      SOMETHINGS.PLAN:.HANDLER
+                      :MESSAGE
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      WAIT
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      }
+                      THEN
+                      ASK
+                      :SELF
+                      (LIST 'REPLACE 'TIME (1+ (ASK :SELF '(WHAT TIME ?))))
+                      '(EXAMPLE: (REPLACE TIME 6)))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      TICK
+                      ?UNIVERSE
+                      THEN
+                      DO.THE.FOLLOWING:
+                      ((LAMBDA (RUN.TIME)
+                         (ASK :SELF
+                           (LIST 'REPLACE 'RUN 'TIME (1+ RUN.TIME))
+                           '(EXAMPLE: (REPLACE RUN TIME 10)))
+                         (MAPC (FUNCTION (LAMBDA (THING.TO.DO)
+                                           (ASK :SELF THING.TO.DO '(EXAMPLE: ANYTHING))
+                                           (ASK :SELF
+                                             (LIST 'FORGET 'TO.DO.AT.TIME RUN.TIME THING.TO.DO)
+                                             '(EXAMPLE: (FORGET TO.DO.AT.TIME 3 (GO FORWARD 8))))))
+                           (ASK :SELF
+                             (LIST 'FIND 'ALL 'TO.DO.AT.TIME RUN.TIME '?)
+                             '(EXAMPLE: (FIND ALL TO.DO.AT.TIME 3 ?)))))
+                       (ASK :SELF '(WHAT RUN TIME ?))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (REMEMBER NAME SOMETHING)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER TIME 0)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER RUN TIME 0)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (IF RECEIVE SPRINT THEN SPRINTER (CADDR (GET :SELF 'EXPR)))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE PRINT %OPTION THEN FANCY-PRINT :SELF :OPTION)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+  DEFINE.SOMETHINGS.REPLACE.HANDLER
+      calls:        RECEIVE2
+      specials:     SOMETHING :SELF SOMETHINGS.REPLACE.HANDLER
+      quoted list:  (MAKE SOMETHINGS.REPLACE.HANDLER)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      (% RECEIVE %NEW.PATTERN THEN %NEW.ACTION)
+                      THEN
+                      REPLACE.CLAUSE.NUMBER
+                      :CLAUSE.NUMBER
+                      (LIST 'RECEIVE :NEW.PATTERN :NEW.ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      PATTERN
+                      OF
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      %NEW.PATTERN
+                      THEN
+                      REPLACE.PART.OF.CLAUSE.NUMBER
+                      'PATTERN
+                      :CLAUSE.NUMBER
+                      :NEW.PATTERN
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      PATTERN
+                      OF
+                      CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      %NEW.PATTERN
+                      THEN
+                      REPLACE.PART.OF.CLAUSE
+                      'PATTERN
+                      (LIST 'RECEIVE :OLD.PATTERN :OLD.ACTION)
+                      :NEW.PATTERN
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      ACTION
+                      OF
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      %NEW.ACTION
+                      THEN
+                      REPLACE.PART.OF.CLAUSE.NUMBER
+                      'ACTION
+                      :CLAUSE.NUMBER
+                      :NEW.ACTION
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      PATTERN
+                      OF
+                      CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      %NEW.ACTION
+                      THEN
+                      REPLACE.PART.OF.CLAUSE
+                      'ACTION
+                      (LIST 'RECEIVE :OLD.PATTERN :OLD.ACTION)
+                      :NEW.ACTION
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      (RECEIVE ?NEW.PATTERN ?NEW.ACTION)
+                      THEN
+                      REPLACE.CLAUSE.NUMBER
+                      :CLAUSE.NUMBER
+                      (LIST 'RECEIVE :NEW.PATTERN :NEW.ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      (% RECEIVE %NEW.PATTERN THEN %NEW.ACTION)
+                      THEN
+                      REPLACE.CLAUSE
+                      (LIST 'RECEIVE :OLD.PATTERN :OLD.ACTION)
+                      (LIST 'RECEIVE :NEW.PATTERN :NEW.ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REPLACE
+                      CLAUSE
+                      (RECEIVE ?OLD.PATTERN ?OLD.ACTION)
+                      WITH
+                      (RECEIVE ?NEW.PATTERN ?NEW.ACTION)
+                      THEN
+                      REPLACE.CLAUSE
+                      (LIST 'RECEIVE :OLD.PATTERN :OLD.ACTION)
+                      (LIST 'RECEIVE :NEW.PATTERN :NEW.ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE REPLACE %ITEM THEN REPLACE :ITEM :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+  DEFINE.SOMETHINGS.REMOVE.HANDLER
+      calls:        RECEIVE2
+      specials:     SOMETHING :SELF SOMETHINGS.REMOVE.HANDLER
+      quoted list:  (MAKE SOMETHINGS.REMOVE.HANDLER)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      REMOVE
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      THEN
+                      REMOVE.CLAUSE.NUMBER
+                      :CLAUSE.NUMBER
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REMOVE
+                      CLAUSE
+                      (% RECEIVE %PATTERN THEN %ACTION)
+                      THEN
+                      REMOVE.CLAUSE
+                      (LIST 'RECEIVE :PATTERN :ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      REMOVE
+                      CLAUSE
+                      (RECEIVE ?PATTERN ?ACTION)
+                      THEN
+                      REMOVE.CLAUSE
+                      (LIST 'RECEIVE :PATTERN :ACTION)
+                      :SELF)
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+  DEFINE.SOMETHINGS.PLAN:.HANDLER
+      calls:        RECEIVE2 INSERT-RECEIVE
+      specials:     SOMETHING :SELF SOMETHINGS.PLAN:.HANDLER
+      quoted list:  (MAKE SOMETHINGS.PLAN:.HANDLER)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      PLAN:
+                      %COMMAND
+                      NEXT
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF
+                        (LIST 'REPLACE 'TIME (1+ (ASK :SELF '(WHAT TIME ?))))
+                        '(EXAMPLE: (REPLACE TIME 5)))
+                      (ASK :SELF
+                        (LIST 'REMEMBER 'TO.DO.AT.TIME (ASK :SELF '(WHAT TIME ?)) :COMMAND)
+                        '(EXAMPLE: (REMEMBER TO.DO.AT.TIME 5 (SHOW))))
+                      (ASK UNIVERSE
+                        (LIST 'REMEMBER 'ACTORS.WITH.THINGS.TO.DO :SELF)
+                        '(EXAMPLE: (REMEMBER ACTORS.WITH.THINGS.TO.DO SAM))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (IF RECEIVE
+                      PLAN:
+                      %COMMAND
+                      AFTER
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      }
+                      TICKS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF
+                        (LIST 'REPLACE 'TIME (+ (ASK :SELF '(WHAT TIME ?)) (FIX :NUMBER)))
+                        '(EXAMPLE: (REPLACE TIME 27)))
+                      (ASK :SELF
+                        (LIST 'REMEMBER 'TO.DO.AT.TIME (ASK :SELF '(WHAT TIME ?)) :COMMAND)
+                        '(EXAMPLE: (REMEMBER TO.DO.AT.TIME 27 (HIDE))))
+                      (ASK UNIVERSE
+                        (LIST 'REMEMBER 'ACTORS.WITH.THINGS.TO.DO :SELF)
+                        '(EXAMPLE: (REMEMBER ACTORS.WITH.THINGS.TO.DO SAM))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (DO.THE.FOLLOWING: (ASK :SELF
+                                         (LIST 'REMEMBER
+                                           'TO.DO.AT.TIME
+                                           (ASK :SELF '(WHAT TIME ?))
+                                           :COMMAND)
+                                         '(EXAMPLE: (REMEMBER TO.DO.AT.TIME 23 (GROW 24))))
+                      (ASK UNIVERSE
+                        (LIST 'REMEMBER 'ACTORS.WITH.THINGS.TO.DO :SELF)
+                        '(EXAMPLE: (REMEMBER ACTORS.WITH.THINGS.TO.DO SAM))))
+      quoted list:  (PLAN: %COMMAND THEN)
+      quoted list:  (IF RECEIVE
+                      PLAN:
+                      %COMMAND
+                      AFTER
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      }
+                      MORE
+                      TICKS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF
+                        (LIST 'REMEMBER
+                          'TO.DO.AT.TIME
+                          (+ (ASK :SELF '(WHAT RUN TIME ?)) (FIX :NUMBER))
+                          :COMMAND)
+                        '(EXAMPLE: (REMEMBER TO.DO.AT.TIME 12 (SHRINK 21))))
+                      (ASK UNIVERSE
+                        (LIST 'REMEMBER 'ACTORS.WITH.THINGS.TO.DO :SELF)
+                        '(EXAMPLE: (REMEMBER ACTORS.WITH.THINGS.TO.DO SAM))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+  FIND.CLAUSE
+      calls:        GET NCONS XCONS CONS WARNING
+      quoted atoms: EXPR IN CLAUSE NO IS THERE FIND.CLAUSE 1
+  REPLACE.PART.OF.CLAUSE.NUMBER
+      calls:        GET NCONS XCONS CONS WARNING NREVERSE APPEND CONS-LAMBDA-EXP PUTPROP
+      quoted atoms: EXPR IN CLAUSE NO IS THERE REPLACE.PART.OF.CLAUSE.NUMBER PATTERN RECEIVE ACTION RECEIVER A OF PART ? 1
+  REPLACE.PART.OF.CLAUSE
+      calls:        NCONS CONS XCONS WARNING GET SUBST PUTPROP
+      quoted atoms: PATTERN RECEIVE ACTION RECEIVER A OF PART NO IS THERE REPLACE.PART.OF.CLAUSE EXPR
+  INSERT.AFTER.CLAUSE
+      calls:        GET NCONS XCONS CONS WARNING NREVERSE APPEND CONS-LAMBDA-EXP PUTPROP
+      quoted atoms: EXPR IN CLAUSE NO IS THERE INSERT.AFTER.CLAUSE ? 1
+  REPLACE.CLAUSE.NUMBER
+      calls:        GET NCONS XCONS CONS WARNING NREVERSE APPEND CONS-LAMBDA-EXP PUTPROP
+      quoted atoms: EXPR IN CLAUSE NO IS THERE REPLACE.CLAUSE.NUMBER ? 1
+  REMOVE.CLAUSE.NUMBER
+      calls:        GET NCONS XCONS CONS WARNING *DELETE
+      quoted atoms: EXPR IN CLAUSE NO IS THERE REMOVE.CLAUSE.NUMBER NIL 1
+  REMOVE.CLAUSE
+      calls:        GET *DELETE
+      quoted atoms: EXPR
+  FANCY-PRINT
+      calls:        FANCY-PRINT-SCRIPT TERPRI FANCY-PRINT-MEMORY EQUAL XCONS NCONS WARNING ASCII
+      quoted atoms: PRINT |NOT UNDERSTOOD| 0
+      quoted list:  (SCRIPT)
+      quoted list:  (MEMORY)
+  FANCY-PRINT-SCRIPT
+      calls:        TERPRI RECEIVE2 PRINC GET SPRINT
+      specials:     :SELF LINEL
+      quoted atoms: EXPR RECEIVE 0 NIL 1
+      quoted list:  (WHAT NAME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+  FANCY-PRINT-MEMORY
+      calls:        TERPRI RECEIVE2 PRINC GET XCONS PRINT
+      specials:     :SELF
+      quoted atoms: %MEMORY
+      quoted list:  (WHAT NAME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+  MAKE-ACTOR
+      calls:        APPEND-ATOMS CONS-LAMBDA-EXP RECEIVE2 NCONS XCONS PUTPROP
+      specials:     :NAME :CLASS :SELF
+      quoted atoms: SOMETHING INTERNAL- :SELF :MESSAGE PASS.THE.BUCK.TO ELSE EXPR
+      quoted list:  ((ELSE (COMPLAIN :SELF (LIST '|DOESN'T UNDERSTAND| :MESSAGE))))
+      quoted list:  (WHAT NAME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+  APPEND-ATOMS
+      calls:        EXPLODE *APPEND MAKNAM
+      quoted atoms: NIL
+  ELSE
+      specials:     :MATCHED?
+      quoted atoms: T
+  MAKE-INSTANCE
+      calls:        MAKE-ACTOR RECEIVE2 NCONS XCONS REMEMBER MEMQ CONS
+      specials:     :CLASS :NAME :SELF :REMEMBER.ACTORS :ACTORS
+      quoted atoms: KIND-OF
+      quoted list:  (WHAT NAME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+  CLASS-OF
+      calls:        FIND.ONE *EVAL NCONS XCONS CONS WARNING
+      quoted atoms: CLASS NO HAS CLASS-OF
+      quoted list:  (KIND-OF ?)
+  INSERT-RECEIVE
+      calls:        NCONS XCONS ADD-TO-ACTOR
+      specials:     :PATTERN :ACTION
+      quoted atoms: RECEIVE
+  ADD-TO-ACTOR
+      calls:        GET-RECEIVERS MEMBER INSERT-SECOND-TO-LAST CONS-LAMBDA-EXP PUTPROP
+      quoted atoms: EXPR
+  GET-RECEIVERS
+      calls:        GET NCONS XCONS CONS COMPLAIN
+      specials:     :MESSAGE
+      quoted atoms: EXPR SUBR SUBRCALL T DEFINED NOT INSERT-RECEIVE
+  CONS-LAMBDA-EXP
+      calls:        XCONS NCONS
+      quoted atoms: CASES LAMBDA
+      quoted list:  (:MESSAGE)
+  INSERT-SECOND-TO-LAST
+      calls:        NREVERSE NCONS APPEND CONS
+  TELL
+      specials:     :SELF :MESSAGE
+  ASK
+      specials:     :SELF :MESSAGE
+  PASS.THE.BUCK.TO
+      specials:     :MESSAGE :SELF
+  CASES
+      calls:        *EVAL
+      specials:     :MATCHED?
+      quoted atoms: NIL
+  SUPERBREAK
+      calls:        STATUS *APPLY BREAK
+      quoted atoms: LOGOBREAK
+      quoted list:  (FEATURE LLOGO)
+  COMPLAIN
+      calls:        EQUAL TELL NCONS XCONS PRINT SUPERBREAK
+      quoted atoms: THAT COMPLAINED
+      quoted list:  (WHAT NAME ?)
+      quoted list:  (COMPLAIN T)
+      quoted list:  (WHAT NAME ?)
+  RECEIVE
+      calls:        RECEIVE1
+  RECEIVE.WITH.FUNCTIONAL.ACTION
+      calls:        MATCH
+      specials:     :PATTERN :VARIABLES :VALUES :MESSAGE :MATCHED?
+      quoted atoms: T
+  RECEIVE1
+      calls:        MATCH *EVAL
+      specials:     :PATTERN :VARIABLES :VALUES :MESSAGE :MATCHED?
+      quoted atoms: T
+  RECEIVE2
+      calls:        MATCH *EVAL
+      specials:     :PATTERN :MESSAGE :VARIABLES :VALUES :MATCHED?
+      quoted atoms: T
+  MATCH
+      calls:        EQUAL ATOM NCONS MATCH UP-TIL HANDLE-RESTRICTION NUMBERP FLOAT GETCHAR BIND LOOK-FOR-NEXT EVAL.IN.ENV CONS
+      specials:     :VALUES :VARIABLES
+      quoted atoms: T NIL { } 1 ? % :
+  HANDLE-RESTRICTION
+      calls:        NCONS XCONS CONS WARNING NUMBERP GETCHAR SUBST EVAL.IN.ENV BIND MATCH
+      specials:     :VALUES :VARIABLES
+      quoted atoms: BIND TO NOTHING HAS RESTRICTION THE HANDLE-RESTRICTION 1 ? QUOTE % IN %S HANDLE CANT NIL
+  EVAL.IN.ENV
+      calls:        *EVAL
+  BIND
+      calls:        FIX-NAME CONS
+      specials:     :VARIABLES :VALUES
+  LOOK-FOR-NEXT
+      calls:        GETCHAR FIX-NAME BIND *EVAL CONS LOOK-FOR-NEXT REVERSE MATCH NCONS XCONS WARNING MATCH-MEMBER SPLIT-AT-FIRST-TO-MATCH
+      specials:     :REVERSED.ALREADY?
+      quoted atoms: 1 T : ? % IN TWO HAVE TO SILLY MATCH
+  FIX-NAME
+      calls:        EXPLODE NCONS XCONS IMPLODE
+      specials:     :NAME
+      quoted atoms: :
+  MATCH-MEMBER
+      calls:        MATCH
+      specials:     :PATTERN
+      quoted atoms: NIL
+  SPLIT-AT-FIRST-TO-MATCH
+      calls:        MATCH NREVERSE CONS
+      quoted atoms: NIL
+  UP-TIL
+      calls:        NREVERSE CONS
+  WARNING
+      calls:        NCONS XCONS PRINT
+      quoted atoms: FROM WARNING
+  REMEMBER
+      calls:        GET MEMQ XCONS PUTPROP MEMBER
+      quoted atoms: %MEMORY
+  FIND-ALL
+      calls:        GET GETCHAR CONS MATCH NREVERSE
+      specials:     :PATTERN :VALUES :VARIABLES
+      quoted atoms: 1 % ? CAR NIL
+  INTERSECT
+      calls:        MEMBER CONS
+  UNION
+      calls:        MEMBER CONS
+  FIND.ONE
+      calls:        GET MATCH CONS
+      specials:     :PATTERN :VALUES :VARIABLES
+      quoted atoms: NIL
+  REPLACE
+      calls:        REMPROP REMEMBER
+  FORGET
+      calls:        GET *DELETE PUTPROP
+  VALUE.OR.NIL
+      calls:        BOUNDP SYMEVAL
+      specials:     :NAME
+  ADDTO
+      calls:        SYMEVAL MEMBER VALUE.OR.NIL CONS
+      specials:     :NAME
+  ATOM-IF-ONLY-ONE
+  DEFINE.COMPOSITE.SOMETHING
+      calls:        RECEIVE2
+      specials:     SOMETHING :SELF COMPOSITE.SOMETHING
+      quoted list:  (MAKE COMPOSITE.SOMETHING)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      ASK
+                      PARTS
+                      ?MESSAGE
+                      THEN
+                      MAPC
+                      (FUNCTION (LAMBDA (PART) (ASK (EVAL PART) :MESSAGE)))
+                      (ASK :SELF '(WHAT PARTS ?)))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+  DEFINE.COMPOSITE.OBJECT
+      calls:        RECEIVE2 TELL
+      specials:     COMPOSITE.SOMETHING :SELF COMPOSITE.OBJECT
+      quoted list:  (MAKE COMPOSITE.OBJECT)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      MAKE
+                      ?NAME
+                      OUT
+                      OF
+                      %PARTS
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (ASK :SELF (LIST 'MAKE :NAME) '(EXAMPLE: (MAKE SALLY)))
+                      ((LAMBDA (CENTERS-NAME)
+                         (ASK OBJECT (LIST 'MAKE CENTERS-NAME) '(EXAMPLE: (MAKE SALLYS.CENTER)))
+                         (ASK (EVAL :NAME)
+                           '(REMEMBER SIZE 1)
+                           '(EXAMPLE: (ASK SOMETHING (REMEMBER SIZE 1))))
+                         (ASK (EVAL :NAME)
+                           (LIST 'REMEMBER 'CENTERS 'NAME (EVAL CENTERS-NAME))
+                           '(EXAMPLE: (ASK SOMETHING (REMEMBER CENTERS NAME INTERNAL-SALLYS.CENTER))))
+                         (ASK (EVAL :NAME)
+                           '(REMEMBER PARTS 'CENTERS-NAME)
+                           '(EXAMPLE: (ASK SOMETHING (REMEMBER PARTS SALLYS.CENTER)))))
+                       (APPEND-ATOMS :NAME 'S.CENTER)))
+      quoted list:  (IF RECEIVE
+                      CENTER
+                      ?X
+                      ?Y
+                      THEN
+                      ASK
+                      (ASK :SELF '(WHAT CENTERS-NAME ?))
+                      (LIST 'SETXY :X :Y)
+                      '(EXAMPLE: (ASK OBJECT (SETXY 168 -64))))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FD FORWARD BK BACK RT RIGHT LEFT LT PU PD PENUP PENDOWN SHOW HIDE)
+                      }
+                      %REST
+                      THEN
+                      ASK
+                      :SELF
+                      (LIST 'ASK 'PARTS :MESSAGE)
+                      '(EXAMPLE: (ASK PARTS (SHOW))))
+  DEFINE.HELP.FOR.SOMETHING
+      calls:        RECEIVE2
+      specials:     SOMETHING :SELF
+      quoted list:  (MAKE HELP.FOR.SOMETHING)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+  DEFINE.UNIVERSE
+      calls:        RECEIVE2
+      specials:     SOMETHING :SELF UNIVERSE
+      quoted list:  (MAKE UNIVERSE)
+      quoted list:  ((LAMBDA (INTERNAL-NAME)
+                       (ASK INTERNAL-NAME
+                         (LIST 'REMEMBER 'NAME :NAME)
+                         '(EXAMPLE: (ASK SOMETHING '(REMEMBER NAME SALLY))))
+                       (SET (INTERN (APPEND-ATOMS ': :NAME)) INTERNAL-NAME)
+                       (SET :NAME INTERNAL-NAME))
+                     (MAKE-INSTANCE :SELF :NAME))
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (IF RECEIVE
+                      DO
+                      IT
+                      THEN
+                      DO
+                      ((ACTORS.WITH.THINGS.TO.DO (ASK :SELF '(FIND ALL ACTORS.WITH.THINGS.TO.DO ?))
+                         (ASK :SELF '(FIND ALL ACTORS.WITH.THINGS.TO.DO ?)))
+                       (COUNT 1 (1+ COUNT)))
+                      ((OR (NULL ACTORS.WITH.THINGS.TO.DO) (> COUNT *MAXIMUM-TICKS*))
+                       (COND ((NULL ACTORS.WITH.THINGS.TO.DO) 'DONE)
+                         (T (WARNING 'UNIVERSE (LIST :SELF 'TICKED COUNT 'TIMES)))))
+                      (DO ((I ACTORS.WITH.THINGS.TO.DO (CDR I)))
+                        ((NULL I))
+                        (OR (ASK (CAR I)
+                              (LIST 'TICK :SELF)
+                              '(EXAMPLE: (ASK SOMETHING '(TICK UNIVERSE-1)))))
+                        (COND ((ASK (CAR I)
+                                 '(FIND ALL TO.DO.AT.TIME ? ?)
+                                 '(EXAMPLE: (ASK SOMETHING '(FIND ALL TO.DO.AT.TIME 27)))))
+                          (T (ASK :SELF
+                               '(FORGET ACTORS.WITH.THINGS.TO.DO (CAR I))
+                               '(EXAMPLE: (FORGET ACTORS.WITH.THINGS.TO.DO SALLY)))
+                            (ASK (CAR I)
+                              '(REPLACE RUN TIME 0)
+                              '(EXAMPLE: (ASK SOMETHING '(REPLACE RUN TIME 0))))))))
+      quoted list:  (INSERT-RECEIVE :PATTERN :ACTION :SELF)
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+
+-- Symbols and how they are used (316) --
+  %                              in constant, quoted
+  %ACTION                        in constant
+  %ANYTHING                      in constant
+  %COMMAND                       in constant
+  %ITEM                          in constant
+  %MEMORY                        quoted
+  %NEW.ACTION                    in constant
+  %NEW.PATTERN                   in constant
+  %OLD.ACTION                    in constant
+  %OLD.PATTERN                   in constant
+  %OPTION                        in constant
+  %PARTS                         in constant
+  %PATTERN                       in constant
+  %REST                          in constant
+  %S                             quoted
+  *APPEND                        called
+  *APPLY                         called
+  *DELETE                        called
+  *EVAL                          called
+  *MAXIMUM-TICKS*                in constant, in top-level form
+  *NOPOINT                       in top-level form
+  +                              in constant
+  1+                             in constant
+  :                              in constant, quoted
+  :ACTION                        in constant, special
+  :ACTORS                        in top-level form, special
+  :CLASS                         special
+  :CLAUSE.NUMBER                 in constant
+  :CLAUSE.NUMBER1                in constant
+  :CLAUSE.NUMBER2                in constant
+  :COMMAND                       in constant
+  :ITEM                          in constant
+  :MATCHED?                      special
+  :MESSAGE                       in constant, quoted, special
+  :NAME                          in constant, special
+  :NEW.ACTION                    in constant
+  :NEW.PATTERN                   in constant
+  :NUMBER                        in constant
+  :OLD.ACTION                    in constant
+  :OLD.PATTERN                   in constant
+  :OPTION                        in constant
+  :PATTERN                       in constant, special
+  :REMEMBER.ACTORS               in top-level form, special
+  :REVERSED.ALREADY?             in top-level form, special
+  :SELF                          in constant, quoted, special
+  :SOMETHING                     special
+  :VALUES                        in top-level form, special
+  :VARIABLES                     in top-level form, special
+  :X                             in constant
+  :Y                             in constant
+  >                              in constant
+  ?                              in constant, quoted
+  ?ACTION                        in constant
+  ?AND.OR.WITH                   in constant
+  ?CLAUSE.NUMBER                 in constant
+  ?CLAUSE.NUMBER1                in constant
+  ?CLAUSE.NUMBER2                in constant
+  ?COMMAND                       in constant
+  ?MESSAGE                       in constant
+  ?NAME                          in constant
+  ?NEW.ACTION                    in constant
+  ?NEW.PATTERN                   in constant
+  ?NUMBER                        in constant
+  ?OLD.ACTION                    in constant
+  ?OLD.PATTERN                   in constant
+  ?PATTERN                       in constant
+  ?UNIVERSE                      in constant
+  ?X                             in constant
+  ?Y                             in constant
+  A                              quoted
+  ACTION                         in constant, quoted
+  ACTORS.WITH.THINGS.TO.DO       in constant
+  ADD-TO-ACTOR                   called, defined
+  ADDTO                          defined
+  AFTER                          in constant
+  ALL                            in constant
+  AND                            in constant
+  ANIMA                          in top-level form
+  ANYTHING                       in constant
+  APPEND                         called
+  APPEND-ATOMS                   called, defined, in constant
+  ASCII                          called
+  ASK                            defined, in constant
+  ATOM                           called
+  ATOM-IF-ONLY-ONE               defined, in constant
+  AUTOLOAD                       in top-level form
+  BACK                           in constant
+  BAR                            in constant
+  BARS                           in constant
+  BIND                           called, defined, quoted
+  BK                             in constant
+  BOUNDP                         called, in top-level form
+  BREAK                          called
+  CADDR                          in constant
+  CANT                           quoted
+  CAR                            in constant, quoted
+  CASES                          defined, quoted
+  CDR                            in constant
+  CENTER                         in constant
+  CENTERS                        in constant
+  CENTERS-NAME                   in constant
+  CLASS                          quoted
+  CLASS-OF                       defined, in constant, quoted
+  CLAUSE                         in constant, quoted
+  COM                            in top-level form
+  COMPLAIN                       called, defined, in constant
+  COMPLAINED                     quoted
+  COMPOSITE.OBJECT               in constant, special
+  COMPOSITE.SOMETHING            in constant, special
+  COND                           in constant
+  CONS                           called
+  CONS-LAMBDA-EXP                called, defined
+  COUNT                          in constant
+  DEFINE.ALL                     defined
+  DEFINE.COMPOSITE.OBJECT        defined
+  DEFINE.COMPOSITE.SOMETHING     called, defined
+  DEFINE.HELP.FOR.SOMETHING      defined
+  DEFINE.SOMETHING               called, defined
+  DEFINE.SOMETHINGS.PLAN:.HANDLER called, defined
+  DEFINE.SOMETHINGS.REMOVE.HANDLER called, defined
+  DEFINE.SOMETHINGS.REPLACE.HANDLER called, defined
+  DEFINE.UNIVERSE                called, defined
+  DEFINED                        quoted
+  DEFPROP                        in top-level form
+  DO                             in constant
+  DO.THE.FOLLOWING:              in constant
+  |DOESN'T UNDERSTAND|           in constant
+  DOING                          in constant
+  DONE                           in constant
+  ELSE                           defined, in constant, quoted
+  EQ                             in constant
+  EQUAL                          called
+  EVAL                           in constant
+  EVAL.IN.ENV                    called, defined
+  EXAMPLE:                       in constant
+  EXPLODE                        called
+  EXPR                           in constant, quoted
+  FANCY-PRINT                    defined, in constant
+  FANCY-PRINT-MEMORY             called, defined
+  FANCY-PRINT-SCRIPT             called, defined
+  FASL                           in top-level form
+  FD                             in constant
+  FEATURE                        in constant, in top-level form
+  FIND                           in constant
+  FIND-ALL                       defined, in constant
+  FIND.CLAUSE                    defined, in constant, quoted
+  FIND.ONE                       called, defined, in constant
+  FIRST.CLAUSE                   in constant
+  FIX                            in constant
+  FIX-NAME                       called, defined
+  FLOAT                          called
+  FOO                            in constant
+  FORGET                         defined, in constant
+  FORWARD                        in constant
+  FROM                           quoted
+  FUNCTION                       in constant
+  GET                            called, in constant
+  GET-RECEIVERS                  called, defined
+  GETCHAR                        called
+  GO                             in constant
+  GRINDEF                        in top-level form
+  GROW                           in constant
+  HANDLE                         quoted
+  HANDLE-RESTRICTION             called, defined, quoted
+  HAS                            quoted
+  HAVE                           quoted
+  HELP.FOR.SOMETHING             in constant
+  HIDE                           in constant
+  I                              in constant
+  IF                             in constant
+  IMPLODE                        called
+  IN                             quoted
+  INSERT                         in constant
+  INSERT-RECEIVE                 called, defined, in constant, quoted
+  INSERT-SECOND-TO-LAST          called, defined
+  INSERT.AFTER.CLAUSE            defined, in constant, quoted
+  INTERCHANGE                    in constant
+  INTERN                         in constant
+  INTERNAL-                      quoted
+  INTERNAL-NAME                  in constant
+  INTERNAL-SALLYS.CENTER         in constant
+  INTERSECT                      defined
+  IS                             quoted
+  IT                             in constant
+  KIND-OF                        in constant, quoted
+  LAMBDA                         in constant, quoted
+  LEFT                           in constant
+  LINEL                          special
+  LIST                           in constant
+  LLOGO                          in constant
+  LOGOBREAK                      quoted
+  LOOK-FOR-NEXT                  called, defined
+  LT                             in constant
+  MAKE                           in constant
+  MAKE-ACTOR                     called, defined
+  MAKE-INSTANCE                  defined, in constant
+  MAKNAM                         called
+  MAPC                           in constant
+  MATCH                          called, defined, quoted
+  MATCH-MEMBER                   called, defined
+  MEMBER                         called
+  MEMORY                         in constant
+  MEMQ                           called, in constant
+  MORE                           in constant
+  MUMBLE                         in constant
+  NAME                           in constant
+  NCONS                          called
+  NEXT                           in constant
+  NIL                            in top-level form, quoted
+  NO                             quoted
+  NOT                            in constant, quoted
+  |NOT UNDERSTOOD|               quoted
+  NOTHING                        quoted
+  NREVERSE                       called, in constant
+  NULL                           in constant
+  NUMBER                         in constant
+  NUMBERP                        called, in constant
+  OBJECT                         in constant
+  OF                             in constant, quoted
+  OR                             in constant, in top-level form
+  OUT                            in constant
+  PART                           in constant, quoted
+  PARTS                          in constant
+  PASS.THE.BUCK.TO               defined, in constant, quoted
+  PATTERN                        in constant, quoted
+  PD                             in constant
+  PENDOWN                        in constant
+  PENUP                          in constant
+  PLAN:                          in constant
+  PRINC                          called
+  PRINT                          called, in constant, quoted
+  PROGN                          in top-level form
+  PU                             in constant
+  PUTPROP                        called
+  QUOTE                          in constant, in top-level form, quoted
+  RECALL                         in constant
+  RECEIVE                        defined, in constant, quoted
+  RECEIVE.WITH.FUNCTIONAL.ACTION defined
+  RECEIVE1                       called, defined
+  RECEIVE2                       called, defined
+  RECEIVER                       quoted
+  REMEMBER                       called, defined, in constant
+  REMOVE                         in constant
+  REMOVE.CLAUSE                  defined, in constant
+  REMOVE.CLAUSE.NUMBER           defined, in constant, quoted
+  REMPROP                        called
+  REPLACE                        defined, in constant
+  REPLACE.CLAUSE                 in constant
+  REPLACE.CLAUSE.NUMBER          defined, in constant, quoted
+  REPLACE.PART.OF.CLAUSE         defined, in constant, quoted
+  REPLACE.PART.OF.CLAUSE.NUMBER  defined, in constant, quoted
+  RESTRICTION                    quoted
+  REVERSE                        called
+  RIGHT                          in constant
+  RT                             in constant
+  RUN                            in constant
+  RUN.TIME                       in constant
+  S.CENTER                       in constant
+  SALLY                          in constant
+  SALLYS.CENTER                  in constant
+  SAM                            in constant
+  SCRIPT                         in constant
+  SECOND.CLAUSE                  in constant
+  SET                            in constant
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  SETXY                          in constant
+  SHOW                           in constant
+  SHRINK                         in constant
+  SILLY                          quoted
+  SINGLE                         in top-level form
+  SIZE                           in constant
+  SOMETHING                      in constant, in top-level form, quoted, special
+  SOMETHINGS.PLAN:.HANDLER       in constant, special
+  SOMETHINGS.REMOVE.HANDLER      in constant, special
+  SOMETHINGS.REPLACE.HANDLER     in constant, special
+  SPLIT-AT-FIRST-TO-MATCH        called, defined
+  SPRINT                         called, in constant, in top-level form
+  SPRINTER                       in constant
+  SSTATUS                        in top-level form
+  STATUS                         called, in top-level form
+  SUBR                           quoted
+  SUBRCALL                       quoted
+  SUBST                          called
+  SUPERBREAK                     called, defined
+  SYMEVAL                        called
+  T                              in constant, in top-level form, quoted
+  TELL                           called, defined
+  TERPRI                         called
+  THAT                           quoted
+  THE                            quoted
+  THEN                           in constant
+  THERE                          quoted
+  THING.TO.DO                    in constant
+  TICK                           in constant
+  TICKED                         in constant
+  TICKS                          in constant
+  TIME                           in constant
+  TIMES                          in constant
+  TO                             quoted
+  TO.DO.AT.TIME                  in constant
+  TOP-THING                      quoted
+  TWO                            quoted
+  UNION                          defined, in constant
+  UNIVERSE                       in constant, special
+  UNIVERSE-1                     in constant
+  UP-TIL                         called, defined
+  VALUE.OR.NIL                   called, defined
+  WAIT                           in constant
+  WARNING                        called, defined, in constant, quoted
+  WHAT                           in constant
+  WITH                           in constant
+  XCONS                          called
+  YOU                            in constant
+  {                              in constant, quoted
+  }                              in constant, quoted
+  (in atom table, no direct use found: LSUBR FSUBR)
+
+-- Atom table (337 entries; 0 is NIL) --
+     1 symbol  SSTATUS
+     2 symbol  FEATURE
+     3 symbol  ANIMA
+     4 symbol  SETQ
+     5 symbol  *NOPOINT
+     6 symbol  T
+     7 symbol  OR
+     8 symbol  STATUS
+     9 symbol  GRINDEF
+    10 symbol  DEFPROP
+    11 symbol  SPRINT
+    12 symbol  FASL
+    13 symbol  COM
+    14 symbol  AUTOLOAD
+    15 symbol  PROGN
+    16 symbol  SETSYNTAX
+    17 fixnum  123
+    18 symbol  QUOTE
+    19 symbol  SINGLE
+    20 fixnum  125
+    21 fixnum  46
+    22 fixnum  128
+    23 symbol  DEFINE.ALL
+    24 symbol  SUBR
+    25 symbol  DEFINE.SOMETHING
+    26 symbol  DEFINE.SOMETHINGS.REPLACE.HANDLER
+    27 symbol  DEFINE.SOMETHINGS.REMOVE.HANDLER
+    28 symbol  DEFINE.SOMETHINGS.PLAN:.HANDLER
+    29 symbol  DEFINE.UNIVERSE
+    30 symbol  DEFINE.COMPOSITE.SOMETHING
+    31 symbol  MAKE-ACTOR
+    32 symbol  SOMETHING
+    33 symbol  :SOMETHING
+    34 symbol  INSERT-RECEIVE
+    35 symbol  :PATTERN
+    36 symbol  :ACTION
+    37 symbol  :SELF
+    38 symbol  %
+    39 symbol  RECEIVE
+    40 symbol  %PATTERN
+    41 symbol  THEN
+    42 symbol  %ACTION
+    43 symbol  IF
+    44 symbol  REMEMBER
+    45 symbol  %ITEM
+    46 symbol  :ITEM
+    47 symbol  RECEIVE2
+    48 symbol  FORGET
+    49 symbol  {
+    50 symbol  MEMQ
+    51 symbol  ?COMMAND
+    52 symbol  FIND
+    53 symbol  WHAT
+    54 symbol  RECALL
+    55 symbol  }
+    56 symbol  CLAUSE
+    57 symbol  NUMBERP
+    58 symbol  ?CLAUSE.NUMBER
+    59 symbol  FIND.CLAUSE
+    60 symbol  :CLAUSE.NUMBER
+    61 symbol  ALL
+    62 symbol  COND
+    63 symbol  EQ
+    64 symbol  CAR
+    65 symbol  FIND-ALL
+    66 symbol  UNION
+    67 symbol  ASK
+    68 symbol  CLASS-OF
+    69 symbol  :MESSAGE
+    70 symbol  EXAMPLE:
+    71 symbol  FOO
+    72 symbol  BARS
+    73 symbol  ATOM-IF-ONLY-ONE
+    74 symbol  NREVERSE
+    75 symbol  FIND.ONE
+    76 symbol  AND
+    77 symbol  NOT
+    78 symbol  YOU
+    79 symbol  DOING
+    80 symbol  REPLACE
+    81 symbol  %ANYTHING
+    82 symbol  PASS.THE.BUCK.TO
+    83 symbol  SOMETHINGS.REPLACE.HANDLER
+    84 symbol  MAKE
+    85 symbol  ?NAME
+    86 symbol  LAMBDA
+    87 symbol  INTERNAL-NAME
+    88 symbol  LIST
+    89 symbol  NAME
+    90 symbol  :NAME
+    91 symbol  SALLY
+    92 symbol  SET
+    93 symbol  INTERN
+    94 symbol  APPEND-ATOMS
+    95 symbol  :
+    96 symbol  MAKE-INSTANCE
+    97 symbol  REMOVE
+    98 symbol  SOMETHINGS.REMOVE.HANDLER
+    99 symbol  INTERCHANGE
+   100 symbol  ?CLAUSE.NUMBER1
+   101 symbol  ?AND.OR.WITH
+   102 symbol  ?CLAUSE.NUMBER2
+   103 symbol  FIRST.CLAUSE
+   104 symbol  SECOND.CLAUSE
+   105 symbol  :CLAUSE.NUMBER1
+   106 symbol  WITH
+   107 fixnum  5
+   108 symbol  BAR
+   109 symbol  MUMBLE
+   110 symbol  :CLAUSE.NUMBER2
+   111 fixnum  7
+   112 symbol  NUMBER
+   113 symbol  INSERT
+   114 symbol  AFTER
+   115 symbol  ?NUMBER
+   116 symbol  INSERT.AFTER.CLAUSE
+   117 symbol  :NUMBER
+   118 symbol  ?PATTERN
+   119 symbol  ?ACTION
+   120 symbol  PLAN:
+   121 symbol  SOMETHINGS.PLAN:.HANDLER
+   122 symbol  WAIT
+   123 symbol  TIME
+   124 symbol  1+
+   125 symbol  ?
+   126 fixnum  6
+   127 symbol  TICK
+   128 symbol  ?UNIVERSE
+   129 symbol  DO.THE.FOLLOWING:
+   130 symbol  RUN.TIME
+   131 symbol  RUN
+   132 fixnum  10
+   133 symbol  MAPC
+   134 symbol  FUNCTION
+   135 symbol  THING.TO.DO
+   136 symbol  ANYTHING
+   137 symbol  TO.DO.AT.TIME
+   138 fixnum  3
+   139 symbol  GO
+   140 symbol  FORWARD
+   141 fixnum  8
+   142 fixnum  0
+   143 symbol  SPRINTER
+   144 symbol  CADDR
+   145 symbol  GET
+   146 symbol  EXPR
+   147 symbol  PRINT
+   148 symbol  %OPTION
+   149 symbol  FANCY-PRINT
+   150 symbol  :OPTION
+   151 symbol  TOP-THING
+   152 symbol  %NEW.PATTERN
+   153 symbol  %NEW.ACTION
+   154 symbol  REPLACE.CLAUSE.NUMBER
+   155 symbol  :NEW.PATTERN
+   156 symbol  :NEW.ACTION
+   157 symbol  PATTERN
+   158 symbol  OF
+   159 symbol  REPLACE.PART.OF.CLAUSE.NUMBER
+   160 symbol  %OLD.PATTERN
+   161 symbol  %OLD.ACTION
+   162 symbol  REPLACE.PART.OF.CLAUSE
+   163 symbol  :OLD.PATTERN
+   164 symbol  :OLD.ACTION
+   165 symbol  ACTION
+   166 symbol  ?NEW.PATTERN
+   167 symbol  ?NEW.ACTION
+   168 symbol  REPLACE.CLAUSE
+   169 symbol  ?OLD.PATTERN
+   170 symbol  ?OLD.ACTION
+   171 symbol  REMOVE.CLAUSE.NUMBER
+   172 symbol  REMOVE.CLAUSE
+   173 symbol  %COMMAND
+   174 symbol  NEXT
+   175 symbol  :COMMAND
+   176 symbol  SHOW
+   177 symbol  UNIVERSE
+   178 symbol  ACTORS.WITH.THINGS.TO.DO
+   179 symbol  SAM
+   180 symbol  TICKS
+   181 symbol  +
+   182 symbol  FIX
+   183 fixnum  27
+   184 symbol  HIDE
+   185 fixnum  23
+   186 symbol  GROW
+   187 fixnum  24
+   188 symbol  MORE
+   189 fixnum  12
+   190 symbol  SHRINK
+   191 fixnum  21
+   192 symbol  NCONS
+   193 symbol  IN
+   194 symbol  XCONS
+   195 symbol  CONS
+   196 symbol  NO
+   197 symbol  IS
+   198 symbol  THERE
+   199 symbol  WARNING
+   200 fixnum  1
+   201 symbol  RECEIVER
+   202 symbol  A
+   203 symbol  PART
+   204 symbol  APPEND
+   205 symbol  CONS-LAMBDA-EXP
+   206 symbol  PUTPROP
+   207 symbol  SUBST
+   208 symbol  *DELETE
+   209 symbol  FANCY-PRINT-SCRIPT
+   210 symbol  TERPRI
+   211 symbol  FANCY-PRINT-MEMORY
+   212 symbol  SCRIPT
+   213 symbol  EQUAL
+   214 symbol  MEMORY
+   215 symbol  |NOT UNDERSTOOD|
+   216 symbol  ASCII
+   217 symbol  PRINC
+   218 symbol  LINEL
+   219 symbol  %MEMORY
+   220 symbol  LSUBR
+   221 symbol  INTERNAL-
+   222 symbol  ELSE
+   223 symbol  COMPLAIN
+   224 symbol  |DOESN'T UNDERSTAND|
+   225 symbol  :CLASS
+   226 symbol  EXPLODE
+   227 symbol  *APPEND
+   228 symbol  MAKNAM
+   229 symbol  :MATCHED?
+   230 symbol  BOUNDP
+   231 symbol  :ACTORS
+   232 symbol  :REMEMBER.ACTORS
+   233 symbol  KIND-OF
+   234 symbol  *EVAL
+   235 symbol  CLASS
+   236 symbol  HAS
+   237 symbol  ADD-TO-ACTOR
+   238 symbol  GET-RECEIVERS
+   239 symbol  MEMBER
+   240 symbol  INSERT-SECOND-TO-LAST
+   241 symbol  SUBRCALL
+   242 symbol  DEFINED
+   243 symbol  CASES
+   244 symbol  TELL
+   245 symbol  FSUBR
+   246 symbol  SUPERBREAK
+   247 symbol  LLOGO
+   248 symbol  LOGOBREAK
+   249 symbol  *APPLY
+   250 symbol  BREAK
+   251 symbol  THAT
+   252 symbol  COMPLAINED
+   253 symbol  RECEIVE1
+   254 symbol  RECEIVE.WITH.FUNCTIONAL.ACTION
+   255 symbol  :VARIABLES
+   256 symbol  :VALUES
+   257 symbol  MATCH
+   258 symbol  ATOM
+   259 symbol  UP-TIL
+   260 symbol  HANDLE-RESTRICTION
+   261 symbol  FLOAT
+   262 symbol  GETCHAR
+   263 symbol  BIND
+   264 symbol  LOOK-FOR-NEXT
+   265 symbol  EVAL.IN.ENV
+   266 symbol  TO
+   267 symbol  NOTHING
+   268 symbol  RESTRICTION
+   269 symbol  THE
+   270 symbol  %S
+   271 symbol  HANDLE
+   272 symbol  CANT
+   273 symbol  FIX-NAME
+   274 symbol  :REVERSED.ALREADY?
+   275 symbol  REVERSE
+   276 symbol  TWO
+   277 symbol  HAVE
+   278 symbol  SILLY
+   279 symbol  MATCH-MEMBER
+   280 symbol  SPLIT-AT-FIRST-TO-MATCH
+   281 symbol  IMPLODE
+   282 symbol  FROM
+   283 symbol  INTERSECT
+   284 symbol  REMPROP
+   285 symbol  VALUE.OR.NIL
+   286 symbol  SYMEVAL
+   287 symbol  ADDTO
+   288 symbol  COMPOSITE.SOMETHING
+   289 symbol  PARTS
+   290 symbol  ?MESSAGE
+   291 symbol  EVAL
+   292 symbol  DEFINE.COMPOSITE.OBJECT
+   293 symbol  COMPOSITE.OBJECT
+   294 symbol  OUT
+   295 symbol  %PARTS
+   296 symbol  CENTERS-NAME
+   297 symbol  OBJECT
+   298 symbol  SALLYS.CENTER
+   299 symbol  SIZE
+   300 symbol  CENTERS
+   301 symbol  INTERNAL-SALLYS.CENTER
+   302 symbol  S.CENTER
+   303 symbol  CENTER
+   304 symbol  ?X
+   305 symbol  ?Y
+   306 symbol  SETXY
+   307 symbol  :X
+   308 symbol  :Y
+   309 fixnum  168
+   310 fixnum  -64
+   311 symbol  FD
+   312 symbol  BK
+   313 symbol  BACK
+   314 symbol  RT
+   315 symbol  RIGHT
+   316 symbol  LEFT
+   317 symbol  LT
+   318 symbol  PU
+   319 symbol  PD
+   320 symbol  PENUP
+   321 symbol  PENDOWN
+   322 symbol  %REST
+   323 symbol  DEFINE.HELP.FOR.SOMETHING
+   324 symbol  HELP.FOR.SOMETHING
+   325 symbol  DO
+   326 symbol  IT
+   327 symbol  COUNT
+   328 symbol  NULL
+   329 symbol  >
+   330 symbol  *MAXIMUM-TICKS*
+   331 symbol  DONE
+   332 symbol  TICKED
+   333 symbol  TIMES
+   334 symbol  I
+   335 symbol  CDR
+   336 symbol  UNIVERSE-1
+   337 fixnum  16
+
+The LAP-like listing of the loaded words is in code/7005044_anima=2A.code.txt.

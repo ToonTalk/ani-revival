@@ -1,0 +1,261 @@
+FASL dump: original/9004336/tv2r.fasl  (ITS KEN;TV2R FASL, tape 9004336, Aug 1979)
+Decoded 1475 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1475 of 1475 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 302420,,000007 ('840', flag bits 007), 111 blocks, 991 items
+Item counts: absolute 542, relocatable 101, special 7, smashable call 73, quoted atom 46, quoted list 4, globalsym 101, atom table 81, entry 17, eval mungeable 18, end 1
+
+-- Functions defined (17) --
+  name                         property args         address
+  |EVAL-WHILE-GAGGED MACRO|    SUBR     (NIL . 1)    000000
+  TV2R                         LSUBR                 000032
+  TV2R-INTERNAL                SUBR     (NIL . 2)    000152
+  TV2R-LIST                    LSUBR                 000300
+  TV2R-LIST-INTERNAL           SUBR     (NIL . 1)    000363
+  TV2R-PRINT-CHARACTERS        LSUBR    (8 . 8)      000432
+  TV2R-PRINT-LINE              LSUBR    (6 . 6)      000471
+  TV2R-RUN-OUT                 SUBR     (NIL . 5)    000547
+  TV2R-TYO                     SUBR     (NIL . 3)    000616
+  TV2R-TERPRI-TO-LIST          SUBR     (NIL . 1)    000650
+  TV2R-PRINC-TO-LIST           SUBR     (NIL . 2)    000657
+  TV2R-TYO-TO-LIST             SUBR     (NIL . 2)    000667
+  TV2R-MERGE-PICTURE-LISTS     SUBR     (NIL . 2)    000675
+  TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY SUBR     (NIL . 2)    000761
+  TV2R-PRINT-TIL-CARRIAGE-RETURN SUBR     (NIL . 2)    001013
+  TV2R-BIG                     SUBR     (NIL . 4)    001044
+  TV2R-NORMALIZE-COORDINATE    SUBR     (NIL . 2)    001373
+
+-- Top-level forms evaluated at load time (18) --
+  (DEFPROP EVAL-WHILE-GAGGED |EVAL-WHILE-GAGGED MACRO| MACRO)
+  (REMPROP 'TV2R 'AUTOLOAD)
+  (REMPROP 'TV2R-INTERNAL 'AUTOLOAD)
+  (REMPROP 'TV2R-LIST 'AUTOLOAD)
+  (REMPROP 'TV2R-LIST-INTERNAL 'AUTOLOAD)
+  (SETQ RUN-MAX 100)
+  (REMPROP 'TV2R-PRINT-CHARACTERS 'AUTOLOAD)
+  (REMPROP 'TV2R-PRINT-LINE 'AUTOLOAD)
+  (REMPROP 'TV2R-RUN-OUT 'AUTOLOAD)
+  (REMPROP 'TV2R-TYO 'AUTOLOAD)
+  (REMPROP 'TV2R-TERPRI-TO-LIST 'AUTOLOAD)
+  (REMPROP 'TV2R-PRINC-TO-LIST 'AUTOLOAD)
+  (REMPROP 'TV2R-TYO-TO-LIST 'AUTOLOAD)
+  (REMPROP 'TV2R-MERGE-PICTURE-LISTS 'AUTOLOAD)
+  (REMPROP 'TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY 'AUTOLOAD)
+  (REMPROP 'TV2R-PRINT-TIL-CARRIAGE-RETURN 'AUTOLOAD)
+  (REMPROP 'TV2R-BIG 'AUTOLOAD)
+  (REMPROP 'TV2R-NORMALIZE-COORDINATE 'AUTOLOAD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  |EVAL-WHILE-GAGGED MACRO|
+      calls:        LENGTH ERROR
+      quoted atoms: PROGN UNWIND-PROTECT |Wrong number args to a macro call|
+      quoted list:  (VALRET '|^W:gag 0^M^[p^V|)
+      quoted list:  ((VALRET '|^W:gag 1^M^[p^V|))
+  TV2R
+      calls:        LISTIFY ERROR VALRET *EVAL RECTANGLE-SPEC TV2R-INTERNAL
+      quoted atoms: |Too few arguments supplied | TV2R NIL XGP |Too many arguments supplied | |^W:gag 1^M^[p^V| |^W:gag 0^M^[p^V|
+      quoted list:  (1 . 2)
+  TV2R-INTERNAL
+      calls:        FILEP SFAP CLOSE *BREAK OPEN LINEL TV2R-PRINT-CHARACTERS
+      specials:     *NOPOINT *ONLY-FILES-IN-LET-FILES
+      quoted atoms: T ARGUMENT-NOT-A-FILE-OBJECT OUT 0 TYO PRINC TERPRI
+  TV2R-LIST
+      calls:        LISTIFY ERROR *EVAL RECTANGLE-SPEC TV2R-LIST-INTERNAL
+      quoted atoms: TV2R-LIST NIL XGP |Too many arguments supplied |
+      quoted list:  (0 . 1)
+  TV2R-LIST-INTERNAL
+      calls:        TV2R-PRINT-CHARACTERS NREVERSE
+      quoted atoms: FOR-R-EVENTUALLY TV2R-TYO-TO-LIST TV2R-PRINC-TO-LIST TV2R-TERPRI-TO-LIST
+  TV2R-PRINT-CHARACTERS
+      calls:        TV2R-PRINT-LINE
+  TV2R-PRINT-LINE
+      calls:        RUNAWAY-FORWARD TV2R-RUN-OUT
+  TV2R-RUN-OUT
+      calls:        TV2R-TYO
+      specials:     RUN-MAX
+      quoted atoms: |^Xh(| 41 T
+  TV2R-TYO
+      quoted atoms: 17
+  TV2R-TERPRI-TO-LIST
+      calls:        TV2R-TYO-TO-LIST
+      quoted atoms: 13 10
+  TV2R-PRINC-TO-LIST
+      calls:        EXPLODEN NREVERSE *NCONC
+  TV2R-TYO-TO-LIST
+  TV2R-MERGE-PICTURE-LISTS
+      calls:        FILEP SFAP CLOSE *BREAK OPEN LINEL TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY
+      specials:     *ONLY-FILES-IN-LET-FILES
+      quoted atoms: ARGUMENT-NOT-A-FILE-OBJECT APPEND 0
+  TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY
+      calls:        *APPEND TV2R-PRINT-TIL-CARRIAGE-RETURN TERPRI
+      quoted atoms: NIL
+  TV2R-PRINT-TIL-CARRIAGE-RETURN
+      calls:        TYO
+      quoted atoms: NIL
+  TV2R-BIG
+      calls:        VALRET TURTLESIZE TVSIZE CLIP OPEN CLOSE FLOAT SCALE *BREAK FIX TV2R-MERGE-PICTURE-LISTS TV2R-NORMALIZE-COORDINATE SETHOME CLEARSCREEN *EVAL TV2R-LIST
+      specials:     :OUTLINE
+      quoted atoms: T |Why don't you try again?| NIL |^W:gag 1^M^[p^V| |^W:gag 0^M^[p^V| OUT 1
+  TV2R-NORMALIZE-COORDINATE
+
+-- Symbols and how they are used (72) --
+  |^W:gag 0^M^[p^V|              in constant, quoted
+  |^W:gag 1^M^[p^V|              in constant, quoted
+  |^Xh(|                         quoted
+  *APPEND                        called
+  *BREAK                         called
+  *EVAL                          called
+  *NCONC                         called
+  *NOPOINT                       special
+  *ONLY-FILES-IN-LET-FILES       special
+  :OUTLINE                       special
+  APPEND                         quoted
+  ARGUMENT-NOT-A-FILE-OBJECT     quoted
+  AUTOLOAD                       in top-level form
+  CLEARSCREEN                    called
+  CLIP                           called
+  CLOSE                          called
+  DEFPROP                        in top-level form
+  ERROR                          called
+  EVAL-WHILE-GAGGED              in top-level form
+  |EVAL-WHILE-GAGGED MACRO|      defined, in top-level form
+  EXPLODEN                       called
+  FILEP                          called
+  FIX                            called
+  FLOAT                          called
+  FOR-R-EVENTUALLY               quoted
+  LENGTH                         called
+  LINEL                          called
+  LISTIFY                        called
+  MACRO                          in top-level form
+  NIL                            quoted
+  NREVERSE                       called
+  OPEN                           called
+  OUT                            quoted
+  PRINC                          quoted
+  PROGN                          quoted
+  QUOTE                          in constant, in top-level form
+  RECTANGLE-SPEC                 called
+  REMPROP                        in top-level form
+  RUN-MAX                        in top-level form, special
+  RUNAWAY-FORWARD                called
+  SCALE                          called
+  SETHOME                        called
+  SETQ                           in top-level form
+  SFAP                           called
+  T                              quoted
+  TERPRI                         called, quoted
+  TURTLESIZE                     called
+  TV2R                           defined, in top-level form, quoted
+  TV2R-BIG                       defined, in top-level form
+  TV2R-INTERNAL                  called, defined, in top-level form
+  TV2R-LIST                      called, defined, in top-level form, quoted
+  TV2R-LIST-INTERNAL             called, defined, in top-level form
+  TV2R-MERGE-PICTURE-LISTS       called, defined, in top-level form
+  TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY called, defined, in top-level form
+  TV2R-NORMALIZE-COORDINATE      called, defined, in top-level form
+  TV2R-PRINC-TO-LIST             defined, in top-level form, quoted
+  TV2R-PRINT-CHARACTERS          called, defined, in top-level form
+  TV2R-PRINT-LINE                called, defined, in top-level form
+  TV2R-PRINT-TIL-CARRIAGE-RETURN called, defined, in top-level form
+  TV2R-RUN-OUT                   called, defined, in top-level form
+  TV2R-TERPRI-TO-LIST            defined, in top-level form, quoted
+  TV2R-TYO                       called, defined, in top-level form
+  TV2R-TYO-TO-LIST               called, defined, in top-level form, quoted
+  TVSIZE                         called
+  TYO                            called, quoted
+  |Too few arguments supplied |  quoted
+  |Too many arguments supplied | quoted
+  UNWIND-PROTECT                 quoted
+  VALRET                         called, in constant
+  |Why don't you try again?|     quoted
+  |Wrong number args to a macro call| quoted
+  XGP                            quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (81 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  EVAL-WHILE-GAGGED
+     3 symbol  |EVAL-WHILE-GAGGED MACRO|
+     4 symbol  MACRO
+     5 symbol  SUBR
+     6 symbol  LENGTH
+     7 symbol  ERROR
+     8 symbol  VALRET
+     9 symbol  QUOTE
+    10 symbol  |^W:gag 0^M^[p^V|
+    11 symbol  PROGN
+    12 symbol  |^W:gag 1^M^[p^V|
+    13 symbol  UNWIND-PROTECT
+    14 symbol  |Wrong number args to a macro call|
+    15 symbol  REMPROP
+    16 symbol  TV2R
+    17 symbol  AUTOLOAD
+    18 symbol  LSUBR
+    19 symbol  |Too few arguments supplied |
+    20 symbol  LISTIFY
+    21 fixnum  1
+    22 fixnum  2
+    23 symbol  *EVAL
+    24 symbol  XGP
+    25 symbol  RECTANGLE-SPEC
+    26 symbol  TV2R-INTERNAL
+    27 symbol  |Too many arguments supplied |
+    28 symbol  T
+    29 symbol  *NOPOINT
+    30 symbol  FILEP
+    31 symbol  SFAP
+    32 symbol  CLOSE
+    33 symbol  ARGUMENT-NOT-A-FILE-OBJECT
+    34 symbol  *ONLY-FILES-IN-LET-FILES
+    35 symbol  *BREAK
+    36 symbol  OPEN
+    37 symbol  LINEL
+    38 symbol  TV2R-PRINT-CHARACTERS
+    39 symbol  OUT
+    40 fixnum  0
+    41 symbol  TYO
+    42 symbol  PRINC
+    43 symbol  TERPRI
+    44 symbol  TV2R-LIST
+    45 symbol  TV2R-LIST-INTERNAL
+    46 symbol  FOR-R-EVENTUALLY
+    47 symbol  NREVERSE
+    48 symbol  TV2R-TYO-TO-LIST
+    49 symbol  TV2R-PRINC-TO-LIST
+    50 symbol  TV2R-TERPRI-TO-LIST
+    51 symbol  SETQ
+    52 symbol  RUN-MAX
+    53 fixnum  100
+    54 symbol  TV2R-PRINT-LINE
+    55 symbol  RUNAWAY-FORWARD
+    56 symbol  TV2R-RUN-OUT
+    57 symbol  |^Xh(|
+    58 fixnum  41
+    59 symbol  TV2R-TYO
+    60 fixnum  17
+    61 fixnum  13
+    62 fixnum  10
+    63 symbol  EXPLODEN
+    64 symbol  *NCONC
+    65 symbol  TV2R-MERGE-PICTURE-LISTS
+    66 symbol  TV2R-MERGE-PICTURE-LISTS-HORIZONTALLY
+    67 symbol  APPEND
+    68 symbol  *APPEND
+    69 symbol  TV2R-PRINT-TIL-CARRIAGE-RETURN
+    70 symbol  TV2R-BIG
+    71 symbol  TURTLESIZE
+    72 symbol  TVSIZE
+    73 symbol  :OUTLINE
+    74 symbol  CLIP
+    75 symbol  FLOAT
+    76 symbol  SCALE
+    77 symbol  |Why don't you try again?|
+    78 symbol  FIX
+    79 symbol  TV2R-NORMALIZE-COORDINATE
+    80 symbol  SETHOME
+    81 symbol  CLEARSCREEN
+
+The LAP-like listing of the loaded words is in code/9004336_tv2r.code.txt.

@@ -1,0 +1,145 @@
+FASL dump: original/3100153/step.fasl  (ITS KEN;STEP FASL, tape 3100153, late 1976)
+Decoded 419 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 419 of 419 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL*, Lisp version word 202220,,000016 ('020', flag bits 016), 30 blocks, 269 items
+Item counts: absolute 86, relocatable 30, special 21, smashable call 27, quoted atom 22, quoted list 2, globalsym 20, atom table 42, entry 9, eval mungeable 9, end 1
+
+-- Functions defined (9) --
+  name                         property args         address
+  STACK-CRAWL                  FSUBR                 000000
+  TOP                          SUBR     (NIL . 0)    000031
+  BOT                          SUBR     (NIL . 0)    000042
+  UP                           SUBR     (NIL . 0)    000050
+  DN                           SUBR     (NIL . 0)    000056
+  FR                           SUBR     (NIL . 0)    000063
+  RET                          LSUBR                 000065
+  EV                           LSUBR                 000171
+  EVQ                          FSUBR                 000232
+
+-- Top-level forms evaluated at load time (9) --
+  (DEFPROP STACK-CRAWL -928703731 EXPR-HASH)
+  (DEFPROP TOP 3949813840 EXPR-HASH)
+  (DEFPROP BOT -32968930397 EXPR-HASH)
+  (DEFPROP UP 1172372375 EXPR-HASH)
+  (DEFPROP DN -16901379106 EXPR-HASH)
+  (DEFPROP FR -19950444402 EXPR-HASH)
+  (DEFPROP RET 11072468400 EXPR-HASH)
+  (DEFPROP EV -30950875253 EXPR-HASH)
+  (DEFPROP EVQ 22702931053 EXPR-HASH)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  STACK-CRAWL
+      calls:        NOUUO *RSET SSTATUS
+      specials:     PURE
+      quoted atoms: OFF NIL ON T 2
+      quoted list:  (UUOLINKS)
+      quoted list:  (UUOLINKS)
+  TOP
+      calls:        EVALFRAME
+      specials:     *RSET *FRAME*-*POINTER*
+      quoted atoms: NIL
+  BOT
+      calls:        EVALFRAME
+      specials:     *RSET *FRAME*-*POINTER*
+      quoted atoms: 0
+  UP
+      calls:        ABS EVALFRAME
+      specials:     *FRAME*-*POINTER*
+  DN
+      calls:        EVALFRAME
+      specials:     *FRAME*-*POINTER*
+  FR
+      specials:     *FRAME*-*POINTER*
+  RET
+      calls:        FRETURN EVAL APPLY *BREAK
+      specials:     *FRAME*-*POINTER*
+      quoted atoms: EVAL APPLY DAMM-LISP T WRONG-NUMBER-OF-ARGS
+  EV
+      calls:        EVAL *BREAK
+      specials:     *FRAME*-*POINTER*
+      quoted atoms: WRONG-NUMBER-OF-ARGS T
+  EVQ
+      calls:        *BREAK EVAL
+      specials:     *FRAME*-*POINTER*
+      quoted atoms: WRONG-NUMBER-OF-ARGS T
+
+-- Symbols and how they are used (29) --
+  *BREAK                         called
+  *FRAME*-*POINTER*              special
+  *RSET                          called, special
+  ABS                            called
+  APPLY                          called, quoted
+  BOT                            defined, in top-level form
+  DAMM-LISP                      quoted
+  DEFPROP                        in top-level form
+  DN                             defined, in top-level form
+  EV                             defined, in top-level form
+  EVAL                           called, quoted
+  EVALFRAME                      called
+  EVQ                            defined, in top-level form
+  EXPR-HASH                      in top-level form
+  FR                             defined, in top-level form
+  FRETURN                        called
+  NIL                            quoted
+  NOUUO                          called
+  OFF                            quoted
+  ON                             quoted
+  PURE                           special
+  RET                            defined, in top-level form
+  SSTATUS                        called
+  STACK-CRAWL                    defined, in top-level form
+  T                              quoted
+  TOP                            defined, in top-level form
+  UP                             defined, in top-level form
+  UUOLINKS                       in constant
+  WRONG-NUMBER-OF-ARGS           quoted
+  (in atom table, no direct use found: FSUBR SUBR LSUBR)
+
+-- Atom table (42 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  STACK-CRAWL
+     3 fixnum  -928703731
+     4 symbol  EXPR-HASH
+     5 symbol  FSUBR
+     6 symbol  OFF
+     7 symbol  NOUUO
+     8 symbol  *RSET
+     9 symbol  UUOLINKS
+    10 symbol  SSTATUS
+    11 symbol  ON
+    12 symbol  T
+    13 fixnum  2
+    14 symbol  PURE
+    15 symbol  TOP
+    16 fixnum  3949813840
+    17 symbol  SUBR
+    18 symbol  EVALFRAME
+    19 symbol  *FRAME*-*POINTER*
+    20 symbol  BOT
+    21 fixnum  -32968930397
+    22 fixnum  0
+    23 symbol  UP
+    24 fixnum  1172372375
+    25 symbol  ABS
+    26 symbol  DN
+    27 fixnum  -16901379106
+    28 symbol  FR
+    29 fixnum  -19950444402
+    30 symbol  RET
+    31 fixnum  11072468400
+    32 symbol  LSUBR
+    33 symbol  FRETURN
+    34 symbol  EVAL
+    35 symbol  APPLY
+    36 symbol  DAMM-LISP
+    37 symbol  *BREAK
+    38 symbol  WRONG-NUMBER-OF-ARGS
+    39 symbol  EV
+    40 fixnum  -30950875253
+    41 symbol  EVQ
+    42 fixnum  22702931053
+
+The LAP-like listing of the loaded words is in code/3100153_step.code.txt.

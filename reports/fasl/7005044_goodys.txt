@@ -1,0 +1,522 @@
+FASL dump: original/7005044/goodys.fasl  (ITS KEN;GOODYS FASL, tape 7005044, Dec 1975)
+Decoded 1561 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1561 of 1561 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212026,,000007 ('106', flag bits 007), 69 blocks, 617 items
+Item counts: absolute 153, relocatable 52, special 15, smashable call 95, quoted atom 45, quoted list 7, globalsym 25, atom table 181, entry 19, eval mungeable 24, end 1
+
+-- Functions defined (19) --
+  name                         property args         address
+  HOME                         SUBR     (NIL . 0)    000000
+  WRITE-OUT-HOMES              SUBR     (NIL . 0)    000004
+  KOMPILE                      FSUBR                 000006
+  WAIT-FOR-UNFASL              SUBR     (NIL . 0)    000063
+  COMPILE-IT                   SUBR     (NIL . 0)    000066
+  UNFASL?                      SUBR     (NIL . 0)    000116
+  PRINT-UNFASL                 SUBR     (NIL . 0)    000123
+  FASLOAD?                     SUBR     (NIL . 0)    000167
+  KILL-UNFASL?                 SUBR     (NIL . 0)    000211
+  KILL-LAP?                    SUBR     (NIL . 0)    000232
+  PEEK                         SUBR     (NIL . 0)    000253
+  FASLOAD-AND-CHECK            FSUBR                 000262
+  FIND-RFDATE                  SUBR     (NIL . 1)    000345
+  FDATE-GREATERP               SUBR     (NIL . 2)    000362
+  UREAD+XEQ                    FSUBR                 000413
+  GOODYS1                      LSUBR                 000452
+  HOME?                        FSUBR                 000470
+  GEN-NUMBER-LIST              SUBR     (NIL . 0)    000477
+  RFDATE                       SUBR     (NIL . 0)    000510
+
+-- Top-level forms evaluated at load time (24) --
+  (SETQ *FUNCTIONS* NIL)
+  (DEFPROP *DEFUN
+    (LAMBDA (FORM)
+      (RPLACA FORM 'DEFUN)
+      (COND ((OR (NULL (BOUNDP 'COMPILER-STATE)) (EQ COMPILER-STATE 'TOPLEVEL))
+             (PUTPROP (CADR FORM) (HOME) 'FILE-I-LIVE-IN))
+        ((EQ COMPILER-STATE 'MAKLAP) (COUTPUT (LIST 'DEFPROP (CADR FORM) (HOME) 'FILE-I-LIVE-IN)))
+        ((EQ COMPILER-STATE 'COMPILE) (ERROR '|STRANGE-DEFUN IN SUBFORM| FORM 'FAIL-ACT)))
+      FORM)
+    MACRO)
+  (DEFPROP HOME 15619357616 EXPR-HASH)
+  (DEFPROP WRITE-OUT-HOMES 3891672917 EXPR-HASH)
+  (DEFPROP KOMPILE 3755023626 EXPR-HASH)
+  (DEFPROP WAIT-FOR-UNFASL 12034128988 EXPR-HASH)
+  (SETQ ALARMCLOCK
+    (FUNCTION (LAMBDA (Q)
+                (COND ((UNFASL?)
+                       (TERPRI)
+                       (TYO 7)
+                       (PROG (^R ^W) (PRINC '|COMPILATION COMPLETE|) (TYO 7))
+                       (ALARMCLOCK 'TIME 60))
+                  (T (ALARMCLOCK 'TIME 10))))))
+  (DEFPROP COMPILE-IT -10052171504 EXPR-HASH)
+  (DEFPROP UNFASL? 10276330168 EXPR-HASH)
+  (DEFPROP PRINT-UNFASL 4705066066 EXPR-HASH)
+  (DEFPROP FASLOAD? 6586345373 EXPR-HASH)
+  (DEFPROP KILL-UNFASL? -6479031799 EXPR-HASH)
+  (DEFPROP KILL-LAP? 21704065569 EXPR-HASH)
+  (DEFPROP DISPLACE
+    (LAMBDA (L)
+      ((LAMBDA (A1 A2) (RPLACA A1 (CAR A2)) (RPLACD A1 (CDR A2)) (LIST 'QUOTE A1))
+       (EVAL (CADR L))
+       (EVAL (CADDR L))))
+    MACRO)
+  (DEFPROP EXPAND
+    (LAMBDA (QQQ)
+      (LIST 'QUOTE
+        (CONS (LIST 'LAMBDA (MAPCAR 'CAR (CADR QQQ)) (CADDR QQQ))
+          (MAPCAR (FUNCTION (LAMBDA (HHH) (EVAL (CADR HHH)))) (CADR QQQ)))))
+    MACRO)
+  (DEFPROP MACRODEF
+    (LAMBDA (QQQ)
+      (LIST '*DEFUN
+        (CADR QQQ)
+        'MACRO
+        '(X)
+        (LIST 'EXPAND
+          (DO ((RRR (CADDR QQQ) (CDR RRR))
+               (CCC '(CDR X) (LIST 'CDR CCC))
+               (LLL NIL (CONS (LIST (CAR RRR) (LIST 'CAR CCC)) LLL)))
+            ((ATOM RRR) (AND RRR (SETQ LLL (CONS (LIST RRR CCC) LLL))) (NREVERSE LLL)))
+          (CADDDR QQQ))))
+    MACRO)
+  (DEFPROP DEFLEXPR
+    (LAMBDA (X)
+      (DO ((ARGS (CADDR X) (CDR ARGS)) (TEXT (CADDDR X)) (NUM 1 (1+ NUM)))
+        ((NULL ARGS) (LIST '*DEFUN (CADR X) 'N TEXT))
+        (SETQ TEXT
+          (SUBST (LIST '> 'N (1- NUM))
+            (LIST '#EXISTS? (COND ((ATOM (CAR ARGS)) (CAR ARGS)) (T (CAAR ARGS))))
+            TEXT))
+        (COND ((ATOM (CAR ARGS)) (SETQ TEXT (SUBST (LIST 'ARG NUM) (CAR ARGS) TEXT)))
+          (T (SETQ TEXT
+               (SUBST (LIST 'COND
+                        (LIST (LIST '> 'N (1- NUM)) (LIST 'ARG NUM))
+                        (LIST T (CADR (CAR ARGS))))
+                 (CAAR ARGS)
+                 TEXT))))))
+    MACRO)
+  (DEFPROP PEEK 17868658501 EXPR-HASH)
+  (DEFPROP FASLOAD-AND-CHECK 6286169907 EXPR-HASH)
+  (DEFPROP FIND-RFDATE 28741039664 EXPR-HASH)
+  (DEFPROP FDATE-GREATERP -24599175100 EXPR-HASH)
+  (DEFPROP UREAD+XEQ -26167129306 EXPR-HASH)
+  (DEFPROP HOME? 10051387871 EXPR-HASH)
+  (DEFPROP GEN-NUMBER-LIST 2034998471 EXPR-HASH)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  HOME
+      calls:        STATUS EXPLODE IMPLODE
+      quoted list:  (UREAD)
+  WRITE-OUT-HOMES
+      quoted atoms: NOW-OBSOLETE
+  KOMPILE
+      calls:        UPROBE UNFASL? NCONS XCONS UKILL COMPILE-IT PRINT WAIT-FOR-UNFASL ALARMCLOCK TERPRI TYI PRINT-UNFASL FASLOAD? KILL-UNFASL? KILL-LAP?
+      specials:     *FILENAME*
+      quoted atoms: UNFASL COMPILING T -1 TIME
+  WAIT-FOR-UNFASL
+      calls:        ALARMCLOCK
+      quoted atoms: 2 TIME
+  COMPILE-IT
+      calls:        EXPLODE APPEND IMPLODE VALRET
+      specials:     *FILENAME*
+      quoted list:  (|^W| : N C O M P L R | |)
+      quoted list:  (| |)
+      quoted list:  (| | |(| F U W E |)| |^M| |^[| J |^[| P)
+  UNFASL?
+      calls:        NCONS XCONS UPROBE
+      specials:     *FILENAME*
+      quoted atoms: UNFASL
+  PRINT-UNFASL
+      calls:        NCONS XCONS UREAD IOC READ MEMQ SPRINTER
+      specials:     *FILENAME* ^Q
+      quoted atoms: UNFASL Q EOF T **FASL**
+  FASLOAD?
+      calls:        PRINT TYI NCONS XCONS FASLOAD
+      specials:     FASLOAD *FILENAME*
+      quoted atoms: FASLOAD? FASL T NIL
+  KILL-UNFASL?
+      calls:        TERPRI TYI NCONS XCONS UKILL
+      specials:     *FILENAME*
+      quoted atoms: UNFASL NIL
+  KILL-LAP?
+      calls:        TERPRI TYI NCONS XCONS UKILL
+      specials:     *FILENAME*
+      quoted atoms: LAP ALL-DONE
+  PEEK
+      calls:        VALRET
+      quoted atoms: |^W:P S^V^M^[P|
+  FASLOAD-AND-CHECK
+      calls:        STATUS NCONS XCONS FIND-RFDATE FDATE-GREATERP CONS PRINT FASLOAD UREAD
+      specials:     ^W ^R
+      quoted atoms: > FASL THAN OLDER IS WARNING
+      quoted list:  (CRFILE)
+  FIND-RFDATE
+      calls:        STATUS UREAD RFDATE
+      quoted list:  (CRFILE)
+  FDATE-GREATERP
+      calls:        *GREAT *LESS
+      quoted atoms: T NIL
+  UREAD+XEQ
+      calls:        STATUS UREAD IOC READ *EVAL
+      quoted atoms: Q EOF
+      quoted list:  (CRFILE)
+  GOODYS1
+      calls:        GET NCONS XCONS CONS PRINC TERPRI
+      quoted atoms: FILE-I-LIVE-IN IN LIVES
+  HOME?
+      calls:        TERPRI ASCII
+      quoted atoms: GOODYS1 0
+  GEN-NUMBER-LIST
+      calls:        EXPLODE
+      specials:     *NOPOINT *GEN-NUMBER-VALUE*
+      quoted atoms: T
+  RFDATE
+      calls:        LIST
+      quoted atoms: NIL
+
+-- Symbols and how they are used (155) --
+  |^M|                           in constant
+  |^W|                           in constant
+  |^W:P S^V^M^[P|                quoted
+  |^[|                           in constant
+  | |                            in constant
+  #EXISTS?                       in top-level form
+  |(|                            in constant
+  |)|                            in constant
+  **FASL**                       quoted
+  *DEFUN                         in top-level form
+  *EVAL                          called
+  *FILENAME*                     special
+  *FUNCTIONS*                    in top-level form
+  *GEN-NUMBER-VALUE*             special
+  *GREAT                         called
+  *LESS                          called
+  *NOPOINT                       special
+  1+                             in top-level form
+  1-                             in top-level form
+  :                              in constant
+  >                              in top-level form, quoted
+  A1                             in top-level form
+  A2                             in top-level form
+  ALARMCLOCK                     called, in top-level form
+  ALL-DONE                       quoted
+  AND                            in top-level form
+  APPEND                         called
+  ARG                            in top-level form
+  ARGS                           in top-level form
+  ASCII                          called
+  ATOM                           in top-level form
+  BOUNDP                         in top-level form
+  C                              in constant
+  CAAR                           in top-level form
+  CADDDR                         in top-level form
+  CADDR                          in top-level form
+  CADR                           in top-level form
+  CAR                            in top-level form
+  CCC                            in top-level form
+  CDR                            in top-level form
+  |COMPILATION COMPLETE|         in top-level form
+  COMPILE                        in top-level form
+  COMPILE-IT                     called, defined, in top-level form
+  COMPILER-STATE                 in top-level form
+  COMPILING                      quoted
+  COND                           in top-level form
+  CONS                           called, in top-level form
+  COUTPUT                        in top-level form
+  CRFILE                         in constant
+  DEFLEXPR                       in top-level form
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DISPLACE                       in top-level form
+  DO                             in top-level form
+  E                              in constant
+  EOF                            quoted
+  EQ                             in top-level form
+  ERROR                          in top-level form
+  EVAL                           in top-level form
+  EXPAND                         in top-level form
+  EXPLODE                        called
+  EXPR-HASH                      in top-level form
+  F                              in constant
+  FAIL-ACT                       in top-level form
+  FASL                           quoted
+  FASLOAD                        called, special
+  FASLOAD-AND-CHECK              defined, in top-level form
+  FASLOAD?                       called, defined, in top-level form, quoted
+  FDATE-GREATERP                 called, defined, in top-level form
+  FILE-I-LIVE-IN                 in top-level form, quoted
+  FIND-RFDATE                    called, defined, in top-level form
+  FORM                           in top-level form
+  FUNCTION                       in top-level form
+  GEN-NUMBER-LIST                defined, in top-level form
+  GET                            called
+  GOODYS1                        defined, quoted
+  HHH                            in top-level form
+  HOME                           defined, in top-level form
+  HOME?                          defined, in top-level form
+  IMPLODE                        called
+  IN                             quoted
+  IOC                            called
+  IS                             quoted
+  J                              in constant
+  KILL-LAP?                      called, defined, in top-level form
+  KILL-UNFASL?                   called, defined, in top-level form
+  KOMPILE                        defined, in top-level form
+  L                              in constant, in top-level form
+  LAMBDA                         in top-level form
+  LAP                            quoted
+  LIST                           called, in top-level form
+  LIVES                          quoted
+  LLL                            in top-level form
+  M                              in constant
+  MACRO                          in top-level form
+  MACRODEF                       in top-level form
+  MAKLAP                         in top-level form
+  MAPCAR                         in top-level form
+  MEMQ                           called
+  N                              in constant, in top-level form
+  NCONS                          called
+  NIL                            in top-level form, quoted
+  NOW-OBSOLETE                   quoted
+  NREVERSE                       in top-level form
+  NULL                           in top-level form
+  NUM                            in top-level form
+  O                              in constant
+  OLDER                          quoted
+  OR                             in top-level form
+  P                              in constant
+  PEEK                           defined, in top-level form
+  PRINC                          called, in top-level form
+  PRINT                          called
+  PRINT-UNFASL                   called, defined, in top-level form
+  PROG                           in top-level form
+  PUTPROP                        in top-level form
+  Q                              in top-level form, quoted
+  QQQ                            in top-level form
+  QUOTE                          in top-level form
+  R                              in constant
+  READ                           called
+  RFDATE                         called, defined
+  RPLACA                         in top-level form
+  RPLACD                         in top-level form
+  RRR                            in top-level form
+  SETQ                           in top-level form
+  SPRINTER                       called
+  STATUS                         called
+  |STRANGE-DEFUN IN SUBFORM|     in top-level form
+  SUBST                          in top-level form
+  T                              in top-level form, quoted
+  TERPRI                         called, in top-level form
+  TEXT                           in top-level form
+  THAN                           quoted
+  TIME                           in top-level form, quoted
+  TOPLEVEL                       in top-level form
+  TYI                            called
+  TYO                            in top-level form
+  U                              in constant
+  UKILL                          called
+  UNFASL                         quoted
+  UNFASL?                        called, defined, in top-level form
+  UPROBE                         called
+  UREAD                          called, in constant
+  UREAD+XEQ                      defined, in top-level form
+  VALRET                         called
+  W                              in constant
+  WAIT-FOR-UNFASL                called, defined, in top-level form
+  WARNING                        quoted
+  WRITE-OUT-HOMES                defined, in top-level form
+  X                              in top-level form
+  XCONS                          called
+  ^Q                             special
+  ^R                             in top-level form, special
+  ^W                             in top-level form, special
+  (in atom table, no direct use found: SUBR FSUBR LSUBR)
+
+-- Atom table (181 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  *FUNCTIONS*
+     3 symbol  DEFPROP
+     4 symbol  *DEFUN
+     5 symbol  LAMBDA
+     6 symbol  FORM
+     7 symbol  RPLACA
+     8 symbol  QUOTE
+     9 symbol  DEFUN
+    10 symbol  COND
+    11 symbol  OR
+    12 symbol  NULL
+    13 symbol  BOUNDP
+    14 symbol  COMPILER-STATE
+    15 symbol  EQ
+    16 symbol  TOPLEVEL
+    17 symbol  PUTPROP
+    18 symbol  CADR
+    19 symbol  HOME
+    20 symbol  FILE-I-LIVE-IN
+    21 symbol  MAKLAP
+    22 symbol  COUTPUT
+    23 symbol  LIST
+    24 symbol  COMPILE
+    25 symbol  ERROR
+    26 symbol  |STRANGE-DEFUN IN SUBFORM|
+    27 symbol  FAIL-ACT
+    28 symbol  MACRO
+    29 fixnum  15619357616
+    30 symbol  EXPR-HASH
+    31 symbol  SUBR
+    32 symbol  UREAD
+    33 symbol  STATUS
+    34 symbol  EXPLODE
+    35 symbol  IMPLODE
+    36 symbol  WRITE-OUT-HOMES
+    37 fixnum  3891672917
+    38 symbol  NOW-OBSOLETE
+    39 symbol  KOMPILE
+    40 fixnum  3755023626
+    41 symbol  FSUBR
+    42 symbol  UPROBE
+    43 symbol  *FILENAME*
+    44 symbol  UNFASL?
+    45 symbol  UNFASL
+    46 symbol  NCONS
+    47 symbol  XCONS
+    48 symbol  UKILL
+    49 symbol  COMPILE-IT
+    50 symbol  COMPILING
+    51 symbol  PRINT
+    52 symbol  WAIT-FOR-UNFASL
+    53 symbol  T
+    54 fixnum  -1
+    55 symbol  TIME
+    56 symbol  ALARMCLOCK
+    57 symbol  TERPRI
+    58 symbol  TYI
+    59 symbol  PRINT-UNFASL
+    60 symbol  FASLOAD?
+    61 symbol  KILL-UNFASL?
+    62 symbol  KILL-LAP?
+    63 fixnum  12034128988
+    64 fixnum  2
+    65 symbol  FUNCTION
+    66 symbol  Q
+    67 symbol  TYO
+    68 fixnum  7
+    69 symbol  PROG
+    70 symbol  ^R
+    71 symbol  ^W
+    72 symbol  PRINC
+    73 symbol  |COMPILATION COMPLETE|
+    74 fixnum  60
+    75 fixnum  10
+    76 fixnum  -10052171504
+    77 symbol  APPEND
+    78 symbol  VALRET
+    79 symbol  |^W|
+    80 symbol  :
+    81 symbol  N
+    82 symbol  C
+    83 symbol  O
+    84 symbol  M
+    85 symbol  P
+    86 symbol  L
+    87 symbol  R
+    88 symbol  | |
+    89 symbol  |(|
+    90 symbol  F
+    91 symbol  U
+    92 symbol  W
+    93 symbol  E
+    94 symbol  |)|
+    95 symbol  |^M|
+    96 symbol  |^[|
+    97 symbol  J
+    98 fixnum  10276330168
+    99 fixnum  4705066066
+   100 symbol  IOC
+   101 symbol  READ
+   102 symbol  EOF
+   103 symbol  ^Q
+   104 symbol  **FASL**
+   105 symbol  MEMQ
+   106 symbol  SPRINTER
+   107 fixnum  6586345373
+   108 symbol  FASLOAD
+   109 symbol  FASL
+   110 fixnum  -6479031799
+   111 fixnum  21704065569
+   112 symbol  LAP
+   113 symbol  ALL-DONE
+   114 symbol  DISPLACE
+   115 symbol  A1
+   116 symbol  A2
+   117 symbol  CAR
+   118 symbol  RPLACD
+   119 symbol  CDR
+   120 symbol  EVAL
+   121 symbol  CADDR
+   122 symbol  EXPAND
+   123 symbol  QQQ
+   124 symbol  CONS
+   125 symbol  MAPCAR
+   126 symbol  HHH
+   127 symbol  MACRODEF
+   128 symbol  X
+   129 symbol  DO
+   130 symbol  RRR
+   131 symbol  CCC
+   132 symbol  LLL
+   133 symbol  ATOM
+   134 symbol  AND
+   135 symbol  NREVERSE
+   136 symbol  CADDDR
+   137 symbol  DEFLEXPR
+   138 symbol  ARGS
+   139 symbol  TEXT
+   140 symbol  NUM
+   141 fixnum  1
+   142 symbol  1+
+   143 symbol  SUBST
+   144 symbol  >
+   145 symbol  1-
+   146 symbol  #EXISTS?
+   147 symbol  CAAR
+   148 symbol  ARG
+   149 symbol  PEEK
+   150 fixnum  17868658501
+   151 symbol  |^W:P S^V^M^[P|
+   152 symbol  FASLOAD-AND-CHECK
+   153 fixnum  6286169907
+   154 symbol  CRFILE
+   155 symbol  FIND-RFDATE
+   156 symbol  FDATE-GREATERP
+   157 symbol  THAN
+   158 symbol  OLDER
+   159 symbol  IS
+   160 symbol  WARNING
+   161 fixnum  28741039664
+   162 symbol  RFDATE
+   163 fixnum  -24599175100
+   164 symbol  *GREAT
+   165 symbol  *LESS
+   166 symbol  UREAD+XEQ
+   167 fixnum  -26167129306
+   168 symbol  *EVAL
+   169 symbol  HOME?
+   170 fixnum  10051387871
+   171 symbol  GOODYS1
+   172 symbol  LSUBR
+   173 symbol  GET
+   174 symbol  IN
+   175 symbol  LIVES
+   176 fixnum  0
+   177 symbol  ASCII
+   178 symbol  GEN-NUMBER-LIST
+   179 fixnum  2034998471
+   180 symbol  *NOPOINT
+   181 symbol  *GEN-NUMBER-VALUE*
+
+The LAP-like listing of the loaded words is in code/7005044_goodys.code.txt.

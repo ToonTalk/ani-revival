@@ -1,0 +1,85 @@
+(SETQ SCORES '(	894 	832 	737 	884 	798 	890 	912
+	750 	330 	492 	594 	966 	598 	964 	884 	810 	540 
+	702
+	810
+	900
+	968
+	876
+	846
+	786
+	380
+	880
+	720
+	963 	994
+	880
+	966
+	650
+	880
+	720
+	592
+	710
+	986
+	956
+	934
+	634
+	630
+	914
+	730
+	770
+	686
+	702
+	886
+	450 ;clark
+	908 592 0 0))
+
+
+(cs)
+(tvsize 550 300)
+(turtlesize 300)
+(ht)
+(defun z (x y z w delx)
+       (cs)(pu)(delxy delx -125) (pd)
+       (plot scores x y z w))
+
+(defun plot (numbers range height width *how-often*)
+(setq label-how-often  *how-often*)
+       (do ((i (sort (append numbers nil) '<) (cdr I))
+	    (end range)
+	    (total (apply '+ numbers))
+	    (bucket 0))
+	   ((null i) (plot-bucket (* bucket height)
+				  width (- end range))
+	    (//$ (float total) (float (length numbers))))
+	   (cond ((> (car i) end)
+		  (plot-bucket (* bucket height) width (- end range))
+		  (setq bucket 0)
+		  (setq end (+ end range))
+		  (setq i (cons 'dummy i)))
+		 (t (setq bucket (1+ bucket))))))
+
+(defun plot-bucket (height width end)
+       (cond ((> height 0)
+	      (rectangle height width)))
+       (cond ((= label-how-often 0)
+	      (bk 12)
+	      (mark end)
+	      (fd 12)
+	      (setq label-how-often *how-often*)))
+       (setq label-how-often (1- label-how-often))
+       (pd)
+       (delx width))
+
+       
+(setq pat 'horizlines)
+
+(defun rectangle (h w)
+       (fd h)(rt 90) (fd w)(rt 90) (fd h) (rt 90) (fd w) (rt 90)
+       (pu)
+       (rt 45)
+       (fd w)
+       (shade pat)
+       (bk w)
+       (lt 45)
+       (pd))
+       
+       

@@ -1,0 +1,671 @@
+FASL dump: original/7005044/test4.fasl  (ITS KEN;TEST4 FASL, tape 7005044, Dec 1975)
+Decoded 4407 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 4407 of 4407 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 229 blocks, 2061 items
+Item counts: absolute 359, relocatable 181, special 542, smashable call 231, quoted atom 125, quoted list 128, globalsym 248, getddtsym 41, atom table 172, entry 8, eval mungeable 25, end 1
+
+-- Functions defined (8) --
+  name                         property args         address
+  |KEN;TEST4 1|                LSUBR                 000000
+  INTERNAL-COMPOSITE.SOMETHING SUBR     (NIL . 1)    000014
+  INTERNAL-UNIVERSE            SUBR     (NIL . 1)    000104
+  INTERNAL-SOMETHINGS.PLAN:.HANDLER SUBR     (NIL . 1)    000317
+  INTERNAL-SOMETHINGS.REMOVE.HANDLER SUBR     (NIL . 1)    001016
+  INTERNAL-SOMETHINGS.REPLACE.HANDLER SUBR     (NIL . 1)    001165
+  |KEN;TEST4 2|                LSUBR                 001624
+  INTERNAL-SOMETHING           SUBR     (NIL . 1)    001660
+
+-- Top-level forms evaluated at load time (25) --
+  (SETQ COMPOSITE.SOMETHING 'INTERNAL-COMPOSITE.SOMETHING)
+  (DEFPROP INTERNAL-COMPOSITE.SOMETHING (NAME KIND-OF) %MEMORY)
+  (DEFPROP INTERNAL-COMPOSITE.SOMETHING ((COMPOSITE.SOMETHING)) NAME)
+  (DEFPROP INTERNAL-COMPOSITE.SOMETHING ((SOMETHING)) KIND-OF)
+  (SETQ UNIVERSE 'INTERNAL-UNIVERSE)
+  (DEFPROP INTERNAL-UNIVERSE (NAME KIND-OF) %MEMORY)
+  (DEFPROP INTERNAL-UNIVERSE ((UNIVERSE)) NAME)
+  (DEFPROP INTERNAL-UNIVERSE ((SOMETHING)) KIND-OF)
+  (SETQ SOMETHINGS.PLAN:.HANDLER 'INTERNAL-SOMETHINGS.PLAN:.HANDLER)
+  (DEFPROP INTERNAL-SOMETHINGS.PLAN:.HANDLER (NAME KIND-OF) %MEMORY)
+  (DEFPROP INTERNAL-SOMETHINGS.PLAN:.HANDLER ((SOMETHINGS.PLAN:.HANDLER)) NAME)
+  (DEFPROP INTERNAL-SOMETHINGS.PLAN:.HANDLER ((SOMETHING)) KIND-OF)
+  (SETQ SOMETHINGS.REMOVE.HANDLER 'INTERNAL-SOMETHINGS.REMOVE.HANDLER)
+  (DEFPROP INTERNAL-SOMETHINGS.REMOVE.HANDLER (NAME KIND-OF) %MEMORY)
+  (DEFPROP INTERNAL-SOMETHINGS.REMOVE.HANDLER ((SOMETHINGS.REMOVE.HANDLER)) NAME)
+  (DEFPROP INTERNAL-SOMETHINGS.REMOVE.HANDLER ((SOMETHING)) KIND-OF)
+  (SETQ SOMETHINGS.REPLACE.HANDLER 'INTERNAL-SOMETHINGS.REPLACE.HANDLER)
+  (DEFPROP INTERNAL-SOMETHINGS.REPLACE.HANDLER (NAME KIND-OF) %MEMORY)
+  (DEFPROP INTERNAL-SOMETHINGS.REPLACE.HANDLER ((SOMETHINGS.REPLACE.HANDLER)) NAME)
+  (DEFPROP INTERNAL-SOMETHINGS.REPLACE.HANDLER ((SOMETHING)) KIND-OF)
+  (SETQ SOMETHING 'INTERNAL-SOMETHING)
+  (DEFPROP INTERNAL-SOMETHING (RUN TIME NAME) %MEMORY)
+  (DEFPROP INTERNAL-SOMETHING ((TIME 0)) RUN)
+  (DEFPROP INTERNAL-SOMETHING ((0)) TIME)
+  (DEFPROP INTERNAL-SOMETHING ((SOMETHING)) NAME)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  |KEN;TEST4 1|
+      calls:        *EVAL TELL
+      specials:     PART :MESSAGE
+  INTERNAL-COMPOSITE.SOMETHING
+      calls:        MATCH RECEIVE2
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :SELF
+      quoted atoms: T |KEN;TEST4 1| NIL
+      quoted list:  (ASK PARTS ?MESSAGE)
+      quoted list:  (WHAT PARTS ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHING :MESSAGE :SELF)
+  INTERNAL-UNIVERSE
+      calls:        MATCH RECEIVE2 NCONS XCONS WARNING
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :SELF ACTORS.WITH.THINGS.TO.DO COUNT *MAXIMUM-TICKS* I
+      quoted atoms: T 1 DONE TIMES TICKED UNIVERSE TICK NIL
+      quoted list:  (DO IT)
+      quoted list:  (FIND ALL ACTORS.WITH.THINGS.TO.DO ?)
+      quoted list:  (COND ((EQ :SELF SOMETHING) (CAR (FIND-ALL :PATTERN :SELF)))
+                      (T (UNION (CAR (FIND-ALL :PATTERN :SELF))
+                           (ASK (CLASS-OF :SELF)
+                             :MESSAGE
+                             '(EXAMPLE: (ASK SOMETHING '(FIND ALL FOO BARS)))))))
+      quoted list:  (FIND ALL %PATTERN)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (FIND ALL TO.DO.AT.TIME ? ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (FORGET ACTORS.WITH.THINGS.TO.DO (CAR I))
+      quoted list:  (FORGET :ITEM :SELF)
+      quoted list:  (FORGET %ITEM)
+      quoted list:  (REPLACE RUN TIME 0)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (FIND ALL ACTORS.WITH.THINGS.TO.DO ?)
+      quoted list:  (COND ((EQ :SELF SOMETHING) (CAR (FIND-ALL :PATTERN :SELF)))
+                      (T (UNION (CAR (FIND-ALL :PATTERN :SELF))
+                           (ASK (CLASS-OF :SELF)
+                             :MESSAGE
+                             '(EXAMPLE: (ASK SOMETHING '(FIND ALL FOO BARS)))))))
+      quoted list:  (FIND ALL %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHING :MESSAGE :SELF)
+  INTERNAL-SOMETHINGS.PLAN:.HANDLER
+      calls:        MATCH RECEIVE2 NCONS XCONS FIX CONS
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :SELF :COMMAND UNIVERSE :NUMBER
+      quoted atoms: T TIME REPLACE TO.DO.AT.TIME REMEMBER ACTORS.WITH.THINGS.TO.DO NIL
+      quoted list:  (PLAN: %COMMAND NEXT)
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (PLAN: %COMMAND AFTER { NUMBERP ?NUMBER } TICKS)
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (PLAN: %COMMAND THEN)
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (PLAN: %COMMAND AFTER { NUMBERP ?NUMBER } MORE TICKS)
+      quoted list:  (WHAT RUN TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (REMEMBER :ITEM :SELF)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHING :MESSAGE :SELF)
+  INTERNAL-SOMETHINGS.REMOVE.HANDLER
+      calls:        MATCH REMOVE.CLAUSE.NUMBER NCONS XCONS REMOVE.CLAUSE
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :SELF :CLAUSE.NUMBER :ACTION :PATTERN
+      quoted atoms: T RECEIVE NIL
+      quoted list:  (REMOVE CLAUSE { NUMBERP ?CLAUSE.NUMBER })
+      quoted list:  (REMOVE CLAUSE (% RECEIVE %PATTERN THEN %ACTION))
+      quoted list:  (REMOVE CLAUSE (RECEIVE ?PATTERN ?ACTION))
+      quoted list:  (PASS.THE.BUCK.TO SOMETHING :MESSAGE :SELF)
+  INTERNAL-SOMETHINGS.REPLACE.HANDLER
+      calls:        MATCH NCONS XCONS REPLACE.CLAUSE.NUMBER REPLACE.PART.OF.CLAUSE.NUMBER REPLACE.PART.OF.CLAUSE REPLACE.CLAUSE REPLACE
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :NEW.ACTION :NEW.PATTERN :SELF :CLAUSE.NUMBER :OLD.ACTION :OLD.PATTERN :ITEM
+      quoted atoms: T RECEIVE PATTERN ACTION NIL
+      quoted list:  (REPLACE CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      (% RECEIVE %NEW.PATTERN THEN %NEW.ACTION))
+      quoted list:  (REPLACE PATTERN OF CLAUSE { NUMBERP ?CLAUSE.NUMBER } WITH %NEW.PATTERN)
+      quoted list:  (REPLACE PATTERN
+                      OF
+                      CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      %NEW.PATTERN)
+      quoted list:  (REPLACE ACTION OF CLAUSE { NUMBERP ?CLAUSE.NUMBER } WITH %NEW.ACTION)
+      quoted list:  (REPLACE PATTERN
+                      OF
+                      CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      %NEW.ACTION)
+      quoted list:  (REPLACE CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER
+                      }
+                      WITH
+                      (RECEIVE ?NEW.PATTERN ?NEW.ACTION))
+      quoted list:  (REPLACE CLAUSE
+                      (% RECEIVE %OLD.PATTERN THEN %OLD.ACTION)
+                      WITH
+                      (% RECEIVE %NEW.PATTERN THEN %NEW.ACTION))
+      quoted list:  (REPLACE CLAUSE
+                      (RECEIVE ?OLD.PATTERN ?OLD.ACTION)
+                      WITH
+                      (RECEIVE ?NEW.PATTERN ?NEW.ACTION))
+      quoted list:  (REPLACE %ITEM)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHING :MESSAGE :SELF)
+  |KEN;TEST4 2|
+      calls:        TELL NCONS XCONS RECEIVE2
+      specials:     THING.TO.DO :SELF RUN.TIME
+      quoted atoms: TO.DO.AT.TIME FORGET
+      quoted list:  (FORGET :ITEM :SELF)
+      quoted list:  (FORGET %ITEM)
+      quoted list:  (EXAMPLE: ANYTHING)
+  INTERNAL-SOMETHING
+      calls:        MATCH INSERT-RECEIVE REMEMBER FORGET FIND.CLAUSE FIND-ALL CLASS-OF RECEIVE2 UNION FIND.ONE NREVERSE ATOM-IF-ONLY-ONE PASS.THE.BUCK.TO MAKE-INSTANCE NCONS XCONS APPEND-ATOMS INTERN INSERT.AFTER.CLAUSE GET SPRINTER FANCY-PRINT
+      specials:     :MESSAGE ANS :MATCHED? :VARIABLES :VALUES :SELF :ACTION :PATTERN :ITEM :CLAUSE.NUMBER SOMETHING SOMETHINGS.REPLACE.HANDLER :NAME INTERNAL-NAME SOMETHINGS.REMOVE.HANDLER :CLAUSE.NUMBER1 :CLAUSE.NUMBER2 FIRST.CLAUSE SECOND.CLAUSE :NUMBER SOMETHINGS.PLAN:.HANDLER RUN.TIME :OPTION
+      quoted atoms: T NIL NAME REMEMBER : NUMBER CLAUSE RECALL WITH REPLACE RECEIVE TIME RUN ? TO.DO.AT.TIME ALL FIND |KEN;TEST4 2| EXPR
+      quoted list:  (% RECEIVE %PATTERN THEN %ACTION)
+      quoted list:  (REMEMBER %ITEM)
+      quoted list:  (FORGET %ITEM)
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } CLAUSE { NUMBERP ?CLAUSE.NUMBER })
+      quoted list:  (FIND ALL %PATTERN)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (MAKE ?NAME)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (REMOVE %ANYTHING)
+      quoted list:  (INTERCHANGE CLAUSE
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER1
+                      }
+                      ?AND.OR.WITH
+                      {
+                      NUMBERP
+                      ?CLAUSE.NUMBER2
+                      })
+      quoted list:  (FIND.CLAUSE :CLAUSE.NUMBER :SELF)
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } CLAUSE { NUMBERP ?CLAUSE.NUMBER })
+      quoted list:  (FIND.CLAUSE :CLAUSE.NUMBER :SELF)
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } CLAUSE { NUMBERP ?CLAUSE.NUMBER })
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (INSERT CLAUSE
+                      (% RECEIVE %PATTERN THEN %ACTION)
+                      AFTER
+                      CLAUSE
+                      {
+                      NUMBERP
+                      ?NUMBER
+                      })
+      quoted list:  (INSERT CLAUSE (RECEIVE ?PATTERN ?ACTION) AFTER CLAUSE { NUMBERP ?NUMBER })
+      quoted list:  (PLAN: %ANYTHING)
+      quoted list:  (WAIT { NUMBERP ?NUMBER })
+      quoted list:  (WHAT TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (TICK ?UNIVERSE)
+      quoted list:  (WHAT RUN TIME ?)
+      quoted list:  (OR (ATOM-IF-ONLY-ONE (NREVERSE (CAR (FIND.ONE :PATTERN :SELF))))
+                      (AND (NOT (EQ :SELF SOMETHING))
+                        (ASK (CLASS-OF :SELF)
+                          :MESSAGE
+                          '(EXAMPLE: (ASK SOMETHING '(WHAT YOU DOING))))))
+      quoted list:  ({ MEMQ ?COMMAND '(FIND WHAT RECALL) } %PATTERN)
+      quoted list:  (PASS.THE.BUCK.TO SOMETHINGS.REPLACE.HANDLER :MESSAGE :SELF)
+      quoted list:  (REPLACE %ANYTHING)
+      quoted list:  (COND ((EQ :SELF SOMETHING) (CAR (FIND-ALL :PATTERN :SELF)))
+                      (T (UNION (CAR (FIND-ALL :PATTERN :SELF))
+                           (ASK (CLASS-OF :SELF)
+                             :MESSAGE
+                             '(EXAMPLE: (ASK SOMETHING '(FIND ALL FOO BARS)))))))
+      quoted list:  (FIND ALL %PATTERN)
+      quoted list:  (SPRINT)
+      quoted list:  (PRINT %OPTION)
+      quoted list:  (COMPLAIN :SELF (LIST '|DOESN'T UNDERSTAND| :MESSAGE))
+
+-- Symbols and how they are used (169) --
+  %                              in constant
+  %ACTION                        in constant
+  %ANYTHING                      in constant
+  %COMMAND                       in constant
+  %ITEM                          in constant
+  %MEMORY                        in top-level form
+  %NEW.ACTION                    in constant
+  %NEW.PATTERN                   in constant
+  %OLD.ACTION                    in constant
+  %OLD.PATTERN                   in constant
+  %OPTION                        in constant
+  %PATTERN                       in constant
+  *EVAL                          called
+  *MAXIMUM-TICKS*                special
+  :                              quoted
+  :ACTION                        special
+  :CLAUSE.NUMBER                 in constant, special
+  :CLAUSE.NUMBER1                special
+  :CLAUSE.NUMBER2                special
+  :COMMAND                       special
+  :ITEM                          in constant, special
+  :MATCHED?                      special
+  :MESSAGE                       in constant, special
+  :NAME                          special
+  :NEW.ACTION                    special
+  :NEW.PATTERN                   special
+  :NUMBER                        special
+  :OLD.ACTION                    special
+  :OLD.PATTERN                   special
+  :OPTION                        special
+  :PATTERN                       in constant, special
+  :SELF                          in constant, special
+  :VALUES                        special
+  :VARIABLES                     special
+  ?                              in constant, quoted
+  ?ACTION                        in constant
+  ?AND.OR.WITH                   in constant
+  ?CLAUSE.NUMBER                 in constant
+  ?CLAUSE.NUMBER1                in constant
+  ?CLAUSE.NUMBER2                in constant
+  ?COMMAND                       in constant
+  ?MESSAGE                       in constant
+  ?NAME                          in constant
+  ?NEW.ACTION                    in constant
+  ?NEW.PATTERN                   in constant
+  ?NUMBER                        in constant
+  ?OLD.ACTION                    in constant
+  ?OLD.PATTERN                   in constant
+  ?PATTERN                       in constant
+  ?UNIVERSE                      in constant
+  ACTION                         in constant, quoted
+  ACTORS.WITH.THINGS.TO.DO       in constant, quoted, special
+  AFTER                          in constant
+  ALL                            in constant, quoted
+  AND                            in constant
+  ANS                            special
+  ANYTHING                       in constant
+  APPEND-ATOMS                   called
+  ASK                            in constant
+  ATOM-IF-ONLY-ONE               called, in constant
+  BARS                           in constant
+  CAR                            in constant
+  CLASS-OF                       called, in constant
+  CLAUSE                         in constant, quoted
+  COMPLAIN                       in constant
+  COMPOSITE.SOMETHING            in top-level form
+  COND                           in constant
+  CONS                           called
+  COUNT                          special
+  DEFPROP                        in top-level form
+  DO                             in constant
+  |DOESN'T UNDERSTAND|           in constant
+  DOING                          in constant
+  DONE                           quoted
+  EQ                             in constant
+  EXAMPLE:                       in constant
+  EXPR                           quoted
+  FANCY-PRINT                    called
+  FIND                           in constant, quoted
+  FIND-ALL                       called, in constant
+  FIND.CLAUSE                    called, in constant
+  FIND.ONE                       called, in constant
+  FIRST.CLAUSE                   special
+  FIX                            called
+  FOO                            in constant
+  FORGET                         called, in constant, quoted
+  GET                            called
+  I                              in constant, special
+  INSERT                         in constant
+  INSERT-RECEIVE                 called
+  INSERT.AFTER.CLAUSE            called
+  INTERCHANGE                    in constant
+  INTERN                         called
+  INTERNAL-COMPOSITE.SOMETHING   defined, in top-level form
+  INTERNAL-NAME                  special
+  INTERNAL-SOMETHING             defined, in top-level form
+  INTERNAL-SOMETHINGS.PLAN:.HANDLER defined, in top-level form
+  INTERNAL-SOMETHINGS.REMOVE.HANDLER defined, in top-level form
+  INTERNAL-SOMETHINGS.REPLACE.HANDLER defined, in top-level form
+  INTERNAL-UNIVERSE              defined, in top-level form
+  IT                             in constant
+  |KEN;TEST4 1|                  defined, quoted
+  |KEN;TEST4 2|                  defined, quoted
+  KIND-OF                        in top-level form
+  LIST                           in constant
+  MAKE                           in constant
+  MAKE-INSTANCE                  called
+  MATCH                          called
+  MEMQ                           in constant
+  MORE                           in constant
+  NAME                           in top-level form, quoted
+  NCONS                          called
+  NEXT                           in constant
+  NIL                            quoted
+  NOT                            in constant
+  NREVERSE                       called, in constant
+  NUMBER                         quoted
+  NUMBERP                        in constant
+  OF                             in constant
+  OR                             in constant
+  PART                           special
+  PARTS                          in constant
+  PASS.THE.BUCK.TO               called, in constant
+  PATTERN                        in constant, quoted
+  PLAN:                          in constant
+  PRINT                          in constant
+  QUOTE                          in constant, in top-level form
+  RECALL                         in constant, quoted
+  RECEIVE                        in constant, quoted
+  RECEIVE2                       called
+  REMEMBER                       called, in constant, quoted
+  REMOVE                         in constant
+  REMOVE.CLAUSE                  called
+  REMOVE.CLAUSE.NUMBER           called
+  REPLACE                        called, in constant, quoted
+  REPLACE.CLAUSE                 called
+  REPLACE.CLAUSE.NUMBER          called
+  REPLACE.PART.OF.CLAUSE         called
+  REPLACE.PART.OF.CLAUSE.NUMBER  called
+  RUN                            in constant, in top-level form, quoted
+  RUN.TIME                       special
+  SECOND.CLAUSE                  special
+  SETQ                           in top-level form
+  SOMETHING                      in constant, in top-level form, special
+  SOMETHINGS.PLAN:.HANDLER       in top-level form, special
+  SOMETHINGS.REMOVE.HANDLER      in top-level form, special
+  SOMETHINGS.REPLACE.HANDLER     in constant, in top-level form, special
+  SPRINT                         in constant
+  SPRINTER                       called
+  T                              in constant, quoted
+  TELL                           called
+  THEN                           in constant
+  THING.TO.DO                    special
+  TICK                           in constant, quoted
+  TICKED                         quoted
+  TICKS                          in constant
+  TIME                           in constant, in top-level form, quoted
+  TIMES                          quoted
+  TO.DO.AT.TIME                  in constant, quoted
+  UNION                          called, in constant
+  UNIVERSE                       in top-level form, quoted, special
+  WAIT                           in constant
+  WARNING                        called
+  WHAT                           in constant
+  WITH                           in constant, quoted
+  XCONS                          called
+  YOU                            in constant
+  {                              in constant
+  }                              in constant
+  (in atom table, no direct use found: LSUBR SUBR)
+
+-- Atom table (172 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  COMPOSITE.SOMETHING
+     3 symbol  QUOTE
+     4 symbol  INTERNAL-COMPOSITE.SOMETHING
+     5 symbol  |KEN;TEST4 1|
+     6 symbol  LSUBR
+     7 symbol  PART
+     8 symbol  *EVAL
+     9 symbol  :MESSAGE
+    10 symbol  TELL
+    11 symbol  SUBR
+    12 symbol  ANS
+    13 symbol  :MATCHED?
+    14 symbol  :VARIABLES
+    15 symbol  :VALUES
+    16 symbol  ASK
+    17 symbol  PARTS
+    18 symbol  ?MESSAGE
+    19 symbol  MATCH
+    20 symbol  T
+    21 symbol  :SELF
+    22 symbol  WHAT
+    23 symbol  ?
+    24 symbol  OR
+    25 symbol  ATOM-IF-ONLY-ONE
+    26 symbol  NREVERSE
+    27 symbol  CAR
+    28 symbol  FIND.ONE
+    29 symbol  :PATTERN
+    30 symbol  AND
+    31 symbol  NOT
+    32 symbol  EQ
+    33 symbol  SOMETHING
+    34 symbol  CLASS-OF
+    35 symbol  EXAMPLE:
+    36 symbol  YOU
+    37 symbol  DOING
+    38 symbol  {
+    39 symbol  MEMQ
+    40 symbol  ?COMMAND
+    41 symbol  FIND
+    42 symbol  RECALL
+    43 symbol  }
+    44 symbol  %PATTERN
+    45 symbol  RECEIVE2
+    46 symbol  PASS.THE.BUCK.TO
+    47 symbol  DEFPROP
+    48 symbol  NAME
+    49 symbol  KIND-OF
+    50 symbol  %MEMORY
+    51 symbol  UNIVERSE
+    52 symbol  INTERNAL-UNIVERSE
+    53 symbol  DO
+    54 symbol  IT
+    55 symbol  ALL
+    56 symbol  ACTORS.WITH.THINGS.TO.DO
+    57 symbol  COND
+    58 symbol  FIND-ALL
+    59 symbol  UNION
+    60 symbol  FOO
+    61 symbol  BARS
+    62 fixnum  1
+    63 symbol  COUNT
+    64 symbol  *MAXIMUM-TICKS*
+    65 symbol  DONE
+    66 symbol  TIMES
+    67 symbol  NCONS
+    68 symbol  XCONS
+    69 symbol  TICKED
+    70 symbol  WARNING
+    71 symbol  I
+    72 symbol  TICK
+    73 symbol  TO.DO.AT.TIME
+    74 symbol  FORGET
+    75 symbol  :ITEM
+    76 symbol  %ITEM
+    77 symbol  REPLACE
+    78 symbol  RUN
+    79 symbol  TIME
+    80 fixnum  0
+    81 symbol  SOMETHINGS.PLAN:.HANDLER
+    82 symbol  INTERNAL-SOMETHINGS.PLAN:.HANDLER
+    83 symbol  PLAN:
+    84 symbol  %COMMAND
+    85 symbol  NEXT
+    86 symbol  SOMETHINGS.REPLACE.HANDLER
+    87 symbol  %ANYTHING
+    88 symbol  :COMMAND
+    89 symbol  REMEMBER
+    90 symbol  AFTER
+    91 symbol  NUMBERP
+    92 symbol  ?NUMBER
+    93 symbol  TICKS
+    94 symbol  :NUMBER
+    95 symbol  FIX
+    96 symbol  THEN
+    97 symbol  MORE
+    98 symbol  CONS
+    99 symbol  SOMETHINGS.REMOVE.HANDLER
+   100 symbol  INTERNAL-SOMETHINGS.REMOVE.HANDLER
+   101 symbol  REMOVE
+   102 symbol  CLAUSE
+   103 symbol  ?CLAUSE.NUMBER
+   104 symbol  :CLAUSE.NUMBER
+   105 symbol  REMOVE.CLAUSE.NUMBER
+   106 symbol  %
+   107 symbol  RECEIVE
+   108 symbol  %ACTION
+   109 symbol  :ACTION
+   110 symbol  REMOVE.CLAUSE
+   111 symbol  ?PATTERN
+   112 symbol  ?ACTION
+   113 symbol  INTERNAL-SOMETHINGS.REPLACE.HANDLER
+   114 symbol  WITH
+   115 symbol  %NEW.PATTERN
+   116 symbol  %NEW.ACTION
+   117 symbol  :NEW.ACTION
+   118 symbol  :NEW.PATTERN
+   119 symbol  REPLACE.CLAUSE.NUMBER
+   120 symbol  PATTERN
+   121 symbol  OF
+   122 symbol  REPLACE.PART.OF.CLAUSE.NUMBER
+   123 symbol  %OLD.PATTERN
+   124 symbol  %OLD.ACTION
+   125 symbol  :OLD.ACTION
+   126 symbol  :OLD.PATTERN
+   127 symbol  REPLACE.PART.OF.CLAUSE
+   128 symbol  ACTION
+   129 symbol  ?NEW.PATTERN
+   130 symbol  ?NEW.ACTION
+   131 symbol  REPLACE.CLAUSE
+   132 symbol  ?OLD.PATTERN
+   133 symbol  ?OLD.ACTION
+   134 symbol  INTERNAL-SOMETHING
+   135 symbol  |KEN;TEST4 2|
+   136 symbol  THING.TO.DO
+   137 symbol  RUN.TIME
+   138 symbol  ANYTHING
+   139 symbol  INSERT-RECEIVE
+   140 symbol  FIND.CLAUSE
+   141 symbol  MAKE
+   142 symbol  ?NAME
+   143 symbol  :NAME
+   144 symbol  MAKE-INSTANCE
+   145 symbol  INTERNAL-NAME
+   146 symbol  :
+   147 symbol  APPEND-ATOMS
+   148 symbol  INTERN
+   149 symbol  INTERCHANGE
+   150 symbol  ?CLAUSE.NUMBER1
+   151 symbol  ?AND.OR.WITH
+   152 symbol  ?CLAUSE.NUMBER2
+   153 symbol  :CLAUSE.NUMBER1
+   154 symbol  NUMBER
+   155 symbol  :CLAUSE.NUMBER2
+   156 symbol  FIRST.CLAUSE
+   157 symbol  SECOND.CLAUSE
+   158 symbol  INSERT
+   159 symbol  INSERT.AFTER.CLAUSE
+   160 symbol  WAIT
+   161 symbol  ?UNIVERSE
+   162 symbol  SPRINT
+   163 symbol  EXPR
+   164 symbol  GET
+   165 symbol  SPRINTER
+   166 symbol  PRINT
+   167 symbol  %OPTION
+   168 symbol  :OPTION
+   169 symbol  FANCY-PRINT
+   170 symbol  COMPLAIN
+   171 symbol  LIST
+   172 symbol  |DOESN'T UNDERSTAND|
+
+The LAP-like listing of the loaded words is in code/7005044_test4.code.txt.

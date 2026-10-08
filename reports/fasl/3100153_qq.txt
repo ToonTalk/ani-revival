@@ -1,0 +1,140 @@
+FASL dump: original/3100153/qq.fasl  (ITS KEN;QQ FASL, tape 3100153, late 1976)
+Decoded 386 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 386 of 386 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 25 blocks, 218 items
+Item counts: absolute 59, relocatable 26, special 10, smashable call 34, quoted atom 16, globalsym 17, atom table 44, entry 6, eval mungeable 5, end 1
+
+-- Functions defined (6) --
+  name                         property args         address
+  QUASI-QUOTE-MACRO            SUBR     (NIL . 0)    000000
+  CONS-LIST-EXPS               SUBR     (NIL . 1)    000042
+  QQ2                          LSUBR                 000141
+  CONS-APPEND-EXP              SUBR     (NIL . 1)    000176
+  EVAL-ME-MACRO                SUBR     (NIL . 0)    000202
+  |TACK`ON|                    SUBR     (NIL . 1)    000215
+
+-- Top-level forms evaluated at load time (5) --
+  (SETQ INSIDE-QUASI-QUOTE-MACRO NIL)
+  (SETQ EVAL-ME (MAKNAM '(I N T E R N A L - |`| - M A C R O)))
+  (SETQ PACK-ME (MAKNAM '(P A C K - M E)))
+  (SETSYNTAX '|'| 'MACRO 'QUASI-QUOTE-MACRO)
+  (SETSYNTAX '|`| 'MACRO 'EVAL-ME-MACRO)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  QUASI-QUOTE-MACRO
+      calls:        READ ATOM NCONS XCONS CONS-LIST-EXPS
+      specials:     INSIDE-QUASI-QUOTE-MACRO EVAL-ME ANY-INVERSE-QUOTES?
+      quoted atoms: T QUOTE
+  CONS-LIST-EXPS
+      calls:        ATOM NCONS XCONS GETCHAR EXPLODE IMPLODE CONS-LIST-EXPS CONS-APPEND-EXP
+      specials:     EVAL-ME ANY-INVERSE-QUOTES? PACK-ME
+      quoted atoms: QUOTE T 1 % LIST
+  QQ2
+      calls:        ATOM NCONS XCONS
+      specials:     PACK-ME
+      quoted atoms: LIST QUOTE
+  CONS-APPEND-EXP
+      calls:        XCONS
+      quoted atoms: QQ2 APPEND
+  EVAL-ME-MACRO
+      calls:        READ XCONS |TACK`ON|
+      specials:     INSIDE-QUASI-QUOTE-MACRO EVAL-ME
+  |TACK`ON|
+      calls:        EXPLODEC XCONS MAKNAM
+      quoted atoms: |`|
+
+-- Symbols and how they are used (42) --
+  %                              quoted
+  |'|                            in top-level form
+  -                              in top-level form
+  A                              in top-level form
+  ANY-INVERSE-QUOTES?            special
+  APPEND                         quoted
+  ATOM                           called
+  C                              in top-level form
+  CONS-APPEND-EXP                called, defined
+  CONS-LIST-EXPS                 called, defined
+  E                              in top-level form
+  EVAL-ME                        in top-level form, special
+  EVAL-ME-MACRO                  defined, in top-level form
+  EXPLODE                        called
+  EXPLODEC                       called
+  GETCHAR                        called
+  I                              in top-level form
+  IMPLODE                        called
+  INSIDE-QUASI-QUOTE-MACRO       in top-level form, special
+  K                              in top-level form
+  L                              in top-level form
+  LIST                           quoted
+  M                              in top-level form
+  MACRO                          in top-level form
+  MAKNAM                         called, in top-level form
+  N                              in top-level form
+  NCONS                          called
+  NIL                            in top-level form
+  O                              in top-level form
+  P                              in top-level form
+  PACK-ME                        in top-level form, special
+  QQ2                            defined, quoted
+  QUASI-QUOTE-MACRO              defined, in top-level form
+  QUOTE                          in top-level form, quoted
+  R                              in top-level form
+  READ                           called
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  T                              in top-level form, quoted
+  |TACK`ON|                      called, defined
+  XCONS                          called
+  |`|                            in top-level form, quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (44 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  INSIDE-QUASI-QUOTE-MACRO
+     3 symbol  EVAL-ME
+     4 symbol  MAKNAM
+     5 symbol  QUOTE
+     6 symbol  I
+     7 symbol  N
+     8 symbol  T
+     9 symbol  E
+    10 symbol  R
+    11 symbol  A
+    12 symbol  L
+    13 symbol  -
+    14 symbol  |`|
+    15 symbol  M
+    16 symbol  C
+    17 symbol  O
+    18 symbol  PACK-ME
+    19 symbol  P
+    20 symbol  K
+    21 symbol  QUASI-QUOTE-MACRO
+    22 symbol  SUBR
+    23 symbol  READ
+    24 symbol  ATOM
+    25 symbol  NCONS
+    26 symbol  XCONS
+    27 symbol  ANY-INVERSE-QUOTES?
+    28 symbol  CONS-LIST-EXPS
+    29 fixnum  1
+    30 symbol  GETCHAR
+    31 symbol  %
+    32 symbol  EXPLODE
+    33 symbol  IMPLODE
+    34 symbol  CONS-APPEND-EXP
+    35 symbol  LIST
+    36 symbol  QQ2
+    37 symbol  LSUBR
+    38 symbol  APPEND
+    39 symbol  EVAL-ME-MACRO
+    40 symbol  |TACK`ON|
+    41 symbol  SETSYNTAX
+    42 symbol  |'|
+    43 symbol  MACRO
+    44 symbol  EXPLODEC
+
+The LAP-like listing of the loaded words is in code/3100153_qq.code.txt.

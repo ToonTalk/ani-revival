@@ -1,0 +1,154 @@
+FASL dump: original/7006885/mquick.fasl  (ITS KEN;MQUICK FASL, tape 7006885, undated)
+Decoded 402 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 402 of 402 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL*, Lisp version word 202220,,000016 ('020', flag bits 016), 13 blocks, 111 items
+Item counts: absolute 15, special 5, smashable call 9, quoted atom 10, quoted list 2, globalsym 5, atom table 54, entry 2, eval mungeable 8, end 1
+
+-- Functions defined (2) --
+  name                         property args         address
+  PUTPROP                      SUBR     (NIL . 3)    000000
+  START-SYSTEM                 SUBR     (NIL . 0)    000016
+
+-- Top-level forms evaluated at load time (8) --
+  (SETQ BASE 8 IBASE 8)
+  (SSTATUS TTY 20842095762 20707878043)
+  (SETQ BASE 10 IBASE 10)
+  (SETQ *PROP-NAMES* NIL)
+  (PUTPROP '*PUTPROP (GET 'PUTPROP 'SUBR) 'SUBR)
+  (DEFPROP PUTPROP 32363343237 EXPR-HASH)
+  (DEFPROP START-SYSTEM -30200440979 EXPR-HASH)
+  (DO ((I *PROP-NAMES* (CDR I)))
+    ((NULL (COUTPUT (COND ((NULL OPTIONAL-LETTER-PREFIX)
+                           (LIST 'GENSYM (READLIST (APPEND (CDR (EXPLODE (GENSYM))) '(.)))))
+                      (T (LIST 'GENSYM (LIST 'QUOTE (CAR OPTIONAL-LETTER-PREFIX)))))))
+     (COUTPUT (LIST 'DEFPROP (CAAR I) (GET (CAAR I) (CDAR I)) (CDAR I)))))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  PUTPROP
+      calls:        CONS *PUTPROP
+      specials:     *PROP-NAMES*
+  START-SYSTEM
+      calls:        GET FASLOAD PUTPROP DEFUN
+      specials:     FASLOAD NOUUO *PROP-NAMES*
+      quoted atoms: T SUBR REMOVE FSUBR GOBBLE REAL-GOBBLE NIL
+      quoted list:  (GOBBLE FASL DSK)
+      quoted list:  (GOBBLE MACRO
+                      (X)
+                      (APPLY (FUNCTION REAL-GOBBLE) (CDR X))
+                      (LIST 'SETQ
+                        'CONTEXT-LIST
+                        (LIST 'COND
+                          (LIST (LIST 'MEMQ (LIST 'QUOTE (CADR X)) 'CONTEXT-LIST) 'CONTEXT-LIST)
+                          (LIST T (LIST 'CONS (LIST 'QUOTE (CADR X)) 'CONTEXT-LIST)))))
+
+-- Symbols and how they are used (49) --
+  *PROP-NAMES*                   in top-level form, special
+  *PUTPROP                       called, in top-level form
+  .                              in top-level form
+  APPEND                         in top-level form
+  APPLY                          in constant
+  BASE                           in top-level form
+  CAAR                           in top-level form
+  CADR                           in constant
+  CAR                            in top-level form
+  CDAR                           in top-level form
+  CDR                            in constant, in top-level form
+  COND                           in constant, in top-level form
+  CONS                           called, in constant
+  CONTEXT-LIST                   in constant
+  COUTPUT                        in top-level form
+  DEFPROP                        in top-level form
+  DEFUN                          called
+  DO                             in top-level form
+  DSK                            in constant
+  EXPLODE                        in top-level form
+  EXPR-HASH                      in top-level form
+  FASL                           in constant
+  FASLOAD                        called, special
+  FSUBR                          quoted
+  FUNCTION                       in constant
+  GENSYM                         in top-level form
+  GET                            called, in top-level form
+  GOBBLE                         in constant, quoted
+  I                              in top-level form
+  IBASE                          in top-level form
+  LIST                           in constant, in top-level form
+  MACRO                          in constant
+  MEMQ                           in constant
+  NIL                            in top-level form, quoted
+  NOUUO                          special
+  NULL                           in top-level form
+  OPTIONAL-LETTER-PREFIX         in top-level form
+  PUTPROP                        called, defined, in top-level form
+  QUOTE                          in constant, in top-level form
+  READLIST                       in top-level form
+  REAL-GOBBLE                    in constant, quoted
+  REMOVE                         quoted
+  SETQ                           in constant, in top-level form
+  SSTATUS                        in top-level form
+  START-SYSTEM                   defined, in top-level form
+  SUBR                           in top-level form, quoted
+  T                              in constant, in top-level form, quoted
+  TTY                            in top-level form
+  X                              in constant
+
+-- Atom table (54 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  BASE
+     3 fixnum  8
+     4 symbol  IBASE
+     5 symbol  SSTATUS
+     6 symbol  TTY
+     7 fixnum  20842095762
+     8 fixnum  20707878043
+     9 fixnum  10
+    10 symbol  *PROP-NAMES*
+    11 symbol  PUTPROP
+    12 symbol  QUOTE
+    13 symbol  *PUTPROP
+    14 symbol  GET
+    15 symbol  SUBR
+    16 symbol  DEFPROP
+    17 fixnum  32363343237
+    18 symbol  EXPR-HASH
+    19 symbol  CONS
+    20 symbol  START-SYSTEM
+    21 fixnum  -30200440979
+    22 symbol  FASLOAD
+    23 symbol  T
+    24 symbol  NOUUO
+    25 symbol  REMOVE
+    26 symbol  GOBBLE
+    27 symbol  FASL
+    28 symbol  DSK
+    29 symbol  FSUBR
+    30 symbol  REAL-GOBBLE
+    31 symbol  MACRO
+    32 symbol  X
+    33 symbol  APPLY
+    34 symbol  FUNCTION
+    35 symbol  CDR
+    36 symbol  LIST
+    37 symbol  CONTEXT-LIST
+    38 symbol  COND
+    39 symbol  MEMQ
+    40 symbol  CADR
+    41 symbol  DEFUN
+    42 symbol  DO
+    43 symbol  I
+    44 symbol  NULL
+    45 symbol  COUTPUT
+    46 symbol  OPTIONAL-LETTER-PREFIX
+    47 symbol  GENSYM
+    48 symbol  READLIST
+    49 symbol  APPEND
+    50 symbol  EXPLODE
+    51 symbol  .
+    52 symbol  CAR
+    53 symbol  CAAR
+    54 symbol  CDAR
+
+The LAP-like listing of the loaded words is in code/7006885_mquick.code.txt.

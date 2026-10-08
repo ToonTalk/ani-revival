@@ -1,0 +1,239 @@
+.sec Why a Logo Natural Language System
+	It is far from a new idea to apply Logo
+to natural language understanding and generating.
+I designed a system, however,  for doing both in way
+that is hopefully adequate, clear, clean, modular,
+convenient, and easy to use.  The sentence generation
+is done by context-free grammars.  Sentence understanding
+is done by pattern matching.  Using this
+system for writing simple "doctor" programs should be relatively easy.
+	Why do natural language at all?  Natural
+language is a domain at least as rich as turtle geometry.
+It more naturally leads to AI type problems than
+other domains. It can be as simple or as complex as one
+wants, at all levels interesting things can be done.
+One of the goals of Logo is to make children's thinking
+about thinking more explicit.  Clearly language use is an
+important part of thinking.  Lastly it can be fun writing
+programs that talk to people.
+.sec Some Applications
+	The list of applications is endless since language
+is used in so many activities.  Some suggestions follow:
+
+	1) A Family understander---a system that asks and
+answers questions about the user's family.  The domain's
+semantics are rather simple (e.g. if two males have the
+same parents then infer that they are brothers).  Typically
+the system would ask about the user's relatives, their names,
+ages, etc. and be able to answer questions by looking up the
+answers or making simple deductions.  This is a good place
+for the language system to interact with my Logo data base
+system described in another paper.
+	2) A display command interpreter.  This is similar
+to Ira Goldstein's ideas on envisioning systems.  Basically
+the child would write a system that accepted commands like,
+"Draw a circle in the center of the screen" or "Move the
+square called 'ralph' into the circle in the middle" (or
+simplier versions of the same).  Again this would interact
+with the data base system for keeping track of what objects
+exist and their attributes.  As described later, a simple
+version of this was done by a 7th grader.
+	3) A time reference understander.  This one I find
+interesting because it flows directly out of my master's
+thesis.  The idea is to write a question
+answering system that accepts declaratives like "yesterday
+I had a cold" and "my birthday is January 25" and then
+answer questions and make simple inferences.  This is similar
+in flavor to the first item, the family understander.
+.sec What the system looks like and how to describe it
+.subsec The generative portion
+	The sub-system that generates sentences uses
+user-supplied context free rules. The following is an
+example of a set of rules for generating a greeting:
+.begin
+.nofill
+
+[fl]TO REMEMBER.GREETING
+10 SET.CHUNK "GREETING [fi]!chunks keep rules separate[fr]
+20 REMEMBER [GREETING CAN.BE HELLO.EXP WHAT.NAME]
+30 REMEMBER [GREETING CAN.BE WHAT.NAME]
+40 REMEMBER [HELLO.EXP CAN.BE HELLO.WORD THERE] 
+[fi]!"there" is a terminal since there are 
+!no rules as to how to expand it[fr]
+50 REMEMBER [HELLO.EXP CAN.BE HELLO.WORD]
+60 REMEMBER [HELLO.WORD CAN.BE HI]
+70 REMEMBER [HELLO.WORD CAN.BE HELLO]
+80 REMEMBER [WHAT.NAME CAN.BE WHAT IS YOUR NAME?]
+90 REMEMBER [WHAT.NAME CAN.BE WHAT ARE YOU CALLED?]
+END
+.END
+	The command 'SAY "GREETING' will look
+in the "greeting" chunk for rules that begin with the word
+"greeting."  In this case it finds two rules and picks one
+at random and then recursively expands each of the constituents
+until no rules are found and that word is assumed to be a
+terminal (i.e. what one prints).  For example, this grammar
+will produce among others: "Hello there what is your name?"
+and "Hi what are you called?"
+The noise word "can.be" is
+something I'm not too sure about.  It makes clearer what
+one is saying but with most kids typing is already too much
+of a problem to impose such niceties. Perhaps it should be
+optional.
+	Chunking of the rules into separate areas is very
+handy here.  The rules for say, "greeting," should not, unless
+intentionally specified otherwise, conflict with rules for say,
+"glad.to.know."  This makes modularity the default.  Also
+it serves the rather practical function of providing units that
+can get swapped in and out of the workspace depending on recency
+(so that "larger" systems become practical).
+.subsubsec Special Features of the Generator
+	In addition to providing procedures for defining,
+using, finding and removing context-free rules the system
+provides debugging aids.  The most important one draws the
+derivation tree on the display as it runs.  This is useful
+for seeing where the output came from and finding bugs in
+the rules.  Another important use of the tree drawing routines
+is that it makes expansion's control structure 
+visible and relatively easy to follow.  The hope is that the 
+rules are less abstract when a clear visual trace of their application is
+available.
+	Since for reasonable size sentences the parse trees become too
+complex and require "Startdisplay 1" (which only one user at a time can have)
+a different mechanism is sometimes needed.
+This saves up the tree and if the proper switch is set will
+print on the console a pretty printed version of the tree.  This
+feature should always win and can be run after the fact (if the
+tree is kept around).
+	Another debugging aid prints out the contents of a chunk
+in a reasonable format.  This is especially important if one
+defines rules at top level (as opposed to within procedures)
+though I would not recommend doing this often (since editing
+can presently be done only by either forgeting the bad rule
+and remembering the new one or, better, by erasing the chunk and editing
+the procedure that defines that chunk and then re-running the
+procedure).
+.subsubsec Problems with the generator
+	Some small problems that remain are questions of
+representation.  Should there be any syntactic distinction
+between terminal and non-terminal symbols? (Presently the
+terminals are defined as those that have no rules about
+how to expand them.) Should noise words such as "can.be"
+be encouraged.
+	One of the big problems that remain is how to explain
+generation to children.  One procedure that I presently favor
+is asking the child for a few sample sentences to generate that
+mean roughly the same thing and then look for similarities
+in the structure (see, for example, the greeting chunk above).
+At some point the kid will realize that, for example,
+one doesn't have to use the word "hello" but any word that
+can be used in it's place such as "hi" or "good day."
+This paraphrasing approach worked pretty well with the child
+I worked with.
+	Another issue that my generator brings up is whether
+context free generation is a good paradigm for generation.  
+Maybe something that uses features extensively would be better.
+Or perhaps a canonical internal representation should be 
+developed and then the generator could translate that to English,
+the choices along the way providing the variety by paraphrasing
+(similar to  Schank's MARGIE system foot<Schank R. and Colby K.
+editors,
+Computer Models of Thought and Language,
+W.H. Freeman and Company (San Francisco 1973)>).  
+The major reason
+I have for choosing context-free generation is that it is simple
+and clean and hopefully easy to explain and learn.
+.subsec The "parsing" portion
+	The parser is a rather fancy pattern-matching routine
+called "Match."  The first argument is the object which is matched
+against the pattern (which is the second argument).  
+If the pattern matches the object then "True" is returned else "False."  In
+addition certain side effects of the match can be obtained. The
+pattern is a sentence where each element is any of the
+following (the "<...>" are meta-linguistic):
+
+$<name> -----which means 0 or more words
+
+?<name> -----which means 1 word
+
+<word>----which matches only that word
+
+[or <word1> <word2> ...]----which matches only if one of the words do
+
+:<name>--- do the above after replacing this element with it's thing
+
+[<any list that does not begin with "or>]---recursively match this against the next item
+
+	Where <name> is optional and it is a word that is bound 
+(make-d) into whatever was in that position of the object.
+The following is a procedure that finds most of the ways one can
+say one's name and returns the name found.  The input to
+the procedure is presumably the sentence the user typed in.
+.begin
+.nofill skip
+[fl]TO LOOK.FOR.NAME :ANS
+10 IF MATCH :ANS [$ [OR NOT ISNT ISN'T] $] SAY "NOT.NOT.YOUR.NAME OUTPUT []
+[fi]!this checks for the words "not," "isnt" or "isn't" preceded
+!or followed by anything and if so says appropriate message[fr]
+20 LOCAL "?NAME [fi]!AM ONLY LOOKING FOR THE FIRST NAME WORD
+!If "$name" where used the list corresponding to the whole name would be found[fl]
+30 IF MATCH :ANS [$ NAME IS ?NAME $] OUTPUT :?NAME
+40 IF MATCH :ANS [$ I $ CALLED ?NAME $] OUTPUT :?NAME
+50 IF MATCH :ANS [?NAME $ IS $ NAME $] OUTPUT :?NAME
+60 IF MATCH :ANS [?NAME $ IS $ CALLED $] OUTPUT :?NAME
+70 IF MATCH :ANS [I AM ?NAME $ ] OUTPUT :?NAME
+80 IF MATCH :ANS [?NAME] OUTPUT :?NAME [fi]
+!picks up any one word answer[fr]
+90 OUTPUT [] [fi]!no name found[fr]
+END
+.END
+	Notice that this parser will accept sentences that
+are non-grammatical or non-sensical if they match the pattern.
+Since that is not the typical input to a natural language
+system it should not matter much.  The rules as written
+assume the user immediately previous had been asked for
+his or her name.  The rules do not distinguish between
+sentences like "My sister's name is Karen" and "My name is
+Ken" since the rule on line 30 will match both.  It could have
+been written to check for "my" and allow no adjectives between
+"my" and "name" or alternatively bind up anything in that
+position using the "$<name>" type pattern and then look in that
+cell for information.
+	This parser is quite powerful, however, it remains to
+be seen how convenient and understandable it is in use with
+kids.  I found it easy to write patterns, to add new ones when
+the system misunderstood me so there is hope.  This kind of
+parser was chosen because of it's simplicity and ease of
+implementation (most other sorts of parsers would be difficult
+to implement in light of Logo's space and time limitations).
+In addition, pattern matching is perhaps a powerful idea in it's
+own right.
+.require "ken;$rod >" source
+.sec Summary and Evaluation
+	Overall I was quite satisfied with the system while
+working with Rod.  I feel it was a good experience for him,
+however, I feel I was pushing him a little too hard.  Rod
+did much of the programming but much of it he only partially
+understood and I tried to explain.  Part of the problem
+here is that I was interested in the language aspects of
+programming.  I skimmed, or quickly passed over, much of
+Logo, concerning control structure and variables. As a 
+result, Rod was confused about those aspects, but seemed
+to pick up quite quickly the writting of generation rules
+and patterns for parsing.  The remaining doubts I have
+relate to the incidents where Rod expected much more
+intelligence from his program than was possible.  The
+simplest explanation is that he was not understanding
+things fully, however at other times he gave me the directly
+opposite impression.
+	This document describes a system for writting
+natural language programs. Both parsing and generative
+capabilities are provided. Sessions with one child are
+described, however,
+it remains to be seen how
+well it works with many children, and what they will get out
+of interacting with it.
+.skip 4
+	I would like to thank Seymour Papert and Jon Allen for
+expressing interest in this project and providing suggestions.
+    

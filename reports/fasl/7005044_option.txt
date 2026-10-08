@@ -1,0 +1,318 @@
+FASL dump: original/7005044/option.fasl  (ITS KEN;OPTION FASL, tape 7005044, Dec 1975)
+Decoded 2153 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 2153 of 2153 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 184 blocks, 1651 items
+Item counts: absolute 959, relocatable 116, special 32, smashable call 190, quoted atom 45, quoted list 1, globalsym 148, atom table 117, entry 18, eval mungeable 24, end 1
+
+-- Functions defined (18) --
+  name                         property args         address
+  RUN                          FSUBR                 000000
+  LOOK-AT                      FSUBR                 000006
+  MAKE-XDO                     SUBR     (NIL . 1)    000105
+  EPO                          SUBR     (NIL . 4)    000174
+  EP                           SUBR     (NIL . 3)    000307
+  EPS                          SUBR     (NIL . 5)    000410
+  LOG-NORMAL                   SUBR     (NIL . 3)    000531
+  SD                           SUBR     (NIL . 1)    000556
+  MAKE-TABLE                   LSUBR                 000640
+  FIND-BEST-GROWTH             SUBR     (NIL . 4)    001072
+  STUDY                        SUBR     (NIL . 1)    001170
+  DURATIONS-WRONG?             SUBR     (NIL . 2)    002005
+  |KEN;OPTION 1|               SUBR                  002017
+  OUTPUT-GIANT-TABLE           SUBR     (NIL . 1)    002027
+  PRINT-OUT                    SUBR     (NIL . 1)    002130
+  PRINT-TRANS                  SUBR     (NIL . 1)    002136
+  TRUNC                        SUBR     (NIL . 1)    002356
+  E                            SUBR     (NIL . 5)    002401
+
+-- Top-level forms evaluated at load time (24) --
+  (SETQ COMRATE 0.03)
+  (DEFPROP RUN -687388383 EXPR-HASH)
+  (DEFPROP LOOK-AT 16250582067 EXPR-HASH)
+  (SETQ *DAYS1* 10.0)
+  (SETQ *DAYS2* 75.0)
+  (SETQ *DAYS3* 140.0)
+  (DEFPROP MAKE-XDO -7145070428 EXPR-HASH)
+  (DEFPROP EPO 20329434865 EXPR-HASH)
+  (DEFPROP EP -1334109748 EXPR-HASH)
+  (DEFPROP EPS 18720878966 EXPR-HASH)
+  (DEFPROP LOG-NORMAL 1483428141 EXPR-HASH)
+  (DEFPROP SD -11918357795 EXPR-HASH)
+  (DEFPROP MAKE-TABLE |(OPTION //2 DSK KEN)| FILE-I-LIVE-IN)
+  (DEFPROP MAKE-TABLE -27573173883 EXPR-HASH)
+  (SETQ *TOLERANCE* 0.02)
+  (DEFPROP FIND-BEST-GROWTH -28629426626 EXPR-HASH)
+  (DEFPROP STUDY 10199523953 EXPR-HASH)
+  (DEFPROP DURATIONS-WRONG? 6150723763 EXPR-HASH)
+  (DEFPROP OUTPUT-GIANT-TABLE 3966744066 EXPR-HASH)
+  (DEFPROP PRINT-OUT 20048649427 EXPR-HASH)
+  (DEFPROP PRINT-TRANS 4757051570 EXPR-HASH)
+  (DEFPROP TRUNC 9337906856 EXPR-HASH)
+  (SETQ *MIN-RET* 1.15)
+  (DEFPROP E 4506497308 EXPR-HASH)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  RUN
+      calls:        *EVAL
+      specials:     *ASSUMPTION-PAIRS*
+  LOOK-AT
+      calls:        NCONS XCONS PRINT SPRINTER MAKE-XDO OUTPUT-GIANT-TABLE TERPRI MAKE-TABLE *APPEND
+      specials:     *ASSUMPTION-PAIRS*
+      quoted atoms: NAME= CAR CADR DOING-RUN
+  MAKE-XDO
+      calls:        NCONS XCONS APPEND
+      specials:     *DAYS1* *DAYS2* *DAYS3*
+      quoted atoms: NIL
+  EPO
+      calls:        LOG EXP LOG-NORMAL
+      quoted atoms: 0.0
+  EP
+      calls:        LOG EXP LOG-NORMAL
+      quoted atoms: 9.9999999E-11 0.0
+  EPS
+      calls:        LOG EXP LOG-NORMAL
+      quoted atoms: 0.0
+  LOG-NORMAL
+      calls:        LOG EXP
+  SD
+      calls:        LENGTH *APPLY SQRT
+      quoted atoms: +$ 0.0
+  MAKE-TABLE
+      calls:        STUDY FLOAT SXHASH SQRT EPO NCONS CONS XCONS PRINT PRINC FIND-BEST-GROWTH
+      quoted atoms: EXCERCISE-PRICE= BEST-GROWTH-RATE=
+  FIND-BEST-GROWTH
+      calls:        EPO
+      specials:     LB HB EPL EPH RATIO MB EPM *TOLERANCE*
+      quoted atoms: 0.5 2.0 0.0
+  STUDY
+      calls:        MEMQ DURATIONS-WRONG? ABS NCONS XCONS CONS MIN EXPT MAX
+      specials:     COMRATE
+      quoted atoms: |LONG POSITION| |SHORT POSITION|
+  DURATIONS-WRONG?
+      quoted atoms: T
+  |KEN;OPTION 1|
+      quoted atoms: T
+  OUTPUT-GIANT-TABLE
+      calls:        SORTCAR PRINT-OUT LAST CONS NCONS
+      specials:     *MIN-RET*
+      quoted atoms: |KEN;OPTION 1| 0.0 1.0 0
+  PRINT-OUT
+      calls:        SORTCAR PRINT
+      quoted atoms: GREATERP PRINT-TRANS DONE
+  PRINT-TRANS
+      calls:        PRINT PRINC NCONS XCONS TERPRI TRUNC
+      quoted atoms: AVERAGE-RETURN= BUY FOR SELL |^I|
+  TRUNC
+      calls:        FIX FLOAT
+  E
+      calls:        FLOAT *TIMES EPO NCONS XCONS PRINT
+      quoted atoms: DONE 1.0
+      quoted list:  (0.0145 0.017 0.02 0.023 0.027 0.03 0.035)
+
+-- Symbols and how they are used (81) --
+  |^I|                           quoted
+  |(OPTION //2 DSK KEN)|         in top-level form
+  *APPEND                        called
+  *APPLY                         called
+  *ASSUMPTION-PAIRS*             special
+  *DAYS1*                        in top-level form, special
+  *DAYS2*                        in top-level form, special
+  *DAYS3*                        in top-level form, special
+  *EVAL                          called
+  *MIN-RET*                      in top-level form, special
+  *TIMES                         called
+  *TOLERANCE*                    in top-level form, special
+  +$                             quoted
+  ABS                            called
+  APPEND                         called
+  AVERAGE-RETURN=                quoted
+  BEST-GROWTH-RATE=              quoted
+  BUY                            quoted
+  CADR                           quoted
+  CAR                            quoted
+  COMRATE                        in top-level form, special
+  CONS                           called
+  DEFPROP                        in top-level form
+  DOING-RUN                      quoted
+  DONE                           quoted
+  DURATIONS-WRONG?               called, defined, in top-level form
+  E                              defined, in top-level form
+  EP                             defined, in top-level form
+  EPH                            special
+  EPL                            special
+  EPM                            special
+  EPO                            called, defined, in top-level form
+  EPS                            defined, in top-level form
+  EXCERCISE-PRICE=               quoted
+  EXP                            called
+  EXPR-HASH                      in top-level form
+  EXPT                           called
+  FILE-I-LIVE-IN                 in top-level form
+  FIND-BEST-GROWTH               called, defined, in top-level form
+  FIX                            called
+  FLOAT                          called
+  FOR                            quoted
+  GREATERP                       quoted
+  HB                             special
+  |KEN;OPTION 1|                 defined, quoted
+  LAST                           called
+  LB                             special
+  LENGTH                         called
+  LOG                            called
+  LOG-NORMAL                     called, defined, in top-level form
+  |LONG POSITION|                quoted
+  LOOK-AT                        defined, in top-level form
+  MAKE-TABLE                     called, defined, in top-level form
+  MAKE-XDO                       called, defined, in top-level form
+  MAX                            called
+  MB                             special
+  MEMQ                           called
+  MIN                            called
+  NAME=                          quoted
+  NCONS                          called
+  NIL                            quoted
+  OUTPUT-GIANT-TABLE             called, defined, in top-level form
+  PRINC                          called
+  PRINT                          called
+  PRINT-OUT                      called, defined, in top-level form
+  PRINT-TRANS                    defined, in top-level form, quoted
+  RATIO                          special
+  RUN                            defined, in top-level form
+  SD                             defined, in top-level form
+  SELL                           quoted
+  SETQ                           in top-level form
+  |SHORT POSITION|               quoted
+  SORTCAR                        called
+  SPRINTER                       called
+  SQRT                           called
+  STUDY                          called, defined, in top-level form
+  SXHASH                         called
+  T                              quoted
+  TERPRI                         called
+  TRUNC                          called, defined, in top-level form
+  XCONS                          called
+  (in atom table, no direct use found: FSUBR SUBR LSUBR)
+
+-- Atom table (117 entries; 0 is NIL) --
+     1 symbol  SETQ
+     2 symbol  COMRATE
+     3 flonum  0.03
+     4 symbol  DEFPROP
+     5 symbol  RUN
+     6 fixnum  -687388383
+     7 symbol  EXPR-HASH
+     8 symbol  FSUBR
+     9 symbol  *ASSUMPTION-PAIRS*
+    10 symbol  *EVAL
+    11 symbol  LOOK-AT
+    12 fixnum  16250582067
+    13 symbol  NCONS
+    14 symbol  NAME=
+    15 symbol  XCONS
+    16 symbol  PRINT
+    17 symbol  SPRINTER
+    18 symbol  MAKE-XDO
+    19 symbol  CAR
+    20 symbol  CADR
+    21 symbol  OUTPUT-GIANT-TABLE
+    22 symbol  TERPRI
+    23 symbol  MAKE-TABLE
+    24 symbol  *APPEND
+    25 symbol  DOING-RUN
+    26 symbol  *DAYS1*
+    27 flonum  10.0
+    28 symbol  *DAYS2*
+    29 flonum  75.0
+    30 symbol  *DAYS3*
+    31 flonum  140.0
+    32 fixnum  -7145070428
+    33 symbol  SUBR
+    34 symbol  APPEND
+    35 symbol  EPO
+    36 fixnum  20329434865
+    37 symbol  LOG
+    38 symbol  EXP
+    39 symbol  LOG-NORMAL
+    40 flonum  0.0
+    41 symbol  EP
+    42 fixnum  -1334109748
+    43 flonum  9.9999999E-11
+    44 symbol  EPS
+    45 fixnum  18720878966
+    46 fixnum  1483428141
+    47 symbol  SD
+    48 fixnum  -11918357795
+    49 symbol  LENGTH
+    50 symbol  +$
+    51 symbol  *APPLY
+    52 symbol  SQRT
+    53 symbol  |(OPTION //2 DSK KEN)|
+    54 symbol  FILE-I-LIVE-IN
+    55 fixnum  -27573173883
+    56 symbol  LSUBR
+    57 symbol  STUDY
+    58 symbol  FLOAT
+    59 symbol  SXHASH
+    60 symbol  CONS
+    61 symbol  EXCERCISE-PRICE=
+    62 symbol  PRINC
+    63 symbol  BEST-GROWTH-RATE=
+    64 symbol  FIND-BEST-GROWTH
+    65 symbol  *TOLERANCE*
+    66 flonum  0.02
+    67 fixnum  -28629426626
+    68 flonum  0.5
+    69 flonum  2.0
+    70 symbol  LB
+    71 symbol  HB
+    72 symbol  EPL
+    73 symbol  EPH
+    74 symbol  RATIO
+    75 symbol  MB
+    76 symbol  EPM
+    77 fixnum  10199523953
+    78 symbol  MEMQ
+    79 symbol  DURATIONS-WRONG?
+    80 symbol  ABS
+    81 symbol  |LONG POSITION|
+    82 symbol  MIN
+    83 symbol  EXPT
+    84 symbol  MAX
+    85 symbol  |SHORT POSITION|
+    86 fixnum  6150723763
+    87 symbol  T
+    88 fixnum  3966744066
+    89 symbol  |KEN;OPTION 1|
+    90 symbol  SORTCAR
+    91 symbol  PRINT-OUT
+    92 symbol  LAST
+    93 symbol  *MIN-RET*
+    94 flonum  1.0
+    95 fixnum  0
+    96 fixnum  20048649427
+    97 symbol  GREATERP
+    98 symbol  PRINT-TRANS
+    99 symbol  DONE
+   100 fixnum  4757051570
+   101 symbol  AVERAGE-RETURN=
+   102 symbol  BUY
+   103 symbol  FOR
+   104 symbol  SELL
+   105 symbol  TRUNC
+   106 symbol  |^I|
+   107 fixnum  9337906856
+   108 symbol  FIX
+   109 flonum  1.15
+   110 symbol  E
+   111 fixnum  4506497308
+   112 symbol  *TIMES
+   113 flonum  0.0145
+   114 flonum  0.017
+   115 flonum  0.023
+   116 flonum  0.027
+   117 flonum  0.035
+
+The LAP-like listing of the loaded words is in code/7005044_option.code.txt.

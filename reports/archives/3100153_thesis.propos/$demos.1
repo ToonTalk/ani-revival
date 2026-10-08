@@ -1,0 +1,102 @@
+ (defun setup nil
+       (tvsize 500 300)
+       (turtlesize 300)
+	(ht)(pu)(setq *right-margin* 0))
+
+(defun demo (code text)
+(useturtle 'logoturtle)
+(fontcs)
+(fontprint text '20FG)
+(eval code))
+
+(setq s1 '(ask rocket (make fred)))
+
+(setq d1 '(demo '(ask fred (show)) '|ASK FRED (SHOW)|))
+
+(setq d2 '(demo '(ask fred (appear forward 50)) '|ASK FRED (APPEAR FORWARD 50)| ))
+
+(SETQ D3 '(DEMO '(ASK FRED (APPEAR LEFT 120)) '|ASK FRED (APPEAR LEFT 120)|))
+
+(SETQ D4 '(DEMO '(ASK FRED (FORWARD 75)) '|ASK FRED (FORWARD 75)|))
+
+(setq s4 '(ask rocket (replace speed 25)))
+
+(setq s5 '(ask fred (replace speed 50)))
+
+(SETQ D5 '(DEMO '(ASK FRED (DO ALL PLANNED FOR NEXT TICK WITH UNIVERSE-1))
+'|ASK FRED (DO ALL PLANNED FOR/
+             NEXT TICK WITH UNIVERSE-1)|))
+
+(SETQ D6 '(DEMO '(ASK FRED (GROW 25)) '|ASK FRED (GROW 25)|))
+
+
+(SETQ D7 '(DEMO '(ASK FRED (APPEAR BACK 50))
+	   	'|ASK FRED (APPEAR BACK 50)|))
+
+(SETQ S8
+'(progn (define.rocket)
+  (ASK ROCKET '(IF RECEIVE SHOOT missle with SPEED ?SPEED to go ?DISTANCE
+	       THEN DO.THE.FOLLOWING:
+		(ASK ROCKET (MAKE MISSLE))
+		(ASK MISSLE (REPLACE SPEED :?SPEED))
+		(ASK MISSLE (REPLACE SIZE (QUOTIENT
+					    (ASK :SELF (WHAT SIZE ?))
+					    4)))
+		(ASK MISSLE (SETT (ASK :SELF (recall your here))))
+		(ASK MISSLE (SHOW))
+		(ASK MISSLE (plan: FORWARD :?DISTANCE then: hide then))))))
+
+(SETQ D8 '(DEMO '(progn(ASK FRED (SHOOT MISSLE WITH SPEED 100 TO GO 200))
+		  (ask universe (run for 5 ticks)))
+'|ASK FRED/
+ (SHOOT MISSLE WITH SPEED 100 TO GO 200)|))
+
+(SETQ S9 '(PROGN (ASK FLOWER (MAKE SALLY))
+	         (ask sally (delx -200))
+	         (ASK SALLY (REMEMBER SIZE 100))))
+
+(SETQ D9 '(DEMO '(ASK SALLY (SHOW))
+	        '|ASK SALLY (SHOW)|))
+(setq s10
+      '(progn
+	(define.flower)
+	(ask flower (make sally))
+	(ask sally (delx -200))
+	(clip)
+	(ask sally (replace size 100))
+	(ask sally (replace growth speed 20))
+	(ask flower '(if receive sway ?degrees degrees ?number times then
+		      do.the.following:
+		       (cond ((zerop (\ :?number 2))
+			      (ask :self (plan: appear rt :?degrees next)))
+			     (t (ask :self (plan: appear lt :?degrees next))))
+		      (and (greaterp :?number 0)
+			   (ask :self (plan: sway :?degrees degrees (1- :?number) times
+	   					 next)))))
+	(ask sally (plan: show then))
+	(ask sally (Plan: sway 10 degrees 12 times next))
+	(ask rocket (make fred))
+	(ask fred (replace size 125))
+	(ask fred (replace growth speed 20))
+	(ask fred (replace speed 30))
+	(clip)
+	(ask fred (replace rotational speed 25))
+	(ask fred (sett '(-22 38 240)))
+	(ask fred (plan: show then))
+	(ask fred (plan: shoot missle with speed 50 to go 150 next))
+	(ask fred (plan: forward 300 after 1 more ticks))
+	(ask fred (plan: right 90 then: grow -100 after 2 more ticks))
+	(ask sally (plan: grow 60 after 6 more ticks))
+	(ask movie (make shooting 12 ticks long in universe))))
+
+
+
+(setq d10 '(demo '(progn (ask sally (replace size 100))
+		   (ask fred (replace size 125))
+		   (ask sally (replace heading 0))
+		   (ask fred (sett '(-22 38 240)))
+		   (ask shooting (show)))
+	        '|ASK SHOOTING (SHOW)|))
+        
+
+	     

@@ -1,0 +1,29 @@
+(defun scram fexpr (fn)
+(apply 'uread fn)
+(ioc q)
+(uwrite)
+(ioc r)
+(do ((i (tyi) (tyi))
+     (IBASE 8.) (BASE 8.)
+    (foo (my-random key)))
+    ((eq i 14) (apply 'ufile fn))
+(princ (+ i (random 1000.))) (princ '/  )))
+
+
+(defun my-random (n)
+(random nil)
+       (do ((i n (1- i)))
+	   ((zerop i) 'done)
+	   (random)))
+    
+(defun Oscram fexpr (fn)
+(apply 'uread fn)
+(ioc q)
+(uwrite)
+(ioc r)
+(do ((i (read 'eof) (read 'eof))
+     (IBASE 8.) (BASE 8.)
+    (foo (my-random key)))
+    ((eq i 'eof) (apply 'ufile fn))
+(tyo (- i (random 1000.)))))
+

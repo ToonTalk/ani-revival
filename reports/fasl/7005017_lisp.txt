@@ -1,0 +1,328 @@
+FASL dump: original/7005017/lisp.fasl  (ITS KEN;LISP FASL, tape 7005017, Feb 1979)
+Decoded 985 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 985 of 985 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 272520,,000016 ('750', flag bits 016), 48 blocks, 432 items
+Item counts: absolute 148, relocatable 35, special 10, smashable call 35, quoted atom 14, quoted list 5, globalsym 32, atom table 114, entry 11, eval mungeable 27, end 1
+
+-- Functions defined (11) --
+  name                         property args         address
+  DICKS-PRINT                  LSUBR                 000000
+  DICKS-PRIN1                  LSUBR                 000051
+  GO-SLOW                      LSUBR                 000122
+  GO-FAST                      LSUBR                 000141
+  SNAP-UUOLINKS                SUBR     (NIL . 0)    000152
+  |SET-VARIABLE MACRO|         SUBR     (NIL . 1)    000154
+  |SV MACRO|                   SUBR     (NIL . 1)    000232
+  LOAD-MACRO-FILES             SUBR     (NIL . 0)    000236
+  CONTROL-T                    SUBR     (NIL . 2)    000254
+  E                            SUBR     (NIL . 0)    000267
+  MY-DEFAULT-TTY-RETURN        SUBR     (NIL . 1)    000271
+
+-- Top-level forms evaluated at load time (27) --
+  (LOAD '|ai:ken; gcdemn fasl|)
+  (SETQ ^W T)
+  (COND ((NOT (STATUS FEATURES COMPLR)) (SSTATUS WHO1 42 '% 118 0) (SSTATUS GCWHO 3)))
+  (PROGN (LOAD '((LIBLSP) #PRINT FASL))
+    (SETQ PRIN1 '#PRIN1)
+    (SSTATUS FEATURES DICKS-PRINTER)
+    (REMPROP 'DO '#GRIND-FN)
+    (REMPROP 'PROG '#GRIND-FN)
+    (SSTATUS TTYINT 19 '#PRINTABORT)
+    (SETQ #CHECKRECURSION T))
+  (DEFPROP TOP ((DSK LIBLSP) STACK) AUTOLOAD)
+  (DEFPROP BOT ((DSK LIBLSP) STACK) AUTOLOAD)
+  (DEFPROP TIME-FUNCTION ((DSK LIBLSP) TIMER) AUTOLOAD)
+  (DEFPROP UNTIME ((DSK LIBLSP) TIMER) AUTOLOAD)
+  (DEFPROP APROPOS ((DSK LIBLSP) APROPO) AUTOLOAD)
+  (DEFPROP AP APROPOS EXPR)
+  (DEFPROP CS (TVRTLE NEWIO AI LLOGO) AUTOLOAD)
+  (DEFPROP CLEARSCREEN (TVRTLE NEWIO AI LLOGO) AUTOLOAD)
+  (SETQ PURE 2)
+  (DEFPROP BUG SNAP-UUOLINKS EXPR)
+  (DEFPROP SET-VARIABLE |SET-VARIABLE MACRO| MACRO)
+  (DEFPROP SV |SV MACRO| MACRO)
+  (LOAD-MACRO-FILES)
+  (SSTATUS TTYINT 20 'CONTROL-T)
+  (DEFUN ENTER-SPECIFIC-INF-EDITOR
+    (X)
+    (LOAD '|liblsp;lispt|)
+    (SSTATUS TTYINT 20 'CONTROL-T)
+    (INF-EDIT E))
+  (SETQ DEFAULT-TTY-RETURN-LIST '((MY-DEFAULT-TTY-RETURN TTYRETARG)))
+  (SETQ DEFAULT-RETURN-TO-DDT-LIST
+    '((PROGN (SETQ :TIME-I-LEFT-HERE (TIME)) (LISPT-^Z))
+      (PROGN (SETQ :TIME-I-LEFT-HERE (TIME)) (DDT-RETURN))))
+  (CRUNIT KEN)
+  (SETQ NOUUO T)
+  (SETQ BASE 10 IBASE 10)
+  (SETQ *NOPOINT T)
+  (*RSET T)
+  (SETQ ^W NIL)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DICKS-PRINT
+      calls:        #PRINT
+      specials:     PRINMODE
+  DICKS-PRIN1
+      calls:        #PRIN1
+      specials:     PRINMODE
+  GO-SLOW
+      calls:        SNAP-UUOLINKS *RSET NOUUO
+      quoted atoms: T
+  GO-FAST
+      calls:        SNAP-UUOLINKS NOUUO *RSET
+      quoted atoms: NIL
+  SNAP-UUOLINKS
+      calls:        SSTATUS
+      quoted list:  (UUOLINKS)
+  |SET-VARIABLE MACRO|
+      calls:        *PRINC
+      quoted atoms: SETQ
+  |SV MACRO|
+      quoted atoms: SET-VARIABLE
+  LOAD-MACRO-FILES
+      calls:        STATUS LOAD SSTATUS
+      quoted atoms: |ai:ken1;reamac| |ai:ken1;expmac| |ai:ken1;macros| NIL
+      quoted list:  (FEATURE MACRO-FILES-LOADED)
+      quoted list:  (FEATURE MACRO-FILES-LOADED)
+  CONTROL-T
+      calls:        LISTEN TYI TIME E
+      specials:     TYI :TIME-I-LEFT-HERE
+  E
+      calls:        ENTER-SPECIFIC-INF-EDITOR
+      quoted atoms: E
+  MY-DEFAULT-TTY-RETURN
+      calls:        *TERPRI STATUS TIME FIX *PRINC FORCE-OUTPUT
+      specials:     TTY-YANKED-FLAG :TIME-I-LEFT-HERE JOB-MSG-FILE TTY-RETURN-PROMPT? TTY-RETURN-PROMPTER
+      quoted atoms: |seconds| |haven't seen you for| T
+      quoted list:  (FEATURES DIRECTOR)
+      quoted list:  (FEATURES ANI)
+
+-- Symbols and how they are used (105) --
+  #CHECKRECURSION                in top-level form
+  #GRIND-FN                      in top-level form
+  #PRIN1                         called, in top-level form
+  #PRINT                         called, in top-level form
+  #PRINTABORT                    in top-level form
+  %                              in top-level form
+  *NOPOINT                       in top-level form
+  *PRINC                         called
+  *RSET                          called, in top-level form
+  *TERPRI                        called
+  :TIME-I-LEFT-HERE              in top-level form, special
+  AI                             in top-level form
+  ANI                            in constant
+  AP                             in top-level form
+  APROPO                         in top-level form
+  APROPOS                        in top-level form
+  AUTOLOAD                       in top-level form
+  BASE                           in top-level form
+  BOT                            in top-level form
+  BUG                            in top-level form
+  CLEARSCREEN                    in top-level form
+  COMPLR                         in top-level form
+  COND                           in top-level form
+  CONTROL-T                      defined, in top-level form
+  CRUNIT                         in top-level form
+  CS                             in top-level form
+  DDT-RETURN                     in top-level form
+  DEFAULT-RETURN-TO-DDT-LIST     in top-level form
+  DEFAULT-TTY-RETURN-LIST        in top-level form
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DICKS-PRIN1                    defined
+  DICKS-PRINT                    defined
+  DICKS-PRINTER                  in top-level form
+  DIRECTOR                       in constant
+  DO                             in top-level form
+  DSK                            in top-level form
+  E                              called, defined, in top-level form, quoted
+  ENTER-SPECIFIC-INF-EDITOR      called, in top-level form
+  EXPR                           in top-level form
+  FASL                           in top-level form
+  FEATURE                        in constant
+  FEATURES                       in constant, in top-level form
+  FIX                            called
+  FORCE-OUTPUT                   called
+  GCWHO                          in top-level form
+  GO-FAST                        defined
+  GO-SLOW                        defined
+  IBASE                          in top-level form
+  INF-EDIT                       in top-level form
+  JOB-MSG-FILE                   special
+  KEN                            in top-level form
+  LIBLSP                         in top-level form
+  LISPT-^Z                       in top-level form
+  LISTEN                         called
+  LLOGO                          in top-level form
+  LOAD                           called, in top-level form
+  LOAD-MACRO-FILES               defined, in top-level form
+  MACRO                          in top-level form
+  MACRO-FILES-LOADED             in constant
+  MY-DEFAULT-TTY-RETURN          defined, in top-level form
+  NEWIO                          in top-level form
+  NIL                            in top-level form, quoted
+  NOT                            in top-level form
+  NOUUO                          called, in top-level form
+  PRIN1                          in top-level form
+  PRINMODE                       special
+  PROG                           in top-level form
+  PROGN                          in top-level form
+  PURE                           in top-level form
+  QUOTE                          in top-level form
+  REMPROP                        in top-level form
+  SET-VARIABLE                   in top-level form, quoted
+  |SET-VARIABLE MACRO|           defined, in top-level form
+  SETQ                           in top-level form, quoted
+  SNAP-UUOLINKS                  called, defined, in top-level form
+  SSTATUS                        called, in top-level form
+  STACK                          in top-level form
+  STATUS                         called, in top-level form
+  SV                             in top-level form
+  |SV MACRO|                     defined, in top-level form
+  T                              in top-level form, quoted
+  TIME                           called, in top-level form
+  TIME-FUNCTION                  in top-level form
+  TIMER                          in top-level form
+  TOP                            in top-level form
+  TTY-RETURN-PROMPT?             special
+  TTY-RETURN-PROMPTER            special
+  TTY-YANKED-FLAG                special
+  TTYINT                         in top-level form
+  TTYRETARG                      in top-level form
+  TVRTLE                         in top-level form
+  TYI                            called, special
+  UNTIME                         in top-level form
+  UUOLINKS                       in constant
+  WHO1                           in top-level form
+  X                              in top-level form
+  ^W                             in top-level form
+  |ai:ken1;expmac|               quoted
+  |ai:ken1;macros|               quoted
+  |ai:ken1;reamac|               quoted
+  |ai:ken; gcdemn fasl|          in top-level form
+  |haven't seen you for|         quoted
+  |liblsp;lispt|                 in top-level form
+  |seconds|                      quoted
+  (in atom table, no direct use found: LSUBR SUBR)
+
+-- Atom table (114 entries; 0 is NIL) --
+     1 symbol  LOAD
+     2 symbol  QUOTE
+     3 symbol  |ai:ken; gcdemn fasl|
+     4 symbol  SETQ
+     5 symbol  ^W
+     6 symbol  T
+     7 symbol  COND
+     8 symbol  NOT
+     9 symbol  STATUS
+    10 symbol  FEATURES
+    11 symbol  COMPLR
+    12 symbol  SSTATUS
+    13 symbol  WHO1
+    14 fixnum  42
+    15 symbol  %
+    16 fixnum  118
+    17 fixnum  0
+    18 symbol  GCWHO
+    19 fixnum  3
+    20 symbol  PROGN
+    21 symbol  LIBLSP
+    22 symbol  #PRINT
+    23 symbol  FASL
+    24 symbol  PRIN1
+    25 symbol  #PRIN1
+    26 symbol  DICKS-PRINTER
+    27 symbol  REMPROP
+    28 symbol  DO
+    29 symbol  #GRIND-FN
+    30 symbol  PROG
+    31 symbol  TTYINT
+    32 fixnum  19
+    33 symbol  #PRINTABORT
+    34 symbol  #CHECKRECURSION
+    35 symbol  DICKS-PRINT
+    36 symbol  LSUBR
+    37 symbol  PRINMODE
+    38 symbol  DICKS-PRIN1
+    39 symbol  DEFPROP
+    40 symbol  TOP
+    41 symbol  DSK
+    42 symbol  STACK
+    43 symbol  AUTOLOAD
+    44 symbol  BOT
+    45 symbol  TIME-FUNCTION
+    46 symbol  TIMER
+    47 symbol  UNTIME
+    48 symbol  APROPOS
+    49 symbol  APROPO
+    50 symbol  AP
+    51 symbol  EXPR
+    52 symbol  CS
+    53 symbol  TVRTLE
+    54 symbol  NEWIO
+    55 symbol  AI
+    56 symbol  LLOGO
+    57 symbol  CLEARSCREEN
+    58 symbol  PURE
+    59 fixnum  2
+    60 symbol  GO-SLOW
+    61 symbol  SNAP-UUOLINKS
+    62 symbol  *RSET
+    63 symbol  NOUUO
+    64 symbol  GO-FAST
+    65 symbol  BUG
+    66 symbol  SUBR
+    67 symbol  UUOLINKS
+    68 symbol  SET-VARIABLE
+    69 symbol  |SET-VARIABLE MACRO|
+    70 symbol  MACRO
+    71 symbol  *PRINC
+    72 symbol  SV
+    73 symbol  |SV MACRO|
+    74 symbol  LOAD-MACRO-FILES
+    75 symbol  FEATURE
+    76 symbol  MACRO-FILES-LOADED
+    77 symbol  |ai:ken1;reamac|
+    78 symbol  |ai:ken1;expmac|
+    79 symbol  |ai:ken1;macros|
+    80 fixnum  20
+    81 symbol  CONTROL-T
+    82 symbol  LISTEN
+    83 symbol  TYI
+    84 symbol  TIME
+    85 symbol  :TIME-I-LEFT-HERE
+    86 symbol  E
+    87 symbol  ENTER-SPECIFIC-INF-EDITOR
+    88 symbol  DEFUN
+    89 symbol  X
+    90 symbol  |liblsp;lispt|
+    91 symbol  INF-EDIT
+    92 symbol  DEFAULT-TTY-RETURN-LIST
+    93 symbol  MY-DEFAULT-TTY-RETURN
+    94 symbol  TTYRETARG
+    95 symbol  TTY-YANKED-FLAG
+    96 symbol  *TERPRI
+    97 symbol  DIRECTOR
+    98 symbol  ANI
+    99 symbol  FIX
+   100 symbol  |seconds|
+   101 symbol  |haven't seen you for|
+   102 symbol  JOB-MSG-FILE
+   103 symbol  FORCE-OUTPUT
+   104 symbol  TTY-RETURN-PROMPT?
+   105 symbol  TTY-RETURN-PROMPTER
+   106 symbol  DEFAULT-RETURN-TO-DDT-LIST
+   107 symbol  LISPT-^Z
+   108 symbol  DDT-RETURN
+   109 symbol  CRUNIT
+   110 symbol  KEN
+   111 symbol  BASE
+   112 fixnum  10
+   113 symbol  IBASE
+   114 symbol  *NOPOINT
+
+The LAP-like listing of the loaded words is in code/7005017_lisp.code.txt.

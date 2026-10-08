@@ -1,0 +1,77 @@
+
+TO DEFINE.ROCKET
+;Logo syntax has been kept since this is built on top of Logo
+10 DECLARE.obj 'ROCKET 'DRAW.ROCKET
+;DECLARE does 3 things:
+;	1) updates the "Kind.of" tree with ROCKET as a kind of OBJ
+;	2) creates an actor named "ROCKET".
+;	3) tells that ROCKET that if asked to how to draw a ROCKET
+;	   then use "Draw.ROCKET" with the default convention of
+;	   passing it the size of the particular ROCKET.
+20 ROCKET [REMEMBER SIZE 200]
+;This tells ROCKET to remember that the default size of ROCKETs is 100
+;"Remember" is the standard kind of message for telling any actor something
+; to remember
+30 ROCKET [REMEMBER GRAIN 10]
+;this means any angle within 10 degrees of itself should look alike
+END
+
+;in case I forget:
+obj [remember center [0 0]]
+
+
+
+TO DRAW.ROCKET :SIZE
+4 LOCAL BEGIN.STATE
+6 MAKE 'BEGIN.STATE HERE
+8 PENDOWN
+10 RECT :SIZE * 0.5 :SIZE * 0.2
+20 FORWARD :SIZE * 0.25
+30 RIGHT.TRI (- :SIZE * 0.25) (- :SIZE * 0.15)
+40 FORWARD :SIZE * 0.25
+50 RIGHT 30
+60 EQ.TRI :SIZE * 0.2
+70 RIGHT 60
+80 FORWARD :SIZE * 0.2
+90 RIGHT 90
+100 FORWARD :SIZE * 0.25
+110 RIGHT.TRI :SIZE * 0.25 :SIZE * (-0.15)
+120 PENUP SETTURTLE :BEGIN.STATE
+END
+
+TO EQ.TRI :SIDE
+10 REPEAT.IT 3 [(FD :SIDE) (RT 120)]
+END
+
+TO RECT :A :B
+10 FORWARD :A
+20 RIGHT 90
+30 FORWARD :B
+40 RIGHT 90
+50 FORWARD :A
+60 RIGHT 90
+70 FORWARD :B
+80 RIGHT 90
+END
+
+TO RIGHT.TRI :SIDE1 :SIDE2
+4 LOCAL BEGIN.STATE
+6 MAKE 'BEGIN.STATE HERE
+10 FORWARD :SIDE1
+20 RIGHT 90
+30 FORWARD :SIDE2
+40 SETTURTLE :BEGIN.STATE
+END
+
+to shoot.missle :speed :dist
+5 er.actor 'missle
+10        ROCKET [MAKE MISSLE]
+20        MISSLE (LIST 'REPLACE 'SPEED :SPEED)
+30        MISSLE (LIST 'REPLACE 'SIZE (FRED [SIZE?])/4)
+40        MISSLE (LIST 'REPLACE 'OBJ.STATE (FRED [STATE?]))
+45        missle [fd 170]; a cheat
+50        MISSLE [SHOW]
+60 ( IF THINGP 'SINGLE.FRAME THEN MISSLE (LIST 'DO (LIST 'FD :DIST) 'AFTER 'THis)
+	ELSE   MISSLE (LIST 'FD :DIST))
+70  IF NOT THINGP 'SINGLE.FRAME	  MISSLE [HIDE]
+end

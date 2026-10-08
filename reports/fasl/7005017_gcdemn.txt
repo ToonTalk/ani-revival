@@ -1,0 +1,165 @@
+FASL dump: original/7005017/gcdemn.fasl  (ITS KEN;GCDEMN FASL, tape 7005017, Feb 1979)
+Decoded 502 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 502 of 502 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 272520,,000016 ('750', flag bits 016), 28 blocks, 244 items
+Item counts: absolute 94, relocatable 13, special 1, smashable call 28, quoted atom 24, globalsym 16, atom table 62, entry 1, eval mungeable 4, end 1
+
+-- Functions defined (1) --
+  name                         property args         address
+  GC-DAEMON                    SUBR     (NIL . 1)    000000
+
+-- Top-level forms evaluated at load time (4) --
+  (SSTATUS FEATURES GCDEMN)
+  ((LAMBDA (GC-DAEMON) (GC))
+   '(LAMBDA (SPACELIST)
+      ((LAMBDA (ALLOCT)
+         (MAPC (FUNCTION (LAMBDA (ELEMENT)
+                           (PROGN (COND ((LESSP (LENGTH ELEMENT) 5)
+                                         (ERROR '|gcdemn: spacelist wrong format.|)))
+                             ((LAMBDA (SPACE FREEBEFORE FREEAFTER SIZEBEFORE SIZEAFTER)
+                                (PUTPROP SPACE (DIFFERENCE SIZEAFTER FREEAFTER) 'ACCESSIBLE)
+                                (ALLOC (LIST SPACE
+                                         (LIST (MAX 512 (OR (CAR (GET ALLOCT SPACE)) SIZEAFTER))
+                                           262143
+                                           (COND ((GREATERP SIZEAFTER 0) 32) (T 0))))))
+                              (CAR ELEMENT)
+                              (CADR ELEMENT)
+                              (CADDR ELEMENT)
+                              (CADDDR ELEMENT)
+                              (CAR (CDDDDR ELEMENT))))))
+           SPACELIST))
+       (CONS NIL (ALLOC T)))))
+  (SETQ ALLOC-MARK-RATIO 1.0)
+  (SETQ GC-DAEMON 'GC-DAEMON)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  GC-DAEMON
+      calls:        LENGTH ERROR GET DIFFERENCE PUTPROP *PLUS *DIF *TIMES FLOAT *QUO FIX PLUS *GREAT ALLOC
+      specials:     ALLOC-MARK-RATIO
+      quoted atoms: ACCESSIBLE CONSED TOTAL-STORAGE FREE ALLOC-RATE 511 32 262143 0.0 |gcdemn: spacelist wrong format.|
+
+-- Symbols and how they are used (54) --
+  *DIF                           called
+  *GREAT                         called
+  *PLUS                          called
+  *QUO                           called
+  *TIMES                         called
+  ACCESSIBLE                     in top-level form, quoted
+  ALLOC                          called, in top-level form
+  ALLOC-MARK-RATIO               in top-level form, special
+  ALLOC-RATE                     quoted
+  ALLOCT                         in top-level form
+  CADDDR                         in top-level form
+  CADDR                          in top-level form
+  CADR                           in top-level form
+  CAR                            in top-level form
+  CDDDDR                         in top-level form
+  COND                           in top-level form
+  CONS                           in top-level form
+  CONSED                         quoted
+  DIFFERENCE                     called, in top-level form
+  ELEMENT                        in top-level form
+  ERROR                          called, in top-level form
+  FEATURES                       in top-level form
+  FIX                            called
+  FLOAT                          called
+  FREE                           quoted
+  FREEAFTER                      in top-level form
+  FREEBEFORE                     in top-level form
+  FUNCTION                       in top-level form
+  GC                             in top-level form
+  GC-DAEMON                      defined, in top-level form
+  GCDEMN                         in top-level form
+  GET                            called, in top-level form
+  GREATERP                       in top-level form
+  LAMBDA                         in top-level form
+  LENGTH                         called, in top-level form
+  LESSP                          in top-level form
+  LIST                           in top-level form
+  MAPC                           in top-level form
+  MAX                            in top-level form
+  NIL                            in top-level form
+  OR                             in top-level form
+  PLUS                           called
+  PROGN                          in top-level form
+  PUTPROP                        called, in top-level form
+  QUOTE                          in top-level form
+  SETQ                           in top-level form
+  SIZEAFTER                      in top-level form
+  SIZEBEFORE                     in top-level form
+  SPACE                          in top-level form
+  SPACELIST                      in top-level form
+  SSTATUS                        in top-level form
+  T                              in top-level form
+  TOTAL-STORAGE                  quoted
+  |gcdemn: spacelist wrong format.| in top-level form, quoted
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (62 entries; 0 is NIL) --
+     1 symbol  SSTATUS
+     2 symbol  FEATURES
+     3 symbol  GCDEMN
+     4 symbol  LAMBDA
+     5 symbol  GC-DAEMON
+     6 symbol  GC
+     7 symbol  QUOTE
+     8 symbol  SPACELIST
+     9 symbol  ALLOCT
+    10 symbol  MAPC
+    11 symbol  FUNCTION
+    12 symbol  ELEMENT
+    13 symbol  PROGN
+    14 symbol  COND
+    15 symbol  LESSP
+    16 symbol  LENGTH
+    17 fixnum  5
+    18 symbol  ERROR
+    19 symbol  |gcdemn: spacelist wrong format.|
+    20 symbol  SPACE
+    21 symbol  FREEBEFORE
+    22 symbol  FREEAFTER
+    23 symbol  SIZEBEFORE
+    24 symbol  SIZEAFTER
+    25 symbol  PUTPROP
+    26 symbol  DIFFERENCE
+    27 symbol  ACCESSIBLE
+    28 symbol  ALLOC
+    29 symbol  LIST
+    30 symbol  MAX
+    31 fixnum  512
+    32 symbol  OR
+    33 symbol  CAR
+    34 symbol  GET
+    35 fixnum  262143
+    36 symbol  GREATERP
+    37 fixnum  0
+    38 fixnum  32
+    39 symbol  T
+    40 symbol  CADR
+    41 symbol  CADDR
+    42 symbol  CADDDR
+    43 symbol  CDDDDR
+    44 symbol  CONS
+    45 symbol  SETQ
+    46 symbol  ALLOC-MARK-RATIO
+    47 flonum  1.0
+    48 symbol  SUBR
+    49 symbol  CONSED
+    50 symbol  *PLUS
+    51 symbol  *DIF
+    52 symbol  TOTAL-STORAGE
+    53 symbol  *TIMES
+    54 symbol  FREE
+    55 symbol  FLOAT
+    56 symbol  *QUO
+    57 symbol  ALLOC-RATE
+    58 symbol  FIX
+    59 symbol  PLUS
+    60 fixnum  511
+    61 symbol  *GREAT
+    62 flonum  0.0
+
+The LAP-like listing of the loaded words is in code/7005017_gcdemn.code.txt.

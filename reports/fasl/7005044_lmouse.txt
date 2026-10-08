@@ -1,0 +1,638 @@
+FASL dump: original/7005044/lmouse.fasl  (ITS KEN;LMOUSE FASL, tape 7005044, Dec 1975)
+Decoded 3058 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 3058 of 3058 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212024,,000007 ('104', flag bits 007), 199 blocks, 1789 items
+Item counts: absolute 587, relocatable 235, special 96, smashable call 323, quoted atom 170, quoted list 9, globalsym 78, atom table 222, entry 24, eval mungeable 44, end 1
+
+-- Functions defined (24) --
+  name                         property args         address
+  TOP-SCREEN-TYPE              LSUBR                 000000
+  ACTIVATE-LETTERS             SUBR     (NIL . 0)    000036
+  READLETTER                   SUBR     (NIL . 0)    000063
+  RUBOUT                       SUBR     (NIL . 0)    000171
+  SM                           LSUBR                 000243
+  PROCESS                      SUBR     (NIL . 1)    000416
+  UNDO-IT                      SUBR     (NIL . 0)    000530
+  OPPOSITE-FUNCTION            SUBR     (NIL . 1)    000626
+  EXIT-MOUSE                   SUBR     (NIL . 0)    000632
+  AGAIN                        SUBR     (NIL . 0)    000665
+  REMEMBERSTATE                SUBR     (NIL . 0)    000732
+  GOTOSTATE                    SUBR     (NIL . 0)    000751
+  MOVE-TO                      SUBR     (NIL . 1)    001013
+  TALK-ABOUT                   SUBR     (NIL . 1)    001143
+  WAIT-FOR-LINE                SUBR     (NIL . 0)    001222
+  DEFINE-NEW-COMMAND           SUBR     (NIL . 0)    001244
+  XEQ-DUMP                     SUBR     (NIL . 1)    001370
+  DEFINE-PROGRAM               SUBR     (NIL . 1)    001540
+  GEN-LINE-NO                  SUBR     (NIL . 0)    002242
+  REPEAT                       SUBR     (NIL . 2)    002247
+  SAVE-NEW-COMMANDS            SUBR     (NIL . 1)    002263
+  UNION                        SUBR     (NIL . 2)    002444
+  SET-ALARM?                   SUBR     (NIL . 0)    002471
+  AUTOSAVE                     SUBR     (NIL . 1)    002562
+
+-- Top-level forms evaluated at load time (44) --
+  (OR (BOUNDP 'PROCEDURESTAUGHT) (SETQ PROCEDURESTAUGHT NIL NEWCOMMANDS NIL))
+  (SSTATUS FEATURE LMOUSE)
+  (OR (STATUS FEATURE TVRTLE) (FASLOAD TVRTLE FASL AI LLOGO))
+  (COND ((STATUS FEATURE LLOGO)
+         (MAPC '(LAMBDA (ATOM) (OBTERN ATOM LOGO-OBARRAY))
+           '(H S F B R L U D C A P G W T N X Q AUTOSAVE UNION)))
+    ((DEFPROP REQUEST READ EXPR) (DEFPROP TYPEIN READ EXPR)))
+  (HOMCHECK 'SM)
+  (SETQ FUNCTIONOPPOSITE
+    '((FORWARD . BACK)
+      (BACK . FORWARD)
+      (RIGHT . LEFT)
+      (LEFT . RIGHT)
+      (ST . HT)
+      (HT . ST)
+      (PENUP . PENDOWN)
+      (PENDOWN . PENUP)))
+  (DEFPROP Q (EXIT-MOUSE) LISPCODE)
+  (DEFPROP Q |QUIT OUT OF MOUSE MODE| STORY)
+  (DEFPROP H (HT) LISPCODE)
+  (DEFPROP H |HIDES THE TURTLE| STORY)
+  (DEFPROP S (ST) LISPCODE)
+  (DEFPROP S |SHOWS THE TURTLE| STORY)
+  (DEFPROP F (LIST 'FORWARD (OR (GET 'F 'DEFAULT) 25)) LISPCODE)
+  (DEFPROP F |GOES FORWARD <ARG> OR DEFAULT STEPS| STORY)
+  (DEFPROP B (LIST 'BACK (OR (GET 'B 'DEFAULT) 25)) LISPCODE)
+  (DEFPROP B |GOES BACK <ARG> OR DEFAULT STEPS| STORY)
+  (DEFPROP R (LIST 'RIGHT (OR (GET 'R 'DEFAULT) 15)) LISPCODE)
+  (DEFPROP R |TURNS RIGHT <ARG> OR DEFAULT DEGREES| STORY)
+  (DEFPROP L (LIST 'LEFT (OR (GET 'L 'DEFAULT) 15)) LISPCODE)
+  (DEFPROP L |TURNS LEFT <ARG> OR DEFAULT DEGREES| STORY)
+  (DEFPROP U '(PENUP) LISPCODE)
+  (DEFPROP U |PUTS THE PEN UP| STORY)
+  (DEFPROP D '(PENDOWN) LISPCODE)
+  (DEFPROP D |PUTS THE PEN DOWN| STORY)
+  (DEFPROP C (PROGN (SETQ PROGRAM NIL) (CLEARSCREEN) (PENDOWN)) LISPCODE)
+  (DEFPROP C |CLEARS SCREEN AND PROGRAM BUFFER| STORY)
+  (DEFPROP A (AGAIN) LISPCODE)
+  (DEFPROP A |DOES THE LAST COMMAND AGAIN OR LAST <ARG> COMMANDS| STORY)
+  (DEFPROP P (AND (REMEMBERSTATE) NIL) LISPCODE)
+  (DEFPROP P |NAMES AND REMEMBERS THE STATE OF THE TURTLE TO BE USED WITH G| STORY)
+  (DEFPROP G (GOTOSTATE) LISPCODE)
+  (DEFPROP G |GOES TO A TURTLE STATE NAMED BY P| STORY)
+  (DEFPROP HOME (0 0 0) TURTLESTATE)
+  (DEFPROP ? (AND (TALK-ABOUT (READCH)) NIL) LISPCODE)
+  (DEFPROP ?
+    |FOR A SHORT DESCRIPTION TYPE ? FOLLOWED BY A L R F B C H S T ? Q X U D N P G OR W|
+    STORY)
+  (DEFPROP W (WAIT-FOR-LINE) LISPCODE)
+  (DEFPROP W |WAITS FOR FULL LOGO STATEMENT AND EXECUTES IT| STORY)
+  (DEFPROP T
+    (AND (DEFINE-PROGRAM PROGRAM)
+      (PRINTOUT)
+      (SETQ LASTPROGRAM (APPEND PROGRAM NIL))
+      (SETQ PROGRAM NIL)
+      NIL)
+    LISPCODE)
+  (DEFPROP T |TEACHS THE MOUSE THE COMMANDS SINCE LAST TEACH| STORY)
+  (DEFPROP N (AND (DEFINE-NEW-COMMAND) NIL) LISPCODE)
+  (DEFPROP N |DEFINES NEW SINGLE LETTER COMMANDS| STORY)
+  (DEFPROP X (AND (XEQ-DUMP (AND (PRINT 'NAME?) (TYPEIN))) NIL) LISPCODE)
+  (DEFPROP X |RUNS AND FILLS PROGRAM BUFFER WITH MOUSE PROGRAM| STORY)
+  (SETQ AUTOSAVE 'AUTOSAVE UNION 'UNION)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  TOP-SCREEN-TYPE
+      calls:        CURSORPOS TERPRI PRINC
+      specials:     ARGS
+      quoted atoms: T ]
+  ACTIVATE-LETTERS
+      calls:        STATUS NCONS CONS XCONS SSTATUS
+      quoted atoms: TTY
+      quoted list:  (TTY)
+      quoted list:  (TTY)
+  READLETTER
+      calls:        TYI UNDO-IT READLETTER RUBOUT ASCII
+      specials:     NUMBER FACTOR REPEAT?
+      quoted atoms: -1 T
+  RUBOUT
+      calls:        CURSORPOS TYO
+      quoted atoms: NIL 127
+  SM
+      calls:        ACTIVATE-LETTERS TOP-SCREEN-TYPE SET-ALARM? READLETTER REQUEST UPROBE *APPLY STARTDISPLAY ALARMCLOCK PROCESS NCONS
+      specials:     FACTOR NUMBER PROGRAM AUTOSAVESECONDS :EDITMODE REPEAT?
+      quoted atoms: OUT-OF-SM 0 1 Y RF TIME T NIL |WELCOME TO REAL TIME LOGO| |DO YOU WANT A MOUSE FILE READ IN?| |WHAT IS THE FILENAME?| | NOT FOUND| |TYPE ?? FOR HELP| |WELCOME BACK| |LOST IN TRYING TO PROCESS |
+  PROCESS
+      calls:        GET PUTPROP *EVAL HERE OPPOSITE-FUNCTION SUBST NCONS XCONS TOP-SCREEN-TYPE CONS TYO
+      specials:     NUMBER REPEAT? FACTOR PROGRAM
+      quoted atoms: LISPCODE DEFAULT QUOTE REPEAT ? T NIL 7
+  UNDO-IT
+      calls:        OPPOSITE-FUNCTION ERASERDOWN PENDOWN TOP-SCREEN-TYPE *APPLY PENUP SETTURTLE *EVAL ERASERUP TYO
+      specials:     PROGRAM :ERASERSTATE :PENSTATE
+      quoted atoms: REPEAT 7 -
+  OPPOSITE-FUNCTION
+      calls:        ASSQ
+      specials:     FUNCTIONOPPOSITE
+  EXIT-MOUSE
+      calls:        ALARMCLOCK TOP-SCREEN-TYPE READLETTER REQUEST SAVE SAVE-NEW-COMMANDS
+      quoted atoms: -1 TIME Y OUT-OF-MOUSE OUT-OF-SM |DO YOU WANT TO SAVE YOUR WORK?| |WHAT FILENAME?|
+  AGAIN
+      calls:        HERE *EVAL CONS
+      specials:     NUMBER PROGRAM
+      quoted atoms: NIL
+  REMEMBERSTATE
+      calls:        TOP-SCREEN-TYPE TYPEIN HERE PRINT PUTPROP
+      quoted atoms: TURTLESTATE |WHAT DO YOU WANT TO CALL THIS TURTLE STATE?|
+  GOTOSTATE
+      calls:        TOP-SCREEN-TYPE TYPEIN GET MOVE-TO TERPRI
+      quoted atoms: TURTLESTATE NIL |WHAT IS THE NAME OF THE POINT? | | IS NOT THE NAME OF A MOUSE STATE| |TRY AGAIN|
+  MOVE-TO
+      calls:        NCONS XCONS PRINT HERE CONS *EVAL TOWARDS RANGE HEADING PENDOWN
+      specials:     :PENSTATE PROGRAM
+      quoted atoms: RIGHT FORWARD NIL
+      quoted list:  (PENUP)
+      quoted list:  (PENDOWN)
+      quoted list:  (PENDOWN)
+  TALK-ABOUT
+      calls:        GET TERPRI TOP-SCREEN-TYPE
+      specials:     NEWCOMMANDS
+      quoted atoms: STORY ? NIL LISPCODE | OR THE NEW COMMANDS | |NO INFO AVAILABLE| | IS NOT RECOGNIZED|
+  WAIT-FOR-LINE
+      calls:        REQUEST NCONS XCONS
+      specials:     NUMBER
+      quoted atoms: QUOTE REPEAT
+  DEFINE-NEW-COMMAND
+      calls:        TOP-SCREEN-TYPE READCH GET LOGO-PRINT PRINT REQUEST PUTPROP MEMQ CONS
+      specials:     NEWCOMMANDS
+      quoted atoms: LISPCODE STORY Y OK TRY-AGAIN DONE NIL |WHAT LETTER?| |ALREADY DEFINED IT | |PLEASE TYPE Y IF YOU WANT TO REDEFINE| |WHAT LISP CODE SHOULD | | BE?| |WHAT DOES | | DO? |
+  XEQ-DUMP
+      calls:        GET LOGO-PRINT PRINT TYPEIN HERE LENGTH *EVAL SUBST NCONS XCONS CONS
+      specials:     :SIZE PROGRAM
+      quoted atoms: EXPR T SIZE? REPEAT :SIZE NIL | NOT DEFINED|
+  DEFINE-PROGRAM
+      calls:        PRINT TYPEIN NCONS XCONS TO TOP-SCREEN-TYPE MEMQ CONS REVERSE GEN-LINE-NO *APPLY SUBST *APPEND
+      specials:     PROCEDURESTAUGHT *LINE-NO*
+      quoted atoms: NAME? :SIZE ? NIL 0 TIMES FORWARD INSERTLINE RIGHT T BACK LEFT REPEAT |TRY AGAIN|
+      quoted list:  (FORWARD BACK)
+  GEN-LINE-NO
+      specials:     *LINE-NO*
+  REPEAT
+      calls:        *EVAL
+      quoted atoms: NIL
+  SAVE-NEW-COMMANDS
+      calls:        UREAD UAPPEND IOC GET NCONS XCONS PRINT GETL UFILE
+      specials:     NEWCOMMANDS PROCEDURESTAUGHT
+      quoted atoms: R LISPCODE DEFPROP STORY SM QUOTE NEWCOMMANDS UNION SETQ AND PROCEDURESTAUGHT NIL
+      quoted list:  (MOUSE NOTES)
+      quoted list:  (EXPR LSUBR)
+      quoted list:  (EXPR LSUBR)
+  UNION
+      calls:        MEMQ XCONS
+  SET-ALARM?
+      calls:        BOUNDP *QUO TOP-SCREEN-TYPE TYPEIN NUMBERP REQUEST UWRITE IOC UFILE *TIMES ALARMCLOCK
+      specials:     AUTOSAVESECONDS AUTOSAVEFILE ALARMCLOCK
+      quoted atoms: AUTOSAVESECONDS 60 AUTOSAVEFILE NIL R TIME AUTOSAVE -1 |IF YOU WANT TO HAVE YOUR MOUSE WORKSPACE AUTOMATICALLY SAVED ^M^JPLEASE TYPE IN HOW MANY MINUTES BETWEEN SAVINGS^M^JOR REPLY 0. IF YOU DO NOT WANT AUTOSAVING| |IN WHAT FILE SHOULD THIS BE SAVED? | OK
+  AUTOSAVE
+      calls:        TOP-SCREEN-TYPE SAVE SAVE-NEW-COMMANDS NCONS XCONS UKILL ALARMCLOCK
+      specials:     ^W AUTOSAVEFILE AUTOSAVESECONDS
+      quoted atoms: T > < TIME |AUTO SAVING|
+
+-- Symbols and how they are used (213) --
+  | BE?|                         quoted
+  | DO? |                        quoted
+  | IS NOT RECOGNIZED|           quoted
+  | IS NOT THE NAME OF A MOUSE STATE| quoted
+  | NOT DEFINED|                 quoted
+  | NOT FOUND|                   quoted
+  | OR THE NEW COMMANDS |        quoted
+  *APPEND                        called
+  *APPLY                         called
+  *EVAL                          called
+  *LINE-NO*                      special
+  *QUO                           called
+  *TIMES                         called
+  -                              quoted
+  :EDITMODE                      special
+  :ERASERSTATE                   special
+  :PENSTATE                      special
+  :SIZE                          quoted, special
+  <                              quoted
+  >                              quoted
+  ?                              in top-level form, quoted
+  A                              in top-level form
+  ACTIVATE-LETTERS               called, defined
+  AGAIN                          defined, in top-level form
+  AI                             in top-level form
+  ALARMCLOCK                     called, special
+  |ALREADY DEFINED IT |          quoted
+  AND                            in top-level form, quoted
+  APPEND                         in top-level form
+  ARGS                           special
+  ASCII                          called
+  ASSQ                           called
+  ATOM                           in top-level form
+  |AUTO SAVING|                  quoted
+  AUTOSAVE                       defined, in top-level form, quoted
+  AUTOSAVEFILE                   quoted, special
+  AUTOSAVESECONDS                quoted, special
+  B                              in top-level form
+  BACK                           in constant, in top-level form, quoted
+  BOUNDP                         called, in top-level form
+  C                              in top-level form
+  |CLEARS SCREEN AND PROGRAM BUFFER| in top-level form
+  CLEARSCREEN                    in top-level form
+  COND                           in top-level form
+  CONS                           called
+  CURSORPOS                      called
+  D                              in top-level form
+  DEFAULT                        in top-level form, quoted
+  DEFINE-NEW-COMMAND             defined, in top-level form
+  DEFINE-PROGRAM                 defined, in top-level form
+  |DEFINES NEW SINGLE LETTER COMMANDS| in top-level form
+  DEFPROP                        in top-level form, quoted
+  |DO YOU WANT A MOUSE FILE READ IN?| quoted
+  |DO YOU WANT TO SAVE YOUR WORK?| quoted
+  |DOES THE LAST COMMAND AGAIN OR LAST <ARG> COMMANDS| in top-level form
+  DONE                           quoted
+  ERASERDOWN                     called
+  ERASERUP                       called
+  EXIT-MOUSE                     defined, in top-level form
+  EXPR                           in constant, in top-level form, quoted
+  F                              in top-level form
+  FACTOR                         special
+  FASL                           in top-level form
+  FASLOAD                        in top-level form
+  FEATURE                        in top-level form
+  |FOR A SHORT DESCRIPTION TYPE ? FOLLOWED BY A L R F B C H S T ? Q X U D N P G OR W| in top-level form
+  FORWARD                        in constant, in top-level form, quoted
+  FUNCTIONOPPOSITE               in top-level form, special
+  G                              in top-level form
+  GEN-LINE-NO                    called, defined
+  GET                            called, in top-level form
+  GETL                           called
+  |GOES BACK <ARG> OR DEFAULT STEPS| in top-level form
+  |GOES FORWARD <ARG> OR DEFAULT STEPS| in top-level form
+  |GOES TO A TURTLE STATE NAMED BY P| in top-level form
+  GOTOSTATE                      defined, in top-level form
+  H                              in top-level form
+  HEADING                        called
+  HERE                           called
+  |HIDES THE TURTLE|             in top-level form
+  HOMCHECK                       in top-level form
+  HOME                           in top-level form
+  HT                             in top-level form
+  |IF YOU WANT TO HAVE YOUR MOUSE WORKSPACE AUTOMATICALLY SAVED ^M^JPLEASE TYPE IN HOW MANY MINUTES BETWEEN SAVINGS^M^JOR REPLY 0. IF YOU DO NOT WANT AUTOSAVING| quoted
+  |IN WHAT FILE SHOULD THIS BE SAVED? | quoted
+  INSERTLINE                     quoted
+  IOC                            called
+  L                              in top-level form
+  LAMBDA                         in top-level form
+  LASTPROGRAM                    in top-level form
+  LEFT                           in top-level form, quoted
+  LENGTH                         called
+  LISPCODE                       in top-level form, quoted
+  LIST                           in top-level form
+  LLOGO                          in top-level form
+  LMOUSE                         in top-level form
+  LOGO-OBARRAY                   in top-level form
+  LOGO-PRINT                     called
+  |LOST IN TRYING TO PROCESS |   quoted
+  LSUBR                          in constant
+  MAPC                           in top-level form
+  MEMQ                           called
+  MOUSE                          in constant
+  MOVE-TO                        called, defined
+  N                              in top-level form
+  NAME?                          in top-level form, quoted
+  |NAMES AND REMEMBERS THE STATE OF THE TURTLE TO BE USED WITH G| in top-level form
+  NCONS                          called
+  NEWCOMMANDS                    in top-level form, quoted, special
+  NIL                            in top-level form, quoted
+  |NO INFO AVAILABLE|            quoted
+  NOTES                          in constant
+  NUMBER                         special
+  NUMBERP                        called
+  OBTERN                         in top-level form
+  OK                             quoted
+  OPPOSITE-FUNCTION              called, defined
+  OR                             in top-level form
+  OUT-OF-MOUSE                   quoted
+  OUT-OF-SM                      quoted
+  P                              in top-level form
+  PENDOWN                        called, in constant, in top-level form
+  PENUP                          called, in constant, in top-level form
+  |PLEASE TYPE Y IF YOU WANT TO REDEFINE| quoted
+  PRINC                          called
+  PRINT                          called, in top-level form
+  PRINTOUT                       in top-level form
+  PROCEDURESTAUGHT               in top-level form, quoted, special
+  PROCESS                        called, defined
+  PROGN                          in top-level form
+  PROGRAM                        in top-level form, special
+  PUTPROP                        called
+  |PUTS THE PEN DOWN|            in top-level form
+  |PUTS THE PEN UP|              in top-level form
+  Q                              in top-level form
+  |QUIT OUT OF MOUSE MODE|       in top-level form
+  QUOTE                          in top-level form, quoted
+  R                              in top-level form, quoted
+  RANGE                          called
+  READ                           in top-level form
+  READCH                         called, in top-level form
+  READLETTER                     called, defined
+  REMEMBERSTATE                  defined, in top-level form
+  REPEAT                         defined, quoted
+  REPEAT?                        special
+  REQUEST                        called, in top-level form
+  REVERSE                        called
+  RF                             quoted
+  RIGHT                          in top-level form, quoted
+  RUBOUT                         called, defined
+  |RUNS AND FILLS PROGRAM BUFFER WITH MOUSE PROGRAM| in top-level form
+  S                              in top-level form
+  SAVE                           called
+  SAVE-NEW-COMMANDS              called, defined
+  SET-ALARM?                     called, defined
+  SETQ                           in top-level form, quoted
+  SETTURTLE                      called
+  |SHOWS THE TURTLE|             in top-level form
+  SIZE?                          quoted
+  SM                             defined, in top-level form, quoted
+  SSTATUS                        called, in top-level form
+  ST                             in top-level form
+  STARTDISPLAY                   called
+  STATUS                         called, in top-level form
+  STORY                          in top-level form, quoted
+  SUBST                          called
+  T                              in top-level form, quoted
+  TALK-ABOUT                     defined, in top-level form
+  |TEACHS THE MOUSE THE COMMANDS SINCE LAST TEACH| in top-level form
+  TERPRI                         called
+  TIME                           quoted
+  TIMES                          quoted
+  TO                             called
+  TOP-SCREEN-TYPE                called, defined
+  TOWARDS                        called
+  |TRY AGAIN|                    quoted
+  TRY-AGAIN                      quoted
+  TTY                            in constant, quoted
+  |TURNS LEFT <ARG> OR DEFAULT DEGREES| in top-level form
+  |TURNS RIGHT <ARG> OR DEFAULT DEGREES| in top-level form
+  TURTLESTATE                    in top-level form, quoted
+  TVRTLE                         in top-level form
+  TYI                            called
+  TYO                            called
+  |TYPE ?? FOR HELP|             quoted
+  TYPEIN                         called, in top-level form
+  U                              in top-level form
+  UAPPEND                        called
+  UFILE                          called
+  UKILL                          called
+  UNDO-IT                        called, defined
+  UNION                          defined, in top-level form, quoted
+  UPROBE                         called
+  UREAD                          called
+  UWRITE                         called
+  W                              in top-level form
+  WAIT-FOR-LINE                  defined, in top-level form
+  |WAITS FOR FULL LOGO STATEMENT AND EXECUTES IT| in top-level form
+  |WELCOME BACK|                 quoted
+  |WELCOME TO REAL TIME LOGO|    quoted
+  |WHAT DO YOU WANT TO CALL THIS TURTLE STATE?| quoted
+  |WHAT DOES |                   quoted
+  |WHAT FILENAME?|               quoted
+  |WHAT IS THE FILENAME?|        quoted
+  |WHAT IS THE NAME OF THE POINT? | quoted
+  |WHAT LETTER?|                 quoted
+  |WHAT LISP CODE SHOULD |       quoted
+  X                              in top-level form
+  XCONS                          called
+  XEQ-DUMP                       defined, in top-level form
+  Y                              quoted
+  ]                              quoted
+  ^W                             special
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (222 entries; 0 is NIL) --
+     1 symbol  OR
+     2 symbol  BOUNDP
+     3 symbol  QUOTE
+     4 symbol  PROCEDURESTAUGHT
+     5 symbol  SETQ
+     6 symbol  NEWCOMMANDS
+     7 symbol  SSTATUS
+     8 symbol  FEATURE
+     9 symbol  LMOUSE
+    10 symbol  STATUS
+    11 symbol  TVRTLE
+    12 symbol  FASLOAD
+    13 symbol  FASL
+    14 symbol  AI
+    15 symbol  LLOGO
+    16 symbol  COND
+    17 symbol  MAPC
+    18 symbol  LAMBDA
+    19 symbol  ATOM
+    20 symbol  OBTERN
+    21 symbol  LOGO-OBARRAY
+    22 symbol  H
+    23 symbol  S
+    24 symbol  F
+    25 symbol  B
+    26 symbol  R
+    27 symbol  L
+    28 symbol  U
+    29 symbol  D
+    30 symbol  C
+    31 symbol  A
+    32 symbol  P
+    33 symbol  G
+    34 symbol  W
+    35 symbol  T
+    36 symbol  N
+    37 symbol  X
+    38 symbol  Q
+    39 symbol  AUTOSAVE
+    40 symbol  UNION
+    41 symbol  DEFPROP
+    42 symbol  REQUEST
+    43 symbol  READ
+    44 symbol  EXPR
+    45 symbol  TYPEIN
+    46 symbol  TOP-SCREEN-TYPE
+    47 symbol  LSUBR
+    48 symbol  ARGS
+    49 symbol  CURSORPOS
+    50 symbol  TERPRI
+    51 symbol  PRINC
+    52 symbol  ]
+    53 symbol  ACTIVATE-LETTERS
+    54 symbol  SUBR
+    55 symbol  TTY
+    56 symbol  NCONS
+    57 symbol  CONS
+    58 symbol  XCONS
+    59 symbol  READLETTER
+    60 symbol  TYI
+    61 symbol  NUMBER
+    62 symbol  UNDO-IT
+    63 symbol  RUBOUT
+    64 symbol  FACTOR
+    65 fixnum  -1
+    66 symbol  REPEAT?
+    67 symbol  ASCII
+    68 fixnum  127
+    69 symbol  TYO
+    70 symbol  HOMCHECK
+    71 symbol  SM
+    72 symbol  OUT-OF-SM
+    73 fixnum  0
+    74 fixnum  1
+    75 symbol  SET-ALARM?
+    76 symbol  PROGRAM
+    77 symbol  Y
+    78 symbol  UPROBE
+    79 symbol  RF
+    80 symbol  *APPLY
+    81 symbol  STARTDISPLAY
+    82 symbol  AUTOSAVESECONDS
+    83 symbol  TIME
+    84 symbol  ALARMCLOCK
+    85 symbol  :EDITMODE
+    86 symbol  PROCESS
+    87 symbol  |WELCOME TO REAL TIME LOGO|
+    88 symbol  |DO YOU WANT A MOUSE FILE READ IN?|
+    89 symbol  |WHAT IS THE FILENAME?|
+    90 symbol  | NOT FOUND|
+    91 symbol  |TYPE ?? FOR HELP|
+    92 symbol  |WELCOME BACK|
+    93 symbol  |LOST IN TRYING TO PROCESS |
+    94 symbol  LISPCODE
+    95 symbol  GET
+    96 symbol  DEFAULT
+    97 symbol  PUTPROP
+    98 symbol  *EVAL
+    99 symbol  HERE
+   100 symbol  OPPOSITE-FUNCTION
+   101 symbol  SUBST
+   102 symbol  REPEAT
+   103 symbol  ?
+   104 fixnum  7
+   105 symbol  :ERASERSTATE
+   106 symbol  :PENSTATE
+   107 symbol  ERASERDOWN
+   108 symbol  PENDOWN
+   109 symbol  PENUP
+   110 symbol  SETTURTLE
+   111 symbol  ERASERUP
+   112 symbol  -
+   113 symbol  FUNCTIONOPPOSITE
+   114 symbol  ASSQ
+   115 symbol  FORWARD
+   116 symbol  BACK
+   117 symbol  RIGHT
+   118 symbol  LEFT
+   119 symbol  ST
+   120 symbol  HT
+   121 symbol  EXIT-MOUSE
+   122 symbol  |QUIT OUT OF MOUSE MODE|
+   123 symbol  STORY
+   124 symbol  SAVE
+   125 symbol  SAVE-NEW-COMMANDS
+   126 symbol  OUT-OF-MOUSE
+   127 symbol  |DO YOU WANT TO SAVE YOUR WORK?|
+   128 symbol  |WHAT FILENAME?|
+   129 symbol  |HIDES THE TURTLE|
+   130 symbol  |SHOWS THE TURTLE|
+   131 symbol  LIST
+   132 fixnum  25
+   133 symbol  |GOES FORWARD <ARG> OR DEFAULT STEPS|
+   134 symbol  |GOES BACK <ARG> OR DEFAULT STEPS|
+   135 fixnum  15
+   136 symbol  |TURNS RIGHT <ARG> OR DEFAULT DEGREES|
+   137 symbol  |TURNS LEFT <ARG> OR DEFAULT DEGREES|
+   138 symbol  |PUTS THE PEN UP|
+   139 symbol  |PUTS THE PEN DOWN|
+   140 symbol  PROGN
+   141 symbol  CLEARSCREEN
+   142 symbol  |CLEARS SCREEN AND PROGRAM BUFFER|
+   143 symbol  AGAIN
+   144 symbol  |DOES THE LAST COMMAND AGAIN OR LAST <ARG> COMMANDS|
+   145 symbol  AND
+   146 symbol  REMEMBERSTATE
+   147 symbol  |NAMES AND REMEMBERS THE STATE OF THE TURTLE TO BE USED WITH G|
+   148 symbol  PRINT
+   149 symbol  TURTLESTATE
+   150 symbol  |WHAT DO YOU WANT TO CALL THIS TURTLE STATE?|
+   151 symbol  GOTOSTATE
+   152 symbol  |GOES TO A TURTLE STATE NAMED BY P|
+   153 symbol  HOME
+   154 symbol  MOVE-TO
+   155 symbol  |WHAT IS THE NAME OF THE POINT? |
+   156 symbol  | IS NOT THE NAME OF A MOUSE STATE|
+   157 symbol  |TRY AGAIN|
+   158 symbol  TOWARDS
+   159 symbol  RANGE
+   160 symbol  HEADING
+   161 symbol  TALK-ABOUT
+   162 symbol  READCH
+   163 symbol  |FOR A SHORT DESCRIPTION TYPE ? FOLLOWED BY A L R F B C H S T ? Q X U D N P G OR W|
+   164 symbol  | OR THE NEW COMMANDS |
+   165 symbol  |NO INFO AVAILABLE|
+   166 symbol  | IS NOT RECOGNIZED|
+   167 symbol  WAIT-FOR-LINE
+   168 symbol  |WAITS FOR FULL LOGO STATEMENT AND EXECUTES IT|
+   169 symbol  DEFINE-PROGRAM
+   170 symbol  PRINTOUT
+   171 symbol  LASTPROGRAM
+   172 symbol  APPEND
+   173 symbol  |TEACHS THE MOUSE THE COMMANDS SINCE LAST TEACH|
+   174 symbol  DEFINE-NEW-COMMAND
+   175 symbol  |DEFINES NEW SINGLE LETTER COMMANDS|
+   176 symbol  LOGO-PRINT
+   177 symbol  OK
+   178 symbol  TRY-AGAIN
+   179 symbol  MEMQ
+   180 symbol  DONE
+   181 symbol  |WHAT LETTER?|
+   182 symbol  |ALREADY DEFINED IT |
+   183 symbol  |PLEASE TYPE Y IF YOU WANT TO REDEFINE|
+   184 symbol  |WHAT LISP CODE SHOULD |
+   185 symbol  | BE?|
+   186 symbol  |WHAT DOES |
+   187 symbol  | DO? |
+   188 symbol  XEQ-DUMP
+   189 symbol  NAME?
+   190 symbol  |RUNS AND FILLS PROGRAM BUFFER WITH MOUSE PROGRAM|
+   191 symbol  SIZE?
+   192 symbol  :SIZE
+   193 symbol  LENGTH
+   194 symbol  | NOT DEFINED|
+   195 symbol  TO
+   196 symbol  REVERSE
+   197 symbol  *LINE-NO*
+   198 symbol  GEN-LINE-NO
+   199 symbol  TIMES
+   200 symbol  INSERTLINE
+   201 symbol  *APPEND
+   202 symbol  |TRY AGAIN|
+   203 symbol  MOUSE
+   204 symbol  NOTES
+   205 symbol  UREAD
+   206 symbol  UAPPEND
+   207 symbol  IOC
+   208 symbol  GETL
+   209 symbol  UFILE
+   210 fixnum  60
+   211 symbol  *QUO
+   212 symbol  NUMBERP
+   213 symbol  AUTOSAVEFILE
+   214 symbol  UWRITE
+   215 symbol  *TIMES
+   216 symbol  |IF YOU WANT TO HAVE YOUR MOUSE WORKSPACE AUTOMATICALLY SAVED ^M^JPLEASE TYPE IN HOW MANY MINUTES BETWEEN SAVINGS^M^JOR REPLY 0. IF YOU DO NOT WANT AUTOSAVING|
+   217 symbol  |IN WHAT FILE SHOULD THIS BE SAVED? |
+   218 symbol  ^W
+   219 symbol  >
+   220 symbol  <
+   221 symbol  UKILL
+   222 symbol  |AUTO SAVING|
+
+The LAP-like listing of the loaded words is in code/7005044_lmouse.code.txt.

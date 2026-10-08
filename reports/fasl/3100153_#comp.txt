@@ -1,0 +1,378 @@
+FASL dump: original/3100153/#comp.fasl  (ITS KEN;#COMP FASL, tape 3100153, late 1976)
+Decoded 2153 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 2153 of 2153 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 173 blocks, 1555 items
+Item counts: absolute 588, relocatable 113, special 7, smashable call 394, quoted atom 199, quoted list 3, globalsym 96, getddtsym 1, atom table 127, entry 21, eval mungeable 5, end 1
+
+-- Functions defined (21) --
+  name                         property args         address
+  ASK1                         LSUBR    (6 . 6)      000000
+  FIX-UP-TARGET                SUBR     (NIL . 1)    000337
+  DITTO?                       SUBR     (NIL . 1)    000364
+  APPLY-TO-VALUES              SUBR     (NIL . 3)    000375
+  RECEIVE2                     SUBR     (NIL . 3)    000414
+  CASES-OF1                    SUBR     (NIL . 2)    000514
+  RECEIVE.WITH.FUNCTIONAL.ACTION SUBR     (NIL . 2)    000625
+  MACRO-EXPAND-ONCE            SUBR     (NIL . 1)    000732
+  MACRO-EXPAND                 SUBR     (NIL . 1)    000765
+  CAREFUL-SUBST                SUBR     (NIL . 3)    001006
+  COMP4                        LSUBR                 001125
+  QUOTIFY-EACH                 SUBR     (NIL . 1)    001132
+  MATCH-MACRO                  SUBR     (NIL . 2)    001134
+  M                            FSUBR                 001145
+  MATCH-MACRO+CHECK-LENGTH     SUBR     (NIL . 3)    001162
+  MINIMUM-CDRING               SUBR     (NIL . 2)    001236
+  MATCH-MACRO1                 SUBR     (NIL . 2)    001330
+  HANDLE-RESTRICTION-MACRO     SUBR     (NIL . 4)    001607
+  MATCH-MACRO-BIND-OBJ         SUBR     (NIL . 2)    001741
+  LOOK-FOR-NEXT-MACRO          SUBR     (NIL . 5)    002004
+  BIND-MACRO                   SUBR     (NIL . 2)    002363
+
+-- Top-level forms evaluated at load time (5) --
+  (DEFPROP RECEIVE-MACRO
+    (LAMBDA (A)
+      (PROG (:VALUES :VARIABLES)
+        (AND (MATCH :MESSAGE (CADR A))
+          (SETQ :MATCHED? T)
+          (NOT (OR (MEMQ (CAR (CADDR A)) '(PASS.THE.BUCK.TO PASS.THE.MESSAGE.UP.TO))
+                 (COND ((MEMQ (CAR (CADDR A)) '(RETURN OUTPUT))
+                        (MEMQ (CAR (CADR (CADDR A))) '(PASS.THE.BUCK.TO PASS.THE.MESSAGE.UP.TO))))))
+          (THROW (LIST A :VARIABLES :VALUES (MOST.RECENT.TARGET)) ASK-MACRO))))
+    MACRO)
+  (DEFPROP ASK
+    (LAMBDA (ASK-CALL)
+      (ASK1 NIL
+        NIL
+        (GET 'CASES-OF 'MACRO)
+        (CADR ASK-CALL)
+        (CADDR ASK-CALL)
+        (CADR (CADDDR ASK-CALL))))
+    MACRO)
+  (DEFPROP CASES-OF (LAMBDA (NAME+CODE) (CASES-OF1 (CADR NAME+CODE) (CDDR NAME+CODE))) MACRO)
+  (DEFPROP DO.THE.FOLLOWING: (LAMBDA (A) (CONS 'PROGN (CDR A))) MACRO)
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  ASK1
+      calls:        ATOM LISTIFY-MESSAGE BOUNDP DITTO? GET NCONS CONS XCONS ASK1 PUTPROP REMPROP ASK.NOT.TO.BE.COMPILED APPLY-TO-VALUES RECEIVE2 FIX-UP-TARGET
+      specials:     ASK-CALL
+      quoted atoms: QUOTE :SELF MACRO CASES-OF ... ASK RECEIVE-MACRO RECEIVE ASK-MACRO NIL :MESSAGE LAMBDA ASK.NOT.TO.BE.COMPILED
+  FIX-UP-TARGET
+      calls:        ATOM GETCHAR NCONS XCONS
+      quoted atoms: 1 : QUOTE
+  DITTO?
+      calls:        EQUAL
+      quoted atoms: ... T 0
+  APPLY-TO-VALUES
+      calls:        FUNCTION-NAME NCONS XCONS
+      quoted atoms: QUOTE APPLY
+  RECEIVE2
+      calls:        NCONS XCONS MATCH-MACRO FUNCTION-NAME
+      quoted atoms: :VALUES :VARIABLES QUOTE :MESSAGE T :MATCHED? SETQ APPLY AND LAMBDA NIL
+  CASES-OF1
+      calls:        CONS RECEIVE.WITH.FUNCTIONAL.ACTION NCONS XCONS
+      quoted atoms: ELSE T ANS SETQ :MATCHED? PROGN COND LAMBDA NIL
+      quoted list:  (ANS :MATCHED?)
+  RECEIVE.WITH.FUNCTIONAL.ACTION
+      calls:        FUNCTION-NAME GET MACRO-EXPAND CONS XCONS PRINT NCONS MATCH-MACRO
+      quoted atoms: EXPR DEFUN :VALUES :VARIABLES QUOTE :MESSAGE T :MATCHED? SETQ APPLY AND LAMBDA NIL
+  MACRO-EXPAND-ONCE
+      calls:        ATOM GET MACRO-EXPAND-ONCE XCONS
+      quoted atoms: MACRO
+  MACRO-EXPAND
+      calls:        EQUAL MACRO-EXPAND-ONCE
+  CAREFUL-SUBST
+      calls:        ATOM SYMEVAL CAREFUL-SUBST NCONS CONS
+      quoted atoms: QUOTE RECEIVE CASES-OF
+  COMP4
+      calls:        NCONS XCONS
+      quoted atoms: QUOTE
+  QUOTIFY-EACH
+      quoted atoms: COMP4
+  MATCH-MACRO
+      calls:        *EVAL MATCH-MACRO+CHECK-LENGTH XCONS
+      quoted atoms: NIL AND
+  M
+      calls:        *EVAL MATCH-MACRO+CHECK-LENGTH XCONS
+      quoted atoms: NIL AND
+  MATCH-MACRO+CHECK-LENGTH
+      calls:        MINIMUM-CDRING NCONS XCONS MATCH-MACRO1
+      specials:     ANY%
+      quoted atoms: ALL-BUT-LAST CDR NULL AND LAMBDA
+  MINIMUM-CDRING
+      calls:        ATOM NCONS XCONS MINIMUM-CDRING GETCHAR
+      specials:     ANY%
+      quoted atoms: CDR 1 % T { }
+  MATCH-MACRO1
+      calls:        ATOM NUMBERP NCONS XCONS FLOAT MATCH-MACRO-BIND-OBJ UP-TIL HANDLE-RESTRICTION-MACRO GETCHAR BIND-MACRO LOOK-FOR-NEXT-MACRO MATCH-MACRO+CHECK-LENGTH *APPEND
+      quoted atoms: CAR FLOAT = CDR AND { } 1 ? % NIL T QUOTE EQ
+      quoted list:  (T)
+  HANDLE-RESTRICTION-MACRO
+      calls:        NCONS XCONS CONS WARNING NUMBERP GETCHAR CAREFUL-SUBST BIND-MACRO MATCH-MACRO-BIND-OBJ
+      quoted atoms: BIND TO NOTHING HAS RESTRICTION THE HANDLE-RESTRICTION-MACRO 1 ? AND % IN %S HANDLE CANT NIL
+  MATCH-MACRO-BIND-OBJ
+      calls:        GENSYM MATCH-MACRO1 EQUAL NCONS ATOM XCONS
+      quoted atoms: LAMBDA
+      quoted list:  (T)
+  LOOK-FOR-NEXT-MACRO
+      calls:        GENSYM NCONS XCONS NREVERSE CONS ATOM GETCHAR *EVAL LOOK-FOR-NEXT-MACRO WARNING UP-TIL
+      quoted atoms: QUOTE MEMBER-AND-BIND MATCH 1 : ? % IN THIS LIKE %S TWO HANDLE CANT NIL { }
+  BIND-MACRO
+      calls:        FIX-NAME NCONS XCONS CONS
+      quoted atoms: QUOTE :VARIABLES CONS SETQ :VALUES PROGN
+
+-- Symbols and how they are used (119) --
+  %                              quoted
+  %S                             quoted
+  *APPEND                        called
+  *EVAL                          called
+  ...                            quoted
+  :                              quoted
+  :MATCHED?                      in constant, in top-level form, quoted
+  :MESSAGE                       in top-level form, quoted
+  :SELF                          quoted
+  :VALUES                        in top-level form, quoted
+  :VARIABLES                     in top-level form, quoted
+  =                              quoted
+  ?                              quoted
+  A                              in top-level form
+  ALL-BUT-LAST                   quoted
+  AND                            in top-level form, quoted
+  ANS                            in constant, quoted
+  ANY%                           special
+  APPLY                          quoted
+  APPLY-TO-VALUES                called, defined
+  ASK                            in top-level form, quoted
+  ASK-CALL                       in top-level form, special
+  ASK-MACRO                      in top-level form, quoted
+  ASK.NOT.TO.BE.COMPILED         called, quoted
+  ASK1                           called, defined, in top-level form
+  ATOM                           called
+  BIND                           quoted
+  BIND-MACRO                     called, defined
+  BOUNDP                         called
+  CADDDR                         in top-level form
+  CADDR                          in top-level form
+  CADR                           in top-level form
+  CANT                           quoted
+  CAR                            in top-level form, quoted
+  CAREFUL-SUBST                  called, defined
+  CASES-OF                       in top-level form, quoted
+  CASES-OF1                      defined, in top-level form
+  CDDR                           in top-level form
+  CDR                            in top-level form, quoted
+  COMP4                          defined, quoted
+  COND                           in top-level form, quoted
+  CONS                           called, in top-level form, quoted
+  DEFPROP                        in top-level form
+  DEFUN                          quoted
+  DITTO?                         called, defined
+  DO.THE.FOLLOWING:              in top-level form
+  ELSE                           quoted
+  EQ                             quoted
+  EQUAL                          called
+  EXPR                           quoted
+  FIX-NAME                       called
+  FIX-UP-TARGET                  called, defined
+  FLOAT                          called, quoted
+  FUNCTION-NAME                  called
+  GENSYM                         called
+  GET                            called, in top-level form
+  GETCHAR                        called
+  HANDLE                         quoted
+  HANDLE-RESTRICTION-MACRO       called, defined, quoted
+  HAS                            quoted
+  IN                             quoted
+  LAMBDA                         in top-level form, quoted
+  LIKE                           quoted
+  LIST                           in top-level form
+  LISTIFY-MESSAGE                called
+  LOOK-FOR-NEXT-MACRO            called, defined
+  M                              defined
+  MACRO                          in top-level form, quoted
+  MACRO-EXPAND                   called, defined
+  MACRO-EXPAND-ONCE              called, defined
+  MATCH                          in top-level form, quoted
+  MATCH-MACRO                    called, defined
+  MATCH-MACRO+CHECK-LENGTH       called, defined
+  MATCH-MACRO-BIND-OBJ           called, defined
+  MATCH-MACRO1                   called, defined
+  MEMBER-AND-BIND                quoted
+  MEMQ                           in top-level form
+  MINIMUM-CDRING                 called, defined
+  MOST.RECENT.TARGET             in top-level form
+  NAME+CODE                      in top-level form
+  NCONS                          called
+  NIL                            in top-level form, quoted
+  NOT                            in top-level form
+  NOTHING                        quoted
+  NREVERSE                       called
+  NULL                           quoted
+  NUMBERP                        called
+  OR                             in top-level form
+  OUTPUT                         in top-level form
+  PASS.THE.BUCK.TO               in top-level form
+  PASS.THE.MESSAGE.UP.TO         in top-level form
+  PRINT                          called
+  PROG                           in top-level form
+  PROGN                          in top-level form, quoted
+  PUTPROP                        called
+  QUOTE                          in top-level form, quoted
+  QUOTIFY-EACH                   defined
+  RECEIVE                        quoted
+  RECEIVE-MACRO                  in top-level form, quoted
+  RECEIVE.WITH.FUNCTIONAL.ACTION called, defined
+  RECEIVE2                       called, defined
+  REMPROP                        called
+  RESTRICTION                    quoted
+  RETURN                         in top-level form
+  SETQ                           in top-level form, quoted
+  SETSYNTAX                      in top-level form
+  SINGLE                         in top-level form
+  SYMEVAL                        called
+  T                              in constant, in top-level form, quoted
+  THE                            quoted
+  THIS                           quoted
+  THROW                          in top-level form
+  TO                             quoted
+  TWO                            quoted
+  UP-TIL                         called
+  WARNING                        called
+  XCONS                          called
+  {                              quoted
+  }                              quoted
+  (in atom table, no direct use found: LSUBR SUBR FSUBR)
+
+-- Atom table (127 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  RECEIVE-MACRO
+     3 symbol  LAMBDA
+     4 symbol  A
+     5 symbol  PROG
+     6 symbol  :VALUES
+     7 symbol  :VARIABLES
+     8 symbol  AND
+     9 symbol  MATCH
+    10 symbol  :MESSAGE
+    11 symbol  CADR
+    12 symbol  SETQ
+    13 symbol  :MATCHED?
+    14 symbol  T
+    15 symbol  NOT
+    16 symbol  OR
+    17 symbol  MEMQ
+    18 symbol  CAR
+    19 symbol  CADDR
+    20 symbol  QUOTE
+    21 symbol  PASS.THE.BUCK.TO
+    22 symbol  PASS.THE.MESSAGE.UP.TO
+    23 symbol  COND
+    24 symbol  RETURN
+    25 symbol  OUTPUT
+    26 symbol  THROW
+    27 symbol  LIST
+    28 symbol  MOST.RECENT.TARGET
+    29 symbol  ASK-MACRO
+    30 symbol  MACRO
+    31 symbol  ASK
+    32 symbol  ASK-CALL
+    33 symbol  ASK1
+    34 symbol  GET
+    35 symbol  CASES-OF
+    36 symbol  CADDDR
+    37 symbol  LSUBR
+    38 symbol  ATOM
+    39 symbol  LISTIFY-MESSAGE
+    40 symbol  BOUNDP
+    41 symbol  :SELF
+    42 symbol  DITTO?
+    43 symbol  ...
+    44 symbol  NCONS
+    45 symbol  CONS
+    46 symbol  XCONS
+    47 symbol  RECEIVE
+    48 symbol  PUTPROP
+    49 symbol  REMPROP
+    50 symbol  ASK.NOT.TO.BE.COMPILED
+    51 symbol  APPLY-TO-VALUES
+    52 symbol  RECEIVE2
+    53 symbol  FIX-UP-TARGET
+    54 symbol  SUBR
+    55 fixnum  1
+    56 symbol  GETCHAR
+    57 symbol  :
+    58 fixnum  0
+    59 symbol  EQUAL
+    60 symbol  FUNCTION-NAME
+    61 symbol  APPLY
+    62 symbol  MATCH-MACRO
+    63 symbol  NAME+CODE
+    64 symbol  CASES-OF1
+    65 symbol  CDDR
+    66 symbol  ELSE
+    67 symbol  RECEIVE.WITH.FUNCTIONAL.ACTION
+    68 symbol  ANS
+    69 symbol  PROGN
+    70 symbol  EXPR
+    71 symbol  MACRO-EXPAND
+    72 symbol  DEFUN
+    73 symbol  PRINT
+    74 symbol  DO.THE.FOLLOWING:
+    75 symbol  CDR
+    76 symbol  MACRO-EXPAND-ONCE
+    77 symbol  CAREFUL-SUBST
+    78 symbol  SYMEVAL
+    79 symbol  COMP4
+    80 symbol  QUOTIFY-EACH
+    81 symbol  SETSYNTAX
+    82 fixnum  123
+    83 symbol  SINGLE
+    84 fixnum  125
+    85 fixnum  46
+    86 fixnum  128
+    87 symbol  *EVAL
+    88 symbol  MATCH-MACRO+CHECK-LENGTH
+    89 symbol  M
+    90 symbol  FSUBR
+    91 symbol  ANY%
+    92 symbol  MINIMUM-CDRING
+    93 symbol  ALL-BUT-LAST
+    94 symbol  NULL
+    95 symbol  MATCH-MACRO1
+    96 symbol  %
+    97 symbol  {
+    98 symbol  }
+    99 symbol  NUMBERP
+   100 symbol  FLOAT
+   101 symbol  =
+   102 symbol  MATCH-MACRO-BIND-OBJ
+   103 symbol  UP-TIL
+   104 symbol  HANDLE-RESTRICTION-MACRO
+   105 symbol  ?
+   106 symbol  BIND-MACRO
+   107 symbol  LOOK-FOR-NEXT-MACRO
+   108 symbol  EQ
+   109 symbol  *APPEND
+   110 symbol  BIND
+   111 symbol  TO
+   112 symbol  NOTHING
+   113 symbol  HAS
+   114 symbol  RESTRICTION
+   115 symbol  THE
+   116 symbol  WARNING
+   117 symbol  IN
+   118 symbol  %S
+   119 symbol  HANDLE
+   120 symbol  CANT
+   121 symbol  GENSYM
+   122 symbol  NREVERSE
+   123 symbol  MEMBER-AND-BIND
+   124 symbol  THIS
+   125 symbol  LIKE
+   126 symbol  TWO
+   127 symbol  FIX-NAME
+
+The LAP-like listing of the loaded words is in code/3100153_#comp.code.txt.

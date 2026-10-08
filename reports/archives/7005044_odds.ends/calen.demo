@@ -1,0 +1,36 @@
+(IOC W)
+
+(DEFUN DOW1 (YEAR MONTH DAY) 
+       ((LAMBDA (A) 
+		(\ (+ (// (1- (* 13.
+				 (+ MONTH
+				    10.
+				    (* (// (+ MONTH 10.) -13.) 12.))))
+			  5.)
+		      DAY
+		      77.
+		      (// (* 5. (- A (* (// A 100.) 100.))) 4.)
+		      (// A -2000.)
+		      (// A 400.)
+		      (* (// A -100.) 2.))
+		   7.))
+	(PART1 YEAR MONTH))) 
+
+(DEFUN PART1 (YEAR MONTH) (+ YEAR (// (+ MONTH -14.) 12.))) 
+
+(ARRAY NAME-OF-DOW1 T 7.) 
+
+(FILLARRAY 'NAME-OF-DOW1
+	   '(SUNDAY MONDAY
+		    TUESDAY
+		    WEDNESDAY
+		    THURSDAY
+		    FRIDAY
+		    SATURDAY)) 
+
+(DEFUN DOW (YEAR MONTH DAY)
+(NAME-OF-DOW1 (DOW1 YEAR MONTH DAY)))
+
+(IOC V)
+(AND (PRINT  '(JUST GO /" (DOW <YEAR> <MONTH> <DAY>) /" AS INTEGERS TO GET
+ THE DAY OF THE WEEK))(READLIST NIL))

@@ -1,0 +1,458 @@
+FASL dump: original/3100153/dl.fasl  (ITS KEN;DL FASL, tape 3100153, late 1976)
+Decoded 1714 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1714 of 1714 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 123 blocks, 1100 items
+Item counts: absolute 424, relocatable 66, special 87, smashable call 194, quoted atom 59, quoted list 9, globalsym 69, atom table 149, entry 31, eval mungeable 11, end 1
+
+-- Functions defined (31) --
+  name                         property args         address
+  DISPLAY.LIST                 SUBR     (NIL . 1)    000000
+  POSITION.LIST                SUBR     (NIL . 1)    000075
+  SQUISHED.DISPLAY.LIST        SUBR     (NIL . 1)    000133
+  SQUISH                       SUBR     (NIL . 1)    000135
+  HOW.TO.GET.TO.CENTER         SUBR     (NIL . 1)    000317
+  HOW.TO.GET.TO.CENTER.AND.SCALE SUBR     (NIL . 2)    000323
+  DRAW.CENTERED                LSUBR                 000405
+  SCALE.CALL.SIMPLE            SUBR     (NIL . 2)    000465
+  SCALE.CALL                   FSUBR                 000522
+  NEGATIVE.EVAL                SUBR     (NIL . 1)    000562
+  FIND.EXTREME.AND.CENTER      SUBR     (NIL . 1)    000573
+  FIND.CENTER                  SUBR     (NIL . 1)    000601
+  COMPUTE.CENTER               SUBR     (NIL . 1)    000603
+  COMPUTE.EXTREME              SUBR     (NIL . 2)    000701
+  FANCY.FORWARD                SUBR     (NIL . 1)    001005
+  FANCY.RIGHT                  SUBR     (NIL . 1)    001065
+  FANCY.BACK                   SUBR     (NIL . 1)    001104
+  FANCY.LEFT                   SUBR     (NIL . 1)    001172
+  FANCY.PENUP                  SUBR     (NIL . 0)    001213
+  FANCY.PENDOWN                SUBR     (NIL . 0)    001221
+  MAKE.IT.LESS.THAN.180        SUBR     (NIL . 1)    001253
+  HERE.WITHOUT.MOD             SUBR     (NIL . 0)    001276
+  INVISIBLY                    FSUBR                 001304
+  RT.FD.RT                     SUBR     (NIL . 2)    001312
+  MOVE.AND.BIND                SUBR     (NIL . 3)    001364
+  |KEN;DL 1|                   LSUBR                 001402
+  MOVE.AND.BIND.TVRTLE.STUFF   SUBR     (NIL . 1)    001417
+  |KEN;DL 2|                   LSUBR                 001421
+  UNFANCIFY                    SUBR     (NIL . 0)    001437
+  FANCIFY                      SUBR     (NIL . 0)    001442
+  KKSD                         SUBR     (NIL . 0)    001444
+
+-- Top-level forms evaluated at load time (11) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (SETQ :TRUE.PENSTATE NIL :STARTED.FROM NIL :MAKING.DISPLAY.LIST NIL :MAKING.POSITION.LIST NIL)
+  (DEFPROP FANCY.FD FANCY.FORWARD EXPR)
+  (DEFPROP FANCY.RT FANCY.RIGHT EXPR)
+  (DEFPROP FANCY.BK FANCY.BACK EXPR)
+  (DEFPROP FANCY.LT FANCY.LEFT EXPR)
+  (DEFPROP FANCY.PU FANCY.PENUP EXPR)
+  (DEFPROP FANCY.PD FANCY.PENDOWN EXPR)
+  (SETQ :MOVABLE.TVRTLE.FUNCTIONS '(FD FORWARD BK BACK RIGHT RT LT LEFT PENUP PU PENDOWN PD))
+  (OR (STATUS FEATURE DIRECT)
+    (DEFUN APPEND-ATOMS
+      (ATOM1 ATOM2)
+      (MAKNAM (APPEND (AND ATOM1 (EXPLODE ATOM1)) (AND ATOM2 (EXPLODE ATOM2))))))
+  (KKSD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DISPLAY.LIST
+      calls:        PRINT USETURTLE LOGO.PENUP ERU HOME *EVAL CONS NCONS XCONS
+      specials:     :TURTLE :TRUE.PENSTATE :MAKING.DISPLAY.LIST :DISPLAY.LIST :POSITION.LIST :MAKING.POSITION.LIST :STARTED.FROM :NUMBER.OF.INVISIBLIES :XCOR :YCOR :HEADING
+      quoted atoms: SCRATCHPAD.TURTLE SCRATCHPAD.TURTLE2 0 T POSITIONS NUMBER.OF.INVISIBLIES X.DISPLACEMENT Y.DISPLACEMENT HEADING.CHANGE
+      quoted list:  (WARNING TURTLE IS A SCRATCH PAD TURTLE)
+  POSITION.LIST
+      calls:        PRINT USETURTLE LOGO.PENUP ERASERUP HOME *EVAL
+      specials:     :TURTLE :TRUE.PENSTATE :MAKING.DISPLAY.LIST :POSITION.LIST :MAKING.POSITION.LIST :STARTED.FROM :NUMBER.OF.INVISIBLIES
+      quoted atoms: SCRATCHPAD.TURTLE SCRATCHPAD.TURTLE2 0 T
+      quoted list:  (WARNING TURTLE IS A SCRATCH PAD TURTLE)
+  SQUISHED.DISPLAY.LIST
+      calls:        DISPLAY.LIST SQUISH
+  SQUISH
+      calls:        CONS MIN MINUSP ABS *BREAK XCONS NCONS
+      quoted atoms: FORWARD INVISIBLY RIGHT BAD-DISPLAY-LIST-SQUISH T
+      quoted list:  (RIGHT 0.0)
+      quoted list:  (RIGHT 0.0)
+      quoted list:  (FORWARD 0.0)
+  HOW.TO.GET.TO.CENTER
+      calls:        HOW.TO.GET.TO.CENTER.AND.SCALE
+      quoted atoms: NIL
+  HOW.TO.GET.TO.CENTER.AND.SCALE
+      calls:        FIND.EXTREME.AND.CENTER FLOAT NCONS XCONS CONS
+      quoted atoms: 1.0 FORWARD PROGN
+      quoted list:  (LEFT 90)
+      quoted list:  (RIGHT 90)
+  DRAW.CENTERED
+      calls:        HOW.TO.GET.TO.CENTER.AND.SCALE NCONS XCONS CONS SCALE PENUP *EVAL PENDOWN REVERSE
+      specials:     ERRLIST
+      quoted atoms: NIL SCALE NEGATIVE.EVAL
+  SCALE.CALL.SIMPLE
+      calls:        FLOAT NCONS XCONS CONS SCALE *EVAL
+      specials:     ERRLIST
+      quoted atoms: SCALE
+  SCALE.CALL
+      calls:        FLOAT NCONS XCONS CONS SCALE *EVAL
+      specials:     ERRLIST
+      quoted atoms: SCALE
+  NEGATIVE.EVAL
+      calls:        MINUS
+  FIND.EXTREME.AND.CENTER
+      calls:        POSITION.LIST COMPUTE.CENTER COMPUTE.EXTREME
+  FIND.CENTER
+      calls:        POSITION.LIST COMPUTE.CENTER
+  COMPUTE.CENTER
+      calls:        FIX NCONS XCONS
+      quoted atoms: 0.0
+  COMPUTE.EXTREME
+      calls:        FLOAT SQRT CONS
+      quoted atoms: 0.0
+  FANCY.FORWARD
+      calls:        FLOAT NCONS XCONS CONS LOGO.FORWARD
+      specials:     :MAKING.DISPLAY.LIST :TRUE.PENSTATE :DISPLAY.LIST :MAKING.POSITION.LIST :YCOR :XCOR :POSITION.LIST
+      quoted atoms: FORWARD NIL
+  FANCY.RIGHT
+      calls:        MAKE.IT.LESS.THAN.180 FLOAT NCONS XCONS CONS LOGO.RIGHT
+      specials:     :TRUE.PENSTATE :MAKING.DISPLAY.LIST :DISPLAY.LIST
+      quoted atoms: RIGHT
+  FANCY.BACK
+      calls:        FLOAT NCONS XCONS CONS LOGO.BACK
+      specials:     :TRUE.PENSTATE :MAKING.DISPLAY.LIST :DISPLAY.LIST :MAKING.POSITION.LIST :YCOR :XCOR :POSITION.LIST
+      quoted atoms: FORWARD NIL
+      quoted list:  (RIGHT 180.0)
+      quoted list:  (RIGHT 180.0)
+  FANCY.LEFT
+      calls:        MAKE.IT.LESS.THAN.180 FLOAT NCONS XCONS CONS LOGO.LEFT
+      specials:     :TRUE.PENSTATE :MAKING.DISPLAY.LIST :DISPLAY.LIST
+      quoted atoms: RIGHT
+  FANCY.PENUP
+      calls:        HERE.WITHOUT.MOD LOGO.PENUP
+      specials:     :STARTED.FROM :TRUE.PENSTATE
+  FANCY.PENDOWN
+      calls:        HERE.WITHOUT.MOD RT.FD.RT XCONS CONS LOGO.PENDOWN
+      specials:     :STARTED.FROM :MAKING.DISPLAY.LIST :MAKING.POSITION.LIST :DISPLAY.LIST :NUMBER.OF.INVISIBLIES :TRUE.PENSTATE
+      quoted atoms: INVISIBLY T
+  MAKE.IT.LESS.THAN.180
+      calls:        FIX
+  HERE.WITHOUT.MOD
+      calls:        NCONS XCONS
+      specials:     :HEADING :YCOR :XCOR
+  INVISIBLY
+      calls:        PU PD
+      quoted atoms: EVAL
+  RT.FD.RT
+      calls:        SETT TOWARDS FLOAT NCONS XCONS RANGE FIX
+      quoted atoms: RIGHT FORWARD
+  MOVE.AND.BIND
+      quoted atoms: NIL
+  |KEN;DL 1|
+      calls:        APPEND-ATOMS INTERN MOVE.AND.BIND
+      quoted atoms: LOGO. FANCY.
+  MOVE.AND.BIND.TVRTLE.STUFF
+      quoted atoms: |KEN;DL 1|
+  |KEN;DL 2|
+      calls:        APPEND-ATOMS INTERN MOVE.AND.BIND
+      quoted atoms: LOGO.
+  UNFANCIFY
+      specials:     :MOVABLE.TVRTLE.FUNCTIONS
+      quoted atoms: |KEN;DL 2|
+  FANCIFY
+      calls:        MOVE.AND.BIND.TVRTLE.STUFF
+      specials:     :MOVABLE.TVRTLE.FUNCTIONS
+  KKSD
+      calls:        TVSIZE TURTLESIZE HT WRAP SD *APPLY HATCH USETURTLE
+      quoted atoms: TVSIZE SCRATCHPAD.TURTLE SCRATCHPAD.TURTLE2 LOGOTURTLE
+
+-- Symbols and how they are used (137) --
+  *APPLY                         called
+  *BREAK                         called
+  *EVAL                          called
+  :DISPLAY.LIST                  special
+  :HEADING                       special
+  :MAKING.DISPLAY.LIST           in top-level form, special
+  :MAKING.POSITION.LIST          in top-level form, special
+  :MOVABLE.TVRTLE.FUNCTIONS      in top-level form, special
+  :NUMBER.OF.INVISIBLIES         special
+  :POSITION.LIST                 special
+  :STARTED.FROM                  in top-level form, special
+  :TRUE.PENSTATE                 in top-level form, special
+  :TURTLE                        special
+  :XCOR                          special
+  :YCOR                          special
+  A                              in constant
+  ABS                            called
+  AND                            in top-level form
+  APPEND                         in top-level form
+  APPEND-ATOMS                   called, in top-level form
+  ATOM1                          in top-level form
+  ATOM2                          in top-level form
+  BACK                           in top-level form
+  BAD-DISPLAY-LIST-SQUISH        quoted
+  BK                             in top-level form
+  COMPUTE.CENTER                 called, defined
+  COMPUTE.EXTREME                called, defined
+  CONS                           called
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DIRECT                         in top-level form
+  DISPLAY.LIST                   called, defined
+  DRAW.CENTERED                  defined
+  ERASERUP                       called
+  ERRLIST                        special
+  ERU                            called
+  EVAL                           quoted
+  EXPLODE                        in top-level form
+  EXPR                           in top-level form
+  FANCIFY                        defined
+  FANCY.                         quoted
+  FANCY.BACK                     defined, in top-level form
+  FANCY.BK                       in top-level form
+  FANCY.FD                       in top-level form
+  FANCY.FORWARD                  defined, in top-level form
+  FANCY.LEFT                     defined, in top-level form
+  FANCY.LT                       in top-level form
+  FANCY.PD                       in top-level form
+  FANCY.PENDOWN                  defined, in top-level form
+  FANCY.PENUP                    defined, in top-level form
+  FANCY.PU                       in top-level form
+  FANCY.RIGHT                    defined, in top-level form
+  FANCY.RT                       in top-level form
+  FD                             in top-level form
+  FEATURE                        in top-level form
+  FIND.CENTER                    defined
+  FIND.EXTREME.AND.CENTER        called, defined
+  FIX                            called
+  FLOAT                          called
+  FORWARD                        in constant, in top-level form, quoted
+  HATCH                          called
+  HEADING.CHANGE                 quoted
+  HERE.WITHOUT.MOD               called, defined
+  HOME                           called
+  HOW.TO.GET.TO.CENTER           defined
+  HOW.TO.GET.TO.CENTER.AND.SCALE called, defined
+  HT                             called
+  INTERN                         called
+  INVISIBLY                      defined, quoted
+  IS                             in constant
+  |KEN;DL 1|                     defined, quoted
+  |KEN;DL 2|                     defined, quoted
+  KKSD                           defined, in top-level form
+  LEFT                           in constant, in top-level form
+  LOGO.                          quoted
+  LOGO.BACK                      called
+  LOGO.FORWARD                   called
+  LOGO.LEFT                      called
+  LOGO.PENDOWN                   called
+  LOGO.PENUP                     called
+  LOGO.RIGHT                     called
+  LOGOTURTLE                     quoted
+  LT                             in top-level form
+  MAKE.IT.LESS.THAN.180          called, defined
+  MAKNAM                         in top-level form
+  MIN                            called
+  MINUS                          called
+  MINUSP                         called
+  MOVE.AND.BIND                  called, defined
+  MOVE.AND.BIND.TVRTLE.STUFF     called, defined
+  NCONS                          called
+  NEGATIVE.EVAL                  defined, quoted
+  NIL                            in top-level form, quoted
+  NUMBER.OF.INVISIBLIES          quoted
+  OR                             in top-level form
+  PAD                            in constant
+  PD                             called, in top-level form
+  PENDOWN                        called, in top-level form
+  PENUP                          called, in top-level form
+  POSITION.LIST                  called, defined
+  POSITIONS                      quoted
+  PRINT                          called
+  PROGN                          in top-level form, quoted
+  PU                             called, in top-level form
+  QUOTE                          in top-level form
+  RANGE                          called
+  REVERSE                        called
+  RIGHT                          in constant, in top-level form, quoted
+  RT                             in top-level form
+  RT.FD.RT                       called, defined
+  SCALE                          called, quoted
+  SCALE.CALL                     defined
+  SCALE.CALL.SIMPLE              defined
+  SCRATCH                        in constant
+  SCRATCHPAD.TURTLE              quoted
+  SCRATCHPAD.TURTLE2             quoted
+  SD                             called
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  SETT                           called
+  SINGLE                         in top-level form
+  SQRT                           called
+  SQUISH                         called, defined
+  SQUISHED.DISPLAY.LIST          defined
+  STATUS                         in top-level form
+  T                              quoted
+  TOWARDS                        called
+  TURTLE                         in constant
+  TURTLESIZE                     called
+  TVSIZE                         called, quoted
+  UNFANCIFY                      defined
+  USETURTLE                      called
+  WARNING                        in constant
+  WRAP                           called
+  X.DISPLACEMENT                 quoted
+  XCONS                          called
+  Y.DISPLACEMENT                 quoted
+  (in atom table, no direct use found: SUBR LSUBR FSUBR)
+
+-- Atom table (149 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  DISPLAY.LIST
+    10 symbol  SUBR
+    11 symbol  :TURTLE
+    12 symbol  SCRATCHPAD.TURTLE
+    13 symbol  SCRATCHPAD.TURTLE2
+    14 symbol  WARNING
+    15 symbol  TURTLE
+    16 symbol  IS
+    17 symbol  A
+    18 symbol  SCRATCH
+    19 symbol  PAD
+    20 symbol  PRINT
+    21 fixnum  0
+    22 symbol  T
+    23 symbol  :TRUE.PENSTATE
+    24 symbol  :MAKING.DISPLAY.LIST
+    25 symbol  :DISPLAY.LIST
+    26 symbol  :POSITION.LIST
+    27 symbol  :MAKING.POSITION.LIST
+    28 symbol  :STARTED.FROM
+    29 symbol  :NUMBER.OF.INVISIBLIES
+    30 symbol  USETURTLE
+    31 symbol  LOGO.PENUP
+    32 symbol  ERU
+    33 symbol  HOME
+    34 symbol  *EVAL
+    35 symbol  POSITIONS
+    36 symbol  CONS
+    37 symbol  NUMBER.OF.INVISIBLIES
+    38 symbol  :XCOR
+    39 symbol  X.DISPLACEMENT
+    40 symbol  :YCOR
+    41 symbol  Y.DISPLACEMENT
+    42 symbol  :HEADING
+    43 symbol  HEADING.CHANGE
+    44 symbol  NCONS
+    45 symbol  XCONS
+    46 symbol  POSITION.LIST
+    47 symbol  ERASERUP
+    48 symbol  SETQ
+    49 symbol  SQUISHED.DISPLAY.LIST
+    50 symbol  SQUISH
+    51 symbol  FORWARD
+    52 symbol  MIN
+    53 symbol  MINUSP
+    54 symbol  ABS
+    55 symbol  RIGHT
+    56 flonum  0.0
+    57 symbol  INVISIBLY
+    58 symbol  BAD-DISPLAY-LIST-SQUISH
+    59 symbol  *BREAK
+    60 symbol  HOW.TO.GET.TO.CENTER
+    61 symbol  HOW.TO.GET.TO.CENTER.AND.SCALE
+    62 symbol  FIND.EXTREME.AND.CENTER
+    63 symbol  FLOAT
+    64 flonum  1.0
+    65 symbol  LEFT
+    66 fixnum  90
+    67 symbol  DRAW.CENTERED
+    68 symbol  LSUBR
+    69 symbol  SCALE
+    70 symbol  ERRLIST
+    71 symbol  PENUP
+    72 symbol  PENDOWN
+    73 symbol  REVERSE
+    74 symbol  NEGATIVE.EVAL
+    75 symbol  SCALE.CALL.SIMPLE
+    76 symbol  SCALE.CALL
+    77 symbol  FSUBR
+    78 symbol  MINUS
+    79 symbol  COMPUTE.CENTER
+    80 symbol  COMPUTE.EXTREME
+    81 symbol  FIND.CENTER
+    82 symbol  FIX
+    83 symbol  SQRT
+    84 symbol  FANCY.FORWARD
+    85 symbol  LOGO.FORWARD
+    86 symbol  DEFPROP
+    87 symbol  FANCY.FD
+    88 symbol  EXPR
+    89 symbol  FANCY.RIGHT
+    90 symbol  MAKE.IT.LESS.THAN.180
+    91 symbol  LOGO.RIGHT
+    92 symbol  FANCY.RT
+    93 symbol  FANCY.BACK
+    94 flonum  180.0
+    95 symbol  LOGO.BACK
+    96 symbol  FANCY.BK
+    97 symbol  FANCY.LEFT
+    98 symbol  LOGO.LEFT
+    99 symbol  FANCY.LT
+   100 symbol  FANCY.PENUP
+   101 symbol  HERE.WITHOUT.MOD
+   102 symbol  FANCY.PU
+   103 symbol  FANCY.PENDOWN
+   104 symbol  RT.FD.RT
+   105 symbol  LOGO.PENDOWN
+   106 symbol  FANCY.PD
+   107 symbol  FIX
+   108 symbol  PU
+   109 symbol  EVAL
+   110 symbol  PD
+   111 symbol  SETT
+   112 symbol  TOWARDS
+   113 symbol  RANGE
+   114 symbol  MOVE.AND.BIND
+   115 symbol  |KEN;DL 1|
+   116 symbol  LOGO.
+   117 symbol  APPEND-ATOMS
+   118 symbol  INTERN
+   119 symbol  FANCY.
+   120 symbol  MOVE.AND.BIND.TVRTLE.STUFF
+   121 symbol  |KEN;DL 2|
+   122 symbol  UNFANCIFY
+   123 symbol  :MOVABLE.TVRTLE.FUNCTIONS
+   124 symbol  FD
+   125 symbol  BK
+   126 symbol  BACK
+   127 symbol  RT
+   128 symbol  LT
+   129 symbol  FANCIFY
+   130 symbol  OR
+   131 symbol  STATUS
+   132 symbol  FEATURE
+   133 symbol  DIRECT
+   134 symbol  DEFUN
+   135 symbol  ATOM1
+   136 symbol  ATOM2
+   137 symbol  MAKNAM
+   138 symbol  APPEND
+   139 symbol  AND
+   140 symbol  EXPLODE
+   141 symbol  KKSD
+   142 symbol  TVSIZE
+   143 symbol  TURTLESIZE
+   144 symbol  HT
+   145 symbol  WRAP
+   146 symbol  SD
+   147 symbol  *APPLY
+   148 symbol  HATCH
+   149 symbol  LOGOTURTLE
+
+The LAP-like listing of the loaded words is in code/3100153_dl.code.txt.

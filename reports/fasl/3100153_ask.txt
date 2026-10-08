@@ -1,0 +1,92 @@
+FASL dump: original/3100153/ask.fasl  (ITS KEN;ASK FASL, tape 3100153, late 1976)
+Decoded 294 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 294 of 294 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 22 blocks, 197 items
+Item counts: absolute 62, relocatable 25, special 4, smashable call 40, quoted atom 19, globalsym 14, atom table 28, entry 3, eval mungeable 1, end 1
+
+-- Functions defined (3) --
+  name                         property args         address
+  FIX-UP-TARGET                SUBR     (NIL . 1)    000000
+  LISTIFY-MESSAGE              SUBR     (NIL . 1)    000025
+  LISTIFY-MESSAGE1             SUBR     (NIL . 1)    000061
+
+-- Top-level forms evaluated at load time (1) --
+  (DEFPROP ASK
+    (LAMBDA (X) (LIST 'ASK.NOT.TO.BE.COMPILED (FIX-UP-TARGET (CADR X)) (LISTIFY-MESSAGE (CADDR X))))
+    MACRO)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  FIX-UP-TARGET
+      calls:        ATOM GETCHAR NCONS XCONS
+      quoted atoms: 1 : QUOTE
+  LISTIFY-MESSAGE
+      calls:        ATOM LISTIFY-MESSAGE1 *EVAL NCONS XCONS
+      specials:     CAN-BE-QUOTED-LIST
+      quoted atoms: T QUOTE
+  LISTIFY-MESSAGE1
+      calls:        ATOM NUMBERP LISTIFY-MESSAGE1 NCONS XCONS GETCHAR
+      specials:     CAN-BE-QUOTED-LIST
+      quoted atoms: QUOTE CONS 1 : 2 % APPEND
+
+-- Symbols and how they are used (25) --
+  %                              quoted
+  *EVAL                          called
+  :                              quoted
+  APPEND                         quoted
+  ASK                            in top-level form
+  ASK.NOT.TO.BE.COMPILED         in top-level form
+  ATOM                           called
+  CADDR                          in top-level form
+  CADR                           in top-level form
+  CAN-BE-QUOTED-LIST             special
+  CONS                           quoted
+  DEFPROP                        in top-level form
+  FIX-UP-TARGET                  defined, in top-level form
+  GETCHAR                        called
+  LAMBDA                         in top-level form
+  LIST                           in top-level form
+  LISTIFY-MESSAGE                defined, in top-level form
+  LISTIFY-MESSAGE1               called, defined
+  MACRO                          in top-level form
+  NCONS                          called
+  NUMBERP                        called
+  QUOTE                          in top-level form, quoted
+  T                              quoted
+  X                              in top-level form
+  XCONS                          called
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (28 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  ASK
+     3 symbol  LAMBDA
+     4 symbol  X
+     5 symbol  LIST
+     6 symbol  QUOTE
+     7 symbol  ASK.NOT.TO.BE.COMPILED
+     8 symbol  FIX-UP-TARGET
+     9 symbol  CADR
+    10 symbol  LISTIFY-MESSAGE
+    11 symbol  CADDR
+    12 symbol  MACRO
+    13 symbol  SUBR
+    14 symbol  ATOM
+    15 fixnum  1
+    16 symbol  GETCHAR
+    17 symbol  :
+    18 symbol  NCONS
+    19 symbol  XCONS
+    20 symbol  T
+    21 symbol  CAN-BE-QUOTED-LIST
+    22 symbol  LISTIFY-MESSAGE1
+    23 symbol  *EVAL
+    24 symbol  NUMBERP
+    25 symbol  CONS
+    26 fixnum  2
+    27 symbol  %
+    28 symbol  APPEND
+
+The LAP-like listing of the loaded words is in code/3100153_ask.code.txt.

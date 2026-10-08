@@ -1,0 +1,244 @@
+FASL dump: original/7005017/disact.fasl  (ITS KEN;DISACT FASL, tape 7005017, Feb 1979)
+Decoded 1798 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1798 of 1798 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 262323,,000016 ('633', flag bits 016), 126 blocks, 1134 items
+Item counts: absolute 503, relocatable 125, special 35, smashable call 34, quoted atom 138, quoted list 1, globalsym 187, atom table 79, entry 9, eval mungeable 22, end 1
+
+-- Functions defined (9) --
+  name                         property args         address
+  |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT| SUBR     (NIL . 0)    000000
+  ORIGINAL-CLAUSES-OF-HIT      SUBR     (NIL . 1)    000146
+  |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK| SUBR     (NIL . 0)    000224
+  |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK| SUBR     (NIL . 0)    000357
+  ORIGINAL-CLAUSES-OF-WALK     SUBR     (NIL . 1)    000525
+  PLAN-THE-WALK                LSUBR    (9 . 9)      001017
+  PLAN-WALK-ITSELF             LSUBR    (7 . 7)      001060
+  |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING| SUBR     (NIL . 0)    001176
+  ORIGINAL-CLAUSES-OF-TURNING  SUBR     (NIL . 1)    001371
+
+-- Top-level forms evaluated at load time (22) --
+  (DEFUN DEFCOMMENT MACRO (USELESS) NIL)
+  (PLACE-ACTOR-ON-NAME '(((PARENT SOMETHING NAME PLAN))) 'PLAN)
+  (REMPROP 'PLAN 'ACTOR-LOAD)
+  (ASK1 'SOMETHING '(ADD PLAN TO YOUR LIST OF OFFSPRING))
+  (PLACE-ACTOR-ON-NAME '(((PARENT SOMETHING NAME DISPLAY-ACTION))) 'DISPLAY-ACTION)
+  (REMPROP 'DISPLAY-ACTION 'ACTOR-LOAD)
+  (ASK1 'SOMETHING '(ADD DISPLAY-ACTION TO YOUR LIST OF OFFSPRING))
+  (PLACE-ACTOR-ON-NAME '(((PARENT DISPLAY-ACTION NAME HIT)) (0 (ORIGINAL-CLAUSES-OF-HIT))) 'HIT)
+  (REMPROP 'HIT 'ACTOR-LOAD)
+  (SETQ |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT|
+    '|(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT|)
+  (ASK1 'DISPLAY-ACTION '(ADD HIT TO YOUR LIST OF OFFSPRING))
+  (PLACE-ACTOR-ON-NAME '(((PARENT DISPLAY-ACTION NAME WALK)) (0 (ORIGINAL-CLAUSES-OF-WALK))) 'WALK)
+  (REMPROP 'WALK 'ACTOR-LOAD)
+  (SETQ |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+    '|(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|)
+  (SETQ |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+    '|(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|)
+  (ASK1 'DISPLAY-ACTION '(ADD WALK TO YOUR LIST OF OFFSPRING))
+  (REMPROP 'PLAN-THE-WALK 'AUTOLOAD)
+  (REMPROP 'PLAN-WALK-ITSELF 'AUTOLOAD)
+  (PLACE-ACTOR-ON-NAME '(((PARENT DISPLAY-ACTION NAME TURNING)) (0 (ORIGINAL-CLAUSES-OF-TURNING)))
+    'TURNING)
+  (REMPROP 'TURNING 'ACTOR-LOAD)
+  (SETQ |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING|
+    '|(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING|)
+  (ASK1 'DISPLAY-ACTION '(ADD TURNING TO YOUR LIST OF OFFSPRING))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT|
+      calls:        RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE COMPILED-ASK
+      specials:     :MESSAGE
+      quoted atoms: SPECIAL-DYNAMICS MAKE NEW IF |(IF NEW MAKE ?NAME)SOMETHING| PLAN 0.0 BEGIN-TIME SUBSCENE TO YOUR SET ASK HIT CAUSE SEQUENCE: PLANS
+      quoted list:  (AND THEN RETREAT BY AT LEAST ORIGINAL DISTANCE)
+  ORIGINAL-CLAUSES-OF-HIT
+      specials:     |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT|
+      quoted atoms: PLAN HIT BY USING CALLED IN NIL
+  |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+      calls:        RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE COMPILED-ASK PLAN-THE-WALK
+      specials:     :MESSAGE
+      quoted atoms: SPECIAL-DYNAMICS MAKE NEW IF |(IF NEW MAKE ?NAME)SOMETHING| PLAN
+  |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+      calls:        RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE COMPILED-ASK PLAN-THE-WALK
+      specials:     :MESSAGE
+      quoted atoms: SPECIAL-DYNAMICS MAKE NEW IF |(IF NEW MAKE ?NAME)SOMETHING| PLAN
+  ORIGINAL-CLAUSES-OF-WALK
+      specials:     |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK| |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+      quoted atoms: PLAN WALK OF TO AS COLLISIONS STARTING AT USING CALLED STOPPING IF IN WITH NIL
+  PLAN-THE-WALK
+      calls:        CHANGE-VALUE PLAN-WALK-ITSELF RECALL-VARIABLE CONS-IF-NOT-MEMBER
+      quoted atoms: BEGIN-TIME SUBSCENE PLANS
+  PLAN-WALK-ITSELF
+      quoted atoms: TO SPECIAL-DYNAMICS YOUR SET ASK TOWARDS CURVATURE-SIGN INITIALIZE IF STOPPING AS COLLISIONS OF ARC IN GO GRADUALLY CAUSE SEQUENCE:
+  |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING|
+      calls:        RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE COMPILED-ASK
+      specials:     :MESSAGE
+      quoted atoms: SPECIAL-DYNAMICS MAKE NEW IF |(IF NEW MAKE ?NAME)SOMETHING| PLAN BEGIN-TIME SUBSCENE TO YOUR SET ASK STOPPING DEGREES TURN GRADUALLY CAUSE SEQUENCE: PLANS
+  ORIGINAL-CLAUSES-OF-TURNING
+      specials:     |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING|
+      quoted atoms: PLAN TURNING OF DEGREES STARTING AT USING CALLED STOPPING IF IN NIL
+
+-- Symbols and how they are used (76) --
+  |(IF NEW MAKE ?NAME)SOMETHING| quoted
+  |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT| defined, in top-level form, special
+  |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING| defined, in top-level form, special
+  |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK| defined, in top-level form, special
+  |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK| defined, in top-level form, special
+  :MESSAGE                       special
+  ACTOR-LOAD                     in top-level form
+  ADD                            in top-level form
+  AND                            in constant
+  ARC                            quoted
+  AS                             quoted
+  ASK                            quoted
+  ASK1                           in top-level form
+  AT                             in constant, quoted
+  AUTOLOAD                       in top-level form
+  BEGIN-TIME                     quoted
+  BY                             in constant, quoted
+  CALLED                         quoted
+  CAUSE                          quoted
+  CHANGE-VALUE                   called
+  COLLISIONS                     quoted
+  COMPILED-ASK                   called
+  CONS-IF-NOT-MEMBER             called
+  CURVATURE-SIGN                 quoted
+  DEFCOMMENT                     in top-level form
+  DEFUN                          in top-level form
+  DEGREES                        quoted
+  DISPLAY-ACTION                 in top-level form
+  DISTANCE                       in constant
+  GO                             quoted
+  GRADUALLY                      quoted
+  HIT                            in top-level form, quoted
+  IF                             quoted
+  IN                             quoted
+  INITIALIZE                     quoted
+  LEAST                          in constant
+  LIST                           in top-level form
+  MACRO                          in top-level form
+  MAKE                           quoted
+  NAME                           in top-level form
+  NEW                            quoted
+  NIL                            in top-level form, quoted
+  OF                             in top-level form, quoted
+  OFFSPRING                      in top-level form
+  ORIGINAL                       in constant
+  ORIGINAL-CLAUSES-OF-HIT        defined, in top-level form
+  ORIGINAL-CLAUSES-OF-TURNING    defined, in top-level form
+  ORIGINAL-CLAUSES-OF-WALK       defined, in top-level form
+  PARENT                         in top-level form
+  PLACE-ACTOR-ON-NAME            in top-level form
+  PLAN                           in top-level form, quoted
+  PLAN-THE-WALK                  called, defined, in top-level form
+  PLAN-WALK-ITSELF               called, defined, in top-level form
+  PLANS                          quoted
+  QUOTE                          in top-level form
+  RECALL-VARIABLE                called
+  REMPROP                        in top-level form
+  RETREAT                        in constant
+  SEQUENCE:                      quoted
+  SET                            quoted
+  SETQ                           in top-level form
+  SOMETHING                      in top-level form
+  SPECIAL-DYNAMICS               quoted
+  STARTING                       quoted
+  STOPPING                       quoted
+  SUBSCENE                       quoted
+  THEN                           in constant
+  TO                             in top-level form, quoted
+  TOWARDS                        quoted
+  TURN                           quoted
+  TURNING                        in top-level form, quoted
+  USELESS                        in top-level form
+  USING                          quoted
+  WALK                           in top-level form, quoted
+  WITH                           quoted
+  YOUR                           in top-level form, quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (79 entries; 0 is NIL) --
+     1 symbol  DEFUN
+     2 symbol  DEFCOMMENT
+     3 symbol  MACRO
+     4 symbol  USELESS
+     5 symbol  PLACE-ACTOR-ON-NAME
+     6 symbol  QUOTE
+     7 symbol  PARENT
+     8 symbol  SOMETHING
+     9 symbol  NAME
+    10 symbol  PLAN
+    11 symbol  REMPROP
+    12 symbol  ACTOR-LOAD
+    13 symbol  ASK1
+    14 symbol  ADD
+    15 symbol  TO
+    16 symbol  YOUR
+    17 symbol  LIST
+    18 symbol  OF
+    19 symbol  OFFSPRING
+    20 symbol  DISPLAY-ACTION
+    21 symbol  HIT
+    22 fixnum  0
+    23 symbol  ORIGINAL-CLAUSES-OF-HIT
+    24 symbol  SETQ
+    25 symbol  |(PLAN HIT ?VICTUM BY ?CHARACTER USING ?SPECIAL-DYNAMICS CALLED ?NAME IN ?SUBSCENE)HIT|
+    26 symbol  SUBR
+    27 symbol  :MESSAGE
+    28 symbol  SPECIAL-DYNAMICS
+    29 symbol  RECALL-VARIABLE
+    30 symbol  CONS-IF-NOT-MEMBER
+    31 symbol  CHANGE-VALUE
+    32 symbol  MAKE
+    33 symbol  NEW
+    34 symbol  IF
+    35 symbol  |(IF NEW MAKE ?NAME)SOMETHING|
+    36 symbol  COMPILED-ASK
+    37 flonum  0.0
+    38 symbol  BEGIN-TIME
+    39 symbol  SUBSCENE
+    40 symbol  SET
+    41 symbol  ASK
+    42 symbol  AND
+    43 symbol  THEN
+    44 symbol  RETREAT
+    45 symbol  BY
+    46 symbol  AT
+    47 symbol  LEAST
+    48 symbol  ORIGINAL
+    49 symbol  DISTANCE
+    50 symbol  CAUSE
+    51 symbol  SEQUENCE:
+    52 symbol  PLANS
+    53 symbol  USING
+    54 symbol  CALLED
+    55 symbol  IN
+    56 symbol  WALK
+    57 symbol  ORIGINAL-CLAUSES-OF-WALK
+    58 symbol  |(PLAN WALK OF ?CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+    59 symbol  PLAN-THE-WALK
+    60 symbol  |(PLAN WALK OF ?CHARACTER WITH ?OTHER-CHARACTER TO ?DESTINATION AS ?TARGET-TYPE ?CAREFUL-OR-REGARDLESS OF COLLISIONS STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?NAME STOPPING IF ?CONDITION IN ?SUBSCENE)WALK|
+    61 symbol  AS
+    62 symbol  COLLISIONS
+    63 symbol  STARTING
+    64 symbol  STOPPING
+    65 symbol  WITH
+    66 symbol  AUTOLOAD
+    67 symbol  LSUBR
+    68 symbol  PLAN-WALK-ITSELF
+    69 symbol  TOWARDS
+    70 symbol  CURVATURE-SIGN
+    71 symbol  INITIALIZE
+    72 symbol  ARC
+    73 symbol  GO
+    74 symbol  GRADUALLY
+    75 symbol  TURNING
+    76 symbol  ORIGINAL-CLAUSES-OF-TURNING
+    77 symbol  |(PLAN TURNING OF ?CHARACTER ?DEGREES DEGREES STARTING AT ?BEGIN-TIME USING ?SPECIAL-DYNAMICS CALLED ?PLAN-NAME STOPPING IF ?STOP-CONDITION IN ?SUBSCENE)TURNING|
+    78 symbol  DEGREES
+    79 symbol  TURN
+
+The LAP-like listing of the loaded words is in code/7005017_disact.code.txt.

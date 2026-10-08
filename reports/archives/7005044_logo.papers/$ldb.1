@@ -1,0 +1,330 @@
+.sec Why is something else needed?
+	Presently in LOGO there are only two
+convenient mechanisms for putting knowledge into one's
+program. Teaching (TO) and variables (MAKE)
+are means of procedural and declarative imbedding
+of knowledge, respectively.  This paper will attempt
+to show that variables are inadequate, inflexible, or inconvenient
+in many cases that a declarative representation seems
+reasonable. An alternative that hopefully is not more
+magical than variables is described in some detail.
+	As an example only, let us consider some
+problems in writing programs that play cards.  One very
+important decision is how to represent the deck.  One
+idea would be have an pointer array (or a list) of 52 elements.
+Each element could be a sentence that contained the
+owner, the suit, and the rank. To shuffle one would need to
+randomly reorder the array (or list). To deal one would
+replace some of the elements whose owner is the "deck" by
+alternate players.  If in playing the game one wanted to
+know things like who owns a particular card, or how many
+spades a player has, for example, then one must go thru the
+array (or list) checking each one and accumulating information.
+While I will show an easier way of doing this the major
+drawback of using arrays or lists is their inflexibility.
+	What if one wanted to add some new characteristics
+to a card? For example, in fish you might want to remember
+that your opponent fished for a Jack a few turns ago. One
+might want two versions of the deck one representing "reality"
+and the other "the computer player's point of view". Clearly
+each change would require many changes and complications: an
+unfortunate state of affairs.
+.sec An Alternative Borrowed from AI
+	One of the important innovations in
+AI languages
+such as Planner, QA4, and Conniver is a relational data base.
+The idea is that much of the hair of finding the
+right variable, of searching through lists (or arrays) is handled
+by primitives provided by the language. Following example of playing
+cards,
+one could represent the deck as a series of "sentences"
+to be remembered by the system. If one were to give the
+command
+.begin center skip
+[fl] "REMEMBER [OWNER [JACK SPADES] PLAYER1]"
+.end once indent 0
+then the system would remember that in such a way that it could be recalled
+in many different ways. For example, to get all the spades that
+player2 owns one would give the command 
+.begin center skip
+[fl]"FETCH [OWNER [? SPADES] PLAYER2]" 
+.end once indent 0
+and the list of all sentences that fit the pattern would be
+returned. To find out who owns all the Queens one would say:
+.begin center
+[fl]"FETCH [OWNER [QUEENS ?] ?].
+.end once indent 0
+Question marks are interpreted as anything can be here.
+One should be able to see that such a system is very flexible.
+	For example the program to deal cards could be written:
+.BEGIN
+.NOFILL
+[fl]TO DEAL :NUMBER.OF.CARDS :PLAYERS
+10 REPEAT [FOR.EACH :PLAYERS "DEAL.A.CARD] :NUMBER.OF.CARDS
+END
+
+TO DEAL.A.CARD :PLAYER
+10 LOCAL "CARD
+20 MAKE "CARD FIND [OWNER ? DECK] [fi] !This finds any one of the 
+				   ! cards in the deck.[fl]
+30 FORGET :CARD 		  [fi] ! Take it out of the deck[fl]
+40 REMEMBER (LIST "OWNER SECOND :CARD :PLAYER) 	[fi]!so :PLAYER owns it[fl]
+END
+.END
+	FOR.EACH applies the function to each of the
+list it is passed and REPEAT simply repeats its first argument
+the second argument times.  SECOND is just a first of a butfirst,
+in other words, the second item of a list.
+.sec How does this all work?
+	At the present, I have a rather complete version of such a
+data base system implemented in 11LOGO.  There were many design decisions
+to make, the hardest being how to make it run fast enough without
+using up the entire workspace. The basic idea is really very
+simple; what one should do is have "Remember" leave something
+behind so that when fetch is called it has to do as little
+searching as possible.  The first version of this system took
+this idea to the extreme. When a sentence like "[A B C]" was
+remember all possible combinations of question marks replacing
+elements in the sentence were generated. These sentences
+were then turned into words whose thing is all sentences that
+are answers to that fetch. In this example,
+.BEGIN skip
+.NOFILL
+[fl]PRINTOUT NAMES
+:[A ? ?] IS [...[A B C] ...]
+:[A B ?] IS [...[A B C] ...]
+:[A ? C] IS [...[A B C] ...]
+:[? ? C] IS [...[A B C] ...]
+:[? B C] IS [...[A B C] ...]
+:[? B ?] IS [...[A B C] ...]
+:[A B C] IS [[A B C]]
+:[? ? ?] IS [......[A B C] .....]
+.END
+	Notice that "Fetch" has to do in this case is
+simply to take the argument (the question) and turn
+it into a word and then output its thing. "Forget"
+is just like remember except rather than adding to the
+thing of the question it takes away. So under
+this scheme we have very fast fetches but remembers
+are slow and take up very much memory.
+	Since so much memory was used
+a compromise was devised. Only those 
+"questions" that consisted of only one non-question
+mark item are "pre-answered".  In this case, only three sentences: [A ? ?] , [? B ?],
+and [? ? C]. But what happens when the question asked is
+"[A ? C]," for example? The solution is simple just
+take the intersection of those answers to "[A ? ?]"
+and "[? ? C]. This means some fetches are going to
+be slower but that much memory is saved. (In the
+previous case the number of nodes consumed was
+proportional to 2 to the n, where n is the count of
+the sentence. In this new scheme, it is only linear
+with n.)
+	However, what if the pattern "[A ? C]" is the
+something that will be needed often and we are not
+too short for workspace? It seems a shame to run slow
+to save memory that might not be needed. To alleviate
+this problem one can be in what I call "savemode". When
+in this mode, "Fetch" after it answers a question like
+"[A ? C]," will create the word "[A ? C]" and make it
+into the answer that it returns.  Then on subsequent calls
+to fetch it will have the answer sitting there.  Of course,
+"Remember" has to be smart and update that pattern from then
+on.  This way common questions are answered fast but rare
+ones don't need to waste memory.
+	What I said so far about "[A B C]" is accurate but,
+what about the example above:
+"FETCH [OWNER [QUEEN ?] ?]" ? It has
+a list within a list.  To fetch a pattern like this one has
+to fetch the pattern "[QUEEN ?]" first and then make
+a fetch for each sentence returned by that as the second
+item in the pattern "[OWNER <each returned by the first fetch> ?]".  When the structure of the sentence gets complicated
+this can be quite slow so here especially "savemode" really
+helps.  An observant reader may wonder how it is possible to
+fetch "[QUEEN ?]" since it is not remembered by itself.  Well
+it is. Remember recurses for every substructure.  But one may
+wonder about the problem when one does:
+.BEGIN skip center
+[fl]REMEMBER [NOT [PLAYED [QUEEN SPADES]]]
+.end once indent 0
+and later
+.begin skip center
+[fl]FETCH [PLAYER ?]
+.END once indent 0
+What is probably intended would not be 
+what happens.  The solution 
+is a little crockish. The name of the word corresponding to the questions
+differs slightly depending on whether the pattern is
+from the top-level sentence or not.  The slight difference chosen
+is a space before the word.
+This means that [fi]only[fr] if you know what you are doing can you fetch 
+and have returned parts of sentences previously remembered.
+.sec A lousy problem and a crockish solution
+	Things seemed fine at one point and the three
+major functions remember, fetch and forget worked perfectly.
+Then I saved away the workspace including things that were
+remembered and later when I read it in again all seemed to
+work fine except my workspace had mysteriously been almost
+filled.  The reason is that the things of all the pattern
+words are lists of lists. And many of those sub lists are
+the same between pattern words.  When created they are the
+same identical lists (EQ in LISP) but when written and re-read
+that is no longer the case (they are only EQUAL).
+The crockish solution
+was that instead of using lists I use the corresponding word
+and fetch has to re-listify it.  Such is life.
+.sec Extensions to the system
+	One feature present in the AI languages is the 
+ability to put, in addition to the question marks, a word one
+wants "made" to whatever is there in that position.  For example,
+.begin skip center
+[fl]FETCH [OWNER [QUEEN ?SUIT] PLAYER1]
+.end once indent 0
+would in addition to returning all the sentences that indicated
+that player1 was the owner of queens of any suit, the name "?suit
+would be a list of the suits that player1 has. This is clearer
+than doing a first butfirst first butfirst of each sentence that
+fetch returns and making a list of them.  This was tried but
+it keep causing funny system bug errors so is pushed for now.
+	One problem with the present implementation is that it
+is so positionally oriented.  To do a fetch one must know what
+position in the sentence words are.  So to fetch all sentences
+that begin with the word "S, for example, one needs to do fetches
+with the patterns "[S ?]," "[S ? ?]," "[S ? ? ?]" and
+on up to the longest length sentence that could begin with an "S.
+One very useful addition to kind of elements that can appear in
+the pattern would be something that would match any number of
+elements.  Using "*" as a symbol for that pattern element (it
+clearly needs a good name) the above problem would be solved by
+doing a fetch on the pattern, "[S *]".  Notice that this would
+also pick up the unusual item "[S]" in the data base.  If one
+wanted to exclude that possibility one could fetch on the
+pattern "[S ? *]". 
+	This would clearly be a very useful
+addition to the system but how could it be implement considering
+the way things are stored? The answer lies in the chunking
+mechanism discussed in the next section.  Basically a list of
+all sentences in a "chunk" is available and one need only 
+butfirst down this list using a special match function. 
+(Incidentily this match function is quite useful in its own right.)  The price however that one must pay or
+power, in this case, is time --- it will run slowly.
+	In addition to "Fetch" I have written "Find" which
+does a fetch then picks any one of list returned randomly. This
+is very useful for say dealing cards.  It is also essential in
+a simple sentence generator I wrote using this system.  But
+at least one more variant of "Fetch" may be useful.  That is
+something like "Try-next" in Conniver. The idea is that it is
+like "Find" except it will never repeat until all of the 
+elements of the list have been output by previous "Try-nexts"
+(instead of repeating it could return the empty list). A simple
+way of implementing this would be to take advantage of "savemode".
+The first call to "Try-next" would make sure that the pattern
+is "saved". Then each call could return the first of the list
+and then take that first element remove it and place it at the 
+end of the list.
+	Another idea in Conniver and other AI languages is
+methods that are triggered by the pattern of the sentence being
+remembered, fetched, or forgotten. For example, if one was
+using this system to model someone's family and we had remembered
+[FATHER-OF TOM JOHN] and
+[FATHER-OF SALLY JOHN].
+And we wanted to "Fetch" [SIBLING-OF SALLY ?].
+Then it would be nice if we could somehow say that if two people have the same father then consider them siblings. One way
+would be to tell fetch about like so:
+.BEGIN skip
+.NOFILL indent 0
+[fl]REMEMBER [IF-ASKED [SIBLING ?A ?B] CHECK.IF.SAME.FATHER :?A :?B][fr]
+
+where CHECK.IF.SAME.FATHER MIGHT be defined as:
+
+[fl]TO CHECK.IF.SAME.FATHER :PERSON1 :PERSON2
+10 LOCAL "?FATHER1 LOCAL "?FATHER2
+20 IF BOTH FETCH  (SENTENCE "FATHER-OF :PERSON1 "?FATHER1)
+           FETCH  (SENTENCE "FATHER-OF :PERSON2 "?FATHER2)
+      THEN IF :?FATHER1 = :?FATHER2 
+	      THEN OUTPUT (SENTENCE "SIBLING-OF :PERSON1 :PERSON2)
+30 OUTPUT []
+END
+.END
+	Alternatively we could have done something like this
+when the facts were remembered and call a similar function
+to "Check.if.same.father" and "Remember" the sibling fact.  This
+may be getting too complicated for elementary school kids, 
+we shall see, but for high school kids it doesn't seem all that
+difficult to understand.
+	One minor but useful extension to this would be the
+ability to indicate that the following sub-sentence need not
+be broken down, that no fetching will occur inside this sub-sentence.  
+For example, if one were using a context-free
+grammar for generating only, then one would like to know what
+a constituent can become but not what constituent starts with
+say, a noun phrase.  One could say,
+ REMEMBER [S CAN.BECOME "[NP VP]]
+where the quote means don't break me down.  This can save
+quite alot of scarce workspace.  One way to think of the
+quote is that it says think of the following sentence as a
+word (atomic).
+.sec One more "improvement"
+	Another idea current in AI is that chunking of
+knowledge is important.  Yet as described this system
+has one uniform data base without much structure.  One could
+put structure into it by prefacing all sentences with a "context"
+marker. Then only those sentences having to do with one point
+of view or purpose are returned by fetch, not all that it has
+been told about.
+	A variation of the above idea that I favor is actually
+only having those "chunks" that are relavent in the workspace
+and the others living in files on disk.  If one does not switch
+"chunks" too often this should run at reasonable speed.  A
+big plus with this scheme is that one can put quite alot of
+knowledge into a program and not be workspace limited.
+.sec How do you talk about such things with kids
+	One may be reading this thinking, "this stuff sounds
+good for AI graduate students, but how are 5th graders going to
+understand this stuff?".  I have a little experience trying it
+and a fair number of ideas on this. The basic system which consists of 
+remember, find, fetch, and forget are rather intuitive.  Perhaps
+if presented well they may be clearer than "make" and "thing".
+One game that I played with a 5th grader to get her used to
+the system was that we "Remembered" a few sentences about how
+we and some people we knew in common looked. Then we would call
+"Find" with the person position being a question mark. 
+We wondered who it would talk about next.  Then we could have
+"remembered" some other attribute of the people such as their
+size or clothes.  Then we could do four different things with
+"Find". The previous thing still worked, of course, we could
+also do Finds by this new attribute, or pick a person and see
+what about that person would pop up, or do a Find on all it 
+knows.
+	Another way to start is with a deck of cards
+initiallized and then show how we can fetch cards by
+owner, rank , suit or combinations of these.  Then dealing,
+then....
+	The usual Logo problem of vocabulary pops up here.
+What should we call the sentences that are remembered or
+forgotten? What about the patterns that are "Fetched"?
+Are "remember," "find," "fetch," and "forget" good names?
+If this system were extended as described above what do
+you call if-asked, if-remembered, if-forgotten methods?
+What word should be used for "chunks"?
+.sec Other possible uses
+	I don't really feel I need to write this section.
+There are just so many things one could do.  Originally
+I started this for an animation system in which the objects
+in addition to being snaps had attributes like location, speed,
+size, ... I have used the system described herein in a context-free sentence
+generator that I will describe in another paper.  This last
+example is interesting because for just doing context-free 
+generation this system is gross overkill.  But using this
+system it becomes easier to later modify the system, for example, to do
+context-sensitive generation.
+The same grammar could be used by a simple parser, which would
+not be the case if a simplier representation of the rules was
+used. 
+	The idea of having children doing simple AI programs
+seems quite a good one. But in order to model knowledge one
+needs the proper primitives. These primitives are not part of
+Logo but when presented to the child as primitives, new and
+exciting things can be tried.
+
+   

@@ -1,0 +1,354 @@
+FASL dump: original/7005017/compar.fasl  (ITS KEN;COMPAR FASL, tape 7005017, Feb 1979)
+Decoded 1613 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1613 of 1613 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 252730,,000016 ('578', flag bits 016), 96 blocks, 859 items
+Item counts: absolute 322, relocatable 45, special 34, smashable call 80, quoted atom 98, quoted list 21, globalsym 121, atom table 110, entry 13, eval mungeable 14, end 1
+
+-- Functions defined (13) --
+  name                         property args         address
+  STUDY-ALL-CHARACTERS         SUBR     (NIL . 0)    000000
+  COMPARE-TWO-CHARACTERS       SUBR     (NIL . 2)    000012
+  COMPARE-RELATIONSHIPS        SUBR     (NIL . 2)    000100
+  COMPARE-DESCRIPTORS          SUBR     (NIL . 3)    000132
+  LOOK-FOR-SAME-DESCRIPTORS    SUBR     (NIL . 3)    000143
+  LOOK-FOR-OPPOSITES+NEIGHBORS SUBR     (NIL . 3)    000260
+  CHECK-THE-DESCRIPTORS        SUBR     (NIL . 5)    000334
+  RECORD-COMPARISON-IF-NEW     SUBR     (NIL . 5)    000475
+  RECORD-COMPARISON            SUBR     (NIL . 3)    000517
+  STUDY-DESCRIPTOR-USE         SUBR     (NIL . 0)    000610
+  STUDY-DESCRIPTOR             SUBR     (NIL . 2)    000647
+  RECORD-DESCRIPTOR-USE        SUBR     (NIL . 4)    000744
+  DESTROY-COMPARISONS          SUBR     (NIL . 0)    001022
+
+-- Top-level forms evaluated at load time (14) --
+  (DEFPROP DEFCOMMENT (LAMBDA (USELESS) NIL) MACRO)
+  (REMPROP 'STUDY-ALL-CHARACTERS 'AUTOLOAD)
+  (REMPROP 'COMPARE-TWO-CHARACTERS 'AUTOLOAD)
+  (REMPROP 'COMPARE-RELATIONSHIPS 'AUTOLOAD)
+  (REMPROP 'COMPARE-DESCRIPTORS 'AUTOLOAD)
+  (REMPROP 'LOOK-FOR-SAME-DESCRIPTORS 'AUTOLOAD)
+  (REMPROP 'LOOK-FOR-OPPOSITES+NEIGHBORS 'AUTOLOAD)
+  (REMPROP 'CHECK-THE-DESCRIPTORS 'AUTOLOAD)
+  (REMPROP 'RECORD-COMPARISON-IF-NEW 'AUTOLOAD)
+  (REMPROP 'RECORD-COMPARISON 'AUTOLOAD)
+  (REMPROP 'STUDY-DESCRIPTOR-USE 'AUTOLOAD)
+  (REMPROP 'STUDY-DESCRIPTOR 'AUTOLOAD)
+  (REMPROP 'RECORD-DESCRIPTOR-USE 'AUTOLOAD)
+  (REMPROP 'DESTROY-COMPARISONS 'AUTOLOAD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  STUDY-ALL-CHARACTERS
+      calls:        STUDY-DESCRIPTOR-USE RECALL-VARIABLE |(COMPARE YOURSELF WITH YOUR SIBLINGS)CHARACTER|
+      specials:     :SELF :MESSAGE
+      quoted atoms: OFFSPRING CHARACTER
+      quoted list:  (COMPARE YOURSELF WITH YOUR SIBLINGS)
+  COMPARE-TWO-CHARACTERS
+      calls:        EXISTS? *TEST-PART-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD COLLECT-REMEMBERED COMPARE-DESCRIPTORS COMPARE-RELATIONSHIPS SUMMARIZE-COMPARISON
+      quoted atoms: COMPARISON-OF NIL DESCRIPTION: RELATIONSHIP-OF
+      quoted list:  (TYPE ? DESCRIPTOR ? SOURCE ?)
+      quoted list:  (TYPE ? DESCRIPTOR ? SOURCE ?)
+  COMPARE-RELATIONSHIPS
+      calls:        EXISTS? *TEST-PART-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD COLLECT-REMEMBERED COMPARE-DESCRIPTORS
+      quoted atoms: NIL DESCRIPTION:
+      quoted list:  (TYPE ? DESCRIPTOR ? SOURCE ?)
+      quoted list:  (TYPE ? DESCRIPTOR ? SOURCE ?)
+  COMPARE-DESCRIPTORS
+      calls:        LOOK-FOR-SAME-DESCRIPTORS LOOK-FOR-OPPOSITES+NEIGHBORS
+  LOOK-FOR-SAME-DESCRIPTORS
+      calls:        GET *TEST-PART-OF-PATTERN *ACTION-FUNCTION-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD REMEMBERED
+      specials:     DESCRIBEE OTHER D
+      quoted atoms: TYPE DESCRIPTOR NIL DESCRIPTION:
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+      quoted list:  (RECORD-COMPARISON-IF-NEW (CONS 'COMPARISON:
+                                                (CONS 'FINDING
+                                                  (CONS 'IDENTICAL
+                                                    (CONS 'DESCRIPTOR
+                                                      (CONS (GET (FIRST D) 'DESCRIPTOR)
+                                                        (CONS 'DESCRIPTOR-TYPE
+                                                          (CONS (GET (FIRST D) 'TYPE) NIL)))))))
+                      DESCRIBEE
+                      (GET (FIRST D) 'SOURCE)
+                      OTHER
+                      OTHER-SOURCE)
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+  LOOK-FOR-OPPOSITES+NEIGHBORS
+      calls:        GET EXISTS? RECALL-VARIABLE CHECK-THE-DESCRIPTORS WARNING
+      quoted atoms: DESCRIPTOR OPPOSITES NEIGHBORS LOOK-FOR-OPPOSITES+NEIGHBORS NIL
+      quoted list:  (IS A DESCRIPTOR THAT I KNOW NOTHING ABOUT)
+  CHECK-THE-DESCRIPTORS
+      calls:        GET *TEST-PART-OF-PATTERN *ACTION-FUNCTION-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD REMEMBERED
+      specials:     DESCRIBEE OTHER COMPARISON-TYPE DESCRIPTION
+      quoted atoms: TYPE QUOTE ?OTHER-DESCRIPTOR MEMQ DIRECTOR-SYMBOL-FOR-RESTRICTION DESCRIPTOR NIL DESCRIPTION:
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+      quoted list:  (RECORD-COMPARISON-IF-NEW (CONS 'COMPARISON:
+                                                (CONS 'FINDING
+                                                  (CONS COMPARISON-TYPE
+                                                    (CONS 'DESCRIPTOR
+                                                      (CONS (CONS (GET DESCRIPTION 'DESCRIPTOR)
+                                                              (CONS OTHER-DESCRIPTOR NIL))
+                                                        (CONS 'DESCRIPTOR-TYPE
+                                                          (CONS (GET DESCRIPTION 'TYPE) NIL)))))))
+                      DESCRIBEE
+                      (GET DESCRIPTION 'SOURCE)
+                      OTHER
+                      OTHER-SOURCE)
+      quoted list:  (SOURCE ?OTHER-SOURCE)
+  RECORD-COMPARISON-IF-NEW
+      calls:        RECORD-COMPARISON
+      quoted atoms: INITIAL-DESCRIPTION T NIL
+  RECORD-COMPARISON
+      calls:        IS-ANY-ANCESTOR-OF RECORD-COMPARISON |(IF NEW MAKE ?NAME)SOMETHING| GET-ACTOR ACTOR-AUTOLOAD REMEMBER COMPLAIN
+      specials:     :SELF :MESSAGE
+      quoted atoms: RELATIONSHIP CHARACTER COMPARISON-OF MAKE NEW IF CHARACTER-COMPARISON NIL RECORD-COMPARISON
+      quoted list:  (IS NEITHER RELATIONSHIP NOR CHARACTER)
+  STUDY-DESCRIPTOR-USE
+      calls:        GET GET-PROPERTY RECALL-VARIABLE STUDY-DESCRIPTOR SUMMARIZE-UNIQUENESS
+      quoted atoms: ACTOR CHARACTER OFFSPRING CHILDLESS-DESCENDANTS CHARACTER-DESCRIPTOR
+  STUDY-DESCRIPTOR
+      calls:        RECALL-VARIABLE RECORD-DESCRIPTOR-USE *TEST-PART-OF-PATTERN GET-ACTOR ACTOR-AUTOLOAD REMEMBERED
+      quoted atoms: TYPE DESCRIPTOR NIL DESCRIPTION: T
+      quoted list:  (SOURCE ?SOURCE)
+      quoted list:  (SOURCE ?SOURCE)
+  RECORD-DESCRIPTOR-USE
+      calls:        GET-ACTOR ACTOR-AUTOLOAD REMEMBER LENGTH CHANGE-VALUE
+      quoted atoms: DESCRIPTOR-TYPE DESCRIPTOR UNIQUE FINDING COMPARISON: NIL OUT-OF USAGE
+  DESTROY-COMPARISONS
+      calls:        RECALL-VARIABLE |(UNMAKE)SOMETHING| |(FORGET ITEMS MATCHING ?PATTERN)SOMETHING| |(FORGET YOUR ?VARIABLE)SOMETHING|
+      specials:     :SELF :MESSAGE NO-VALUE
+      quoted atoms: OFFSPRING CHARACTER-COMPARISON CHARACTER CHILDLESS-DESCENDANTS CHARACTER-DESCRIPTOR
+      quoted list:  (UNMAKE)
+      quoted list:  (FORGET ITEMS MATCHING (COMPARISON: %))
+      quoted list:  (FORGET ITEMS MATCHING (UNIQUENESS-SUMMARY: %))
+      quoted list:  (FORGET YOUR USAGE)
+
+-- Symbols and how they are used (110) --
+  %                              in constant
+  |(COMPARE YOURSELF WITH YOUR SIBLINGS)CHARACTER| called
+  |(FORGET ITEMS MATCHING ?PATTERN)SOMETHING| called
+  |(FORGET YOUR ?VARIABLE)SOMETHING| called
+  |(IF NEW MAKE ?NAME)SOMETHING| called
+  |(UNMAKE)SOMETHING|            called
+  *ACTION-FUNCTION-OF-PATTERN    called
+  *TEST-PART-OF-PATTERN          called
+  :MESSAGE                       special
+  :SELF                          special
+  ?                              in constant
+  ?OTHER-DESCRIPTOR              quoted
+  ?OTHER-SOURCE                  in constant
+  ?SOURCE                        in constant
+  A                              in constant
+  ABOUT                          in constant
+  ACTOR                          quoted
+  ACTOR-AUTOLOAD                 called
+  AUTOLOAD                       in top-level form
+  CHANGE-VALUE                   called
+  CHARACTER                      in constant, quoted
+  CHARACTER-COMPARISON           quoted
+  CHARACTER-DESCRIPTOR           quoted
+  CHECK-THE-DESCRIPTORS          called, defined, in top-level form
+  CHILDLESS-DESCENDANTS          quoted
+  COLLECT-REMEMBERED             called
+  COMPARE                        in constant
+  COMPARE-DESCRIPTORS            called, defined, in top-level form
+  COMPARE-RELATIONSHIPS          called, defined, in top-level form
+  COMPARE-TWO-CHARACTERS         defined, in top-level form
+  COMPARISON-OF                  quoted
+  COMPARISON-TYPE                in constant, special
+  COMPARISON:                    in constant, quoted
+  COMPLAIN                       called
+  CONS                           in constant
+  D                              in constant, special
+  DEFCOMMENT                     in top-level form
+  DEFPROP                        in top-level form
+  DESCRIBEE                      in constant, special
+  DESCRIPTION                    in constant, special
+  DESCRIPTION:                   quoted
+  DESCRIPTOR                     in constant, quoted
+  DESCRIPTOR-TYPE                in constant, quoted
+  DESTROY-COMPARISONS            defined, in top-level form
+  DIRECTOR-SYMBOL-FOR-RESTRICTION quoted
+  EXISTS?                        called
+  FINDING                        in constant, quoted
+  FIRST                          in constant
+  FORGET                         in constant
+  GET                            called, in constant
+  GET-ACTOR                      called
+  GET-PROPERTY                   called
+  I                              in constant
+  IDENTICAL                      in constant
+  IF                             quoted
+  INITIAL-DESCRIPTION            quoted
+  IS                             in constant
+  IS-ANY-ANCESTOR-OF             called
+  ITEMS                          in constant
+  KNOW                           in constant
+  LAMBDA                         in top-level form
+  LENGTH                         called
+  LOOK-FOR-OPPOSITES+NEIGHBORS   called, defined, in top-level form, quoted
+  LOOK-FOR-SAME-DESCRIPTORS      called, defined, in top-level form
+  MACRO                          in top-level form
+  MAKE                           quoted
+  MATCHING                       in constant
+  MEMQ                           quoted
+  NEIGHBORS                      quoted
+  NEITHER                        in constant
+  NEW                            quoted
+  NIL                            in constant, in top-level form, quoted
+  NO-VALUE                       special
+  NOR                            in constant
+  NOTHING                        in constant
+  OFFSPRING                      quoted
+  OPPOSITES                      quoted
+  OTHER                          in constant, special
+  OTHER-DESCRIPTOR               in constant
+  OTHER-SOURCE                   in constant
+  OUT-OF                         quoted
+  QUOTE                          in constant, in top-level form, quoted
+  RECALL-VARIABLE                called
+  RECORD-COMPARISON              called, defined, in top-level form, quoted
+  RECORD-COMPARISON-IF-NEW       defined, in constant, in top-level form
+  RECORD-DESCRIPTOR-USE          called, defined, in top-level form
+  RELATIONSHIP                   in constant, quoted
+  RELATIONSHIP-OF                quoted
+  REMEMBER                       called
+  REMEMBERED                     called
+  REMPROP                        in top-level form
+  SIBLINGS                       in constant
+  SOURCE                         in constant
+  STUDY-ALL-CHARACTERS           defined, in top-level form
+  STUDY-DESCRIPTOR               called, defined, in top-level form
+  STUDY-DESCRIPTOR-USE           called, defined, in top-level form
+  SUMMARIZE-COMPARISON           called
+  SUMMARIZE-UNIQUENESS           called
+  T                              quoted
+  THAT                           in constant
+  TYPE                           in constant, quoted
+  UNIQUE                         quoted
+  UNIQUENESS-SUMMARY:            in constant
+  UNMAKE                         in constant
+  USAGE                          in constant, quoted
+  USELESS                        in top-level form
+  WARNING                        called
+  WITH                           in constant
+  YOUR                           in constant
+  YOURSELF                       in constant
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (110 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  DEFCOMMENT
+     3 symbol  LAMBDA
+     4 symbol  USELESS
+     5 symbol  MACRO
+     6 symbol  REMPROP
+     7 symbol  QUOTE
+     8 symbol  STUDY-ALL-CHARACTERS
+     9 symbol  AUTOLOAD
+    10 symbol  SUBR
+    11 symbol  STUDY-DESCRIPTOR-USE
+    12 symbol  OFFSPRING
+    13 symbol  CHARACTER
+    14 symbol  RECALL-VARIABLE
+    15 symbol  COMPARE
+    16 symbol  YOURSELF
+    17 symbol  WITH
+    18 symbol  YOUR
+    19 symbol  SIBLINGS
+    20 symbol  :SELF
+    21 symbol  :MESSAGE
+    22 symbol  |(COMPARE YOURSELF WITH YOUR SIBLINGS)CHARACTER|
+    23 symbol  COMPARE-TWO-CHARACTERS
+    24 symbol  COMPARISON-OF
+    25 symbol  EXISTS?
+    26 symbol  TYPE
+    27 symbol  ?
+    28 symbol  DESCRIPTOR
+    29 symbol  SOURCE
+    30 symbol  *TEST-PART-OF-PATTERN
+    31 symbol  GET-ACTOR
+    32 symbol  ACTOR-AUTOLOAD
+    33 symbol  DESCRIPTION:
+    34 symbol  COLLECT-REMEMBERED
+    35 symbol  COMPARE-DESCRIPTORS
+    36 symbol  RELATIONSHIP-OF
+    37 symbol  COMPARE-RELATIONSHIPS
+    38 symbol  SUMMARIZE-COMPARISON
+    39 symbol  LOOK-FOR-SAME-DESCRIPTORS
+    40 symbol  LOOK-FOR-OPPOSITES+NEIGHBORS
+    41 symbol  DESCRIBEE
+    42 symbol  OTHER
+    43 symbol  D
+    44 symbol  GET
+    45 symbol  ?OTHER-SOURCE
+    46 symbol  RECORD-COMPARISON-IF-NEW
+    47 symbol  CONS
+    48 symbol  COMPARISON:
+    49 symbol  FINDING
+    50 symbol  IDENTICAL
+    51 symbol  FIRST
+    52 symbol  DESCRIPTOR-TYPE
+    53 symbol  OTHER-SOURCE
+    54 symbol  *ACTION-FUNCTION-OF-PATTERN
+    55 symbol  REMEMBERED
+    56 symbol  OPPOSITES
+    57 symbol  CHECK-THE-DESCRIPTORS
+    58 symbol  NEIGHBORS
+    59 symbol  IS
+    60 symbol  A
+    61 symbol  THAT
+    62 symbol  I
+    63 symbol  KNOW
+    64 symbol  NOTHING
+    65 symbol  ABOUT
+    66 symbol  WARNING
+    67 symbol  COMPARISON-TYPE
+    68 symbol  DESCRIPTION
+    69 symbol  ?OTHER-DESCRIPTOR
+    70 symbol  MEMQ
+    71 symbol  DIRECTOR-SYMBOL-FOR-RESTRICTION
+    72 symbol  OTHER-DESCRIPTOR
+    73 symbol  INITIAL-DESCRIPTION
+    74 symbol  T
+    75 symbol  RECORD-COMPARISON
+    76 symbol  RELATIONSHIP
+    77 symbol  IS-ANY-ANCESTOR-OF
+    78 symbol  MAKE
+    79 symbol  NEW
+    80 symbol  IF
+    81 symbol  CHARACTER-COMPARISON
+    82 symbol  |(IF NEW MAKE ?NAME)SOMETHING|
+    83 symbol  REMEMBER
+    84 symbol  NEITHER
+    85 symbol  NOR
+    86 symbol  COMPLAIN
+    87 symbol  ACTOR
+    88 symbol  GET-PROPERTY
+    89 symbol  CHILDLESS-DESCENDANTS
+    90 symbol  CHARACTER-DESCRIPTOR
+    91 symbol  STUDY-DESCRIPTOR
+    92 symbol  SUMMARIZE-UNIQUENESS
+    93 symbol  RECORD-DESCRIPTOR-USE
+    94 symbol  ?SOURCE
+    95 symbol  UNIQUE
+    96 symbol  LENGTH
+    97 symbol  OUT-OF
+    98 symbol  USAGE
+    99 symbol  CHANGE-VALUE
+   100 symbol  DESTROY-COMPARISONS
+   101 symbol  UNMAKE
+   102 symbol  |(UNMAKE)SOMETHING|
+   103 symbol  FORGET
+   104 symbol  ITEMS
+   105 symbol  MATCHING
+   106 symbol  %
+   107 symbol  |(FORGET ITEMS MATCHING ?PATTERN)SOMETHING|
+   108 symbol  UNIQUENESS-SUMMARY:
+   109 symbol  |(FORGET YOUR ?VARIABLE)SOMETHING|
+   110 symbol  NO-VALUE
+
+The LAP-like listing of the loaded words is in code/7005017_compar.code.txt.

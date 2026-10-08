@@ -1,0 +1,191 @@
+FASL dump: original/7005017/sugcon.fasl  (ITS KEN;SUGCON FASL, tape 7005017, Feb 1979)
+Decoded 823 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 823 of 823 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 252730,,000016 ('578', flag bits 016), 56 blocks, 501 items
+Item counts: absolute 212, relocatable 21, special 6, smashable call 56, quoted atom 61, globalsym 64, atom table 61, entry 9, eval mungeable 10, end 1
+
+-- Functions defined (9) --
+  name                         property args         address
+  CONVEY-SUGGESTIONS           SUBR     (NIL . 2)    000000
+  COLLECT-CONVEY-SUGGESTIONS   SUBR     (NIL . 3)    000016
+  ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION SUBR     (NIL . 1)    000052
+  GATHER-CONVEY-SUGGESTIONS    SUBR     (NIL . 1)    000221
+  RECOLLECT-CONVEY-SUGGESTIONS SUBR     (NIL . 3)    000245
+  CHAIN-SUGGESTIONS            SUBR     (NIL . 2)    000365
+  CHAIN-METHODS                SUBR     (NIL . 2)    000444
+  MINIMUM-STRENGTH             SUBR     (NIL . 2)    000500
+  RECORD-IN-TASK               SUBR     (NIL . 2)    000513
+
+-- Top-level forms evaluated at load time (10) --
+  (DEFPROP DEFCOMMENT (LAMBDA (USELESS) NIL) MACRO)
+  (REMPROP 'CONVEY-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'COLLECT-CONVEY-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION 'AUTOLOAD)
+  (REMPROP 'GATHER-CONVEY-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'RECOLLECT-CONVEY-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'CHAIN-SUGGESTIONS 'AUTOLOAD)
+  (REMPROP 'CHAIN-METHODS 'AUTOLOAD)
+  (REMPROP 'MINIMUM-STRENGTH 'AUTOLOAD)
+  (REMPROP 'RECORD-IN-TASK 'AUTOLOAD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  CONVEY-SUGGESTIONS
+      calls:        GET COLLECT-CONVEY-SUGGESTIONS RECORD-IN-TASK
+      quoted atoms: DESCRIPTION CONVEY
+  COLLECT-CONVEY-SUGGESTIONS
+      calls:        GATHER-CONVEY-SUGGESTIONS REPLACEPROP ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION RECOLLECT-CONVEY-SUGGESTIONS LAST
+      quoted atoms: ELEMENT
+  ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION
+      calls:        GET EXISTS? |(COLLECT ALL PREREQUISITES OF ?ACTION)METHOD| |(COLLECT BEST-WHEN OF ?ACTION)METHOD| UNION REPLACEPROP
+      specials:     :SELF :MESSAGE
+      quoted atoms: VALUE METHOD: PREREQUISITES OF ALL COLLECT BEST-WHEN
+  GATHER-CONVEY-SUGGESTIONS
+      calls:        ASK1
+      specials:     :MESSAGE-NOT-UNDERSTOOD :ACTOR-NOT-DEFINED
+      quoted atoms: TWO-ARG-NO-OP CONVEY FOR SUGGESTIONS YIELD
+  RECOLLECT-CONVEY-SUGGESTIONS
+      calls:        GET COLLECT-CONVEY-SUGGESTIONS RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE CHAIN-SUGGESTIONS
+      quoted atoms: VALUE METHOD: TYPE CONVEY IN-ORDER-TO SUGGESTION NO-IDEA-HOW-TO-CONVEY-METHOD REASON REJECTED-SUGGESTION: REJECTED-SUGGESTIONS NIL
+  CHAIN-SUGGESTIONS
+      calls:        GET CHAIN-METHODS MINIMUM-STRENGTH
+      quoted atoms: ELEMENT VALUE STRENGTH SOURCE SUGGESTION:
+  CHAIN-METHODS
+      calls:        GET UNION REPLACEPROP
+      quoted atoms: PREREQUISITES BEST-WHEN
+  MINIMUM-STRENGTH
+      calls:        THREE-VALUE-GREATERP
+  RECORD-IN-TASK
+      calls:        GET-ACTOR ACTOR-AUTOLOAD REMEMBER
+      quoted atoms: NIL
+
+-- Symbols and how they are used (61) --
+  |(COLLECT ALL PREREQUISITES OF ?ACTION)METHOD| called
+  |(COLLECT BEST-WHEN OF ?ACTION)METHOD| called
+  :ACTOR-NOT-DEFINED             special
+  :MESSAGE                       special
+  :MESSAGE-NOT-UNDERSTOOD        special
+  :SELF                          special
+  ACTOR-AUTOLOAD                 called
+  ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION called, defined, in top-level form
+  ALL                            quoted
+  ASK1                           called
+  AUTOLOAD                       in top-level form
+  BEST-WHEN                      quoted
+  CHAIN-METHODS                  called, defined, in top-level form
+  CHAIN-SUGGESTIONS              called, defined, in top-level form
+  CHANGE-VALUE                   called
+  COLLECT                        quoted
+  COLLECT-CONVEY-SUGGESTIONS     called, defined, in top-level form
+  CONS-IF-NOT-MEMBER             called
+  CONVEY                         quoted
+  CONVEY-SUGGESTIONS             defined, in top-level form
+  DEFCOMMENT                     in top-level form
+  DEFPROP                        in top-level form
+  DESCRIPTION                    quoted
+  ELEMENT                        quoted
+  EXISTS?                        called
+  FOR                            quoted
+  GATHER-CONVEY-SUGGESTIONS      called, defined, in top-level form
+  GET                            called
+  GET-ACTOR                      called
+  IN-ORDER-TO                    quoted
+  LAMBDA                         in top-level form
+  LAST                           called
+  MACRO                          in top-level form
+  METHOD:                        quoted
+  MINIMUM-STRENGTH               called, defined, in top-level form
+  NIL                            in top-level form, quoted
+  NO-IDEA-HOW-TO-CONVEY-METHOD   quoted
+  OF                             quoted
+  PREREQUISITES                  quoted
+  QUOTE                          in top-level form
+  REASON                         quoted
+  RECALL-VARIABLE                called
+  RECOLLECT-CONVEY-SUGGESTIONS   called, defined, in top-level form
+  RECORD-IN-TASK                 called, defined, in top-level form
+  REJECTED-SUGGESTION:           quoted
+  REJECTED-SUGGESTIONS           quoted
+  REMEMBER                       called
+  REMPROP                        in top-level form
+  REPLACEPROP                    called
+  SOURCE                         quoted
+  STRENGTH                       quoted
+  SUGGESTION                     quoted
+  SUGGESTION:                    quoted
+  SUGGESTIONS                    quoted
+  THREE-VALUE-GREATERP           called
+  TWO-ARG-NO-OP                  quoted
+  TYPE                           quoted
+  UNION                          called
+  USELESS                        in top-level form
+  VALUE                          quoted
+  YIELD                          quoted
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (61 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  DEFCOMMENT
+     3 symbol  LAMBDA
+     4 symbol  USELESS
+     5 symbol  MACRO
+     6 symbol  REMPROP
+     7 symbol  QUOTE
+     8 symbol  CONVEY-SUGGESTIONS
+     9 symbol  AUTOLOAD
+    10 symbol  SUBR
+    11 symbol  DESCRIPTION
+    12 symbol  GET
+    13 symbol  CONVEY
+    14 symbol  COLLECT-CONVEY-SUGGESTIONS
+    15 symbol  RECORD-IN-TASK
+    16 symbol  GATHER-CONVEY-SUGGESTIONS
+    17 symbol  ELEMENT
+    18 symbol  REPLACEPROP
+    19 symbol  ADD-PREREQUISITES-AND-BEST-WHEN-TO-SUGGESTION
+    20 symbol  RECOLLECT-CONVEY-SUGGESTIONS
+    21 symbol  LAST
+    22 symbol  VALUE
+    23 symbol  METHOD:
+    24 symbol  PREREQUISITES
+    25 symbol  EXISTS?
+    26 symbol  OF
+    27 symbol  ALL
+    28 symbol  COLLECT
+    29 symbol  :SELF
+    30 symbol  :MESSAGE
+    31 symbol  |(COLLECT ALL PREREQUISITES OF ?ACTION)METHOD|
+    32 symbol  BEST-WHEN
+    33 symbol  |(COLLECT BEST-WHEN OF ?ACTION)METHOD|
+    34 symbol  UNION
+    35 symbol  TWO-ARG-NO-OP
+    36 symbol  :MESSAGE-NOT-UNDERSTOOD
+    37 symbol  :ACTOR-NOT-DEFINED
+    38 symbol  FOR
+    39 symbol  SUGGESTIONS
+    40 symbol  YIELD
+    41 symbol  ASK1
+    42 symbol  TYPE
+    43 symbol  IN-ORDER-TO
+    44 symbol  SUGGESTION
+    45 symbol  NO-IDEA-HOW-TO-CONVEY-METHOD
+    46 symbol  REASON
+    47 symbol  REJECTED-SUGGESTION:
+    48 symbol  REJECTED-SUGGESTIONS
+    49 symbol  RECALL-VARIABLE
+    50 symbol  CONS-IF-NOT-MEMBER
+    51 symbol  CHANGE-VALUE
+    52 symbol  CHAIN-SUGGESTIONS
+    53 symbol  CHAIN-METHODS
+    54 symbol  STRENGTH
+    55 symbol  MINIMUM-STRENGTH
+    56 symbol  SOURCE
+    57 symbol  SUGGESTION:
+    58 symbol  THREE-VALUE-GREATERP
+    59 symbol  GET-ACTOR
+    60 symbol  ACTOR-AUTOLOAD
+    61 symbol  REMEMBER
+
+The LAP-like listing of the loaded words is in code/7005017_sugcon.code.txt.

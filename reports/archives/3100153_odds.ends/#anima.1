@@ -1,0 +1,644 @@
+;this is the actor like animation system that sorta ran on the 11
+;see $anima doc for a description
+
+
+;this is for forget but probably should be flushed
+to forget :item :obj
+10 remove word '? :obj first :item
+20 remove word first :item :obj last :item
+end
+
+;this is the function that munges procedures so that they can receive more
+;types of commands
+;note text must go  replace it with a property of the actor called "st.num or such
+
+to receive :pattern :action :procedure
+10 run ( list 'ed :procedure )
+20 local 'st.nums local 'st.num local 'line local 'fword local 'fwords
+25 make 'fwords []
+30 make 'st.nums last ( first butfirst butfirst text :procedure )
+33 make 'fword fword :pattern
+38 if first :fword = '$ make 'st.num 9000 go 70
+39 if first :fword = 'or make 'fwords butfirst :fword make 'fword first :fwords make 'fwords butfirst :fwords
+40 make 'st.num assoc :fword :st.nums
+45 if emptyp :st.nums make 'st.num 100 go 205
+50 if emptyp :st.num make 'st.num ( last last :st.nums ) + 100 go 200
+60 make 'st.num first :st.num
+70 make 'line assoc :st.num text :procedure
+80 if emptyp :line go 250
+90 if first butfirst butfirst butfirst :line = :pattern go 250
+100 make 'st.num :st.num + 5
+110 go 70
+200 run ( list ( :st.num - 1 ) 'go 9000 )
+205 make 'st.nums lput ( list :fword :st.num ) :st.nums
+207 if emptyp :fwords go 220
+210 if emptyp :fwords go 220 else make 'fword first :fwords make 'fwords butfirst :fwords go 205
+220 run ( sentence 20 [make 'st.num assoc fword :message] ( list :st.nums ) )
+250 run ( sentence :st.num [if match :message] ( list :pattern ) :action 'stop )
+260 run [end]
+end
+
+;this creates new actors that receive the basic messages
+
+to define.actor
+10 make.actor 'actor
+20 receive [handle ?obj [$ receive $pattern then $action]] [receive :$pattern :$action :?obj] 'actor
+25 receive [$ receive $pattern then $action] [receive :$pattern :$action 'actor] 'actor
+30 actor [if receive handle ?obj [remember $thing] then remember :$thing :?obj]
+40 actor [if receive handle ?obj [tell me $thing] then op up.find :$thing :?obj]
+50 actor [if receive handle ?obj [forget $thing] then forget :$thing :?obj]
+60 actor [if receive handle ?obj [replace $thing] then replace :$thing :?obj]
+70 actor [if receive handle ?obj [$pattern no longer $action] then remove.receive :$pattern :$action :?obj]
+80 actor [if receive handle ?obj [do $message] then scheduler (se 'do (list :?obj :$message ))]
+90 actor [if receive handle ?obj [make ?name] then run (list word 'make. :?obj word '' :?name )]
+end
+
+;this defines turtle like objects as actors that can take turtle messages plus
+;grow reappear, reappear as .., size, speed, etc.
+
+to define.obj
+10 make.actor 'obj
+20 remember [kind.of actor] 'obj
+30 obj [if receive handle ?actor [[or fd forward] ?amt] then move.obj :?actor 'fd :?amt]
+35 obj [if receive handle ?actor [[or bk back] ?amt] then move.obj :?actor 'bk :?amt]
+40 obj [if receive handle ?actor [[or rt right] ?angle] then turn.obj :?actor 'rt :?angle]
+45 obj [if receive handle ?actor [[or lt left] ?angle] then turn.obj :?actor 'lt :?angle]
+50 obj [if receive handle ?actor [hide] then hide.obj :?actor]
+60 obj [if receive handle ?actor [show] then show.obj :?actor]
+70 obj [if receive handle ?actor [[or pd pendown]] then replace [pen.state down] :?actor]
+80 obj [if receive handle ?actor [[or pu penup]] then replace [pen.state up] :?actor]
+90 obj [if receive handle ?actor [draw] then run how.to.draw? :?actor]
+100 obj [if receive handle ?actor [reappear] then appear :?actor :?actor 'true]
+110 obj [if receive handle ?actor [reappear as $ ?other] then appear :?other :?actor 'true]
+120 obj [remember size 50]
+130 obj [remember obj.state [0 0 0]]
+140 obj [remember speed 30]
+150 obj [remember sym.angle 360]
+160 obj [remember grain 30]
+165 obj [if receive handle ?actor [appear] then appear :?actor :?actor 'false]
+170 obj [if receive handle ?actor [look like $ ?other] then appear :?other :?actor 'false]
+180 obj [if receive handle ?actor [grow ?n] then grow :?n :?actor]
+190 obj [if receive handle ?actor [appear rotated ?angle $] then rotate :?actor :?angle]
+200 obj [if receive handle ?actor [single frame $command] then make 'single.frame 'true (if op? :$command op tell :?actor :$command else tell :?actor :$command ) make 'single.frame 'false]
+210 obj [if receive handle ?actor [size?] then op f up.find [size ?] :?actor]
+220 obj [if receive handle ?actor [state?] then op f up.find [obj.state ?] :?actor]
+230 obj [if receive handle ?actor [speed?] then op f up.find [speed ?] :?actor]
+240 obj [if receive handle ?actor [rotation.speed?] then op f up.find [rotation.speed ?] :?actor]
+250 obj [remember rotation.speed 30]
+end
+
+;this defines a square as an object that has an angle of symetry of 90 and grain of 10
+;and that draw.sq draws it
+
+to define.sq
+10 declare 'sq [kind.of obj]
+20 sq [if receive handle ?actor [how.to.draw?] then op [draw.sq tell :?actor [size?]]]
+30 sq [remember sym.angle 90]
+40 sq [remember grain 10]
+end
+
+;I think this single frames thru a movie
+
+
+to sf.display1 :snap
+5 if not thingp 'movie.name display :snap stop
+10 if either emptyp :moviename not :single.frame display :snap stop
+20 remember ( list 'movie.code ( list 'sett here ) ) :movie.name
+30 remember ( list 'movie.code ( list 'display :snap ) ) :movie.name
+end
+
+;this makes a snap of the image
+to appear1 :image :obj :save?
+10 make.snap how.to.draw? :image :obj :save?
+end
+
+;this declares the type and the classes to which type is a member
+;it defines the type as an actor and munges "kind-of tree"
+
+to declare :type :classes
+10 local 'ups
+20 if not ( first :classes ) = 'kind.of print sentence ( list 'declare :type :classes ) [is not right --- missing kind.of]
+30 make 'ups butfirst :classes
+40 run ( list 'to word 'make. :type ':name )
+50 run [10 make.actor :name]
+60 run ( list 20 'remember ( list 'kind.of :type ) ':name )
+70 run [end]
+80 make.actor :type
+90 if emptyp :ups stop
+100 remember ( list 'kind.of first :ups ) :type
+110 make 'ups butfirst :ups
+120 go 90
+end
+
+
+;this shows an object,
+;first it puts the turtle where the object should be
+;then makes a snap
+;then displays snap
+;the calls single frame display ???
+
+to show.obj1 :obj
+5 local 'snap
+10 setturtle tell :obj [state?]
+15 make 'snap first tell :obj [tell me looks.like ?]
+17 if emptyp :snap tell :obj [appear]
+20 sf.display first tell :obj [tell me looks.like ?]
+end
+
+;this draws a centered square of size :size (note could replace with wf :size/2 :size/2)
+to draw.sq1 :size
+5 penup back :size / 2 left 90 forward :size / 2 right 90 pendown
+10 forward :size right 90 forward :size right 90 forward :size right 90 forward :size right 90
+end
+
+
+
+;this asks the obj how to draw, then runs the bf of it, and cons on the first
+to how.to.draw?1 :obj
+10 local 'code
+20 make 'code tell :obj [how.to.draw?]
+30 output list first :code run butfirst :code
+end
+
+
+;this defines a movie as an actor that has a default speed of 1 and can takes
+;show.movie messages
+to define.movie
+10 declare 'movie [kind.of actor]
+30 movie [if receive show then show.movie :obj]
+40 movie [remember speed 1]
+end
+
+
+;this turns an object rt (or left if :angle is negative)
+;calls roate
+to rt.obj :heading :angle :speed :obj
+5 make 'heading :heading - :angle
+10 local 'turned
+20 make 'turned 0
+30 if ( :angle - :turned ) < :speed rotate :heading + :angle - :turned :obj stop
+40 rotate :heading + :speed :obj
+50 make 'heading :heading + :speed
+60 make 'turned :turned + :speed
+70 if value 'single.frame = 'true scheduler ( list 'do ( list 'rt :angle - :turned ) 'next ) else wait 1 go 30
+end
+
+
+;this is part of the pattern matcher and handles the $ in the pattern
+
+to handle.$
+5 if emptyp butfirst :pat then make first :pat :obj make 'pat [] make 'obj [] output 'true
+10 local 'ans
+15 if first first butfirst :pat = ': then make 'pat ( fput first :pat thing butfirst first butfirst :pat butfirst butfirst :pat )
+20 if first first butfirst :pat = '? then make 'ans match reverse :obj reverse :pat make 'obj [] make first :pat reverse thing first :pat make 'pat [] output :ans
+30 if first first butfirst :pat = '$ print ( list 'silly 'to 'have 2 '$ 'in :pat ) make 'pat butfirst :pat go 20
+40 if first first butfirst :pat = 'or then output go.thru.obj.for butfirst first butfirst :pat
+50 output go.thru.obj.for ( list first butfirst :pat )
+end
+
+
+;this makes snaps if one doesn't already exist for that orientation of the object
+;updates the looks.like slot
+
+to make.snap :code :obj :save?
+10 local 'snap local 'old.snap
+20 make 'snap assoc :code find [can.appear ?] :obj
+30 if either emptyp :snap :snap = '' clearscreen run :code penup home make 'snap snap clearscreen if :save? remember ( list 'can.appear ( list :code :snap ) ) :obj
+33 make 'old.snap tell :obj [tell me looks.like ?]
+37 if both not emptyp :old.snap not :old.snap = ['] wipe first :old.snap
+40 replace ( sentence 'looks.like :snap ) :obj
+50 tell :obj [show]
+end
+
+
+;this schedules at code at start
+
+to schedule :code :start
+10 if :stop = :end stop
+20 addto word 't :start :code
+30 addto 'starts :start
+end
+
+;this defines a scheduler as a actor that receives various messages such as
+;do .. in .. frames  or do ... after .. n frames ...
+
+to make.scheduler
+10 make.obj 'scheduler
+20 remember [kind.of actor] 'scheduler
+30 scheduler [if receive do $code in ?n [or frame frames] then schedule :$code :time + :?n make 'last.time :time + :?n]
+40 scheduler [if receive do $code at ?start then schedule :$code :?start make 'last.time :?start]
+50 scheduler [if receive go $stop then run.schedule :$stop ']
+60 scheduler [if receive make.movie ?name ?length then make.movie :?name :?length]
+70 scheduler [if receive [or dont don't] $code at ?time then deschedule :$code:?time]
+80 scheduler [if receive do $code after ?n $more [or frames frame] then schedule :$code :last.time + :?n make 'last.time :last.time + :?n]
+90 scheduler [if receive do $code at that time then schedule :$code :last.time]
+end
+
+
+
+;this runs the schedule until stop frames or nothing left that is scheduled
+to run.schedule :stop :moviename
+10 local 'time local 'active
+15 make 'active []
+20 if emptyp :stop make 'stop 1000000 else make 'stop first :stop
+30 make 'time 0
+40 if :time = :stop stop
+50 if memberp :time :starts activate reverse thing word 't :time erasename word 't :time
+60 if memberp :time :ends deactivate :time
+70 run.active
+80 if not emptyp :moviename addto :moviename [wait :speed]
+90 make 'time :time + 1
+100 go 40
+end
+
+
+;this moves objects as in fd and bk 
+;should have pen and hide and show stuff
+
+to move.obj1 :obj :command :amt
+2 if find [visibility invisible] :obj penup? :obj run ( list :command :amt ) pendown go 50
+5 local 'snap local 'speed
+10 make 'snap find [looks.like ?] :obj
+12 if emptyp :snap print sentence :obj [hasn't been told to appear] else make 'snap first :snap
+14 if either emptyp :snap :snap = '' tell :obj [appear] go 10
+15 make 'speed first tell :obj [tell me speed ?]
+20 penup
+30 setturtle tell :obj [state?]
+40 fd.obj :command :amt :speed :snap :obj
+50 replace list 'obj.state here :obj
+end
+
+
+
+;this is looks alot like the receive function at the top 
+;what's the difference?
+to receive1 :pattern :action :procedure
+10 run ( list 'ed :procedure )
+20 local 'st.nums local 'st.num local 'line local 'fword local 'fwords
+25 make 'fwords []
+30 make 'st.nums last ( first butfirst butfirst text :procedure )
+33 make 'fword fword :pattern
+38 if first :fword = '$ make 'st.num 9000 go 70
+39 if first :fword = 'or make 'fwords butfirst :fword make 'fword first :fwords make 'fwords butfirst :fwords
+40 make 'st.num assoc :fword :st.nums
+45 if emptyp :st.nums make 'st.num 100 go 205
+50 if emptyp :st.num make 'st.num ( last last :st.nums ) + 100 go 200
+60 make 'st.num first :st.num
+70 make 'line assoc :st.num text :procedure
+80 if emptyp :line go 250
+90 if first butfirst butfirst butfirst :line = :pattern go 250
+100 make 'st.num :st.num + 5
+110 go 70
+200 run ( list ( :st.num - 1 ) 'go 9000 )
+205 make 'st.nums lput ( list :fword :st.num ) :st.nums
+207 if emptyp :fwords go 220
+210 if emptyp :fwords go 220 else make 'fword first :fwords make 'fwords butfirst :fwords go 205
+220 run ( sentence 20 [make 'st.num assoc fword :message] ( list :st.nums ) )
+250 run ( sentence :st.num [if told] ( list :pattern ) :action 'stop )
+260 run [end]
+end
+
+;this turns an object what about turn.obj without the 1?
+
+
+to turn.obj1 :obj :command :angle
+10 local 'state local 'headin
+20 make 'state first tell :obj [tell me obj.state ?]
+30 if memberp :command [rt right] make 'headin ( last :state ) + :angle else make 'headin ( last :state ) - :angle
+40 tell :obj ( list 'remember 'obj.state lput :headin butlast :state )
+55 if :command = 'lt make 'angle ( - :angle )
+60 rt.obj :headin :angle tell :obj [rotation.speed?] :obj
+end
+
+
+;this moves the obj put it with move.obj1?
+
+to move.obj :obj :command :amt
+2 if find [visibility invisible] :obj penup? :obj run ( list :command :amt ) pendown go 50
+5 local 'snap local 'speed
+10 make 'snap find [looks.like ?] :obj
+12 if emptyp :snap print sentence :obj [hasn't been told to appear] else make 'snap first :snap
+14 if either emptyp :snap :snap = '' tell :obj [appear] go 10
+15 make 'speed first tell :obj [tell me speed ?]
+20 penup
+30 setturtle tell :obj [state?]
+40 fd.obj :command :amt :speed :snap :obj
+50 replace list 'obj.state here :obj
+end
+
+
+;think it is the same as turn.obj1 (like the others with 1 cuz of load thing)
+to turn.obj :obj :command :angle
+10 local 'state local 'headin
+20 make 'state first tell :obj [tell me obj.state ?]
+30 if memberp :command [rt right] make 'headin ( last :state ) + :angle else make 'headin ( last :state ) - :angle
+40 tell :obj ( list 'remember 'obj.state lput :headin butlast :state )
+55 if :command = 'lt make 'angle ( - :angle )
+60 rt.obj :headin :angle tell :obj [rotation.speed?] :obj
+end
+
+
+;this is part of the pattern matcher that is used with or and $ I think
+
+to go.thru.obj.for :words
+10 local 'star
+20 make 'star []
+25 if emptyp :obj then output 'false
+30 if memberp first :obj :words then make first :pat :star make 'pat butfirst butfirst :pat make 'obj butfirst :obj output 'true
+40 make 'star lput first :obj :star
+50 make 'obj butfirst :obj
+60 go 25
+end
+
+
+;this may be eq to make.actor
+to make.actor1 :name
+10 run ( list 'to :name ':message )
+15 run [10 local 'st.num]
+20 run [20 make 'st.num assoc fword :message []]
+25 run [30 if emptyp :st.num go 9000 else go f :st.num]
+27 run [9000]
+30 run ( sentence [9990 if told [handle ?actor [$message]] if op? :$message output go.up.tree] word '' :name [:message else go.up.tree] word '' :name [:message stop] )
+40 run ( sentence [9999 if op? :message op go.up.tree] word '' :name ( list '(list ''handle word '' :name ':message) ) [else go.up.tree] word '' :name ( list '(list ''handle word '' :name ':message) ) )
+50 run [end]
+end
+;same as appear1 ?
+to appear :image :obj :save?
+10 make.snap how.to.draw? :image :obj :save?
+end
+
+;this makes an object grow by increasing its size and re displaying it
+to grow :n :obj
+10 tell :obj ( sentence [remember size] ( ( tell :obj [size?] ) ) + :n )
+20 tell :obj [appear]
+end
+
+;this is part of scheduler for running 
+to activate :code
+30 if emptyp :code stop
+40 tell first last first :code ( list 'single 'frame butfirst last first :code )
+50 make 'code butfirst :code
+60 go 30
+end
+
+
+
+;looks like sf.display1
+to sf.display :snap
+5 if not thingp 'movie.name display :snap stop
+10 if either emptyp :moviename not :single.frame display :snap stop
+20 remember ( list 'movie.code ( list 'sett here ) ) :movie.name
+30 remember ( list 'movie.code ( list 'display :snap ) ) :movie.name
+end
+
+
+;this shows a move at by running each line (usually a display or sett)
+
+to show.movie :name
+10 local 'movie local 'speed
+20 make 'movie value :name
+30 make 'speed first up.find [speed ?] :name
+40 make 'speed integer 30. / :speed
+50 if emptyp :movie stop
+60 run first :movie
+70 make 'movie butfirst :movie
+80 go 50
+end
+
+
+;this goes up the kind of tree calling up.find1
+
+to go.up.find :pat :obj
+10 local 'ups local 'found
+20 make 'ups find [kind.of ?] :obj
+30 if emptyp :ups output []
+40 make 'found up.find1 :pat first :ups
+50 if emptyp :found make 'ups butfirst :ups go 30 else output :found
+end
+
+
+;like rotate?
+
+to rotate1 :angle :obj
+10 local 'sym.angle local 'grain
+20 make 'sym.angle first tell :obj [tell me sym.angle ?]
+30 make 'grain first tell :obj [tell me grain ?]
+40 make 'angle :angle \ :sym.angle
+50 make 'angle :grain * integer ( :angle / :grain )
+60 make.snap ( sentence ( list 'rt :angle ) how.to.draw? :obj ) :obj 'true
+end
+
+
+
+;like draw.sq1?
+to draw.sq :size
+5 penup back :size / 2 left 90 forward :size / 2 right 90 pendown
+10 forward :size right 90 forward :size right 90 forward :size right 90 forward :size right 90
+end
+;looks familar
+to fd.obj :command :amt :speed :snap :obj
+10 local 'travelled
+20 make 'speed :speed / 30.
+30 wipe :snap
+40 make 'travelled 0
+50 if ( :amt - :travelled ) < :speed run ( list :command :amt - :travelled ) pendown display :snap stop
+60 display :snap run ( list :command :speed ) make 'travelled :travelled + :speed
+70 if value 'single.frame = 'true scheduler ( list 'do ( list :obj ( list :command ( :amt - :speed ) ) ) 'next ) else wait 1 wipe :snap go 50
+end
+
+
+;displays object
+
+to show.obj :obj
+5 local 'snap
+10 setturtle tell :obj [state?]
+15 make 'snap first tell :obj [tell me looks.like ?]
+17 if emptyp :snap tell :obj [appear]
+20 sf.display first tell :obj [tell me looks.like ?]
+end
+
+
+;part of tree searching thing
+
+to up.find1 :pat :obj
+10 local 'found
+20 make 'found find :pat :obj
+30 if emptyp :found output go.up.find :pat :obj else output :found
+end
+
+
+
+;seen it before?
+to rotate :angle :obj
+10 local 'sym.angle local 'grain
+20 make 'sym.angle first tell :obj [tell me sym.angle ?]
+30 make 'grain first tell :obj [tell me grain ?]
+40 make 'angle :angle \ :sym.angle
+50 make 'angle :grain * integer ( :angle / :grain )
+60 make.snap ( sentence ( list 'rt :angle ) how.to.draw? :obj ) :obj 'true
+end
+
+
+
+;the matcher 1 cus of loader
+to match1 :obj :pat
+5 if :obj = :pat output 'true
+6 if both wordp :obj wordp :pat make 'obj ( list :obj ) make 'pat ( list :pat )
+10 if first first :pat = '? if not emptyp :obj make first :pat first :obj go 50 else output 'false
+20 if both wordp first :pat first first :pat = '$ if handle.$ go 70 else output 'false
+25 if emptyp :obj output 'false
+30 if first first :pat = 'or if not emptyp :obj if memberp first :obj butfirst first :pat go 50 else output 'false
+33 if first :pat = first :obj go 50
+35 if listp first :pat if listp first :obj if match1 first :obj first :pat go 50 else output 'false else output 'false
+36 if wordp first :obj output 'false
+40 if not match1 first :pat first :obj output 'false
+50 make 'obj butfirst :obj
+60 make 'pat butfirst :pat
+70 if both emptyp :pat emptyp :obj output 'true else if emptyp :pat output 'false else go 10
+end
+
+
+
+;probably could be flushed since lisp has same
+to reverse :list
+10 local 'ans
+20 make 'ans []
+25 if emptyp :list then output :ans
+30 make 'ans fput first :list :ans
+40 make 'list butfirst :list
+50 go 25
+end
+
+
+
+;should repalce this memory with putprops
+to addto :wordname :exp
+10 if not memberp :exp value :wordname then make :wordname fput :exp value :wordname
+end
+
+;looks familar?
+to go.up.tree :name :message
+10 local 'up
+20 make 'up find [kind.of ?] :name
+30 if emptyp :up print ( sentence first :message [doesn't understand] last :message ) stop
+35 make 'up first :up
+40 if op? last :message output tell :up :message else tell :up :message
+end
+
+
+;flush when put in putprop
+to value :name
+10 if thingp :name then output thing :name else output []
+end
+
+
+;should just use lisp here
+
+
+to memberp :thing :list
+10 if emptyp member :thing :list then output 'false else output 'true
+end
+
+;part of pattern matcher
+to find :pat :obj
+10 if last :pat = '? output value word first :pat :obj
+20 output ( memberp last :pat value word first :pat :obj )
+end
+
+;same as earlier?
+to make.actor1 :name
+10 run ( list 'to :name ':message )
+15 run [10 local 'st.num]
+20 run [20 make 'st.num assoc fword :message []]
+25 run [30 if emptyp :st.num go 9000 else run (se 'go :st.num )]
+27 run [9000]
+30 run ( sentence [9990 if told [handle ?actor [$message]] if op? :$message output go.up.tree] word '' :name [:message else go.up.tree] word '' :name [:message stop] )
+40 run ( sentence [9999 if op? :message op go.up.tree] word '' :name ( list '(list ''handle word '' :name ':message) ) [else go.up.tree] word '' :name ( list '(list ''handle word '' :name ':message) ) )
+50 run [end]
+end
+
+
+
+
+to told :pattern
+10 output match :message :pattern
+end
+
+
+
+;putprop to replace this
+to replace :item :obj
+10 make word first :item :obj ( list last :item )
+end
+
+
+;finds the first real word in message (ignores handle foo [...]) stuff
+
+
+to fword :message
+10 local 'ans
+20 make 'ans first :message
+30 if :ans = 'handle output first first butfirst butfirst :message else output :ans
+end
+
+
+;seen before
+
+to grow :n :obj
+10 tell :obj ( sentence [remember size] ( ( tell :obj [size?] ) ) + :n )
+20 tell :obj [appear]
+end
+
+
+;kludge cause only something output, use llogo fix of outputting "?"
+
+
+to op? :message
+5 if first :message = 'handle make 'message last :message
+10 output memberp first :message [tell size? state? speed? rotation.speed? how.to.draw?]
+end
+
+
+;replace with lisp
+
+
+to member :thing :list
+10 if emptyp :list then output []
+20 if :thing = first :list then output :list
+30 make 'list butfirst :list
+40 go 10
+
+
+;for sending message to object when name know dynamically
+to tell :obj :message
+10 if op? :message output run ( list :obj :message ) else run ( list :obj :message )
+end
+
+
+;repalce with putprop
+
+to remember :item :obj
+10 addto word :obj '? first :item
+20 addto word first :item :obj last :item
+end
+
+
+
+;seen before
+to how.to.draw? :obj
+10 local 'code
+20 make 'code tell :obj [how.to.draw?]
+30 output list first :code run butfirst :code
+end
+
+
+;use lisp
+
+to assoc :thing :alist
+10 if emptyp :alist output []
+20 if :thing = first first :alist output butfirst first :alist
+30 make 'alist butfirst :alist
+40 go 10
+end
+
+    

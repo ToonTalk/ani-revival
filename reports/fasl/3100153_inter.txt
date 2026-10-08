@@ -1,0 +1,668 @@
+FASL dump: original/3100153/inter.fasl  (ITS KEN;INTER FASL, tape 3100153, late 1976)
+Decoded 3815 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 3815 of 3815 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 309 blocks, 2775 items
+Item counts: absolute 1507, relocatable 245, special 37, smashable call 383, quoted atom 117, quoted list 12, globalsym 197, atom table 215, entry 46, eval mungeable 15, end 1
+
+-- Functions defined (46) --
+  name                         property args         address
+  MAKE.INTERPOLATION           LSUBR                 000000
+  MAKE.CENTERED.INTERPOLATION  LSUBR                 000040
+  INTERPOLATE.TWO.CALLS        SUBR     (NIL . 2)    000153
+  EQUIVICALIZE                 SUBR     (NIL . 2)    000163
+  FIX.HEADINGS                 SUBR     (NIL . 4)    000170
+  FIX.LENGTH                   LSUBR    (6 . 6)      000352
+  MAKE.OPERATIONS.CORRESPOND   SUBR     (NIL . 4)    000437
+  FATTEN.UP                    SUBR     (NIL . 2)    000653
+  EXPAND.PAIR                  SUBR     (NIL . 4)    000746
+  EXPAND.LINE                  SUBR     (NIL . 2)    001141
+  CONS.INSERT                  SUBR     (NIL . 1)    001217
+  ABOUT.EQUAL                  SUBR     (NIL . 2)    001235
+  COPY.LIST                    SUBR     (NIL . 2)    001244
+  INTERPOLATE.EQUIV.PROGRAMS   SUBR     (NIL . 1)    001276
+  INTERPOLATE.EQUIV.PROGRAMS1  SUBR     (NIL . 2)    001301
+  SLOW.CHANGE                  SUBR     (NIL . 2)    001366
+  INTERPOLATE.INVISIBLIES      SUBR     (NIL . 2)    001416
+  DUMMY.INVISIBLY              SUBR     (NIL . 0)    001455
+  SL                           LSUBR                 001457
+  STRAIGHT.LINE                LSUBR    (7 . 7)      001530
+  SLT                          LSUBR                 001665
+  STRAIGHT.LINE.TABLE          LSUBR    (9 . 9)      001746
+  SLM                          LSUBR                 002251
+  STRAIGHT.LINE.MOVIE          LSUBR    (8 . 8)      002330
+  MAKE.SUPER.MOVIE             LSUBR    (8 . 8)      002505
+  INTERPCOLOR                  LSUBR    (6 . 6)      002644
+  MAKE.COLOR.INTERPOLATION     SUBR     (NIL . 3)    002747
+  INTERPOLATE.PATTERNS         SUBR     (NIL . 5)    003063
+  WINDOW.OF.PATTERN            SUBR     (NIL . 4)    003201
+  DP2                          SUBR     (NIL . 3)    003260
+  DISPLAY.PATTERNS             SUBR     (NIL . 3)    003346
+  SUPER.SHADE                  SUBR     (NIL . 2)    003411
+  FADE                         SUBR     (NIL . 2)    003507
+  SEEFADE                      SUBR     (NIL . 2)    003570
+  SEEDX                        SUBR     (NIL . 3)    003612
+  COPYWINDOW                   SUBR     (NIL . 2)    003624
+  COPYARRAY                    SUBR     (NIL . 2)    003664
+  ZEROPARTOFWINDOW             SUBR     (NIL . 3)    003700
+  ZEROPARTOFARRAY              SUBR     (NIL . 3)    003711
+  ZEROPARTOFWORD               SUBR     (NIL . 3)    003760
+  INTERPOLATE.PALETTE          SUBR     (NIL . 1)    004053
+  MAKE.PALETTE.INTERPOLATION   SUBR     (NIL . 2)    004122
+  MAKE.PALETTE.ROTATION        SUBR     (NIL . 1)    004165
+  ROTATE.PALETTE               SUBR     (NIL . 2)    004233
+  VL                           SUBR     (NIL . 2)    004355
+  SCIRCS                       SUBR     (NIL . 2)    004357
+
+-- Top-level forms evaluated at load time (15) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (OR (BOUNDP 'NO-VALUE) (SETQ NO-VALUE '?))
+  (DEFPROP MI MAKE.INTERPOLATION EXPR)
+  (DEFPROP MCI MAKE.CENTERED.INTERPOLATION EXPR)
+  (SETQ NOISY? T)
+  (SETQ :TOLERANCE 0.1)
+  (DEFPROP MSM MAKE.SUPER.MOVIE EXPR)
+  (OR (GETL 'DRAW.POLY '(EXPR SUBR)) (DEFPROP DRAW.POLY (POLY FASL DSK KEN) AUTOLOAD))
+  (DEFPROP MCOLORI MAKE.COLOR.INTERPOLATION EXPR)
+  (DEFPROP IP INTERPOLATE.PATTERNS EXPR)
+  (DEFPROP DP DISPLAY.PATTERNS EXPR)
+  (DEFPROP ZW ZEROPARTOFWINDOW EXPR)
+  (DEFPROP IPAL INTERPOLATE.PALETTE EXPR)
+  (DEFPROP MPI MAKE.PALETTE.INTERPOLATION EXPR)
+  (PROGN (DEFUN RP (N) (REDPART (PALETTE (\ N 15))))
+    (DEFUN BP (N) (BLUEPART (PALETTE (\ N 15))))
+    (DEFUN GP (N) (GREENPART (PALETTE (\ N 15)))))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  MAKE.INTERPOLATION
+      calls:        INTERPOLATE.TWO.CALLS INTERPOLATE.THREE.CALLS *BREAK
+      specials:     NO-VALUE
+      quoted atoms: WRONG.NUMBER.OF.ARGS T
+  MAKE.CENTERED.INTERPOLATION
+      calls:        NCONS XCONS INTERPOLATE.TWO.CALLS INTERPOLATE.THREE.CALLS *BREAK
+      specials:     NO-VALUE
+      quoted atoms: QUOTE DRAW.CENTERED WRONG.NUMBER.OF.ARGS T
+  INTERPOLATE.TWO.CALLS
+      calls:        SQUISHED.DISPLAY.LIST EQUIVICALIZE INTERPOLATE.EQUIV.PROGRAMS
+  EQUIVICALIZE
+      calls:        FIX.HEADINGS
+  FIX.HEADINGS
+      calls:        ASSQ FIX ABOUT.EQUAL FIX.LENGTH GCD COPY.LIST PRINT
+      specials:     NOISY?
+      quoted atoms: HEADING.CHANGE X.DISPLACEMENT Y.DISPLACEMENT 1
+      quoted list:  (ONE OF THE CALLS IS NOT STATE TRANSPARENT SO SHOULDNT EXPECT CLOSED CURVES)
+  FIX.LENGTH
+      calls:        LENGTH ASSQ GCD FATTEN.UP MAKE.OPERATIONS.CORRESPOND
+      quoted atoms: NUMBER.OF.INVISIBLIES
+  MAKE.OPERATIONS.CORRESPOND
+      calls:        NREVERSE XCONS CONS DUMMY.INVISIBLY NCONS *BREAK
+      quoted atoms: INVISIBLY DUMMY FORWARD RIGHT 0.0 BAD-ARGS-TO-MAKE.COMMMANDS.CORRESPOND T
+      quoted list:  (FORWARD 0.0)
+      quoted list:  (FORWARD 0.0)
+  FATTEN.UP
+      calls:        NCONS *APPEND CONS EXPAND.PAIR
+      quoted atoms: INVISIBLY DUMMY NIL
+  EXPAND.PAIR
+      calls:        ODDP NCONS XCONS EXPAND.LINE APPEND CONS.INSERT
+      quoted atoms: NIL
+  EXPAND.LINE
+      calls:        *BREAK NCONS CONS
+      quoted atoms: FORWARD RIGHT BAD.DISPLAY.LIST T
+      quoted list:  (RIGHT 0.0)
+      quoted list:  (FORWARD 0.0)
+  CONS.INSERT
+      calls:        *BREAK
+      quoted atoms: FORWARD RIGHT BAD.DISPLAY.LIST T
+      quoted list:  ((RIGHT 0.0) (FORWARD 0.0))
+      quoted list:  ((FORWARD 0.0) (RIGHT 0.0))
+  ABOUT.EQUAL
+      specials:     :TOLERANCE
+      quoted atoms: T
+  COPY.LIST
+      calls:        *APPLY CONS
+      quoted atoms: APPEND
+  INTERPOLATE.EQUIV.PROGRAMS
+      calls:        INTERPOLATE.EQUIV.PROGRAMS1
+  INTERPOLATE.EQUIV.PROGRAMS1
+      calls:        NREVERSE XCONS INTERPOLATE.INVISIBLIES CONS SLOW.CHANGE *BREAK
+      quoted atoms: LAMBDA INVISIBLY NON-EQUIV-PROGRAMS T
+      quoted list:  (INTERPOLATIONAMOUNT)
+  SLOW.CHANGE
+      calls:        NCONS XCONS
+      quoted atoms: INTERPOLATIONAMOUNT *$ +$
+  INTERPOLATE.INVISIBLIES
+      calls:        SLOW.CHANGE NCONS XCONS
+      quoted atoms: INVISIBLY
+  DUMMY.INVISIBLY
+      quoted list:  (INVISIBLY (RIGHT 0.0) (FORWARD 0.0) (RIGHT 0.0))
+  SL
+      calls:        STRAIGHT.LINE
+      quoted atoms: NIL
+      quoted list:  (INT BEGIN END INC (CENTER? NIL) (COLOR1 NIL) (COLOR2 NIL))
+  STRAIGHT.LINE
+      calls:        FLOAT HERE MIN MAKE.COLOR.INTERPOLATION PC NCONS XCONS DRAW.CENTERED PU SETT PD
+      specials:     INT NO-VALUE
+      quoted atoms: NIL 15
+  SLT
+      calls:        STRAIGHT.LINE.TABLE
+      quoted atoms: 0.8 NIL
+      quoted list:  (INT BEGIN
+                      END
+                      INC
+                      COLUMNS
+                      (ROWS DEFAULT=COLUMNS)
+                      (PERCENTAGE.FILLED 0.8)
+                      (COLOR1 NIL)
+                      (COLOR2 NIL))
+  STRAIGHT.LINE.TABLE
+      calls:        CS USETURTLE TURTLESIZE FLOAT MIN MAKE.COLOR.INTERPOLATION NCONS CONS MAX PU SETT PD PENCOLOR XCONS DRAW.CENTERED DELY SETX DELX HERE
+      specials:     INT NO-VALUE
+      quoted atoms: LOGOTURTLE NIL 0.0 0 15 1
+  SLM
+      calls:        STRAIGHT.LINE.MOVIE
+      quoted atoms: 1.0 0.8 NIL
+      quoted list:  (INT BEGIN
+                      END
+                      INC
+                      (PAUSE 1)
+                      (PERCENTAGE.OF.SCREEN 0.8)
+                      (COLOR1 NIL)
+                      (COLOR2 NIL))
+  STRAIGHT.LINE.MOVIE
+      calls:        FLOAT HERE MIN MAKE.COLOR.INTERPOLATION MINUSP SLEEP WIPE PENCOLOR NCONS XCONS TURTLESIZE DRAW.CENTERED PU SETT PD
+      specials:     INT NO-VALUE
+      quoted atoms: NIL 15
+  MAKE.SUPER.MOVIE
+      calls:        FLOAT HERE INTERPOLATE.PATTERNS REVERSE WIPE PD NCONS XCONS DRAW.CENTERED SUPER.SHADE SW GENSYM CONS MW PU SETT
+      specials:     INT *LAST.PATTERNS*
+      quoted atoms: TEMP2
+  INTERPCOLOR
+      calls:        BLUEPART GREENPART REDPART *GREAT *TIMES *PLUS MAKECOLOR SLEEP ERC
+      quoted atoms: DONE FOO
+  MAKE.COLOR.INTERPOLATION
+      calls:        BLUEPART GREENPART REDPART REVERSE GENSYM CONS MAKECOLOR
+      quoted atoms: 0.0
+  INTERPOLATE.PATTERNS
+      calls:        GENSYM WINDOW.OF.PATTERN SW XW MW HW FADE REVERSE CONS
+      quoted atoms: DIFFERENCE
+  WINDOW.OF.PATTERN
+      calls:        ERD FW ERU WF SHADE MW
+  DP2
+      calls:        PU CIRCLE FD SHADE HOME GENSYM MW CONS SLEEP CS DP2
+      specials:     ANS
+      quoted atoms: 1
+  DISPLAY.PATTERNS
+      calls:        PU CIRCLE FD SHADE HOME DISPLAY.PATTERNS
+  SUPER.SHADE
+      calls:        MW WF PU *DIF FD SHADE BK HW
+      specials:     :TVSTEP
+      quoted atoms: TEMP2 TEMP
+  FADE
+      calls:        NCONS GENSYM COPYWINDOW REVERSE ZEROPARTOFWINDOW CONS
+      specials:     ANS
+      quoted atoms: 1
+  SEEFADE
+      calls:        XW SLEEP
+      quoted atoms: ?
+  SEEDX
+      calls:        SW SEEFADE
+  COPYWINDOW
+      calls:        GET GENSYM NCONS XCONS PUTPROP COPYARRAY
+      quoted atoms: WINDOW
+  COPYARRAY
+      calls:        ARRAYDIMS CONS ARRAY FILLARRAY
+  ZEROPARTOFWINDOW
+      calls:        GET ZEROPARTOFARRAY
+      quoted atoms: WINDOW ARRAY
+  ZEROPARTOFARRAY
+      calls:        ARRAYDIMS ZEROPARTOFWORD
+      quoted atoms: ?
+  ZEROPARTOFWORD
+      calls:        RANDOM
+      quoted atoms: T 0
+  INTERPOLATE.PALETTE
+      calls:        NREVERSE MAKEPALETTE NCONS *APPEND CONS
+      quoted atoms: 0
+  MAKE.PALETTE.INTERPOLATION
+      calls:        NREVERSE PALETTE MAKE.COLOR.INTERPOLATION CONS
+      specials:     ANS
+      quoted atoms: 0
+  MAKE.PALETTE.ROTATION
+      calls:        NREVERSE PALETTE MAKE.COLOR.INTERPOLATION CONS
+      specials:     ANS
+      quoted atoms: 0
+  ROTATE.PALETTE
+      calls:        GENSYM FLOAT RP GP BP MAKECOLOR MAKEPALETTE
+      specials:     ANS
+      quoted atoms: 0
+  VL
+      quoted atoms: 269488144
+  SCIRCS
+      calls:        PC SW SCIRCS
+
+-- Symbols and how they are used (203) --
+  *$                             quoted
+  *APPEND                        called
+  *APPLY                         called
+  *BREAK                         called
+  *DIF                           called
+  *GREAT                         called
+  *LAST.PATTERNS*                special
+  *PLUS                          called
+  *TIMES                         called
+  +$                             quoted
+  :TOLERANCE                     in top-level form, special
+  :TVSTEP                        special
+  ?                              in top-level form, quoted
+  ABOUT.EQUAL                    called, defined
+  ANS                            special
+  APPEND                         called, quoted
+  ARRAY                          called, quoted
+  ARRAYDIMS                      called
+  ASSQ                           called
+  AUTOLOAD                       in top-level form
+  BAD-ARGS-TO-MAKE.COMMMANDS.CORRESPOND quoted
+  BAD.DISPLAY.LIST               quoted
+  BEGIN                          in constant
+  BK                             called
+  BLUEPART                       called, in top-level form
+  BOUNDP                         in top-level form
+  BP                             called, in top-level form
+  CALLS                          in constant
+  CENTER?                        in constant
+  CIRCLE                         called
+  CLOSED                         in constant
+  COLOR1                         in constant
+  COLOR2                         in constant
+  COLUMNS                        in constant
+  CONS                           called
+  CONS.INSERT                    called, defined
+  COPY.LIST                      called, defined
+  COPYARRAY                      called, defined
+  COPYWINDOW                     called, defined
+  CS                             called
+  CURVES                         in constant
+  DEFAULT=COLUMNS                in constant
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DELX                           called
+  DELY                           called
+  DIFFERENCE                     quoted
+  DISPLAY.PATTERNS               called, defined, in top-level form
+  DONE                           quoted
+  DP                             in top-level form
+  DP2                            called, defined
+  DRAW.CENTERED                  called, quoted
+  DRAW.POLY                      in top-level form
+  DSK                            in top-level form
+  DUMMY                          quoted
+  DUMMY.INVISIBLY                called, defined
+  END                            in constant
+  EQUIVICALIZE                   called, defined
+  ERC                            called
+  ERD                            called
+  ERU                            called
+  EXPAND.LINE                    called, defined
+  EXPAND.PAIR                    called, defined
+  EXPECT                         in constant
+  EXPR                           in top-level form
+  FADE                           called, defined
+  FASL                           in top-level form
+  FATTEN.UP                      called, defined
+  FD                             called
+  FILLARRAY                      called
+  FIX                            called
+  FIX.HEADINGS                   called, defined
+  FIX.LENGTH                     called, defined
+  FLOAT                          called
+  FOO                            quoted
+  FORWARD                        in constant, quoted
+  FW                             called
+  GCD                            called
+  GENSYM                         called
+  GET                            called
+  GETL                           in top-level form
+  GP                             called, in top-level form
+  GREENPART                      called, in top-level form
+  HEADING.CHANGE                 quoted
+  HERE                           called
+  HOME                           called
+  HW                             called
+  INC                            in constant
+  INT                            in constant, special
+  INTERPCOLOR                    defined
+  INTERPOLATE.EQUIV.PROGRAMS     called, defined
+  INTERPOLATE.EQUIV.PROGRAMS1    called, defined
+  INTERPOLATE.INVISIBLIES        called, defined
+  INTERPOLATE.PALETTE            defined, in top-level form
+  INTERPOLATE.PATTERNS           called, defined, in top-level form
+  INTERPOLATE.THREE.CALLS        called
+  INTERPOLATE.TWO.CALLS          called, defined
+  INTERPOLATIONAMOUNT            in constant, quoted
+  INVISIBLY                      in constant, quoted
+  IP                             in top-level form
+  IPAL                           in top-level form
+  IS                             in constant
+  KEN                            in top-level form
+  LAMBDA                         quoted
+  LENGTH                         called
+  LOGOTURTLE                     quoted
+  MAKE.CENTERED.INTERPOLATION    defined, in top-level form
+  MAKE.COLOR.INTERPOLATION       called, defined, in top-level form
+  MAKE.INTERPOLATION             defined, in top-level form
+  MAKE.OPERATIONS.CORRESPOND     called, defined
+  MAKE.PALETTE.INTERPOLATION     defined, in top-level form
+  MAKE.PALETTE.ROTATION          defined
+  MAKE.SUPER.MOVIE               defined, in top-level form
+  MAKECOLOR                      called
+  MAKEPALETTE                    called
+  MAX                            called
+  MCI                            in top-level form
+  MCOLORI                        in top-level form
+  MI                             in top-level form
+  MIN                            called
+  MINUSP                         called
+  MPI                            in top-level form
+  MSM                            in top-level form
+  MW                             called
+  N                              in top-level form
+  NCONS                          called
+  NIL                            in constant, in top-level form, quoted
+  NO-VALUE                       in top-level form, special
+  NOISY?                         in top-level form, special
+  NON-EQUIV-PROGRAMS             quoted
+  NOT                            in constant
+  NREVERSE                       called
+  NUMBER.OF.INVISIBLIES          quoted
+  ODDP                           called
+  OF                             in constant
+  ONE                            in constant
+  OR                             in top-level form
+  PALETTE                        called, in top-level form
+  PAUSE                          in constant
+  PC                             called
+  PD                             called
+  PENCOLOR                       called
+  PERCENTAGE.FILLED              in constant
+  PERCENTAGE.OF.SCREEN           in constant
+  POLY                           in top-level form
+  PRINT                          called
+  PROGN                          in top-level form
+  PU                             called
+  PUTPROP                        called
+  QUOTE                          in top-level form, quoted
+  RANDOM                         called
+  REDPART                        called, in top-level form
+  REVERSE                        called
+  RIGHT                          in constant, quoted
+  ROTATE.PALETTE                 defined
+  ROWS                           in constant
+  RP                             called, in top-level form
+  SCIRCS                         called, defined
+  SEEDX                          defined
+  SEEFADE                        called, defined
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  SETT                           called
+  SETX                           called
+  SHADE                          called
+  SHOULDNT                       in constant
+  SINGLE                         in top-level form
+  SL                             defined
+  SLEEP                          called
+  SLM                            defined
+  SLOW.CHANGE                    called, defined
+  SLT                            defined
+  SO                             in constant
+  SQUISHED.DISPLAY.LIST          called
+  STATE                          in constant
+  STRAIGHT.LINE                  called, defined
+  STRAIGHT.LINE.MOVIE            called, defined
+  STRAIGHT.LINE.TABLE            called, defined
+  SUBR                           in top-level form
+  SUPER.SHADE                    called, defined
+  SW                             called
+  T                              in top-level form, quoted
+  TEMP                           quoted
+  TEMP2                          quoted
+  THE                            in constant
+  TRANSPARENT                    in constant
+  TURTLESIZE                     called
+  USETURTLE                      called
+  VL                             defined
+  WF                             called
+  WINDOW                         quoted
+  WINDOW.OF.PATTERN              called, defined
+  WIPE                           called
+  WRONG.NUMBER.OF.ARGS           quoted
+  X.DISPLACEMENT                 quoted
+  XCONS                          called
+  XW                             called
+  Y.DISPLACEMENT                 quoted
+  ZEROPARTOFARRAY                called, defined
+  ZEROPARTOFWINDOW               called, defined, in top-level form
+  ZEROPARTOFWORD                 called, defined
+  ZW                             in top-level form
+  \                              in top-level form
+  (in atom table, no direct use found: LSUBR)
+
+-- Atom table (215 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  OR
+    10 symbol  BOUNDP
+    11 symbol  NO-VALUE
+    12 symbol  SETQ
+    13 symbol  ?
+    14 symbol  MAKE.INTERPOLATION
+    15 symbol  LSUBR
+    16 symbol  INTERPOLATE.TWO.CALLS
+    17 symbol  INTERPOLATE.THREE.CALLS
+    18 symbol  WRONG.NUMBER.OF.ARGS
+    19 symbol  T
+    20 symbol  *BREAK
+    21 symbol  DEFPROP
+    22 symbol  MI
+    23 symbol  EXPR
+    24 symbol  MAKE.CENTERED.INTERPOLATION
+    25 symbol  NCONS
+    26 symbol  XCONS
+    27 symbol  DRAW.CENTERED
+    28 symbol  MCI
+    29 symbol  SUBR
+    30 symbol  SQUISHED.DISPLAY.LIST
+    31 symbol  EQUIVICALIZE
+    32 symbol  INTERPOLATE.EQUIV.PROGRAMS
+    33 symbol  FIX.HEADINGS
+    34 symbol  NOISY?
+    35 symbol  HEADING.CHANGE
+    36 symbol  ASSQ
+    37 symbol  FIX
+    38 symbol  X.DISPLACEMENT
+    39 symbol  ABOUT.EQUAL
+    40 symbol  Y.DISPLACEMENT
+    41 symbol  FIX.LENGTH
+    42 symbol  GCD
+    43 symbol  COPY.LIST
+    44 symbol  ONE
+    45 symbol  OF
+    46 symbol  THE
+    47 symbol  CALLS
+    48 symbol  IS
+    49 symbol  NOT
+    50 symbol  STATE
+    51 symbol  TRANSPARENT
+    52 symbol  SO
+    53 symbol  SHOULDNT
+    54 symbol  EXPECT
+    55 symbol  CLOSED
+    56 symbol  CURVES
+    57 symbol  PRINT
+    58 fixnum  1
+    59 symbol  LENGTH
+    60 symbol  NUMBER.OF.INVISIBLIES
+    61 symbol  FATTEN.UP
+    62 symbol  MAKE.OPERATIONS.CORRESPOND
+    63 symbol  NREVERSE
+    64 symbol  CONS
+    65 symbol  INVISIBLY
+    66 symbol  DUMMY.INVISIBLY
+    67 symbol  DUMMY
+    68 symbol  FORWARD
+    69 symbol  RIGHT
+    70 flonum  0.0
+    71 symbol  BAD-ARGS-TO-MAKE.COMMMANDS.CORRESPOND
+    72 symbol  *APPEND
+    73 symbol  EXPAND.PAIR
+    74 symbol  ODDP
+    75 symbol  EXPAND.LINE
+    76 symbol  APPEND
+    77 symbol  CONS.INSERT
+    78 symbol  BAD.DISPLAY.LIST
+    79 symbol  :TOLERANCE
+    80 flonum  0.1
+    81 symbol  *APPLY
+    82 symbol  INTERPOLATE.EQUIV.PROGRAMS1
+    83 symbol  INTERPOLATIONAMOUNT
+    84 symbol  LAMBDA
+    85 symbol  INTERPOLATE.INVISIBLIES
+    86 symbol  SLOW.CHANGE
+    87 symbol  NON-EQUIV-PROGRAMS
+    88 symbol  *$
+    89 symbol  +$
+    90 symbol  SL
+    91 symbol  STRAIGHT.LINE
+    92 symbol  INT
+    93 symbol  BEGIN
+    94 symbol  END
+    95 symbol  INC
+    96 symbol  CENTER?
+    97 symbol  COLOR1
+    98 symbol  COLOR2
+    99 symbol  FLOAT
+   100 symbol  HERE
+   101 symbol  MIN
+   102 symbol  MAKE.COLOR.INTERPOLATION
+   103 symbol  PC
+   104 symbol  PU
+   105 symbol  SETT
+   106 symbol  PD
+   107 fixnum  15
+   108 symbol  SLT
+   109 flonum  0.8
+   110 symbol  STRAIGHT.LINE.TABLE
+   111 symbol  COLUMNS
+   112 symbol  ROWS
+   113 symbol  DEFAULT=COLUMNS
+   114 symbol  PERCENTAGE.FILLED
+   115 symbol  CS
+   116 symbol  LOGOTURTLE
+   117 symbol  USETURTLE
+   118 symbol  TURTLESIZE
+   119 symbol  MAX
+   120 symbol  PENCOLOR
+   121 fixnum  0
+   122 symbol  DELY
+   123 symbol  SETX
+   124 symbol  DELX
+   125 symbol  SLM
+   126 flonum  1.0
+   127 symbol  STRAIGHT.LINE.MOVIE
+   128 symbol  PAUSE
+   129 symbol  PERCENTAGE.OF.SCREEN
+   130 symbol  MINUSP
+   131 symbol  SLEEP
+   132 symbol  WIPE
+   133 symbol  MSM
+   134 symbol  MAKE.SUPER.MOVIE
+   135 symbol  *LAST.PATTERNS*
+   136 symbol  INTERPOLATE.PATTERNS
+   137 symbol  REVERSE
+   138 symbol  SUPER.SHADE
+   139 symbol  SW
+   140 symbol  GENSYM
+   141 symbol  MW
+   142 symbol  TEMP2
+   143 symbol  GETL
+   144 symbol  DRAW.POLY
+   145 symbol  POLY
+   146 symbol  FASL
+   147 symbol  DSK
+   148 symbol  KEN
+   149 symbol  AUTOLOAD
+   150 symbol  INTERPCOLOR
+   151 symbol  BLUEPART
+   152 symbol  GREENPART
+   153 symbol  REDPART
+   154 symbol  *GREAT
+   155 symbol  DONE
+   156 symbol  *TIMES
+   157 symbol  *PLUS
+   158 symbol  FOO
+   159 symbol  MAKECOLOR
+   160 symbol  ERC
+   161 symbol  MCOLORI
+   162 symbol  IP
+   163 symbol  WINDOW.OF.PATTERN
+   164 symbol  XW
+   165 symbol  HW
+   166 symbol  DIFFERENCE
+   167 symbol  FADE
+   168 symbol  ERD
+   169 symbol  FW
+   170 symbol  ERU
+   171 symbol  WF
+   172 symbol  SHADE
+   173 symbol  DP
+   174 symbol  DISPLAY.PATTERNS
+   175 symbol  DP2
+   176 symbol  CIRCLE
+   177 symbol  FD
+   178 symbol  HOME
+   179 symbol  ANS
+   180 symbol  :TVSTEP
+   181 symbol  *DIF
+   182 symbol  BK
+   183 symbol  TEMP
+   184 symbol  COPYWINDOW
+   185 symbol  ZEROPARTOFWINDOW
+   186 symbol  SEEFADE
+   187 symbol  SEEDX
+   188 symbol  WINDOW
+   189 symbol  GET
+   190 symbol  PUTPROP
+   191 symbol  COPYARRAY
+   192 symbol  ARRAYDIMS
+   193 symbol  ARRAY
+   194 symbol  FILLARRAY
+   195 symbol  ZEROPARTOFARRAY
+   196 symbol  ZW
+   197 symbol  ZEROPARTOFWORD
+   198 symbol  RANDOM
+   199 symbol  IPAL
+   200 symbol  INTERPOLATE.PALETTE
+   201 symbol  MAKEPALETTE
+   202 symbol  MPI
+   203 symbol  MAKE.PALETTE.INTERPOLATION
+   204 symbol  PALETTE
+   205 symbol  MAKE.PALETTE.ROTATION
+   206 symbol  ROTATE.PALETTE
+   207 symbol  RP
+   208 symbol  GP
+   209 symbol  BP
+   210 symbol  DEFUN
+   211 symbol  N
+   212 symbol  \
+   213 symbol  VL
+   214 fixnum  269488144
+   215 symbol  SCIRCS
+
+The LAP-like listing of the loaded words is in code/3100153_inter.code.txt.

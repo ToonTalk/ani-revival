@@ -1,0 +1,571 @@
+FASL dump: original/7005044/turt.fasl  (ITS KEN;TURT FASL, tape 7005044, Dec 1975)
+Decoded 1464 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1464 of 1464 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212024,,000007 ('104', flag bits 007), 64 blocks, 571 items
+Item counts: absolute 127, relocatable 14, special 34, smashable call 104, quoted atom 30, quoted list 26, globalsym 26, atom table 178, entry 14, eval mungeable 17, end 1
+
+-- Functions defined (14) --
+  name                         property args         address
+  DEFINE.OBJECT                SUBR     (NIL . 0)    000000
+  TELL-LOGO-WHICH-TURTLE       SUBR     (NIL . 1)    000036
+  MAKE-A-NEW-TURTLE            SUBR     (NIL . 1)    000055
+  DRAW+ERASE                   SUBR     (NIL . 1)    000105
+  CONS-DRAW-FORM               SUBR     (NIL . 2)    000124
+  CONS-ERASE-FORM              SUBR     (NIL . 2)    000160
+  XOR-POINT                    SUBR     (NIL . 0)    000214
+  DRAW-POINT                   SUBR     (NIL . 0)    000217
+  PETALS                       SUBR     (NIL . 3)    000221
+  PETAL                        SUBR     (NIL . 1)    000276
+  DRAW-ARC                     SUBR     (NIL . 2)    000330
+  FLOWER                       SUBR     (NIL . 3)    000347
+  DRAW-FLOWER                  SUBR     (NIL . 0)    000450
+  DEFINE.FLOWER                SUBR     (NIL . 0)    000472
+
+-- Top-level forms evaluated at load time (17) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (DEFPROP DO.THE.FOLLOWING: (LAMBDA (A) (CONS 'PROGN (CDR A))) MACRO)
+  (DEFPROP DEFINE.OBJECT -1638224059 EXPR-HASH)
+  (DEFPROP TELL-LOGO-WHICH-TURTLE 30971242019 EXPR-HASH)
+  (DEFPROP MAKE-A-NEW-TURTLE 16227925261 EXPR-HASH)
+  (DEFPROP DRAW+ERASE 11404422447 EXPR-HASH)
+  (DEFPROP CONS-DRAW-FORM 14357562615 EXPR-HASH)
+  (DEFPROP CONS-ERASE-FORM 13990062327 EXPR-HASH)
+  (DEFPROP XOR-POINT -8443552322 EXPR-HASH)
+  (DEFPROP DRAW-POINT 14974259204 EXPR-HASH)
+  (DEFPROP PETALS -20474999721 EXPR-HASH)
+  (DEFPROP PETAL 23944609404 EXPR-HASH)
+  (DEFPROP DRAW-ARC 18961504766 EXPR-HASH)
+  (DEFPROP FLOWER 13146277862 EXPR-HASH)
+  (DEFPROP DRAW-FLOWER 21143315841 EXPR-HASH)
+  (DEFPROP DEFINE.FLOWER 16495174433 EXPR-HASH)
+  (OR (STATUS FEATURE COLOR) (DEFUN PENCOLOR (COLOR) (PRINT (LIST 'PEN 'IS 'NOW COLOR))))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  DEFINE.OBJECT
+      calls:        ASK
+      specials:     SOMETHING OBJECT
+      quoted list:  (MAKE OBJECT)
+      quoted list:  (REMEMBER SIZE 100)
+      quoted list:  (REMEMBER HOW-TO-DRAW DRAW-POINT)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(FD FORWARD
+                         RT
+                         RIGHT
+                         LT
+                         LEFT
+                         BK
+                         BACK
+                         PU
+                         PD
+                         PENUP
+                         PENDOWN
+                         HERE
+                         SETX
+                         SETY
+                         SETXY
+                         DELX
+                         DELY
+                         DELXY
+                         HEADING
+                         SETHEADING
+                         SETT)
+                      }
+                      %REST
+                      THEN
+                      PROGN
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      (EVAL :MESSAGE))
+      quoted list:  (IF RECEIVE SHOW THEN PROGN (TELL-LOGO-WHICH-TURTLE :SELF) (ST))
+      quoted list:  (IF RECEIVE HIDE THEN PROGN (TELL-LOGO-WHICH-TURTLE :SELF) (HT))
+      quoted list:  (IF RECEIVE
+                      MOVE
+                      AWAY
+                      FROM
+                      (?X ?Y %)
+                      BY
+                      FACTOR
+                      ?FACTOR
+                      THEN
+                      PROGN
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      ((LAMBDA (:TOWARDS :RANGE SEETURTLE)
+                         (HT)
+                         (RT :TOWARDS)
+                         (BK (TIMES :RANGE (PLUS -1.0 :FACTOR)))
+                         (LT :TOWARDS)
+                         (AND SEETURTLE (ST)))
+                       (TOWARDS :X :Y)
+                       (RANGE :X :Y)
+                       :SEETURTLE))
+      quoted list:  (IF RECEIVE
+                      REVOLVE
+                      AROUND
+                      (?X ?Y %)
+                      BY
+                      ?TURN
+                      DEGREES
+                      THEN
+                      DO.THE.FOLLOWING:
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      ((LAMBDA (:TOWARDS :RANGE SEETURTLE)
+                         (HT)
+                         (RT :TOWARDS)
+                         (FD :RANGE)
+                         (RT :TURN)
+                         (BK :RANGE)
+                         (LT :TOWARDS)
+                         (AND SEETURTLE (ST)))
+                       (TOWARDS :X :Y)
+                       (RANGE :X :Y)
+                       :SEETURTLE))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(REPLACE)
+                      }
+                      SIZE
+                      ?N
+                      THEN
+                      PROGN
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      (HT)
+                      (FUNCALL :COMMAND (LIST 'SIZE :N) :SELF)
+                      (APPLY 'MAKETURTLE (DRAW+ERASE :SELF))
+                      (ST))
+      quoted list:  (IF RECEIVE
+                      GROW
+                      ?AMOUNT
+                      THEN
+                      PROGN
+                      (TELL-LOGO-WHICH-TURTLE :SELF)
+                      (HT)
+                      (ASK :SELF (LIST 'REMEMBER 'SIZE (PLUS :AMOUNT (ASK :SELF '(WHAT SIZE ?)))))
+                      (APPLY 'MAKETURTLE (DRAW+ERASE :SELF))
+                      (ST))
+  TELL-LOGO-WHICH-TURTLE
+      calls:        FIND USETURTLE MAKE-A-NEW-TURTLE
+      specials:     :SELF
+      quoted list:  (TURTLE-NAME ?)
+  MAKE-A-NEW-TURTLE
+      calls:        APPEND-ATOMS HATCH HT PU NCONS XCONS ASK DRAW+ERASE *APPLY
+      specials:     :SELF
+      quoted atoms: TURTLE TURTLE-NAME REMEMBER MAKETURTLE
+  DRAW+ERASE
+      calls:        ASK CONS-DRAW-FORM CONS-ERASE-FORM NCONS XCONS
+      specials:     :SELF
+      quoted list:  (RECALL HOW-TO-DRAW ?)
+  CONS-DRAW-FORM
+      calls:        NCONS XCONS
+      specials:     :SELF
+      quoted atoms: QUOTE APPLY PROGN
+      quoted list:  (PU)
+      quoted list:  (PD)
+  CONS-ERASE-FORM
+      calls:        NCONS XCONS
+      specials:     :SELF
+      quoted atoms: QUOTE APPLY PROGN
+      quoted list:  (ERU)
+      quoted list:  (ERD)
+  XOR-POINT
+      calls:        XORDOWN POINT XORUP
+  DRAW-POINT
+      calls:        NCONS
+      quoted atoms: XOR-POINT
+  PETALS
+      calls:        RIGHT *QUO LT PENCOLOR PETAL
+      quoted atoms: 45 360.0
+  PETAL
+      calls:        HERE LT DRAW-ARC RT PU SETT ERD PD
+      specials:     :ERASERSTATE
+      quoted atoms: 45 90 135
+  DRAW-ARC
+      calls:        *PLUS FD RT
+      specials:     :HEADING
+      quoted atoms: 5 NIL
+  FLOWER
+      calls:        HERE *QUO PETALS PENCOLOR BK RT PETAL LT PU SETT ERD PD
+      specials:     :ERASERSTATE
+      quoted atoms: 55.0 GREEN 22 33
+  DRAW-FLOWER
+      calls:        ASK NCONS XCONS
+      specials:     :SELF
+      quoted atoms: FLOWER
+      quoted list:  (WHAT SIZE ?)
+      quoted list:  (WHAT NUMBER-OF-PETALS ?)
+      quoted list:  (WHAT COLORS ?)
+  DEFINE.FLOWER
+      calls:        ASK REMEMBER
+      specials:     OBJECT FLOWER
+      quoted list:  (MAKE FLOWER)
+      quoted list:  (REMEMBER HOW-TO-DRAW DRAW-FLOWER)
+      quoted list:  (REMEMBER NUMBER-OF-PETALS 3)
+      quoted list:  (REMEMBER COLORS (RED YELLOW ORANGE))
+      quoted list:  (SIZE 200)
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(REPLACE REMEMBER)
+                      }
+                      NUMBER-OF-PETALS
+                      ?N
+                      THEN
+                      PROGN
+                      (HT)
+                      (FUNCALL :COMMAND (LIST 'NUMBER-OF-PETALS :N) :SELF)
+                      (DEFINE-ERAW+ERASE :SELF)
+                      (ST))
+      quoted list:  (IF RECEIVE
+                      {
+                      MEMQ
+                      ?COMMAND
+                      '(REPLACE REMEMBER)
+                      }
+                      COLORS
+                      ?COLOR-LIST
+                      THEN
+                      PROGN
+                      (HT)
+                      (FUNCALL :COMMAND (LIST 'COLORS :COLOR-LIST) :SELF)
+                      (APPLY 'MAKETURTLE (DRAW+ERASE :SELF))
+                      (ST))
+
+-- Symbols and how they are used (148) --
+  %                              in constant
+  %REST                          in constant
+  *APPLY                         called
+  *PLUS                          called
+  *QUO                           called
+  :AMOUNT                        in constant
+  :COLOR-LIST                    in constant
+  :COMMAND                       in constant
+  :ERASERSTATE                   special
+  :FACTOR                        in constant
+  :HEADING                       special
+  :MESSAGE                       in constant
+  :N                             in constant
+  :RANGE                         in constant
+  :SEETURTLE                     in constant
+  :SELF                          in constant, special
+  :TOWARDS                       in constant
+  :TURN                          in constant
+  :X                             in constant
+  :Y                             in constant
+  ?                              in constant
+  ?AMOUNT                        in constant
+  ?COLOR-LIST                    in constant
+  ?COMMAND                       in constant
+  ?FACTOR                        in constant
+  ?N                             in constant
+  ?TURN                          in constant
+  ?X                             in constant
+  ?Y                             in constant
+  A                              in top-level form
+  AND                            in constant
+  APPEND-ATOMS                   called
+  APPLY                          in constant, quoted
+  AROUND                         in constant
+  ASK                            called, in constant
+  AWAY                           in constant
+  BACK                           in constant
+  BK                             called, in constant
+  BY                             in constant
+  CDR                            in top-level form
+  COLOR                          in top-level form
+  COLORS                         in constant
+  CONS                           in top-level form
+  CONS-DRAW-FORM                 called, defined, in top-level form
+  CONS-ERASE-FORM                called, defined, in top-level form
+  DEFINE-ERAW+ERASE              in constant
+  DEFINE.FLOWER                  defined, in top-level form
+  DEFINE.OBJECT                  defined, in top-level form
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DEGREES                        in constant
+  DELX                           in constant
+  DELXY                          in constant
+  DELY                           in constant
+  DO.THE.FOLLOWING:              in constant, in top-level form
+  DRAW+ERASE                     called, defined, in constant, in top-level form
+  DRAW-ARC                       called, defined, in top-level form
+  DRAW-FLOWER                    defined, in constant, in top-level form
+  DRAW-POINT                     defined, in constant, in top-level form
+  ERD                            called, in constant
+  ERU                            in constant
+  EVAL                           in constant
+  EXPR-HASH                      in top-level form
+  FACTOR                         in constant
+  FD                             called, in constant
+  FEATURE                        in top-level form
+  FIND                           called
+  FLOWER                         defined, in constant, in top-level form, quoted, special
+  FORWARD                        in constant
+  FROM                           in constant
+  FUNCALL                        in constant
+  GREEN                          quoted
+  GROW                           in constant
+  HATCH                          called
+  HEADING                        in constant
+  HERE                           called, in constant
+  HIDE                           in constant
+  HOW-TO-DRAW                    in constant
+  HT                             called, in constant
+  IF                             in constant
+  IS                             in top-level form
+  LAMBDA                         in constant, in top-level form
+  LEFT                           in constant
+  LIST                           in constant, in top-level form
+  LT                             called, in constant
+  MACRO                          in top-level form
+  MAKE                           in constant
+  MAKE-A-NEW-TURTLE              called, defined, in top-level form
+  MAKETURTLE                     in constant, quoted
+  MEMQ                           in constant
+  MOVE                           in constant
+  NCONS                          called
+  NIL                            in top-level form, quoted
+  NOW                            in top-level form
+  NUMBER-OF-PETALS               in constant
+  OBJECT                         in constant, special
+  OR                             in top-level form
+  ORANGE                         in constant
+  PD                             called, in constant
+  PEN                            in top-level form
+  PENCOLOR                       called, in top-level form
+  PENDOWN                        in constant
+  PENUP                          in constant
+  PETAL                          called, defined, in top-level form
+  PETALS                         called, defined, in top-level form
+  PLUS                           in constant
+  POINT                          called
+  PRINT                          in top-level form
+  PROGN                          in constant, in top-level form, quoted
+  PU                             called, in constant
+  QUOTE                          in constant, in top-level form, quoted
+  RANGE                          in constant
+  RECALL                         in constant
+  RECEIVE                        in constant
+  RED                            in constant
+  REMEMBER                       called, in constant, quoted
+  REPLACE                        in constant
+  REVOLVE                        in constant
+  RIGHT                          called, in constant
+  RT                             called, in constant
+  SEETURTLE                      in constant
+  SETHEADING                     in constant
+  SETSYNTAX                      in top-level form
+  SETT                           called, in constant
+  SETX                           in constant
+  SETXY                          in constant
+  SETY                           in constant
+  SHOW                           in constant
+  SINGLE                         in top-level form
+  SIZE                           in constant
+  SOMETHING                      special
+  ST                             in constant
+  STATUS                         in top-level form
+  TELL-LOGO-WHICH-TURTLE         defined, in constant, in top-level form
+  THEN                           in constant
+  TIMES                          in constant
+  TOWARDS                        in constant
+  TURTLE                         quoted
+  TURTLE-NAME                    in constant, quoted
+  USETURTLE                      called
+  WHAT                           in constant
+  XCONS                          called
+  XOR-POINT                      defined, in top-level form, quoted
+  XORDOWN                        called
+  XORUP                          called
+  YELLOW                         in constant
+  {                              in constant
+  }                              in constant
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (178 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  DEFPROP
+    10 symbol  DO.THE.FOLLOWING:
+    11 symbol  LAMBDA
+    12 symbol  A
+    13 symbol  CONS
+    14 symbol  CDR
+    15 symbol  MACRO
+    16 symbol  DEFINE.OBJECT
+    17 fixnum  -1638224059
+    18 symbol  EXPR-HASH
+    19 symbol  SUBR
+    20 symbol  MAKE
+    21 symbol  OBJECT
+    22 symbol  SOMETHING
+    23 symbol  ASK
+    24 symbol  REMEMBER
+    25 symbol  SIZE
+    26 fixnum  100
+    27 symbol  HOW-TO-DRAW
+    28 symbol  DRAW-POINT
+    29 symbol  IF
+    30 symbol  RECEIVE
+    31 symbol  {
+    32 symbol  MEMQ
+    33 symbol  ?COMMAND
+    34 symbol  FD
+    35 symbol  FORWARD
+    36 symbol  RT
+    37 symbol  RIGHT
+    38 symbol  LT
+    39 symbol  LEFT
+    40 symbol  BK
+    41 symbol  BACK
+    42 symbol  PU
+    43 symbol  PD
+    44 symbol  PENUP
+    45 symbol  PENDOWN
+    46 symbol  HERE
+    47 symbol  SETX
+    48 symbol  SETY
+    49 symbol  SETXY
+    50 symbol  DELX
+    51 symbol  DELY
+    52 symbol  DELXY
+    53 symbol  HEADING
+    54 symbol  SETHEADING
+    55 symbol  SETT
+    56 symbol  }
+    57 symbol  %REST
+    58 symbol  THEN
+    59 symbol  TELL-LOGO-WHICH-TURTLE
+    60 symbol  :SELF
+    61 symbol  EVAL
+    62 symbol  :MESSAGE
+    63 symbol  SHOW
+    64 symbol  ST
+    65 symbol  HIDE
+    66 symbol  HT
+    67 symbol  MOVE
+    68 symbol  AWAY
+    69 symbol  FROM
+    70 symbol  ?X
+    71 symbol  ?Y
+    72 symbol  %
+    73 symbol  BY
+    74 symbol  FACTOR
+    75 symbol  ?FACTOR
+    76 symbol  :TOWARDS
+    77 symbol  :RANGE
+    78 symbol  SEETURTLE
+    79 symbol  TIMES
+    80 symbol  PLUS
+    81 flonum  -1.0
+    82 symbol  :FACTOR
+    83 symbol  AND
+    84 symbol  TOWARDS
+    85 symbol  :X
+    86 symbol  :Y
+    87 symbol  RANGE
+    88 symbol  :SEETURTLE
+    89 symbol  REVOLVE
+    90 symbol  AROUND
+    91 symbol  ?TURN
+    92 symbol  DEGREES
+    93 symbol  :TURN
+    94 symbol  REPLACE
+    95 symbol  ?N
+    96 symbol  FUNCALL
+    97 symbol  :COMMAND
+    98 symbol  LIST
+    99 symbol  :N
+   100 symbol  APPLY
+   101 symbol  MAKETURTLE
+   102 symbol  DRAW+ERASE
+   103 symbol  GROW
+   104 symbol  ?AMOUNT
+   105 symbol  :AMOUNT
+   106 symbol  WHAT
+   107 symbol  ?
+   108 fixnum  30971242019
+   109 symbol  TURTLE-NAME
+   110 symbol  FIND
+   111 symbol  USETURTLE
+   112 symbol  MAKE-A-NEW-TURTLE
+   113 fixnum  16227925261
+   114 symbol  TURTLE
+   115 symbol  APPEND-ATOMS
+   116 symbol  HATCH
+   117 symbol  NCONS
+   118 symbol  XCONS
+   119 symbol  *APPLY
+   120 fixnum  11404422447
+   121 symbol  RECALL
+   122 symbol  CONS-DRAW-FORM
+   123 symbol  CONS-ERASE-FORM
+   124 fixnum  14357562615
+   125 fixnum  13990062327
+   126 symbol  ERU
+   127 symbol  ERD
+   128 symbol  XOR-POINT
+   129 fixnum  -8443552322
+   130 symbol  XORDOWN
+   131 symbol  POINT
+   132 symbol  XORUP
+   133 fixnum  14974259204
+   134 symbol  PETALS
+   135 fixnum  -20474999721
+   136 fixnum  45
+   137 flonum  360.0
+   138 symbol  *QUO
+   139 symbol  PENCOLOR
+   140 symbol  PETAL
+   141 fixnum  23944609404
+   142 symbol  :ERASERSTATE
+   143 fixnum  90
+   144 symbol  DRAW-ARC
+   145 fixnum  135
+   146 fixnum  18961504766
+   147 symbol  :HEADING
+   148 symbol  *PLUS
+   149 fixnum  5
+   150 symbol  FLOWER
+   151 fixnum  13146277862
+   152 flonum  55.0
+   153 symbol  GREEN
+   154 fixnum  22
+   155 fixnum  33
+   156 symbol  DRAW-FLOWER
+   157 fixnum  21143315841
+   158 symbol  NUMBER-OF-PETALS
+   159 symbol  COLORS
+   160 symbol  DEFINE.FLOWER
+   161 fixnum  16495174433
+   162 fixnum  3
+   163 symbol  RED
+   164 symbol  YELLOW
+   165 symbol  ORANGE
+   166 fixnum  200
+   167 symbol  DEFINE-ERAW+ERASE
+   168 symbol  ?COLOR-LIST
+   169 symbol  :COLOR-LIST
+   170 symbol  OR
+   171 symbol  STATUS
+   172 symbol  FEATURE
+   173 symbol  COLOR
+   174 symbol  DEFUN
+   175 symbol  PRINT
+   176 symbol  PEN
+   177 symbol  IS
+   178 symbol  NOW
+
+The LAP-like listing of the loaded words is in code/7005044_turt.code.txt.

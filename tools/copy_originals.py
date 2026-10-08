@@ -52,8 +52,19 @@ SKIP_PATHS = {
 }
 
 
+# On-disk names whose ITS names the plain rule gets wrong; confirmed by the
+# decoded directory listing of tape 3100153 (reports/itsdir/).
+ITS_NAME_OVERRIDES = {
+    "anima_.decl": "ANIMA* DECL",
+    "turt_.decl": "TURT* DECL",
+    "turt_.fasl": "TURT* FASL",
+}
+
+
 def its_name(fname):
     """Best guess at the ITS name: 'cindy.46' -> 'CINDY 46'."""
+    if fname in ITS_NAME_OVERRIDES:
+        return ITS_NAME_OVERRIDES[fname]
     if "." not in fname:
         return fname.upper()
     fn1, fn2 = fname.split(".", 1)

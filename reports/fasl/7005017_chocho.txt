@@ -1,0 +1,212 @@
+FASL dump: original/7005017/chocho.fasl  (ITS KEN;CHOCHO FASL, tape 7005017, Feb 1979)
+Decoded 688 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 688 of 688 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 223123,,000016 ('293', flag bits 016), 41 blocks, 363 items
+Item counts: absolute 101, relocatable 27, special 12, smashable call 56, quoted atom 41, quoted list 6, globalsym 32, atom table 72, entry 7, eval mungeable 8, end 1
+
+-- Functions defined (7) --
+  name                         property args         address
+  MAKE-CHOICES-UNTIL-COMPLETED SUBR     (NIL . 1)    000000
+  MAKE-CHOICES                 SUBR     (NIL . 2)    000026
+  CHOOSE-CHOICES               SUBR     (NIL . 3)    000052
+  UNFINISHED-CHOICES           SUBR     (NIL . 1)    000250
+  CHOICE-IN-FOCUS              SUBR     (NIL . 2)    000307
+  |KEN;CHOCHO-27.|             LSUBR                 000347
+  RESET-NODE-STATUS            SUBR     (NIL . 1)    000353
+
+-- Top-level forms evaluated at load time (8) --
+  (DEFPROP DECLARATIONS-ONLY-WHEN-NEEDED
+    (LAMBDA (USELESS) (COND ((STATUS FEATURES NCOMPLR) '(INCLUDE |ai:ken;decla2 >|))))
+    MACRO)
+  (DEFPROP DEFCOMMENT (LAMBDA (USELESS) NIL) MACRO)
+  (REMPROP 'MAKE-CHOICES-UNTIL-COMPLETED 'AUTOLOAD)
+  (REMPROP 'MAKE-CHOICES 'AUTOLOAD)
+  (REMPROP 'CHOOSE-CHOICES 'AUTOLOAD)
+  (REMPROP 'UNFINISHED-CHOICES 'AUTOLOAD)
+  (REMPROP 'CHOICE-IN-FOCUS 'AUTOLOAD)
+  (REMPROP 'RESET-NODE-STATUS 'AUTOLOAD)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  MAKE-CHOICES-UNTIL-COMPLETED
+      calls:        RECALL-VARIABLE MAKE-CHOICES
+      quoted atoms: CURRENT-FILM FILM FOCUS COMPLETED NIL
+  MAKE-CHOICES
+      calls:        IS-ANY-ANCESTOR-OF |(YIELD YOUR CHOICES)NODE| UNFINISHED-CHOICES CHOOSE-CHOICES
+      specials:     :SELF :MESSAGE
+      quoted atoms: CHOICE-POINT NIL
+      quoted list:  (YIELD YOUR CHOICES)
+  CHOOSE-CHOICES
+      calls:        IS-ANY-ANCESTOR-OF CONS |(CHOOSE A VALUE)CHOICE-POINT| |(YIELD YOUR CHOICES)NODE| UNFINISHED-CHOICES NCONS XCONS CHANGE-VALUE MAKE-CHOICES CHOOSE-CHOICES CHOICE-IN-FOCUS *DELQ |(WHO SHOULD BE TRIED FIRST AMONG ?CHOICES)POSTPONER|
+      specials:     ERRLIST :SELF :MESSAGE
+      quoted atoms: CHOICE-POINT DO TO HAVE STILL POSTPONED: COMPLETED STATUS NIL AMONG FIRST TRIED BE SHOULD WHO POSTPONER
+      quoted list:  (COMPILER-MAPSET ((:EXAMPLE-TARGET NIL) (:DIRECTOR-WARNINGS T)))
+      quoted list:  (CHOOSE A VALUE)
+      quoted list:  (YIELD YOUR CHOICES)
+  UNFINISHED-CHOICES
+      calls:        IS-ANY-ANCESTOR-OF RECALL-VARIABLE CONS
+      quoted atoms: CHOICE-POINT CURRENT-CHOICE STATUS COMPLETED
+  CHOICE-IN-FOCUS
+      calls:        CONS XCONS ASK1
+      specials:     ERRLIST
+      quoted atoms: IS NIL
+      quoted list:  (COMPILER-MAPSET ((:EXAMPLE-TARGET NIL) (:DIRECTOR-WARNINGS T)))
+      quoted list:  (PART OF THE FOCUS)
+  |KEN;CHOCHO-27.|
+      calls:        CHANGE-VALUE
+      quoted atoms: NIL STATUS
+  RESET-NODE-STATUS
+      calls:        RECALL-VARIABLE CHANGE-VALUE
+      quoted atoms: DESCENDANTS |KEN;CHOCHO-27.| NIL STATUS NODE
+
+-- Symbols and how they are used (71) --
+  |(CHOOSE A VALUE)CHOICE-POINT| called
+  |(WHO SHOULD BE TRIED FIRST AMONG ?CHOICES)POSTPONER| called
+  |(YIELD YOUR CHOICES)NODE|     called
+  *DELQ                          called
+  :DIRECTOR-WARNINGS             in constant
+  :EXAMPLE-TARGET                in constant
+  :MESSAGE                       special
+  :SELF                          special
+  A                              in constant
+  AMONG                          quoted
+  ASK1                           called
+  AUTOLOAD                       in top-level form
+  BE                             quoted
+  CHANGE-VALUE                   called
+  CHOICE-IN-FOCUS                called, defined, in top-level form
+  CHOICE-POINT                   quoted
+  CHOICES                        in constant
+  CHOOSE                         in constant
+  CHOOSE-CHOICES                 called, defined, in top-level form
+  COMPILER-MAPSET                in constant
+  COMPLETED                      quoted
+  COND                           in top-level form
+  CONS                           called
+  CURRENT-CHOICE                 quoted
+  CURRENT-FILM                   quoted
+  DECLARATIONS-ONLY-WHEN-NEEDED  in top-level form
+  DEFCOMMENT                     in top-level form
+  DEFPROP                        in top-level form
+  DESCENDANTS                    quoted
+  DO                             quoted
+  ERRLIST                        special
+  FEATURES                       in top-level form
+  FILM                           quoted
+  FIRST                          quoted
+  FOCUS                          in constant, quoted
+  HAVE                           quoted
+  INCLUDE                        in top-level form
+  IS                             quoted
+  IS-ANY-ANCESTOR-OF             called
+  |KEN;CHOCHO-27.|               defined, quoted
+  LAMBDA                         in top-level form
+  MACRO                          in top-level form
+  MAKE-CHOICES                   called, defined, in top-level form
+  MAKE-CHOICES-UNTIL-COMPLETED   defined, in top-level form
+  NCOMPLR                        in top-level form
+  NCONS                          called
+  NIL                            in constant, in top-level form, quoted
+  NODE                           quoted
+  OF                             in constant
+  PART                           in constant
+  POSTPONED:                     quoted
+  POSTPONER                      quoted
+  QUOTE                          in top-level form
+  RECALL-VARIABLE                called
+  REMPROP                        in top-level form
+  RESET-NODE-STATUS              defined, in top-level form
+  SHOULD                         quoted
+  STATUS                         in top-level form, quoted
+  STILL                          quoted
+  T                              in constant
+  THE                            in constant
+  TO                             quoted
+  TRIED                          quoted
+  UNFINISHED-CHOICES             called, defined, in top-level form
+  USELESS                        in top-level form
+  VALUE                          in constant
+  WHO                            quoted
+  XCONS                          called
+  YIELD                          in constant
+  YOUR                           in constant
+  |ai:ken;decla2 >|              in top-level form
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (72 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  DECLARATIONS-ONLY-WHEN-NEEDED
+     3 symbol  LAMBDA
+     4 symbol  USELESS
+     5 symbol  COND
+     6 symbol  STATUS
+     7 symbol  FEATURES
+     8 symbol  NCOMPLR
+     9 symbol  QUOTE
+    10 symbol  INCLUDE
+    11 symbol  |ai:ken;decla2 >|
+    12 symbol  MACRO
+    13 symbol  DEFCOMMENT
+    14 symbol  REMPROP
+    15 symbol  MAKE-CHOICES-UNTIL-COMPLETED
+    16 symbol  AUTOLOAD
+    17 symbol  SUBR
+    18 symbol  CURRENT-FILM
+    19 symbol  FILM
+    20 symbol  RECALL-VARIABLE
+    21 symbol  FOCUS
+    22 symbol  MAKE-CHOICES
+    23 symbol  COMPLETED
+    24 symbol  CHOICE-POINT
+    25 symbol  IS-ANY-ANCESTOR-OF
+    26 symbol  YIELD
+    27 symbol  YOUR
+    28 symbol  CHOICES
+    29 symbol  :SELF
+    30 symbol  :MESSAGE
+    31 symbol  |(YIELD YOUR CHOICES)NODE|
+    32 symbol  UNFINISHED-CHOICES
+    33 symbol  CHOOSE-CHOICES
+    34 symbol  ERRLIST
+    35 symbol  COMPILER-MAPSET
+    36 symbol  :EXAMPLE-TARGET
+    37 symbol  :DIRECTOR-WARNINGS
+    38 symbol  T
+    39 symbol  CONS
+    40 symbol  CHOOSE
+    41 symbol  A
+    42 symbol  VALUE
+    43 symbol  |(CHOOSE A VALUE)CHOICE-POINT|
+    44 symbol  NCONS
+    45 symbol  DO
+    46 symbol  XCONS
+    47 symbol  TO
+    48 symbol  HAVE
+    49 symbol  STILL
+    50 symbol  POSTPONED:
+    51 symbol  CHANGE-VALUE
+    52 symbol  CHOICE-IN-FOCUS
+    53 symbol  *DELQ
+    54 symbol  AMONG
+    55 symbol  FIRST
+    56 symbol  TRIED
+    57 symbol  BE
+    58 symbol  SHOULD
+    59 symbol  WHO
+    60 symbol  POSTPONER
+    61 symbol  |(WHO SHOULD BE TRIED FIRST AMONG ?CHOICES)POSTPONER|
+    62 symbol  CURRENT-CHOICE
+    63 symbol  PART
+    64 symbol  OF
+    65 symbol  THE
+    66 symbol  IS
+    67 symbol  ASK1
+    68 symbol  RESET-NODE-STATUS
+    69 symbol  |KEN;CHOCHO-27.|
+    70 symbol  LSUBR
+    71 symbol  DESCENDANTS
+    72 symbol  NODE
+
+The LAP-like listing of the loaded words is in code/7005017_chocho.code.txt.

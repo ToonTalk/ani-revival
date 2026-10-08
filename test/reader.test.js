@@ -57,3 +57,10 @@ test("ITS text: words with bit 35 set decode to their five characters", () => {
   // trailing ^C padding is dropped
   assert.equal(decodeItsText(Buffer.from("(a)\x03\x03")).text, "(a)");
 });
+
+test("ITS evacuate format: line endings and rubout pairs", () => {
+  // LF stands for ITS's CR LF; CR for a lone LF; 0x80-0xED for rubout + a character
+  assert.equal(decodeItsText(Buffer.from([0x61, 0x0a, 0x62, 0x0d, 0x63])).text, "a\nb\nc");
+  assert.equal(decodeItsText(Buffer.from([0x28, 0x64, 0xb6, 0x34])).text, "(d\x7f64"); // a tags-table entry
+  assert.equal(decodeItsText(Buffer.from([0xee, 0xef])).text, "\r\x7f");
+});

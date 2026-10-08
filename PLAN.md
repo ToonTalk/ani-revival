@@ -12,7 +12,7 @@
 
 ## Status
 
-- **Phase 0, done (8 October).** See `INVENTORY.md` and `reports/XREF.md`. The write-up of the binary formats (FASLs, ITS directories, archives) is still in progress; it will go in `reports/BINARY-FORMATS.md`.
+- **Phase 0, done (8 October).** See `INVENTORY.md`, `reports/XREF.md` and `reports/BINARY-FORMATS.md`. The biggest find: `TS D2500`, a Director saved in January 1980, holds compiled code for most of the lost `KEN1;` runtime.
 - **Phase 1, done (8 October).** The MacLisp interpreter is in `src/maclisp/`:
   - the reader, with Director's read macros;
   - the evaluator, with MacLisp's special forms and about 200 built-in functions;
@@ -145,7 +145,11 @@ Each phase ends with something you can look at.
 ### Phase 2: Director
 - Load `DRECT`, `SOME`, `OBJECT`, `SCREEN`, `MOVIE`, `POLY` and `ACTCOM`.
 - Rebuild `KEN1;` in MacLisp, one file at a time, in the tags table's order.
-  - Each definition cites its evidence: the Director Guide, an expanded `.lisp` file, the FASL, an older version, or its call sites.
+  - **The primary source is the compiled code in `TS D2500`**, a Director saved on 5 January 1980. It covers most of `MACROS`, `UTIL`, `CMATCH`, `DL`, `TUTIL` and `PROP`. Each function is decompiled from its PDP-10 listing back into Lisp.
+  - Some calls in the listings still show as bare link-table addresses. The first step is to resolve those to function names.
+  - The image is eleven months newer than the Ani code. Where it might differ, the 1979 evidence decides: call sites, the expanded `.lisp` files, the FASLs, and the June 1978 Director Guide.
+  - `MEMORY`, `COLIDE`, `FWMAKE` and the compiler files aren't in the image. Those are rebuilt from the other evidence.
+  - Each definition cites its evidence.
   - Compilation forms (`compile-actors`, compiled `ask`) become plain interpretation.
 - **TV turtle:**
   - Port the primitives Director uses (`hatch`, `useturtle`, `maketurtle`, `tvsize`, `pencolor`, `scale`, `clearscreen`, …) to Canvas, checking each against the TVRTLE source.

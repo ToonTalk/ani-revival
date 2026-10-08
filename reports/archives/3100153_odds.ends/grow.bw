@@ -1,0 +1,141 @@
+(defun growc (initial inc pattern angle wait)
+       (do ((init (progn (xorup) (pu) (sett '(-250 0 0))))
+	    (i 36 (1- i))
+	    (amt initial (+ inc amt)))
+	   ((= i 0) 'done)		       
+	   (ht)
+	   (xordown)
+	   (cond ((eq pattern 'poly) (poly amt angle))
+		 ((memq Pattern '(lighttexture texture darktexture)) (shade pattern))
+		 (t (sw Pattern)))
+	   (xorup)
+	   (fd 50)
+	   (rt 10)
+	   (st)
+	   (and wait (tyi))
+	   (wipe)))
+
+(defun makefbturt (size)
+       (pu)
+       (cs)
+       (delx -200)
+       (pd)
+       (fullbird size)
+       (pu)
+       (rt 30)
+       (bk (times size 100.0))
+       (shade )
+       (mw 'fb)
+       (hatch 'fbturt)
+       (maketurtle (hw 'fb :xcor :ycor) (hw 'fb :xcor :ycor)))
+
+
+(DEFPROP FULLBIRD (LAMBDA (:SIZE) (PROG NIL 10 (BIRD (TIMES :SIZE 2)) 20 (FORWARD (TIMES 90 :SIZE)) 30 (RIGHT -30) 40 (FORWARD (TIMES 160 :SIZE)) 50 (RIGHT -15) 60 (FORWARD (TIMES 20 :SIZE)) 70 (RIGHT -15) 80 (FORWARD (TIMES 120 :SIZE)) 90 (RIGHT -15) 100 (FORWARD (TIMES 30 :SIZE)) 110 (RIGHT -15) 120 (FORWARD (TIMES 90 :SIZE)) 130 (RIGHT 130) 140 (FORWARD (TIMES 170 :SIZE)) 150 (RIGHT -30) 160 (FORWARD (TIMES 180 :SIZE)) 170 (RIGHT -30) 180 (FORWARD (TIMES 100 :SIZE)) 190 (RIGHT -45) 200 (FORWARD (TIMES 60 :SIZE)) )) EXPR )
+
+
+(DEFPROP BIRD2 (LAMBDA (:SIZE) (PROG NIL 10 (BIRD (TIMES :SIZE 1)) 20 (PENUP) 30 (HOME) 40 (FORWARD (TIMES 20 :SIZE)) 50 (PENDOWN) 60 (BIRD (TIMES :SIZE 1)) )) EXPR )
+
+
+(DEFPROP BIRD (LAMBDA (:SIZE) (PROG NIL 10 (RIGHT 90) 20 (WING (TIMES :SIZE 4)) 30 (WING (TIMES :SIZE -4)) )) EXPR )
+
+
+(DEFPROP WING (LAMBDA (:SIZE) (PROG NIL 10 (FORWARD (TIMES 10 :SIZE)) 20 (RIGHT 30) 30 (FORWARD (TIMES 20 :SIZE)) 40 (RIGHT 15) 50 (FORWARD (TIMES 10 :SIZE)) 60 (RIGHT 30) 70 (FORWARD (TIMES 30 :SIZE)) 80 (RIGHT 30) )) EXPR )
+
+
+
+;(DEFUN FIND-RIGHT-BOUNDARY (START-X START-Y )
+;       (and want-to-wait (tyi))
+;       (SETQ START-X (+ START-X (RUNAWAY-FORWARD START-X START-Y nil)))
+;       ;;RIGHTWARDS RUN UNTIL BOUNDARY REACHED, THEN BACK OFF.
+;       (- START-X (RUNAWAY-BACKWARD-BOUNDARY START-X START-Y)))
+
+(defun mwcirc (size name shadepat drawer)
+       (cs)
+       (drawer size)
+       (or (eq shadepat 'dummy-window) (shade shadepat))
+       (ht) (sleep .5)(and want-to-wait (tyi))
+       (mw name (times size 1.1))
+       (and want-to-wait (tyi))
+       (st)
+       name)
+
+(defun init nil
+       (cs)
+       (setq want-to-wait nil)
+       (setq lastpat (setq shadepat 'dummy-window))
+       (ht)
+       (mw 'dummy-window 10)
+       (turn-turtle-to-circ)
+       (st))
+
+(defun turn-turtle-to-circ nil
+       (maketurtle (xw shadepat :xcor :ycor)
+		   (xw shadepat :xcor :ycor)))
+
+(defun mwall (drawer number-of-circles initial-size factor want-to-wait)
+       (do ((n-left number-of-circles (1- n-left))
+	    (size initial-size (times size factor)))
+	   ((= n-left 0)(ht))
+	   (setq lastpat (mwcirc size (gensym) lastpat drawer))))
+
+(defun move (window speed hide?)
+       (cond (hide? (xw window :xcor :ycor))
+	     (t (sw window :xcor :ycor)))
+       (tyi)
+       (and hide? (xw window :xcor :ycor))
+       (fd speed)
+       (move window speed hide?))
+
+
+
+(defun poly1 (:size :angle :begin-heading)
+		(forward :size) (and want-to-wait (tyi))
+       		(right :angle)
+		(cond ((= :begin-heading (heading)))
+		      (t (poly1 :size :angle :begin-heading))))
+
+(defun poly (:size :angle)
+       (poly1 :size :angle (heading)))
+
+(defun centerhex (size)
+       (penup)
+       (left 120)
+       (forward size)
+       (right 120)
+       (pendown)
+       (poly size 60)
+       (pu)
+       (right 60)
+       (forward size)
+       (left 60)
+       (pd))
+
+(defun center/.circle (size)
+       (penup)
+       (left 90)
+       (forward size)
+       (right 90)
+       (pendown)
+       (poly (*$ (//$ (float size) 36.0) 6.28) 10)
+       (pu)
+       (right 90)
+       (forward size)
+       (left 90)
+       (pd))
+
+(defun dummy nil nil)
+
+
+(defun center/.sq (size)
+       (penup)
+       (back (//$ (float size) 2.0))
+       (left 90)
+       (forward (//$ (float size)  2.0))
+       (right 90)
+       (pendown)
+       (poly size 90)
+       (penup)
+       (forward (//$ (float size) 2.0))
+       (right 90)
+       (forward (//$ (float size)  2.0))
+       (left 90)       )

@@ -1,0 +1,617 @@
+FASL dump: original/3100153/loops.fasl  (ITS KEN;LOOPS FASL, tape 3100153, late 1976)
+Decoded 2692 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 2692 of 2692 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 213123,,000007 ('193', flag bits 007), 186 blocks, 1666 items
+Item counts: absolute 781, relocatable 127, special 26, smashable call 221, quoted atom 90, quoted list 27, globalsym 112, atom table 249, entry 28, eval mungeable 4, end 1
+
+-- Functions defined (28) --
+  name                         property args         address
+  GPOLY                        SUBR     (NIL . 4)    000000
+  EQUIV.SIZE                   SUBR     (NIL . 3)    000060
+  NEAREST.MULT                 SUBR     (NIL . 1)    000114
+  PAUSE                        SUBR     (NIL . 1)    000163
+  COLOR.CS                     SUBR     (NIL . 0)    000201
+  HIDE.A.TURTLE                SUBR     (NIL . 1)    000224
+  LOOP1                        SUBR     (NIL . 1)    000226
+  GROW.GPOLY                   LSUBR    (8 . 8)      000301
+  FILL.CIRCLE                  SUBR     (NIL . 2)    000505
+  EMPTY.CIRCLE                 SUBR     (NIL . 2)    000657
+  LOOP2                        SUBR     (NIL . 3)    001022
+  FILL.LOOP2                   SUBR     (NIL . 4)    001042
+  EMPTY.LOOP2                  SUBR     (NIL . 1)    001104
+  SET.UP.RING                  SUBR     (NIL . 2)    001235
+  MAKE.RING.ACTORS             LSUBR    (6 . 6)      001325
+  INNERRING                    SUBR     (NIL . 0)    001375
+  OUTERRING                    SUBR     (NIL . 0)    001436
+  RINGS                        SUBR     (NIL . 0)    001473
+  LOOP3                        SUBR     (NIL . 2)    001503
+  INTERPOLATE.TO.NEIGHBOR      SUBR     (NIL . 4)    001566
+  LOOP4                        SUBR     (NIL . 2)    001614
+  SPIRAL.IN                    SUBR     (NIL . 4)    001621
+  TEST                         SUBR     (NIL . 1)    001710
+  GENERATE.OBJECT              SUBR     (NIL . 1)    001740
+  COPY.COLOR                   SUBR     (NIL . 2)    002117
+  DUMMY                        SUBR     (NIL . 0)    002135
+  MAKE.FORM                    SUBR     (NIL . 4)    002137
+  UPDATE.OBJECT                LSUBR    (13 . 13)    002200
+
+-- Top-level forms evaluated at load time (4) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+  (OR (BOUNDP 'NO-VALUE) (SETQ NO-VALUE '?))
+  (SETQ INITIAL.VELOCITY 3.0 TURN.AMOUNT 6.0)
+  (SETQ :RESTART 0)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  GPOLY
+      calls:        FLOAT TURTLESIZE *GREAT PC FD RT NCONS *APPEND
+      specials:     :YCOR
+      quoted atoms: ? NIL
+  EQUIV.SIZE
+      calls:        NEAREST.MULT FLOAT GCD EXPT
+  NEAREST.MULT
+      quoted atoms: 0
+  PAUSE
+      calls:        NUMBERP SLEEP TYO TYI
+      quoted atoms: 7
+  COLOR.CS
+      calls:        STATUS CS TYI COLOR.CS TV-CLEARSCREEN
+      specials:     :TURTLES NO-VALUE
+      quoted atoms: HIDE.A.TURTLE
+      quoted list:  (FEATURE COLOR)
+  HIDE.A.TURTLE
+      calls:        USETURTLE HT
+  LOOP1
+      calls:        MAKE.COLOR.INTERPOLATION MAPCAN GROW.GPOLY
+      quoted atoms: 6 GREEN RED BLUE 5 119 1.02 T LIST 240
+  GROW.GPOLY
+      calls:        FLOAT FIX EQUIV.SIZE HT PC CS MAKE.PALETTE.ROTATION COLOR.CS RT GPOLY INTERPOLATE.PALETTE PAUSE EQUAL NCONS *APPEND
+      specials:     :ERASERCOLOR NO-VALUE
+      quoted atoms: PC NIL 0.0
+  FILL.CIRCLE
+      calls:        RANDOM PC POINT
+      quoted atoms: NIL 15
+  EMPTY.CIRCLE
+      calls:        PC RANDOM POINT
+      specials:     :ERASERCOLOR
+      quoted atoms: NIL
+  LOOP2
+      calls:        FILL.LOOP2 *BREAK EMPTY.LOOP2
+      quoted atoms: 10 ABOUT.TO.EMPTY T
+  FILL.LOOP2
+      calls:        MAKE.PALETTE.ROTATION FILL.CIRCLE PAUSE INTERPOLATE.PALETTE
+      quoted atoms: NIL 1
+  EMPTY.LOOP2
+      calls:        RANDOM MIN PALETTE MAKEPALETTE SUBST LISTARRAY EQUAL PAUSE
+      specials:     :ERASERCOLOR
+      quoted atoms: T 15 18 0 PALETTE
+      quoted list:  (T T T T T T T T T T T T T T T T)
+  SET.UP.RING
+      calls:        USETURTLE PU HOME DELX LENGTH FLOAT ASK ST DRAW-ARC
+      quoted atoms: LOGOTURTLE DONE
+      quoted list:  ((CAR I) (SETXY :XCOR :YCOR))
+      quoted list:  ((CAR I) (GROW 0))
+  MAKE.RING.ACTORS
+      calls:        ASK REVERSE *PLUS
+      quoted atoms: NIL
+      quoted list:  (:ACTOR1 (MAKE ACTOR1.1))
+      quoted list:  (ACTOR1.1 (INTERPOLATE TO :ACTOR2 IN 1 TICKS))
+      quoted list:  (ACTOR1.1 (MAKE (CAR (SETQ ANS (CONS (GENSYM) ANS)))))
+      quoted list:  ((CAR ANS)
+                     (KNOW THAT YOUR INTERPOLATIONAMOUNT IS (FLOAT :INTERPOLATION.AMOUNT)))
+      quoted list:  ((CAR ANS) (KNOW THAT YOUR COLOR IS (CAR C)))
+  INNERRING
+      calls:        ASK MCOLORI MAKE.RING.ACTORS
+      specials:     R5
+      quoted atoms: 5 GREEN YELLOW STAR5 CIRC -2 1
+      quoted list:  (POLY (MAKE STAR5))
+      quoted list:  (STAR5 (KNOW THAT YOUR ANGLE IS 144))
+      quoted list:  (STAR5 (SHRINK 25))
+      quoted list:  (POLY (MAKE CIRC))
+      quoted list:  (CIRC (SHRINK 25))
+      quoted list:  (CIRC (KNOW THAT YOUR ANGLE IS 12))
+  OUTERRING
+      calls:        ASK MCOLORI MAKE.RING.ACTORS
+      specials:     R9
+      quoted atoms: 9 BLUE RED STAR9 NINEGON -4 1
+      quoted list:  (POLY (MAKE STAR9))
+      quoted list:  (STAR9 (KNOW THAT YOUR ANGLE IS 160))
+      quoted list:  (POLY (MAKE NINEGON))
+      quoted list:  (NINEGON (KNOW THAT YOUR ANGLE IS 40))
+  RINGS
+      calls:        INNERRING SET.UP.RING OUTERRING
+      specials:     R5 R9
+      quoted atoms: 175 400
+  LOOP3
+      calls:        BOUNDP RINGS FLOAT INTERPOLATE.TO.NEIGHBOR TRACE ASK
+      specials:     R9 R5
+      quoted atoms: R9
+      quoted list:  ((WIPE BREAK T))
+      quoted list:  (UNIVERSE (GO FOR :FRAMES TICKS))
+  INTERPOLATE.TO.NEIGHBOR
+      calls:        LAST XCONS ASK
+      quoted atoms: DONE
+      quoted list:  ((CAR I) (PLAN: INTERPOLATE TO (CADR I) IN :NUMBER TICKS NEXT))
+      quoted list:  ((CAR I) (PLAN: REPEAT :NUMBER '(APPEAR FORWARD |`:DISTANCE|) NEXT))
+      quoted list:  ((CAR I) (PLAN: REPEAT :NUMBER '(APPEAR RIGHT |`:ANGLE|) NEXT))
+  LOOP4
+      calls:        SPIRAL.IN
+      quoted atoms: 1.01
+      quoted list:  ((0 200.0 GREEN SQ.CIRC -20.0 (1 1 0))
+                     (50 220.0 RED LINE.CIRC -25.0 (1 1 0))
+                     (87 300.0 YELLOW STAR9.CIRC 12.0 (1 1 0))
+                     (125 175.0 BLUE SQ.CIRC 15.0 (1 1 0))
+                     (190 250.0 CYAN TRI.CIRC -20.0 (1 1 0))
+                     (240 140.0 MAGENTA STAR.CIRC -18.0 (1 1 0))
+                     (286 250.0 WHITE TRI.CIRC 10.0 (1 1 0))
+                     (325 234.0 PINK LINE.CIRC 40.0 (1 1 0))
+                     (380 290.0 GOLD STAR.CIRC 6.0 (1 1 0))
+                     (423 240.0 ORANGE STAR9.CIRC -23.0 (1 1 0))
+                     (490 300.0 PURPLE TRI.CIRC -5.0 (1 1 0))
+                     (540 240.0 RED LINE.CIRC -50.0 (1 1 0))
+                     (585 320.0 YELLOW SQ.CIRC -5.0 (1 1 0))
+                     (621 260.0 PINK STAR9.CIRC 4.0 (1 1 0))
+                     (677 225.0 MAGENTA TRI.CIRC -13.0 (1 1 0)))
+  SPIRAL.IN
+      calls:        COLOR.CS PRINC PAUSE CONS *APPLY
+      specials:     OBJECTS :RESTART
+      quoted atoms: GENERATE.OBJECT DONE NIL UPDATE.OBJECT 1
+  TEST
+      calls:        TV-CLEARSCREEN CONS XCONS *APPLY
+      specials:     X
+      quoted atoms: 0.991 2 UPDATE.OBJECT NIL
+  GENERATE.OBJECT
+      calls:        GENSYM HATCH HT CLIP PU SETTURTLE SYMEVAL COPY.COLOR MAKE.FORM NCONS XCONS *APPLY REDPART GREENPART BLUEPART
+      specials:     INITIAL.VELOCITY
+      quoted atoms: MAKETURTLE
+      quoted list:  (DUMMY)
+  COPY.COLOR
+      calls:        REDPART GREENPART BLUEPART MAKECOLOR
+  DUMMY
+      quoted atoms: NIL
+  MAKE.FORM
+      calls:        NCONS XCONS CONS
+      quoted atoms: QUOTE PC DRAW.CENTERED PROGN
+      quoted list:  (PD)
+  UPDATE.OBJECT
+      calls:        USETURTLE HT SYMEVAL FD RT RANGE MIN MAKECOLOR ABS TURTLESIZE *PLUS *LESS PC ST
+      specials:     TURN.AMOUNT :XCOR :YCOR :ERASERCOLOR :TVSTEP :RESTART
+      quoted atoms: 0.0 NIL 1.0
+
+-- Symbols and how they are used (180) --
+  *APPEND                        called
+  *APPLY                         called
+  *BREAK                         called
+  *GREAT                         called
+  *LESS                          called
+  *PLUS                          called
+  :ACTOR1                        in constant
+  :ACTOR2                        in constant
+  :ERASERCOLOR                   special
+  :FRAMES                        in constant
+  :INTERPOLATION.AMOUNT          in constant
+  :NUMBER                        in constant
+  :RESTART                       in top-level form, special
+  :TURTLES                       special
+  :TVSTEP                        special
+  :XCOR                          in constant, special
+  :YCOR                          in constant, special
+  ?                              in top-level form, quoted
+  ABOUT.TO.EMPTY                 quoted
+  ABS                            called
+  ACTOR1.1                       in constant
+  ANGLE                          in constant
+  ANS                            in constant
+  APPEAR                         in constant
+  ASK                            called
+  BLUE                           in constant, quoted
+  BLUEPART                       called
+  BOUNDP                         called, in top-level form
+  BREAK                          in constant
+  C                              in constant
+  CADR                           in constant
+  CAR                            in constant
+  CIRC                           in constant, quoted
+  CLIP                           called
+  COLOR                          in constant
+  COLOR.CS                       called, defined
+  CONS                           called, in constant
+  COPY.COLOR                     called, defined
+  CS                             called
+  CYAN                           in constant
+  DELX                           called
+  DONE                           quoted
+  DRAW-ARC                       called
+  DRAW.CENTERED                  quoted
+  DUMMY                          defined, in constant
+  EMPTY.CIRCLE                   defined
+  EMPTY.LOOP2                    called, defined
+  EQUAL                          called
+  EQUIV.SIZE                     called, defined
+  EXPT                           called
+  FD                             called
+  FEATURE                        in constant
+  FILL.CIRCLE                    called, defined
+  FILL.LOOP2                     called, defined
+  FIX                            called
+  FLOAT                          called, in constant
+  FOR                            in constant
+  FORWARD                        in constant
+  GCD                            called
+  GENERATE.OBJECT                defined, quoted
+  GENSYM                         called, in constant
+  GO                             in constant
+  GOLD                           in constant
+  GPOLY                          called, defined
+  GREEN                          in constant, quoted
+  GREENPART                      called
+  GROW                           in constant
+  GROW.GPOLY                     called, defined
+  HATCH                          called
+  HIDE.A.TURTLE                  defined, quoted
+  HOME                           called
+  HT                             called
+  I                              in constant
+  IN                             in constant
+  INITIAL.VELOCITY               in top-level form, special
+  INNERRING                      called, defined
+  INTERPOLATE                    in constant
+  INTERPOLATE.PALETTE            called
+  INTERPOLATE.TO.NEIGHBOR        called, defined
+  INTERPOLATIONAMOUNT            in constant
+  IS                             in constant
+  KNOW                           in constant
+  LAST                           called
+  LENGTH                         called
+  LINE.CIRC                      in constant
+  LIST                           quoted
+  LISTARRAY                      called
+  LOGOTURTLE                     quoted
+  LOOP1                          defined
+  LOOP2                          defined
+  LOOP3                          defined
+  LOOP4                          defined
+  MAGENTA                        in constant
+  MAKE                           in constant
+  MAKE.COLOR.INTERPOLATION       called
+  MAKE.FORM                      called, defined
+  MAKE.PALETTE.ROTATION          called
+  MAKE.RING.ACTORS               called, defined
+  MAKECOLOR                      called
+  MAKEPALETTE                    called
+  MAKETURTLE                     quoted
+  MAPCAN                         called
+  MCOLORI                        called
+  MIN                            called
+  NCONS                          called
+  NEAREST.MULT                   called, defined
+  NEXT                           in constant
+  NIL                            in top-level form, quoted
+  NINEGON                        in constant, quoted
+  NO-VALUE                       in top-level form, special
+  NUMBERP                        called
+  OBJECTS                        special
+  OR                             in top-level form
+  ORANGE                         in constant
+  OUTERRING                      called, defined
+  PALETTE                        called, quoted
+  PAUSE                          called, defined
+  PC                             called, quoted
+  PD                             in constant
+  PINK                           in constant
+  PLAN:                          in constant
+  POINT                          called
+  POLY                           in constant
+  PRINC                          called
+  PROGN                          in top-level form, quoted
+  PU                             called
+  PURPLE                         in constant
+  QUOTE                          in constant, in top-level form, quoted
+  R5                             special
+  R9                             quoted, special
+  RANDOM                         called
+  RANGE                          called
+  RED                            in constant, quoted
+  REDPART                        called
+  REPEAT                         in constant
+  REVERSE                        called
+  RIGHT                          in constant
+  RINGS                          called, defined
+  RT                             called
+  SET.UP.RING                    called, defined
+  SETQ                           in constant, in top-level form
+  SETSYNTAX                      in top-level form
+  SETTURTLE                      called
+  SETXY                          in constant
+  SHRINK                         in constant
+  SINGLE                         in top-level form
+  SLEEP                          called
+  SPIRAL.IN                      called, defined
+  SQ.CIRC                        in constant
+  ST                             called
+  STAR.CIRC                      in constant
+  STAR5                          in constant, quoted
+  STAR9                          in constant, quoted
+  STAR9.CIRC                     in constant
+  STATUS                         called
+  SUBST                          called
+  SYMEVAL                        called
+  T                              in constant, quoted
+  TEST                           defined
+  THAT                           in constant
+  TICKS                          in constant
+  TO                             in constant
+  TRACE                          called
+  TRI.CIRC                       in constant
+  TURN.AMOUNT                    in top-level form, special
+  TURTLESIZE                     called
+  TV-CLEARSCREEN                 called
+  TYI                            called
+  TYO                            called
+  UNIVERSE                       in constant
+  UPDATE.OBJECT                  defined, quoted
+  USETURTLE                      called
+  WHITE                          in constant
+  WIPE                           in constant
+  X                              special
+  XCONS                          called
+  YELLOW                         in constant, quoted
+  YOUR                           in constant
+  |`:ANGLE|                      in constant
+  |`:DISTANCE|                   in constant
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (249 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  OR
+    10 symbol  BOUNDP
+    11 symbol  NO-VALUE
+    12 symbol  SETQ
+    13 symbol  ?
+    14 symbol  GPOLY
+    15 symbol  SUBR
+    16 symbol  FLOAT
+    17 symbol  :YCOR
+    18 symbol  TURTLESIZE
+    19 symbol  *GREAT
+    20 symbol  PC
+    21 symbol  FD
+    22 symbol  RT
+    23 symbol  NCONS
+    24 symbol  *APPEND
+    25 symbol  EQUIV.SIZE
+    26 symbol  NEAREST.MULT
+    27 symbol  GCD
+    28 symbol  EXPT
+    29 fixnum  0
+    30 symbol  PAUSE
+    31 symbol  NUMBERP
+    32 symbol  SLEEP
+    33 fixnum  7
+    34 symbol  TYO
+    35 symbol  TYI
+    36 symbol  COLOR.CS
+    37 symbol  FEATURE
+    38 symbol  COLOR
+    39 symbol  STATUS
+    40 symbol  HIDE.A.TURTLE
+    41 symbol  :TURTLES
+    42 symbol  CS
+    43 symbol  TV-CLEARSCREEN
+    44 symbol  USETURTLE
+    45 symbol  HT
+    46 symbol  LOOP1
+    47 fixnum  6
+    48 symbol  GREEN
+    49 symbol  RED
+    50 symbol  MAKE.COLOR.INTERPOLATION
+    51 symbol  BLUE
+    52 symbol  MAPCAN
+    53 symbol  GROW.GPOLY
+    54 fixnum  5
+    55 fixnum  119
+    56 flonum  1.02
+    57 symbol  T
+    58 symbol  LIST
+    59 fixnum  240
+    60 symbol  LSUBR
+    61 symbol  FIX
+    62 symbol  :ERASERCOLOR
+    63 symbol  MAKE.PALETTE.ROTATION
+    64 symbol  INTERPOLATE.PALETTE
+    65 symbol  EQUAL
+    66 flonum  0.0
+    67 symbol  FILL.CIRCLE
+    68 symbol  RANDOM
+    69 symbol  POINT
+    70 fixnum  15
+    71 symbol  EMPTY.CIRCLE
+    72 symbol  LOOP2
+    73 fixnum  10
+    74 symbol  FILL.LOOP2
+    75 symbol  ABOUT.TO.EMPTY
+    76 symbol  *BREAK
+    77 symbol  EMPTY.LOOP2
+    78 fixnum  1
+    79 symbol  MIN
+    80 symbol  PALETTE
+    81 symbol  MAKEPALETTE
+    82 symbol  SUBST
+    83 symbol  LISTARRAY
+    84 fixnum  18
+    85 symbol  SET.UP.RING
+    86 symbol  LOGOTURTLE
+    87 symbol  PU
+    88 symbol  HOME
+    89 symbol  DELX
+    90 symbol  LENGTH
+    91 symbol  DONE
+    92 symbol  CAR
+    93 symbol  I
+    94 symbol  SETXY
+    95 symbol  :XCOR
+    96 symbol  ASK
+    97 symbol  GROW
+    98 symbol  ST
+    99 symbol  DRAW-ARC
+   100 symbol  MAKE.RING.ACTORS
+   101 symbol  :ACTOR1
+   102 symbol  MAKE
+   103 symbol  ACTOR1.1
+   104 symbol  INTERPOLATE
+   105 symbol  TO
+   106 symbol  :ACTOR2
+   107 symbol  IN
+   108 symbol  TICKS
+   109 symbol  REVERSE
+   110 symbol  ANS
+   111 symbol  CONS
+   112 symbol  GENSYM
+   113 symbol  KNOW
+   114 symbol  THAT
+   115 symbol  YOUR
+   116 symbol  INTERPOLATIONAMOUNT
+   117 symbol  IS
+   118 symbol  :INTERPOLATION.AMOUNT
+   119 symbol  C
+   120 symbol  *PLUS
+   121 symbol  INNERRING
+   122 symbol  POLY
+   123 symbol  STAR5
+   124 symbol  ANGLE
+   125 fixnum  144
+   126 symbol  SHRINK
+   127 fixnum  25
+   128 symbol  CIRC
+   129 fixnum  12
+   130 symbol  YELLOW
+   131 symbol  MCOLORI
+   132 symbol  R5
+   133 fixnum  -2
+   134 symbol  OUTERRING
+   135 symbol  STAR9
+   136 fixnum  160
+   137 symbol  NINEGON
+   138 fixnum  40
+   139 fixnum  9
+   140 symbol  R9
+   141 fixnum  -4
+   142 symbol  RINGS
+   143 fixnum  175
+   144 fixnum  400
+   145 symbol  LOOP3
+   146 symbol  INTERPOLATE.TO.NEIGHBOR
+   147 symbol  WIPE
+   148 symbol  BREAK
+   149 symbol  TRACE
+   150 symbol  UNIVERSE
+   151 symbol  GO
+   152 symbol  FOR
+   153 symbol  :FRAMES
+   154 symbol  LAST
+   155 symbol  XCONS
+   156 symbol  PLAN:
+   157 symbol  CADR
+   158 symbol  :NUMBER
+   159 symbol  NEXT
+   160 symbol  REPEAT
+   161 symbol  APPEAR
+   162 symbol  FORWARD
+   163 symbol  |`:DISTANCE|
+   164 symbol  RIGHT
+   165 symbol  |`:ANGLE|
+   166 symbol  LOOP4
+   167 flonum  1.01
+   168 flonum  200.0
+   169 symbol  SQ.CIRC
+   170 flonum  -20.0
+   171 fixnum  50
+   172 flonum  220.0
+   173 symbol  LINE.CIRC
+   174 flonum  -25.0
+   175 fixnum  87
+   176 flonum  300.0
+   177 symbol  STAR9.CIRC
+   178 flonum  12.0
+   179 flonum  175.0
+   180 flonum  15.0
+   181 fixnum  190
+   182 flonum  250.0
+   183 symbol  CYAN
+   184 symbol  TRI.CIRC
+   185 flonum  140.0
+   186 symbol  MAGENTA
+   187 symbol  STAR.CIRC
+   188 flonum  -18.0
+   189 fixnum  286
+   190 symbol  WHITE
+   191 flonum  10.0
+   192 fixnum  325
+   193 flonum  234.0
+   194 symbol  PINK
+   195 flonum  40.0
+   196 fixnum  380
+   197 flonum  290.0
+   198 symbol  GOLD
+   199 flonum  6.0
+   200 fixnum  423
+   201 flonum  240.0
+   202 symbol  ORANGE
+   203 flonum  -23.0
+   204 fixnum  490
+   205 symbol  PURPLE
+   206 flonum  -5.0
+   207 fixnum  540
+   208 flonum  -50.0
+   209 fixnum  585
+   210 flonum  320.0
+   211 fixnum  621
+   212 flonum  260.0
+   213 flonum  4.0
+   214 fixnum  677
+   215 flonum  225.0
+   216 flonum  -13.0
+   217 symbol  SPIRAL.IN
+   218 symbol  INITIAL.VELOCITY
+   219 flonum  3.0
+   220 symbol  TURN.AMOUNT
+   221 symbol  :RESTART
+   222 symbol  GENERATE.OBJECT
+   223 symbol  OBJECTS
+   224 symbol  PRINC
+   225 symbol  UPDATE.OBJECT
+   226 symbol  *APPLY
+   227 symbol  TEST
+   228 symbol  X
+   229 flonum  0.991
+   230 fixnum  2
+   231 symbol  HATCH
+   232 symbol  CLIP
+   233 symbol  SETTURTLE
+   234 symbol  SYMEVAL
+   235 symbol  COPY.COLOR
+   236 symbol  MAKE.FORM
+   237 symbol  DUMMY
+   238 symbol  MAKETURTLE
+   239 symbol  REDPART
+   240 symbol  GREENPART
+   241 symbol  BLUEPART
+   242 symbol  MAKECOLOR
+   243 symbol  DRAW.CENTERED
+   244 symbol  PD
+   245 symbol  RANGE
+   246 symbol  ABS
+   247 symbol  *LESS
+   248 symbol  :TVSTEP
+   249 flonum  1.0
+
+The LAP-like listing of the loaded words is in code/3100153_loops.code.txt.

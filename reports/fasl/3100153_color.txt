@@ -1,0 +1,253 @@
+FASL dump: original/3100153/color.fasl  (ITS KEN;COLOR FASL, tape 3100153, late 1976)
+Decoded 867 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 867 of 867 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 213123,,000007 ('193', flag bits 007), 67 blocks, 600 items
+Item counts: absolute 276, relocatable 41, special 22, smashable call 68, quoted atom 41, quoted list 4, globalsym 48, atom table 80, entry 17, eval mungeable 2, end 1
+
+-- Functions defined (17) --
+  name                         property args         address
+  ROTATE-PALETTE               SUBR     (NIL . 2)    000000
+  SHIFT-PALETTE                SUBR     (NIL . 1)    000007
+  COLOR-COUNT                  SUBR     (NIL . 3)    000051
+  SET-COLOR                    SUBR     (NIL . 5)    000124
+  DIGIT-FRACTIONS              SUBR     (NIL . 3)    000140
+  MIX-COLORS                   SUBR     (NIL . 3)    000175
+  COLOR-XORDOWN                SUBR     (NIL . 2)    000272
+  COLOR-XORUP                  SUBR     (NIL . 0)    000302
+  KENS-FORWARD                 SUBR     (NIL . 1)    000306
+  KENS-FORWARD$                SUBR     (NIL . 1)    000322
+  COMPLEMENT-IF-NOT-ERC        SUBR     (NIL . 2)    000365
+  MAKE-COLOR-OR-FIND-ONE       SUBR     (NIL . 3)    000433
+  MAKE-COLOR-NAME              SUBR     (NIL . 3)    000455
+  NORMAL-COLOR-XORDOWN         SUBR     (NIL . 0)    000506
+  GPOLY                        SUBR     (NIL . 4)    000511
+  TEST1                        SUBR     (NIL . 3)    000567
+  TEST2                        SUBR     (NIL . 3)    000623
+
+-- Top-level forms evaluated at load time (2) --
+  (SETQ :MAX-INTENSITY 1.0)
+  (DEFPROP NCXD NORMAL-COLOR-XORDOWN EXPR)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  ROTATE-PALETTE
+      calls:        SLEEP SHIFT-PALETTE
+  SHIFT-PALETTE
+      calls:        PALETTE MAKEPALETTE SLEEP
+      quoted atoms: 0 12
+  COLOR-COUNT
+      calls:        FLOAT SLEEP SET-COLOR ERASERCOLOR
+      quoted atoms: ERC NIL 0
+  SET-COLOR
+      calls:        DIGIT-FRACTIONS MIX-COLORS
+      specials:     BASE
+  DIGIT-FRACTIONS
+      calls:        CONS
+      specials:     BASE
+  MIX-COLORS
+      calls:        MAKECOLOR REDPART GREENPART BLUEPART
+      quoted atoms: 0.0
+  COLOR-XORDOWN
+      calls:        FLOAT
+      specials:     :FUNCTIONOFPOINTCOLOR :COLORXOR :READFREQUENCY
+      quoted atoms: T
+  COLOR-XORUP
+      specials:     :FUNCTIONOFPOINTCOLOR :COLORXOR :READFREQUENCY
+  KENS-FORWARD
+      calls:        FLOAT KENS-FORWARD$ FORWARD
+      specials:     :COLORXOR
+  KENS-FORWARD$
+      calls:        FD PC POINTSTATE
+      specials:     :PENCOLOR :READFREQUENCY :FUNCTIONOFPOINTCOLOR
+      quoted atoms: 0.0
+  COMPLEMENT-IF-NOT-ERC
+      calls:        PRINT REDPART GREENPART BLUEPART MAKE-COLOR-OR-FIND-ONE
+      specials:     :MAX-INTENSITY
+      quoted atoms: T
+      quoted list:  (CANT DO MUCH IN BLACK & WHITE)
+  MAKE-COLOR-OR-FIND-ONE
+      calls:        MAKE-COLOR-NAME MC
+      specials:     :COLORS
+  MAKE-COLOR-NAME
+      calls:        EXPLODEC APPEND IMPLODE
+      quoted list:  (R E D =)
+      quoted list:  (| | G R E E N =)
+      quoted list:  (| | B L U E =)
+  NORMAL-COLOR-XORDOWN
+      calls:        COLOR-XORDOWN
+      specials:     :TVSTEP
+      quoted atoms: COMPLEMENT-IF-NOT-ERC
+  GPOLY
+      calls:        FLOAT TURTLESIZE *GREAT PC KENS-FORWARD RT
+      specials:     :YCOR
+      quoted atoms: ?
+  TEST1
+      calls:        NCXD MAKE-COLOR-OR-FIND-ONE NCONS XCONS GPOLY
+      quoted atoms: 0.0 1.0
+  TEST2
+      calls:        NCXD MAKE-COLOR-OR-FIND-ONE NCONS XCONS GPOLY
+      quoted atoms: 0.0 1.0 0.5
+
+-- Symbols and how they are used (75) --
+  | |                            in constant
+  &                              in constant
+  *GREAT                         called
+  :COLORS                        special
+  :COLORXOR                      special
+  :FUNCTIONOFPOINTCOLOR          special
+  :MAX-INTENSITY                 in top-level form, special
+  :PENCOLOR                      special
+  :READFREQUENCY                 special
+  :TVSTEP                        special
+  :YCOR                          special
+  =                              in constant
+  ?                              quoted
+  APPEND                         called
+  B                              in constant
+  BASE                           special
+  BLACK                          in constant
+  BLUEPART                       called
+  CANT                           in constant
+  COLOR-COUNT                    defined
+  COLOR-XORDOWN                  called, defined
+  COLOR-XORUP                    defined
+  COMPLEMENT-IF-NOT-ERC          defined, quoted
+  CONS                           called
+  D                              in constant
+  DEFPROP                        in top-level form
+  DIGIT-FRACTIONS                called, defined
+  DO                             in constant
+  E                              in constant
+  ERASERCOLOR                    called
+  ERC                            quoted
+  EXPLODEC                       called
+  EXPR                           in top-level form
+  FD                             called
+  FLOAT                          called
+  FORWARD                        called
+  G                              in constant
+  GPOLY                          called, defined
+  GREENPART                      called
+  IMPLODE                        called
+  IN                             in constant
+  KENS-FORWARD                   called, defined
+  KENS-FORWARD$                  called, defined
+  L                              in constant
+  MAKE-COLOR-NAME                called, defined
+  MAKE-COLOR-OR-FIND-ONE         called, defined
+  MAKECOLOR                      called
+  MAKEPALETTE                    called
+  MC                             called
+  MIX-COLORS                     called, defined
+  MUCH                           in constant
+  N                              in constant
+  NCONS                          called
+  NCXD                           called, in top-level form
+  NIL                            quoted
+  NORMAL-COLOR-XORDOWN           defined, in top-level form
+  PALETTE                        called
+  PC                             called
+  POINTSTATE                     called
+  PRINT                          called
+  R                              in constant
+  REDPART                        called
+  ROTATE-PALETTE                 defined
+  RT                             called
+  SET-COLOR                      called, defined
+  SETQ                           in top-level form
+  SHIFT-PALETTE                  called, defined
+  SLEEP                          called
+  T                              quoted
+  TEST1                          defined
+  TEST2                          defined
+  TURTLESIZE                     called
+  U                              in constant
+  WHITE                          in constant
+  XCONS                          called
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (80 entries; 0 is NIL) --
+     1 symbol  ROTATE-PALETTE
+     2 symbol  SUBR
+     3 symbol  SLEEP
+     4 symbol  SHIFT-PALETTE
+     5 fixnum  0
+     6 symbol  PALETTE
+     7 fixnum  12
+     8 symbol  MAKEPALETTE
+     9 symbol  COLOR-COUNT
+    10 symbol  FLOAT
+    11 symbol  ERC
+    12 symbol  SET-COLOR
+    13 symbol  ERASERCOLOR
+    14 symbol  BASE
+    15 symbol  DIGIT-FRACTIONS
+    16 symbol  MIX-COLORS
+    17 symbol  CONS
+    18 symbol  MAKECOLOR
+    19 symbol  REDPART
+    20 symbol  GREENPART
+    21 symbol  BLUEPART
+    22 flonum  0.0
+    23 symbol  COLOR-XORDOWN
+    24 symbol  :FUNCTIONOFPOINTCOLOR
+    25 symbol  T
+    26 symbol  :COLORXOR
+    27 symbol  :READFREQUENCY
+    28 symbol  COLOR-XORUP
+    29 symbol  KENS-FORWARD
+    30 symbol  KENS-FORWARD$
+    31 symbol  FORWARD
+    32 symbol  :PENCOLOR
+    33 symbol  FD
+    34 symbol  PC
+    35 symbol  POINTSTATE
+    36 symbol  SETQ
+    37 symbol  :MAX-INTENSITY
+    38 flonum  1.0
+    39 symbol  COMPLEMENT-IF-NOT-ERC
+    40 symbol  CANT
+    41 symbol  DO
+    42 symbol  MUCH
+    43 symbol  IN
+    44 symbol  BLACK
+    45 symbol  &
+    46 symbol  WHITE
+    47 symbol  PRINT
+    48 symbol  MAKE-COLOR-OR-FIND-ONE
+    49 symbol  MAKE-COLOR-NAME
+    50 symbol  :COLORS
+    51 symbol  MC
+    52 symbol  EXPLODEC
+    53 symbol  APPEND
+    54 symbol  IMPLODE
+    55 symbol  R
+    56 symbol  E
+    57 symbol  D
+    58 symbol  =
+    59 symbol  | |
+    60 symbol  G
+    61 symbol  N
+    62 symbol  B
+    63 symbol  L
+    64 symbol  U
+    65 symbol  NORMAL-COLOR-XORDOWN
+    66 symbol  :TVSTEP
+    67 symbol  DEFPROP
+    68 symbol  NCXD
+    69 symbol  EXPR
+    70 symbol  GPOLY
+    71 symbol  :YCOR
+    72 symbol  TURTLESIZE
+    73 symbol  *GREAT
+    74 symbol  ?
+    75 symbol  RT
+    76 symbol  TEST1
+    77 symbol  NCONS
+    78 symbol  XCONS
+    79 symbol  TEST2
+    80 flonum  0.5
+
+The LAP-like listing of the loaded words is in code/3100153_color.code.txt.

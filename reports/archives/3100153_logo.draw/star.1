@@ -1,0 +1,112 @@
+;note
+;this stupid thing makes the solid-star window twice I think
+
+
+(declare (setq ibase 10.))
+
+(declare (*lexpr mw hw sw wf fw shade)
+	 (*fexpr maketurtle)
+	 (special cycle1 *texture* :xcor :ycor :seeturtle star solid-star))
+
+
+(defun poly1 (:size :angle :begin-heading)
+		(forward :size)
+       		(right :angle)
+		(cond ((= :begin-heading (heading)))
+		      (t (poly1 :size :angle :begin-heading))))
+
+
+(defun draw-poly (:size :angle)
+       (poly1 :size :angle (heading)))
+
+
+(defun shade-star (size pattern)
+    ((lambda (window-size)
+       (pd)
+       (draw-star size)
+       (mw 'line-star)
+       (wf window-size)
+       (pu)
+       (delx size)
+       (shade)
+       (delx (minus size))
+       (mw 'negative-star window-size)
+       (hw 'line-star)
+       (mw 'real-negative-star window-size)
+       (erd)
+       (fw window-size)
+       (pd)
+       (wipe)
+       (shade pattern)
+       (hw 'real-negative-star))
+     size))
+
+(defun draw-star (size)
+(progn (pu) (rt 90)  (bk (times .30 size)) (lt 90) (bk (times .42 size)) (pd))
+       (rt 18)
+       (draw-poly size 144)
+       (lt 18)
+(progn (pu) (fd (times .42 size)) (rt 90) (fd (times .30 size)) (lt 90) (pd)))
+       
+
+
+(defun init (size texture)
+       (setq *texture* texture)
+       (cs)
+       (shade-star size texture)
+       (mw (setq star (gensym)) siZe)
+       (cs)
+       (shade-star size 'solid)
+       (mw (setq solid-star (gensym)) size)
+       (cs)
+       (crazy-turtle (intern (gensym))))
+
+(defun crazy-turtle (name)
+       (hatch name)
+       (ht)
+       (pu)
+       (wrap)
+       (apply 'maketurtle (list (list 'display-it (list 'quote star)
+				      (list 'quote solid-star))
+				'(cs)))
+       name)
+
+(defun display-it (star solid-star)
+       (hw solid-star :xcor :ycor)
+       (sw star :xcor :ycor))
+       
+      
+
+(setq cycle1
+      '(1.05 1.05 1.03 1.01 .95 .93 1.05 1.15 1.2 1.25 1.28 1.2 1.03 .9 .85 .87 .88 .9 .92 .93 .96))
+
+;shows second turtle first now
+
+(defun spiral (initial-size growth-cycle turtles delay)
+       (do ((size (float initial-size))
+	    (count 0))	   
+	   (nil nil)
+	   (do ((i growth-cycle (cdr i)))
+	       ((null i))
+	       (setq size (*$ size (car i)))
+	       (setq count (1+ count))
+	       (useturtle (cadr turtles))
+	       (ht)
+	       (useturtle (car turtles))
+	       (ht)
+	       (shade *texture*)
+	       (fd size)
+	       (rt 10)
+	       ((lambda (t1s-xcor t1s-ycor)
+			(useturtle (cadr turtles))
+			(setxy (-$ t1s-xcor) t1s-ycor))
+		:xcor :ycor)
+	       (st)
+	       (useturtle (car turtles))
+	       (st)
+	       (wait delay count))))
+
+
+(defun wait (x count)
+       (cond ((numberp x) (sleep x))
+	     (t (princ count) (tyi))))

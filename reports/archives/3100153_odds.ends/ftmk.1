@@ -1,0 +1,38 @@
+(defun make-font nil
+(uwrite) (setq ^r t)       
+(princ '|0 KSTID DSK:ken;smallt kst|) (terpri)
+(princ '|1 HEIGHT|) (terpri)
+(princ '|1 BASE LINE|) (terpri)
+(princ '|0 COLUMN POSITION ADJUSTMENT|)(terpri)
+(make-font-blanks)
+(make-font-*)
+(ufile smallt ast))       
+
+(defun make-font-blanks nil
+       (do ((i 0 (1+ i)))
+	   ((= i 100) nil)
+	   (princ '/)(setq base 8.)(princ i)(princ '| CHARACTER CODE|)
+	   (terpri)(setq base 10.)
+	   (princ (1+ i)) (princ '| RASTER WIDTH|)
+	   (terpri)
+	   (princ (1+ i)) (princ '| CHARACTER WIDTH|)
+	   (terpri)
+	   (princ '|0 LEFT KERN|)
+	   (terpri)(terpri)))
+
+(defun make-font-* nil
+       (do ((i 100 (1+ i)))
+	   ((> i 177) )
+	   (princ '/)(setq base 8.)(princ i)(setq base 10.)(princ '| CHARACTER CODE|)
+	   (terpri)
+	   (princ (- i 77)) (princ '| RASTER WIDTH|)
+	   (terpri)
+	   (princ (- i 77)) (princ '| CHARACTER WIDTH|)
+	   (terpri)
+	   (princ '|0 LEFT KERN|)
+	   (terpri)
+	   (princ-* (- i 77))(terpri)))
+	   
+(defun princ-* (n)
+       (cond ((= n 0))
+	     (t (princ '*)(princ-* (1- n)))))

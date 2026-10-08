@@ -1,0 +1,47 @@
+(declare (special :pencolor :ycor)
+	 (*lexpr turtlesize tvsize)
+	 (SETQ IBASE 10.))
+
+
+
+(defun gpoly (size angle factor colors goal-color seconds)
+       (mapc (function (lambda (color)
+			       (putprop color (gensym) 'recent-color)))
+	     colors)
+       (do ((size (float size) (*$ size factor))
+	    (the-colors colors (or (cdr the-colors) colors))
+	    (start-time (time))
+	    (seconds (float seconds)))
+	   ((> (time) (+$ start-time seconds)))
+	   (turn-to-color goal-color (car THE-colors) (//$ (-$ (time) start-time)
+						    seconds))
+	   (forward$ size)
+	   (rt angle)))
+
+
+(defun turn-to-color (goal-color color part-gone)
+       (makecolor (get color 'recent-color)
+		  (cond ((eq goal-color 'red)
+			 part-gone)
+			(t (*$ (redpart color) (-$ 1.0 part-gone))))
+		  (cond ((eq goal-color 'green)
+			 part-gone)
+			(t (*$ (greenpart color) (-$ 1.0 part-gone))))
+		  (cond ((eq goal-color 'blue)
+			 part-gone)
+			(t (*$ (bluepart color) (-$ 1.0 part-gone)))))
+       (pencolor (get color 'recent-color))
+       (replacecolor :pencolor (get color 'recent-color)))
+       
+		  
+(defun exer1 nil
+       (wipe)
+       (turtlesize (cadr (tvsize)))
+       (gpoly 1.0 105 1.01 (mcolori 'red 'blue 14) 'green 70.))
+
+(defun exeR2 nil
+       (wipe)
+       (turtlesize (cadr (tvsize)))
+       (gpoly 1.0 24 1.006 (mcolori 'GREEN 'blue 14) 'RED 70.))
+
+

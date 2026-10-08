@@ -1,0 +1,56 @@
+FASL dump: original/3100153/poly.fasl  (ITS KEN;POLY FASL, tape 3100153, late 1976)
+Decoded 95 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 95 of 95 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212322,,000007 ('132', flag bits 007), 5 blocks, 45 items
+Item counts: absolute 16, relocatable 2, smashable call 6, quoted atom 1, globalsym 1, atom table 15, entry 2, eval mungeable 1, end 1
+
+-- Functions defined (2) --
+  name                         property args         address
+  POLY1                        SUBR     (NIL . 3)    000000
+  DRAW.POLY                    SUBR     (NIL . 2)    000022
+
+-- Top-level forms evaluated at load time (1) --
+  (PROGN (SETSYNTAX 123 'SINGLE NIL) (SETSYNTAX 125 'SINGLE NIL) (SETSYNTAX 46 128 NIL))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  POLY1
+      calls:        FORWARD RIGHT HEADING POLY1
+      quoted atoms: T
+  DRAW.POLY
+      calls:        HEADING POLY1
+
+-- Symbols and how they are used (11) --
+  DRAW.POLY                      defined
+  FORWARD                        called
+  HEADING                        called
+  NIL                            in top-level form
+  POLY1                          called, defined
+  PROGN                          in top-level form
+  QUOTE                          in top-level form
+  RIGHT                          called
+  SETSYNTAX                      in top-level form
+  SINGLE                         in top-level form
+  T                              quoted
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (15 entries; 0 is NIL) --
+     1 symbol  PROGN
+     2 symbol  SETSYNTAX
+     3 fixnum  123
+     4 symbol  QUOTE
+     5 symbol  SINGLE
+     6 fixnum  125
+     7 fixnum  46
+     8 fixnum  128
+     9 symbol  POLY1
+    10 symbol  SUBR
+    11 symbol  FORWARD
+    12 symbol  RIGHT
+    13 symbol  HEADING
+    14 symbol  T
+    15 symbol  DRAW.POLY
+
+The LAP-like listing of the loaded words is in code/3100153_poly.code.txt.

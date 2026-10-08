@@ -1,0 +1,194 @@
+FASL dump: original/7005044/qq.fasl  (ITS KEN;QQ FASL, tape 7005044, Dec 1975)
+Decoded 489 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 489 of 489 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 26 blocks, 234 items
+Item counts: absolute 51, relocatable 26, special 9, smashable call 29, quoted atom 18, globalsym 14, atom table 66, entry 8, eval mungeable 12, end 1
+
+-- Functions defined (8) --
+  name                         property args         address
+  QUASI-QUOTE-MACRO            SUBR     (NIL . 0)    000000
+  QQ1                          LSUBR                 000042
+  CONS-LIST-EXPS               SUBR     (NIL . 1)    000066
+  EVAL-ME-MACRO                SUBR     (NIL . 0)    000072
+  QQ2                          LSUBR                 000105
+  QUASI-QUOTIFY                SUBR     (NIL . 1)    000111
+  QUASI-QUOTIFY1               SUBR     (NIL . 1)    000143
+  |TACK`ON|                    SUBR     (NIL . 1)    000201
+
+-- Top-level forms evaluated at load time (12) --
+  (OR (STATUS FEATURE GRINDEF)
+    (STATUS FEATURE NCOMPLR)
+    (PROGN (PRINT '(YOU MUST LOAD GRINDEF FIRST)) (IOC G)))
+  (SETQ INSIDE-QUASI-QUOTE-MACRO NIL)
+  (SETQ EVAL-ME (MAKNAM '(I N T E R N A L - |`| - M A C R O)))
+  (DEFPROP QUASI-QUOTE-MACRO -18180214399 EXPR-HASH)
+  (DEFPROP CONS-LIST-EXPS 21677951769 EXPR-HASH)
+  (DEFPROP EVAL-ME-MACRO -23128485490 EXPR-HASH)
+  (SETSYNTAX '|'| 'MACRO 'QUASI-QUOTE-MACRO)
+  (SETSYNTAX '|`| 'MACRO 'EVAL-ME-MACRO)
+  (OR (STATUS FEATURE NCOMPLR) (GRINDMACRO LIST (QUASI-QUOTIFY (CDR L)) T))
+  (DEFPROP QUASI-QUOTIFY 20466736738 EXPR-HASH)
+  (DEFPROP QUASI-QUOTIFY1 -18216236684 EXPR-HASH)
+  (DEFPROP |TACK`ON| -27258131285 EXPR-HASH)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  QUASI-QUOTE-MACRO
+      calls:        READ ATOM NCONS XCONS CONS-LIST-EXPS
+      specials:     INSIDE-QUASI-QUOTE-MACRO EVAL-ME ANY-INVERSE-QUOTES?
+      quoted atoms: T QUOTE
+  QQ1
+      calls:        ATOM NCONS XCONS CONS-LIST-EXPS
+      specials:     EVAL-ME ANY-INVERSE-QUOTES?
+      quoted atoms: QUOTE T
+  CONS-LIST-EXPS
+      calls:        XCONS
+      quoted atoms: QQ1 LIST
+  EVAL-ME-MACRO
+      calls:        READ XCONS |TACK`ON|
+      specials:     INSIDE-QUASI-QUOTE-MACRO EVAL-ME
+  QQ2
+      calls:        QUASI-QUOTIFY1
+  QUASI-QUOTIFY
+      calls:        BOUNDP ATOM QUASI-QUOTIFY1 ASCII
+      specials:     |DONT-PRINT'|
+      quoted atoms: |DONT-PRINT'| T QQ2 0
+  QUASI-QUOTIFY1
+      calls:        ATOM PPRIN
+      quoted atoms: CODE QUOTE LIST
+  |TACK`ON|
+      calls:        EXPLODEC XCONS MAKNAM
+      quoted atoms: |`|
+
+-- Symbols and how they are used (58) --
+  |'|                            in top-level form
+  -                              in top-level form
+  A                              in top-level form
+  ANY-INVERSE-QUOTES?            special
+  ASCII                          called
+  ATOM                           called
+  BOUNDP                         called
+  C                              in top-level form
+  CDR                            in top-level form
+  CODE                           quoted
+  CONS-LIST-EXPS                 called, defined, in top-level form
+  DEFPROP                        in top-level form
+  |DONT-PRINT'|                  quoted, special
+  E                              in top-level form
+  EVAL-ME                        in top-level form, special
+  EVAL-ME-MACRO                  defined, in top-level form
+  EXPLODEC                       called
+  EXPR-HASH                      in top-level form
+  FEATURE                        in top-level form
+  FIRST                          in top-level form
+  G                              in top-level form
+  GRINDEF                        in top-level form
+  GRINDMACRO                     in top-level form
+  I                              in top-level form
+  INSIDE-QUASI-QUOTE-MACRO       in top-level form, special
+  IOC                            in top-level form
+  L                              in top-level form
+  LIST                           in top-level form, quoted
+  LOAD                           in top-level form
+  M                              in top-level form
+  MACRO                          in top-level form
+  MAKNAM                         called, in top-level form
+  MUST                           in top-level form
+  N                              in top-level form
+  NCOMPLR                        in top-level form
+  NCONS                          called
+  NIL                            in top-level form
+  O                              in top-level form
+  OR                             in top-level form
+  PPRIN                          called
+  PRINT                          in top-level form
+  PROGN                          in top-level form
+  QQ1                            defined, quoted
+  QQ2                            defined, quoted
+  QUASI-QUOTE-MACRO              defined, in top-level form
+  QUASI-QUOTIFY                  defined, in top-level form
+  QUASI-QUOTIFY1                 called, defined, in top-level form
+  QUOTE                          in top-level form, quoted
+  R                              in top-level form
+  READ                           called
+  SETQ                           in top-level form
+  SETSYNTAX                      in top-level form
+  STATUS                         in top-level form
+  T                              in top-level form, quoted
+  |TACK`ON|                      called, defined, in top-level form
+  XCONS                          called
+  YOU                            in top-level form
+  |`|                            in top-level form, quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (66 entries; 0 is NIL) --
+     1 symbol  OR
+     2 symbol  STATUS
+     3 symbol  FEATURE
+     4 symbol  GRINDEF
+     5 symbol  NCOMPLR
+     6 symbol  PROGN
+     7 symbol  PRINT
+     8 symbol  QUOTE
+     9 symbol  YOU
+    10 symbol  MUST
+    11 symbol  LOAD
+    12 symbol  FIRST
+    13 symbol  IOC
+    14 symbol  G
+    15 symbol  SETQ
+    16 symbol  INSIDE-QUASI-QUOTE-MACRO
+    17 symbol  EVAL-ME
+    18 symbol  MAKNAM
+    19 symbol  I
+    20 symbol  N
+    21 symbol  T
+    22 symbol  E
+    23 symbol  R
+    24 symbol  A
+    25 symbol  L
+    26 symbol  -
+    27 symbol  |`|
+    28 symbol  M
+    29 symbol  C
+    30 symbol  O
+    31 symbol  DEFPROP
+    32 symbol  QUASI-QUOTE-MACRO
+    33 fixnum  -18180214399
+    34 symbol  EXPR-HASH
+    35 symbol  SUBR
+    36 symbol  READ
+    37 symbol  ATOM
+    38 symbol  NCONS
+    39 symbol  XCONS
+    40 symbol  ANY-INVERSE-QUOTES?
+    41 symbol  CONS-LIST-EXPS
+    42 fixnum  21677951769
+    43 symbol  QQ1
+    44 symbol  LSUBR
+    45 symbol  LIST
+    46 symbol  EVAL-ME-MACRO
+    47 fixnum  -23128485490
+    48 symbol  |TACK`ON|
+    49 symbol  SETSYNTAX
+    50 symbol  |'|
+    51 symbol  MACRO
+    52 symbol  GRINDMACRO
+    53 symbol  QUASI-QUOTIFY
+    54 symbol  CDR
+    55 fixnum  20466736738
+    56 symbol  QQ2
+    57 symbol  QUASI-QUOTIFY1
+    58 symbol  |DONT-PRINT'|
+    59 symbol  BOUNDP
+    60 fixnum  0
+    61 symbol  ASCII
+    62 fixnum  -18216236684
+    63 symbol  CODE
+    64 symbol  PPRIN
+    65 fixnum  -27258131285
+    66 symbol  EXPLODEC
+
+The LAP-like listing of the loaded words is in code/7005044_qq.code.txt.

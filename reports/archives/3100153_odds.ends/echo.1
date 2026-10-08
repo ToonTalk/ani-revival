@@ -1,0 +1,29 @@
+(PROG NIL
+
+(PROG (CU)
+(SETQ CU (CRUNIT))
+(UWRITE DSK KEN)
+(APPLY (FUNCTION CRUNIT) CU)) 
+
+(PUTPROP '*READ (GET 'READ 'LSUBR) 'LSUBR) 
+
+(DEFUN READ N 
+       (PROG (^W TEMP) 
+	     (SETQ ^W T)
+	     (PRINT (SETQ TEMP (APPLY '*READ (LISTIFY N))))
+	     (SETQ ^W NIL)
+	     (RETURN TEMP))) 
+
+(PUTPROP '*TYI (GET 'TYI 'LSUBR) 'LSUBR) 
+ 
+
+(DEFUN TYI NIL 
+       (PROG (^W TEMP) 
+	     (SETQ ^W T)
+(COND ((= (SETQ TEMP (*TYI)) 127.)(TYO 95.))
+((AND (> TEMP 64.) (< TEMP 91.))(TYO (+ TEMP 32.)))
+(T 	     (TYO TEMP)))
+	     (SETQ ^W NIL)
+	     (RETURN TEMP))) 
+(SETQ ^R T)) 
+

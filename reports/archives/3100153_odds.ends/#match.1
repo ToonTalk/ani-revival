@@ -1,0 +1,221 @@
+;this is #match >
+;it provides the pattern matching primitive MATCH for the anima system
+;the :obj is any s-expression and the :pat places special meanings to:
+; ?<name> matches next item at that level and binds to :<name> if there
+; %<name> matches any number of items and binds :<name>
+; {x1 x2 x3 ... xn} matches if next object item is any of the "x"s
+; :<name> in the pattern is evaluated and then match is recursed
+
+;the following is so that {} are seperate into atoms
+; e.g. (foo {bar zap}) becomes (foo { bar zap })
+
+
+
+
+(DECLARE (OR (STATUS FEATURE DEFINE) (FASLOAD DEFINE FASL AI LLOGO)) (READ))
+
+(OR (STATUS FEATURE DEFINE) (FASLOAD DEFINE FASL AI LLOGO))
+
+(SSTATUS FEATURE anima) 
+
+(DECLARE (GENPREFIX anima-)) 
+ 
+ 
+(declare (*lexpr make-actor)
+	 (special :self :pattern :action :message :values :variables :matched?
+		  :name :class)
+		(eval (read)))
+
+(progn
+(DEFUN OPEN-BRACE-MACRO NIL '/{)
+(DEFUN close-BRACE-MACRO NIL '/}) 
+(setsyntax 123. 'macro 'open-brace-macro)
+(setsyntax 125. 'macro 'close-brace-macro)
+(SETSYNTAX 46. 128. NIL) )
+
+(declare (special :reversed.already?))
+
+(COND
+ ((STATUS FEATURE LLOGO)
+  ;;PUT GLOBAL VARIABLES ON LOGO OBARRAY.
+  (READ-ONLY :self
+	     :matched? :pattern :action :actor)
+  (MAPC '(LAMBDA (LOGO-ATOM) (OBTERN LOGO-ATOM LOGO-OBARRAY))
+	'(TV IOR ANDC SETZ COMP XOR EQV SAME LOGOTURTLE)))
+ ((define HOMCHECK (USELESS) USELESS)
+  (define OBTERN (IGNORE THIS) IGNORE)
+  (define SYMBOLP (MAYBE-SYMBOL) 
+	 (AND MAYBE-SYMBOL (EQ (TYPEP MAYBE-SYMBOL) 'SYMBOL)))
+  ;;DEFINE FUNCTIONS CALLED FROM TVRTLE, NORMALLY IN LLOGO.
+  (define FUNCTION-PROP (F) 
+	 (GETL F '(EXPR FEXPR MACRO SUBR LSUBR FSUBR ARRAY AUTOLOAD)))
+  (SETQ LISP-OBARRAY OBARRAY LISP-READTABLE READTABLE)
+  (SETQ NO-VALUE '?)))
+
+(COND
+ ((STATUS FEATURE LLOGO)
+  ;;PUT GLOBAL VARIABLES ON LOGO OBARRAY.
+  (READ-ONLY :self
+	     :matched? :pattern :action :actor)
+  (MAPC '(LAMBDA (LOGO-ATOM) (OBTERN LOGO-ATOM LOGO-OBARRAY))
+	'(TV IOR ANDC SETZ COMP XOR EQV SAME LOGOTURTLE)))
+ ((define HOMCHECK (USELESS) USELESS)
+  (define OBTERN (IGNORE THIS) IGNORE)
+  (define SYMBOLP (MAYBE-SYMBOL) 
+	 (AND MAYBE-SYMBOL (EQ (TYPEP MAYBE-SYMBOL) 'SYMBOL)))
+  ;;DEFINE FUNCTIONS CALLED FROM TVRTLE, NORMALLY IN LLOGO.
+  (define FUNCTION-PROP (F) 
+	 (GETL F '(EXPR FEXPR MACRO SUBR LSUBR FSUBR ARRAY AUTOLOAD)))
+  (SETQ LISP-OBARRAY OBARRAY LISP-READTABLE READTABLE)
+  (SETQ NO-VALUE '?)))
+
+(COND
+ ((STATUS FEATURE LLOGO)
+  ;;PUT GLOBAL VARIABLES ON LOGO OBARRAY.
+  (READ-ONLY :self
+	     :matched? :pattern :action :actor)
+  (MAPC '(LAMBDA (LOGO-ATOM) (OBTERN LOGO-ATOM LOGO-OBARRAY))
+	'(TV IOR ANDC SETZ COMP XOR EQV SAME LOGOTURTLE)))
+ ((define HOMCHECK (USELESS) USELESS)
+  (define OBTERN (IGNORE THIS) IGNORE)
+  (define SYMBOLP (MAYBE-SYMBOL) 
+	 (AND MAYBE-SYMBOL (EQ (TYPEP MAYBE-SYMBOL) 'SYMBOL)))
+  ;;DEFINE FUNCTIONS CALLED FROM TVRTLE, NORMALLY IN LLOGO.
+  (define FUNCTION-PROP (F) 
+	 (GETL F '(EXPR FEXPR MACRO SUBR LSUBR FSUBR ARRAY AUTOLOAD)))
+  (SETQ LISP-OBARRAY OBARRAY LISP-READTABLE READTABLE)
+  (SETQ NO-VALUE '?)))
+
+
+
+
+
+;match is the basic function, the only one in this file to be called by 
+;"outsiders"
+
+(define match (:obj :pat)
+(cond ((equal :obj :pat) t)
+      ((and (atom :obj)
+	    (atom :pat)) (match (list :obj) (list :pat)))
+      ((and (or (atom :obj) (atom :pat)) :obj) nil)
+      ((eq (car :obj) (car :pat)) (match (cdr :obj) (cdr :pat)))
+      ((not (atom (car :pat))) (and (match (car :obj) (car :pat))
+				   (match (cdr :obj) (cdr :pat))))
+      ((eq (car :pat) '/{)
+       (handle-restriction (car :obj) (cdr :obj) (up-til '} (cdr :pat))
+			   (cdr (member '} (cdr :pat)))))
+      (t ((lambda (first-letter)
+		  (cond ((eq first-letter '?)
+			 (or (eq (car :pat) '?)
+			     (bind (car :pat) (car :obj)))
+			 (match (cdr :obj) (cdr :pat)))
+			((eq first-letter '%)
+			 (look-for-next (cadr :pat) (car :pat) (cdr :pat) :obj))
+			((eq first-letter '/:)
+			 (match :obj ((cons (eval (car :pat)) (cdr :pat)))))))
+          (getchar (car :pat) 1.)))))
+
+;this handles the restrictions indicated by { and } it basically
+;the restriction format is: {<?<name>> <s-expression>}
+;eg to do a disjunction {?zap memq :zap '(foo bar zing)}
+
+(define handle-restriction (:first-obj :rest-obj :restriction :rest-pat)
+ ((lambda (variable-name)
+    (cond ((apply (list 'lambda (list variable-name)
+		  	 (cdr :restriction))
+	   (list :first-obj))
+	   (bind variable-name :first-obj)
+	   (match :rest-obj :rest-pat))
+	  (t nil)))
+  (fix-name (car :restriction))))
+						    
+
+
+;binding applies only within a receive which lambda binds the
+;variables in :variables to the *value*
+;the names are changed, e.g. ?foo becomes :foo and %bar becomes :bar
+	   
+(define bind (:atom :value)
+       (setq :variables (cons (fix-name :atom)
+			       :variables))
+       (setq :values (cons :value :values)))
+
+;this is only there so that match called at top level doesnt bomb out
+(setq :variables nil :values nil)
+			       
+
+;this is when a % is in the :pat
+;basically it is looking for the place in the :obj that equals the
+;pattern item after the %<name> one.  If the next one is special
+;i.e. ?,%,{, or : the appropriate action is taken
+
+(setq :reversed.already? nil)
+
+(define look-for-next (:next :first-pat :rest-pat :obj)
+       ((lambda (first-letter)
+		(cond ((null :next) (bind (fix-name :first-pat) :obj)
+		       		    t)
+		      ((eq first-letter '/:)
+		       (look-for-next (eval :next)
+				      :first-pat
+				      (cons (eval :next) (cdr :rest-pat))
+				      :obj))
+		      ((and (eq first-letter '?) (not :reversed.already?))
+		       ((lambda (:reversed.already?)
+		       (match (reverse :obj) (reverse (cons :first-pat :rest-pat))))
+		        t))
+		      ((eq first-letter '%)
+		       (warning 'match (list 'silly 'to 'have 'two '% 'in
+					      (cons :first-pat :rest-pat)))
+		       (look-for-next (cadr :rest-pat)
+				      (car :rest-pat)
+				      (cdr :rest-pat)
+				      :obj))
+		      ((eq :first-pat '%)
+		       (match (match-member :next :obj) :rest-pat))
+		      (t ((lambda (before+after-parts)
+				  (and
+				   before+after-parts
+				   (match (cdr before+after-parts) 
+					      (cdr :rest-pat))
+				   (bind :first-pat (cond (:reversed.already?
+							   (reverse (car before+after-parts)))
+							  (t (car before+after-parts))))
+				   t))
+			  (split-at-first-to-match :next :obj)))))
+	(getchar :next 1)))
+
+(define fix-name (:name)
+       (implode (cons '/: (cdr (explode :name)))))
+
+(define match-member (:pattern :list)
+       (do ((:i :list (cdr :i)))
+	   ((null :i) nil)
+	   (and (match (car :i) :pattern)
+		(return :i))))
+
+
+(define split-at-first-to-match (:next-pat :obj)
+       (do ((:i :obj (cdr :i))
+	    (before nil))
+	   ((null :i) nil)
+	   (cond ((match (car :i) :next-pat)
+		  (return (cons (nreverse before) (cdr :i))))
+		 (t (setq before (cons (car :i) before))))))
+
+
+;this returns the items up to but not including the :atom in the :list
+;if :atom is not in the list then the :list is returned 
+
+
+(define up-til (:atom :list)
+       (do ((:i :list (cdr :i))
+	    (ans nil))
+	    ((null :i) :list)
+	    (cond ((eq :atom (car :i)) (return (nreverse ans)))
+		  (t (setq ans (cons (car :i) ans))))))
+		   
+
+(define warning (:from-who :warning)
+       (print (list 'warning 'from :from-who))
+       (print :warning))

@@ -1,0 +1,16 @@
+(defun abcwindow nil
+(do ((abc '(q w e r t y u i o p a s d f g h j k l z x c v b n m /  ) (cdr abc)))
+    ((null abc) 'done)
+    (mark (car abc))
+    (sleep 1)
+    (mw (car abc) 3 5 3 5)
+    (xw (car abc))))
+
+(defun typeword (word)
+       (do ((i (explodec word) (cdr i))
+	     (l (length (explodec word)))
+	     (n 1 (1+ n)))
+	    ((null i))
+	   (cond ((memq (car i) '(- )))
+		 (t (sw (car i) (+$ :xcor (*$ (float l) -3.0)
+			    (*$ 6.0 (float n ))) :ycor)))))

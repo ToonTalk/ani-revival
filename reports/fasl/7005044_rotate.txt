@@ -1,0 +1,139 @@
+FASL dump: original/7005044/rotate.fasl  (ITS KEN;ROTATE FASL, tape 7005044, Dec 1975)
+Decoded 340 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 340 of 340 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212026,,000007 ('106', flag bits 007), 23 blocks, 204 items
+Item counts: absolute 65, relocatable 15, special 4, smashable call 31, quoted atom 12, globalsym 17, atom table 42, entry 9, eval mungeable 8, end 1
+
+-- Functions defined (9) --
+  name                         property args         address
+  READ-PAGE                    SUBR     (NIL . 1)    000000
+  GET-LINE                     SUBR     (NIL . 0)    000021
+  PAD                          SUBR     (NIL . 2)    000114
+  GOBBLE                       SUBR     (NIL . 1)    000134
+  ROTATE                       SUBR     (NIL . 1)    000141
+  |KEN;ROTATE 1|               LSUBR                 000147
+  WRITE-PAGE                   SUBR     (NIL . 1)    000153
+  WRITE-XGP-HEADER             SUBR     (NIL . 0)    000160
+  MY-LISTIFY                   LSUBR                 000175
+
+-- Top-level forms evaluated at load time (8) --
+  (DEFPROP READ-PAGE 19346152133 EXPR-HASH)
+  (DEFPROP GET-LINE -24675408760 EXPR-HASH)
+  (DEFPROP PAD -26299284915 EXPR-HASH)
+  (DEFPROP GOBBLE -13729495239 EXPR-HASH)
+  (DEFPROP ROTATE 4617508045 EXPR-HASH)
+  (DEFPROP WRITE-PAGE 22293528152 EXPR-HASH)
+  (DEFPROP WRITE-XGP-HEADER -7869732238 EXPR-HASH)
+  (DEFPROP MY-LISTIFY -1704236236 EXPR-HASH)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  READ-PAGE
+      calls:        UREAD IOC GET-LINE CONS
+      specials:     DONE
+      quoted atoms: Q
+  GET-LINE
+      calls:        TYI LENGTH PAD *APPEND NREVERSE ASCII CONS
+      specials:     ^Q DONE
+      quoted atoms: NIL 84 T
+  PAD
+      calls:        LENGTH XCONS PAD
+      quoted atoms: | |
+  GOBBLE
+      calls:        READ-PAGE ROTATE WRITE-PAGE ASCII
+      quoted atoms: 0
+  ROTATE
+      calls:        XCONS *APPLY
+      quoted atoms: MY-LISTIFY MAPCAR
+  |KEN;ROTATE 1|
+      calls:        TERPRI
+      quoted atoms: PRINC
+  WRITE-PAGE
+      calls:        WRITE-XGP-HEADER
+      quoted atoms: |KEN;ROTATE 1|
+  WRITE-XGP-HEADER
+      calls:        TERPRI
+  MY-LISTIFY
+      calls:        LISTIFY
+
+-- Symbols and how they are used (31) --
+  | |                            quoted
+  *APPEND                        called
+  *APPLY                         called
+  ASCII                          called
+  CONS                           called
+  DEFPROP                        in top-level form
+  DONE                           special
+  EXPR-HASH                      in top-level form
+  GET-LINE                       called, defined, in top-level form
+  GOBBLE                         defined, in top-level form
+  IOC                            called
+  |KEN;ROTATE 1|                 defined, quoted
+  LENGTH                         called
+  LISTIFY                        called
+  MAPCAR                         quoted
+  MY-LISTIFY                     defined, in top-level form, quoted
+  NIL                            quoted
+  NREVERSE                       called
+  PAD                            called, defined, in top-level form
+  PRINC                          quoted
+  Q                              quoted
+  READ-PAGE                      called, defined, in top-level form
+  ROTATE                         called, defined, in top-level form
+  T                              quoted
+  TERPRI                         called
+  TYI                            called
+  UREAD                          called
+  WRITE-PAGE                     called, defined, in top-level form
+  WRITE-XGP-HEADER               called, defined, in top-level form
+  XCONS                          called
+  ^Q                             special
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (42 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  READ-PAGE
+     3 fixnum  19346152133
+     4 symbol  EXPR-HASH
+     5 symbol  SUBR
+     6 symbol  UREAD
+     7 symbol  Q
+     8 symbol  IOC
+     9 symbol  DONE
+    10 symbol  GET-LINE
+    11 symbol  CONS
+    12 fixnum  -24675408760
+    13 symbol  TYI
+    14 symbol  LENGTH
+    15 symbol  PAD
+    16 symbol  *APPEND
+    17 fixnum  84
+    18 symbol  NREVERSE
+    19 symbol  ^Q
+    20 symbol  T
+    21 symbol  ASCII
+    22 fixnum  -26299284915
+    23 symbol  | |
+    24 symbol  XCONS
+    25 symbol  GOBBLE
+    26 fixnum  -13729495239
+    27 symbol  ROTATE
+    28 symbol  WRITE-PAGE
+    29 fixnum  0
+    30 fixnum  4617508045
+    31 symbol  MY-LISTIFY
+    32 symbol  MAPCAR
+    33 symbol  *APPLY
+    34 fixnum  22293528152
+    35 symbol  |KEN;ROTATE 1|
+    36 symbol  LSUBR
+    37 symbol  PRINC
+    38 symbol  TERPRI
+    39 symbol  WRITE-XGP-HEADER
+    40 fixnum  -7869732238
+    41 fixnum  -1704236236
+    42 symbol  LISTIFY
+
+The LAP-like listing of the loaded words is in code/7005044_rotate.code.txt.

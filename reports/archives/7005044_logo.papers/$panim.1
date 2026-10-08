@@ -1,0 +1,287 @@
+.sec Actors
+	Recent trends in AI language development are tending towards languages
+based on "actor" semantics.  Carl Hewitt's PLASMA foot< Hewitt, C...> and
+Alan Kay's SmallTalk foot<Kay, ...> 
+are the best examples.  The basic idea is to consider each
+entity within the system as something that is usually anthropomorphized as a
+"little person."  Each "actor" can receive messages asking it to 
+do something, remember something, recall something, or send some messages to other
+actors.  For animation this seems an ideal way to view objects on the screen.  Each
+object is a process that can be arbitrarily smart.  Charlie Brown can be an "actor"
+that can be told to walk, causing him to send the appropriate messages to his arms
+and legs and moving the rest of his body.
+	A system has been implemented in Lisp-Logo which
+enables one to define
+new objects, new object types, and the kinds of messages
+they can handle.  For example, one can easily create a
+square named "George."  George can be told many kinds of
+things like his size, speed of movement, or speed of rotation.
+George can be asked to do many things, all the things that
+turtles can do 
+(FORWARD, BACK, RIGHT, LEFT, HIDE, SHOW, PENUP etc.)
+plus new
+messages like grow, or change appearance.  George can also
+be taught many new things, or can be told to behave differently
+than the defaults.  George also has a memory, you can tell
+George anything at all, his color, his friends, whatever.
+	One very important thing that George knows (though
+like everything in the system he can be told otherwise) is that
+he is a square.  Presently, "Squares" know a few things, like
+how to draw themselves, or that after rotating 90 degrees
+that they look the same.  Squares in turn know that they
+are objects. Objects know how to do the turtle-like things
+mentioned above.  Objects, in turn, know that they are
+"actors", things that can take in messages, can pattern match
+those messages, and can perform memory functions.
+Actors know how to learn new responses to new patterns.
+This entire hierarchy is very flexible and modifiable by
+the user.  The basic process is the message is sent to
+some individual, "George", and if George has no patterns
+that match the message, he sends it off to the actor that
+he is a kind of.  They in turn pass the buck, until either
+someone can handle the message, or an error message is generated
+.
+This is also a very useful default mechanism, if George is
+never told his size he can inherit it from "Square", or "Object".
+	Another feature of this system is a simple scheduler
+which deals with time.  This mechanism
+allows apparent parallelism of processes.  George can race
+against Sally.
+Danny's garden of flowers can be grown.  A stick figure can simultaneously
+move different limbs and change it's facial expression.  
+Movies produced by the scheduler can be run at any speed the computer
+system is capable of, can be run backward, or single stepped.
+	This system is intended to support the intelligent computer animator
+discussed above and equally important to be used by children.  The system is
+hopefully a more powerful and natural means for doing simple programs for animation.
+The powerful ideas of instances, classes and the finding of the correct level of
+generality and the little person model of computation are all imbedded into the system.
+The hope is that through well-guided use of the system some of these ideas will become
+more concrete to the children.  Of course, 
+all the usual reasons for teaching Logo to children remain in force since the actor-animation
+is built upon Logo.
+The use of the same actor-animation
+system by children and by the computer animator is very important for making the 
+computer animator more accessible and understandable by the children using it.  The
+idea is that if the children who programmed using the actor-animation system found it
+natural and intuitive then its use in the intelligent system would also be clear.
+	This view of programming as collections of actors, or
+a community of "little people", that send and receive messages
+from each other is very powerful.  It is conducive to a modular,
+simple, natural representation of the knowledge needed for the
+application.  With an actor system a model for intelligence can be
+a community as easily as it can be an individual. 
+	Another AI aspect of this system is the explicit
+"kind-of" hierarchy of actors.  Each object is told what class
+it is a member of when it is created.  When any object receives
+a message it cannot handle it passes the problem on to the class
+of which it is a member. 
+The important concepts of instantiation, class
+membership, placement of knowledge at the best level of 
+generality, inheritance of properties, and exceptions hopefully
+flow from the proper use of this aspect of the system.
+.subsec A Simple Example of Its Use
+.begin indent 0 turn off "[]" choose lisp
+SQUARE [MAKE GEORGE]
+
+[fi];This sends the message "make George" to square which creates
+a square named George[fr]
+
+GEORGE [REMEMBER SPEED 25]
+
+[fi];This tells George his speed of movement[fr]
+
+GEORGE [IF RECEIVE BLINK ?N THEN REPEAT :?N [GEORGE [HIDE] GEORGE [SHOW]]
+
+.begin single space choose italic
+George is told that if he receives the message "BLINK" followed
+by some amount, then send the messages to hide and show, the
+amount times.
+.end
+
+
+CIRCLE [MAKE SALLY]
+
+[fi];A circle named "Sally" is created[fr]
+
+SALLY [DO FORWARD 100 AT FRAME 2]
+
+.begin single space choose italic
+Sally is told to go forward 100 at movie frame number 2.  This
+problem is passed on to the scheduler.
+.end
+
+GEORGE [DO BLINK 75 AT FRAME 2]
+
+[fi];George is told to blink at frame 2[fr]
+
+SCHEDULER [GO]
+
+.begin single space choose italic
+The scheduler is told to go.  After 2 frames the appropriate
+messages are sent to Sally and George a cartoon is produced and
+displayed on the computer display.
+.skip 8
+.end
+.subsec An More Complex Example of its Use
+	In a paper by Danny Hillis called, "Ten Things to do with a
+Better Computer", he has an example of how to grow a garden in an actor-like
+system.
+He describes a garden in which seeds are born, wait, grow into flowers,
+create new seeds, and die.
+	In my animation system, his garden can be implemented in a fairly 
+straight-forward manner.
+.begin nofill indent 0
+
+[fl]TO DEFINE.FLOWER
+[fi];Logo syntax has been kept since this is built on top of Logo[fl]
+
+10 OBJ.DECLARE 'FLOWER 'DRAW.FLOWER
+[fi];DECLARE does 3 things:
+;	1) updates the "Kind.of" tree with flower as a kind of OBJ
+;	2) creates an actor named "Flower".
+;	3) tells that flower that if asked to how to draw a flower
+;	   then use "Draw.flower" with the default convention of
+;	   passing it the size of the particular flower.[fl]
+20 FLOWER [REMEMBER SIZE 10]
+.begin fill
+[fi];This tells flower to remember that the default size of flowers is 10
+"Remember" is the standard kind of message for telling any actor
+to remember something[fl]
+.end
+END
+
+TO DEFINE.SEED
+10 DECLARE "SEED [KIND.OF ACTOR]
+[fi]; Seed is not an Obj, since it does not do turtle-like things.[fr]
+20 SEED [IF RECEIVE ?SEED [START] THEN DO.SEED.THING :?SEED]
+[fi];This simply lets seeds take a "start" message and calls the appropriate procedure.[fl]
+END
+
+TO DO.SEED.THING :SEED
+10 LOCAL A.FLOWER
+[fi];a thing to hold the name for the flower that seed will spawn is needed[fl]
+20 MAKE 'A.FLOWER FLOWER [MAKE]
+.begin fill preface 0 single space
+[fi];After the message is forwarded to "Actor", 
+the call "MAKE.INSTANCE 'FLOWER" occurs,
+which creates an instantiation of flower with a generated name that is 
+put in the variable "A.FLOWER".
+.end
+30 TELL :A.FLOWER [RIGHT 90]
+;Flowers are "objects" and so can take any turtle command
+40 TELL :A.FLOWER [FORWARD 100*RANDOM]
+50 TELL :A.FLOWER [LEFT 90]
+60 TELL :A.FLOWER [DO [SHOW] IN 10 FRAMES]
+[fi];This results in the following call:
+;   SCHEDULER [DO TELL :A.FLOWER [SHOW] IN 10 FRAMES]
+;which schedules the call,
+;   TELL :A.FLOWER [SHOW],
+;ten frames after line 60 is executed.[fl]
+70 REPEAT 15 [TELL :A.FLOWER DO [GROW 10] AFTER 2 MORE FRAMES]
+[fi];This schedules the call, 
+;	TELL :A.FLOWER [GROW 10],
+; 15 times, each time 2 frames after the last.[fl]
+80 SEED [DO TELL (SEED [MAKE]) [START] AT THAT TIME]
+.begin fill preface 0 single space
+[fi]; This means at that time create another seed and tell it to start
+at the same time as the last thing scheduled in line 80.
+.end
+90 TELL :A.FLOWER [DO [HIDE] AFTER 60 MORE FRAMES]
+100 TELL :A.FLOWER [DO [UN.MAKE] AFTER 60 MORE FRAMES]
+[fi];This schedules the suicide of the flower, 60 frames later.[fl]
+END
+.skip
+TELL SEED [MAKE] [START]
+;This starts the first seed off which will start the others off later
+SCHEDULER [MAKE.MOVIE GARDEN 1000]
+.begin fill preface 0 single space
+The schedule is run, and all display and turtle commands
+are stored in the movie "Garden".[fl]
+.end
+GARDEN [REMEMBER SPEED 10]
+GARDEN [SHOW]
+.begin fill
+[fi];These two calls result in the movie being shown at 10 frames
+per second. First, a flower appears and grows and and then another starts to grow and
+after a while the first flower disappears and so on.[fn]
+.end
+.end end
+.subsec Message Passing
+	Message passing is mechanism of communication between two
+actors.  A pattern matching procedure called "Match"
+is used to decode the incoming message. This provides great flexibility in the
+syntax of the messages sent and received, allowing English-like commands.
+	The following is a list of some of the messages that any object in the system can
+receive: 
+.begin nofill single space NARROW 5,5
+(1) The "turtle" commands, i.e. "FORWARD," "BACK," "RIGHT," "LEFT," "HIDE," "SHOW," "PENUP,"
+"PENDOWN,"
+
+(2) The memory messages, "REMEMBER," "TELL ME," "REPLACE," and "FORGET" which provide
+a powerful relational memory to each actor.  These are also used to inspect the
+state, speed, size and the like of an object and to update those quantities.
+
+(3) "MAKE" and "UNMAKE" messages which create instances or destroy them respectively
+
+(4) The "RECEIVE" message which enables one to add the ability to receive new kinds
+of messages.
+
+.subsec The Scheduler and Movies
+	Using the system, one can write procedures that move
+one object, then another and back again.  It will not, however,
+look as if they are moving simultaneously
+since the interpretation of the commands is slow.  The solution
+is to have a scheduler run things at the appropriate time,
+and then save away the display commands to be run later.  
+These saved-away commands, called a "movie", can be
+run later 
+with the appearance of parallelism.
+	When running, the scheduler has an integer 
+that increments, by one, each time through its loop. This
+integer can be considered to be time or the frame number of the
+movie.  When told to schedule a call at a time, it associates
+with that time the call.  So each time contains a list of events
+or messages to be passed at that time.  As earlier events occur
+these later times may be told to add new events to their "to be
+done" list.
+When the scheduler runs, it runs
+what should be run at that time, inserts a "new frame" marker
+into the movie, and increments the clock and loops.  If nothing
+more is scheduled at all it stops.  Movies can be made or just
+the code run, depending
+on the message to the scheduler.
+The scheduler is the simplest kind possible.  Extensions so that
+events can be scheduled not on the basis of the frame number but
+in terms of other events are planned.  For example, go would be able
+to say that someone should scream if someone else comes too close.
+.subsec How does one talk about this?
+	In teaching children to use the animation system one should
+have a consistent vocabulary and set of concepts.
+Are the words "actor" and
+"object" reasonable names for such general entities?  I think
+not, but haven't thought up better ones. How should one talk
+about the difference between "Square", the general square,
+and any instantiation of squares?  Will there often be a
+confusion between the actor "George", his "script", and
+his image on the screen?  Identity becomes very strange
+to talk about, since anything about an actor can be changed,
+what it looks like, how it acts, even what it is a kind of.
+Only its name is permanent.
+	Explaining the scheduler might bring up problems.
+How should one talk about, or think about, many separate
+processes going on in parallel?  I don't really know.
+	This system lends itself very well to the "little man"
+vocabulary.  Each actor is a little person, 
+who knows a few things,
+can be told to do a few things, and can be taught new tricks.
+This little person receives messages and sends them to others.
+.subsec Extensions and Improvements Planned
+	One useful extension would be the addition of primitives
+for joining and breaking apart "Object" actors.  For example,
+one may want to join a triangle actor and a square actor to make
+a house actor.  Or one may want to have a face accept messages
+as well as any of it parts.  A person may get into a car, so that
+temporarily any movement of the car should also change the state of
+the person.
+

@@ -1,0 +1,209 @@
+(defun pt (list)
+(mapc 'process-transaction list)
+(ascii 0))
+
+(defun process-transaction (trans)
+(cond ((eq trans 'po) (terpri) (po))
+      (t (terpri)(nice-print trans)(terpri)
+       (apply (function (lambda (act number symbol thing kind price c&t date comments)
+	      (cond ((memq act '(bought sold))
+		     ((lambda (position)
+			      (cond ((assoc position *positions*)
+				     (print-result (cdr (assoc position *positions*))
+						   trans))
+				    (t (setq *positions* (cons (cons position trans)
+							      *positions*)))))
+		      (list number symbol thing kind))
+		     (cond ((eq act 'bought)
+			    (setq *cash* (-$ *cash* (times number price) c&t)))
+			   (t (setq *cash* (-$ (+$ *cash* (times number price))
+					       c&t))))
+		     (setq *c&t* (+$ c&t *c&t*)))
+		    ((eq act 'transfer)
+		     (setq *cash* (+$ *cash* number))
+		     (setq *total-invested* (+$ *total-invested* number)))
+		    ((eq act 'dividend)
+		     (setq *dividends* (plus *dividends* number))
+		     (setq *cash* (+$ *cash* number))
+		     (setq *profit* (+$ *profit* number))
+		     (setq *net-profit* (+$ *net-profit* number))
+		     (setq *total-invested* (-$ *total-invested* number)))
+		    ((eq act 'interest) ;;paid out
+		     (setq *interest* (plus *interest* number))
+		     (setq *profit* (-$ *profit* number))
+		     (setq *net-profit* (-$ *net-profit* number))
+		     (setq *cash* (-$ *cash* number)))
+		    (t (nice-print (list act 'is 'not 'an 'action))))))
+	      trans))))
+
+
+(defun print-result (old-trans new-trans)
+       (apply (function (lambda
+			 (act1 number1 symbol1 thing1 kind1 price1 c&t1 date1 comments1
+			  act2 number2 symbol2 thing2 kind2 price2 c&t2 date2 comments2)
+	      (cond ((eq act1 act2)	
+		     (setq *positions* (cons (cons position trans)  *positions*)))
+		    (t (nice-print
+	       (list 'on date1 'i act1 number1 thing1 'of symbol1 kind1 'at price1))
+	      (and comments1 (nice-print comments1))
+	      (nice-print
+	       (list 'and 'then 'on date2 'i act2 'them 'for price2))
+	      (and comments2 (nice-print comments2))
+	      (setq profit
+		    (times number (cond ((eq act1 'sold)
+					 (-$ price1 price2))
+					(t (-$ price2 price1)))))
+	      (setq net-profit (-$ profit c&t1 c&t2))
+	      (nice-print (list 'so 'i (cond ((minusp net-profit) 'lost)
+					       (t 'made))
+				 net-profit 'or profit 'before 'commisions))
+	      (setq *profit* (+$ profit *profit*))
+	      (setq *net-profit* (+$ net-profit *net-profit*))
+	      (setq *positions* (remove-position position *positions*))))))	      
+	      (append old-trans new-trans)))
+			 
+
+(defun nice-print (list)
+(terpri)
+(mapc '(lambda (element)
+	(and element (princ element) (princ '/ )))
+       list))
+
+(defun remove-position (position positions)
+       (do ((i positions (cdr i))
+	    (so-far nil))
+	   ((null i) so-far)
+	   (cond ((equal position (caar i))
+		  (return (append (reverse so-far) (cdr i))))
+		 (t (setq so-far (cons (car i) so-far))))))
+
+(defun init nil
+       (setq *positions* nil
+	     *profit* 0.0
+	     *net-profit* 0.0
+	     *cash* 0.0
+	     *total-invested* 0.0
+	     *c&t* 0.0
+	     *interest* 0.0
+	     *dividends* 0.0))
+
+(defun po nil
+(mapc (function (lambda (variable)
+			(nice-print (list variable '= (symeval variable)))))
+            '(*profit* 
+	     *net-profit* 
+	     *cash* 
+	     *total-invested* 
+	     *c&t* 
+	     *interest* 
+	     *dividends* ))
+(grindef *positions*))
+	     
+
+(defun sort-trans (trans)
+(sort trans (function (lambda (tran1 tran2)
+			      ((lambda (date1 date2)
+			  (not (cond ((> (caddr date1) (caddr date2)))
+				    ((< (caddr date1) (caddr date2)) nil)
+				    ((cond
+				      ((> (car date1) (car date2)))
+				      ((< (car date1) (car date2)) nil )
+				      ((cond ((> (cadr date1) (cadr date2)))
+					     ((< (cadr date1) (cadr date2)) nil ))))))))
+			       (cadddr (cddddr tran1))
+			       (cadddr (cddddr tran2)))))))
+			       
+
+(setq z '(pt
+'((TRANSFER 2200.0 CASH TO DW 0. 0. (1. 14. 75.) NIL)
+ (SOLD 1. PRD CALL (APR 20.) 137.5 25.51 (1. 14. 75.) NIL)
+ (BOUGHT 100. PRD COMMON NIL 16.25 39.86 (1. 14. 75.) NIL)
+ (BOUGHT 100. BBN COMMON NIL 5.875 22.07 (2. 3. 75.) NIL)
+ (SOLD 100. BS COMMON NIL 32.375 66.32 (2. 3. 75.) NIL)
+ (BOUGHT 1. BS CALL (APR 30.) 225.0 25.5 (2. 3. 75.) NIL)
+ (TRANSFER 350.0 CASH TO DW ON THE (2. 6. 75.) NIL)
+ (DIVIDEND 10.0 BBN 0. 0. 0. 0. (2. 28. 75.) NIL)
+ (DIVIDEND -125.0 BS SINCE I WAS SHORT (3. 10. 75.) NIL)
+ (TRANSFER 10.0 CASH TO DW ON THE (3. 11. 75.) WHY?)
+ (transfer 15.0 cash to dw on the (3 21 75) (was really 140 but 125 went to bs))
+ (SOLD 1. PRD CALL (JUL 25.) 337.5 25.51 (3. 14. 75.) NIL)
+ (BOUGHT 1. PRD CALL (APR 20.) 437.5 25.5 (3. 14. 75.) NIL)
+ (DIVIDEND 8.0 PRD 0. 0. 0. 0. (3. 25. 75.) NIL)
+ (INTEREST 1.24 THEIR FAULT BUT SO WHAT (3. 31. 75.) NIL)
+ po
+ (TRANSFER 1700.0 CASH TO DW ON THE (4. 14. 75.) NIL)
+ (SOLD 5. T CALL (JUL 50.) 187.5 60.13 (4. 14. 75.) NIL)
+ (BOUGHT 5. T CALL (OCT 50.) 275.0 66.37 (4. 14. 75.) NIL)
+ (BOUGHT 2. KN CALL (OCT 40.) 450.0 39.77 (4. 18. 75.) NIL)
+ (SOLD 2. KN CALL (APR 40.) 87.5 25.51 (4. 18. 75.) NIL)
+ (SOLD 4. ITT CALL (JUL 20.) 187.5 50.85 (4. 21. 75.) NIL)
+ (BOUGHT 4. ITT CALL (OCT 20.) 250.0 54.4 (4. 21. 75.) NIL)
+ (SOLD 1. BS CALL (APR 30.) 0.0 0.0 (4. 21. 75.) (WAS EXCERCISED))
+ (BOUGHT 100. BS COMMON NIL 30.0 58.71 (4. 21. 75.) (I EXCERCISED CALL))
+ (BOUGHT 2. KN CALL (APR 40.) 0.0 0.0 (4. 29. 75.) EXPIRED)
+ (INTEREST 3.88 THEIR FAULT AGAIN BUT SO (4. 30. 75.) NIL)
+ (SOLD 2. KN CALL (OCT 40.) 500.0 41.22 (5. 9. 75.) NIL)
+ (BOUGHT 1. HR CALL (JUL 25.) 475.0 25.5 (5. 12. 75.) NIL)
+ (TRANSFER -567.15 CASH TO ME ON THE (6. 19. 75.) NIL)
+ (DIVIDEND 8.0 PRD 0. 0. 0. 0. (6. 25. 75.) NIL)
+ (BOUGHT 4. ITT CALL (JUL 20.) 387.5 62.27 (6. 27. 75.) NIL)
+ (SOLD 4. ITT CALL (OCT 20.) 487.5 68.03 (6. 27. 75.) NIL)
+po
+ (BOUGHT 1. PRD CALL (JUL 25.) 0.0 0.0 (7. 16. 75.) (WAS EXCERCIZED))
+ (SOLD 100. PRD COMMON NIL 25.0 58.37 (7. 16. 75.) (CALL EXCERCIZED))
+ (SOLD 1. HR CALL (JUL 25.) 56.25 14.57 (7. 22. 75.) NIL)
+ (BOUGHT 5. T CALL (JUL 50.) 0.0 0.0 (7. 31. 75.) EXPIRED)
+ (DIVIDEND 10.0 BBN 0. 0. 0. 0. (8. 29. 75.) NIL)
+ (SOLD 5. T CALL (OCT 50.) 37.5 25.51 (9. 8. 75.) NIL)
+po
+ (TRANSFER 5000.0 CASH TO DW ON THE (10. 21. 75.) NIL)
+ (BOUGHT 100. AMPEX COMMON NIL 5.75 21.77 (10. 21. 75.) NIL)
+ (BOUGHT 3. US-NOTES BOND (SEPT 1979. /85%) 1053.73 25.5 (10. 21. 75.) NIL)
+ (BOUGHT 3. PRD CALL (APR 40.) 637.5 60.85 (10. 21. 75.) NIL)
+ (SOLD 3. PRD CALL (OCT 40.) 87.5 25.51 (10. 21. 75.) NIL)
+ (BOUGHT 3. PRD CALL (OCT 40.) 6.25 13.0 (10. 24. 75.) NIL)
+ (SOLD 3. PRD CALL (JAN 40.) 325.0 47.47 (10. 29. 75.) NIL)
+ (SOLD 3. HON CALL (NOV 35.) 75.0 25.51 (10. 31. 75.) NIL)
+ (BOUGHT 3. HON CALL (FEB 35.) 237.5 43.69 (10. 31. 75.) NIL)
+ (SOLD 2. UC CALL (NOV 50.) 150.0 31.2 (11. 4. 75.) NIL)
+ (BOUGHT 2. UC CALL (MAY 60.) 250.0 34.05 (11. 4. 75.) NIL)
+ (BOUGHT 10. TGT CALL (NOV 25.) 18.75 31.75 (11. 11. 75.) NIL)
+ (SOLD 3. HON CALL (FEB 40.) 68.75 25.51 (11. 25. 75.) NIL)
+ (SOLD 2. UC CALL (MAY 60.) 131.25 30.66 (11. 25. 75.) NIL)
+ (SOLD 10. TGT CALL (NOV 25.) 0.0 0.0 (11. 30. 75.) EXPIRED)
+ (BOUGHT 3. HON CALL (NOV 35.) 0.0 0.0 (11. 30. 75.) EXPIRED)
+ (BOUGHT 2. UC CALL (NOV 50.) 0.0 0.0 (11. 30. 75.) EXPIRED)
+ (TRANSFER -200.0 CASH TO ME ON THE (12. 8. 75.) NIL)
+ (BOUGHT 100. AMPEX COMMON NIL 4.5 18.8 (12. 15. 75.) NIL)
+ (BOUGHT 3. PG CALL (JAN 90.) 212.5 42.62 (12. 15. 75.) NIL)
+ (SOLD 3. PG CALL (JAN 80.) 1012.5 74.64 (12. 15. 75.) NIL)
+ (BOUGHT 100. BBN COMMON NIL 6.75 24.14 (12. 16. 75.) NIL)
+ (SOLD 5. INA CALL (JAN 30.) 700.0 92.42 (12. 16. 75.) NIL)
+ (BOUGHT 5. INA CALL (JAN 35.) 225.0 62.79 (12. 16. 75.) NIL)
+po
+ (SOLD 3. PG CALL (JAN 90.) 168.75 40.76 (1. 6. 76.) NIL)
+ (BOUGHT 3. PG CALL (JAN 80.) 1150.0 78.66 (1. 6. 76.) NIL)
+ (BOUGHT 5. INA CALL (JAN 30.) 0.0 0.0 (1. 6. 76.) (WAS EXCERCIZED))
+ (SOLD 5. INA CALL (JAN 35.) 0.0 0.0 (1. 6. 76.) (WAS EXCERCIZED))
+ (BOUGHT 500. INA COMMON NIL 35.0 260.7 (1. 6. 76.) (CALL EXCERSIZED))
+ (SOLD 500. INA COMMON NIL 30.0 232.75 (1. 6. 76.) (I EXCERCISED CALL))
+ (SOLD 4. AVP CALL (JAN 35.) 50.0 25.51 (1. 7. 76.) NIL)
+ (BOUGHT 4. AVP CALL (APR 35.) 281.25 56.19 (1. 7. 76.) NIL)
+ (BOUGHT 4. AVP CALL (JAN 35.) 206.25 51.9 (1. 12. 76.) NIL)
+ (SOLD 4. AVP CALL (APR 40.) 206.25 51.93 (1. 12. 76.) NIL)
+ (BOUGHT 3. PRD CALL (JAN 40.) 0.0 0.0 (1. 19. 76.) EXPIRED)
+ (SOLD 3. PRD CALL (APR 40.) 137.5 39.42 (1. 19. 76.) NIL)
+po
+)))
+
+(setq z2 '(pt
+'((sold 3. US-NOTES BOND (SEPT 1979. /85%) 1053.73 0.0 (1 22 76) hypothetical)
+(sold 100 bbn common nil 6.75 0.0 (1 22 76) hypo)
+(sold 100 bbn common nil 6.75 0.0 (1 22 76) hypo)
+(sold 100 ampex common nil 5.75 0.0 (1 22 76) hypo)
+(sold 100 ampex common nil 5.75 0.0 (1 22 76) hypo)
+(bought 4. AVP CALL (APR 40.) 206.25 0.0 (1 22 76) hypo)
+(sold 4. AVP CALL (APR 35.) 475.0 0.0 (1 22 76) hypo)
+(bought 3. HON CALL (FEB 40.) 500.0 0.0 (1 22 76) hypo)
+(sold 3. HON CALL (FEB 35.) 975.0 0.0 (1 22 76) hypo)
+po)))

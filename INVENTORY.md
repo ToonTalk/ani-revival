@@ -202,7 +202,70 @@ The background is dark blue, and the 4:3 picture sits inside the square frame. T
 
 ## Binary files
 
-See `reports/BINARY-FORMATS.md` (in progress).
+Full details, with the tools and the commands that regenerate each output, are in `reports/BINARY-FORMATS.md`.
+
+**The encoding.** Every file uses the "ITS evacuate" format: Alan Bawden's EVACUATE, which John Wilson's itstar also writes. Two decoders, written independently, agree on all 502 files:
+
+- `src/its/text.js`, in JavaScript;
+- `tools/its_words.py`, in Python, which also re-encodes. 500 files come back byte for byte. The other two do once a dropped final word of `^C` padding is restored.
+
+**FASLs (90).** All of them parse to their end marker. The dumps are in `reports/fasl/` (`SUMMARY.md`, `DEFINITIONS.md`).
+
+- `ANI FASL` maps each of Ani's functions and actors to its source file.
+- `SMADIR FASL` and `DIRECT FASL` do the same for Director. They name functions in the lost `KEN1;` files, including two files not in the tags table, `KEN1;DLIST` and `KEN1;TURMAC`.
+
+**Directories (7).** Listings with file dates are in `reports/itsdir/`. They show:
+
+- links from `TS ANI` to `KEN1;ANI >` and from `TS D` to `KEN1;DIRECT >`;
+- Director moving to its own `DIRECT;` directory in December 1979;
+- links to the archive files.
+
+**Archives (15).** They hold 219 files. 210 were extracted to `reports/archives/`; 9 personal ones (letters, résumés, mail, one private story) were left unextracted. Among the extracted files:
+
+- the sources of the thesis proposal;
+- the 1975 actor and animation papers;
+- `#ANIMA 1`, "the actor like animation system that sorta ran on the 11";
+- 1975–76 demos and the walking movie;
+- Kahn & Gorry's "Mechanizing Temporal Knowledge";
+- output from the diagram maker (`AR1 DIAGRM`);
+- a collection of stories (`SOME STORYS`);
+- a Scrabble game in LLOGO between "Ken" and "Fannie" (`FANNIE SCRAB`).
+
+**Pictures (28 PNGs in `reports/images/`).** Some files thought to be fonts are actually pictures:
+
+- fonts;
+- 1976 Director demo frames, captioned with their `ASK` commands;
+- 1975 flower and rocket frames;
+- the walking stick figure.
+
+Four are kept out of git until you decide what to do with them: a digitized signature (`FANNIE WINDOW`), and three digitized photographs of a face (`KEN KST`, `KENPIC KST`, `KEN WINDOW`).
+
+**Saved executables.** `TS D2500` (tape 701431, written 5 January 1980) is a saved Director job, and the best surviving evidence for the lost runtime. The 1979 tags table lists 596 definitions in `KEN1;` Lisp files, including `DRECT`. Of those, the image holds:
+
+| In TS D2500 | Definitions |
+|---|---|
+| Compiled code | 229 |
+| Compiled macros | 70 |
+| Only a pointer for loading it from a `DIRECT;` file | 67 |
+| Other properties | 17 |
+| Absent | 213 |
+
+Coverage by file:
+
+| File | Coverage in TS D2500 |
+|---|---|
+| `MACROS` | 77 of 99 |
+| `UTIL` | 60 of 67 |
+| `CMATCH` | 32 of 48 |
+| `DL` | 25 of 32 |
+| `TUTIL` | 24 of 28 |
+| `PROP` | 20 of 21 |
+| `COMP`, `INCOMP`, `TRACE`, `INTER`, `CMOVIE` | load pointers only |
+| `MEMORY`, `COLIDE`, `FWMAKE`, `RDTAGS` | absent |
+
+The symbol table and coverage are in `reports/pdump/`. The 62,000-line disassembly can be regenerated with `python -I tools/pdump.py --all`. It's eleven months newer than the Ani run, so it may differ in places.
+
+`TS UNIFOR` (tape 7006808) is a different saved Lisp, almost certainly your Uniform language, from after November 1980.
 
 ## Open questions for later phases
 

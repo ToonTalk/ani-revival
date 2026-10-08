@@ -1,0 +1,338 @@
+FASL dump: original/7005044/fw.fasl  (ITS KEN;FW FASL, tape 7005044, Dec 1975)
+Decoded 1395 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1395 of 1395 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212031,,000007 ('109', flag bits 007), 110 blocks, 987 items
+Item counts: absolute 388, relocatable 80, special 44, smashable call 155, quoted atom 89, quoted list 4, globalsym 83, atom table 122, entry 14, eval mungeable 7, end 1
+
+-- Functions defined (14) --
+  name                         property args         address
+  WINDOWIZE                    FSUBR                 000000
+  ATOMIZE                      SUBR     (NIL . 1)    000220
+  READ-AND-DISPLAY             SUBR     (NIL . 2)    000230
+  READ-HEADING                 SUBR     (NIL . 0)    000315
+  READ-CHAR-HEADING            SUBR     (NIL . 0)    000402
+  FONT-MARK                    LSUBR                 000515
+  FONT-CS                      SUBR     (NIL . 0)    000754
+  FONT-TERPRI                  SUBR     (NIL . 0)    001002
+  FONT-PRINC                   LSUBR                 001030
+  FONT-PRINT                   LSUBR                 001134
+  WRITE-FONT                   SUBR     (NIL . 1)    001144
+  PRINT-DEFPROP                SUBR     (NIL . 2)    001205
+  PRINT-PUTPROP-WITH-CONS      SUBR     (NIL . 3)    001225
+  STORE-PROPS-OF-EACH-CHAR     SUBR     (NIL . 1)    001303
+
+-- Top-level forms evaluated at load time (7) --
+  (SETQ *SPACING* 0)
+  (SETQ *LEFT-MARGIN* 20)
+  (SETQ *RIGHT-MARGIN* 20)
+  (SETQ *TOP-MARGIN* 20)
+  (SETQ *BOTTOM-MARGIN* 20)
+  (SETQ *LINE-SPACING* 0)
+  (SETQ *LAST-FONT-USED* '(NO FONT GIVEN TO FONT-MARK))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  WINDOWIZE
+      calls:        STATUS DEFPROP CS HT WRAP PU TVSIZE TURTLESIZE UREAD READ-HEADING PUTPROP READ-CHAR-HEADING ATOMIZE EXPLODEC *APPEND IMPLODE NCONS XCONS GET READ-AND-DISPLAY ABS MW HW
+      specials:     *NOPOINT BASE
+      quoted atoms: HEIGHT EOF ? 8 T FONTS-WINDOWS 0 CHAR-WIDTH 1
+      quoted list:  (FEATURE TVRTLE)
+      quoted list:  (CS (TVRTLE FASL DSK LLOGO) AUTOLOAD)
+  ATOMIZE
+      calls:        EXPLODEC IMPLODE
+      specials:     *NOPOINT BASE
+      quoted atoms: 8 T
+  READ-AND-DISPLAY
+      calls:        POINT READCH
+      specials:     ^Q
+      quoted atoms: T |^L| EOF * | | |^M|
+  READ-HEADING
+      calls:        NCONS XCONS READ READCH
+      specials:     HEIGHT BASE-LINE COLUMN-POSITION-ADJUSTMENT ^Q
+      quoted atoms: COLUMN-POSITION-ADJUSTMENT BASE-LINE HEIGHT T EOF |^M|
+  READ-CHAR-HEADING
+      calls:        NCONS XCONS READ READCH
+      specials:     IBASE ^Q WIDTH CHAR-WIDTH LEFT-KERN
+      quoted atoms: LEFT-KERN CHAR-WIDTH WIDTH T 8 EOF |^M|
+  FONT-MARK
+      calls:        PU ATOM EXPLODEN NCONS XCONS CONS PRINT GET TVSIZE PD ERD FONT-TERPRI ATOMIZE ASSQ ASCII XCOR DELY SETX XW DELX
+      specials:     *LAST-FONT-USED* :ERASERSTATE :PENSTATE *LEFT-MARGIN* *RIGHT-MARGIN* HEIGHT *LINE-SPACING* :YCOR :XCOR *SPACING*
+      quoted atoms: ONE NOT IS ATOMS ONLY LIKES FONT-MARK NIL HEIGHT FONTS-WINDOWS FONT FOR DEFINED CHAR-WIDTH
+  FONT-CS
+      calls:        CS TVSIZE SETXY
+      specials:     *LEFT-MARGIN* *TOP-MARGIN*
+  FONT-TERPRI
+      calls:        GET DELY TVSIZE SETX
+      specials:     *LAST-FONT-USED* *LINE-SPACING* *LEFT-MARGIN*
+      quoted atoms: HEIGHT
+  FONT-PRINC
+      calls:        ATOM FONT-MARK FONT-PRINC
+      specials:     *LAST-FONT-USED*
+      quoted atoms: |(| | | |)|
+  FONT-PRINT
+      calls:        FONT-TERPRI LISTIFY *APPLY
+      quoted atoms: FONT-PRINC
+  WRITE-FONT
+      calls:        UWRITE PRINT-DEFPROP STORE-PROPS-OF-EACH-CHAR PRINT NCONS CONS XCONS UFILE
+      specials:     ^R ^W
+      quoted atoms: NIL T HEIGHT WINDOW GETWINDOWS WINFON
+      quoted list:  (OR (STATUS FEATURE TVRTLE)
+                      (PROGN (DEFPROP CS (TVRTLE FASL DSK LLOGO) AUTOLOAD) (CS) (PU) (WRAP) (HT)))
+      quoted list:  (TURTLESIZE (CADR (TVSIZE)))
+  PRINT-DEFPROP
+      calls:        GET NCONS XCONS CONS PRINT
+      quoted atoms: DEFPROP
+  PRINT-PUTPROP-WITH-CONS
+      calls:        NCONS XCONS PRINT
+      quoted atoms: QUOTE GET CONS PUTPROP
+  STORE-PROPS-OF-EACH-CHAR
+      calls:        NCONS CONS *APPLY ATOMIZE GET ASSQ PRINT-PUTPROP-WITH-CONS PRINT-DEFPROP
+      specials:     :WINDOWS
+      quoted atoms: WINDOW SAVEWINDOWS FONTS-WINDOWS CHAR-WIDTH 1
+
+-- Symbols and how they are used (116) --
+  |^L|                           quoted
+  |^M|                           quoted
+  | |                            quoted
+  |(|                            quoted
+  |)|                            quoted
+  *                              quoted
+  *APPEND                        called
+  *APPLY                         called
+  *BOTTOM-MARGIN*                in top-level form
+  *LAST-FONT-USED*               in top-level form, special
+  *LEFT-MARGIN*                  in top-level form, special
+  *LINE-SPACING*                 in top-level form, special
+  *NOPOINT                       special
+  *RIGHT-MARGIN*                 in top-level form, special
+  *SPACING*                      in top-level form, special
+  *TOP-MARGIN*                   in top-level form, special
+  :ERASERSTATE                   special
+  :PENSTATE                      special
+  :WINDOWS                       special
+  :XCOR                          special
+  :YCOR                          special
+  ?                              quoted
+  ABS                            called
+  ASCII                          called
+  ASSQ                           called
+  ATOM                           called
+  ATOMIZE                        called, defined
+  ATOMS                          quoted
+  AUTOLOAD                       in constant
+  BASE                           special
+  BASE-LINE                      quoted, special
+  CADR                           in constant
+  CHAR-WIDTH                     quoted, special
+  COLUMN-POSITION-ADJUSTMENT     quoted, special
+  CONS                           called, quoted
+  CS                             called, in constant
+  DEFINED                        quoted
+  DEFPROP                        called, in constant, quoted
+  DELX                           called
+  DELY                           called
+  DSK                            in constant
+  EOF                            quoted
+  ERD                            called
+  EXPLODEC                       called
+  EXPLODEN                       called
+  FASL                           in constant
+  FEATURE                        in constant
+  FONT                           in top-level form, quoted
+  FONT-CS                        defined
+  FONT-MARK                      called, defined, in top-level form, quoted
+  FONT-PRINC                     called, defined, quoted
+  FONT-PRINT                     defined
+  FONT-TERPRI                    called, defined
+  FONTS-WINDOWS                  quoted
+  FOR                            quoted
+  GET                            called, quoted
+  GETWINDOWS                     quoted
+  GIVEN                          in top-level form
+  HEIGHT                         quoted, special
+  HT                             called, in constant
+  HW                             called
+  IBASE                          special
+  IMPLODE                        called
+  IS                             quoted
+  LEFT-KERN                      quoted, special
+  LIKES                          quoted
+  LISTIFY                        called
+  LLOGO                          in constant
+  MW                             called
+  NCONS                          called
+  NIL                            quoted
+  NO                             in top-level form
+  NOT                            quoted
+  ONE                            quoted
+  ONLY                           quoted
+  OR                             in constant
+  PD                             called
+  POINT                          called
+  PRINT                          called
+  PRINT-DEFPROP                  called, defined
+  PRINT-PUTPROP-WITH-CONS        called, defined
+  PROGN                          in constant
+  PU                             called, in constant
+  PUTPROP                        called, quoted
+  QUOTE                          in top-level form, quoted
+  READ                           called
+  READ-AND-DISPLAY               called, defined
+  READ-CHAR-HEADING              called, defined
+  READ-HEADING                   called, defined
+  READCH                         called
+  SAVEWINDOWS                    quoted
+  SETQ                           in top-level form
+  SETX                           called
+  SETXY                          called
+  STATUS                         called, in constant
+  STORE-PROPS-OF-EACH-CHAR       called, defined
+  T                              quoted
+  TO                             in top-level form
+  TURTLESIZE                     called, in constant
+  TVRTLE                         in constant
+  TVSIZE                         called, in constant
+  UFILE                          called
+  UREAD                          called
+  UWRITE                         called
+  WIDTH                          quoted, special
+  WINDOW                         quoted
+  WINDOWIZE                      defined
+  WINFON                         quoted
+  WRAP                           called, in constant
+  WRITE-FONT                     defined
+  XCONS                          called
+  XCOR                           called
+  XW                             called
+  ^Q                             special
+  ^R                             special
+  ^W                             special
+  (in atom table, no direct use found: FSUBR SUBR LSUBR)
+
+-- Atom table (122 entries; 0 is NIL) --
+     1 symbol  WINDOWIZE
+     2 symbol  FSUBR
+     3 symbol  FEATURE
+     4 symbol  TVRTLE
+     5 symbol  STATUS
+     6 symbol  CS
+     7 symbol  FASL
+     8 symbol  DSK
+     9 symbol  LLOGO
+    10 symbol  AUTOLOAD
+    11 symbol  DEFPROP
+    12 symbol  HT
+    13 symbol  WRAP
+    14 symbol  PU
+    15 symbol  TVSIZE
+    16 symbol  TURTLESIZE
+    17 symbol  UREAD
+    18 symbol  READ-HEADING
+    19 symbol  HEIGHT
+    20 symbol  PUTPROP
+    21 symbol  READ-CHAR-HEADING
+    22 symbol  EOF
+    23 symbol  ?
+    24 symbol  ATOMIZE
+    25 symbol  EXPLODEC
+    26 fixnum  8
+    27 symbol  T
+    28 symbol  *NOPOINT
+    29 symbol  BASE
+    30 symbol  *APPEND
+    31 symbol  IMPLODE
+    32 symbol  NCONS
+    33 symbol  XCONS
+    34 symbol  FONTS-WINDOWS
+    35 symbol  GET
+    36 symbol  READ-AND-DISPLAY
+    37 symbol  ABS
+    38 fixnum  0
+    39 symbol  MW
+    40 symbol  HW
+    41 symbol  CHAR-WIDTH
+    42 fixnum  1
+    43 symbol  SUBR
+    44 symbol  ^Q
+    45 symbol  |^L|
+    46 symbol  *
+    47 symbol  POINT
+    48 symbol  | |
+    49 symbol  |^M|
+    50 symbol  READCH
+    51 symbol  COLUMN-POSITION-ADJUSTMENT
+    52 symbol  BASE-LINE
+    53 symbol  READ
+    54 symbol  LEFT-KERN
+    55 symbol  WIDTH
+    56 symbol  IBASE
+    57 symbol  FONT-MARK
+    58 symbol  LSUBR
+    59 symbol  *LAST-FONT-USED*
+    60 symbol  :ERASERSTATE
+    61 symbol  :PENSTATE
+    62 symbol  ATOM
+    63 symbol  EXPLODEN
+    64 symbol  ONE
+    65 symbol  NOT
+    66 symbol  IS
+    67 symbol  CONS
+    68 symbol  ATOMS
+    69 symbol  ONLY
+    70 symbol  LIKES
+    71 symbol  PRINT
+    72 symbol  *LEFT-MARGIN*
+    73 symbol  *RIGHT-MARGIN*
+    74 symbol  PD
+    75 symbol  ERD
+    76 symbol  FONT-TERPRI
+    77 symbol  ASSQ
+    78 symbol  ASCII
+    79 symbol  FONT
+    80 symbol  FOR
+    81 symbol  DEFINED
+    82 symbol  XCOR
+    83 symbol  *LINE-SPACING*
+    84 symbol  DELY
+    85 symbol  SETX
+    86 symbol  :YCOR
+    87 symbol  :XCOR
+    88 symbol  XW
+    89 symbol  *SPACING*
+    90 symbol  DELX
+    91 symbol  FONT-CS
+    92 symbol  *TOP-MARGIN*
+    93 symbol  SETXY
+    94 symbol  FONT-PRINC
+    95 symbol  |(|
+    96 symbol  |)|
+    97 symbol  FONT-PRINT
+    98 symbol  LISTIFY
+    99 symbol  *APPLY
+   100 symbol  SETQ
+   101 fixnum  20
+   102 symbol  *BOTTOM-MARGIN*
+   103 symbol  QUOTE
+   104 symbol  NO
+   105 symbol  GIVEN
+   106 symbol  TO
+   107 symbol  WRITE-FONT
+   108 symbol  UWRITE
+   109 symbol  ^R
+   110 symbol  ^W
+   111 symbol  PRINT-DEFPROP
+   112 symbol  STORE-PROPS-OF-EACH-CHAR
+   113 symbol  OR
+   114 symbol  PROGN
+   115 symbol  CADR
+   116 symbol  WINDOW
+   117 symbol  GETWINDOWS
+   118 symbol  WINFON
+   119 symbol  UFILE
+   120 symbol  PRINT-PUTPROP-WITH-CONS
+   121 symbol  :WINDOWS
+   122 symbol  SAVEWINDOWS
+
+The LAP-like listing of the loaded words is in code/7005044_fw.code.txt.

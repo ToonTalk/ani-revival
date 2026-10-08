@@ -28,12 +28,12 @@ const NIL = ob.intern("NIL");
 // ---------------------------------------------------------------- tags table
 
 // The 1979 EMACS tags table lists every definition in every file, including the
-// KEN1; files that are lost. Each entry is the start of the definition's line
-// followed by its character position, whose first digit has the 200 bit set.
+// KEN1; files that are lost. Each entry is the start of the definition's line,
+// a rubout, and the definition's character position in the file.
 function readTags(path) {
-  const raw = readFileSync(path).toString("latin1");
+  const { text } = decodeItsText(readFileSync(path));
   const files = [];
-  for (const sec of raw.split("\x1f")) {
+  for (const sec of text.split("\x1f")) {
     const lines = sec.split(/\r?\n/).filter((l) => l.length);
     if (lines.length < 2) continue;
     const m = lines[0].match(/^(\w+); (\w+): (\S+)(?: (\S+))?/);
@@ -41,10 +41,12 @@ function readTags(path) {
     const [, dir, , fn1, fn2] = m;
     const defs = [];
     for (const l of lines.slice(2)) {
-      const mm = l.match(/^(.*?)([\xb0-\xb9])(\d*)$/);
+      // A rubout separates the text from the position. When the text runs to the
+      // end of its source line, it keeps that line's carriage return.
+      const mm = l.match(/^(.*?)\r?\x7f(\d+)$/);
       if (!mm) continue;
       const head = mm[1];
-      const pos = parseInt(String.fromCharCode(mm[2].charCodeAt(0) & 0x7f) + mm[3], 10);
+      const pos = parseInt(mm[2], 10);
       const dm = head.match(/^\((\S+)\s+(\(?)\s*([^\s()]+)/);
       if (dm) defs.push({ kind: dm[1].toLowerCase(), name: dm[3].toUpperCase(), pos, paren: dm[2] === "(" });
     }

@@ -1,0 +1,170 @@
+remprop 'random 'parse
+
+
+TO DEFINE.FLOWER
+;Logo syntax has been kept since this is built on top of Logo
+10 my.declare 'flower '(kind.of obj)
+15 flower [if receive handle ?obj (how.to.draw?) then list 'draw.flower (list 'quote :?obj)]
+;DECLARE does 3 things:
+;	1) updates the "Kind.of" tree with flower as a kind of OBJ
+;	2) creates an actor named "Flower".
+20 FLOWER [REMEMBER SIZE 10]
+;This tells flower to remember that the default size of flowers is 20
+;"Remember" is the standard kind of message for telling any actor something
+; to remember
+30 FLOWER [REMEMBER CENTER [0 1]]
+;this tells the flower that for purposes of snaps (windows) that its center
+;is size times 1 above the obj.state
+40 flower [remember grain 5]
+50 FLOWER [REMEMBER ROTATION.SPEED 25]
+60 FLOWER [IF RECEIVE HANDLE ?OBJ [SWAY ?N] THEN SWAY :?N :?OBJ]
+END
+
+
+TO SWAY :TIMES :OBJ
+10 TELL :OBJ [DO [RT 10] IN 1 FRAME]
+20 TELL :OBJ [DO [LT 10] IN 2 FRAMES]
+30 IF :TIMES > 1 TELL :OBJ (LIST 'DO (LIST 'SWAY :TIMES-1) 'IN 3 'FRAMES)
+END
+
+
+TO DEFINE.SEED
+10 my.DECLARE 'SEED [KIND.OF ACTOR]
+; Seed is not an Obj, since it does not do turtle-like things.
+20 SEED [IF RECEIVE HANDLE ?SEED [START] THEN DO.SEED.THING :?SEED]
+;This simply lets seeds take a "start" message and calls the appropriate procedure.
+END
+
+TO DO.SEED.THING :SEED
+10 LOCAL 'FLOWER.NAME
+;a thing to hold the name for the flower that seed will spawn is needed
+20  MAKE 'FLOWER.NAME FLOWER [MAKE]
+;After the buck is passed to "Actor", 
+;this results in the call "MAKE.INSTANCE 'FLOWER 
+;which will create an instantiation of flower with a generated name that is 
+;put in the variable "Flower.name".
+30 TELL :FLOWER.NAME [RIGHT 90]
+;Flowers are objects so can take any turtle command
+40 TELL :FLOWER.NAME (list 'FORWARD 1500*RANDOM - 750 )
+50 TELL :FLOWER.NAME [LEFT 90]
+60 TELL :FLOWER.NAME [DO (SHOW) IN 10 FRAMES]
+;This results in the following call:
+;   SCHEDULER [DO :FLOWER.NAME SHOW IN 10 FRAMES]
+;which schedules the call,
+;   TELL :FLOWER.NAME [SHOW],
+;ten frames after line 60 is executed.
+80 REPEAT.it 5 [TELL :FLOWER.NAME '( DO (GROW 10) AFTER 2 MORE FRAMES)]
+70 tell seed [make] [do (start) at that time]
+;"At that time" is equivalent to "after 0 more frames".
+;	SEED [MAKE] followed by that seed the message "Start"
+;at the same time as the last thing scheduled in line 80.
+80 REPEAT.it 10 [TELL :FLOWER.NAME '( DO (GROW 10) AFTER 2 MORE FRAMES)]
+;This schedules the call, 
+;	TELL :FLOWER.NAME [GROW 10],
+; 15 times, each time 2 frames after the last.
+85 tell :flower.name [do [rt 90] after 35 more frames]
+90 tell :flower.name [do [hide] after 15 more frames]
+100 TELL :FLOWER.NAME [DO (UN.MAKE) AT that time]
+;This schedules the suicide of the flower
+END
+
+to repeat.it :times :code
+10 if :times = 0 stop
+20 run :code
+30 make 'times :times - 1
+40 go 10
+end
+
+
+;SCHEDULER [MAKE.MOVIE GARDEN 1000]
+;This makes a movie named "Garden" 1000 frames long.
+;The schedule is run, and all display and turtle commands
+;are stored in the movie "Garden".
+
+;GARDEN [REMEMBER SPEED 10]
+;GARDEN [SHOW]
+
+
+
+
+TO DRAW.FLOWER :self
+5 LOCAL START.STATE SIZE color.list petal.number
+7 MAKE 'START.STATE HERE
+8 MAKE 'SIZE tell :self '(size?)
+9 make 'petal.number (get :self 'petal.number)
+12 if emptyp :petal.number (putprop :self (random * 12) 'petal.number) go 9
+14 make 'color.list get :self 'size
+15 if emptyp :color.list (putprop :self (gen.colors :petal.number) 'color.list) go 10
+25 PU BK 110.*:SIZE pd ;UNTIL CENTER THING IS FIXED
+30 flower :size :petal.number :color.list
+end
+
+
+TO PETALS :SIZE :N :color.list
+3 LOCAL 'TURN
+6 MAKE 'TURN 360.0 / :N
+10 RIGHT 45
+20 IF :N = 0 THEN LEFT 45 STOP ELSE pencolor f :color.list PETAL :SIZE MAKE 'N :N - 1 RIGHT :TURN
+25 make 'color.list se bf :color.list f :color.list
+30 GO 20
+END
+
+TO PETAL :SIZE
+3 LOCAL 'BEGIN
+4 MAKE 'BEGIN HERE
+5 LEFT 45
+10 K.ARC :SIZE 90
+20 RIGHT 90
+30 K.ARC :SIZE 90
+40 RIGHT 135
+50 PENUP SETTURTLE :BEGIN
+60 PENDOWN
+END
+
+TO K.ARC :SIZE :ANGLE
+3 LOCAL 'STOP.HEADING
+6 MAKE 'STOP.HEADING :HEADING + :ANGLE
+10 FORWARD :SIZE
+20 RIGHT 5
+30 IF :HEADING > :STOP.HEADING THEN STOP ELSE GO 10
+END
+
+TO FLOWER :SIZE :N :color.list
+10 LOCAL 'BEGIN
+20 MAKE 'BEGIN HERE
+30 PETALS :SIZE :N :color.list
+35 pencolor 'green
+40 BACK :SIZE * 32
+50 RIGHT 22 PETAL :SIZE * 1.05
+60 LEFT 22
+70 BACK :SIZE * 8
+80 LEFT 33
+90 PETAL :SIZE * 0.9
+100 RIGHT 33
+110 BACK :SIZE * 13
+120 PENUP SETTURTLE :BEGIN PENDOWN
+END
+
+TO TOP.ROW
+10 PENUP FORWARD 300 RIGHT 90 FORWARD 200 LEFT 90
+20 PENDOWN FLOWER 2 4 '(yellow red)
+30 PENUP LEFT 90 FORWARD 180 RIGHT 90 BACK 30 PENDOWN
+40 FLOWER 2.5 5 '(blue yellow)
+50 PENUP LEFT 90 FORWARD 140 RIGHT 90 FORWARD 40 PENDOWN
+60 FLOWER 1.8 4 '(orange yellow)
+END
+
+TO MID.ROW
+10 PENUP BACK 125 RIGHT 90 FORWARD 80 LEFT 90 PENDOWN
+20 FLOWER 3 6 '(red yellow orange)
+30 PENUP BACK 40 RIGHT 90 FORWARD 130 LEFT 90 PENDOWN
+40 FLOWER 3.5 8 '(orange yellow red blue)
+END
+
+to init.colors
+10 makecolor 'orange 1.0 .5 0.0
+end
+
+to pencolor :foo
+10 print (se 'pen 'is 'now :foo)
+end

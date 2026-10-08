@@ -1,0 +1,1754 @@
+ 
+
+(defun put-hand (:x :hand) 
+         (go-square (plus :x 3.) 17.5)
+	 (eraserdown)
+	 (fillwindow 71. 12.)
+	 (eraserup)
+	 (put-hand1 :x :hand)) 
+
+(defun put-hand1 (:x :hand) 
+	 (cond ((null :hand))
+	       (t (put-letter :x 17.5 (car :hand))
+		  (put-hand1  (plus :x 1.) (cdr :hand))))) 
+
+(defun make-colors nil 
+       (makecolor 'background 0.5 0.5 0.5)
+       (makecolor 'double-word 1.0 0.5 0.5)
+       (makecolor 'double-letter 0.5 0.5 1.0)
+       (makecolor 'triple-word 1.0 0.0 0.0)
+       (makecolor 'triple-letter 0.0 0.0 1.0)) 
+ 
+(defun pick-color (:pattern) 
+       (cond ((equal :pattern 'double-word)
+	      (pencolor 'dw)))) 
+
+(defun  score-cross-hor (:x :y :subproduct) 
+	(cond ((null (letters :x :y)) :subproduct)
+	      (t (score-cross-hor :x
+				  (plus :y 1.)
+				  (plus :subproduct (check-cross-hor :x :y))))))
+
+(defun score-cross-vert  (:x :y :subproduct) 
+       (cond ((null (letters :x :y)) :subproduct)
+	     (t (score-cross-vert (1+ :x)
+				  :y
+				  (+ :subproduct (check-cross-vert :x :y))))))
+
+(defun score-cross-word (:x :y :direction) 
+       (cond ((equal :direction 'sleeping) (score-cross-vert :x :y 0.))
+	     (t (score-cross-hor :x :y 0.))))
+
+(defun check-cross-hor (:x :y) 
+     (cond ((eq (bonus :x :y) 'filled) 0.)
+	   ((letters (compute-cross-x :x '-1.) :y)
+	    (score-word (find-beg-x :x :y) :y 'sleeping))
+	   ((letters (compute-cross-x :x 1.) :y)
+	    (score-word :x :y 'sleeping))
+	   (t  0.)))
+
+(defun check-cross-vert (:x :y) 
+       (cond ((eq (bonus :x :y) 'filled) 0.)
+	     ((letters :x (compute-cross-y :y -1.))
+	      (score-word :x (find-beg-y :x :y) 'standing))
+	     ((letters :x (compute-cross-y :y 1.))
+	      (score-word :x :y 'standing))
+	     (t  0.)))
+ 
+
+(defun space nil
+	 ( '| | ))
+
+(defun replace (:old :new :thing) 						
+      (subst :old :new :thing))
+
+(defun take-out (:x :list) 
+   	(cond ((null :list) :list)
+	      ((equal :x (car :list))(cdr :list))
+	      (t (cons (car :list) (take-out :x (cdr :list))))))
+				
+(defun count-needle (:needle :haystack) 
+       (cond ((null :haystack) 0.)
+	     ((equal (car :haystack) :needle)
+	      (1+ (count-needle :needle (cdr :haystack))))
+	     (t (count-needle :needle (cdr :haystack)))))
+
+(defun thanks nil 
+       (print '(your welcome)))
+	  
+
+(defun put-score (:x :y :score)		  
+       (erase-score (plus :x 0.5) (player-y :player))
+       (go-square :x (player-y :player))
+       (draw :score)))
+	  
+(defun put-names (:players) 
+       (cond ((null :players) (stop)))
+       (go-square 16.5 (player-y (car :players)))
+       (mark (car :players))
+       (home)
+       (put-names  (cdr :players))))
+	  
+
+(defun player-y (:player)  
+       (get :player '-y)))
+	  
+(defun player-y1 (:players :y) 
+       (cond ((null :players) (stop)))
+       (putprop (car :players) :y '-y)
+       (player-y1 (cdr :players)
+		  (plus :y 1.8))))
+	  
+
+(defun start-watch nil  
+       (valret '|watch j p|)))
+	  
+
+(defun erase-score (:x :y)  
+       (home)
+       (go-square :x :y)
+       (eraserdown)
+       (fillwindow 15.)
+       (eraserup)))
+	  
+
+(defun sb nil  
+       (cursorpos 32. 0.)
+       (sleep 1.)
+       (clearscreen)
+       (hideturtle)
+       (cursorpos 'c)
+       (showwindow 'the-board)))
+	  
+(defun score-board1 nil  
+       (forward 100.)
+       (right 90.)
+       (forward 190.)
+       (mark '|//turn|)
+       (forward 40.)
+       (right 90.)
+       (forward 15.)
+       (draw 't)
+       (home)))
+	  
+
+(defun underscore-board nil  
+       (forward 93.)
+       (right 90.)
+       (forward 138.)
+       (pendown)
+       (forward 35.)
+       (penup)
+       (home)))	  
+
+(defun score-board nil  
+       (forward 100.)
+       (right 90.)
+       (forward 140.)
+       (mark 'scores)
+       (home)))
+	  
+
+(defun game nil  
+       (start-game)
+       (start-play)
+       (play)))
+	  
+(defun play nil 
+       (prog (:the-score) 
+	     (setq count-play 1.)
+	     (cond ((greaterp (remainder :count-play (count :players))  0.)
+		    (setq player (get 'player-no (\ :count-play (count :players)))))
+		   (t (setq player (get 'player-no (count :players)))))
+   25.	(type (sentence :player (space)))
+   30.	(make 'play (request))
+   33.	(cond ((null :play) (go 30.)))
+   34.	(cond
+	 ((equal (car :play) '*)
+	  (cond
+	   ((equal (nth 2. :play) 'trade.tiles)
+	    (trade.tiles
+	      (apply 'word
+				(cdr (cdr :play))))
+	    (go 84.)))))
+   35.	(cond ((equal (car :play) '*)
+	       (run (cdr :play))
+	       (go 30.)))
+   37.	(cond ((equal (check.notation) 'oops)
+	       (go 30.)))
+   40.	(cond ((numberp (car (cdr :play)))
+	       (make 'direction 'sleeping))
+	      (t (make 'direction 'standing)))
+   42.	(cond ((numberp (car (cdr :play)))
+	       (make 'y.position  (nth 2. :play))
+	       (make 'x.position
+		      (numequiv (nth 3. :play)))
+	       (go 50.)))
+   44.	(make 'x.position
+	       (numequiv (nth 2. :play)))
+   46.	(make 'y.position  (nth 3. :play))
+   50.	(make 'the.score
+	      (play.word :x.position
+			   :y.position
+			   :direction
+			   (car :play)))
+   52.	(cond ((equal :the.score 'blech)
+	       (logo-print (square-brackets (try another play)))
+	       (go 30.)))
+   55.	(put.score 19.6 (player.y :player) :the.score)
+   62.	(putprop :player
+	      (plus :the.score (get :player '.score))
+	      '.score)
+   70.	(put.score 21.5
+		     (player.y :player)
+		     (get :player '.score))
+   80.	(putprop :player
+	      (pick.hand (get :player '.hand))
+	      '.hand)
+   84.	(cond
+	 ((greaterp (remainder :count.play
+					   (count :players))
+			  0.)
+	  (make
+	   'x
+	   (difference
+	    
+	     (times
+	      (user-paren
+	       (difference
+		(user-paren (remainder :count.play
+					     (count :players)))
+		1.))
+	      8.)
+	    3.)))
+	 (t
+	  (cond
+	   ((equal (remainder :count.play
+					  (count :players))
+			 0.)
+	    (make
+	     'x
+	     (difference
+	      
+	       (times
+		(user-paren
+		 (difference (user-paren (count :players)) 1.))
+		8.)
+	      3.))))))
+   85.	(put.hand :x (get :player '.hand))
+   90.	(make 'count.play (plus :count.play 1.))
+   95.	(saveboard)
+   100.	(go 20.)
+	))
+  
+(defun assign-player-hand (:players :n) 
+       (cond ((null :players))
+	     (t (setq (word (car :players) '-hand)(pick-hand nil))
+		(print (list (car :players)
+			     '|your letters are|
+			     (eval (word (car :players) '-hand))))
+		(assign-player-hand (cdr :players) (plus :n 1.)))))
+  
+
+(defun assign-player-number (:players :n) 
+       (cond ((null :players))
+	     (t (print (list (car :players) '|you are player no.| :n))
+		(assign-player-number (cdr :players)(plus :n 1.)))))
+  
+
+(defun start-game nil  
+       (define-board)
+       (what-name?)
+       (assign-letters :players)
+       (number-players)
+       (assign-player-number :players 1.)
+       (pile)
+       (assign-player-hand :players 1.))
+	  
+
+(defun number-players nil  
+       (sort-players)
+       (number-players1 (reverse :players)))
+	  
+(defun number-players1 (:players) 
+       (cond ((null :players))
+	     (t (set (word 'player-no (count :players))
+		     (car  :players))(number-players1 (cdr :players)))))
+	  
+
+(defun sort-players nil  
+       (setq players (sort :players 'under-pick)))
+	  
+
+(defun under-pick (:player1 :player2) 
+		  (alphalessp (eval (word :player1 '-pick))
+					   (thing (word :player2
+							'.pick))))
+		       ))
+	  
+
+(defun assign.letters
+	  (:players) 
+		  
+		  10.  (cond ((null :players) (stop)))
+		  20.  (assign.letter (car :players))
+		  30.  (assign.letters (cdr :players))
+		       ))
+	  
+
+(defun
+ what.name?
+  nil 
+   
+   5.	(make 'players nil)
+   10.	(logo-print
+	 '
+|what is your name? just hit return if there are no more players|)
+   20.	(make 'answer (typein))
+   30.	(cond ((null :answer) (output :players)))
+   40.	(make 'players (lput :answer :players))
+   45.	(putprop :answer 0. '.score)
+   50.	(go 10.)
+	))
+  
+
+(defun
+ assign.letter
+  (:player) 
+   
+   5.	(make (word :player '.pick) (pick.letter))
+   10.	(logo-print
+	  (sentence :player
+			       (square-brackets (you have picked))
+			       (thing (word :player
+					    '.pick))))
+	))
+  
+
+(defun score.letters
+	  (:x :y :direction) 
+		  
+		  10.  (output (score.letters1 :x :y 0.))
+		       ))
+	  
+
+(defun
+ compute.y
+  (:y :direction) 
+   
+   10.	(cond
+	 ((equal :direction 'standing)
+	  (output (plus :y 1.)))
+	 (t
+	  (cond
+	   ((equal :direction 'sleeping) (output :y))
+	   (t (logo-print (square-brackets (wrong input
+						  to
+						  compute.y)))))))
+	))
+  
+
+(defun
+ compute.x
+  (:x :direction) 
+   
+   10.	(cond
+	 ((equal :direction 'sleeping)
+	  (output (plus :x 1.)))
+	 (t
+	  (cond
+	   ((equal :direction 'standing) (output :x))
+	   (t (logo-print (square-brackets (wrong input
+						  to
+						  compute.x)))))))
+	))
+  
+
+(defun
+ score.letters1
+  (:x :y :subtotal) 
+   
+   10.	(cond ((null (letters :x :y)) (output :subtotal)))
+   20.	(cond
+	 ((equal (bonus :x :y) 'double.letter)
+	  (output
+	   (score.letters1
+	    (compute.x :x :direction)
+	    (compute.y :y :direction)
+	    (plus
+	     :subtotal
+	     (times 2. (value.letter (letters :x :y))))))))
+   30.	(cond
+	 ((equal (bonus :x :y) 'triple.letter)
+	  (output
+	   (score.letters1
+	    (compute.x :x :direction)
+	    (compute.y :y :direction)
+	    (plus
+	     :subtotal
+	     (times 3. (value.letter (letters :x :y))))))))
+   40.	(output
+	 (score.letters1
+	  (compute.x :x :direction)
+	  (compute.y :y :direction)
+	  (plus :subtotal (value.letter (letters :x :y)))))
+	))
+  
+
+(defun scrabble
+	  nil 
+		  
+		  5.   (alloc '(list (30000. 60000. 0.25)
+				     fixnum
+				     (10000. 15000. 0.2)
+				     flonum
+				     (10000. 8000. 0.15)
+				     symbol
+				     (6000. 10000. 256.)
+				     array
+				     (2000. 30000. 32.)))
+		  10.  (startdisplay)
+		  20.  (tvsize 570. 370.)
+		  30.  (turtlesize 370.)
+		  35.  (make 'outline nil)
+		  40.  (define.board)
+		  45.  (make.alphabet)
+		  50.  (readfile fw* fasl)
+		  55.  (readfile sort fasl dsk common)
+		  60.  (readlisp 13fg winfon dsk ken)
+		  65.  (getwindows fannie window)
+		  70.  (hideturtle)
+		  80.  (penup)
+		  90.  (nodisplay)
+		  95.  (readlisp abc > dsk ken)
+		  100. (pile)
+		  105. (set.values)
+		  110. (start.watch)
+		  120. (repeat (logo-last (daytime)) (logo-random))
+		       ))
+	  
+
+(defun color.key
+	  nil 
+		  
+		  10.  (shade.square -5. 2.4 'triple.word)
+		  20.  (shade.square -5.
+				       4.2
+				       'double.letter)
+		  30.  (shade.square -5. 5.9 'double.word)
+		  40.  (shade.square -5.
+				       7.7
+				       'triple.letter)
+		       ))
+	  
+
+(defun create.board
+	  nil  
+		      10.  (clearscreen)
+		      20.  (draw.board)
+		      30.  (fill.board)
+		      40.  (put.numbers)
+		      50.  (showwindow 'star 0. 0.)
+		      60.  (draw.key)
+		      70.  (color.key)
+			   ))
+	  
+
+(defun
+ help.fill.board
+  (:i :j) 
+   
+   10.	(cond ((null  (bonus :i :j))
+	       (erase.square :i :j))
+	      (t (shade.square :i :j  (bonus :i :j))))
+   20.	(cond ((lessp :i 15.)
+	       (help.fill.board (plus :i 1.) :j))
+	      (t (cond ((equal :j :max.rows) (stop))
+		       (t (help.fill.board 1.
+					     (plus :j 1.))))))
+	))
+  
+
+(defun key1
+	  (:size)  
+			  10.  (right 90.)
+			  20.  (forward (times 55. :size))
+			  30.  (right -90.)
+			  120. (forward (times 10. :size))
+			  130. (pendown)
+			  140. (forward (times 5. :size))
+			  150. (pendown)
+			  160. (forward (times 20. :size))
+			  170. (right 45.)
+			  180. (forward (times 5. :size))
+			  190. (right 45.)
+			  200. (forward (times 5. :size))
+			  210. (right 45.)
+			  220. (forward (times 5. :size))
+			  230. (right 45.)
+			  240. (forward (times 10. :size))
+			  250. (right -90.)
+			  260. (forward (times 20. :size))
+			  270. (right -45.)
+			  280. (forward (times 20. :size))
+			  290. (right 135.)
+			  300. (forward (times 12. :size))
+			       ))
+	  
+
+(defun key
+	  (:size)  
+			  20.  (right -60.)
+			  30.  (forward (times 25. :size))
+			  40.  (right -30.)
+			  50.  (forward (times 10. :size))
+			  60.  (right -90.)
+			  70.  (forward (times 30. :size))
+			  80.  (right 115.)
+			  90.  (forward (times 50. :size))
+			  100. (right -150.)
+			  110. (forward (times 40. :size))
+			  120. (right 170.)
+			  130. (forward (times 50. :size))
+			  140. (right -45.)
+			  150. (forward (times 30. :size))
+			  160. (right 40.)
+			  170. (forward (times 48. :size))
+			  180. (right 860.)
+			  190. (forward (times 70. :size))
+			       ))
+	  
+
+(defun key2
+	  (:size)  
+			  10.  (key (times :size 1.))
+			  20.  (forward (times 90. :size))
+			  30.  (right 180.)
+			  40.  (penup)
+			  50.  (forward (times -75. :size))
+			  60.  (arc (times 50. :size) 320.)
+			  70.  (penup)
+			  80.  (forward (times 30. :size))
+			  90.  (pendown)
+			  100. (penup)
+			  110. (forward (times 20. :size))
+			  120. (pendown)
+			  130. (forward (times 40. :size))
+			       ))
+	  
+
+(defun the.key
+	  (:size)  
+			  10.  (key2 (times :size 1.))
+			  20.  (penup)
+			  30.  (right -120.)
+			  40.  (forward (times 40. :size))
+			  50.  (right 120.)
+			  60.  (forward (times 10. :size))
+			  70.  (right -180.)
+			  80.  (pendown)
+			  90.  (forward (times 42. :size))
+			       ))
+	  
+
+(defun the.key2  (:size)  ))  
+
+(defun key3
+	  (:size)  
+			  10.  (the.key (times :size 2.))
+			  20.  (right -90.)
+			  30.  (penup)
+			  40.  (forward (times 54. :size))
+			  50.  (right -90.)
+			  60.  (forward (times 52. :size))
+			  70.  (pendown)
+			  80.  (forward (times 306. :size))
+			  90.  (penup)
+			  100. (right -90.)
+			  110. (forward (times 95. :size))
+			  120. (forward (times -100. :size))
+			  130. (right -60.)
+			  140. (forward (times 95. :size))
+			  150. (forward (times -50. :size))
+			  160. (right -30.)
+			  170. (forward (times 285. :size))
+			  180. (forward (times -325. :size))
+			  190. (forward (times 95. :size))
+			  200. (forward (times -50. :size))
+			  210. (pendown)
+			  220. (forward (times 129. :size))
+			  230. (right -30.)
+			  240. (forward (times 26. :size))
+			  250. (penup)
+			  260. (right 35.)
+			  270. (forward (times 136. :size))
+			  280. (right -30.)
+			  290. (forward (times 50. :size))
+			  300. (right 10.)
+			  310. (forward (times 68. :size))
+			  320. (right 10.)
+			  330. (forward (times 60. :size))
+			  340. (forward (times -25. :size))
+			  360. (pendown)
+			  370. (circle (times 15. :size))
+			       ))
+	  
+
+(defun draw.key
+	  nil  
+		      10.  (go.square -3. 0.)
+		      20.  (pendown)
+		      30.  (key3 0.07)
+		      35.  (penup)
+		      40.  (go.square -3. 1.)
+		      50.  (mark 'key)
+		      60.  (|go.square| -4. 2.)
+		      70.  (mark '|triple|)
+		      80.  (go.square -4. 2.8)
+		      90.  (mark '|word|)
+		      100. (go.square -4. 3.8)
+		      110. (mark '|double|)
+		      120. (go.square -4. 4.6)
+		      130. (mark '|letter|)
+		      140. (go.square -4. 5.6)
+		      150. (mark '|double|)
+		      160. (go.square -4. 6.2)
+		      170. (mark '|word|)
+		      180. (go.square -4. 7.2)
+		      190. (mark '|triple|)
+		      200. (go.square -4. 7.8)
+		      210. (mark '|letter|)
+			   ))
+	  
+
+(defun
+ fast.store
+  (:array.name :value :location.list) 
+   
+   10.	(cond ((null :location.list) (stop)))
+   20.	(run
+	 
+	  (list 'store
+		(user-paren (sentence :array.name
+				      (car :location.list)))
+		:value))
+   30.	(fast.store :array.name
+		      :value
+		      (cdr :location.list))
+	))
+  
+
+(defun define.board
+	  nil 
+		  
+		  10.  (array bonus t 17. 17.)
+		  20.  (array letters t 17. 17.)
+		  30.  (store (bonus 1. 1.) 'triple.word)
+		  40.  (store (bonus 1. 8.) 'triple.word)
+		  50.  (store (bonus 1. 15.) 'triple.word)
+		  60.  (store (bonus 8. 1.) 'triple.word)
+		  70.  (store (bonus 8. 15.) 'triple.word)
+		  80.  (store (bonus 15. 1.) 'triple.word)
+		  90.  (store (bonus 15. 8.) 'triple.word)
+		  100. (store (bonus 15. 15.) 'triple.word)
+		  110. (fast.store 'bonus
+				     ''double.letter
+				     (square-brackets ((1. 4.)
+						       (1. 12.)
+						       (3. 7.)
+						       (3. 9.)
+						       (4. 1.)
+						       (4. 8.)
+						       (4. 15.)
+						       (7. 3.)
+						       (7. 7.))))
+		  120. (fast.store 'bonus
+				     ''double.letter
+				     (square-brackets ((7. 9.)
+						       (7. 13.)
+						       (8. 4.)
+						       (8. 12.)
+						       (9. 3.)
+						       (9. 7.)
+						       (9. 9.)
+						       (9. 13.)
+						       (12. 1.))))
+		  130. (fast.store 'bonus
+				     ''double.letter
+				     (square-brackets ((12. 8.)
+						       (12. 15.)
+						       (13. 7.)
+						       (13. 9.)
+						       (15. 4.)
+						       (15. 12.))))
+		  140. (fast.store 'bonus
+				     ''double.word
+				     (square-brackets ((2. 2.)
+						       (2. 14.)
+						       (3. 3.)
+						       (3. 13.)
+						       (4. 4.)
+						       (4. 12.)
+						       (5. 5.)
+						       (5. 11.)
+						       (8. 8.))))
+		  150. (fast.store 'bonus
+				     ''double.word
+				     (square-brackets ((11. 5.)
+						       (11. 11.)
+						       (12. 4.)
+						       (12. 12.)
+						       (13. 3.)
+						       (13. 13.)
+						       (14. 2.)
+						       (14. 14.))))
+		  160. (fast.store 'bonus
+				     ''triple.letter
+				     (square-brackets ((2. 6.)
+						       (2. 10.)
+						       (6. 2.)
+						       (6. 6.)
+						       (6. 10.)
+						       (6. 14.)
+						       (10. 2.)
+						       (10. 6.)
+						       (10. 10.)
+						       (10. 14.)
+						       (14. 6.)
+						       (14. 10.))))
+		       ))
+	  
+
+(defun go.right
+	  (:distance)  
+			      10.  (right 90.)
+			      20.  (forward :distance)
+			      30.  (left 90.)
+				   ))
+	  
+
+(defun
+ go.square
+  (:x :y) 
+   
+   10.	(home)
+   20.	(go.right
+	 (difference
+	   (times (user-paren (difference :x
+								 8.))
+				   20.)
+	  35.))
+   30.	(back
+	 (difference
+	   (times (user-paren (difference :y
+								 8.))
+				   20.)
+	  15.))
+	))
+  
+
+(defun draw.board
+	  nil  
+		      10.  (home)
+		      20.  (penup)
+		      40.  (windowframe 150.)
+		      50.  (forward 160.)
+		      70.  (home)
+		      80.  (staff)
+		      90.  (side.staff)
+		      100. (home)
+			   ))
+	  
+
+(defun side.staff
+	  nil  10. (right 90.) 20. (staff) ))
+	  
+
+(defun staff
+	  nil  
+		      10.  (penup)
+		      20.  (go.left.top)
+		      30.  (pendown)
+		      40.  (stripe 300. 20. 14.)
+		      50.  (penup)
+		      60.  (home)
+			   ))
+	  
+
+(defun draw
+	  (:letter) (prog (:beginning) 
+			    3.	 (local 'beginning)
+			    6.	 (make 'beginning (here))
+			    10.	 (back 6.5)
+			    20.	 (left 90.)
+			    25.	 (forward 4.5)
+			    28.	 (fontmark :letter '13fg)
+			    30.	 (setturtle :beginning)
+				 ))
+	  
+
+(defun stripe
+	  (:length :propinquity :number) 
+		  
+		  5.   (cond ((equal :number 0.) (stop)))
+		  10.  (right 180.)
+		  15.  (penup)
+		  20.  (forward :propinquity)
+		  25.  (pendown)
+		  30.  (left 90.)
+		  40.  (forward :length)
+		  50.  (back :length)
+		  60.  (left 90.)
+		  70.  (stripe :length
+			       :propinquity
+			       (difference :number 1.))
+		       ))
+	  
+
+(defun go.left.top
+	  nil  
+		      10.  (forward 150.)
+		      20.  (left 90.)
+		      30.  (forward 150.)
+		      40.  (right 90.)
+			   ))
+	  
+
+(defun fill.board
+	  nil (prog (:max.rows) 
+		      5.   (cond ( (status feature color)
+				  (make.colors)))
+		      10.  (local 'max.rows)
+		      20.  (make 'max.rows 8.)
+		      30.  (help.fill.board 1. 1.)
+		      40.  (make 'max.rows 15.)
+		      50.  (help.fill.board 1. 9.)
+			   ))
+	  
+
+(defun erase.square
+	  (:x :y)  
+			  10.  (go.square :x :y)
+			  20.  (eraserdown)
+			       (fillwindow 10.)
+			  30.  (eraserup)
+			  40.  (showwindow 'blank :xcor :ycor)
+			       ))
+	  
+
+(defun define.patterns
+	  nil  
+		      10.  (clearscreen)
+		      20.  (windowframe 10.)
+		      30.  (shade 'solid)
+		      40.  (makewindow 'triple.word 9.5)
+		      50.  (clearscreen)
+		      60.  (windowframe 10.)
+		      70.  (shade 'x)
+		      80.  (makewindow 'double.word 9.5)
+		      90.  (clearscreen)
+		      100. (windowframe 10.)
+		      110. (shade 'checker)
+		      120. (makewindow 'double.letter 9.5)
+		      130. (clearscreen)
+		      140. (windowframe 10.)
+		      150. (shade 'boxs)
+		      160. (makewindow 'triple.letter 9.5)
+		      170. (clearscreen)
+			   ))
+	  
+
+(defun put.letter
+	  (:x :y :letter)  
+				  20.  (erase.square :x :y)
+				  30.  (draw :letter)
+				       ))
+	  
+
+(defun put.word
+	  (:x :y :direction :word) 
+		  
+		  10.  (cond ((null :word) (stop)))
+		  30.  (cond ((not (equal (bonus :x :y)
+						'filled))
+			      (put.letter :x :y (car :word))))
+		  35.  (cond ((equal (car :word) (space))
+			       (shade 'solid)
+			      (draw :blank)))
+		  40.  (cond ((equal :direction
+					   'standing)
+			      (put.word :x
+					  (plus :y 1.)
+					  :direction
+					  (cdr :word)))
+			     (t (put.word (plus :x 1.)
+					    :y
+					    :direction
+					    (cdr :word))))
+		       ))
+	  
+
+(defun put.numbers
+	  nil  
+		      10.  (put.little.letters.top 0.)
+		      20.  (put.numbers.side 1.)
+			   ))
+	  
+
+(defun put.numbers.side
+	  (:y)  
+		       10.  (cond ((greaterp :y 15.) (stop)))
+		       20.  (go.square  -1. (difference :y 1.))
+		       25.  (cond ((greaterp :y 9.)
+				   (go.right -6.)))
+		       30.  (put.number :y)
+		       40.  (put.numbers.side (plus :y 1.))
+			    ))
+	  
+
+(defun put.number
+	  (:number) 
+		  
+		  10.  (back 4.)
+		  20.  (left 90.)
+		  30.  (forward 3.)
+		  40.  (right 90.)
+		  50.  (showwindow (word 'window.of. :number)
+				   :xcor
+				   :ycor)
+		       ))
+	  
+
+(defun make.number.windows
+	  (:max) 
+		  
+		  10.  (cond ((lessp :max 0.) (stop)))
+		  20.  (clearscreen)
+		  30.  (mark :max)
+		  40.  (makewindow (word 'window.of. :max)
+				   20.)
+		  45.  (sleep 2.)
+		  50.  (make.number.windows (difference :max
+								1.))
+		       ))
+	  
+
+(defun poly
+	  (:size :angle :no.sides) 
+		  
+		  10.  (cond ((equal :no.sides 0.) (stop)))
+		  20.  (forward :size)
+		  30.  (right :angle)
+		  40.  (poly :size
+			     :angle
+			     (difference :no.sides 1.))
+		       ))
+	  
+
+(defun star
+	  (:size)  
+			  5.   (right 18.)
+			  10.  (poly :size 144. 5.)
+			       ))
+	  
+
+(defun
+ check.word
+  (:x :y :direction :word :temp.hand :count.word) 
+   
+   10.	(cond ((null :word)
+	       (cond ((equal :count.word 7.)
+		      (output 'bonus))
+		     (t (output :temp.hand)))))
+   15.	(make 'tile (car :word))
+   20.	(cond ((either (both (greaterp (count :word)
+					     (difference 16.
+							       :x))
+			     (equal :direction
+					  'sleeping))
+		       (both (greaterp (count :word)
+					     (difference 16.
+							       :y))
+			     (equal :direction
+					  'standing)))
+	       (logo-print (square-brackets (word is
+						  too
+						  long
+						  it
+						  wont
+						  fit
+						  on
+						  the
+						  board,
+						  try
+						  again)))
+	       (output 'try.again)))
+   30.	(cond
+	 ((not (equal (letters :x :y) (car :word)))
+	  (cond
+	   ((not (null (letters :x :y)))
+	    (logo-print
+	      (sentence (square-brackets (you cant enter))
+				   (car :word)
+				   (square-brackets (in the
+							space
+							where))
+				   (letters :x :y)
+				   (square-brackets (is))))
+	    (output 'try.again)))))
+   33.	(cond ((equal :direction 'standing)
+	       (check.stand :x :y)))
+   35.	(cond ((equal :direction 'sleeping)
+	       (check.sleep :x :y)))
+   36.	(cond ((letters :x :y)
+	       (make 'tile 'nothing)
+	       (go 40.))
+	      (t (make 'count.word
+		       (plus :count.word 1.))))
+   37.	(cond ( (member (car :word) :temp.hand)
+	       (go 40.)))
+   38.	(cond ((member (space) :temp.hand)
+	       (make 'blank.word
+		     (replace (car :word) (space) (car :play)))
+	       (make 'blank (car :word))
+	       (make 'tile (space))
+	       (go 40.)))
+   39.	(logo-print
+	  (sentence (car :word)
+			       (square-brackets (is not
+						    a
+						    letter
+						    in
+						    your
+						    hand))))
+	(output 'try.again)
+   40.	(cond ((equal :direction 'standing)
+	       (output (check.word :x
+				     (plus :y 1.)
+				     :direction
+				     (cdr :word)
+				     (take.out :tile :temp.hand)
+				     :count.word)))
+	      (t (output (check.word (plus :x 1.)
+				       :y
+				       :direction
+				       (cdr :word)
+				       (take.out :tile :temp.hand)
+				       :count.word))))
+	))
+  
+
+(defun enter.word
+	  (:x :y :direction :word) 
+		  
+		  10.  (cond ((null :word) (stop)))
+		  30.  (cond ((null (letters :x :y))
+			      (store (letters :x :y) (car :word))))
+		  40.  (cond ((equal :direction
+					   'standing)
+			      (enter.word :x
+					    (plus :y 1.)
+					    :direction
+					    (cdr :word)))
+			     (t (enter.word (plus :x 1.)
+					      :y
+					      :direction
+					      (cdr :word))))
+		       ))
+	  
+
+(defun value.letter
+	  (:letter)  
+			    5.	 (cond ((equal :letter (space))
+					(output 0.)))
+			    10.	 (output (thing (word '
+value.letter.					      :letter)))
+				 ))
+	  
+
+(defun set.value
+	  (:letters :value) 
+		  
+		  10.  (cond ((null :letters) (stop)))
+		  20.  (make (word 'value.letter.
+				   (car :letters))
+			     :value)
+		  30.  (set.value (cdr :letters) :value)
+		       ))
+	  
+
+(defun set.values
+	  nil  
+		      10.  (set.value 'aeilnorstu 1.)
+		      20.  (set.value 'dg 2.)
+		      30.  (set.value 'bcmp 3.)
+		      40.  (set.value 'fhvwy 4.)
+		      50.  (set.value 'k 5.)
+		      60.  (set.value 'jx 8.)
+		      70.  (set.value 'zq 10.)
+			   ))
+	  
+
+(defun
+ score.word1
+  (:x :y :subproduct) 
+	  
+	  10.  (cond ((null (letters :x :y)) (output :subproduct)))
+	  20.  (cond ((equal (bonus :x :y)
+				   'double.word)
+		      (output (score.word1 (compute.x :x
+							  :direction)
+					     (compute.y :y
+							  :direction)
+					     (times :subproduct
+							  2.)))))
+	  30.  (cond ((equal (bonus :x :y)
+				   'triple.word)
+		      (output (score.word1 (compute.x :x
+							  :direction)
+					     (compute.y :y
+							  :direction)
+					     (times :subproduct
+							  3.)))))
+	  40.  (output (score.word1 (compute.x :x :direction)
+				      (compute.y :y :direction)
+				      :subproduct))
+	       ))
+  
+
+(defun score.word
+	  (:x :y :direction) 
+		  
+		  10.  (output (times (score.letters :x
+						       :y
+						       :direction)
+				      (score.word1 :x :y 1.)))
+		       ))
+	  
+
+(defun v
+	  nil  10. (output 'standing) ))
+	  
+
+(defun
+ ran
+  (:n) 
+	  
+	  10.  (output (plus 1.
+				   (fix (times (logo-random)
+						     :n))))
+	       ))
+  
+
+(defun pick.any
+	  (:list) 
+		  
+		  10.  (output (nth (ran (count :list)) :list))
+		       ))
+	  
+
+(defun
+ pile
+  nil  
+	      10.  (make 'the.pile
+			  (sentence (square-brackets (a a
+								   a
+								   a
+								   a
+								   a
+								   a
+								   a
+								   a
+								   b
+								   b
+								   c
+								   c
+								   d
+								   d
+								   d
+								   d
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   e
+								   f
+								   f
+								   g
+								   g
+								   g
+								   h
+								   h
+								   i
+								   i
+								   i
+								   i
+								   i
+								   i
+								   i
+								   i
+								   i
+								   j
+								   k
+								   l
+								   l
+								   l
+								   l
+								   m
+								   m
+								   n
+								   n
+								   n
+								   n
+								   n
+								   n
+								   o
+								   o
+								   o
+								   o
+								   o
+								   o
+								   o
+								   o
+								   p
+								   p
+								   q
+								   r
+								   r
+								   r
+								   r
+								   r
+								   r
+								   s
+								   s
+								   s
+								   s
+								   t
+								   t
+								   t
+								   t
+								   t
+								   t
+								   u
+								   u
+								   u
+								   u
+								   v
+								   v
+								   w
+								   w
+								   x
+								   y
+								   y
+								   z))
+					       (space)
+					       (space)))
+		   ))
+  
+
+(defun pick.hand
+	  (:ownhand) 
+		  
+		  5.   (cond ((equal (count :the.pile) 0.)
+			      (output :ownhand)))
+		  10.  (cond ((equal (count :ownhand) 7.)
+			      (output :ownhand)))
+		  20.  (make 'new.letter (pick.letter))
+		  30.  (output (pick.hand (sentence :new.letter
+						      :ownhand)))
+		       ))
+	  
+
+(defun pick.letter
+	  nil 
+		  
+		  10.  (make 'lucky.letter
+			     (pick.any :the.pile))
+		  20.  (make 'the.pile
+			     (take.out :lucky.letter :the.pile))
+		  30.  (output :lucky.letter)
+		       ))
+	  
+
+(defun
+ play.word
+  (:x :y :direction :word) 
+  (prog (:the.score) 
+   5.	(local 'the.score)
+   7.	(make 'connected (false))
+   8.	(make 'blank.word :word)
+   9.	(make 'temp.hand
+	      (check.word :x
+			    :y
+			    :direction
+			    :word
+			    (get :player '.hand)
+			    0.))
+   10.	(cond ((equal :temp.hand 'try.again)
+	       (output 'blech))
+	      (t (go 11.)))
+   11.	(cond ((not :connected)
+	       (cond ((greaterp :count.play 1.)
+		      (logo-print (square-brackets (your word
+							 must
+							 be
+							 attached
+							 to
+							 another
+							 word
+							 on
+							 the
+							 board)))
+		      (output 'blech)))))
+   13.	(enter.word :x :y :direction :blank.word)
+   15.	(make 'the.score
+	      (plus (score.word :x :y :direction)
+		    (score.cross.word :x :y :direction)))
+   18.	(cond ((equal :temp.hand 'bonus)
+	       (make 'the.score (plus :the.score 50.))))
+   22.	(put.word :x :y :direction :blank.word)
+   30.	(zap.bonus :x :y)
+   35.	(cond ((equal :temp.hand 'bonus)
+	       (putprop :player nil '.hand))
+	      (t (putprop :player :temp.hand '.hand)))
+   40.	(output :the.score)
+	))
+  
+
+(defun
+ start.play
+  nil 
+   
+   5.	(instruct)
+   7.	(request)
+   10.	(logo-print
+	  (sentence (square-brackets (ok))
+			       (car :players)
+			       (square-brackets (you can
+						     play
+						     your
+						     car
+						     word.))))
+   11.	(logo-print (square-brackets (don/'t forget
+					     to
+					     cover
+					     the
+					     central
+					     star.)))
+   18.	(logo-print (square-brackets (the board
+					  will
+					  be
+					  displayed
+					  as
+					  soon
+					  as
+					  you
+					  hit
+					  the
+					  carriagae
+					  return.)))
+   19.	(logo-print (square-brackets (after you
+					    give
+					    me
+					    instructions
+					    and
+					    again
+					    strike
+					    the
+					    carriage
+					    return,)))
+   20.	(logo-print (square-brackets (i will
+					enter
+					your
+					word
+					and
+					compute
+					your
+					score.)))
+   21.	(logo-print (square-brackets (other players
+					    should
+					    proceed
+					    likewise
+					    in
+					    turn.......good
+					    luck)))
+   30.	(request)
+   40.	(tvsize 570. 370.)
+	(sb)
+   45.	(player.y1 :players 5.)
+   50.	(put.names :players)
+   60.	(put.names2 -3. :players)
+   70.	(put.hands -3. :players)
+	))
+  
+
+(defun putprop
+	  (:word :value :indicator) 
+		  
+		  10.  (make (word :word :indicator) :value)
+		       ))
+	  
+
+(defun get
+	  (:word :indicator) 
+		  
+		  10.  (output (thing (word :word :indicator)))
+		       ))
+	  
+
+(defun
+ delete.all
+  (:x :list) 
+   
+   5.	(cond ((null :x) (output :list)))
+   20.	(output (delete.all (cdr :x)
+			      (take.out  (car :x)
+					  :list)))
+	))
+  
+
+(defun put.hands
+	  (:x :players) 
+		  
+		  10.  (cond ((null :players) (stop)))
+		  20.  (put.hand :x
+				   (get (car :players)
+					 '.hand))
+		  30.  (put.hands (plus :x 8.)
+				    (cdr :players))
+		       ))
+	  
+
+(defun put.names2
+	  (:x :players) 
+		  
+		  10.  (cond ((null :players) (stop)))
+		  20.  (go.square :x 16.5)
+		  30.  (mark (car :players))
+		  40.  (put.names2 (plus :x 8.)
+				     (cdr :players))
+		       ))
+	  
+
+(defun false  nil  10. (output nil) ))  
+
+(defun true  nil  10. (output t) ))  
+
+(defun check.sleep
+	  (:x :y) 
+		  
+		  10.  (cond ((letters :x (plus :y 1.))
+			      (make 'connected (true))))
+		  20.  (cond ((letters :x (difference :y 1.))
+			      (make 'connected (true))))
+		  30.  (cond ((letters :x :y)
+			      (make 'connected (true))))
+		       ))
+	  
+
+(defun check.stand
+	  (:x :y) 
+		  
+		  10.  (cond ((letters (plus :x 1.) :y)
+			      (make 'connected (true))))
+		  20.  (cond ((letters (difference :x 1.) :y)
+			      (make 'connected (true))))
+		  30.  (cond ((letters :x :y)
+			      (make 'connected (true))))
+		       ))
+	  
+
+(defun make.alphabet
+	  nil  
+		      10.  (make 'the.alphabet
+				 (square-brackets (a b
+						     c
+						     d
+						     e
+						     f
+						     g
+						     h
+						     i
+						     j
+						     k
+						     l
+						     m
+						     n
+						     o
+						     p
+						     q
+						     r
+						     s
+						     t
+						     u
+						     v
+						     w
+						     x
+						     y
+						     z)))
+			   ))
+	  
+
+(defun
+ put.little.letters.top
+  (:x) 
+	  
+	  10.  (cond ((greaterp :x 14.) (stop)))
+	  20.  (go.square :x  -1.)
+	  30.  (typeword (nth (plus :x 1.) :the.alphabet))
+	  40.  (put.little.letters.top  (plus :x
+								 1.))
+	       ))
+  
+
+(defun numequiv
+	  (:letter) 
+		  
+		  10.  (output (numequiv1 :letter :the.alphabet 1.))
+		       ))
+	  
+
+(defun numequiv1
+	  (:letter :list :count) 
+		  
+		  10.  (cond ((equal (car :list) :letter)
+			      (output :count)))
+		  20.  (output (numequiv1 :letter
+					  (cdr :list)
+					  (plus :count 1.)))
+		       ))
+	  
+
+(defun
+ notenote
+  nil  
+	      12.  (logo-print (square-brackets (in order
+						    to
+						    enter
+						    the
+						    word,
+						    foo,
+						    as
+						    above)))
+	      15.  (logo-print (square-brackets (you must
+						     type.....
+						     foo
+						     4.
+						     c)))
+	      18.  (logo-print (square-brackets (so, car
+						       type
+						       in
+						       the
+						       word
+						       you
+						       want
+						       to
+						       play,
+						       leave
+						       a
+						       space,
+						       then
+						       type
+						       the
+						       coordinates)))
+	      23.  (logo-print (square-brackets (car type
+						       the
+						       coordinate
+						       of
+						       axis
+						       along
+						       which
+						       the
+						       word
+						       lies)))
+	      26.  (logo-print (square-brackets (then type
+						      the
+						      coordinate
+						      of
+						      the
+						      perpendicular
+						      axis
+						      where
+						      the
+						      car
+						      letter
+						      will
+						      be
+						      placed)))
+	      85.  (logo-print (square-brackets (don/'t forget
+							 to
+							 leave
+							 spaces
+							 as
+							 indicated)))
+	      90.  (logo-print (square-brackets (if during
+						    the
+						    course
+						    of
+						    the
+						    game,
+						    you
+						    forget
+						    these
+						    instructions,)))
+	      100. (logo-print (square-brackets (simply type
+							*
+							oops,
+							and
+							i
+							will
+							reappear)))
+	      110. (logo-print (square-brackets (when you
+						      strike
+						      the
+						      return
+						      bar
+						      the
+						      game
+						      will
+						      continue)))
+		   ))
+  
+
+(defun saveboard
+	  nil  
+		      10.  (makewindow 'save.board)
+			   ))
+	  
+
+(defun oops
+	  nil  
+		      10.  (saveboard)
+		      15.  (sleep 0.5)
+		      20.  (nodisplay)
+		      23.  (tvsize 570. 200.)
+		      26.  (showwindow 'check.notation)
+		      30.  (notenote)
+		      40.  (request)
+		      50.  (nodisplay)
+			   (tvsize 570. 370.)
+			    (showwindow 'save.board)
+			   ))
+	  
+
+(defun zap.bonus
+	  (:x :y) 
+		  
+		  10.  (cond ((null (letters :x :y)) (stop)))
+		  20.  (store (bonus :x :y) 'filled)
+		  25.  (restore.blank :x :y)
+		  30.  (zap.bonus (compute.x :x :direction)
+				    (compute.y :y :direction))
+		       ))
+	  
+
+(defun restore.blank
+	  (:x :y) 
+		  
+		  10.  (cond ((equal (letters :x :y) (space))
+			      (store (letters :x :y) :blank)))
+		       ))
+	  
+
+(defun compute.cross.x
+	  (:x :increment) 
+		  10. (output (plus :x :increment)) ))
+	  
+
+(defun compute.cross.y
+	  (:y :increment) 
+		  10. (output (plus :y :increment)) ))
+	  
+
+(defun find.beg.x
+	  (:x :y) 
+		  
+		  10.  (cond ((null (letters :x :y))
+			      (output (plus :x 1.))))
+		  20.  (output (find.beg.x (difference :x 1.)
+					     :y))
+		       ))
+	  
+
+(defun find.beg.y
+	  (:x :y) 
+		  
+		  10.  (cond ((null (letters :x :y))
+			      (output (plus :y 1.))))
+		  20.  (output (find.beg.y :x
+					     (difference :y
+							       1.)))
+		       ))
+	  
+
+(defun
+ check.notation
+  nil 
+   
+   10.	(cond ((lessp (count :play) 3.)
+	       (oops)
+	       (output 'oops)))
+   20.	(cond
+	 ((numberp (car :play))
+	  (logo-print (square-brackets (you/'ve goofed
+						 the
+						 notation....)))
+	  (oops)
+	  (output 'oops)))
+   30.	(cond
+	 ((numberp (nth 2. :play))
+	  (cond
+	   ((numberp (nth 3. :play))
+	    (logo-print (square-brackets (you/'ve goofed
+						   the
+						   notation...)))
+	    (oops)
+	    (output 'oops)))))
+   40.	(cond
+	 ((not (numberp (nth 2. :play)))
+	  (cond
+	   ((not (numberp (nth 3. :play)))
+	    (logo-print
+	     (square-brackets (you/'ve goofed
+					the
+					notation....)))))))
+	))
+  
+
+(defun instruct
+	  nil  
+		      10.  (nodisplay)
+		      20.  (tvsize 570. 200.)
+		      30.  (showwindow 'check.notation)
+		      40.  (notenote)
+			   ))
+	  
+
+(defun trade.tiles
+	  (:tiles)  
+			   5.	(cond ((null :tiles) (stop)))
+			   10.	(putprop :player
+				      (take.out (car :tiles)
+						  (get :player
+							'.hand))
+				      '.hand)
+			   20.	(putprop :player
+				      (pick.hand (get :player
+							 '.hand))
+				      '.hand)
+			   30.	(trade.tiles (cdr :tiles))
+				))
+	  
+
+(defun teco nil (valret '|tecojp|))
+	  
+
+
+

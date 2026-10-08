@@ -1,0 +1,924 @@
+FASL dump: original/9004336/movie.fasl  (ITS KEN;MOVIE FASL, tape 9004336, Aug 1979)
+Decoded 6196 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 6196 of 6196 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 302420,,000007 ('840', flag bits 007), 363 blocks, 3263 items
+Item counts: absolute 1258, relocatable 272, special 123, smashable call 192, quoted atom 401, quoted list 173, globalsym 518, atom table 248, entry 37, eval mungeable 40, end 1
+
+-- Functions defined (37) --
+  name                         property args         address
+  ERASE+DRAW-FRAME             SUBR     (NIL . 4)    000000
+  PUT-IN-WHOLINE               SUBR     (NIL . 1)    000027
+  PRINT-THE-MOVIE-ARRAY        LSUBR    (6 . 6)      000052
+  DISPLAY-MOVIE-ALL-AT-ONCE    LSUBR    (8 . 8)      000256
+  EVAL-ON-FRAME                SUBR     (NIL . 3)    000445
+  SAVE-COPY-OF-THE-MOVIE       SUBR     (NIL . 2)    000566
+  RUN-FRAME                    SUBR     (NIL . 4)    000721
+  SHOW-NORMAL-MOVIE            SUBR     (NIL . 3)    000767
+  SHOW-MOVIE                   SUBR     (NIL . 3)    001237
+  D0512                        SUBR     (NIL . 0)    001343
+  |(COMPILE ?)|                SUBR     (NIL . 1)    001656
+  D0510                        SUBR     (NIL . 0)    001704
+  |(PRINT FRAMES ? TO ?)|      SUBR     (NIL . 1)    001774
+  D0509                        SUBR     (NIL . 0)    002036
+  |(PROJECT FRAME ?)|          SUBR     (NIL . 1)    002135
+  D0508                        SUBR     (NIL . 0)    002173
+  |(PROJECT SHOWING EVERY ?)|  SUBR     (NIL . 1)    002201
+  D0507                        SUBR     (NIL . 0)    002244
+  |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)| SUBR     (NIL . 1)    002255
+  D0506                        SUBR     (NIL . 0)    002350
+  |(PROJECT FRAMES ? TO ?)|    SUBR     (NIL . 1)    002360
+  D0505                        SUBR     (NIL . 0)    002422
+  |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)| SUBR     (NIL . 1)    002436
+  D0504                        SUBR     (NIL . 0)    002522
+  D0503                        SUBR     (NIL . 0)    002526
+  |(RECORD ?)|                 SUBR     (NIL . 1)    002561
+  D0502                        SUBR     (NIL . 0)    002607
+  D0501                        SUBR     (NIL . 0)    002616
+  |(STORE AWAY THE FRAME NUMBER ?)| SUBR     (NIL . 1)    002665
+  D0500                        SUBR     (NIL . 0)    002745
+  |(FILM SECRETLY THE NEXT ? ?)| SUBR     (NIL . 1)    003003
+  D0499                        SUBR     (NIL . 0)    003055
+  |(FILM THE NEXT ? ?)|        SUBR     (NIL . 1)    003520
+  D0498                        SUBR     (NIL . 1)    003563
+  D0513                        SUBR     (NIL . 0)    004265
+  |(JUST MADE FRAME NUMBER ? FOR ?)| SUBR     (NIL . 1)    004440
+  D0514                        SUBR     (NIL . 0)    004523
+
+-- Top-level forms evaluated at load time (40) --
+  (REMPROP 'ERASE+DRAW-FRAME 'AUTOLOAD)
+  (REMPROP 'PUT-IN-WHOLINE 'AUTOLOAD)
+  (REMPROP 'PRINT-THE-MOVIE-ARRAY 'AUTOLOAD)
+  (DEFPROP EOF EVAL-ON-FRAME EXPR)
+  (DEFPROP DMAAO DISPLAY-MOVIE-ALL-AT-ONCE EXPR)
+  (OR (GET-ACTOR 'MOVIE) (PLACE-ACTOR-ON-NAME (LIST 'DIRECTOR-SYMBOL-FOR-ACTOR NIL) 'MOVIE))
+  (RPLACD (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL))
+    (LIST NIL
+      (CONS 'VALUE-METHOD
+        (CONS '(((NAME MOVIE PRIVATE)
+                 (SPEED 999999)
+                 (NEW-FRAME-ACTION ERASE-OLD)
+                 (NEW-FRAME-HANDLER FRAME-HANDLER)
+                 (STAGE-MODE SILENT)
+                 (FRAME-COUNT 0)))
+          '((INTERNAL-RECALL-YOUR-VARIABLE))))
+      '(METHOD-SELECTOR D0498 TO-BE-FILLED-IN-WITH-SECOND-TO-LAST-CONS)
+      '(NORMAL-METHOD D0499 |(FILM THE NEXT ? ?)|)
+      '(NORMAL-METHOD D0500 |(FILM SECRETLY THE NEXT ? ?)|)
+      '(NORMAL-METHOD D0501 |(STORE AWAY THE FRAME NUMBER ?)|)
+      '(NORMAL-METHOD D0502 (STOP FILMING))
+      '(NORMAL-METHOD D0503 |(RECORD ?)|)
+      '(NORMAL-METHOD D0504 (PROJECT))
+      '(NORMAL-METHOD D0505 |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)|)
+      '(NORMAL-METHOD D0506 |(PROJECT FRAMES ? TO ?)|)
+      '(NORMAL-METHOD D0507 |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)|)
+      '(NORMAL-METHOD D0508 |(PROJECT SHOWING EVERY ?)|)
+      '(NORMAL-METHOD D0509 |(PROJECT FRAME ?)|)
+      '(NORMAL-METHOD D0510 |(PRINT FRAMES ? TO ?)|)
+      '(NORMAL-METHOD D0512 |(COMPILE ?)|)
+      'SOMETHING))
+  (COND ((CDR (CDR (CADR (CDR (CDR (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL)))))))
+         (RPLACA (CDR (CDR (CADR (CDR (CDR (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL)))))))
+           (SECOND-TO-LAST-CONS (CDR (CDR (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL))))))
+         (CADR (CDR (CDR (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL)))))))
+  (REMPROP 'MOVIE 'ACTOR-LOAD)
+  (OR (GET-ACTOR 'FRAME-HANDLER)
+    (PLACE-ACTOR-ON-NAME (LIST 'DIRECTOR-SYMBOL-FOR-ACTOR NIL) 'FRAME-HANDLER))
+  (RPLACD (OR (GET 'FRAME-HANDLER 'ACTOR) (ACTOR-AUTOLOAD 'FRAME-HANDLER NIL))
+    (LIST NIL
+      (CONS 'VALUE-METHOD
+        (CONS '(((NAME FRAME-HANDLER PRIVATE))) '((INTERNAL-RECALL-YOUR-VARIABLE))))
+      '(NORMAL-METHOD D0513 |(JUST MADE FRAME NUMBER ? FOR ?)|)
+      'SOMETHING))
+  (REMPROP 'FRAME-HANDLER 'ACTOR-LOAD)
+  (OR (GET-ACTOR 'JUST-STORE-AWAY-FRAME)
+    (PLACE-ACTOR-ON-NAME (LIST 'DIRECTOR-SYMBOL-FOR-ACTOR NIL) 'JUST-STORE-AWAY-FRAME))
+  (RPLACD (OR (GET 'JUST-STORE-AWAY-FRAME 'ACTOR) (ACTOR-AUTOLOAD 'JUST-STORE-AWAY-FRAME NIL))
+    (LIST NIL
+      (CONS 'VALUE-METHOD
+        (CONS '(((NAME JUST-STORE-AWAY-FRAME PRIVATE))) '((INTERNAL-RECALL-YOUR-VARIABLE))))
+      '(NORMAL-METHOD D0514 |(JUST MADE FRAME NUMBER ? FOR ?)|)
+      'FRAME-HANDLER))
+  (REMPROP 'JUST-STORE-AWAY-FRAME 'ACTOR-LOAD)
+  (OR (GET 'STAGE 'ACTOR) (ACTOR-AUTOLOAD 'STAGE NIL))
+  (REMPROP 'DISPLAY-MOVIE-ALL-AT-ONCE 'AUTOLOAD)
+  (REMPROP 'EVAL-ON-FRAME 'AUTOLOAD)
+  (REMPROP 'SAVE-COPY-OF-THE-MOVIE 'AUTOLOAD)
+  (REMPROP 'RUN-FRAME 'AUTOLOAD)
+  (REMPROP 'SHOW-NORMAL-MOVIE 'AUTOLOAD)
+  (REMPROP 'SHOW-MOVIE 'AUTOLOAD)
+  (DEFPROP |(COMPILE ?)| (COMPILE ?) PATTERN)
+  (DEFPROP |(PRINT FRAMES ? TO ?)| (PRINT FRAMES ? TO ?) PATTERN)
+  (DEFPROP |(PROJECT FRAME ?)| (PROJECT FRAME ?) PATTERN)
+  (DEFPROP |(PROJECT SHOWING EVERY ?)| (PROJECT SHOWING EVERY ?) PATTERN)
+  (DEFPROP |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)|
+    (PROJECT STARTING AT FRAME ? SHOWING EVERY ?)
+    PATTERN)
+  (DEFPROP |(PROJECT FRAMES ? TO ?)| (PROJECT FRAMES ? TO ?) PATTERN)
+  (DEFPROP |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)|
+    (PROJECT FRAMES ? TO ? SHOWING EVERY ?)
+    PATTERN)
+  (DEFPROP |(RECORD ?)| (RECORD ?) PATTERN)
+  (DEFPROP |(STORE AWAY THE FRAME NUMBER ?)| (STORE AWAY THE FRAME NUMBER ?) PATTERN)
+  (DEFPROP |(FILM SECRETLY THE NEXT ? ?)| (FILM SECRETLY THE NEXT ? ?) PATTERN)
+  (DEFPROP |(FILM THE NEXT ? ?)| (FILM THE NEXT ? ?) PATTERN)
+  (DEFPROP |(JUST MADE FRAME NUMBER ? FOR ?)| (JUST MADE FRAME NUMBER ? FOR ?) PATTERN)
+  ((LAMBDA (*MESSAGE) (CASES (OR (GET 'SOMETHING 'ACTOR) (ACTOR-AUTOLOAD 'SOMETHING NIL))))
+   '(ADD MOVIE TO YOUR LIST OF OFFSPRING))
+  (REAP-SYMBOLS-IN-ACTOR (OR (GET 'MOVIE 'ACTOR) (ACTOR-AUTOLOAD 'MOVIE NIL)))
+  ((LAMBDA (*MESSAGE) (CASES (OR (GET 'SOMETHING 'ACTOR) (ACTOR-AUTOLOAD 'SOMETHING NIL))))
+   '(ADD FRAME-HANDLER TO YOUR LIST OF OFFSPRING))
+  (REAP-SYMBOLS-IN-ACTOR (OR (GET 'FRAME-HANDLER 'ACTOR) (ACTOR-AUTOLOAD 'FRAME-HANDLER NIL)))
+  ((LAMBDA (*MESSAGE) (CASES (OR (GET 'FRAME-HANDLER 'ACTOR) (ACTOR-AUTOLOAD 'FRAME-HANDLER NIL))))
+   '(ADD JUST-STORE-AWAY-FRAME TO YOUR LIST OF OFFSPRING))
+  (REAP-SYMBOLS-IN-ACTOR (OR (GET 'JUST-STORE-AWAY-FRAME 'ACTOR)
+                           (ACTOR-AUTOLOAD 'JUST-STORE-AWAY-FRAME NIL)))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  ERASE+DRAW-FRAME
+      calls:        ERASERDOWN SET-MINUS RUN-FRAME PENDOWN
+      quoted atoms: -999.9
+      quoted list:  (ERASE)
+      quoted list:  (DISPLAY)
+  PUT-IN-WHOLINE
+      calls:        #EXPLODE *APPEND MAKNAM SSTATUS
+      specials:     *NOPOINT
+      quoted atoms: T QUOTE WHO3
+      quoted list:  (F =)
+  PRINT-THE-MOVIE-ARRAY
+      calls:        PRINT NREVERSE
+      quoted atoms: T ARRAY QUOTE FILLARRAY TO FRAMES YOUR SET ASK SYNONYM MAKE NAME CONS *COMPILED-MOVIES SETQ COND
+      quoted list:  (*COMPILED-MOVIES)
+      quoted list:  (BOUNDP '*COMPILED-MOVIES)
+  DISPLAY-MOVIE-ALL-AT-ONCE
+      calls:        CLEARSCREEN GET-OR-AUTOLOAD-ACTOR QUICK-COMPILED-ASK PENUP *TIMES *PLUS FLOAT TIMES
+      specials:     MYSELF *MESSAGE *DIRECTOR-TURTLE-SCALING-FACTOR *DIRECTOR-HOME-STATE
+      quoted atoms: NIL FRAME PROJECT 0 -1.0
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT FRAME ?)| 0) MOVIE)
+  EVAL-ON-FRAME
+      calls:        GET-OR-AUTOLOAD-ACTOR QUICK-COMPILED-ASK WARNING
+      specials:     MYSELF *MESSAGE
+      quoted atoms: NIL NUMBER FRAME MADE JUST FOR MYSELF ASK-OLD FRAME-HANDLER COMPILE-USING RECEIVING WHEN DO EVAL-ON-FRAME
+      quoted list:  (RECALL YOUR NEW-FRAME-HANDLER)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (FOR ?MOVIE)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(DO WHEN RECEIVING ? %)| 0) SOMETHING)
+      quoted list:  (IS NOT A MOVIE)
+  SAVE-COPY-OF-THE-MOVIE
+      calls:        GET-OR-AUTOLOAD-ACTOR CASES QUICK-COMPILED-ASK
+      specials:     *MESSAGE MYSELF
+      quoted atoms: NIL IT NAME AND CLONE SAVE
+      quoted list:  (MAKE UP A NAME)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(CLONE AND NAME IT ?)| 0) SOMETHING)
+      quoted list:  (SET YOUR COMPILED? TO SHOULD-BE)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (REMOVE METHOD FOR RECALL YOUR (FRAME X))
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(REMOVE METHOD FOR %)| 0) SOMETHING)
+      quoted list:  (REMOVE METHOD FOR SET YOUR (FRAME X) TO Y)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(REMOVE METHOD FOR %)| 0) SOMETHING)
+      quoted list:  (FORGET YOUR (ARRAY-FOR (FRAME ?NUMBER)))
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(FORGET YOUR ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SAVE %)| 0) SOMETHING)
+  RUN-FRAME
+      calls:        GET-OR-AUTOLOAD-ACTOR CASES RUNTIME SLEEP
+      specials:     *MESSAGE
+      quoted atoms: NIL
+  SHOW-NORMAL-MOVIE
+      calls:        WIPE RUNTIME QUICK-COMPILED-ASK FLOAT MIN PUT-IN-WHOLINE ERASE+DRAW-FRAME *EVAL RUN-FRAME
+      specials:     *MESSAGE
+      quoted atoms: |I did it in| FRAME YOUR RECALL ERASE-OLD ERASE-PREVIOUS
+      quoted list:  (RECALL YOUR SPEED)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR NEW-FRAME-ACTION)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (|cpu seconds.|)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (DISPLAY)
+  SHOW-MOVIE
+      calls:        QUICK-COMPILED-ASK MIN FLOAT PROJECT-COMPILED-MOVIE SHOW-NORMAL-MOVIE
+      specials:     *MESSAGE
+      quoted list:  (RECALL YOUR COMPILED?)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAMES)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR SPEED)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR NEW-FRAME-ACTION)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+  D0512
+      calls:        SAVE-COPY-OF-THE-MOVIE NAME-OF FILEP SFAP CLOSE *BREAK OPEN QUICK-COMPILED-ASK #EXPLODE *APPEND MAKNAM GET DEFUNIZE PRINT-THE-MOVIE-ARRAY GET-OR-AUTOLOAD-ACTOR ASSOC GENERATE-SYMBOL UNION
+      specials:     *MESSAGE MYSELF *ONLY-FILES-IN-LET-FILES *NOPOINT NO-VALUE
+      quoted atoms: ARGUMENT-NOT-A-FILE-OBJECT T EXPR FRAME YOUR RECALL NIL APPEND 0
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (- F R A M E S)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (COMPILE AS FUNCTION)
+      quoted list:  #,(ACTOR-OF 'APPEARANCE)
+      quoted list:  #,(METHOD-AT-POSITION ((COMPILE AS FUNCTION) 0) APPEARANCE)
+      quoted list:  (RECALL YOUR DRAW-PROCEDURES)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR STATE)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+  |(COMPILE ?)|
+      quoted atoms: COMPILE T LIST NIL
+  D0510
+      calls:        QUICK-COMPILED-ASK *TERPRI *PRINC
+      specials:     *MESSAGE
+      quoted atoms: FRAME YOUR OF EACH ASK SEQUENTIALLY NIL
+      quoted list:  (TO PRINT MEMORY)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SEQUENTIALLY (ASK EACH OF YOUR ? %) %)| 0) SOMETHING)
+  |(PRINT FRAMES ? TO ?)|
+      quoted atoms: PRINT FRAMES TO T LIST NIL
+  D0509
+      calls:        QUICK-COMPILED-ASK GET RUNTIME RUN-COMPILED-FRAME RUN-FRAME
+      specials:     *MESSAGE
+      quoted atoms: ARRAY PENDOWN 0.0 FRAME YOUR RECALL
+      quoted list:  (RECALL YOUR COMPILED?)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAMES)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (DISPLAY)
+  |(PROJECT FRAME ?)|
+      quoted atoms: PROJECT FRAME T LIST NIL
+  D0508
+      calls:        SHOW-MOVIE
+      specials:     *MESSAGE
+      quoted atoms: 999999999 0
+  |(PROJECT SHOWING EVERY ?)|
+      quoted atoms: PROJECT SHOWING EVERY T LIST NIL
+  D0507
+      calls:        SHOW-MOVIE
+      specials:     *MESSAGE
+      quoted atoms: 999999999
+  |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)|
+      quoted atoms: PROJECT STARTING AT FRAME SHOWING EVERY T LIST NIL
+  D0506
+      calls:        SHOW-MOVIE
+      specials:     *MESSAGE
+      quoted atoms: 1
+  |(PROJECT FRAMES ? TO ?)|
+      quoted atoms: PROJECT FRAMES TO T LIST NIL
+  D0505
+      calls:        SHOW-MOVIE
+      specials:     *MESSAGE
+  |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)|
+      quoted atoms: PROJECT FRAMES TO SHOWING EVERY T LIST NIL
+  D0504
+      calls:        SHOW-MOVIE
+      quoted atoms: 1 999999999 0
+  D0503
+      calls:        CASES QUICK-COMPILED-ASK
+      specials:     *MESSAGE MYSELF
+      quoted atoms: FRAME AT HAPPENED MEMORIZE
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(MEMORIZE ?)| 0) SOMETHING)
+  |(RECORD ?)|
+      quoted atoms: RECORD T LIST NIL
+  D0502
+      calls:        QUICK-COMPILED-ASK
+      specials:     *MESSAGE
+      quoted list:  (SET YOUR STOPPED? TO T)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+  D0501
+      calls:        GET ACTOR-AUTOLOAD CASES QUICK-COMPILED-ASK
+      specials:     *MESSAGE
+      quoted atoms: FRAME ACTOR STAGE NIL TO YOUR SET
+      quoted list:  (SAVE STAGE)
+      quoted list:  (NIL)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+  |(STORE AWAY THE FRAME NUMBER ?)|
+      quoted atoms: STORE AWAY THE FRAME NUMBER T LIST NIL
+  D0500
+      calls:        QUICK-COMPILED-ASK
+      specials:     *MESSAGE
+      quoted atoms: NEXT THE FILM
+      quoted list:  (SET YOUR NEW-FRAME-HANDLER TO JUST-STORE-AWAY-FRAME)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(FILM THE NEXT ? ?)| 0) MOVIE)
+  |(FILM SECRETLY THE NEXT ? ?)|
+      quoted atoms: FILM SECRETLY THE NEXT T LIST NIL
+  D0499
+      calls:        GET ACTOR-AUTOLOAD NAME-OF QUICK-COMPILED-ASK LENGTH-IN-FRAMES CASES GET-OR-AUTOLOAD-ACTOR PUT-IN-WHOLINE
+      specials:     *MESSAGE MYSELF NO-VALUE
+      quoted atoms: ACTOR MOVIE NIL TO CURRENT-MOVIE YOUR SET STAGE SIZE OF ARRAY AN USE REPRESENTING WHEN MODE FOR NUMBER FRAME MADE JUST FRAME-COUNT 0
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR MODE)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR CLOCK)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (FRAME ?NUMBER)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(WHEN REPRESENTING ? USE AN ARRAY OF SIZE ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR STAGE-MODE)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR FRAME-COUNT)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR TICKS-PER-FRAME)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (RECALL YOUR NEW-FRAME-HANDLER)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'FRAME-HANDLER)
+      quoted list:  #,(METHOD-AT-POSITION (|(JUST MADE FRAME NUMBER ? FOR ?)| 0) FRAME-HANDLER)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (TICK)
+      quoted list:  #,(ACTOR-OF 'CLOCK)
+      quoted list:  #,(METHOD-AT-POSITION ((TICK) 0) CLOCK)
+      quoted list:  (RECALL YOUR STOPPED?)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+  |(FILM THE NEXT ? ?)|
+      quoted atoms: FILM THE NEXT T LIST NIL
+  D0498
+      calls:        METHOD-IF-NOT-HIDDEN EQUAL
+      quoted atoms: FILM THE NEXT T LIST NIL SECRETLY STORE AWAY FRAME NUMBER RECORD PROJECT FRAMES TO SHOWING EVERY STARTING AT PRINT COMPILE
+      quoted list:  #,(METHOD-AT-POSITION (|(FILM THE NEXT ? ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(FILM SECRETLY THE NEXT ? ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(STORE AWAY THE FRAME NUMBER ?)| 0) MOVIE)
+      quoted list:  (STOP FILMING)
+      quoted list:  #,(METHOD-AT-POSITION ((STOP FILMING) 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECORD ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION ((PROJECT) 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT FRAMES ? TO ? SHOWING EVERY ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT FRAMES ? TO ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT SHOWING EVERY ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PROJECT FRAME ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(PRINT FRAMES ? TO ?)| 0) MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(COMPILE ?)| 0) MOVIE)
+  D0513
+      calls:        GET ACTOR-AUTOLOAD QUICK-COMPILED-ASK GET-OR-AUTOLOAD-ACTOR
+      specials:     *MESSAGE MYSELF
+      quoted atoms: ACTOR STAGE NIL NORMAL TO MODE YOUR SET NUMBER FRAME THE AWAY STORE
+      quoted list:  (RECALL YOUR MODE)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(RECALL YOUR ?)| 0) SOMETHING)
+      quoted list:  (SET YOUR MODE TO NORMAL)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  (WIPE)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION ((WIPE) 0) STAGE)
+      quoted list:  #,(ACTOR-OF 'STAGE)
+      quoted list:  #,(METHOD-AT-POSITION (|(SET YOUR ? TO ?)| 0) SOMETHING)
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(STORE AWAY THE FRAME NUMBER ?)| 0) MOVIE)
+  |(JUST MADE FRAME NUMBER ? FOR ?)|
+      quoted atoms: JUST MADE FRAME NUMBER FOR T LIST NIL
+  D0514
+      calls:        GET-OR-AUTOLOAD-ACTOR QUICK-COMPILED-ASK
+      specials:     *MESSAGE MYSELF
+      quoted atoms: NIL NUMBER FRAME THE AWAY STORE
+      quoted list:  #,(ACTOR-OF 'MOVIE)
+      quoted list:  #,(METHOD-AT-POSITION (|(STORE AWAY THE FRAME NUMBER ?)| 0) MOVIE)
+
+-- Symbols and how they are used (240) --
+  #EXPLODE                       called
+  |(CLONE AND NAME IT ?)|        in constant
+  |(COMPILE ?)|                  defined, in constant, in top-level form
+  |(DO WHEN RECEIVING ? %)|      in constant
+  |(FILM SECRETLY THE NEXT ? ?)| defined, in constant, in top-level form
+  |(FILM THE NEXT ? ?)|          defined, in constant, in top-level form
+  |(FORGET YOUR ?)|              in constant
+  |(JUST MADE FRAME NUMBER ? FOR ?)| defined, in constant, in top-level form
+  |(MEMORIZE ?)|                 in constant
+  |(PRINT FRAMES ? TO ?)|        defined, in constant, in top-level form
+  |(PROJECT FRAME ?)|            defined, in constant, in top-level form
+  |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)| defined, in constant, in top-level form
+  |(PROJECT FRAMES ? TO ?)|      defined, in constant, in top-level form
+  |(PROJECT SHOWING EVERY ?)|    defined, in constant, in top-level form
+  |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)| defined, in constant, in top-level form
+  |(RECALL YOUR ?)|              in constant
+  |(RECORD ?)|                   defined, in constant, in top-level form
+  |(REMOVE METHOD FOR %)|        in constant
+  |(SAVE %)|                     in constant
+  |(SEQUENTIALLY (ASK EACH OF YOUR ? %) %)| in constant
+  |(SET YOUR ? TO ?)|            in constant
+  |(STORE AWAY THE FRAME NUMBER ?)| defined, in constant, in top-level form
+  |(WHEN REPRESENTING ? USE AN ARRAY OF SIZE ?)| in constant
+  *APPEND                        called
+  *BREAK                         called
+  *COMPILED-MOVIES               in constant, quoted
+  *DIRECTOR-HOME-STATE           special
+  *DIRECTOR-TURTLE-SCALING-FACTOR special
+  *EVAL                          called
+  *MESSAGE                       in top-level form, special
+  *NOPOINT                       special
+  *ONLY-FILES-IN-LET-FILES       special
+  *PLUS                          called
+  *PRINC                         called
+  *TERPRI                        called
+  *TIMES                         called
+  -                              in constant
+  =                              in constant
+  ?                              in top-level form
+  ?MOVIE                         in constant
+  ?NUMBER                        in constant
+  A                              in constant
+  ACTOR                          in top-level form, quoted
+  ACTOR-AUTOLOAD                 called, in top-level form
+  ACTOR-LOAD                     in top-level form
+  ACTOR-OF                       in constant
+  ADD                            in top-level form
+  AN                             quoted
+  AND                            quoted
+  APPEARANCE                     in constant
+  APPEND                         quoted
+  ARGUMENT-NOT-A-FILE-OBJECT     quoted
+  ARRAY                          quoted
+  ARRAY-FOR                      in constant
+  AS                             in constant
+  ASK                            quoted
+  ASK-OLD                        quoted
+  ASSOC                          called
+  AT                             in top-level form, quoted
+  AUTOLOAD                       in top-level form
+  AWAY                           in top-level form, quoted
+  BOUNDP                         in constant
+  CADR                           in top-level form
+  CASES                          called, in top-level form
+  CDR                            in top-level form
+  CLEARSCREEN                    called
+  CLOCK                          in constant
+  CLONE                          quoted
+  CLOSE                          called
+  COMPILE                        in constant, in top-level form, quoted
+  COMPILE-USING                  quoted
+  COMPILED?                      in constant
+  COND                           in top-level form, quoted
+  CONS                           in top-level form, quoted
+  CURRENT-MOVIE                  quoted
+  D0498                          defined, in top-level form
+  D0499                          defined, in top-level form
+  D0500                          defined, in top-level form
+  D0501                          defined, in top-level form
+  D0502                          defined, in top-level form
+  D0503                          defined, in top-level form
+  D0504                          defined, in top-level form
+  D0505                          defined, in top-level form
+  D0506                          defined, in top-level form
+  D0507                          defined, in top-level form
+  D0508                          defined, in top-level form
+  D0509                          defined, in top-level form
+  D0510                          defined, in top-level form
+  D0512                          defined, in top-level form
+  D0513                          defined, in top-level form
+  D0514                          defined, in top-level form
+  DEFPROP                        in top-level form
+  DEFUNIZE                       called
+  DIRECTOR-SYMBOL-FOR-ACTOR      in top-level form
+  DISPLAY                        in constant
+  DISPLAY-MOVIE-ALL-AT-ONCE      defined, in top-level form
+  DMAAO                          in top-level form
+  DO                             quoted
+  DRAW-PROCEDURES                in constant
+  E                              in constant
+  EACH                           quoted
+  EOF                            in top-level form
+  EQUAL                          called
+  ERASE                          in constant
+  ERASE+DRAW-FRAME               called, defined, in top-level form
+  ERASE-OLD                      in top-level form, quoted
+  ERASE-PREVIOUS                 quoted
+  ERASERDOWN                     called
+  EVAL-ON-FRAME                  defined, in top-level form, quoted
+  EVERY                          in top-level form, quoted
+  EXPR                           in top-level form, quoted
+  F                              in constant
+  FILEP                          called
+  FILLARRAY                      quoted
+  FILM                           in top-level form, quoted
+  FILMING                        in constant, in top-level form
+  FLOAT                          called
+  FOR                            in constant, in top-level form, quoted
+  FORGET                         in constant
+  FRAME                          in constant, in top-level form, quoted
+  FRAME-COUNT                    in constant, in top-level form, quoted
+  FRAME-HANDLER                  in constant, in top-level form, quoted
+  FRAMES                         in constant, in top-level form, quoted
+  FUNCTION                       in constant
+  GENERATE-SYMBOL                called
+  GET                            called, in top-level form
+  GET-ACTOR                      in top-level form
+  GET-OR-AUTOLOAD-ACTOR          called
+  HAPPENED                       quoted
+  |I did it in|                  quoted
+  INTERNAL-RECALL-YOUR-VARIABLE  in top-level form
+  IS                             in constant
+  IT                             quoted
+  JUST                           in top-level form, quoted
+  JUST-STORE-AWAY-FRAME          in constant, in top-level form
+  LAMBDA                         in top-level form
+  LENGTH-IN-FRAMES               called
+  LIST                           in top-level form, quoted
+  M                              in constant
+  MADE                           in top-level form, quoted
+  MAKE                           in constant, quoted
+  MAKNAM                         called
+  MEMORIZE                       quoted
+  MEMORY                         in constant
+  METHOD                         in constant
+  METHOD-AT-POSITION             in constant
+  METHOD-IF-NOT-HIDDEN           called
+  METHOD-SELECTOR                in top-level form
+  MIN                            called
+  MODE                           in constant, quoted
+  MOVIE                          in constant, in top-level form, quoted
+  MYSELF                         quoted, special
+  NAME                           in constant, in top-level form, quoted
+  NAME-OF                        called
+  NEW-FRAME-ACTION               in constant, in top-level form
+  NEW-FRAME-HANDLER              in constant, in top-level form
+  NEXT                           in top-level form, quoted
+  NIL                            in constant, in top-level form, quoted
+  NO-VALUE                       special
+  NORMAL                         in constant, quoted
+  NORMAL-METHOD                  in top-level form
+  NOT                            in constant
+  NREVERSE                       called
+  NUMBER                         in top-level form, quoted
+  OF                             in top-level form, quoted
+  OFFSPRING                      in top-level form
+  OPEN                           called
+  OR                             in top-level form
+  PATTERN                        in top-level form
+  PENDOWN                        called, quoted
+  PENUP                          called
+  PLACE-ACTOR-ON-NAME            in top-level form
+  PRINT                          called, in constant, in top-level form, quoted
+  PRINT-THE-MOVIE-ARRAY          called, defined, in top-level form
+  PRIVATE                        in top-level form
+  PROJECT                        in constant, in top-level form, quoted
+  PROJECT-COMPILED-MOVIE         called
+  PUT-IN-WHOLINE                 called, defined, in top-level form
+  QUICK-COMPILED-ASK             called
+  QUOTE                          in constant, in top-level form, quoted
+  R                              in constant
+  REAP-SYMBOLS-IN-ACTOR          in top-level form
+  RECALL                         in constant, quoted
+  RECEIVING                      quoted
+  RECORD                         in top-level form, quoted
+  REMOVE                         in constant
+  REMPROP                        in top-level form
+  REPRESENTING                   quoted
+  RPLACA                         in top-level form
+  RPLACD                         in top-level form
+  RUN-COMPILED-FRAME             called
+  RUN-FRAME                      called, defined, in top-level form
+  RUNTIME                        called
+  S                              in constant
+  SAVE                           in constant, quoted
+  SAVE-COPY-OF-THE-MOVIE         called, defined, in top-level form
+  SECOND-TO-LAST-CONS            in top-level form
+  SECRETLY                       in top-level form, quoted
+  SEQUENTIALLY                   quoted
+  SET                            in constant, quoted
+  SET-MINUS                      called
+  SETQ                           quoted
+  SFAP                           called
+  SHOULD-BE                      in constant
+  SHOW-MOVIE                     called, defined, in top-level form
+  SHOW-NORMAL-MOVIE              called, defined, in top-level form
+  SHOWING                        in top-level form, quoted
+  SILENT                         in top-level form
+  SIZE                           quoted
+  SLEEP                          called
+  SOMETHING                      in constant, in top-level form
+  SPEED                          in constant, in top-level form
+  SSTATUS                        called
+  STAGE                          in constant, in top-level form, quoted
+  STAGE-MODE                     in constant, in top-level form
+  STARTING                       in top-level form, quoted
+  STATE                          in constant
+  STOP                           in constant, in top-level form
+  STOPPED?                       in constant
+  STORE                          in top-level form, quoted
+  SYNONYM                        quoted
+  T                              in constant, quoted
+  THE                            in top-level form, quoted
+  TICK                           in constant
+  TICKS-PER-FRAME                in constant
+  TIMES                          called
+  TO                             in constant, in top-level form, quoted
+  TO-BE-FILLED-IN-WITH-SECOND-TO-LAST-CONS in top-level form
+  UNION                          called
+  UP                             in constant
+  USE                            quoted
+  VALUE-METHOD                   in top-level form
+  WARNING                        called
+  WHEN                           quoted
+  WHO3                           quoted
+  WIPE                           called, in constant
+  X                              in constant
+  Y                              in constant
+  YOUR                           in constant, in top-level form, quoted
+  |cpu seconds.|                 in constant
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (248 entries; 0 is NIL) --
+     1 symbol  REMPROP
+     2 symbol  QUOTE
+     3 symbol  ERASE+DRAW-FRAME
+     4 symbol  AUTOLOAD
+     5 symbol  SUBR
+     6 symbol  ERASERDOWN
+     7 symbol  SET-MINUS
+     8 symbol  ERASE
+     9 flonum  -999.9
+    10 symbol  RUN-FRAME
+    11 symbol  PENDOWN
+    12 symbol  DISPLAY
+    13 symbol  PUT-IN-WHOLINE
+    14 symbol  T
+    15 symbol  *NOPOINT
+    16 symbol  #EXPLODE
+    17 symbol  F
+    18 symbol  =
+    19 symbol  *APPEND
+    20 symbol  MAKNAM
+    21 symbol  WHO3
+    22 symbol  SSTATUS
+    23 symbol  PRINT-THE-MOVIE-ARRAY
+    24 symbol  LSUBR
+    25 symbol  ARRAY
+    26 symbol  PRINT
+    27 symbol  NREVERSE
+    28 symbol  FILLARRAY
+    29 symbol  TO
+    30 symbol  FRAMES
+    31 symbol  YOUR
+    32 symbol  SET
+    33 symbol  ASK
+    34 symbol  SYNONYM
+    35 symbol  MAKE
+    36 symbol  NAME
+    37 symbol  *COMPILED-MOVIES
+    38 symbol  CONS
+    39 symbol  SETQ
+    40 symbol  BOUNDP
+    41 symbol  COND
+    42 symbol  DEFPROP
+    43 symbol  EOF
+    44 symbol  EVAL-ON-FRAME
+    45 symbol  EXPR
+    46 symbol  DMAAO
+    47 symbol  DISPLAY-MOVIE-ALL-AT-ONCE
+    48 symbol  OR
+    49 symbol  GET-ACTOR
+    50 symbol  MOVIE
+    51 symbol  PLACE-ACTOR-ON-NAME
+    52 symbol  LIST
+    53 symbol  DIRECTOR-SYMBOL-FOR-ACTOR
+    54 symbol  RPLACD
+    55 symbol  GET
+    56 symbol  ACTOR
+    57 symbol  ACTOR-AUTOLOAD
+    58 symbol  VALUE-METHOD
+    59 symbol  PRIVATE
+    60 symbol  SPEED
+    61 fixnum  999999
+    62 symbol  NEW-FRAME-ACTION
+    63 symbol  ERASE-OLD
+    64 symbol  NEW-FRAME-HANDLER
+    65 symbol  FRAME-HANDLER
+    66 symbol  STAGE-MODE
+    67 symbol  SILENT
+    68 symbol  FRAME-COUNT
+    69 fixnum  0
+    70 symbol  INTERNAL-RECALL-YOUR-VARIABLE
+    71 symbol  METHOD-SELECTOR
+    72 symbol  D0498
+    73 symbol  TO-BE-FILLED-IN-WITH-SECOND-TO-LAST-CONS
+    74 symbol  NORMAL-METHOD
+    75 symbol  D0499
+    76 symbol  |(FILM THE NEXT ? ?)|
+    77 symbol  D0500
+    78 symbol  |(FILM SECRETLY THE NEXT ? ?)|
+    79 symbol  D0501
+    80 symbol  |(STORE AWAY THE FRAME NUMBER ?)|
+    81 symbol  D0502
+    82 symbol  STOP
+    83 symbol  FILMING
+    84 symbol  D0503
+    85 symbol  |(RECORD ?)|
+    86 symbol  D0504
+    87 symbol  PROJECT
+    88 symbol  D0505
+    89 symbol  |(PROJECT FRAMES ? TO ? SHOWING EVERY ?)|
+    90 symbol  D0506
+    91 symbol  |(PROJECT FRAMES ? TO ?)|
+    92 symbol  D0507
+    93 symbol  |(PROJECT STARTING AT FRAME ? SHOWING EVERY ?)|
+    94 symbol  D0508
+    95 symbol  |(PROJECT SHOWING EVERY ?)|
+    96 symbol  D0509
+    97 symbol  |(PROJECT FRAME ?)|
+    98 symbol  D0510
+    99 symbol  |(PRINT FRAMES ? TO ?)|
+   100 symbol  D0512
+   101 symbol  |(COMPILE ?)|
+   102 symbol  SOMETHING
+   103 symbol  CDR
+   104 symbol  CADR
+   105 symbol  RPLACA
+   106 symbol  SECOND-TO-LAST-CONS
+   107 symbol  ACTOR-LOAD
+   108 symbol  D0513
+   109 symbol  |(JUST MADE FRAME NUMBER ? FOR ?)|
+   110 symbol  JUST-STORE-AWAY-FRAME
+   111 symbol  D0514
+   112 symbol  STAGE
+   113 symbol  CLEARSCREEN
+   114 symbol  GET-OR-AUTOLOAD-ACTOR
+   115 symbol  RECALL
+   116 symbol  MYSELF
+   117 symbol  *MESSAGE
+   118 symbol  ACTOR-OF
+   119 symbol  METHOD-AT-POSITION
+   120 symbol  |(RECALL YOUR ?)|
+   121 symbol  QUICK-COMPILED-ASK
+   122 symbol  PENUP
+   123 symbol  *TIMES
+   124 symbol  *PLUS
+   125 symbol  FLOAT
+   126 symbol  TIMES
+   127 symbol  *DIRECTOR-TURTLE-SCALING-FACTOR
+   128 symbol  *DIRECTOR-HOME-STATE
+   129 symbol  FRAME
+   130 flonum  -1.0
+   131 symbol  FOR
+   132 symbol  ?MOVIE
+   133 symbol  NUMBER
+   134 symbol  MADE
+   135 symbol  JUST
+   136 symbol  ASK-OLD
+   137 symbol  COMPILE-USING
+   138 symbol  RECEIVING
+   139 symbol  WHEN
+   140 symbol  DO
+   141 symbol  |(DO WHEN RECEIVING ? %)|
+   142 symbol  IS
+   143 symbol  NOT
+   144 symbol  A
+   145 symbol  WARNING
+   146 symbol  SAVE-COPY-OF-THE-MOVIE
+   147 symbol  UP
+   148 symbol  CASES
+   149 symbol  IT
+   150 symbol  AND
+   151 symbol  CLONE
+   152 symbol  |(CLONE AND NAME IT ?)|
+   153 symbol  COMPILED?
+   154 symbol  SHOULD-BE
+   155 symbol  |(SET YOUR ? TO ?)|
+   156 symbol  REMOVE
+   157 symbol  METHOD
+   158 symbol  X
+   159 symbol  |(REMOVE METHOD FOR %)|
+   160 symbol  Y
+   161 symbol  FORGET
+   162 symbol  ARRAY-FOR
+   163 symbol  ?NUMBER
+   164 symbol  |(FORGET YOUR ?)|
+   165 symbol  SAVE
+   166 symbol  |(SAVE %)|
+   167 symbol  RUNTIME
+   168 symbol  SLEEP
+   169 symbol  SHOW-NORMAL-MOVIE
+   170 symbol  WIPE
+   171 symbol  MIN
+   172 symbol  |cpu seconds.|
+   173 symbol  |I did it in|
+   174 symbol  ERASE-PREVIOUS
+   175 symbol  *EVAL
+   176 symbol  SHOW-MOVIE
+   177 symbol  PROJECT-COMPILED-MOVIE
+   178 symbol  NAME-OF
+   179 symbol  FILEP
+   180 symbol  SFAP
+   181 symbol  CLOSE
+   182 symbol  ARGUMENT-NOT-A-FILE-OBJECT
+   183 symbol  *ONLY-FILES-IN-LET-FILES
+   184 symbol  *BREAK
+   185 symbol  OPEN
+   186 symbol  -
+   187 symbol  R
+   188 symbol  M
+   189 symbol  E
+   190 symbol  S
+   191 symbol  DEFUNIZE
+   192 symbol  NO-VALUE
+   193 symbol  COMPILE
+   194 symbol  AS
+   195 symbol  FUNCTION
+   196 symbol  APPEARANCE
+   197 symbol  ASSOC
+   198 symbol  GENERATE-SYMBOL
+   199 symbol  DRAW-PROCEDURES
+   200 symbol  UNION
+   201 symbol  STATE
+   202 symbol  APPEND
+   203 symbol  ?
+   204 symbol  PATTERN
+   205 symbol  MEMORY
+   206 symbol  OF
+   207 symbol  EACH
+   208 symbol  SEQUENTIALLY
+   209 symbol  |(SEQUENTIALLY (ASK EACH OF YOUR ? %) %)|
+   210 symbol  *TERPRI
+   211 symbol  *PRINC
+   212 flonum  0.0
+   213 symbol  RUN-COMPILED-FRAME
+   214 fixnum  999999999
+   215 symbol  SHOWING
+   216 symbol  EVERY
+   217 symbol  STARTING
+   218 symbol  AT
+   219 fixnum  1
+   220 symbol  HAPPENED
+   221 symbol  MEMORIZE
+   222 symbol  |(MEMORIZE ?)|
+   223 symbol  RECORD
+   224 symbol  STOPPED?
+   225 symbol  STORE
+   226 symbol  AWAY
+   227 symbol  THE
+   228 symbol  NEXT
+   229 symbol  FILM
+   230 symbol  SECRETLY
+   231 symbol  CURRENT-MOVIE
+   232 symbol  MODE
+   233 symbol  CLOCK
+   234 symbol  LENGTH-IN-FRAMES
+   235 symbol  SIZE
+   236 symbol  AN
+   237 symbol  USE
+   238 symbol  REPRESENTING
+   239 symbol  |(WHEN REPRESENTING ? USE AN ARRAY OF SIZE ?)|
+   240 symbol  TICKS-PER-FRAME
+   241 symbol  TICK
+   242 symbol  METHOD-IF-NOT-HIDDEN
+   243 symbol  EQUAL
+   244 symbol  NORMAL
+   245 symbol  LAMBDA
+   246 symbol  ADD
+   247 symbol  OFFSPRING
+   248 symbol  REAP-SYMBOLS-IN-ACTOR
+
+The LAP-like listing of the loaded words is in code/9004336_movie.code.txt.

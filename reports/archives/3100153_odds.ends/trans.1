@@ -1,0 +1,70 @@
+(defun lookup1 (word skip-positions)
+       (do ((i (cdr word) (cdr i))
+	    (n 2 (1+ n))
+	    (ans (get (car word) (implode (explode 1)))))
+	    ((null i) ans)
+	    (or (memq n skip-positions)
+		(setq ans (intersect ans (get (car i) (implode (explode n)))))
+		(return nil))))
+
+(defun intersect (list1 list2)
+       (do ((l1 list1 (cdr l1))
+	    (ans nil))
+	    ((null l1) ans)
+	    (and (member (car l1) list2) (setq ans (cons (car l1) ans)))))
+
+(defun remember-word (word meaning)
+       (do ((i word (cdr i))
+	    (n 1 (1+ n)))
+	    ((null i) word)
+	    (putprop (car i)
+		     (cons-if-not-member
+		      (cons word meaning)
+		      (get (car i) (implode (explode n))))
+		     (implode (explode n)))))
+
+(defun cons-if-not-member (x l)
+(cond ((member x l) l)
+      (t (cons x l))))
+
+(defun dict fexpr (a)
+(remember-word (car a) (cadr a)))
+
+(defun trans nil
+(terpri)
+(setq word (read))
+(do ((n 0 (1+ n))
+     (length (length word))
+     (ans nil))
+    ((> n length) (ask-meaning word)(trans))
+   (and  (setq ans (lookup1 word nil)) ;(list n) flushed
+	 (print (mapcar 'cdr ans))
+	 (trans))))
+
+(defun ask-meaning (word)
+       (print (list '|DO YOU WANT TO ENTER| WORD '|INTO THE DICTIONARY?|))
+       (cond ((eq (getchar (read) 1) 'y) (remember-word&entry
+					  word (and (princ '|meaning?|)
+						    (read))))
+	     (t (print 'ok))))
+
+(or (boundp '*new-meanings*)
+    (setq *new-meanings* nil))
+
+(or (boundp '*meanings*)
+    (setq *meanings* nil))
+
+(defun remember-word&entry (word meaning)
+       (setq *new-meanings* (cons (list 'dict word meaning)
+				  *new-meanings*))
+	(remember-word word meaning))
+
+
+
+(defun save-entries fexpr (filename)
+(uwrite)
+(setq ^r t)
+(sprinter *new-meanings*)
+(apply 'ufile filename)
+(setq *meanings* (append *meanings* *new-meanings*))
+(setq *new-meanings* nil))

@@ -1,0 +1,330 @@
+.sec What this is
+	This document assumes familiarity with Hewitt's
+Actor concepts.  I will only incidentally argue it's
+relative merits with LOGO, the purpose is more to present
+ideas as to how to sweeten up the syntax of Plasma
+to be useable by kids in a LOGO-like way.
+	This document was inspired by Danny Hillis's
+"Ten Things to do with a Better Computer".
+My uneasiness with the syntax, that I believe Danny also
+feels, is the main problem that this addresses.  It proposes
+a system built upon an actor system called PLASMA.  The interface
+or editor is improved for use by beginners.  At any point help
+in terms of the proper inputs to procedures and the insertion
+of parenthesis and pretty printing is available.
+	Comments welcome.
+.sec Examples based on factorial for lack of imagination
+.subsec The Cases statement of the recursive version
+1) Each actor knows how to prompt for it's body or datapart.
+The prompting will only occur if asked for, in the following
+examples that is almost always the case.  This is not meant
+to be realistic, only instructive.  A reasonable way for
+the user to ask for help would be to hit the help button at
+any point during input (or editting). In all the examples
+the help button is pushed after typing the name of an actor
+or after typing in only some of the inputs to an actor (or
+more accurately only part of the pattern of the receiver of
+an actor).  Ideally the help button would have meaning at
+all times, for instance, hitting after typing in part on an
+"atom" it would show the various ways the atom could be 
+completed or complete it if unique.
+	As an example of the normal use of the "help" button,
+suppose the user was defining factorial and came to the cases
+statement the following dialog might result:
+.begin
+.nofill
+user: cases 
+SYSTEM: PLEASE TYPE IN THE FIRST CASE.
+user: receive 0 
+SYSTEM: WHAT SHOULD BE DONE IF A 0 IS RECEIVED?
+user: return 1
+[fi];Notice that "return" is meta-syntactic, i.e. does not exist in
+;the target language and is used only to indicate that the last
+;clause of the action of the receiver is finished.  It has been
+;suggested that this be only a single button.[fr]
+SYSTEM: PLEASE TYPE IN ANOTHER CASE.
+user : receive number 
+SYSTEM: NUMBER HAS NO MEANING HERE,
+	 I ASSUME YOU MEAN "=NUMBER"
+[fi];At this point the system puts "=number" into the program
+;buffer and display and the user must press "rubout"
+;to undo the system's rather conservative assumption.[fr]
+SYSTEM: WHAT SHOULD BE DONE AFTER 
+	=NUMBER MATCHES WHAT IT IS SENT?
+user: return number * (factorial (number - 1)) 
+[fi];Note that this too could have been prompted.
+;If this were prompted, it would go more smoothly if one were
+;to stick to prefix functions.[fr]
+SYSTEM: I ASSUME THE CASES STATEMENT IS FINISHED.
+[fi];Again the user can undo this reasonable (since =number will catch anything) assumption.[fr]
+.end
+.subsec Why this looks winning
+Many functions are served by such a prompter system:
+
+.begin skip indent 10
+.nofill
+1) simple errors that are a pain are caught at definition time
+2) the user need not remember syntax nor argument order 
+3) messy nesting and grinding is avoided at definition time
+4) the meaning of the primitive (cases is this case) is clearer
+5) parsing is simplified and is less mysterious
+.end
+	Notice that if the user is sophisticated with respect to some
+primitives the prompter will not prompt.  The prompter askes its
+questions only if a form is unfinished, e.g. "cases" is typed
+followed by the "help" button. In the above example in response
+to the first question by the system the user could have typed:
+
+user: receive 0 return 1
+
+.once indent 0
+and the system would have gone on to ask about the next case,
+if the "help" button were pushed.
+	I envision this system only winning on a display
+console, where waiting for the system to type is not a problem, and where
+it is possible to have part of display show the code as it
+is being defined (in addition to the last question (or two)).
+The best arrangement thought of so far, is where the typing
+of "code" is incremently pretty printed as it comes in, either
+straight, or in response to a question or prompt.
+.subsec The rest of the recursive factorial
+	A problem is that this works best for actors
+.turn off ""
+that are the first word in a form.
+For example, the defining distinguished symbol, "[fl][fr]" should
+not be typed first.  A new name for it is needed when it is
+in the first position so to define factorial a dialog like
+this would occur:
+.begin
+.nofill
+user: define (or teach or whatever)
+SYSTEM: WHAT SHALL WE CALL THIS?
+user: factorial
+SYSTEM: WHAT IS IT'S DEFINITION?
+user: cases
+ ...same as above
+SYSTEM: I ASSUME  THE DEFINITION OF FACTORIAL IS COMPLETE.
+SYSTEM: FACTORIAL DEFINED
+.end
+.subsec A Typing Objection
+	A fair objection is that this a lot of
+typing to get out of a 5th grader.
+Let's compare it to it's LOGO equivalent.
+.begin
+.nofill
+[fl]TO FACTORIAL :NUMBER
+10 IF :NUMBER = 0 OUTPUT 1
+20 OUTPUT NUMBER * FACTORIAL N - 1
+END
+.end
+In the prompter version about 70 characters are typed,
+in the LOGO about 65 or practically the same (since
+shorter words than "define" or "receive" could
+be used or abbreviations are possible, or the help completion
+mode mentioned above could be used). For meta-linguistic forms such as 
+"help", "return", and "rubout" they should, and hopefully
+would be single buttons.
+Also it seems
+plausible that typing to an interactive system would be
+more interesting.
+.subsec Editing
+	For editing let us suppose that we want to modify the
+definition so that a complaint is sent to a complaint
+department if a negative number is sent to factorial.
+.begin
+.nofill
+user: edit factorial
+[fi];If factorial was not mentioned the name of the procedure would be requested.[fr]
+SYSTEM: DO YOU WANT TO ADD, REMOVE, OR
+	CHANGE A CASE IN THE CASES STATEMENT?
+[fi];Since there is only one form (the cases statement) in the
+definition the buck was passed to cases.[fr]
+user: add
+SYSTEM: WHAT IS THE CONDITION?
+user: receive (< 0)
+SYSTEM: WHAT SHOULD BE DONE IF SOMETHING 
+	LESS THAN 0 IS RECEIVED?
+user: tell complaint-department [factorial doesn't like negative numbers]
+SYSTEM: SHOULD THIS BE BEFORE OR AFTER
+	THE "RECEIVE 0, RETURN 1" CASE?
+[fi];Cases should know that nothing can fail to match the "receive =number" condition[fr]
+user: doesn't matter
+SYSTEM: ARE YOU FINISHED EDITING FACTORIAL?
+user: yes
+SYSTEM: FACTORIAL DEFINED
+.end
+At this point the user may notice that this condition is checked
+every time and hopefully need not be checked on all the recursive
+calls.  Many different patches are possible.
+.subsec An Iterative Factorial Example
+	While this is not the place to argue the relative merits of
+Actors verses Logo the comparison between the iterative
+implementations of factorial in each is perhaps instructive.
+.begin
+.nofill
+LOGO:
+[fl]TO FACTORIAL :NUMBER
+10 LOCAL "ACCUMULATION
+20 MAKE "ACCUMULATION 1
+30 IF :NUMBER = 0 OUTPUT :ACCUMULATION
+40 MAKE "ACCUMULATION :ACCUMULATION * :NUMBER
+50 MAKE "NUMBER :NUMBER - 1
+60 GO 30
+END[fr]
+
+Actor Prompter:
+
+user: define factorial
+SYSTEM: WHAT IS THE DEFINITION OF FACTORIAL?
+user: first receive =number
+SYSTEM: WHAT SHOULD BE DONE AFTER MATCHING "=NUMBER"?
+user: tell loop [number 1]
+SYSTEM: LOOP IS NOT DEFINED; WHAT IS ITS DEFINITION?
+[fi];Note that the user should have a "postpone" button for situations
+;like this and the system would remind the user later.[fr]
+user: receive [=count =accumulation]
+SYSTEM: WHAT SHOULD BE DONE AFTER RECEIVING THAT?
+user: rules
+SYSTEM: RULES FOR WHAT?
+user: count
+SYSTEM: PLEASE TYPE IN A RULE, OR 
+	WHEN FINISHED HIT THE "COMPLETE" BUTTON.
+user: receive 0, return accumulation
+SYSTEM: OK, PLEASE TYPE IN ANOTHER RULE.
+[fi];This might be the standard request after the first rule is in[fr]
+user: otherwise tell loop [(number - 1 ) (accumulation * number)]
+[fi];This too could have been prompted of course[fr]
+SYSTEM: I ASSUME THE DEFINITION OF FACTORIAL IS OVER.
+[fi];Some smarts are needed to do this, "rules" must know that nothing
+;can follow "otherwise" (or "else"). etc.[fr]
+.end
+	Some people may not find the above especially
+clear, I did not when first introduced to Actor
+concepts but now I find it a very good way to think
+about recursion versus iteratation.  I think the problem is simply getting
+used to message passing and having it explained well.
+.sec Comparisons with Danny Hillis' Ideas
+	This section assumes the reader is familiar with
+Danny Hillis' "Ten Things to do with a Better Computer".
+.subsec The Truck Example
+Danny's truck is basically very similar.
+However packages might be better than unparsed commands
+so instead of say,
+
+BACK IS A BOX. TELL BACK "WIDTH 100 HEIGHT 100"
+
+two things could happen with the Actor Prompter:
+
+1) the user types it all in:
+.begin indent 8,8
+
+back is a box (width 100) (height 50)
+
+Notice that I think this differs from Danny's in that
+he constructs the back without dimensions and later tells
+it it's dimensions, while here the notion is that back is
+a box that is 100 by 50.
+.end
+2) The prompter is really utilized:
+.begin indent 8,8
+.nofill
+user: back is a box
+[fi];Since box expects a couple of packages 
+;(with the names "width" and "height") the system asks,[fr]
+SYSTEM: WHAT IS THE WIDTH OF THE BOX?
+user: 100
+SYSTEM: AND THE HEIGHT?
+user: 50
+.end
+	This may be a question of taste and style and perhaps
+in either system the box can optionally require its dimensions.
+.subsec The Grow a Garden Example
+Lets compare the two using the "grow a garden example" of Danny's.
+The flower definition would differ as above, and in addition
+flower would have to know how to grow (perhaps) by passing the buck
+to it's parts.  (Danny may be right that this should be behind the scenes.)
+
+Danny's seed definition is:
+.begin
+.nofill
+SEED DOES:
+WAIT 10.
+MAKE FLOWER. 
+TELL FLOWER "RIGHT 90 FORWARD 100 * RANDOM LEFT 90"
+REPEAT 15, WAIT 2 TELL FLOWER "GROW 1"
+MAKE SEED.
+WAIT 100. UNMAKE FLOWER.
+
+The Actor promptor dialog may look like this:
+
+user: define seed
+SYSTEM: WHAT SHOULD SEED DO?
+user: first wait 10
+SYSTEM: AND THEN?
+user: make flower
+SYSTEM: WHERE SHOULD IT BE?
+user: right 90 forward 100 * random left 90
+SYSTEM: IS THERE MORE?
+user: yes, repeat
+[fi];"yes" is a noise word that is ignored here by the system[fr]
+SYSTEM: WHAT SHOULD BE REPEATED?
+user: wait 2, tell flower [grow 1]
+SYSTEM: HOW MANY TIMES SHOULD THAT BE REPEATED?
+user: 15
+SYSTEM: ANY THING ELSE IN SEED'S DEFINITION?
+user: yes make seed
+[fi];since seed has no inputs no questions asked[fr]
+SYSTEM: IS THERE MORE?
+user: yes wait 100 then unmake flower
+SYSTEM: WHAT FLOWER ARE YOU TALKING ABOUT?
+[fi];I think the flower needs a name to be sent a "unmake" message[fr]
+user: the one that seed just made?
+[fi];a smart system would understand that but...[fr]
+SYSTEM: LOOK I AM CONFUSED TO UNMAKE
+	SOMETHING IT NEEDS A NAME
+	DO YOU WANT TO NAME ANYTHING?
+user: yes
+SYSTEM: WHICH MAKE DO YOU WANT TO NAME?
+user: the one that made flower
+SYSTEM: WHAT DO YOU WANT TO CALL IT?
+user: a-flower
+SYSTEM: OK "A-FLOWER IS A FLOWER", SO DO YOU WANT
+	SEED TO UNMAKE IT?
+user: yes
+SYSTEM: IS THAT IT?
+user: yes
+.end
+Appendeum:
+	After talking with Danny about this he has a reasonable
+justification for not bothering to name the flower in the case
+when there is no ambiguity, i.e. when there is only one flower
+being mentioned.  This does seem rather natural, but is a little
+kludgey, so needs more thought.
+	Many things are rather arbitrary in the above example.
+One is after accepting the notion that it is a bug to unmake
+and make things without giving them names.  It is not clear how
+the system should handle it.  Clearly it should find out where
+the thing being unmade was made.  But should (as it does in this
+example) go on ask the user for a name rather than generate
+one on it's own and not bother the poor user?  Many many decisions
+need to be made at this level.
+.sec Implementation?
+	While from the examples it is clear that the prompter
+needs to be pretty smart, the knowledge is very modular, and
+where it belongs is very obvious, that being the actor being
+"called".  A running Plasma is expected in a few months and
+this prompter front-end could probably be done in a matter
+of a few more months.  However, this like Danny's is intended for
+better machines, or at least something like the PDP10 for
+the kids.
+	Another idea as to how to make Actors more accessible
+for kids (and big folks too) is to have an optional visual trace.
+As the code is being run on a display one sees actors, and
+messages moving around being activated.  One way to do this
+would be a sort of single stepper that was smart about different
+levels of events. So the user can either have the tracer consider
+say "factorial" as a primitive or go down a level or two and
+see how it does it's thing.  The way I visualize this trace
+is very much like the event diagrams Carl draws when explaining
+Actor semantics.
+

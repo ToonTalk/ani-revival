@@ -1,0 +1,149 @@
+FASL dump: original/7005044/trans.fasl  (ITS KEN;TRANS FASL, tape 7005044, Dec 1975)
+Decoded 470 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 470 of 470 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 212026,,000007 ('106', flag bits 007), 36 blocks, 321 items
+Item counts: absolute 131, relocatable 25, special 17, smashable call 47, quoted atom 15, globalsym 28, atom table 46, entry 9, eval mungeable 2, end 1
+
+-- Functions defined (9) --
+  name                         property args         address
+  LOOKUP1                      SUBR     (NIL . 2)    000000
+  INTERSECT                    SUBR     (NIL . 2)    000056
+  REMEMBER-WORD                SUBR     (NIL . 2)    000103
+  CONS-IF-NOT-MEMBER           SUBR     (NIL . 2)    000164
+  DICT                         FSUBR                 000203
+  TRANS                        SUBR     (NIL . 0)    000207
+  ASK-MEANING                  SUBR     (NIL . 1)    000256
+  REMEMBER-WORD&ENTRY          SUBR     (NIL . 2)    000313
+  SAVE-ENTRIES                 FSUBR                 000334
+
+-- Top-level forms evaluated at load time (2) --
+  (OR (BOUNDP '*NEW-MEANINGS*) (SETQ *NEW-MEANINGS* NIL))
+  (OR (BOUNDP '*MEANINGS*) (SETQ *MEANINGS* NIL))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  LOOKUP1
+      calls:        EXPLODE IMPLODE GET MEMQ INTERSECT
+      quoted atoms: 1 NIL 2
+  INTERSECT
+      calls:        MEMBER CONS
+  REMEMBER-WORD
+      calls:        CONS EXPLODE IMPLODE GET CONS-IF-NOT-MEMBER PUTPROP
+      quoted atoms: 1
+  CONS-IF-NOT-MEMBER
+      calls:        MEMBER CONS
+  DICT
+      calls:        REMEMBER-WORD
+  TRANS
+      calls:        TERPRI READ LENGTH ASK-MEANING TRANS LOOKUP1 PRINT
+      specials:     WORD
+      quoted atoms: NIL CDR 0
+  ASK-MEANING
+      calls:        NCONS XCONS PRINT READ GETCHAR REMEMBER-WORD&ENTRY
+      specials:     WORD
+      quoted atoms: |INTO THE DICTIONARY?| |DO YOU WANT TO ENTER| 1 Y OK
+  REMEMBER-WORD&ENTRY
+      calls:        NCONS XCONS CONS REMEMBER-WORD
+      specials:     WORD *NEW-MEANINGS*
+      quoted atoms: DICT
+  SAVE-ENTRIES
+      calls:        UWRITE SPRINTER UFILE *APPEND
+      specials:     ^R *NEW-MEANINGS* *MEANINGS*
+      quoted atoms: NIL T
+
+-- Symbols and how they are used (42) --
+  *APPEND                        called
+  *MEANINGS*                     in top-level form, special
+  *NEW-MEANINGS*                 in top-level form, special
+  ASK-MEANING                    called, defined
+  BOUNDP                         in top-level form
+  CDR                            quoted
+  CONS                           called
+  CONS-IF-NOT-MEMBER             called, defined
+  DICT                           defined, quoted
+  |DO YOU WANT TO ENTER|         quoted
+  EXPLODE                        called
+  GET                            called
+  GETCHAR                        called
+  IMPLODE                        called
+  INTERSECT                      called, defined
+  |INTO THE DICTIONARY?|         quoted
+  LENGTH                         called
+  LOOKUP1                        called, defined
+  MEMBER                         called
+  MEMQ                           called
+  NCONS                          called
+  NIL                            in top-level form, quoted
+  OK                             quoted
+  OR                             in top-level form
+  PRINT                          called
+  PUTPROP                        called
+  QUOTE                          in top-level form
+  READ                           called
+  REMEMBER-WORD                  called, defined
+  REMEMBER-WORD&ENTRY            called, defined
+  SAVE-ENTRIES                   defined
+  SETQ                           in top-level form
+  SPRINTER                       called
+  T                              quoted
+  TERPRI                         called
+  TRANS                          called, defined
+  UFILE                          called
+  UWRITE                         called
+  WORD                           special
+  XCONS                          called
+  Y                              quoted
+  ^R                             special
+  (in atom table, no direct use found: SUBR FSUBR)
+
+-- Atom table (46 entries; 0 is NIL) --
+     1 symbol  LOOKUP1
+     2 symbol  SUBR
+     3 fixnum  1
+     4 symbol  EXPLODE
+     5 symbol  IMPLODE
+     6 symbol  GET
+     7 symbol  MEMQ
+     8 symbol  INTERSECT
+     9 fixnum  2
+    10 symbol  MEMBER
+    11 symbol  CONS
+    12 symbol  REMEMBER-WORD
+    13 symbol  CONS-IF-NOT-MEMBER
+    14 symbol  PUTPROP
+    15 symbol  DICT
+    16 symbol  FSUBR
+    17 symbol  TRANS
+    18 symbol  TERPRI
+    19 symbol  READ
+    20 symbol  WORD
+    21 symbol  LENGTH
+    22 symbol  ASK-MEANING
+    23 symbol  CDR
+    24 symbol  PRINT
+    25 fixnum  0
+    26 symbol  |INTO THE DICTIONARY?|
+    27 symbol  NCONS
+    28 symbol  XCONS
+    29 symbol  |DO YOU WANT TO ENTER|
+    30 symbol  GETCHAR
+    31 symbol  Y
+    32 symbol  REMEMBER-WORD&ENTRY
+    33 symbol  OK
+    34 symbol  OR
+    35 symbol  BOUNDP
+    36 symbol  QUOTE
+    37 symbol  *NEW-MEANINGS*
+    38 symbol  SETQ
+    39 symbol  *MEANINGS*
+    40 symbol  SAVE-ENTRIES
+    41 symbol  UWRITE
+    42 symbol  T
+    43 symbol  ^R
+    44 symbol  SPRINTER
+    45 symbol  UFILE
+    46 symbol  *APPEND
+
+The LAP-like listing of the loaded words is in code/7005044_trans.code.txt.

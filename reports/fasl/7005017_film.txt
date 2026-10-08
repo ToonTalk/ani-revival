@@ -1,0 +1,358 @@
+FASL dump: original/7005017/film.fasl  (ITS KEN;FILM FASL, tape 7005017, Feb 1979)
+Decoded 888 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 888 of 888 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 252730,,000016 ('578', flag bits 016), 32 blocks, 282 items
+Item counts: absolute 68, relocatable 29, special 12, smashable call 14, quoted atom 20, quoted list 5, globalsym 11, atom table 105, entry 6, eval mungeable 11, end 1
+
+-- Functions defined (6) --
+  name                         property args         address
+  |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM| SUBR     (NIL . 0)    000000
+  |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM| SUBR     (NIL . 0)    000010
+  ORIGINAL-CLAUSES-OF-FILM     SUBR     (NIL . 1)    000055
+  COMPILED-FILM-CURRENT-FILM-AIR-1 SUBR     (NIL . 0)    000146
+  |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0| SUBR     (NIL . 0)    000155
+  ORIGINAL-CLAUSES-OF-FOCUS-0  SUBR     (NIL . 1)    000205
+
+-- Top-level forms evaluated at load time (11) --
+  (DEFPROP DEFCOMMENT (LAMBDA (USELESS) NIL) MACRO)
+  (PLACE-ACTOR-ON-NAME '(((PARENT SOMETHING
+                            NAME
+                            FILM
+                            FILM-LENGTH
+                            (INTERVAL (MINUTES 1) (MINUTES 4))
+                            MOOD
+                            SCENE-DEPENDENT
+                            FOCUS
+                            FOCUS)
+                          (CURRENT-FILM (ACTIONS-IF-RECALLING ((COMPILED-FILM-CURRENT-FILM-AIR-1)))
+                            VARIETY
+                            (LEVEL MEDIUM)
+                            COMPLEXITY
+                            (LEVEL LOW)
+                            ORIGINALITY
+                            (LEVEL MEDIUM)
+                            COHERENCE
+                            (LEVEL HIGH)
+                            OBVIOUSNESS
+                            (LEVEL MEDIUM)
+                            ENERGY
+                            (LEVEL MEDIUM)
+                            FLASHINESS
+                            (LEVEL MEDIUM)
+                            RHYTHM
+                            (LEVEL MEDIUM)))
+                         (0 (ORIGINAL-CLAUSES-OF-FILM))
+                         NIL)
+    'FILM)
+  (REMPROP 'FILM 'ACTOR-LOAD)
+  (SETQ |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM| '|(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM|)
+  (SETQ |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM|
+    '|(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM|)
+  (ASK1 'SOMETHING '(ADD FILM TO YOUR LIST OF OFFSPRING))
+  (PLACE-ACTOR-ON-NAME '(((PARENT SOMETHING NAME FOCUS-0)) (0 (ORIGINAL-CLAUSES-OF-FOCUS-0)))
+    'FOCUS-0)
+  (REMPROP 'FOCUS-0 'ACTOR-LOAD)
+  (SETQ |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0| '|(IS ?CHOICE PART OF THE FOCUS)FOCUS-0|)
+  (ASK1 'SOMETHING '(ADD FOCUS-0 TO YOUR LIST OF OFFSPRING))
+  (DEFINE FOCUS
+    FOCUS-0
+    (SET YOUR ORDER-OF-CHARACTER+ELEMENT-TYPE+ELEMENT TO (CHARACTERS ELEMENT-TYPES ELEMENTS))
+    (ASK ABSOLUTE-CHOICE-POINT
+      TO
+      SET
+      YOUR
+      SUGGESTION-SOURCES
+      TO
+      ((ABSOLUTE-SUGGESTIONS NEIGHBORS-ABSOLUTE-SUGGESTIONS OPPOSITES-ABSOLUTE-SUGGESTIONS)
+       RELATIVE-SUGGESTIONS
+       GLOBAL-SUGGESTIONS))
+    (ASK ABSOLUTE-CHOICE-POINT
+      TO
+      SET
+      YOUR
+      SOURCE-PRIORITIES
+      TO
+      (DEFAULT-SOURCE-PRIORITIES: ABSOLUTE-SUGGESTIONS
+        3
+        NEIGHBORS-ABSOLUTE-SUGGESTIONS
+        2
+        OPPOSITES-ABSOLUTE-SUGGESTIONS
+        1
+        RELATIVE-SUGGESTIONS
+        4
+        GLOBAL-SUGGESTIONS
+        1))
+    (ASK RELATIVE-CHOICE-POINT TO SET YOUR SUGGESTION-SOURCES TO (ABSOLUTE-SUGGESTIONS))
+    (ASK RELATIVE-CHOICE-POINT
+      TO
+      SET
+      YOUR
+      SOURCE-PRIORITIES
+      TO
+      (DEFAULT-SOURCE-PRIORITIES: ABSOLUTE-SUGGESTIONS 3))
+    (ASK ABSOLUTE-CHOICE-POINT
+      TO
+      SET
+      YOUR
+      MINIMALLY-HAPPY-SAMPLE-SUGGESTION
+      TO
+      (SUGGESTION: ELEMENT
+        DONT-CARE
+        VALUE
+        DONT-CARE-EITHER
+        STRENGTH
+        MEDIUM
+        SOURCE
+        (AND SHY RELATIVE-CHOICE-POINT)))
+    (ASK RELATIVE-CHOICE-POINT
+      TO
+      SET
+      YOUR
+      MINIMALLY-HAPPY-SAMPLE-SUGGESTION
+      TO
+      (SUGGESTION: ELEMENT DONT-CARE VALUE DONT-CARE-EITHER STRENGTH MEDIUM SOURCE HATES)))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM|
+      calls:        RECALL-VARIABLE COLLECT-FILM-LEVEL-SUGGESTIONS
+      specials:     :MESSAGE :SELF
+      quoted atoms: DESCRIPTOR-LEVELS
+  |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM|
+      calls:        RECALL-VARIABLE CONS-IF-NOT-MEMBER CHANGE-VALUE
+      specials:     :MESSAGE :SELF
+      quoted atoms: DESCRIPTOR-LEVELS LEVEL
+      quoted list:  (LEVEL)
+      quoted list:  (LEVEL)
+      quoted list:  (LEVEL)
+  ORIGINAL-CLAUSES-OF-FILM
+      specials:     |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM| |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM|
+      quoted atoms: YIELD SUGGESTIONS FOR NIL SET YOUR LEVEL OF TO
+  COMPILED-FILM-CURRENT-FILM-AIR-1
+      calls:        GET-ACTOR GET-PROPERTY
+      specials:     :SELF
+      quoted atoms: OFFSPRING
+  |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0|
+      calls:        IS-ANY-ANCESTOR-OF ASK1 RECALL-VARIABLE INTERSECT
+      specials:     :MESSAGE :SELF
+      quoted atoms: NODE PARTS-OF-THE-FOCUS T
+      quoted list:  (YIELD YOUR AND ANCESTORS NODE-FOR)
+  ORIGINAL-CLAUSES-OF-FOCUS-0
+      calls:        EQUAL
+      specials:     |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0|
+      quoted atoms: IS NIL
+      quoted list:  (PART OF THE FOCUS)
+
+-- Symbols and how they are used (100) --
+  |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0| defined, in top-level form, special
+  |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM| defined, in top-level form, special
+  |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM| defined, in top-level form, special
+  :MESSAGE                       special
+  :SELF                          special
+  ABSOLUTE-CHOICE-POINT          in top-level form
+  ABSOLUTE-SUGGESTIONS           in top-level form
+  ACTIONS-IF-RECALLING           in top-level form
+  ACTOR-LOAD                     in top-level form
+  ADD                            in top-level form
+  ANCESTORS                      in constant
+  AND                            in constant, in top-level form
+  ASK                            in top-level form
+  ASK1                           called, in top-level form
+  CHANGE-VALUE                   called
+  CHARACTERS                     in top-level form
+  COHERENCE                      in top-level form
+  COLLECT-FILM-LEVEL-SUGGESTIONS called
+  COMPILED-FILM-CURRENT-FILM-AIR-1 defined, in top-level form
+  COMPLEXITY                     in top-level form
+  CONS-IF-NOT-MEMBER             called
+  CURRENT-FILM                   in top-level form
+  DEFAULT-SOURCE-PRIORITIES:     in top-level form
+  DEFCOMMENT                     in top-level form
+  DEFINE                         in top-level form
+  DEFPROP                        in top-level form
+  DESCRIPTOR-LEVELS              quoted
+  DONT-CARE                      in top-level form
+  DONT-CARE-EITHER               in top-level form
+  ELEMENT                        in top-level form
+  ELEMENT-TYPES                  in top-level form
+  ELEMENTS                       in top-level form
+  ENERGY                         in top-level form
+  EQUAL                          called
+  FILM                           in top-level form
+  FILM-LENGTH                    in top-level form
+  FLASHINESS                     in top-level form
+  FOCUS                          in constant, in top-level form
+  FOCUS-0                        in top-level form
+  FOR                            quoted
+  GET-ACTOR                      called
+  GET-PROPERTY                   called
+  GLOBAL-SUGGESTIONS             in top-level form
+  HATES                          in top-level form
+  HIGH                           in top-level form
+  INTERSECT                      called
+  INTERVAL                       in top-level form
+  IS                             quoted
+  IS-ANY-ANCESTOR-OF             called
+  LAMBDA                         in top-level form
+  LEVEL                          in constant, in top-level form, quoted
+  LIST                           in top-level form
+  LOW                            in top-level form
+  MACRO                          in top-level form
+  MEDIUM                         in top-level form
+  MINIMALLY-HAPPY-SAMPLE-SUGGESTION in top-level form
+  MINUTES                        in top-level form
+  MOOD                           in top-level form
+  NAME                           in top-level form
+  NEIGHBORS-ABSOLUTE-SUGGESTIONS in top-level form
+  NIL                            in top-level form, quoted
+  NODE                           quoted
+  NODE-FOR                       in constant
+  OBVIOUSNESS                    in top-level form
+  OF                             in constant, in top-level form, quoted
+  OFFSPRING                      in top-level form, quoted
+  OPPOSITES-ABSOLUTE-SUGGESTIONS in top-level form
+  ORDER-OF-CHARACTER+ELEMENT-TYPE+ELEMENT in top-level form
+  ORIGINAL-CLAUSES-OF-FILM       defined, in top-level form
+  ORIGINAL-CLAUSES-OF-FOCUS-0    defined, in top-level form
+  ORIGINALITY                    in top-level form
+  PARENT                         in top-level form
+  PART                           in constant
+  PARTS-OF-THE-FOCUS             quoted
+  PLACE-ACTOR-ON-NAME            in top-level form
+  QUOTE                          in top-level form
+  RECALL-VARIABLE                called
+  RELATIVE-CHOICE-POINT          in top-level form
+  RELATIVE-SUGGESTIONS           in top-level form
+  REMPROP                        in top-level form
+  RHYTHM                         in top-level form
+  SCENE-DEPENDENT                in top-level form
+  SET                            in top-level form, quoted
+  SETQ                           in top-level form
+  SHY                            in top-level form
+  SOMETHING                      in top-level form
+  SOURCE                         in top-level form
+  SOURCE-PRIORITIES              in top-level form
+  STRENGTH                       in top-level form
+  SUGGESTION-SOURCES             in top-level form
+  SUGGESTION:                    in top-level form
+  SUGGESTIONS                    quoted
+  T                              quoted
+  THE                            in constant
+  TO                             in top-level form, quoted
+  USELESS                        in top-level form
+  VALUE                          in top-level form
+  VARIETY                        in top-level form
+  YIELD                          in constant, quoted
+  YOUR                           in constant, in top-level form, quoted
+  (in atom table, no direct use found: SUBR)
+
+-- Atom table (105 entries; 0 is NIL) --
+     1 symbol  DEFPROP
+     2 symbol  DEFCOMMENT
+     3 symbol  LAMBDA
+     4 symbol  USELESS
+     5 symbol  MACRO
+     6 symbol  PLACE-ACTOR-ON-NAME
+     7 symbol  QUOTE
+     8 symbol  PARENT
+     9 symbol  SOMETHING
+    10 symbol  NAME
+    11 symbol  FILM
+    12 symbol  FILM-LENGTH
+    13 symbol  INTERVAL
+    14 symbol  MINUTES
+    15 fixnum  1
+    16 fixnum  4
+    17 symbol  MOOD
+    18 symbol  SCENE-DEPENDENT
+    19 symbol  FOCUS
+    20 symbol  CURRENT-FILM
+    21 symbol  ACTIONS-IF-RECALLING
+    22 symbol  COMPILED-FILM-CURRENT-FILM-AIR-1
+    23 symbol  VARIETY
+    24 symbol  LEVEL
+    25 symbol  MEDIUM
+    26 symbol  COMPLEXITY
+    27 symbol  LOW
+    28 symbol  ORIGINALITY
+    29 symbol  COHERENCE
+    30 symbol  HIGH
+    31 symbol  OBVIOUSNESS
+    32 symbol  ENERGY
+    33 symbol  FLASHINESS
+    34 symbol  RHYTHM
+    35 fixnum  0
+    36 symbol  ORIGINAL-CLAUSES-OF-FILM
+    37 symbol  REMPROP
+    38 symbol  ACTOR-LOAD
+    39 symbol  SETQ
+    40 symbol  |(YIELD SUGGESTIONS FOR ?CHOICE-POINT)FILM|
+    41 symbol  SUBR
+    42 symbol  :MESSAGE
+    43 symbol  DESCRIPTOR-LEVELS
+    44 symbol  :SELF
+    45 symbol  RECALL-VARIABLE
+    46 symbol  COLLECT-FILM-LEVEL-SUGGESTIONS
+    47 symbol  |(SET YOUR LEVEL OF ?DESCRIPTOR TO ?VALUE)FILM|
+    48 symbol  CONS-IF-NOT-MEMBER
+    49 symbol  CHANGE-VALUE
+    50 symbol  YIELD
+    51 symbol  SUGGESTIONS
+    52 symbol  FOR
+    53 symbol  SET
+    54 symbol  YOUR
+    55 symbol  OF
+    56 symbol  TO
+    57 symbol  GET-ACTOR
+    58 symbol  OFFSPRING
+    59 symbol  GET-PROPERTY
+    60 symbol  ASK1
+    61 symbol  ADD
+    62 symbol  LIST
+    63 symbol  FOCUS-0
+    64 symbol  ORIGINAL-CLAUSES-OF-FOCUS-0
+    65 symbol  |(IS ?CHOICE PART OF THE FOCUS)FOCUS-0|
+    66 symbol  NODE
+    67 symbol  IS-ANY-ANCESTOR-OF
+    68 symbol  AND
+    69 symbol  ANCESTORS
+    70 symbol  NODE-FOR
+    71 symbol  PARTS-OF-THE-FOCUS
+    72 symbol  INTERSECT
+    73 symbol  T
+    74 symbol  IS
+    75 symbol  PART
+    76 symbol  THE
+    77 symbol  EQUAL
+    78 symbol  DEFINE
+    79 symbol  ORDER-OF-CHARACTER+ELEMENT-TYPE+ELEMENT
+    80 symbol  CHARACTERS
+    81 symbol  ELEMENT-TYPES
+    82 symbol  ELEMENTS
+    83 symbol  ASK
+    84 symbol  ABSOLUTE-CHOICE-POINT
+    85 symbol  SUGGESTION-SOURCES
+    86 symbol  ABSOLUTE-SUGGESTIONS
+    87 symbol  NEIGHBORS-ABSOLUTE-SUGGESTIONS
+    88 symbol  OPPOSITES-ABSOLUTE-SUGGESTIONS
+    89 symbol  RELATIVE-SUGGESTIONS
+    90 symbol  GLOBAL-SUGGESTIONS
+    91 symbol  SOURCE-PRIORITIES
+    92 symbol  DEFAULT-SOURCE-PRIORITIES:
+    93 fixnum  3
+    94 fixnum  2
+    95 symbol  RELATIVE-CHOICE-POINT
+    96 symbol  MINIMALLY-HAPPY-SAMPLE-SUGGESTION
+    97 symbol  SUGGESTION:
+    98 symbol  ELEMENT
+    99 symbol  DONT-CARE
+   100 symbol  VALUE
+   101 symbol  DONT-CARE-EITHER
+   102 symbol  STRENGTH
+   103 symbol  SOURCE
+   104 symbol  SHY
+   105 symbol  HATES
+
+The LAP-like listing of the loaded words is in code/7005017_film.code.txt.

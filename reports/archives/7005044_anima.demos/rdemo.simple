@@ -1,0 +1,114 @@
+;this one does not make use of fonts
+(DECLARE (OR (STATUS FEATURE DEFINE) (FASLOAD DEFINE FASL DSK LLOGO)) 
+         (READ))
+
+;;DON'T COMPILE STUFF WHICH HAS CALLS TO #'ED LOGO CODE!!!!!
+
+(OR (STATUS FEATURE DEFINE) (FASLOAD DEFINE FASL DSK LLOGO))
+
+(SSTATUS INTERRUPT  15. 'STOP-DEMO)
+
+;;Control closebracket used to quit out of demos which
+;;repeat endlessly.
+
+(DEFUN STOP-DEMO (USELESS) (NOINTERRUPT NIL) (THROW 'STOPPED DEMO))
+
+(DEFUN DEMONSTRATE FEXPR (arguments ENV)
+       ;(FONT-HOME-UP)
+       ;(FONT-PRINC (CAR arguments))
+       (cursorpos 'c)
+       (princ (car arguments))
+       ;;Print caption, then do code.
+       (SLEEP :SHORTDELAY)
+       (CATCH (MAPC '(LAMBDA (DEMO-FORM) 
+                             ((LAMBDA (OBARRAY)
+                                      ;;LOGO code must be executed on right obarray,
+                                      ;;e.g. MAKE's EXPLODE variable names.
+                                      (EVAL DEMO-FORM))
+                              LOGO-OBARRAY))
+                    (CDR arguments)) 
+              DEMO)
+       (SLEEP :INTERMISSION))
+
+
+
+(SETQ :INTERMISSION 5. :SHORTDELAY 1.)
+
+
+
+(DEFUN SETUP-DEMO NIL
+       (STARTDISPLAY)
+       (TVSIZE 500 300))
+
+
+(setup-demo)
+;now for some demo stuff with rocket
+
+(defun rocket-demo nil
+(#ER/.ACTOR '#FRED)
+(demonstrate "ROCKET [MAKE FRED]
+FRED [SHOW]"
+(#rocket '(#make #fred))
+(#FRED '(#REMEMBER #OBJ/.STATE (200 0 0)))
+(#fred '(#show)))
+(demonstrate "FRED [FD 200]" (#FRED '(#FD 200)))
+(demonstrate "FRED [LT 120]" (#FRED '(#LT 120)))
+(DEMONSTRATE "FRED [TELL ME SPEED ?]
+100
+FRED [REPLACE SPEED 200] FRED [FD 300]" (#FRED '(#REPLACE #SPEED 200))
+(#FRED '(#FD 300)))
+(DEMONSTRATE "FRED [GROW 50]"
+(#FRED '(#GROW 50)))
+(DEMONSTRATE "FRED [BK 150]"
+(#FRED '(#BK 150))))
+
+(DEFUN TEACH-DEMO NIL
+(DEMONSTRATE "FRED [IF RECEIVE SHOOT ?SPEED ?DIST THEN SHOOT.MISSLE :?SPEED :?DIST]"
+(#FRED '(#IF #RECEIVE #SHOOT #?SPEED #?DISTANCE #THEN #SHOOT/.MISSLE #:?SPEED #:?DISTANCE))
+(SLEEP 3)(CS))
+(DEMONSTRATE "TO SHOOT.MISSLE :SPEED :DIST
+ROCKET [MAKE MISSLE]
+MISSLE (LIST 'REPLACE 'SPEED :SPEED)
+MISSLE (LIST 'REPLACE 'SIZE (FRED [SIZE?])/4)
+MISSLE (LIST 'REPLACE 'OBJ.STATE (FRED [STATE?]))
+MISSLE [SHOW]
+MISSLE (LIST 'FD :DIST)
+MISSLE [HIDE]
+END"
+(SLEEP 10))
+
+(DEMONSTRATE "FRED [SHOOT 300 600]"
+(#FRED '(#SHOW))
+(#FRED '(#SHOOT 300 600))))
+
+(DEFUN SCHED-DEMO NIL
+(#ER/.ACTOR '#SALLY)
+(DEMONSTRATE "FLOWER [MAKE SALLY]
+SALLY [REMEMBER SIZE 125]
+SALLY [SHOW]"
+(#FLOWER '(#MAKE #SALLY))
+(#SALLY '(#REMEMBER #SIZE 125))
+(#SALLY '(#REPLACE #OBJ/.STATE (-400 0 0)))
+(#SALLY '(#SHOW)))
+(DEMONSTRATE "SALLY [DO [SWAY 10] AT FRAME 1]
+FRED [DO [FD 200] AT FRAME 6]
+FRED [DO [SHOOT 400 300] AFTER 2 MORE FRAMES]"
+(#SALLY '(#DO (#SWAY 10) #AT #FRAME 1))
+(#fred '(#do (#show) #at #frame 1))
+(#FRED '(#DO (#FD 200) #AT #FRAME 6))
+(#FRED '(#DO (#SHOOT 400 300) #AFTER 2 #MORE #FRAMES))
+(#SALLY '(#DO (#GROW 20) #AFTER 10 #MORE #FRAMES))
+(#SALLY '(#DO (#GROW 20) #AFTER 1 #MORE #FRAMES))
+(#SALLY '(#DO (#GROW 20) #AFTER 1 #MORE #FRAMES))
+(#SALLY '(#DO (#GROW 20) #AFTER 1 #MORE #FRAMES)))
+(DEMONSTRATE "MOVIE [MAKE SHOOTING 40]
+SHOOTING [SHOW]"
+;(#MOVIE '(#MAKE #SHOOTING 40))
+(cs)
+(#SHOOTING '(#SHOW))))
+
+(DEFUN DEMOS NIL (ROCKET-DEMO) (TEACH-DEMO) (SCHED-DEMO))
+
+(LET ((OBARRAY LOGO-OBARRAY))
+      (gw rdemo nwind dsk ken))
+

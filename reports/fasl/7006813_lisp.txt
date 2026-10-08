@@ -1,0 +1,325 @@
+FASL dump: original/7006813/lisp.fasl  (ITS KEN;LISP FASL, tape 7006813, undated)
+Decoded 901 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 901 of 901 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 312124,,000121 ('914', flag bits 121), 38 blocks, 339 items
+Item counts: absolute 95, relocatable 19, special 8, smashable call 24, quoted atom 11, quoted list 5, globalsym 18, atom table 112, entry 11, eval mungeable 35, end 1
+
+-- Functions defined (11) --
+  name                         property args         address
+  |IF-FOR-MACLISP MACRO|       SUBR     (NIL . 1)    000000
+  |IF-FOR-LISPM MACRO|         SUBR     (NIL . 1)    000006
+  |IF-FOR-MACLISP-ELSE-LISPM MACRO| SUBR     (NIL . 1)    000010
+  GO-SLOW                      LSUBR                 000013
+  GO-FAST                      LSUBR                 000032
+  SNAP-UUOLINKS                SUBR     (NIL . 0)    000043
+  |SET-VARIABLE MACRO|         SUBR     (NIL . 1)    000045
+  |S MACRO|                    SUBR     (NIL . 1)    000123
+  CONTROL-T                    SUBR     (NIL . 2)    000127
+  E                            SUBR     (NIL . 0)    000142
+  MY-DEFAULT-TTY-RETURN        SUBR     (NIL . 1)    000144
+
+-- Top-level forms evaluated at load time (35) --
+  (LOAD '|liblsp;gcdemn fasl|)
+  (SETQ GCTWA T)
+  (SETQ ALLOC-MARK-RATIO 0.75)
+  (DEFPROP IF-FOR-MACLISP |IF-FOR-MACLISP MACRO| MACRO)
+  (DEFPROP IF-FOR-LISPM |IF-FOR-LISPM MACRO| MACRO)
+  (DEFPROP IF-FOR-MACLISP-ELSE-LISPM |IF-FOR-MACLISP-ELSE-LISPM MACRO| MACRO)
+  (DEFPROP TOP ((DSK LIBLSP) STACK) AUTOLOAD)
+  (DEFPROP BOT ((DSK LIBLSP) STACK) AUTOLOAD)
+  (DEFPROP TIME-FUNCTION ((DSK LIBLSP) TIMER) AUTOLOAD)
+  (DEFPROP UNTIME ((DSK LIBLSP) TIMER) AUTOLOAD)
+  (DEFPROP APROPOS ((DSK LIBLSP) APROPO) AUTOLOAD)
+  (DEFPROP AP APROPOS EXPR)
+  (DEFPROP CS (TVRTLE NEWIO AI LLOGO) AUTOLOAD)
+  (DEFPROP CLEARSCREEN (TVRTLE NEWIO AI LLOGO) AUTOLOAD)
+  (SETQ PURE 2)
+  (DEFPROP BUG SNAP-UUOLINKS EXPR)
+  (DEFPROP SET-VARIABLE |SET-VARIABLE MACRO| MACRO)
+  (DEFPROP S |S MACRO| MACRO)
+  (ARRAY ORIGINAL-READTABLE READTABLE)
+  (LOAD '|ai:direct;reamac|)
+  (LOAD '|ai:direct;macros|)
+  (SSTATUS TTYINT 20 'CONTROL-T)
+  (DEFUN ENTER-SPECIFIC-INF-EDITOR
+    (X)
+    (LOAD '|liblsp;lispt|)
+    (SSTATUS TTYINT 20 'CONTROL-T)
+    (SETQ *TIME-I-LEFT-HERE (TIME))
+    (INF-EDIT E))
+  (SETQ SEND-*VALUE-TO-DDT? 'YES)
+  (SETQ DEFAULT-TTY-RETURN-LIST '((MY-DEFAULT-TTY-RETURN TTYRETARG)))
+  (SETQ DEFAULT-RETURN-TO-DDT-LIST
+    '((PROGN (SETQ *TIME-I-LEFT-HERE (TIME)) (LISPT-^Z))
+      (PROGN (SETQ *TIME-I-LEFT-HERE (TIME)) (DDT-RETURN))))
+  (SETQ *E 2.71828)
+  (SETSYNTAX '# 'SPLICING '+INTERNAL-#-MACRO)
+  (SETSYNTAX '|"| 'MACRO '|+INTERNAL-"-MACRO|)
+  (CRUNIT KEN)
+  (SETQ NOUUO T)
+  (SETQ BASE 10 IBASE 10)
+  (SETQ *NOPOINT T)
+  (*RSET T)
+  (PRINC '|Welcome to Lisp|)
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  |IF-FOR-MACLISP MACRO|
+      quoted atoms: PROGN
+      quoted list:  'COMPILE
+  |IF-FOR-LISPM MACRO|
+      quoted list:  (COMMENT FOR LISPMACHINE)
+  |IF-FOR-MACLISP-ELSE-LISPM MACRO|
+  GO-SLOW
+      calls:        SNAP-UUOLINKS *RSET NOUUO
+      quoted atoms: T
+  GO-FAST
+      calls:        SNAP-UUOLINKS NOUUO *RSET
+      quoted atoms: NIL
+  SNAP-UUOLINKS
+      calls:        SSTATUS
+      quoted list:  (UUOLINKS)
+  |SET-VARIABLE MACRO|
+      calls:        *PRINC
+      quoted atoms: SETQ
+  |S MACRO|
+      quoted atoms: SET-VARIABLE
+  CONTROL-T
+      calls:        LISTEN TYI TIME E
+      specials:     TYI *TIME-I-LEFT-HERE
+  E
+      calls:        ENTER-SPECIFIC-INF-EDITOR
+      quoted atoms: E
+  MY-DEFAULT-TTY-RETURN
+      calls:        *TERPRI STATUS TIME FIX *PRINC FORCE-OUTPUT
+      specials:     TTY-YANKED-FLAG *TIME-I-LEFT-HERE JOB-MSG-FILE TTY-RETURN-PROMPT? TTY-RETURN-PROMPTER
+      quoted atoms: |seconds| |haven't seen you for| T
+      quoted list:  (FEATURES DIRECTOR)
+      quoted list:  (FEATURES ANI)
+
+-- Symbols and how they are used (106) --
+  |"|                            in top-level form
+  #                              in top-level form
+  *E                             in top-level form
+  *NOPOINT                       in top-level form
+  *PRINC                         called
+  *RSET                          called, in top-level form
+  *TERPRI                        called
+  *TIME-I-LEFT-HERE              in top-level form, special
+  |+INTERNAL-"-MACRO|            in top-level form
+  +INTERNAL-#-MACRO              in top-level form
+  AI                             in top-level form
+  ALLOC-MARK-RATIO               in top-level form
+  ANI                            in constant
+  AP                             in top-level form
+  APROPO                         in top-level form
+  APROPOS                        in top-level form
+  ARRAY                          in top-level form
+  AUTOLOAD                       in top-level form
+  BASE                           in top-level form
+  BOT                            in top-level form
+  BUG                            in top-level form
+  CLEARSCREEN                    in top-level form
+  COMMENT                        in constant
+  COMPILE                        in constant
+  CONTROL-T                      defined, in top-level form
+  CRUNIT                         in top-level form
+  CS                             in top-level form
+  DDT-RETURN                     in top-level form
+  DEFAULT-RETURN-TO-DDT-LIST     in top-level form
+  DEFAULT-TTY-RETURN-LIST        in top-level form
+  DEFPROP                        in top-level form
+  DEFUN                          in top-level form
+  DIRECTOR                       in constant
+  DSK                            in top-level form
+  E                              called, defined, in top-level form, quoted
+  ENTER-SPECIFIC-INF-EDITOR      called, in top-level form
+  EXPR                           in top-level form
+  FEATURES                       in constant
+  FIX                            called
+  FOR                            in constant
+  FORCE-OUTPUT                   called
+  GCTWA                          in top-level form
+  GO-FAST                        defined
+  GO-SLOW                        defined
+  IBASE                          in top-level form
+  IF-FOR-LISPM                   in top-level form
+  |IF-FOR-LISPM MACRO|           defined, in top-level form
+  IF-FOR-MACLISP                 in top-level form
+  |IF-FOR-MACLISP MACRO|         defined, in top-level form
+  IF-FOR-MACLISP-ELSE-LISPM      in top-level form
+  |IF-FOR-MACLISP-ELSE-LISPM MACRO| defined, in top-level form
+  INF-EDIT                       in top-level form
+  JOB-MSG-FILE                   special
+  KEN                            in top-level form
+  LIBLSP                         in top-level form
+  LISPMACHINE                    in constant
+  LISPT-^Z                       in top-level form
+  LISTEN                         called
+  LLOGO                          in top-level form
+  LOAD                           in top-level form
+  MACRO                          in top-level form
+  MY-DEFAULT-TTY-RETURN          defined, in top-level form
+  NEWIO                          in top-level form
+  NIL                            quoted
+  NOUUO                          called, in top-level form
+  ORIGINAL-READTABLE             in top-level form
+  PRINC                          in top-level form
+  PROGN                          in top-level form, quoted
+  PURE                           in top-level form
+  QUOTE                          in constant, in top-level form
+  READTABLE                      in top-level form
+  S                              in top-level form
+  |S MACRO|                      defined, in top-level form
+  SEND-*VALUE-TO-DDT?            in top-level form
+  SET-VARIABLE                   in top-level form, quoted
+  |SET-VARIABLE MACRO|           defined, in top-level form
+  SETQ                           in top-level form, quoted
+  SETSYNTAX                      in top-level form
+  SNAP-UUOLINKS                  called, defined, in top-level form
+  SPLICING                       in top-level form
+  SSTATUS                        called, in top-level form
+  STACK                          in top-level form
+  STATUS                         called
+  T                              in top-level form, quoted
+  TIME                           called, in top-level form
+  TIME-FUNCTION                  in top-level form
+  TIMER                          in top-level form
+  TOP                            in top-level form
+  TTY-RETURN-PROMPT?             special
+  TTY-RETURN-PROMPTER            special
+  TTY-YANKED-FLAG                special
+  TTYINT                         in top-level form
+  TTYRETARG                      in top-level form
+  TVRTLE                         in top-level form
+  TYI                            called, special
+  UNTIME                         in top-level form
+  UUOLINKS                       in constant
+  |Welcome to Lisp|              in top-level form
+  X                              in top-level form
+  YES                            in top-level form
+  |ai:direct;macros|             in top-level form
+  |ai:direct;reamac|             in top-level form
+  |haven't seen you for|         quoted
+  |liblsp;gcdemn fasl|           in top-level form
+  |liblsp;lispt|                 in top-level form
+  |seconds|                      quoted
+  (in atom table, no direct use found: SUBR LSUBR)
+
+-- Atom table (112 entries; 0 is NIL) --
+     1 symbol  LOAD
+     2 symbol  QUOTE
+     3 symbol  |liblsp;gcdemn fasl|
+     4 symbol  SETQ
+     5 symbol  GCTWA
+     6 symbol  T
+     7 symbol  ALLOC-MARK-RATIO
+     8 flonum  0.75
+     9 symbol  DEFPROP
+    10 symbol  IF-FOR-MACLISP
+    11 symbol  |IF-FOR-MACLISP MACRO|
+    12 symbol  MACRO
+    13 symbol  SUBR
+    14 symbol  COMPILE
+    15 symbol  PROGN
+    16 symbol  IF-FOR-LISPM
+    17 symbol  |IF-FOR-LISPM MACRO|
+    18 symbol  COMMENT
+    19 symbol  FOR
+    20 symbol  LISPMACHINE
+    21 symbol  IF-FOR-MACLISP-ELSE-LISPM
+    22 symbol  |IF-FOR-MACLISP-ELSE-LISPM MACRO|
+    23 symbol  TOP
+    24 symbol  DSK
+    25 symbol  LIBLSP
+    26 symbol  STACK
+    27 symbol  AUTOLOAD
+    28 symbol  BOT
+    29 symbol  TIME-FUNCTION
+    30 symbol  TIMER
+    31 symbol  UNTIME
+    32 symbol  APROPOS
+    33 symbol  APROPO
+    34 symbol  AP
+    35 symbol  EXPR
+    36 symbol  CS
+    37 symbol  TVRTLE
+    38 symbol  NEWIO
+    39 symbol  AI
+    40 symbol  LLOGO
+    41 symbol  CLEARSCREEN
+    42 symbol  PURE
+    43 fixnum  2
+    44 symbol  GO-SLOW
+    45 symbol  LSUBR
+    46 symbol  SNAP-UUOLINKS
+    47 symbol  *RSET
+    48 symbol  NOUUO
+    49 symbol  GO-FAST
+    50 symbol  BUG
+    51 symbol  UUOLINKS
+    52 symbol  SSTATUS
+    53 symbol  SET-VARIABLE
+    54 symbol  |SET-VARIABLE MACRO|
+    55 symbol  *PRINC
+    56 symbol  S
+    57 symbol  |S MACRO|
+    58 symbol  ARRAY
+    59 symbol  ORIGINAL-READTABLE
+    60 symbol  READTABLE
+    61 symbol  |ai:direct;reamac|
+    62 symbol  |ai:direct;macros|
+    63 symbol  TTYINT
+    64 fixnum  20
+    65 symbol  CONTROL-T
+    66 symbol  LISTEN
+    67 symbol  TYI
+    68 symbol  TIME
+    69 symbol  *TIME-I-LEFT-HERE
+    70 symbol  E
+    71 symbol  ENTER-SPECIFIC-INF-EDITOR
+    72 symbol  DEFUN
+    73 symbol  X
+    74 symbol  |liblsp;lispt|
+    75 symbol  INF-EDIT
+    76 symbol  SEND-*VALUE-TO-DDT?
+    77 symbol  YES
+    78 symbol  DEFAULT-TTY-RETURN-LIST
+    79 symbol  MY-DEFAULT-TTY-RETURN
+    80 symbol  TTYRETARG
+    81 symbol  TTY-YANKED-FLAG
+    82 symbol  *TERPRI
+    83 symbol  FEATURES
+    84 symbol  DIRECTOR
+    85 symbol  STATUS
+    86 symbol  ANI
+    87 symbol  FIX
+    88 symbol  |seconds|
+    89 symbol  |haven't seen you for|
+    90 symbol  JOB-MSG-FILE
+    91 symbol  FORCE-OUTPUT
+    92 symbol  TTY-RETURN-PROMPT?
+    93 symbol  TTY-RETURN-PROMPTER
+    94 symbol  DEFAULT-RETURN-TO-DDT-LIST
+    95 symbol  LISPT-^Z
+    96 symbol  DDT-RETURN
+    97 symbol  *E
+    98 flonum  2.71828
+    99 symbol  SETSYNTAX
+   100 symbol  #
+   101 symbol  SPLICING
+   102 symbol  +INTERNAL-#-MACRO
+   103 symbol  |"|
+   104 symbol  |+INTERNAL-"-MACRO|
+   105 symbol  CRUNIT
+   106 symbol  KEN
+   107 symbol  BASE
+   108 fixnum  10
+   109 symbol  IBASE
+   110 symbol  *NOPOINT
+   111 symbol  PRINC
+   112 symbol  |Welcome to Lisp|
+
+The LAP-like listing of the loaded words is in code/7006813_lisp.code.txt.

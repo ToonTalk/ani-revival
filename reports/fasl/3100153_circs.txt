@@ -1,0 +1,395 @@
+FASL dump: original/3100153/circs.fasl  (ITS KEN;CIRCS FASL, tape 3100153, late 1976)
+Decoded 1950 words (ITS evacuate format).
+Parse: clean; 1 segment(s); consumed 1950 of 1950 words.
+Numbers below are decimal unless shown as octal (nnnnnn,,nnnnnn); #,form = evaluated at load time.
+
+==============================================================================
+Segment 1 at word 0: header *FASL+, Lisp version word 222331,,000007 ('239', flag bits 007), 160 blocks, 1439 items
+Item counts: absolute 731, relocatable 122, special 20, smashable call 159, quoted atom 100, quoted list 14, globalsym 127, atom table 138, entry 26, eval mungeable 1, end 1
+
+-- Functions defined (26) --
+  name                         property args         address
+  GROW-CIRCLE                  LSUBR    (12 . 12)    000000
+  LAST-N                       SUBR     (NIL . 2)    000363
+  WHAT-SIZE?                   SUBR     (NIL . 3)    000410
+  COMPUTE-SIZE                 LSUBR    (8 . 8)      000525
+  |KEN;CIRCS 1|                LSUBR                 000703
+  SHRINK-SQUARE                LSUBR    (6 . 6)      000713
+  BETWEEN-CIRCLE+SQUARE        SUBR     (NIL . 2)    001016
+  CENTERED-CIRCLE-TO-SQUARE    SUBR     (NIL . 1)    001054
+  SQUARE                       SUBR     (NIL . 1)    001071
+  WAIT                         SUBR     (NIL . 2)    001116
+  SHOOT-A-FRAME                SUBR     (NIL . 0)    001154
+  TURN-TO-ADDONS               SUBR     (NIL . 2)    001157
+  M1                           SUBR     (NIL . 2)    001205
+  M2                           SUBR     (NIL . 2)    001266
+  M3                           SUBR     (NIL . 5)    001347
+  M4                           SUBR     (NIL . 5)    001453
+  |KEN;CIRCS 3|                LSUBR                 001570
+  MAKE-PAIRS-BETWEEN           SUBR     (NIL . 2)    001575
+  SHOW-FRAME                   SUBR     (NIL . 1)    001627
+  MY-CIRCLE                    SUBR     (NIL . 1)    001635
+  COLOR-COUNT                  SUBR     (NIL . 3)    001731
+  SET-COLOR                    SUBR     (NIL . 4)    001770
+  DIGIT-FRACTIONS              SUBR     (NIL . 2)    002000
+  MIX-COLORS                   SUBR     (NIL . 3)    002053
+  DEFINE-CS                    SUBR     (NIL . 0)    002150
+  READ-LAST-FRAME-DONE         SUBR     (NIL . 1)    002154
+
+-- Top-level forms evaluated at load time (1) --
+  (SETQ CYCLE1
+    '(1.01
+      0.95
+      0.93
+      1.05
+      1.15
+      1.2
+      1.25
+      1.28
+      1.2
+      1.03
+      0.9
+      0.85
+      0.87
+      0.88
+      0.9
+      0.92
+      0.93
+      0.96
+      1.05
+      1.05
+      1.03))
+
+-- References by function (calls via CALL UUOs, special variables, quoted atoms and lists) --
+  GROW-CIRCLE
+      calls:        MAKECOLOR TVSIZE TURN-TO-ADDONS FLOAT *APPLY LOG LENGTH MCOLORI LAST-N COMPUTE-SIZE MIN FIX SET-COLOR ERASERCOLOR PC SHOW-FRAME BETWEEN-CIRCLE+SQUARE WAIT CS
+      quoted atoms: 0 ERC *$ +$ NIL 999999999 533.0
+  LAST-N
+  WHAT-SIZE?
+      calls:        TVSIZE TURN-TO-ADDONS *APPLY LOG LENGTH COMPUTE-SIZE
+      quoted atoms: *$ +$
+  COMPUTE-SIZE
+      calls:        EXPT
+      quoted atoms: 0.0 1.0
+  |KEN;CIRCS 1|
+  SHRINK-SQUARE
+      calls:        FLOAT PC SHOW-FRAME SQUARE WAIT CS
+      quoted atoms: |KEN;CIRCS 1|
+  BETWEEN-CIRCLE+SQUARE
+      calls:        MAX MIN NCONS XCONS SCALE.CALL.SIMPLE
+      quoted atoms: CENTERED-CIRCLE-TO-SQUARE 0.0 1.0
+  CENTERED-CIRCLE-TO-SQUARE
+      calls:        PU DELXY PD CIRCLE-TO-SQUARE
+      quoted atoms: -0.04 -1.0 0.04 1.0
+  SQUARE
+      calls:        PU DELX PD DRAW.POLY
+      quoted atoms: 90
+  WAIT
+      calls:        NUMBERP SLEEP PRINC SHOOT-A-FRAME TYI
+      quoted atoms: CAMERA T
+  SHOOT-A-FRAME
+      calls:        CLICK SLEEP
+      specials:     :EXPOSURE
+  TURN-TO-ADDONS
+      calls:        NCONS
+  M1
+      calls:        CS WRAP HT TVSIZE TURTLESIZE MAKE-PAIRS-BETWEEN GROW-CIRCLE
+      specials:     :FREQUENCY *NOPOINT :OUTLINE CYCLE1
+      quoted atoms: T 21 533 400 14.5 7 2.0 4000.0
+      quoted list:  (RED YELLOW GREEN BLUE PURPLE)
+      quoted list:  (9 9 21)
+      quoted list:  (RED GREEN BLUE)
+  M2
+      calls:        CS WRAP HT TVSIZE TURTLESIZE MAKE-PAIRS-BETWEEN GROW-CIRCLE
+      specials:     :FREQUENCY *NOPOINT :OUTLINE CYCLE1
+      quoted atoms: T 14 533 400 14.5 3 2.0 3000.0
+      quoted list:  (RED YELLOW GREEN BLUE PURPLE)
+      quoted list:  (9 9 14)
+      quoted list:  (RED GREEN BLUE)
+  M3
+      calls:        MC CS WRAP HT TVSIZE TURTLESIZE MAKE-PAIRS-BETWEEN GROW-CIRCLE
+      specials:     :FREQUENCY *NOPOINT :OUTLINE CYCLE1
+      quoted atoms: 0 0.5 DARK-RED DARK-GREEN DARK-BLUE T 21 533 400 14.5 7 4000.0
+      quoted list:  (RED YELLOW GREEN BLUE PURPLE)
+      quoted list:  (9 9 21)
+      quoted list:  (DARK-RED DARK-GREEN DARK-BLUE)
+  M4
+      calls:        MC SET-COLOR ERASERCOLOR CS WRAP HT TVSIZE TURTLESIZE MAKE-PAIRS-BETWEEN GROW-CIRCLE
+      specials:     :FREQUENCY *NOPOINT :OUTLINE CYCLE1
+      quoted atoms: 0 0.25 DARK-RED DARK-GREEN DARK-BLUE ERC T 21 533 400 14.5 7 1.04 4000.0
+      quoted list:  (RED YELLOW GREEN BLUE PURPLE)
+      quoted list:  (9 9 21)
+      quoted list:  (DARK-RED DARK-GREEN DARK-BLUE)
+  |KEN;CIRCS 3|
+      calls:        NCONS XCONS
+      quoted atoms: ERC
+  MAKE-PAIRS-BETWEEN
+      calls:        NCONS MCOLORI *APPEND
+      quoted atoms: |KEN;CIRCS 3|
+  SHOW-FRAME
+      specials:     :FREQUENCY
+      quoted atoms: T
+  MY-CIRCLE
+      calls:        LOG FIX PU DELX FLOAT PENDOWN RT FD
+      specials:     :PI
+      quoted atoms: 1
+  COLOR-COUNT
+      calls:        *APPLY SLEEP SET-COLOR ERASERCOLOR
+      quoted atoms: * ERC NIL 0
+  SET-COLOR
+      calls:        DIGIT-FRACTIONS MIX-COLORS
+  DIGIT-FRACTIONS
+      calls:        REVERSE FLOAT CONS
+  MIX-COLORS
+      calls:        REVERSE MAKECOLOR REDPART GREENPART BLUEPART
+      quoted atoms: 0.0
+  DEFINE-CS
+      calls:        MI
+      quoted atoms: CIRCLE-TO-SQUARE
+      quoted list:  (DRAW.POLY 2.0 90)
+      quoted list:  (DRAW.POLY (|//$| (*$ 2.0 :PI) 60.0) 6)
+  READ-LAST-FRAME-DONE
+      calls:        UPROBE UREAD READ
+      specials:     ^Q
+      quoted atoms: T
+
+-- Symbols and how they are used (96) --
+  *                              quoted
+  *$                             in constant, quoted
+  *APPEND                        called
+  *APPLY                         called
+  *NOPOINT                       special
+  +$                             quoted
+  |//$|                          in constant
+  :EXPOSURE                      special
+  :FREQUENCY                     special
+  :OUTLINE                       special
+  :PI                            in constant, special
+  BETWEEN-CIRCLE+SQUARE          called, defined
+  BLUE                           in constant
+  BLUEPART                       called
+  CAMERA                         quoted
+  CENTERED-CIRCLE-TO-SQUARE      defined, quoted
+  CIRCLE-TO-SQUARE               called, quoted
+  CLICK                          called
+  COLOR-COUNT                    defined
+  COMPUTE-SIZE                   called, defined
+  CONS                           called
+  CS                             called
+  CYCLE1                         in top-level form, special
+  DARK-BLUE                      in constant, quoted
+  DARK-GREEN                     in constant, quoted
+  DARK-RED                       in constant, quoted
+  DEFINE-CS                      defined
+  DELX                           called
+  DELXY                          called
+  DIGIT-FRACTIONS                called, defined
+  DRAW.POLY                      called, in constant
+  ERASERCOLOR                    called
+  ERC                            quoted
+  EXPT                           called
+  FD                             called
+  FIX                            called
+  FLOAT                          called
+  GREEN                          in constant
+  GREENPART                      called
+  GROW-CIRCLE                    called, defined
+  HT                             called
+  |KEN;CIRCS 1|                  defined, quoted
+  |KEN;CIRCS 3|                  defined, quoted
+  LAST-N                         called, defined
+  LENGTH                         called
+  LOG                            called
+  M1                             defined
+  M2                             defined
+  M3                             defined
+  M4                             defined
+  MAKE-PAIRS-BETWEEN             called, defined
+  MAKECOLOR                      called
+  MAX                            called
+  MC                             called
+  MCOLORI                        called
+  MI                             called
+  MIN                            called
+  MIX-COLORS                     called, defined
+  MY-CIRCLE                      defined
+  NCONS                          called
+  NIL                            quoted
+  NUMBERP                        called
+  PC                             called
+  PD                             called
+  PENDOWN                        called
+  PRINC                          called
+  PU                             called
+  PURPLE                         in constant
+  QUOTE                          in top-level form
+  READ                           called
+  READ-LAST-FRAME-DONE           defined
+  RED                            in constant
+  REDPART                        called
+  REVERSE                        called
+  RT                             called
+  SCALE.CALL.SIMPLE              called
+  SET-COLOR                      called, defined
+  SETQ                           in top-level form
+  SHOOT-A-FRAME                  called, defined
+  SHOW-FRAME                     called, defined
+  SHRINK-SQUARE                  defined
+  SLEEP                          called
+  SQUARE                         called, defined
+  T                              quoted
+  TURN-TO-ADDONS                 called, defined
+  TURTLESIZE                     called
+  TVSIZE                         called
+  TYI                            called
+  UPROBE                         called
+  UREAD                          called
+  WAIT                           called, defined
+  WHAT-SIZE?                     defined
+  WRAP                           called
+  XCONS                          called
+  YELLOW                         in constant
+  ^Q                             special
+  (in atom table, no direct use found: LSUBR SUBR)
+
+-- Atom table (138 entries; 0 is NIL) --
+     1 symbol  GROW-CIRCLE
+     2 symbol  LSUBR
+     3 fixnum  0
+     4 symbol  ERC
+     5 symbol  MAKECOLOR
+     6 symbol  TVSIZE
+     7 symbol  TURN-TO-ADDONS
+     8 symbol  FLOAT
+     9 symbol  *$
+    10 symbol  *APPLY
+    11 symbol  +$
+    12 symbol  LOG
+    13 symbol  LENGTH
+    14 symbol  MCOLORI
+    15 symbol  LAST-N
+    16 symbol  COMPUTE-SIZE
+    17 symbol  MIN
+    18 symbol  FIX
+    19 symbol  SET-COLOR
+    20 symbol  ERASERCOLOR
+    21 symbol  PC
+    22 symbol  SHOW-FRAME
+    23 symbol  BETWEEN-CIRCLE+SQUARE
+    24 symbol  WAIT
+    25 symbol  CS
+    26 fixnum  999999999
+    27 flonum  533.0
+    28 symbol  SUBR
+    29 symbol  WHAT-SIZE?
+    30 symbol  EXPT
+    31 flonum  0.0
+    32 flonum  1.0
+    33 symbol  |KEN;CIRCS 1|
+    34 symbol  SHRINK-SQUARE
+    35 symbol  SQUARE
+    36 symbol  MAX
+    37 symbol  NCONS
+    38 symbol  CENTERED-CIRCLE-TO-SQUARE
+    39 symbol  XCONS
+    40 symbol  SCALE.CALL.SIMPLE
+    41 symbol  PU
+    42 flonum  -0.04
+    43 flonum  -1.0
+    44 symbol  DELXY
+    45 symbol  PD
+    46 symbol  CIRCLE-TO-SQUARE
+    47 flonum  0.04
+    48 symbol  DELX
+    49 fixnum  90
+    50 symbol  DRAW.POLY
+    51 symbol  NUMBERP
+    52 symbol  SLEEP
+    53 symbol  PRINC
+    54 symbol  CAMERA
+    55 symbol  SHOOT-A-FRAME
+    56 symbol  TYI
+    57 symbol  T
+    58 symbol  CLICK
+    59 symbol  :EXPOSURE
+    60 symbol  M1
+    61 symbol  :FREQUENCY
+    62 symbol  *NOPOINT
+    63 symbol  WRAP
+    64 symbol  HT
+    65 symbol  :OUTLINE
+    66 symbol  TURTLESIZE
+    67 symbol  CYCLE1
+    68 fixnum  21
+    69 symbol  RED
+    70 symbol  YELLOW
+    71 symbol  GREEN
+    72 symbol  BLUE
+    73 symbol  PURPLE
+    74 symbol  MAKE-PAIRS-BETWEEN
+    75 fixnum  533
+    76 fixnum  400
+    77 flonum  14.5
+    78 fixnum  7
+    79 flonum  2.0
+    80 fixnum  9
+    81 flonum  4000.0
+    82 symbol  M2
+    83 fixnum  14
+    84 fixnum  3
+    85 flonum  3000.0
+    86 symbol  M3
+    87 flonum  0.5
+    88 symbol  DARK-RED
+    89 symbol  MC
+    90 symbol  DARK-GREEN
+    91 symbol  DARK-BLUE
+    92 symbol  M4
+    93 flonum  0.25
+    94 flonum  1.04
+    95 symbol  |KEN;CIRCS 3|
+    96 symbol  *APPEND
+    97 symbol  SETQ
+    98 symbol  QUOTE
+    99 flonum  1.01
+   100 flonum  0.95
+   101 flonum  0.93
+   102 flonum  1.05
+   103 flonum  1.15
+   104 flonum  1.2
+   105 flonum  1.25
+   106 flonum  1.28
+   107 flonum  1.03
+   108 flonum  0.9
+   109 flonum  0.85
+   110 flonum  0.87
+   111 flonum  0.88
+   112 flonum  0.92
+   113 flonum  0.96
+   114 symbol  MY-CIRCLE
+   115 symbol  :PI
+   116 symbol  PENDOWN
+   117 symbol  RT
+   118 fixnum  1
+   119 symbol  FD
+   120 symbol  COLOR-COUNT
+   121 symbol  *
+   122 symbol  DIGIT-FRACTIONS
+   123 symbol  MIX-COLORS
+   124 symbol  REVERSE
+   125 symbol  CONS
+   126 symbol  REDPART
+   127 symbol  GREENPART
+   128 symbol  BLUEPART
+   129 symbol  DEFINE-CS
+   130 symbol  |//$|
+   131 flonum  60.0
+   132 fixnum  6
+   133 symbol  MI
+   134 symbol  READ-LAST-FRAME-DONE
+   135 symbol  UPROBE
+   136 symbol  UREAD
+   137 symbol  ^Q
+   138 symbol  READ
+
+The LAP-like listing of the loaded words is in code/3100153_circs.code.txt.

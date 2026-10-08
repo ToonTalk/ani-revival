@@ -1,0 +1,305 @@
+.sec Introduction
+	This paper describes a prototype animation system,
+originally written in 11 Logo.  Due to the limitations of the
+Logo workspace, the system was transferred over to Lisp Logo.
+This paper describes the later implementation, though the 11Logo
+version is very similar.
+The system enables one to define
+new objects, new object types, and the kinds of messages
+they can handle.  For example, one can easily create a
+square named "George".  George can be told many kinds of
+things like his size, speed of movement, or speed of rotation.
+George can be asked to do many things, all the things that
+turtles can do 
+(FORWARD, BACK, RIGHT, LEFT, HIDE, SHOW, PENUP etc.)
+plus new
+messages like grow, or change appearance.  George can also
+be taught many new things, or can be told to behave differently
+than the defaults.  George also has a memory, you can tell
+George anything at all, his color, his friends, whatever.
+	One very important thing that George knows (though
+like everything in the system he can be told otherwise) is that
+he is a square.  Presently, "Squares" know a few things, like
+how to draw themselves, or that after rotating 90 degrees
+that they look the same.  Squares in turn know that they
+are objects. Objects know how to do the turtle-like things
+mentioned above.  Objects, in turn, know that they are
+"actors", things that can take in messages, can pattern match
+those messages, and can perform memory functions.
+Actors know how to learn new responses to new patterns.
+This entire hierarchy is very flexible and modifiable by
+the user.  The basic process is the message is sent to
+some individual, "George", and if George has no patterns
+that match the message, he sends it off to the actor that
+he is a "Kind.of".  They in turn pass the buck, until either
+someone can handle the message, or an error message is generated
+.
+This is also a very useful default mechanism, if George is
+never told his size he can inherit it from "Square", or "Object".
+	Another feature of this system is a simple scheduler
+which knows about time.  This mechanism
+allows apparent parallelism of processes.  George can race
+against Sally.
+Danny's garden can be grown.  A stick figure can simultaneously
+move different limbs and change it's facial expression.  
+Movies produced by the scheduler can be run at any speed the
+system is capable of, can be run backward, or single stepped.
+	In addition, to being a very useful system for doing
+animation, in a way that does not radically depart from Logo
+syntax, the system provides an interesting environment for
+modeling knowledge and thinking about inheritance of attributes
+and defaults.  One can view each object in the system as an
+actor, much like Carl Hewitt's actors, that receive and pass
+messages around.  There is much flexibility as to how 
+the knowledge is distributed.
+.sec An Example
+	In Danny Hillis' paper, "Ten Things to do with a
+Better Computer", he has an example of growing a garden.
+He describes a garden in which seeds wait, grow into flowers,
+create new seeds, and die.
+Danny's seed definition is:
+.begin
+.nofill
+[fl]SEED DOES:
+WAIT 10.
+MAKE FLOWER. 
+TELL FLOWER "RIGHT 90 FORWARD 100 * RANDOM LEFT 90"
+REPEAT 15, WAIT 2 TELL FLOWER "GROW 1"
+MAKE SEED.
+WAIT 100. UNMAKE FLOWER.
+.end
+	In my animation system, his garden can be implemented,
+however, the code is lengthier and more explicit.  In my 
+system it would be written:
+.begin nofill indent 0
+
+[fl]TO DEFINE.FLOWER
+[fi];Logo syntax has been kept since this is built on top of Logo[fl]
+
+10 OBJ.DECLARE 'FLOWER 'DRAW.FLOWER
+[fi];DECLARE does 3 things:
+;	1) updates the "Kind.of" tree with flower as a kind of OBJ
+;	2) creates an actor named "Flower".
+;	3) tells that flower that if asked to how to draw a flower
+;	   then use "Draw.flower" with the default convention of
+;	   passing it the size of the particular flower.[fl]
+20 FLOWER [REMEMBER SIZE 0]
+.begin fill
+[fi];This tells flower to remember that the default size of flowers is 0
+;"Remember" is the standard kind of message for telling any actor something
+; to remember[fl]
+.end
+END
+
+TO DEFINE.SEED
+10 DECLARE "SEED [KIND.OF ACTOR]
+[fi]; Seed is not an Obj, since it does not do turtle-like things.[f]
+20 SEED [IF RECEIVE HANDLE ?SEED [START] THEN DO.SEED.THING :?SEED]
+[fi];This simply lets seeds take a "start" message and calls the appropriate procedure.[fl]
+END
+
+TO DO.SEED.THING :SEED
+10 LOCAL 'FLOWER.NAME
+[fi];a thing to hold the name for the flower that seed will spawn is needed[fl]
+20 MAKE 'FLOWER.NAME FLOWER [MAKE]
+.begin fill
+[fi];After the buck is passed to "Actor", 
+this results in the call "MAKE.INSTANCE 'FLOWER 
+which will create an instantiation of flower with a generated name that is 
+put in the variable "Flower.name".
+.end
+30 tell :flower.name [right 90]
+;Flowers are objects so can take any turtle command
+40 TELL :FLOWER.NAME [FORWARD 100*RANDOM]
+50 TELL :FLOWER.NAME [LEFT 90]
+60 TELL :FLOWER.NAME [DO SHOW IN 10 FRAMES]
+[fi];This results in the following call:
+;   SCHEDULER [DO :FLOWER.NAME SHOW IN 10 FRAMES]
+;which schedules the call,
+;   TELL :FLOWER.NAME [SHOW],
+;ten frames after line 60 is executed.[fl]
+70 REPEAT 15 [TELL :FLOWER.NAME DO GROW 1 AFTER 2 MORE FRAMES]
+[fi];This schedules the call, 
+;	TELL :FLOWER.NAME [GROW 1],
+; 15 times, each time 2 frames after the last.[fl]
+80 SEED [DO TELL (SEED [MAKE]) [START] AT THAT TIME]
+.begin fill
+[fi]; This schedules the call, 
+	SEED [MAKE] followed by that seed the message "Start"
+at the same time as the last thing scheduled in line 80.
+"At that time" is equivalent to "after 0 more frames".[fl]
+.end
+100 TELL :FLOWER.NAME [DO UN.MAKE AFTER 100 MORE FRAMES]
+[fi];This schedules the suicide of the flower, 100 frames later.[fl]
+END
+.skip
+SCHEDULER [MAKE.MOVIE GARDEN 1000]
+.begin fill
+[fi];This makes a movie named "Garden" 1000 frames long.
+The schedule is run, and all display and turtle commands
+are stored in the movie "Garden".[fl]
+.end
+GARDEN [REMEMBER SPEED 10]
+GARDEN [SHOW]
+.begin fill
+[fi];These two calls result in the movie being shown at 10 frames
+per second. [fr]
+.end
+.end
+.sec Message Passing
+	Message passing is communication between two
+actors.  The transmission of the message is done by the standard
+Logo calling mechanism.  Every actor is a procedure that expects
+one input ":message". The interpretation of messages in more 
+complicated.  A pattern matching procedure called "Match"
+is used to decode the incoming message. This is essentially
+the "parser" described in my paper called "A Logo Natural
+Language System".
+	Match allows the binding of variables, in the pattern,
+to what is in the corresponding position in the message.  
+There are two important types, one a "?" type that binds
+only to one item, and a "$" type that binds to whatever
+it can. For example, the pattern that accepts the "if receive ... then ..." pattern is:
+
+[HANDLE ?ACTOR [$ RECEIVE $PATTERN THEN $ACTION]],
+.ONCE INDENT 0
+and the pattern for receiving "FORWARD" messages is:
+
+[[OR FORWARD FORWARD] ?AMT].
+.ONCE INDENT 0
+
+	The first pattern means: look for the word "Handle", make
+the next word into ?actor, and then look the next element should be
+list which means:
+"forget anything before
+the word "receive", then make "$pattern into whatever is
+between the words "receive" and "then", then make "$action
+into all that follows the word "then".  In the case that
+it is impossible to match the message, it aborts, and another
+pattern can be tried. The second pattern means, "the first
+word had better be either "FORWARD" or "FORWARD" and followed
+by only one more word".  The first pattern has the following action
+associated with it:
+.begin nofill
+[fl] RECEIVE :$PATTERN :$ACTION :?ACTOR
+.end once indent 0
+where "Receive is a normal Logo function".
+	As an example of the use of the first pattern consider
+when "Obj" is sent the message,
+.begin nofill
+[fl]OBJ [IF RECEIVE HANDLE ?OBJ [[OR FORWARD FORWARD] ?AMT] 
+	     THEN MOVE.OBJ "FORWARD :?OBJ :?AMT],
+.end once indent 0
+[fn]which will be sent up the tree as HANDLE OBJ [...], and 
+results in the call,
+.begin nofill
+[fl]RECEIVE [HANDLE ?OBJ [[OR FORWARD FORWARD] ?AMT]
+	     [MOVE.OBJ "FORWARD :?OBJ :?AMT] 
+	     "OBJ
+.end once indent 0
+[fn]which in turn results in the following line being added to the definition of "Obj":
+.begin nofill
+[fl]IF TOLD [HANDLE ?OBJ [[OR FORWARD FORWARD] ?AMT] 
+	    MOVE.OBJ "FORWARD :?OBJ :?AMT
+.end once indent 0
+Now, if "Obj" gets the message "[HANDLE FOO [FORWARD 100]]", it
+will call, MOVE.OBJ "FORWARD "FOO 100.
+	Initially, these new statements were just tacked on to the
+end of the actor being told how to receive something. (Actually
+it was not really the end, the very end being reserved for the
+call to the procedure that passes the buck up the kind.of tree.)
+This resulted in many unnecessary calls to match, and so
+the procedure, "Receive" was smartened up.  Based on the first
+word in the message (not counting "handle"), each actor calls
+the appropriate sub-function handling messages that begin with
+that word.
+.sec The Scheduler and Movies
+	Using the system, one can write procedures that move
+one object, then another and back again.  It will not, however,
+look as if they are moving simultaneously
+since the interpretation of the commands is slow.  The solution
+is to have a scheduler run things at the appropriate time,
+and then save away the display commands to be run later.  
+These saved-away commands, called a "movie", can be
+run later 
+with the appearance of parallelism.
+	When running, the scheduler has an integer 
+that increments, by one, each time through its loop. This
+integer can be considered to be time or the frame number of the
+movie.  When told to schedule a call at a time, it associates
+with that time the call. When the scheduler runs, it runs
+what should be run at that time, inserts a "new frame" marker
+into the movie, and increments the clock and loops.  If nothing
+more is scheduled at all it stops.  Movies can be made or just
+the code run, depending
+on the message to the scheduler.
+.sec How does one talk about this?
+	To teach how to use the animation system one should
+have a consistent vocabulary and set of concepts, just as is
+often said about teaching Logo.  Are the words "actor" and
+"object" reasonable names for such general entities?  I think
+not, but haven't thought up better ones. How should one talk
+about the difference between "Square", the general square,
+and any instantiation of squares?  Will there often be a
+confusion between the actor "George", his "script", and
+his image on the screen?  Identity becomes very strange
+to talk about, since anything about an actor can be changed,
+what it looks like, how it acts, even what it is a kind of.
+Only its name is permanent.
+	Explaining the scheduler might bring up problems.
+How should one talk about, or think about, many separate
+processes going on in parallel?  I don't really know.
+	This system lends itself very well to the "little man"
+vocabulary.  Each actor is a little person, 
+who knows a few things,
+can be told to do a few things, and can be taught new tricks.
+This little person receives messages and sends them to others.
+.sec Hassles or Logo is too small for this
+	This animation system may have the rather strange honor
+of being the largest program ever to "run" on Logo.  Possibly
+the slowest, too.  The problem is that the system needs
+at least 150 percent of the workspace just to run with one actor
+instantiated.
+Fortunately much of the code can be (and was) segmented.  The
+code for rotating objects, for example,
+need not be around when an actor is
+being told to remember something.  The "solution" is to have much
+of the code look like this:
+.begin nofill
+[fl]TO MOVE.OBJ :COMMAND :OBJ :AMOUNT
+10 RUN 
+    LOAD "MOVE 
+	     [MOVE.OBJ1 :COMMAND :OBJ :AMOUNT] 
+	     [MOVE.OBJ1 FORWARD.OBJ]
+END
+.end ONCE INDENT 0
+This means, if match is called then, run what load returns.
+Load reads in the file "MOVE which contains, "MOVE.OBJ1",
+the "real" definition of move.obj and "FORWARD.OBJ" a helping
+function.  Then the "real" MOVE.OBJ is called and then
+removed from the workspace.
+	This works, but is too slow to be practical.  So
+until Logo workspaces grow, only a parts of the system can be used
+on the PDP11. These problem do not exist with the Lisp-Logo version
+which realy runs.
+.sec Extensions and Improvements
+	One useful extension would be the addition of primitives
+for joining and breaking apart "Object" actors.  For example,
+one may want to join a triangle actor and a square actor to make
+a house actor.  Or one may want to have a face accept messages
+as well as any of it parts.  A person may get into a car, so that
+temporarily any movement of the car should also change the state of
+the person.
+	Movies could be extended to including editting commands
+for "splicing" film together.  Also a "camera" actor could be
+useful for "zooms," "pans," and the like.
+	Perhaps, in a few months, when Carl Hewitt's Actor
+language PLASMA is in an advanced enough stage, this system
+could be re-written correctly in it.  The semantics would be uniform,
+there would be no such thing as Actor code and Logo code.
+The syntax would have to be changed to make it accessible to
+kids.  This is discussed in my paper, "An Actor System for Kids".
+	Comments welcome!
+.end
+
+   
