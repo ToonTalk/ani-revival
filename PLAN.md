@@ -5,14 +5,29 @@
 ## Decisions (8 October)
 
 - **Approach:** run your original code first (approach A below). Depending on how that goes, we may later write a modern Ani (approach C) to take the thesis's ideas further. Phase 8 covers that.
-- **Lost files:** you're fairly sure the tapes held nothing more, so we rebuild the missing `KEN1;` runtime from the evidence. The Director Guide is our main specification: AIM-482, June 1978, [on DSpace](https://dspace.mit.edu/entities/publication/c9fbfdd3-d7b8-4e09-adea-2e837c51fdff). It's the version closest in time to the Ani code (February 1979).
+- **Lost files:** you're fairly sure the tapes held nothing more, so we rebuild the missing `KEN1;` runtime from the evidence. The Director Guide is our main specification: AIM-482, June 1978, [on DSpace](https://dspace.mit.edu/entities/publication/c9fbfdd3-d7b8-4e09-adea-2e837c51fdff). It's the version closest in time to the Ani code (most of it from mid-1978).
 - **The film:** ["Cinderella 1978" on YouTube](https://www.youtube.com/watch?v=ji7lL9wRTT4). It's poor quality, but it's what the revival should look like.
 - **Extras:** the glass-box view, editing a film description and running Ani again, and new stories via an LLM. The diagram maker is out.
 - **The emulated PDP-10:** not planned.
 
+## Status
+
+- **Phase 0, done (8 October).** See `INVENTORY.md` and `reports/XREF.md`. The binary formats (FASLs, ITS directories, archives) are in `reports/BINARY-FORMATS.md`.
+- **Phase 1, done (8 October).** The MacLisp interpreter is in `src/maclisp/`:
+  - the reader, with Director's read macros;
+  - the evaluator, with MacLisp's special forms and about 200 built-in functions;
+  - an ITS file system in `src/its/`.
+
+  How it checks out:
+  - `npm test` passes 18 tests.
+  - Your `LISP`, `LOAD`, `DECLAR` and `DECLA2` load (`node tools/boot.mjs`).
+  - All 1,493 forms of Ani and Director read, with quote expansion.
+  - It runs in a browser (`test/browser.html`).
+- **Next, Phase 2.** `KEN1;DRECT` loads until line 38, where it needs `setq-if-unbound`, a macro from the lost `KEN1;` files. That's where the rebuilding starts.
+
 ## In brief
 
-- **Ani's own code survived.** All 31 files that the 1979 tags table lists for Ani are on tape 7005017, backed up around 5 February 1979, three weeks after you submitted the dissertation. That's about 10,000 lines (383 KB), which matches the thesis's "66 blocks for Ani herself." The Cinderella film description (`CINDY 46`) is there too.
+- **Ani's own code survived.** All 31 files that the 1979 tags table lists for Ani are on tape 7005017, whose directory listing is dated 8 January 1979, four days before you submitted the dissertation. That's about 10,000 lines (383 KB), which matches the thesis's "66 blocks for Ani herself." The Cinderella film description (`CINDY 46`) is there too.
 - **So did her answers.** `CP 29` is the file pass 1 wrote for pass 2: 102 choice points, 54 relative and 48 absolute, the exact counts in Appendix III. `RUN24 2` (tape 9004336, August 1979) records the same 102 choices with the suggestions and sources behind each. Together they give us an exact test: given `CINDY`, revived Ani should make the same 102 choices.
 - **Part of Director is missing.** Ani is written in Director. The Director files in your `KEN;` directory survived. So did `KEN1;DRECT`, the Lisp primitives Director is built on, hidden in an Emacs save file (`}^RSV 6`). The rest of `KEN1;` is lost: about 20 files, including `MACROS`, `UTIL`, `CMATCH`, `PROP`, and the actor compiler. The tags table names every function in them, but their code is gone.
 - **The approach:** run your original code. Build a small MacLisp in JavaScript and load the surviving Director and Ani files into it unchanged. Rebuild only the missing `KEN1;` pieces, in MacLisp. The Director Guide, the macro-expanded Director files, and the compiled FASLs tell us what those pieces must do. Matching `CP 29` tells us when we've got them right.

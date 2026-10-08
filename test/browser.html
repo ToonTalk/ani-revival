@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MacLisp smoke test</title>
+<style>
+  :root { --bg: #fff; --fg: #1a1a1a; --ok: #146c2e; --bad: #b3261e; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #161616; --fg: #e8e8e8; --ok: #6ccf8a; --bad: #ff8a80; } }
+  body { background: var(--bg); color: var(--fg); font: 14px/1.5 ui-monospace, Consolas, monospace; margin: 16px; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); }
+</style>
+</head>
+<body>
+<h1>MacLisp in the browser</h1>
+<p>Runs the interpreter's core in this page, with no Node APIs.</p>
+<pre id="out">running…</pre>
+<script type="module">
+  import { createLisp } from "../src/maclisp/index.js";
+  import { ItsFileSystem } from "../src/its/fs.js";
+  const fs = new ItsFileSystem();
+  fs.addFile("KEN", "DEMO", "1", { text: "(defun fact (n) (cond ((zerop n) 1) (t (* n (fact (1- n))))))" });
+  const L = createLisp({ fs });
+  const cases = [
+    ["(load '|ken;demo >|)", "T"],
+    ["(fact 10)", "3628800"],
+    ["(let ((who 'cinderella)) '(ask ,who set your speed to low))", "(ASK CINDERELLA SET YOUR SPEED TO LOW)"],
+    ["(sort '(prince step-mother cinderella) 'alphalessp)", "(CINDERELLA PRINCE STEP-MOTHER)"],
+    ["(*$ 2.0 (float 3))", "6.0"],
+  ];
+  const lines = [];
+  let failures = 0;
+  for (const [src, want] of cases) {
+    let got;
+    try { got = L.print(L.evalString(src)); } catch (e) { got = "error: " + e.message; }
+    const ok = got === want;
+    if (!ok) failures++;
+    lines.push(`<span class="${ok ? "ok" : "bad"}">${ok ? "ok  " : "FAIL"}</span> ${src}  =>  ${got}`);
+  }
+  lines.push("", failures ? `<span class="bad">${failures} failed</span>` : `<span class="ok">all ${cases.length} passed</span>`);
+  document.getElementById("out").innerHTML = lines.join("\n");
+  document.title = failures ? "FAIL" : "PASS";
+</script>
+</body>
+</html>

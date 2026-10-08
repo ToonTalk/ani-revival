@@ -21,14 +21,14 @@
 |---|---|---|
 | 7005044 | Dec 1975 | LLOGO-era animation (`ANIMA`), faces, early turtle code, an archive of Logo papers |
 | 3100153 | late 1976 | Early Director (`DIRECT 133/134`, `DL 140`, `INTER 171`, `TURT 427`, `FWNEW 53`, `ACTORS 6`), papers, the thesis proposal and story archives |
-| **7005017** | **5 Feb 1979** | **All of Ani's source, Director's `KEN;` files, `KEN1;DRECT` (as `}^RSV 6`), the 1979 tags table, `CP 29`** |
+| **7005017** | **8 Jan 1979** | **All of Ani's source, Director's `KEN;` files, `KEN1;DRECT` (as `}^RSV 6`), the 1979 tags table, `CP 29`** |
 | 7008432 | Jun 1979 | Source of the IJCAI paper "Making Aesthetic Choices" |
 | 9004336 | Aug 1979 | Later Director (`SOME 1005`, `PERFOR 685`, `MOVIE 214`, `POLY 53`), Lisp Machine versions, `CINDY 49`, `RUN24 2` |
 | 701431, 701501 | 1980 | "How to Program a Society" (`DIANI 103`), the tags table from when Director lived in `DIRECT;` |
 | 7008321 | Nov 1980 | Your listing of which `KEN;` files were on which backup tapes (`ONTAPE 1`); it lists no `KEN1;` files |
 | 7006808, 7006812, 7006813, 7006885 | undated | Miscellaneous |
 
-The dates come from email headers and notes on each tape. The ITS directory listings give exact file dates (see "Binary files").
+Dates for 7005017, 9004336 and the other tapes with a directory file come from the decoded ITS directory listings (`reports/itsdir/`); the rest come from email headers and notes.
 
 ## Text files
 
@@ -54,7 +54,7 @@ The reader reads every Ani file, the three driver files, all the surviving Direc
 
 ## Ani
 
-All 31 files from `READ-ANI-TAGS` (tape 7005017). The code sometimes calls itself "Dani" or "Dot Ani."
+All 31 files from `READ-ANI-TAGS` (tape 7005017). Their creation dates run from April to October 1978; `reports/itsdir/7005017.txt` has each one. The code sometimes calls itself "Dani" or "Dot Ani."
 
 | File | Lines | FASL | What it does |
 |---|---|---|---|
@@ -146,7 +146,11 @@ Ken's compiler and Lisp init files set the input radix to decimal (`KEN COMPLR`:
 
 ## The 1979 runs (test oracles)
 
-**`CP 29`** (tape 7005017) is pass 1's output, on the same tape as the code. It has 102 choice points: 54 relative and 48 absolute, matching Appendix III. It agrees with the thesis's worked example in section I.C.1: a high speed for the stepmother.
+**`CP 29`** (tape 7005017) is pass 1's output, written 14 September 1978. It has 102 choice points: 54 relative and 48 absolute, matching Appendix III. It agrees with the thesis's worked example in section I.C.1: a high speed for the stepmother.
+
+Pass 2 loads `CP` rather than recomputing pass 1 (`RUN 65`: `(director-load 'cp)`). So the film, made in late September and October, used exactly these choices, which makes `CP 29` the right target for the dynamics.
+
+One caution: three files pass 1 uses were edited five days after `CP 29` was written: `CHAR 2`, `ELEMNT 1` and `CINDY 46`, all dated 19 September 1978. So pass 1 run on the surviving code may differ from `CP 29` in a few choices. Every other pass-1 file predates it.
 
 **`RUN24 2`** (tape 9004336) is a later run. It has the same kinds of choice points, plus each choice's suggestions and their sources, plus 91 `VERSION-OF … IN (CP TEST)` entries from an intermediate run.
 
@@ -194,7 +198,7 @@ Ken's compiler and Lisp init files set the input radix to decimal (`KEN COMPLR`:
 
 The background is dark blue, and the 4:3 picture sits inside the square frame. The orange fairy godmother isn't obvious in the sampled frames.
 
-**The film is dated 13 October 1978**, four months before the code was backed up. So it's a guide to the look and the behavior, not a frame-by-frame target.
+**The film is dated 13 October 1978.** Ani's own files had nearly all reached their surviving versions by then (the last, `DICHAR 103`, is dated 13 October), but Director's core was edited again from November to January. So the film is a guide to the look and the behavior, not a frame-by-frame target.
 
 ## Binary files
 
@@ -202,6 +206,6 @@ See `reports/BINARY-FORMATS.md` (in progress).
 
 ## Open questions for later phases
 
-- Which code produced `CP 29`? The file dates in the directory listings should settle whether it postdates the last edits to Ani's files.
+- How much the 19 September edits to `CHAR`, `ELEMNT` and `CINDY` change pass 1's choices relative to `CP 29`.
 - What exactly `do-as-if-you-were` does, and whether the five other undefined functions are ever reached.
 - How Director orders methods (`:insert-methods-at-end`, inheritance), since the order affects Ani's choices.
