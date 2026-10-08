@@ -152,7 +152,7 @@ Pass 2 loads `CP` rather than recomputing pass 1 (`RUN 65`: `(director-load 'cp)
 
 One caution: three files pass 1 uses were edited five days after `CP 29` was written: `CHAR 2`, `ELEMNT 1` and `CINDY 46`, all dated 19 September 1978. So pass 1 run on the surviving code may differ from `CP 29` in a few choices. Every other pass-1 file predates it.
 
-**`RUN24 2`** (tape 9004336) is a later run. It has the same kinds of choice points, plus each choice's suggestions and their sources, plus 91 `VERSION-OF … IN (CP TEST)` entries from an intermediate run.
+**`RUN24 2`** (tape 9004336) is a later run, written 18 December 1978, after you rewrote Director in November. It has the same kinds of choice points, plus each choice's suggestions and their sources, plus 91 `VERSION-OF … IN (CP TEST)` entries from an intermediate run.
 
 `node tools/oracle-compare.mjs` compares the two:
 
@@ -162,7 +162,8 @@ One caution: three files pass 1 uses were edited five days after `CP 29` was wri
   - the fairy godmother's speed, activity, rhythm, acceleration and curvature;
   - the prince's speed, activity, rhythm, acceleration, deliberateness and curvature.
 - **11 relative choice points involve different pairs of characters.**
-- **Conclusion:** `CP 29` is the target for the February 1979 code. `RUN24 2` reflects later changes, perhaps `CINDY 49` or edits to the code after February. Its suggestions are still valuable for the glass-box view and for checking the reasoning.
+- **Conclusion:** `CP 29` is the target for the code on tape 7005017. `RUN24 2` came from a different setup in December 1978, not from `CINDY 49` (July 1979). Its suggestions are still valuable for the glass-box view and for checking the reasoning.
+- **Result (8 October 2026):** the revived pass 1 makes all 102 of `CP 29`'s choices, so it differs from `RUN24 2` in exactly the ways `CP 29` does.
 
 **Thesis pages.** The PDF page number equals the thesis page number:
 
@@ -269,6 +270,6 @@ The symbol table and coverage are in `reports/pdump/`. The 62,000-line disassemb
 
 ## Open questions for later phases
 
-- How much the 19 September edits to `CHAR`, `ELEMNT` and `CINDY` change pass 1's choices relative to `CP 29`.
+- ~~How much the 19 September edits to `CHAR`, `ELEMNT` and `CINDY` change pass 1's choices relative to `CP 29`.~~ Not at all: pass 1 run on the edited files reproduces `CP 29`.
 - What exactly `do-as-if-you-were` does, and whether the five other undefined functions are ever reached.
 - How Director orders methods (`:insert-methods-at-end`, inheritance), since the order affects Ani's choices.

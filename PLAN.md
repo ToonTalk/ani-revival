@@ -23,7 +23,18 @@
   - Your `LISP`, `LOAD`, `DECLAR` and `DECLA2` load (`node tools/boot.mjs`).
   - All 1,493 forms of Ani and Director read, with quote expansion.
   - It runs in a browser (`test/browser.html`).
-- **Next, Phase 2.** `KEN1;DRECT` loads until line 38, where it needs `setq-if-unbound`, a macro from the lost `KEN1;` files. That's where the rebuilding starts.
+- **Phase 2, done (8 October).** Director runs from your 1979 files on a rebuilt `KEN1;` runtime.
+  - `src/director/ken1/` holds the rebuilt files: `MACROS`, `UTIL`, `CMATCH`, `PROP`, the compiler and tracing files as stand-ins, and the graphics files `DL`, `TUTIL`, `FWUSE` and `INTER`. Each definition cites its evidence. Much of it was checked against `TS D2500`, now decompiled file by file in `reports/pdump/ken1/`.
+  - LLOGO's TV turtle is ported from its public source (`src/tv/`). Director's own demos run unchanged: `test-director` from `KEN;DUMP`, `OBJECT` and `POLY`, `SCREEN` and `MOVIE` filming the guide's example, and `ANINIT`'s color cast. See `reports/TV-TURTLE.md` and the frames in `reports/tv/`. The 1977 `ANIMA` scenes haven't been tried.
+- **The tape caught Director in the middle of a rewrite.** You rewrote Director around 21 November 1978 (the second guide: "much of Director has been rewritten", and demons "have been eliminated"). Ani's code is older; `CP 29` was written in September 1978 by the old Director. The surviving Director (`DRECT`, `SOME 666`, `OBJECT 401`, all January 1979) is the new one. Your own `ODIREC 2` (22 November 1978) bridges part of the gap. `src/director/revive/bridge.lisp` (loaded as `REVIVE;BRIDGE`) restores the rest, each change argued from the 1978 guide, the compiled 1978 Ani files and `CP 29`:
+  - `:self` is the name the message was sent to, as in 1978, not the actor itself;
+  - variable demons come from `ODIREC`, verbatim;
+  - database demons (virtual items, and actions on memorizing) are rebuilt from the 1978 guide;
+  - "recall an item matching" quotes the request it remembers, as `SOME 666` already does for "recall each item matching".
+- **Phase 3, mostly done (8 October).** Pass 1 reproduces `CP 29`: run on `CINDY`, it makes the same 102 choices, with the same names (`node tools/run-pass1.mjs`; about 70 seconds).
+  - Open: the saved list's order differs from `CP 29` in 26 of 102 places. Ani goes through the prince's elements, and some of the fairy godmother's, in a different order. No choice changes.
+  - Open: the glass-box list of choice points. The data is ready: `--save-all` writes every choice point with its suggestions, conflicts and postponements, as `RUN24 2` does, to `reports/pass1-reasons.txt`.
+- **Next, Phase 4:** pass 2, with `RUN`.
 
 ## In brief
 
@@ -217,6 +228,7 @@ Each phase ends with something you can look at.
 4. Thesis Appendix III: counts of decisions, actors, and files written.
 5. Thesis Chapter II and section I.C: what happens in each scene, and how the stepmother's speed was chosen.
 6. "Cinderella 1978" on YouTube: timing, positions, and what the characters do.
+7. The flipbook in the thesis's page corners (`sources/flipbook/`): another complete run of the film, 574 frames, whose Introduction lasts the thesis's 42 seconds.
 
 ## Risks
 
@@ -230,9 +242,8 @@ Each phase ends with something you can look at.
   - how floats print
 - **Order sensitivity.** The order in which methods are tried affects Ani's choices, so the rebuild has to reproduce it exactly.
 - **Pass 2 depends on the simulation.** Small numeric differences in where characters stop could change later scenes' plans. We aim to match Appendix VI exactly and the YouTube film in spirit.
-- **Display details.** We don't know exactly how TVRTLE drew, for example XOR mode and filled stars. The YouTube film helps, though its quality limits fine comparison.
+- **Display details.** TVRTLE's own source settles how lines are drawn. A few things remain guesses (its fill routine, and the PDP-11 drawing modes Director didn't use); `reports/TV-TURTLE.md` lists them. The film and the flipbook help, though their quality limits fine comparison.
 
 ## Still to settle
 
-- Permission to download the Director Guide PDFs from DSpace (AIM-482, 3.4 MB; AIM-482B), and to download the YouTube video to extract frames for comparison.
 - Where the finished app should live: toontalk.github.io/AI/apps, a claude.ai artifact, or both.
