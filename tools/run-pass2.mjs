@@ -14,11 +14,11 @@
 //   --extensions  also load the revival's extensions (src/pipeline.js EXTENSIONS).
 //   The files go to reports/ext/<a+b>/ instead, so the 1978 ones stay as they are;
 //   the files of earlier scenes are read from there, or else from reports/pass2/.
-import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
+import { printString } from "../src/maclisp/printer.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { FILE_NAMES, extensionsFor, loadExtensions, glassBox } from "../src/pipeline.js";
+import { FILE_NAMES, extensionsFor, boot, glassBox } from "../src/pipeline.js";
 
 const args = process.argv.slice(2);
 const scene = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--extensions") || "introduction";
@@ -33,17 +33,10 @@ const fs = makeProjectFileSystem();
 const writes = [`KEN;${FILE_NAMES[scene]}`, `KEN1;${ownFn1} MINI`, `KEN1;${ownFn1} PRINT`];
 mountRunOutputs(fs, undefined, writes);
 if (extensions.length) mountRunOutputs(fs, join(process.cwd(), outDir), writes);
-const L = createLisp({ fs });
-L.formStack = process.argv.includes("--no-backtrace") ? null : [];
-L.backtraceDepth = 4000;
-L.breakHandler = (tag) => {
-  const e = new Error(`break ${L.print(tag)}`);
-  e.lispBacktrace = (L.formStack || []).slice(-4000).reverse();
-  throw e;
-};
+let L = null;
 
 // The sends in a backtrace, innermost first: what was asked of whom.
-const isSend = (f) => /^\((ASK|ASK1|ASK-EACH|DO-AS-IF-YOU-WERE|DEFINE|DEFINE-FUNCTION) /.test(L.print(f));
+const isSend = (f) => /^\((ASK|ASK1|ASK-EACH|DO-AS-IF-YOU-WERE|DEFINE|DEFINE-FUNCTION) /.test(printString(f));
 
 function step(what, src) {
   const t0 = Date.now();
@@ -56,27 +49,25 @@ function step(what, src) {
     const bt = e.lispBacktrace || [];
     if (bt.length) {
       console.log("  innermost forms:");
-      for (const f of bt.slice(0, 6)) console.log("    " + L.print(f).slice(0, 200));
+      for (const f of bt.slice(0, 6)) console.log("    " + printString(f).slice(0, 200));
       console.log("  the sends that led there, innermost first:");
-      for (const f of bt.filter(isSend).slice(0, 30)) console.log("    " + L.print(f).slice(0, 220));
+      for (const f of bt.filter(isSend).slice(0, 30)) console.log("    " + printString(f).slice(0, 220));
     } else if (!(e.message || "").startsWith("break")) console.log(e.stack.split("\n").slice(0, 6).join("\n"));
     return false;
   }
 }
 
-L.load(L.intern("KEN;LISP >"));
-L.load(L.intern("KEN;LOAD >"));
-L.evalString("(setq :print-load-messages nil)");
 const ok =
-  step("(director '(ani direct))", "(director '(ani direct))") &&
-  step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
-  (!extensions.length || step(`load the extensions ${extensions.join(", ")}`, () => loadExtensions(L, extensions))) &&
+  // Director with the 1978 conventions (REVIVE;BRIDGE), as each step of the pipeline boots it
+  step(`boot Director and REVIVE;BRIDGE${extensions.length ? `, with the extensions ${extensions.join(", ")}` : ""}`,
+    () => { L = boot(fs, { backtrace: !args.includes("--no-backtrace"), extensions }); return []; }) &&
   // Ken's Director was a saved job with the TV display already started (KEN;DUMP
   // clears the screen before saving it); pass 2 measures places on that screen.
   step("(cs): start the TV display", "(cs)") &&
   step("load RUN", "(load '|ken;run >|)") &&
   step(`(run '${scene})`, `(run '${scene})`) &&
   step(`(save '${scene} t)`, `(save '${scene} t)`);
+if (!L) process.exit(1);
 
 const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 3000 characters):\n" + out.slice(-3000));
@@ -96,7 +87,7 @@ for (const name of [{ dir: "KEN", fn1, fn2 }, { dir: "KEN1", fn1, fn2: "MINI" },
 }
 // The glass box: each actor of the plan, as its own variables (recalled as print-all
 // recalls them) and the items it memorized, and any notes the revival's repairs left.
-if (ok && process.argv.includes("--glass-box")) {
+if (ok && args.includes("--glass-box")) {
   const glass = glassBox(L, scene);
   writeFileSync(`${outDir}/${scene}.glass.json`, JSON.stringify(glass, null, 1));
   console.log(`glass box: ${glass.tasks.length} tasks, ${glass.subscenes.length} subscenes, ${glass.plans.length} activities, ${glass.dynamics.length} special dynamics${glass.repairs ? `, ${glass.repairs.length} repair notes` : ""} in ${outDir}/${scene}.glass.json`);

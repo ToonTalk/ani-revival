@@ -10,10 +10,13 @@
 // Each step boots a fresh Lisp, as each was a separate job on ITS; they pass files.
 // Any of the revival's extensions asked for (EXTENSIONS) are loaded into each of them.
 // Besides the files, pass2() returns the scene's plan as Ani left it (its glass box)
-// and film() a record of every frame. Used by tools/run-pass2.mjs, tools/run-scene.mjs
-// and the web app's worker, so it runs in Node and in a browser.
+// and film() a record of every frame. Used by the web app's worker, so it runs in Node
+// and in a browser, and by the tools (tools/run-film.mjs, run-story.mjs, check-1978.mjs);
+// those that run one step at a time (tools/run-pass1.mjs, run-pass2.mjs, run-scene.mjs)
+// boot each Lisp with boot() and run-scene.mjs records with recorder(), so that they
+// make what the pipeline makes.
 import { createLisp } from "./maclisp/index.js";
-import { Cons } from "./maclisp/types.js";
+import { Cons, UNBOUND } from "./maclisp/types.js";
 import { pictureArea } from "./tv/canvas.js";
 import { UNIT_BIT } from "./tv/turtle.js";
 import { collectChoicePoints } from "./glassbox-pass1.js";
@@ -57,13 +60,21 @@ export function extensionsFor(ids = []) {
 }
 
 // Load the extensions' files into a Lisp that has loaded the bridge: in registry
-// order, each file once. Returns the files loaded. The tools that boot a Lisp step by
-// step (tools/run-pass1.mjs, ...) call this too, so the two can't drift apart.
+// order, each file once. Returns the files loaded. boot() calls it, for the pipeline
+// and for the tools that run one step at a time (tools/run-pass1.mjs, ...).
 export function loadExtensions(L, ids = []) {
   const files = [];
   for (const e of extensionsFor(ids)) for (const f of e.files) if (!files.includes(f)) files.push(f);
   for (const f of files) L.evalString(`(load '|revive;${f} >|)`);
   return files;
+}
+
+// Whether L can hold the revival's repair notes: REVIVE;WRAP, which every repair
+// notes through, binds :revival-noted when it loads. Looked up without interning it,
+// so that a Lisp running as in 1978 is left exactly as it was.
+function noting(L) {
+  const noted = L.obarray.find(":REVIVAL-NOTED");
+  return Boolean(noted) && noted.value !== UNBOUND;
 }
 
 // A fresh Lisp with Director and the 1978 conventions loaded, as Ken's saved jobs had,
@@ -99,7 +110,7 @@ export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] }
   L.evalString("(z)");
   L.evalString(`(save-answers '((ken) cp ${cpVersion}))`);
   const choicePoints = collectChoicePoints(L);
-  const repairs = extensions.length ? repairNotes(L) : [];
+  const repairs = noting(L) ? repairNotes(L) : [];
   return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), lisp: L };
 }
 
@@ -157,8 +168,10 @@ export function glassBox(L, scene) {
     dynamics: names("(ask special-dynamics recall your descendants)").map(actor),
     choices: actor(L.readFromString(`(choices-made-in ${scene})`)),
   };
-  const repairs = repairNotes(L, glass);
-  if (repairs.length) glass.repairs = repairs; // only then, so a 1978 glass box is as it was
+  // the notes only if an extension could have left some, and only if there are any, so
+  // that a 1978 glass box is as it was and is made as it was
+  const repairs = noting(L) ? repairNotes(L, glass) : [];
+  if (repairs.length) glass.repairs = repairs;
   return glass;
 }
 
@@ -260,7 +273,9 @@ export function recorder(L, { onClick = null, cast = CHARACTERS } = {}) {
 }
 
 // The scene filmed in black and white, with a record of every frame; its end positions
-// are saved as KEN1;<movie> POSIT for the next scene's pass 2.
+// are saved as KEN1;<movie> POSIT for the next scene's pass 2. If the revival's repairs
+// left notes while it was filmed (REVIVE;MEND2's weightify guard, say, in Director's
+// special dynamics), the film has them as repairs, as pass 2's glass box has its own.
 export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [] } = {}) {
   const L = boot(fs, { backtrace, extensions });
   L.evalString("(cs)");
@@ -290,6 +305,8 @@ export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onC
   const f = { scene, ...record };
   if (fps !== 4) f.fps = fps; // Ken's TV previews ran at 4; the film was shot at 24 (ANINIT's running-color)
   if (plan && !plan.kenCast) f.cast = plan.cast.map((c) => ({ name: c.name, shape: c.shape }));
+  const repairs = noting(L) ? repairNotes(L) : [];
+  if (repairs.length) f.repairs = repairs; // only then, so a film is as it was
   return { film: f, lisp: L };
 }
 
