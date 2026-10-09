@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ani in a browser worker</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 24px; max-width: 70ch; }
+  pre { background: #f3f5f2; padding: 10px; border-radius: 8px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Ani in a browser worker</h1>
+<p>Runs Ani's whole pipeline (pass 1, then each scene's pass 2 and filming) in a worker made from a blob, on the bundle of files in <code>app/data/ani-bundle.json</code>, and times each step. Build the runtime first: <code>node tools/bundle-js.mjs app/data/ani-runtime.js AniRuntime src/pipeline.js src/its/bundle-fs.js</code>.</p>
+<p><label><input type="checkbox" id="all"> all five scenes (otherwise pass 1 and the introduction)</label> <button id="go">Run</button></p>
+<pre id="log">Ready.</pre>
+<script>
+const log = (s) => { document.getElementById("log").textContent += "\n" + s; };
+document.getElementById("go").onclick = async () => {
+  document.getElementById("log").textContent = "Loading…";
+  const [runtime, bundle] = await Promise.all([
+    fetch("../app/data/ani-runtime.js").then((r) => r.text()),
+    fetch("../app/data/ani-bundle.json").then((r) => r.json()),
+  ]);
+  const glue = `
+    self.onmessage = (e) => {
+      const t0 = Date.now();
+      const { bundle, scenes } = e.data;
+      try {
+        const fs = AniRuntime.makeBundleFileSystem(bundle);
+        const out = AniRuntime.makeFilm(fs, { scenes, progress: (step, what) => postMessage({ type: "progress", t: Date.now() - t0, what }) });
+        postMessage({ type: "done", t: Date.now() - t0, choices: out.choices, scenes: out.scenes.map((s) => [s.id, s.film.frames.length, s.film.events.length]) });
+      } catch (err) { postMessage({ type: "error", t: Date.now() - t0, message: String(err && err.stack || err) }); }
+    };`;
+  const url = URL.createObjectURL(new Blob([runtime, "\n", glue], { type: "text/javascript" }));
+  const worker = new Worker(url);
+  const scenes = document.getElementById("all").checked ? undefined : ["introduction"];
+  worker.onmessage = (e) => {
+    const m = e.data;
+    const at = `${(m.t / 1000).toFixed(1)} s`;
+    if (m.type === "progress") log(`${at}  ${m.what}`);
+    if (m.type === "done") log(`${at}  done: ${m.choices} choices; ${m.scenes.map((s) => `${s[0]} ${s[1]} frames`).join(", ")}`);
+    if (m.type === "error") log(`${at}  ERROR ${m.message}`);
+  };
+  worker.onerror = (e) => log("worker error: " + e.message);
+  log(`files: ${bundle.files.length}, runtime ${Math.round(runtime.length / 1024)} KB`);
+  worker.postMessage({ bundle, scenes });
+};
+</script>
+</body>
+</html>

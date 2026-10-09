@@ -6,7 +6,7 @@ import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { writeFileSync } from "node:fs";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
-import { installAttemptLog, collectChoicePoints, collectStory } from "./glassbox-pass1.mjs";
+import { installAttemptLog, collectChoicePoints, collectStory } from "../src/glassbox-pass1.js";
 import { buildGlassBox } from "./build-glassbox.mjs";
 
 const trace = process.argv.includes("--trace");

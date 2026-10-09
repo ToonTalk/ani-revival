@@ -1,7 +1,8 @@
 // Record what pass 1 does, for the glass-box view (app/pass1.html): every
 // attempt Ani makes at a choice and its outcome, in order, and afterwards each
-// choice point's variables and memory. Used by tools/run-pass1.mjs --glass-box.
-import { Sym, Cons, Flonum } from "../src/maclisp/types.js";
+// choice point's variables and memory. Used by tools/run-pass1.mjs --glass-box and by
+// src/pipeline.js (so a run in the browser has its reasons too).
+import { Sym, Cons, Flonum } from "./maclisp/types.js";
 
 // Lisp data as JSON: symbols become lowercase strings, lists arrays, NIL null.
 export function toJSON(L, x) {

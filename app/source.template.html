@@ -106,10 +106,17 @@ footer { color: var(--muted); font-size: 0.84rem; border-top: 1px solid var(--ru
   <footer>Ken's files are shown as they were on tape 7005017 (backed up around 5 February 1979), decoded from ITS's format and otherwise unchanged. The revival's files are marked in purple; they are this project's, not Ken's.</footer>
 </div>
 
-<script type="application/json" id="source-data">/*SOURCE-DATA*/</script>
-<script>
-"use strict";
-const DATA = JSON.parse(document.getElementById("source-data").textContent);
+<script type="text/plain" id="source-data">/*SOURCE-DATA*/</script>
+<script type="module">
+// The files arrive gzipped, as base64, to keep the page small (and each script under
+// the 800 KB a claude.ai artifact will run).
+async function inflate(b64) {
+  const bin = atob(b64.trim());
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+}
+const DATA = JSON.parse(await inflate(document.getElementById("source-data").textContent));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const byId = new Map(DATA.files.map((f) => [f.id, f]));
 const GROUP_ORDER = ["ani", "drivers", "director", "revival"];

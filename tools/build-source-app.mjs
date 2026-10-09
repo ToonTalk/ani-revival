@@ -4,6 +4,7 @@
 // sources (src/director/). Linked from the film page (app/film.html).
 // Usage: node tools/build-source-app.mjs [--content-only out.html]
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { decodeItsText } from "../src/its/text.js";
 import { ANI_FILES, DRIVER_FILES, DIRECTOR_FILES } from "../src/sources.js";
 import { definitions } from "./lisp-defs.mjs";
@@ -65,9 +66,9 @@ export function buildSourceApp(root = ".", { contentOnly = null } = {}) {
     ],
     files,
   };
-  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  const packed = gzipSync(Buffer.from(JSON.stringify(data), "utf8"), { level: 9 }).toString("base64");
   const template = readFileSync(`${root}/app/source.template.html`, "utf8");
-  const content = template.replace("/*SOURCE-DATA*/", () => json);
+  const content = template.replace("/*SOURCE-DATA*/", () => packed);
   if (contentOnly) {
     writeFileSync(contentOnly, content);
     return contentOnly;
