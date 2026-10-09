@@ -34,10 +34,10 @@ export const EXTENSIONS = [
   {
     id: "mend",
     label: "Repairs for new stories",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8"],
     requires: [],
     changes1978: false,
-    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, and COSUG's combine for change suggestions. Each leaves a (revival-repair: ...) note where it acted.",
+    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, and two characters with nothing to compare. Each leaves a (revival-repair: ...) note where it acted.",
   },
 ];
 
@@ -90,7 +90,8 @@ export function boot(fs, { backtrace = false, extensions = [] } = {}) {
 
 // Ani's choices for the film description in KEN;CINDY, saved as KEN;CP <version>, the
 // file pass 2 loads (KEN;CP >). Returns how many choices were made and each choice
-// point with its reasons (its glass box, as app/data/pass1.json has them).
+// point with its reasons (its glass box, as app/data/pass1.json has them), and, if the
+// revival's repairs left notes (REVIVE;MEND8's on a comparison, say), those.
 export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] } = {}) {
   const L = boot(fs, { backtrace, extensions });
   L.evalString("(load '|ken;datest >|)");
@@ -98,7 +99,8 @@ export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] }
   L.evalString("(z)");
   L.evalString(`(save-answers '((ken) cp ${cpVersion}))`);
   const choicePoints = collectChoicePoints(L);
-  return { choices: choicePoints.length, choicePoints, lisp: L };
+  const repairs = extensions.length ? repairNotes(L) : [];
+  return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), lisp: L };
 }
 
 // ---------------------------------------------------------------- pass 2
@@ -161,10 +163,10 @@ export function glassBox(L, scene) {
 }
 
 // The notes the revival's repairs left, (revival-repair: what W was X now Y because R)
-// (REVIVE;WRAP), as { actor, note }: those of the glass box's actors, then of the
-// choice points (pass 2 reads them from KEN;CP), then of any other actor
-// revival-note noted, each actor once.
-export function repairNotes(L, glass) {
+// (REVIVE;WRAP), as { actor, note }: those of the glass box's actors, if there is a
+// glass box, then of the choice points (pass 2 reads them from KEN;CP), then of any
+// other actor revival-note noted, each actor once.
+export function repairNotes(L, glass = null) {
   const lisp = (x) => L.print(x).toLowerCase();
   const isNote = (item) => item.startsWith("(revival-repair: ");
   const out = [];
@@ -174,7 +176,7 @@ export function repairNotes(L, glass) {
     seen.add(name);
     for (const note of items.filter(isNote)) out.push({ actor: name, note });
   };
-  for (const a of [glass.scene, ...glass.tasks, ...glass.subscenes, ...glass.plans, ...glass.dynamics, glass.choices]) add(a.name, a.items);
+  if (glass) for (const a of [glass.scene, ...glass.tasks, ...glass.subscenes, ...glass.plans, ...glass.dynamics, glass.choices]) add(a.name, a.items);
   const others = L.toArray(L.evalString("(and (actor-of 'choice-point dont-autoload) (ask choice-point recall your childless-descendants))"));
   const noted = L.intern(":REVIVAL-NOTED").value;
   if (noted instanceof Cons) others.push(...L.toArray(noted).reverse());
@@ -443,7 +445,8 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
   const p1 = pass1(fs, { extensions });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
   if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
-  onPass1({ choices: p1.choices, choicePoints: p1.choicePoints });
+  if (p1.repairs) out.repairs = p1.repairs; // pass 1's, as each scene's glass box has its own
+  onPass1({ choices: p1.choices, choicePoints: p1.choicePoints, ...(p1.repairs ? { repairs: p1.repairs } : {}) });
   for (const scene of order) {
     let done;
     try {

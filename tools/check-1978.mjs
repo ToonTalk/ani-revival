@@ -3,7 +3,8 @@
 // Cinderella. It runs the whole pipeline on the project's files, as the film page does
 // (pass 1, then each scene's pass 2 and filming at 4 frames a second), and asserts:
 //   - pass 1 writes CP 29: 102 of 102 choices, each in its place; and its choice
-//     points, with their reasons, are those of app/data/pass1.json;
+//     points, with their reasons, are those of app/data/pass1.json; with extensions,
+//     it leaves no repair notes;
 //   - each scene's program (KEN;INTROD UCTION, ...) and summary (KEN1;INTROD MINI, ...)
 //     are byte for byte those of reports/pass2/, and its glass box is
 //     reports/pass2/<scene>.glass.json (tools/run-pass2.mjs --glass-box);
@@ -120,6 +121,12 @@ const p1 = run("pass 1", () => pass1(fs, { extensions }));
     good ? null : `${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra`, p1.seconds);
   const golden = JSON.parse(read("app/data/pass1.json")).choicePoints;
   check("pass 1: the choice points and their reasons as app/data/pass1.json has them", same(JSON.stringify(p1.value.choicePoints), JSON.stringify(golden)));
+  // notes on choice points are in their reasons; pass 1's repairs has those on other
+  // actors too (REVIVE;MEND8's on a comparison), and Cinderella needs none
+  if (extensions.length) {
+    const notes = p1.value.repairs || [];
+    check("pass 1: no repair notes", notes.length ? `${notes.length}, the first ${JSON.stringify(notes[0])}` : null);
+  }
 }
 checkLoads("pass1");
 
