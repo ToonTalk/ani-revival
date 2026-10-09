@@ -336,7 +336,7 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 2. **SLIPS is offered as its own switch, off by default.** Each correction quotes the line it corrects and comes with a written Cinderella diff; the DICHAR/DISPLY speed inversion goes in only if a run confirms it.
 3. **The site opens in 1978 mode.** The switch turns on MEND, KNOW, APPEAR and CHANGE; SLIPS and DETAIL are opt-in.
 4. **The revival may add knowledge the thesis doesn't state**, labeled "the revival's" with its reason and checked against Ken's legitimacy rule; any entry that reproduces his 1978 looks is dropped.
-5. **When the mini-Ani ships: still being discussed.**
+5. **The mini-Ani is built now, as a test of how expressive the Agent Kit is and which tasks fit it.** Ken has no plans to use it with children; a workshop (perhaps at Chipping Norton Library) may come later, and grandchildren first. So films, the programs-only example and the AI voices can all go ahead, with a short write-up of what the kit expressed easily, what needed new features, and what it can't do.
 
 ## The questions as they were put
 
