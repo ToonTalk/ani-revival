@@ -294,6 +294,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
+        <div class="seg" role="group" aria-label="The 1978 film's frames a second" id="rate" hidden></div>
         <div class="seg" role="group" aria-label="Picture">
           <button type="button" id="mode-bw" aria-pressed="true">TV</button>
           <button type="button" id="mode-color" aria-pressed="false">Color</button>
@@ -312,7 +313,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
   </main>
 
   <footer>
-    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs, four frames a second on a 550 by 413 picture, as Ken's camera took them. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
+    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
   </footer>
@@ -339,9 +340,36 @@ async function deflate(text) {
   return btoa(s);
 }
 const DATA = JSON.parse(await inflate(document.getElementById("film-data").textContent));
+// The 1978 films come packed (tools/build-film-app.mjs packFilm): each character's segments
+// in tenths of a dot as changes from its last frame, and its visibility, dynamics and goal
+// only when they change.
+function unpackFilm(film) {
+  if (!film.packed) return film;
+  const last = {}, now = {};
+  const frames = film.packed.segs.map((s, k) => {
+    const segs = {};
+    for (const [c, t] of Object.entries(s)) {
+      const abs = t[0] === "d" ? t.slice(1).map((v, i) => v + last[c][i]) : t;
+      last[c] = abs;
+      segs[c] = abs.map((v) => v / 10);
+    }
+    for (const [c, v] of Object.entries(film.packed.chars[k])) now[c] = { visible: !!v[0], dynamics: v[1], goal: v[2] };
+    const chars = {};
+    for (const c of Object.keys(now)) chars[c] = now[c];
+    return { segs, chars };
+  });
+  const { packed, ...rest } = film;
+  return { ...rest, frames };
+}
+for (const s of [...DATA.scenes, ...(DATA.scenes24 || [])]) s.film = unpackFilm(s.film);
 const WORDS = DATA.words;
 const TITLES = Object.fromEntries(DATA.scenes.map((s) => [s.id, s.title]));
 const SCENE_IDS = DATA.scenes.map((s) => s.id);
+// This browser's own storage, for a viewer's conveniences; it may be missing or refuse.
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
+};
 
 // ---------------------------------------------------------------- Lisp, as Ani printed it
 
@@ -889,7 +917,16 @@ function addScene(run, s) {
   if (s.film && s.film.cast) for (const c of s.film.cast) run.shapes[c.name] = c.shape;
   run.scenes[i] = prepScene(s, run);
 }
-RUNS[0] = makeRun({ label: "Ani's 1978 film", short: "1978", cindy: DATA.cindy, choicePoints: DATA.pass1.choicePoints, scenes: DATA.scenes });
+// Ken's film at 24 frames a second, as it was shot (ANINIT's running-color), or at 4, as
+// his TV previews ran and the thesis's flipbook shows. Each is a whole run: a scene's
+// pass 2 starts from where the last one's filming left the characters.
+const RATES = DATA.scenes24 ? [24, 4] : [4];
+const RATE_KEY = "ani-cinderella:rate:v1";
+function kenRun(rate) {
+  return makeRun({ label: "Ani's 1978 film", short: "1978", cindy: DATA.cindy, choicePoints: DATA.pass1.choicePoints, scenes: rate === 24 && DATA.scenes24 ? DATA.scenes24 : DATA.scenes });
+}
+let RATE = RATES.includes(Number(store.get(RATE_KEY))) ? Number(store.get(RATE_KEY)) : RATES[0];
+RUNS[0] = kenRun(RATE);
 R = RUNS[0];
 
 // ---------------------------------------------------------------- pass 1's choices
@@ -898,17 +935,26 @@ function choicePoint(char, element) { return R.cp.get(show(["choice-point-of", c
 
 // ---------------------------------------------------------------- state
 
-const state = { view: 0, scene: 0, frame: 0, playing: false, color: false, selected: null, panel: "story", timer: null, speed: 1, cpOpen: null };
+const state = { view: 0, scene: 0, time: 0, playing: false, color: false, selected: null, panel: "story", raf: null, speed: 1, cpOpen: null };
 const scene = () => R.scenes[state.scene];
 const shown = () => (state.view === "both" ? [0, 1] : [state.view]);
 const sceneOf = (r) => (RUNS[r] ? RUNS[r].scenes[state.scene] : null);
 const ready = (sc) => sc && !sc.error;
-const frameIn = (sc) => Math.min(state.frame, sc.last);
-// the longest of the scenes shown: the scrubber's length
-function maxLast() {
+// Each film has its own rate (4 frames a second unless it says otherwise); the screens
+// show the frame each film had reached at the same moment.
+const fpsOf = (sc) => (sc && sc.film && sc.film.fps) || 4;
+const frameIn = (sc) => Math.min(sc.last, Math.floor(state.time * fpsOf(sc) + 1e-6));
+// the longest of the scenes shown, in seconds: the scrubber's length
+function maxTime() {
   let m = 0;
-  for (const r of shown()) { const sc = sceneOf(r); if (ready(sc)) m = Math.max(m, sc.last); }
+  for (const r of shown()) { const sc = sceneOf(r); if (ready(sc)) m = Math.max(m, sc.last / fpsOf(sc)); }
   return m;
+}
+// the most frames a second among the scenes shown: the step of the controls
+function finestFps() {
+  let m = 0;
+  for (const r of shown()) { const sc = sceneOf(r); if (ready(sc)) m = Math.max(m, fpsOf(sc)); }
+  return m || 4;
 }
 
 // ---------------------------------------------------------------- the screens
@@ -1064,12 +1110,12 @@ function drawBands() {
   const css = getComputedStyle(document.documentElement);
   bctx.fillStyle = css.getPropertyValue("--rule");
   bctx.fillRect(0, 0, w, 16);
-  const last = Math.max(1, maxLast());
-  const x = (f) => (f / last) * w;
+  const span = Math.max(0.25, maxTime());
   const lanes = shown();
   lanes.forEach((r, lane) => {
     const s = sceneOf(r);
     if (!ready(s)) return;
+    const x = (f) => (f / fpsOf(s) / span) * w;
     const top = lane * (16 / lanes.length), height = 16 / lanes.length;
     let k = 0;
     for (const sub of s.subscenes) {
@@ -1089,7 +1135,7 @@ function drawBands() {
 }
 function placeHead() {
   const head = document.getElementById("head");
-  head.style.left = `calc(${(state.frame / Math.max(1, maxLast())) * 100}% - 1px)`;
+  head.style.left = `calc(${(state.time / Math.max(0.25, maxTime())) * 100}% - 1px)`;
 }
 
 // ---------------------------------------------------------------- what is happening
@@ -1152,7 +1198,7 @@ function caption(r) {
     }
     const feel = changes.map((t) => about(t.description));
     const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
-    const capped = sc.film.frames.length > CAP_FRAMES && f === sc.last ? `<span class="part">Director stopped filming here, at ${CAP_FRAMES} frames; the scene hadn't ended.</span>` : "";
+    const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after two and a half minutes; the scene hadn't ended.</span>` : "";
     el.innerHTML = `<span class="part">${tag}${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}`;
   });
 }
@@ -1321,7 +1367,7 @@ function whyPanel(char) {
   const k = meet(R.story, char);
   const runNote = state.view === "both" || R !== RUNS[0] ? `${esc(R.label)} · ` : "";
   const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(k.name)}</h2></div><button type="button" class="linkish" id="back-to-story">Back</button></div>
-    <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last}</p>`;
+    <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last} (${(f / fpsOf(s)).toFixed(1)} s, at ${fpsOf(s)} frames a second)</p>`;
   let lead, sections = "";
   // between two steps of a plan, the step before or after stands in for the current one
   let act = acts[0], between = null;
@@ -1450,7 +1496,11 @@ function setWords(text, target, ws) {
 function checkStory(text) {
   const story = readStory(text);
   const problems = [], notes = [];
-  if (story.error) problems.push(`Ani can't read this: ${story.error}.`);
+  if (story.error) {
+    const at = story.error.match(/line (\d+)/);
+    const line = at ? String(text.split("\n")[Number(at[1]) - 1] || "").trim() : "";
+    problems.push(`Ani can't read this: ${esc(story.error)}${line ? `: <code>${esc(line.slice(0, 90))}</code>` : ""}. Fix it in “Ani's version” below.`);
+  }
   for (const [name, c] of Object.entries(story.characters)) {
     for (const [slot, ws] of c.slots) {
       for (const w of ws) {
@@ -1573,11 +1623,8 @@ const PRESETS = [
 ];
 const DRAFT_KEY = "ani-cinderella:draft:v1";
 const RUN_KEY = "ani-cinderella:run:v1";
-const store = {
-  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
-};
-const editor = { text: null, lisp: null };
+const FPS_KEY = "ani-cinderella:run-fps:v1";
+const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4 };
 function openEditor() {
   editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
   select(null, { panel: "edit" });
@@ -1601,7 +1648,10 @@ function editorPanel() {
       <div class="ed-lisp-wrap" id="ed-lisp-wrap"><textarea id="ed-lisp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="The film description, in Lisp"></textarea><button type="button" class="btn done" id="ed-done">Done</button></div>
     </div></details>
     <div id="ed-check"></div>
-    <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button><button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>`;
+    <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button>
+      <div class="seg" role="group" aria-label="Frames a second"><button type="button" data-fps="4" aria-pressed="${editor.fps === 4}">4 a second</button><button type="button" data-fps="24" aria-pressed="${editor.fps === 24}">24</button></div>
+      <button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
+    <p class="note" id="ed-fps-note"></p>`;
   side.querySelector("#ed-close").addEventListener("click", () => select(null));
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
@@ -1610,6 +1660,14 @@ function editorPanel() {
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base));
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy));
+  const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (some ten minutes on a laptop)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (about three minutes on a laptop). Choose 24 for the film's own rate."; };
+  side.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => {
+    editor.fps = Number(b.dataset.fps);
+    store.set(FPS_KEY, String(editor.fps));
+    side.querySelectorAll("[data-fps]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    fpsNote();
+  }));
+  fpsNote();
   side.querySelector("#ed-make").addEventListener("click", () => {
     const { problems } = checkStory(editor.text);
     if (!problems.length) startRun(editor.text);
@@ -1643,8 +1701,9 @@ function refreshEditor({ fromLisp = false } = {}) {
   const { story, problems, notes } = checkStory(editor.text);
   const chars = side.querySelector("#ed-chars"), rels = side.querySelector("#ed-rels");
   if (story.error) {
-    chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read.</p>`;
+    chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read; fix it in “Ani's version” below.</p>`;
     rels.innerHTML = "";
+    side.querySelector("#ed-lisp-box").open = true;
   } else {
     const cast = Object.keys(story.characters);
     const look = { shapes: shapesOf(cast) };
@@ -1713,6 +1772,7 @@ self.onmessage = function (e) {
       description: e.data.description,
       keepGoing: true,
       frames: e.data.frames,
+      fps: e.data.fps,
       progress: function (step, what, scene) { post({ type: "progress", step: step, what: what, scene: scene || null }); },
       onPass1: function (p) { post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints }); },
       onScene: function (s) { post({ type: "scene", scene: s }); }
@@ -1725,17 +1785,18 @@ self.onmessage = function (e) {
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
 // How long each step took for Ken's story, in seconds: the progress bar's estimate.
 const STEP_SECONDS = { pass1: 18, introduction: [5, 20], "kept-apart": [4, 46], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
-const stepSeconds = ([step, id]) => (step === "pass1" ? STEP_SECONDS.pass1 : (STEP_SECONDS[id] || [5, 25])[step === "pass2" ? 0 : 1]);
-// A scene that never ends is filmed for at most this many frames (Ken's runs used 1,000).
-const CAP_FRAMES = 600;
+const stepSeconds = ([step, id], fps = 4) => (step === "pass1" ? STEP_SECONDS.pass1 : step === "pass2" ? (STEP_SECONDS[id] || [5, 25])[0] : (STEP_SECONDS[id] || [5, 25])[1] * fps / 4);
+// A scene that never ends is filmed for at most this long (Ken's runs stopped at 1,000 frames).
+const CAP_SECONDS = 150;
 function progressOf(st, run = RUNS[1]) {
   if (!st.running) return 1;
   const steps = [["pass1", null], ...(run ? run.sceneIds : SCENE_IDS).flatMap((id) => [["pass2", id], ["film", id]])];
-  const total = steps.reduce((a, s) => a + stepSeconds(s), 0);
+  const fps = (run && run.fps) || 4;
+  const total = steps.reduce((a, s) => a + stepSeconds(s, fps), 0);
   const k = steps.findIndex(([s, id]) => s === st.step && (s === "pass1" || id === st.scene));
   if (k < 0) return 0;
-  const before = steps.slice(0, k).reduce((a, s) => a + stepSeconds(s), 0);
-  const now = Math.min(stepSeconds(steps[k]) * 0.95, (Date.now() - st.stepStarted) / 1000);
+  const before = steps.slice(0, k).reduce((a, s) => a + stepSeconds(s, fps), 0);
+  const now = Math.min(stepSeconds(steps[k], fps) * 0.95, (Date.now() - st.stepStarted) / 1000);
   return (before + now) / total;
 }
 const clock = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -1749,9 +1810,10 @@ const stopText = (msg) => {
   return m.length > 220 ? m.slice(0, 220) + "…" : m;
 };
 
-async function startRun(description) {
+async function startRun(description, fps = editor.fps) {
   stopRun({ quiet: true });
   const run = makeRun({ label: "Your version", short: "Yours", cindy: description });
+  run.fps = fps;
   run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: "pass1", what: "Getting Ani ready", scene: null };
   RUNS[1] = run;
   state.selected = null;
@@ -1779,7 +1841,7 @@ async function startRun(description) {
         w.onmessage = (e) => { heard = true; onWorker(run, e.data); };
         // a page whose sandbox refuses workers made from blobs hears nothing but this
         w.onerror = (e) => { e.preventDefault(); if (!heard) { w.terminate(); ani.worker = null; runInPage(run, description); } else finishRun(run, { error: e.message || "The worker running Ani failed." }); };
-        w.postMessage({ bundle: ani.bundle, description, frames: CAP_FRAMES });
+        w.postMessage({ bundle: ani.bundle, description, frames: CAP_SECONDS * run.fps, fps: run.fps });
       }
     }
   } catch (err) {
@@ -1805,7 +1867,7 @@ async function runInPage(run, description) {
   let steps;
   try {
     steps = AniRuntime.makeFilmSteps(fs, {
-      description, keepGoing: true, frames: CAP_FRAMES,
+      description, keepGoing: true, frames: CAP_SECONDS * run.fps, fps: run.fps,
       progress: (step, what, scene) => post({ type: "progress", step, what, scene: scene || null }),
       onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints }),
       onScene: (s) => post({ type: "scene", scene: s }),
@@ -1950,7 +2012,7 @@ function comparePanel() {
   const scenes = [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
     const x = a.scenes[i], y = b.scenes[i];
     const id = a.sceneIds[i] || b.sceneIds[i];
-    const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / 4)} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
+    const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
     const yours = ready(y) ? len(y) : y && y.error ? `<span class="stopped">Ani stopped: ${esc(stopText(y.error))}</span>` : st.running ? "not made yet" : "not made";
     const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "—"; };
     const title = other ? `Scene ${i + 1}` : esc(a.titles[id] || b.titles[id]);
@@ -1998,10 +2060,11 @@ const scrub = document.getElementById("scrub");
 function render() {
   draw();
   placeHead();
-  const last = maxLast();
-  scrub.max = String(last);
-  scrub.value = String(Math.min(state.frame, last));
-  document.getElementById("frame-label").textContent = `${state.frame} / ${last}`;
+  const total = maxTime();
+  scrub.max = String(total);
+  scrub.step = String(1 / finestFps());
+  scrub.value = String(Math.min(state.time, total));
+  document.getElementById("frame-label").textContent = `${state.time.toFixed(1)} / ${total.toFixed(1)} s`;
   for (const r of shown()) caption(r);
 }
 // The scene buttons: the scenes of the film shown, or numbers for two different stories.
@@ -2018,9 +2081,9 @@ function renderSceneButtons() {
   document.getElementById("legend").innerHTML = cast.map(([c, run]) => `<span>${icon(c, 16, run)}${esc(meet(run.story, c).name)}: ${esc(run.shapes[c])}</span>`).join("");
 }
 const sceneCount = () => Math.max(...shown().map((r) => (RUNS[r] ? RUNS[r].sceneIds.length : 0)));
-function goScene(i, frame = 0) {
+function goScene(i, time = 0) {
   state.scene = Math.max(0, Math.min(i, sceneCount() - 1));
-  state.frame = frame;
+  state.time = time;
   document.querySelectorAll("#scenes button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === state.scene)));
   drawBands();
   render();
@@ -2051,35 +2114,61 @@ function setView(view) {
   state.scene = Math.min(state.scene, sceneCount() - 1);
   renderSceneButtons();
   if (!document.getElementById("save-panel").hidden) renderSavePanel();
-  state.frame = Math.min(state.frame, maxLast());
+  state.time = Math.min(state.time, maxTime());
   drawBands();
   render();
   renderSide();
 }
+// One frame back or forward, at the finest rate shown.
 function step(d) {
-  const last = maxLast();
-  let f = state.frame + d;
-  if (f > last) {
-    if (state.playing && state.scene < sceneCount() - 1) { goScene(state.scene + 1, 0); return; }
-    f = last;
-    pause();
-  }
-  if (f < 0) f = 0;
-  state.frame = f;
+  const dt = 1 / finestFps();
+  state.time = Math.max(0, Math.min(maxTime(), Math.round((state.time + d * dt) / dt) * dt));
   render();
   if (state.panel === "why" && state.selected) renderSide();
 }
+// Playing follows the clock, drawing a screen again only when its film has a new frame.
+const shownFrames = () => shown().map((r) => { const sc = sceneOf(r); return ready(sc) ? frameIn(sc) : -1; }).join();
 function play() {
-  if (state.frame >= maxLast() && state.scene === sceneCount() - 1) goScene(0, 0);
+  if (state.time >= maxTime() && state.scene === sceneCount() - 1) goScene(0, 0);
   state.playing = true;
   document.getElementById("play").textContent = "Pause";
-  const tick = () => { if (!state.playing) return; step(1); state.timer = setTimeout(tick, 250 / state.speed); };
-  state.timer = setTimeout(tick, 250 / state.speed);
+  let last = performance.now();
+  let drawn = shownFrames();
+  const loop = (now) => {
+    if (!state.playing) return;
+    state.time += Math.min(0.25, (now - last) / 1000) * state.speed;
+    last = now;
+    if (state.time > maxTime()) {
+      if (state.scene < sceneCount() - 1) { goScene(state.scene + 1, 0); drawn = shownFrames(); }
+      else { state.time = maxTime(); render(); pause(); return; }
+    }
+    const frames = shownFrames();
+    if (frames !== drawn) { drawn = frames; render(); }
+    else placeHead();
+    state.raf = requestAnimationFrame(loop);
+  };
+  state.raf = requestAnimationFrame(loop);
 }
 function pause() {
   state.playing = false;
-  clearTimeout(state.timer);
+  cancelAnimationFrame(state.raf);
   document.getElementById("play").textContent = "Play";
+}
+// The 1978 film at 4 or 24 frames a second.
+function setRate(rate) {
+  if (!RATES.includes(rate)) return;
+  RATE = rate;
+  store.set(RATE_KEY, String(rate));
+  const t = state.time;
+  RUNS[0] = kenRun(rate);
+  if (state.selected && state.selected.run === 0) state.selected = null;
+  if (state.panel === "why" && !state.selected) state.panel = defaultPanel();
+  document.querySelectorAll("#rate button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === rate)));
+  renderSceneButtons();
+  state.time = Math.min(t, maxTime());
+  drawBands();
+  render();
+  renderSide();
 }
 function setColor(color) {
   state.color = color;
@@ -2091,7 +2180,10 @@ function setColor(color) {
 document.getElementById("play").addEventListener("click", () => (state.playing ? pause() : play()));
 document.getElementById("back").addEventListener("click", () => { pause(); step(-1); });
 document.getElementById("fwd").addEventListener("click", () => { pause(); step(1); });
-scrub.addEventListener("input", () => { pause(); state.frame = Number(scrub.value); render(); if (state.panel === "why" && state.selected) renderSide(); });
+scrub.addEventListener("input", () => { pause(); state.time = Number(scrub.value); render(); if (state.panel === "why" && state.selected) renderSide(); });
+document.getElementById("rate").innerHTML = RATES.length > 1 ? RATES.map((r) => `<button type="button" data-rate="${r}" aria-pressed="${r === RATE}" title="${r === 24 ? "As Ken's camera shot the film" : "As Ken's TV previews ran, and as the thesis's flipbook shows"}">${r} a second</button>`).join("") : "";
+document.getElementById("rate").hidden = RATES.length < 2;
+document.querySelectorAll("#rate button").forEach((b) => b.addEventListener("click", () => setRate(Number(b.dataset.rate))));
 document.getElementById("mode-bw").addEventListener("click", () => setColor(false));
 document.getElementById("mode-color").addEventListener("click", () => setColor(true));
 document.querySelectorAll("#runbar [data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view === "both" ? "both" : Number(b.dataset.view))));
@@ -2119,7 +2211,8 @@ function fromHash() {
   if (i < 0) return false;
   if (state.view !== 0) setView(0);
   if (parts.includes("color")) setColor(true);
-  goScene(i, Math.max(0, Math.min(RUNS[0].scenes[i].last, Number(parts[1]) || 0)));
+  // the number is a frame at 4 a second, as the links have always counted
+  goScene(i, Math.max(0, (Number(parts[1]) || 0) / 4));
   if (parts[2] && CHARS[parts[2]]) select({ run: 0, char: parts[2] }, { scroll: false });
   return true;
 }
@@ -2137,7 +2230,7 @@ document.addEventListener("drop", async (e) => {
 
 layout();
 renderSceneButtons();
-if (!fromHash()) goScene(0, 1);
+if (!fromHash()) goScene(0, 0.25);
 restoreRun();
 probeModels();
 </script>

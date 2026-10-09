@@ -4,6 +4,7 @@
 // Usage: node tools/build-glassbox.mjs [--content-only out.html]
 //   --content-only writes the page without its document skeleton (for publishing).
 import { readFileSync, writeFileSync } from "node:fs";
+import { fullPage } from "./page-shell.mjs";
 
 export function buildGlassBox(root = ".", { contentOnly = null } = {}) {
   const template = readFileSync(`${root}/app/pass1.template.html`, "utf8");
@@ -13,8 +14,7 @@ export function buildGlassBox(root = ".", { contentOnly = null } = {}) {
     writeFileSync(contentOnly, content);
     return contentOnly;
   }
-  const page = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n` +
-    `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head>\n<body>\n${content}\n</body>\n</html>\n`;
+  const page = fullPage(content);
   writeFileSync(`${root}/app/pass1.html`, page);
   return `${root}/app/pass1.html`;
 }

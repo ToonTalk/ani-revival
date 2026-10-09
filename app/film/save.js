@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------- saving films
 
-// A film can be saved as a video (WebM, at Ani's four frames a second, a title card
-// before each scene), or as a film file (.json) that this page opens again with all of
+// A film can be saved as a video (WebM at the film's own rate, a title card before each
+// scene), or as a film file (.json) that this page opens again with all of
 // Ani's reasons. Inside claude.ai a save goes through the page's downloads capability,
 // which asks the viewer first; elsewhere it is an ordinary download.
 
@@ -64,13 +64,16 @@ function webm(frames, width, height, durationMs) {
 
 // The pictures of a video: for each scene shown, a one-second title card, then each frame,
 // drawn as the screen draws it (two films side by side when both are shown).
-function videoPlan(runs, sceneIndexes) {
+function videoRate(runs, sceneIndexes) {
+  return Math.max(4, ...sceneIndexes.flatMap((i) => runs.map((r) => r.scenes[i]).filter(ready).map(fpsOf)));
+}
+function videoPlan(runs, sceneIndexes, rate) {
   const plan = [];
   for (const i of sceneIndexes) {
     const scenes = runs.map((r) => r.scenes[i]);
-    const longest = Math.max(0, ...scenes.map((sc) => (ready(sc) ? sc.last : 0)));
-    for (let k = 0; k < 4; k++) plan.push({ i, title: true });
-    for (let f = 0; f <= longest; f++) plan.push({ i, f });
+    const longest = Math.max(0, ...scenes.map((sc) => (ready(sc) ? sc.last / fpsOf(sc) : 0)));
+    for (let k = 0; k < rate; k++) plan.push({ i, title: true });
+    for (let n = 0; n <= Math.round(longest * rate); n++) plan.push({ i, t: n / rate });
   }
   return plan;
 }
@@ -87,7 +90,7 @@ function drawVideoFrame(ctx, runs, item, scale) {
       if (runs.length > 1) lines.push(run.label);
       screenMessage(ctx, lines);
     } else if (!ready(sc)) screenMessage(ctx, [sc ? "Ani stopped while making this scene." : "No such scene in this version."]);
-    else drawFrame(ctx, run, sc, Math.min(item.f, sc.last), { color: state.color });
+    else drawFrame(ctx, run, sc, Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6)), { color: state.color });
   });
 }
 async function makeVideo(runs, sceneIndexes, onProgress, signal) {
@@ -98,8 +101,10 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
   canvas.width = even(width);
   canvas.height = even(height);
   const ctx = canvas.getContext("2d");
-  const plan = videoPlan(runs, sceneIndexes);
-  const config = { codec: "vp8", width: canvas.width, height: canvas.height, bitrate: 2500000, framerate: 4 };
+  const rate = videoRate(runs, sceneIndexes);
+  const plan = videoPlan(runs, sceneIndexes, rate);
+  const frameUs = Math.round(1e6 / rate);
+  const config = { codec: "vp8", width: canvas.width, height: canvas.height, bitrate: rate > 4 ? 4000000 : 2500000, framerate: rate };
   const webCodecs = typeof VideoEncoder !== "undefined" && typeof VideoFrame !== "undefined" && (await VideoEncoder.isConfigSupported(config).catch(() => ({}))).supported;
   if (webCodecs) {
     const frames = [];
@@ -113,8 +118,8 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
       if (signal && signal.aborted) { encoder.close(); throw Object.assign(new Error("Stopped."), { kind: "stopped" }); }
       if (failure) throw failure;
       drawVideoFrame(ctx, runs, plan[n], scale);
-      const frame = new VideoFrame(canvas, { timestamp: n * 250000, duration: 250000 });
-      encoder.encode(frame, { keyFrame: n % 16 === 0 });
+      const frame = new VideoFrame(canvas, { timestamp: n * frameUs, duration: frameUs });
+      encoder.encode(frame, { keyFrame: n % (rate * 4) === 0 });
       frame.close();
       if (encoder.encodeQueueSize > 8) await new Promise((r) => setTimeout(r, 0));
       if (n % 20 === 0) { onProgress(n / plan.length); await new Promise((r) => setTimeout(r, 0)); }
@@ -122,7 +127,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
     await encoder.flush();
     encoder.close();
     if (failure) throw failure;
-    return { blob: webm(frames, canvas.width, canvas.height, plan.length * 250), ext: "webm" };
+    return { blob: webm(frames, canvas.width, canvas.height, plan.length * 1000 / rate), ext: "webm" };
   }
   // without WebCodecs: record the canvas as it is drawn, in real time
   if (typeof MediaRecorder === "undefined" || !canvas.captureStream) throw new Error("This browser can't make videos.");
@@ -139,7 +144,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
     drawVideoFrame(ctx, runs, plan[n], scale);
     if (track.requestFrame) track.requestFrame();
     onProgress(n / plan.length);
-    await new Promise((r) => setTimeout(r, 250));
+    await new Promise((r) => setTimeout(r, 1000 / rate));
   }
   recorder.stop();
   await stopped;
@@ -170,7 +175,7 @@ async function openFilm(d, name) {
   saveRun(run);
   state.selected = null;
   state.scene = 0;
-  state.frame = 0;
+  state.time = 0;
   setView(sameStory(RUNS[0], run) ? "both" : 1);
 }
 function chooseFilmFile() {
@@ -231,7 +236,7 @@ function renderSavePanel() {
       ${mine ? `<button type="button" class="btn" data-save="file">Your version, as a film file</button>` : ""}
       <button type="button" class="btn" data-save="open">Open a saved film…</button>
     </div>
-    <p class="note">Videos are WebM, at Ani's four frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, with a title before each scene. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
+    <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, with a title before each scene. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
     <p class="note" id="save-status" aria-live="polite"></p>`;
   panel.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => saveAction(b.dataset.save, runs, sc)));
 }

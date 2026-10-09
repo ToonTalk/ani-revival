@@ -211,6 +211,7 @@ export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onC
   L.evalString(`(m ${frames})`);
   L.evalString(`(save-positions '${scene} '((ken1) ,(get '${scene} 'movie-name) posit))`);
   const f = { scene, ...record };
+  if (fps !== 4) f.fps = fps; // Ken's TV previews ran at 4; the film was shot at 24 (ANINIT's running-color)
   if (plan && !plan.kenCast) f.cast = plan.cast.map((c) => ({ name: c.name, shape: c.shape }));
   return { film: f, lisp: L };
 }
@@ -336,7 +337,10 @@ export function storyPlan(outline) {
 // progress(step, detail, scene) reports each step as it starts; onPass1(result) and
 // onScene(scene) report each result as it is made. With keepGoing, a scene Ani can't
 // plan or film is reported as { id, error } and the next scene is tried. frames caps
-// each scene's filming (Ken's (m 1000)), for a scene that never ends.
+// each scene's filming (Ken's (m 1000)), for a scene that never ends. fps is how many
+// frames Director films a second: 4, as on Ken's TV previews and in the thesis's
+// flipbook, or 24, as the film was shot (ANINIT's running-color); each scene's pass 2
+// starts from where the last one's filming left the characters, so the two runs differ.
 export function makeFilm(fs, options = {}) {
   const steps = makeFilmSteps(fs, options);
   for (;;) {
@@ -348,7 +352,7 @@ export function makeFilm(fs, options = {}) {
 // The same, one step at a time: a generator that pauses after reporting each step's
 // progress and before running it, so a page can show the progress before the step
 // (up to a minute's work) holds it up.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, onPass1 = () => {}, onScene = () => {} } = {}) {
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, onPass1 = () => {}, onScene = () => {} } = {}) {
   let plan = null;
   if (description !== null) {
     const versions = fs.dirs.get("KEN")?.get("CINDY");
@@ -370,7 +374,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
       const { glass } = pass2(fs, scene, { plan });
       progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { film: f } = film(fs, scene, { plan, frames });
+      const { film: f } = film(fs, scene, { plan, frames, fps });
       done = { id: scene, film: f, glass };
     } catch (e) {
       if (!keepGoing) throw e;

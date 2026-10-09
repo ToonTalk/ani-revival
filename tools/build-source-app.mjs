@@ -8,6 +8,7 @@ import { gzipSync } from "node:zlib";
 import { decodeItsText } from "../src/its/text.js";
 import { ANI_FILES, DRIVER_FILES, DIRECTOR_FILES } from "../src/sources.js";
 import { definitions } from "./lisp-defs.mjs";
+import { fullPage } from "./page-shell.mjs";
 
 const DIRECTOR_NOTES = {
   "}^rsv.6": "Director's kernel: actors, sending messages, finding the method that matches, loading and saving. Recovered from an Emacs save file.",
@@ -73,8 +74,7 @@ export function buildSourceApp(root = ".", { contentOnly = null } = {}) {
     writeFileSync(contentOnly, content);
     return contentOnly;
   }
-  const page = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n` +
-    `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head>\n<body>\n${content}\n</body>\n</html>\n`;
+  const page = fullPage(content);
   writeFileSync(`${root}/app/source.html`, page);
   return `${root}/app/source.html`;
 }

@@ -16,13 +16,14 @@
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
 import { assembleBundle } from "./build-ani-bundle.mjs";
+import { fullPage } from "./page-shell.mjs";
 
 // Where in Ani's code each method, kind of task and plan is, for links into the code
 // page (app/source.html#<file>-<line>).
@@ -87,6 +88,34 @@ function vocabulary(root) {
   return words;
 }
 
+// A film packed for the page, which unpacks it as it loads: each character's segment
+// coordinates in tenths of a dot, as changes from that character's last frame (consecutive
+// frames differ little, so this gzips well), and a character's visibility, special
+// dynamics and goal only when they change (the page uses no more of the record).
+function packFilm(film) {
+  const last = {}, was = {};
+  const segs = [], chars = [];
+  for (const fr of film.frames) {
+    const s = {};
+    for (const [c, seg] of Object.entries(fr.segs)) {
+      const t = seg.map((v) => Math.round(v * 10));
+      const p = last[c];
+      s[c] = p && p.length === t.length ? ["d", ...t.map((v, k) => v - p[k])] : t;
+      last[c] = t;
+    }
+    segs.push(s);
+    const ch = {};
+    for (const [c, v] of Object.entries(fr.chars)) {
+      const now = [v.visible ? 1 : 0, v.dynamics, v.goal];
+      const key = JSON.stringify(now);
+      if (was[c] !== key) { ch[c] = now; was[c] = key; }
+    }
+    chars.push(ch);
+  }
+  const { frames, ...rest } = film;
+  return { ...rest, packed: { segs, chars } };
+}
+
 const SCENES = [
   ["introduction", "The Introduction"],
   ["kept-apart", "Kept Apart"],
@@ -100,13 +129,16 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const fs = makeProjectFileSystem(root);
   const cindy = fs.textOf(fs.find({ dir: "KEN", fn1: "CINDY", fn2: "46" }));
   const pass1 = JSON.parse(readFileSync(`${root}/app/data/pass1.json`, "utf8"));
+  const sceneData = (dir, glassDir) => SCENES.map(([id, title]) => ({
+    id,
+    title,
+    film: packFilm(JSON.parse(readFileSync(`${root}/${dir}/${id}.film.json`, "utf8"))),
+    glass: JSON.parse(readFileSync(`${root}/${glassDir}/${id}.glass.json`, "utf8")),
+  }));
   const data = {
-    scenes: SCENES.map(([id, title]) => ({
-      id,
-      title,
-      film: JSON.parse(readFileSync(`${root}/reports/film/${id}.film.json`, "utf8")),
-      glass: JSON.parse(readFileSync(`${root}/reports/pass2/${id}.glass.json`, "utf8")),
-    })),
+    scenes: sceneData("reports/film", "reports/pass2"),
+    // the same film at 24 frames a second, as it was shot (tools/run-film.mjs --fps 24)
+    scenes24: existsSync(`${root}/reports/film/24fps/justice.film.json`) ? sceneData("reports/film/24fps", "reports/film/24fps") : null,
     cindy,
     pass1: { cp29: pass1.cp29, choicePoints: pass1.choicePoints },
     code: codeIndex(root),
@@ -137,8 +169,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     writeFileSync(contentOnly, content);
     return contentOnly;
   }
-  const page = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n` +
-    `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head>\n<body>\n${content}\n</body>\n</html>\n`;
+  const page = fullPage(content);
   if (claudeArtifact) {
     // claude.ai refused pages over about 950 KB, and drops an inline script over about 1.2 MB
     const scripts = [...page.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => Buffer.byteLength(m[1]));

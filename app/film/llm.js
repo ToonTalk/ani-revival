@@ -150,18 +150,74 @@ ${compact ? cindyExample().replace(/^\s*;.*$/gm, "").replace(/\n{2,}/g, "\n") : 
 THE STORY:
 ${story.trim()}`;
 }
+const unhtml = (s) => String(s).replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
 function repairPrompt(problems) {
-  return `Ani's checker found these problems with that film description:\n${problems.map((p) => "- " + p.replace(/<[^>]+>/g, "")).join("\n")}\n\nReply with the whole corrected film description in one \`\`\`lisp code block, and nothing else.`;
+  return `Ani's checker found these problems with that film description:\n${problems.map((p) => "- " + unhtml(p)).join("\n")}\n\nReply with the whole corrected film description in one \`\`\`lisp code block, and nothing else.`;
 }
-// The Lisp in a reply: the fenced block, or else the reply from its first Lisp line on.
+// The Lisp in a reply: the fenced block (or, failing one, the reply from its first Lisp
+// line on), with the lines Ken's files always have written as he wrote them, and each
+// top-level form's parentheses balanced (small models drop a ")" or add one).
 function lispOf(reply) {
-  const fence = String(reply).match(/```(?:lisp|common-lisp|scheme)?\s*\n([\s\S]*?)```/i);
+  const fence = String(reply).match(/```(?:lisp|common-lisp|scheme)?[^\n]*\n([\s\S]*?)(?:```|$)/i);
   let text = fence ? fence[1] : String(reply);
   if (!fence) { const at = text.search(/^\s*(;;.*-\*-lisp|;;\s*cast:|\(include|\(define)/m); if (at > 0) text = text.slice(at); }
   text = text.replace(/\r/g, "").trim() + "\n";
-  if (!/\(include \|ai:ken;declar >\|\)/.test(text)) text = text.replace(/^((?:;.*\n)*)/, "$1\n(include |ai:ken;declar >|)\n\n");
-  if (!/\(compile-actors\)/.test(text)) text += "\n(compile-actors)\n";
-  return text;
+  text = text.replace(/^\(include\b.*$/m, "(include |ai:ken;declar >|)").replace(/^\(defcomment\b.*$/m, "(defcomment cindy) ;for tags")
+    .replace(/^\(declare\s+\(coutput\b.*$/m, "(declare (coutput (read)))").replace(/^\(compile-actors\b.*$/m, "(compile-actors)");
+  if (!/^\(include \|ai:ken;declar >\|\)/m.test(text)) text = text.replace(/^((?:;.*\n)*)/, "$1\n(include |ai:ken;declar >|)\n\n");
+  if (!/^\(compile-actors\)/m.test(text)) text += "\n(compile-actors)\n";
+  return balanceParens(text);
+}
+// Each top-level form is taken to start with "(" at the start of a line, as in Ken's files;
+// a form left open is closed at its last line of code, and extra ")"s at its end dropped.
+function balanceParens(text) {
+  const lines = text.split("\n");
+  const codeEnd = (line) => {
+    let inString = false, inBar = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === "/" && !inString) { i++; continue; }
+      if (c === '"' && !inBar) inString = !inString;
+      else if (c === "|" && !inString) inBar = !inBar;
+      else if (c === ";" && !inString && !inBar) return i;
+    }
+    return line.length;
+  };
+  const depthOf = (line) => {
+    let depth = 0, inString = false, inBar = false;
+    const end = codeEnd(line);
+    for (let i = 0; i < end; i++) {
+      const c = line[i];
+      if (c === "/" && !inString) { i++; continue; }
+      if (c === '"' && !inBar) inString = !inString;
+      else if (c === "|" && !inString) inBar = !inBar;
+      else if (!inString && !inBar) depth += c === "(" ? 1 : c === ")" ? -1 : 0;
+    }
+    return depth;
+  };
+  const starts = lines.map((l, k) => (l.startsWith("(") ? k : -1)).filter((k) => k >= 0);
+  let balanced = 0;
+  starts.forEach((s, i) => {
+    const e = i + 1 < starts.length ? starts[i + 1] : lines.length;
+    let depth = 0;
+    for (let k = s; k < e; k++) depth += depthOf(lines[k]);
+    if (!depth) return;
+    balanced++;
+    let k = e - 1;
+    while (k > s && !lines[k].slice(0, codeEnd(lines[k])).trim()) k--;
+    if (depth > 0) {
+      const at = codeEnd(lines[k]);
+      lines[k] = lines[k].slice(0, at).replace(/\s+$/, "") + ")".repeat(depth) + (at < lines[k].length ? " " + lines[k].slice(at) : "");
+    } else {
+      for (let extra = -depth; extra > 0 && k >= s; k--) {
+        const at = codeEnd(lines[k]);
+        let code = lines[k].slice(0, at).replace(/\s+$/, "");
+        while (extra > 0 && code.endsWith(")")) { code = code.slice(0, -1); extra--; }
+        lines[k] = code + lines[k].slice(at);
+      }
+    }
+  });
+  return { text: lines.join("\n"), balanced };
 }
 
 // ---- calling the models
@@ -243,14 +299,34 @@ const CALLS = {
     if (!json || !Array.isArray(json.content)) throw new Error("The answer couldn't be read. If you are signed out of claude.ai, sign in, then press your browser's reload button.");
     return json.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
   },
-  async nano(turns, { signal }) {
+  async nano(turns, { signal, onText }) {
     const LM = nanoApi();
     if (!LM) throw new Error("This browser has no built-in Gemini Nano (it needs desktop Chrome).");
-    const session = await LM.create({ ...NANO_OPTIONS, signal, monitor(m) { m.addEventListener("downloadprogress", (e) => setTellerStatus(`Chrome is downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`)); } });
+    // the conversation so far goes in as the session's opening prompts, as Agent Kit does
+    const initialPrompts = turns.slice(0, -1).map((t) => ({ role: t.role, content: t.content }));
+    const session = await LM.create({
+      ...NANO_OPTIONS, signal, ...(initialPrompts.length ? { initialPrompts } : {}),
+      monitor(m) { m.addEventListener("downloadprogress", (e) => setTellerStatus(`Chrome is downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`)); },
+    });
     try {
-      const earlier = turns.slice(0, -1).map((t) => ({ role: t.role, content: t.content }));
-      if (earlier.length) await session.append(earlier);
-      return String(await session.prompt(turns[turns.length - 1].content, { signal }));
+      const last = turns[turns.length - 1].content;
+      if (typeof session.measureInputUsage === "function" && session.inputQuota) {
+        const need = await session.measureInputUsage(last).catch(() => 0);
+        const room = session.inputQuota - (session.inputUsage || 0);
+        if (need > room) throw new Error(`That's more than Gemini Nano can read at once (${need} tokens, with room for ${room}). Try a shorter story, or another model.`);
+      }
+      if (typeof session.promptStreaming !== "function") return String(await session.prompt(last, { signal }));
+      const reader = session.promptStreaming(last, { signal }).getReader();
+      let text = "";
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = String(value);
+        // older Chrome sent the whole answer so far each time, newer sends only the new part
+        text = text && chunk.startsWith(text) ? chunk : text + chunk;
+        if (onText) onText(text);
+      }
+      return text;
     } finally { try { session.destroy(); } catch { /* gone */ } }
   },
 };
@@ -350,28 +426,36 @@ async function draftStory({ repair = null } = {}) {
   refreshTeller({ keepInputs: true });
   const result = document.getElementById("tell-result");
   const t0 = Date.now();
-  const tick = setInterval(() => setTellerStatus(`${PROVIDERS[id].label} is writing… ${clock(Date.now() - t0)}`), 1000);
-  setTellerStatus(`${PROVIDERS[id].label} is writing…`);
+  const doing = `${PROVIDERS[id].label} is ${repair ? "fixing the film description" : "writing the film description"}`;
+  result.innerHTML = `<div class="draft"><p class="note" id="tell-working">${esc(doing)}…</p><pre class="lisp" id="tell-stream" hidden></pre><div class="actions"><button type="button" class="linkish" id="tell-stop-here">Stop</button></div></div>`;
+  result.querySelector("#tell-stop-here").addEventListener("click", () => ctl.abort());
+  result.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  const say = (text) => { setTellerStatus(text); const w = document.getElementById("tell-working"); if (w) w.textContent = text; };
+  const tick = setInterval(() => say(`${doing}… ${clock(Date.now() - t0)}`), 1000);
+  say(`${doing}…`);
   try {
     const turns = repair
       ? [...repair.turns, { role: "assistant", content: repair.reply }, { role: "user", content: repairPrompt(repair.problems) }]
       : [{ role: "user", content: storyPrompt(story, { compact: id === "nano" }) }];
-    const reply = await CALLS[id](turns, { signal: ctl.signal, onText: (text) => { if (result) result.innerHTML = `<pre class="lisp">${esc(text.slice(-1500))}</pre>`; } });
+    const reply = await CALLS[id](turns, { signal: ctl.signal, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = text.slice(-1500); } } });
     if (!String(reply).trim()) throw new Error("The model sent back an empty answer.");
-    const text = lispOf(reply);
+    const { text, balanced } = lispOf(reply);
     const { problems } = checkStory(text);
-    teller.draft = { text, reply, turns, problems, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
-    setTellerStatus(`${PROVIDERS[id].label} wrote it in ${clock(Date.now() - t0)}.`);
+    teller.draft = { text, reply, turns, problems, balanced, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
+    say(`${PROVIDERS[id].label} ${repair ? "fixed" : "wrote"} it in ${clock(Date.now() - t0)}.`);
     showDraft();
   } catch (e) {
-    setTellerStatus(e.kind === "stopped" || e.kind === "cancelled" || (ctl.signal.aborted) ? "Stopped." : `It didn't work: ${e.message || e}`);
+    const why = e.kind === "stopped" || e.kind === "cancelled" || ctl.signal.aborted ? "Stopped." : `It didn't work: ${e.message || e}`;
+    say(why);
+    if (teller.draft) showDraft(why);
+    else result.innerHTML = `<p class="problems">${esc(why)}</p>`;
   } finally {
     clearInterval(tick);
     teller.busy = null;
     refreshTeller({ keepInputs: true });
   }
 }
-function showDraft() {
+function showDraft(failure = null) {
   const result = document.getElementById("tell-result");
   const d = teller.draft;
   if (!result || !d) return;
@@ -380,7 +464,10 @@ function showDraft() {
   const scenes = Object.keys(story.scenes);
   result.innerHTML = `
     <div class="draft">
-      <p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b>: ${esc(words(cast.map((c) => nameOf(story, c))))}. <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>: ${esc(words(scenes.map((s) => titleOf(story, s))))}.</p>
+      ${failure ? `<p class="problems">${esc(failure)}</p>` : ""}
+      ${story.error ? `<p><b>Ani can't read this film description yet.</b></p>`
+        : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b>: ${esc(words(cast.map((c) => nameOf(story, c))))}. <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>: ${esc(words(scenes.map((s) => titleOf(story, s))))}.</p>`}
+      ${d.balanced ? `<p class="note">The model left the parentheses of ${d.balanced} form${d.balanced === 1 ? "" : "s"} unbalanced; the page balanced them, closing each form at its last line.</p>` : ""}
       ${problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : `<p class="note">Ani's checks find nothing wrong.</p>`}
       ${notes.length ? `<ul class="changes note">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
       <div class="actions">

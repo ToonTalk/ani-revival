@@ -102,7 +102,8 @@ try {
       await new Promise((r) => setTimeout(r, 30));
       document.querySelector('#runbar [data-view="1"]').click();
       await new Promise((r) => setTimeout(r, 30));
-      out.push(Number(document.getElementById("frame-label").textContent.split("/")[1]));
+      // the label shows seconds; a re-run is at 4 frames a second unless asked for 24
+      out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
     }
     document.querySelector('#runbar [data-view="both"]').click();
     return out;
