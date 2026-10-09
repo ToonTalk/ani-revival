@@ -97,6 +97,8 @@
   - Ani makes the same choices in every scene. Where the characters start each scene differs from No Longer Kept Apart on, because the two filmings leave them in different places. So the 24 and the 4 are different runs of the same plans, which may be why the film and the flipbook never match frame for frame.
   - The film page shows the 1978 film at 24 frames a second by default, with a switch to 4; playing goes by the clock, so films of either rate play side by side. Re-runs offer both (24 takes about six times as long to make). Videos are saved at the finest rate shown.
   - The page carries both runs packed (segments as changes from the frame before, in tenths of a dot; a character's dynamics only when they change): 226 KB for all ten scenes, against 600 KB for the 4-frame run alone unpacked.
+- **The narration (9 October).** The 1978 film's soundtrack is your spoken narration. `bash tools/clean-narration.sh` takes out the hum, the 1,636 Hz whistle, a band near 800 Hz and the projector's 24-a-second clatter (speech now stands 9 to 15 dB above the pauses, against 4.6). `node tools/render-film-video.mjs` then `python -I tools/narrate-film.py` lay it onto our 24-frames-a-second film in color, shot by shot: you spoke a line as each shot began, and Kept Apart and No Longer Kept Apart last 29.2 and 4.7 seconds in both films. See `reports/film/README.md`.
+- **Phase 9, under way (9 October): Chapter X as switchable extensions.** The plan, from four designs and their adversarial reviews, is `reports/chapter-x/PLAN.md`. Each extension is Lisp in its own `REVIVE;` file, written in your idioms so the glass box explains it; "Ani as in 1978" stays byte-identical, checked by `tools/check-1978.mjs`. Stages: 0, the switch and the 1978 check; 1, MEND (repairs for the failures new stories hit); 2 and 5, APPEAR (Ani chooses shapes, sizes and colors, and changes them); 3 and 6, CHANGE (characters who change); 4, KNOW (more words, relationships, ways of showing, feelings); 7, SLIPS and DETAIL. The mini-Ani is an Agent Kit example.
 - **The site (9 October):** https://toontalk.github.io/ani/, the ToonTalk/ani repository (in `Documents\GitHub\ani`), served by GitHub Pages from `main`. `node tools/build-site.mjs <folder>` builds it: the film page as `index.html`, the code and choice-point pages, and the claude.ai copy with its code links pointing at the site.
   - **Publishing:** a private claude.ai artifact, https://claude.ai/artifact/Mzd3BBMGbn9Qs2AcyojhmM: the film page, with the code and choice-point pages beside it. It declares `sample`, so a new story is drafted by Claude on the viewer's own account with no key, and `downloads`, for saving films; the page runs Ani in a worker there. The bundled pages carry only code and the film description; every comment and string in the bundled files was read before the first publish. It is shared from the page's Share menu. The claude.ai chat copy is `artifact/ani-cinderella-claude-artifact.html`, and is also on the site.
 
@@ -284,6 +286,12 @@ Each phase ends with something you can look at.
   - non-narrative animation
 - We decide on this after Phase 6.
 
+
+### Phase 9: Chapter X as switchable extensions
+- The plan: `reports/chapter-x/PLAN.md`, with the four designs and their reviews beside it.
+- Items from Chapter X: Ani chooses appearances (A.1); appearances change during a film (A.2); characters change (A.3); a bigger and better knowledge base, and attention to details (item 4). Critics and criticism, and how Ani evolves, wait; a general theory of aesthetics is out of reach.
+- A mini-Ani for the Agent Kit, as an example society of program agents with films in Logo.
+- *Done when:* each stage's extension can be switched on in the page, the glass box explains what it did, and with every extension off `tools/check-1978.mjs` still finds the 1978 film exactly.
 ## Tests we can trust
 
 1. `cp.29`: exact.
