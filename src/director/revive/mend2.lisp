@@ -31,6 +31,10 @@
 ;;;    reads, because pass 2 also reads choices themselves, as faster's prerequisite
 ;;;    compares two speeds (prereq.19:31-38), and the special dynamics it saves in
 ;;;    the program Director runs carry them (run.65:113-117).
+;;;    Only in pass 2. The hook fires whenever KEN;CP loads, and a pass-1 job may load
+;;;    it too, as CHANGE's fresh look is to (reports/chapter-x/PLAN.md, item 3), where
+;;;    none is pass 1's own value. So it acts only in RUN's job: only when
+;;;    :choice-points-loaded, which RUN sets when it loads (run.65:29, 44-45), is bound.
 ;;;  - weightify, wherever INTERF loads (pass 2 and Director), reads none, and a
 ;;;    (not X) that REVIVE;MEND1 didn't narrow, as medium, where Ken's would stop
 ;;;    (shouldnt-happen, interf.149:903-904). It notes what it read on :self, the
@@ -59,7 +63,9 @@
 	     ;;newest first, so reversed into the CP's order
 	     (reverse (ask absolute-choice-point recall your offspring)))))
 
-(+after-load '|ken;cp >| '(read-given-up-values-as-medium))
+;; Only in pass 2, RUN's job (see above).
+(+after-load '|ken;cp >|
+  '(and (boundp ':choice-points-loaded) (read-given-up-values-as-medium)))
 
 ;; weightify reading none, or a (not X) left, as medium.
 (defun weightify-reading-none-as-medium (value)

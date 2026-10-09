@@ -8,13 +8,20 @@
 ;;; (node tools/check-1978.mjs --extensions mend).
 ;;;
 ;;; The repair. friend-of, enemy-of and stranger-of take the first sibling that fits,
-;;; anywhere (sugest.123:329, 349-395). They look first among everyone named in any of
-;;; the scene's task descriptions (SCENE records scene participation only for each
-;;; task's subject, scene.9:463-465); if no one in the scene fits, the 1978 pick
-;;; stands. And an off-stage victim of move-to-and-hits, chases-to or pushes-around is
-;;; brought on with Ken's getting-on-stage step from goes-to-and-accompanys
-;;; (disply.311:192-209), the walk counted in the estimate (disply.311:177-184).
-;;; REVIVE;MEND5's move-to brings on the one it meets the same way.
+;;; anywhere (sugest.123:329, 349-395). They look first among those who take part in
+;;; the scene, by Ken's own test (sugest.123:333-335), and then among everyone else
+;;; named in any of the scene's task descriptions (SCENE records scene participation
+;;; only for each task's subject, scene.9:463-465); if no one in the scene fits, the
+;;; 1978 pick stands. And an off-stage victim of move-to-and-hits, chases-to or
+;;; pushes-around is brought on with Ken's getting-on-stage step from
+;;; goes-to-and-accompanys (disply.311:192-209), the walk counted in the estimate
+;;; (disply.311:177-184). REVIVE;MEND5's move-to brings on the one it meets the same
+;;; way. Whether someone will be brought on in a scene's first subscene is read, while
+;;; Ani chooses, from where the last scene left everyone (its POSIT file), so the time
+;;; the task is allotted includes the walk; elsewhere it is known only when the
+;;; subscene runs its methods, and an estimate made again then is not let take the
+;;; subscene's stretch below .125, where Ken warns (scene.9:168). The estimate says
+;;; whether it counted a bringing on, and the run compares.
 
 ;;; ------------------------------------------------- 1. in the scene first
 
@@ -22,10 +29,12 @@
 ;; (hurts ,character (character-that-satisfies (enemy-of ,character nil))) (dscrp.17:
 ;; 171-172). Ken: "of course first is a stupid way of doing it (should really take many
 ;; things into account)" (sugest.123:329). So, for the task being given its suggestions,
-;; a character named in the scene comes first. Who is in the scene is read from the
-;; scene's task descriptions: SCENE memorizes scene-participation only for a task's
-;; subject, "what about other participents?" (scene.9:463-465), so the victim of
-;; (accompanys troll kid) would not count.
+;; a character in the scene comes first. Ken's own test of that is the one his
+;; first-sibling-that-satisfies makes, (scene-participation: scene ,scene task ?)
+;; (sugest.123:333-335), and it comes first here too. But SCENE memorizes
+;; scene-participation only for a task's subject, "what about other participents?"
+;; (scene.9:463-465), so the victim of (accompanys troll kid) would not count; after
+;; those who take part come the others named in the scene's task descriptions.
 ;;
 ;; character-that-satisfies is given the task as its "scene": an establish task asks
 ;; for its suggestions with itself (scene.9:378-381), and establish-suggestions hands
@@ -57,28 +66,46 @@
 	((atom form) (list form))
 	(t (append (atoms-named-in (car form)) (atoms-named-in (cdr form))))))
 
-;; The siblings left to look at in the scene. Ken's loop has gone through the
-;; character's siblings in order and stopped at its pick; any sibling in the scene
-;; before the pick has failed already. So there are none left if there is no task, or
-;; Ken's loop found no one, or found someone in the scene (who is then the first in
-;; the scene to fit too); otherwise they are the siblings after the pick who are named
-;; in the scene, in Ken's order.
+;; Whether sibling takes part in the scene, by Ken's test (sugest.123:333-335).
+(defun takes-part-in? (sibling scene)
+  (ask ,sibling recall if any items match (scene-participation: scene ,scene task ?)))
+
+;; The siblings left to look at in the scene, in two passes: first those who take part
+;; in it, then the others named in it, each in Ken's order. Ken's loop has gone through
+;; the character's siblings in order and stopped at its pick; any sibling before the
+;; pick has failed already. So there are none left if there is no task, or Ken's loop
+;; found no one, or found someone who takes part in the scene (who is then the first of
+;; those to fit too). Otherwise they are the siblings after the pick who take part in
+;; the scene, and then, unless the pick is named in the scene (and so the first named
+;; to fit), the siblings after it who are only named there.
 (defun siblings-in-the-scene-after (character as-in-1978)
   (let ((task :revival-generator-task))
        (cond ((or (null task) (equal as-in-1978 '(no such character exists))) nil)
-	     (t (let ((named (named-in-the-scene-of task)))
-		     (cond ((memq as-in-1978 named) nil)
-			   (t (mapcan (function
-				       (lambda (sibling)
-					       (and (memq sibling named) (list sibling))))
-				      (rest (memq as-in-1978
-						  (ask ,character recall your siblings)))))))))))
+	     (t (let ((scene (or (ask ,task recall your scene) task))
+		      (named (named-in-the-scene-of task))
+		      (after (rest (memq as-in-1978 (ask ,character recall your siblings)))))
+		     (cond ((takes-part-in? as-in-1978 scene) nil)
+			   (t (append
+			       (mapcan (function
+					(lambda (sibling)
+						(and (takes-part-in? sibling scene) (list sibling))))
+				       after)
+			       (and (not (memq as-in-1978 named))
+				    (mapcan (function
+					     (lambda (sibling)
+						     (and (memq sibling named)
+							  (not (takes-part-in? sibling scene))
+							  (list sibling))))
+					    after))))))))))
 
 (defun picked-in-the-scene-first (as-in-1978 sibling)
   (let ((task :revival-generator-task))
-       (revival-note task 'in-scene-first as-in-1978 sibling
-		     (list 'named-in (or (ask ,task recall your scene) task)))
-       sibling))
+       (let ((scene (or (ask ,task recall your scene) task)))
+	    (revival-note task 'in-scene-first as-in-1978 sibling
+			  (list (cond ((takes-part-in? sibling scene) 'takes-part-in)
+				      (t 'named-in))
+				scene))
+	    sibling)))
 
 ;; enemy-of: "either hates it or is hated by" (sugest.123:373-395). Ken's test, on the
 ;; siblings left in the scene.
@@ -169,9 +196,11 @@
   (let ((where (location-of character subscene)))
        (cond ((eq (first where) 'missing-location-of) nil)
 	     ((off-stage-position? where))
-	     (t (let ((xy (find-xy-position where subscene)))
-		     (and (eq (first xy) 'xy-position)
-			  (not (and (< (abs (second xy)) .5) (< (abs (third xy)) .5)))))))))
+	     (t (off-the-stage-at? (find-xy-position where subscene))))))
+
+(defun off-the-stage-at? (xy)
+  (and (eq (first xy) 'xy-position)
+       (not (and (< (abs (second xy)) .5) (< (abs (third xy)) .5)))))
 
 (defun off-stage-position? (where)
   (cond ((atom where) nil)
@@ -182,10 +211,38 @@
 				 good-distance-from-and-offstage)))))
 
 ;; Whether other starts the subscene off the stage, or will be placed off it as above.
+;; In a scene's first subscene, before RUN has given anyone a place there, where the
+;; last scene left them is where they will start (where-the-last-scene-left, below).
 (defun starts-off-the-stage? (other character subscene)
   (cond ((located? '(vicinity-of ,other) subscene) (off-the-stage? other subscene))
-	(t (and (located? '(vicinity-of ,character) subscene)
-		(not (eq (ask ,subscene recall your transition-type) 'cut))))))
+	(t (let ((left-at (where-the-last-scene-left other subscene)))
+		(cond (left-at (off-the-stage-at? left-at))
+		      (t (and (or (located? '(vicinity-of ,character) subscene)
+				  (where-the-last-scene-left character subscene))
+			      (not (eq (ask ,subscene recall your transition-type) 'cut)))))))))
+
+;; Where the last scene left character, if subscene is the first of its scene: the
+;; xy-position the POSIT file of its filming gives, or nil. ANINIT's save-positions
+;; writes a form for each character, (ask (subscene-of `scene 1) set your (location-of
+;; ,character) to (place: where ,xy-position why ... status cool)) (aninit.65:158-175),
+;; and RUN loads the file into the first subscene, but only once the scene has chosen
+;; its values (run.65:49-53). Ani estimates while she chooses, so this reads the file
+;; itself; when the subscene runs its methods, everyone it names has a place.
+(defun where-the-last-scene-left (character subscene)
+  (let ((order (ask ,subscene recall your order-in-scene)))
+       (let ((posit-file (and (numberp order)
+			      (= order 1)
+			      (get (ask ,subscene recall your scene) 'position-file))))
+	    (and posit-file
+		 (probef posit-file)
+		 (let ((file (open posit-file 'in))
+		       (location '(location-of ,character)))
+		      (do ((form (read file nil) (read file nil))
+			   (where nil))
+			  ((null form) (close file) where)
+			  (let (((nil nil nil nil variable nil place) form))
+			       (and (equal variable location)
+				    (setq where (get place 'where))))))))))
 
 ;; Ken's getting-on-stage step (disply.311:192-203), planned for other coming on towards
 ;; character, as said above. Returns its plan. method is what needs other on the
@@ -234,28 +291,72 @@
 	     (t (*$ .5 .33)))))
 
 ;; A method's estimate, with the getting-on-stage first if other starts off the stage.
+;; An estimate that counts it says so, (time-estimates: ... bringing-on ,other); Ken's
+;; read only ideal, least and most (place.45:348-373, chomet.123:114, 126-127, 392-396).
 (defun plus-time-to-bring-on (other character subscene estimates)
   (cond ((starts-off-the-stage? other character subscene)
-	 (add-time-estimates (time-to-get-on-stage other character subscene) estimates))
+	 (append (add-time-estimates (time-to-get-on-stage other character subscene)
+				     estimates)
+		 (list 'bringing-on other)))
 	(t estimates)))
 
 ;; Ani estimates while she chooses methods (get-estimated-time-of, chomet.123:448-460;
 ;; ideal-time-for-task, chomet.123:95-116), before any subscene is planned and before RUN
 ;; loads where the last scene left everyone (run.65:47-53): no one has a place then, and
-;; Ken's estimates use their defaults. The subscene remembers each estimate
-;; (disply.311:12-16) and stretches its methods by the time it is allotted over the
-;; longest of them, when it runs them (run your methods, scene.9:159-197); by then the
-;; places are known. So there a method that will bring someone on is estimated again,
-;; with the walk counted, rather than remembered.
+;; Ken's estimates use their defaults. Whether someone will be brought on is known then
+;; only in a scene's first subscene, from the last scene's POSIT file. The subscene
+;; remembers each estimate (disply.311:12-16) and stretches its methods by the time it
+;; is allotted over the longest of them, when it runs them (run your methods,
+;; scene.9:159-197); by then the places are known. So there an estimate that assumed
+;; otherwise about bringing someone on is made again; the others are remembered, as in
+;; 1978. Each method's run then finds its estimate's assumption (brings-on?, below).
 (defun maximum-ideal-time-of-counting-bringing-on (methods subscene)
-  (mapc (function
-	 (lambda (method)
-		 (let ((who (mover-and-other-of method)))
-		      (and who
-			   (starts-off-the-stage? (second who) (first who) subscene)
-			   (ask ,subscene forget your (time-estimates-for ,method))))))
-	methods)
-  (funcall (revival-wrapped 'maximum-ideal-time-of 'mend6) methods subscene))
+  (let ((to-estimate-again
+	 (mapcan (function
+		  (lambda (method)
+			  (and (assumed-otherwise? method subscene) (list method))))
+		 methods)))
+       (cond ((null to-estimate-again)
+	      (funcall (revival-wrapped 'maximum-ideal-time-of 'mend6) methods subscene))
+	     (t (let ((as-remembered
+		       (funcall (revival-wrapped 'maximum-ideal-time-of 'mend6) methods subscene)))
+		     (mapc (function
+			    (lambda (method)
+				    (ask ,subscene forget your (time-estimates-for ,method))))
+			   to-estimate-again)
+		     (stretched-no-less-than-ken-warns
+		      (funcall (revival-wrapped 'maximum-ideal-time-of 'mend6) methods subscene)
+		      as-remembered
+		      subscene))))))
+
+;; Whether the remembered estimate of a method that may bring someone on assumed
+;; otherwise than where everyone is now says.
+(defun assumed-otherwise? (method subscene)
+  (let ((who (mover-and-other-of method)))
+       (and who
+	    (not (eq (not (starts-off-the-stage? (second who) (first who) subscene))
+		     (not (bringing-on-assumed method subscene)))))))
+
+;; Whom the remembered estimate of method counted bringing on, if anyone.
+(defun bringing-on-assumed (method subscene)
+  (get (ask ,subscene recall your (time-estimates-for ,method)) 'bringing-on))
+
+;; A walk counted only when the subscene runs its methods can't lengthen the time the
+;; subscene was allotted, only quicken its methods: run your methods divides that time
+;; by the longest estimate, and warns below .125 (scene.9:161-169). The longest estimate
+;; made again is kept to eight times the time allotted, a stretch of .125, unless the
+;; estimates as remembered, Ken's, were longer still; with a note if it is cut.
+(defun stretched-no-less-than-ken-warns (estimated-again as-remembered subscene)
+  (let ((allotted (float (ask ,subscene recall your running-time))))
+       (let ((longest (max as-remembered (*$ 8.0 allotted))))
+	    (cond ((and (> allotted 0.0) (> estimated-again longest))
+		   (revival-note subscene 'least-stretch
+				 (//$ allotted estimated-again)
+				 (//$ allotted longest)
+				 '(bringing on counted only when places are known
+				   and ken warns below 0.125))
+		   longest)
+		  (t estimated-again)))))
 
 ;; Who moves and who may have to be brought on, in a method that brings someone on.
 (defun mover-and-other-of (method)
@@ -266,6 +367,20 @@
 
 (+after-load '|ken;scene >|
   '(revival-wrap 'maximum-ideal-time-of 'mend6 'maximum-ideal-time-of-counting-bringing-on))
+
+;; Whether a method brings other on, when it runs: whether she starts off the stage as
+;; the method finds the subscene. That is what its estimate assumed when the subscene
+;; worked out its stretch, unless a method run before it in the subscene has placed
+;; someone since; then a note says that the stretch assumed otherwise.
+(defun brings-on? (other character subscene method)
+  (let ((now (starts-off-the-stage? other character subscene))
+	(assumed (bringing-on-assumed method subscene)))
+       (or (eq (not now) (not assumed))
+	   (revival-note subscene 'bringing-on-assumed
+			 (cond (assumed (list other 'brought-on)) (t (list other 'not-brought-on)))
+			 (cond (now (list other 'brought-on)) (t (list other 'not-brought-on)))
+			 (list 'placed-since-the-stretch-for method)))
+       now))
 
 ;; Ken's run adds its movement to the subscene's movements (SOME's "add ... to your
 ;; list of" puts it first); the bringing on is run before it, as a sequence:.
@@ -286,7 +401,7 @@
 	 (ask-old :self estimate time for move-to-and-hits ,character ,victum in ,subscene)))
        (define-extension-method
 	(run move-to-and-hits ?character ?victum in ?subscene stretched by ?factor) move-to-and-hits
-	(cond ((starts-off-the-stage? victum character subscene)
+	(cond ((brings-on? victum character subscene '(move-to-and-hits ,character ,victum))
 	       (initial-locations-for-goes-to-and-hits character victum subscene)
 	       (let ((plan (bring-on victum character factor subscene 'move-to-and-hits)))
 		    (ask-old :self run move-to-and-hits ,character ,victum
@@ -301,7 +416,7 @@
 	 (ask-old :self estimate time for chases-to ,chaser ,chasee ,destination in ,subscene)))
        (define-extension-method
 	(run chases-to ?chaser ?chasee ?destination in ?subscene stretched by ?factor) chases-to
-	(cond ((starts-off-the-stage? chasee chaser subscene)
+	(cond ((brings-on? chasee chaser subscene '(chases-to ,chaser ,chasee ,destination))
 	       (initial-locations-for-chases-to chaser chasee destination subscene)
 	       (let ((plan (bring-on chasee chaser factor subscene 'chases-to)))
 		    (ask-old :self run chases-to ,chaser ,chasee ,destination
@@ -316,7 +431,7 @@
 	 (ask-old :self estimate time for pushes-around ,pusher ,pushee in ,subscene)))
        (define-extension-method
 	(run pushes-around ?pusher ?pushee in ?subscene stretched by ?factor) pushes-around
-	(cond ((starts-off-the-stage? pushee pusher subscene)
+	(cond ((brings-on? pushee pusher subscene '(pushes-around ,pusher ,pushee))
 	       (initial-locations-for-pushes-around pusher pushee subscene)
 	       (let ((plan (bring-on pushee pusher factor subscene 'pushes-around)))
 		    (ask-old :self run pushes-around ,pusher ,pushee

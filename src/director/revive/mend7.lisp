@@ -87,13 +87,14 @@
        (null (get method 'display))
        (get method 'value)))
 
-;; The suggestion with its change under display in place of value, for COSUG. The
-;; change itself is the same list, not a copy.
+;; The suggestion with its change under display in place of value, for COSUG: a new
+;; suggestion, so that the one SUGEST collected is left as it was, and the pairs below
+;; tell them apart. The change itself is the same list, not a copy.
 (defun change-suggestion-for-cosug (suggestion)
   (cond ((change-under-value? (get suggestion 'value))
-	 (replaceprop suggestion
-		      (indicator-renamed (get suggestion 'value) 'value 'display)
-		      'value))
+	 (property-replaced-in-a-copy suggestion
+				      (indicator-renamed (get suggestion 'value) 'value 'display)
+				      'value))
 	(t suggestion)))
 
 ;; What COSUG made of the suggestions, with the change under value again: a merged
@@ -107,10 +108,11 @@
 	       (mapcar (function (lambda (c) (changes-combined-in-todays-format c pairs)))
 		       (rest combined))))
 	((eq (first combined) 'conflict:)
-	 (replaceprop combined
-		      (mapcar (function (lambda (s) (change-suggestion-in-todays-format s pairs)))
-			      (get combined 'offenders))
-		      'offenders))
+	 (property-replaced-in-a-copy
+	  combined
+	  (mapcar (function (lambda (s) (change-suggestion-in-todays-format s pairs)))
+		  (get combined 'offenders))
+	  'offenders))
 	((eq (first combined) 'suggestion:)
 	 (change-suggestion-in-todays-format combined pairs))
 	(t combined)))
@@ -124,15 +126,28 @@
        (cond ((cdr (assq suggestion pairs)))
 	     ((atom value) suggestion)
 	     ((eq (first value) 'method:)
-	      (replaceprop suggestion (indicator-renamed value 'display 'value) 'value))
+	      (property-replaced-in-a-copy suggestion
+					   (indicator-renamed value 'display 'value)
+					   'value))
 	     ((eq (first value) 'change-to:)
-	      (replaceprop suggestion
-			   '(method: type display-value-change value ,value)
-			   'value))
+	      (property-replaced-in-a-copy suggestion
+					   '(method: type display-value-change value ,value)
+					   'value))
 	     (t suggestion))))
 
-;; A copy of plist (a name, then indicators and values, as Ani's items are) with the
-;; indicator old renamed new, in the same place.
+;; A copy of plist (a name, then indicators and values, as Ani's items are) with
+;; indicator's value replaced by value, in the same place; plist is left as it was.
+;; Ken's code has replaceprop for this (cosug.215:74-81, 88; sugest.123:266-270), but
+;; KEN1's replaceprop is rebuilt from those uses and may not be his on this point
+;; (src/director/ken1/util.lisp: "VERIFY: copy or in place"), and these must be copies.
+(defun property-replaced-in-a-copy (plist value indicator)
+  (do ((p (rest plist) (rest (rest p)))
+       (copy (list (first plist))))
+      ((null p) (nreverse copy))
+      (setq copy (cons (cond ((eq (first p) indicator) value) (t (second p)))
+		       (cons (first p) copy)))))
+
+;; A copy of plist with the indicator old renamed new, in the same place.
 (defun indicator-renamed (plist old new)
   (do ((p (rest plist) (rest (rest p)))
        (copy (list (first plist))))
