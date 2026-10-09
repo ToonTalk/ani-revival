@@ -19,6 +19,14 @@ tapes, on Director and a MacLisp interpreter rebuilt for the revival, in your br
 - **Tell Ani a new story**: a language model (Claude, ChatGPT or Gemini with your own
   key, or Gemini Nano built into Chrome) puts it into Ken's notation, using only the
   words Ani knows, and Ani plans and films it.
+- **Ani as in 1978, or with the revival's repairs**: the films you make are made by Ani
+  as Ken left her, unless you switch on the revival's repairs (MEND). Where Ani as in
+  1978 stops on a story Ken never gave her (a word she doesn't know, a pair of characters
+  with no relationship, a way of moving she gave up on, ...), the page says why and offers
+  to make it again with the repairs; the glass box then says, one plain sentence each,
+  what each repair did, with a link to its code. The repairs are the revival's Lisp, in
+  Ken's idioms, in files of their own, and change nothing in his Cinderella, which is
+  always shown as it was made.
 - **Save films** as videos, or as film files that open here again with all of Ani's
   reasons.
 - **Read the code**: [Ani's Code](https://toontalk.github.io/ani/source.html), every

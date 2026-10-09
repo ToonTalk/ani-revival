@@ -1,8 +1,13 @@
 // Check the film page (app/film.html) end to end in headless Chrome: it boots, the
 // editor makes a change ("A kind stepmother"), Ani makes the whole film again in the
 // page's worker, the frame counts match what Node makes of the same story, the glass
-// box opens on the new film, and the new film comes back after a reload.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about four minutes)
+// box opens on the new film, and the new film comes back after a reload. And the switch
+// for the films made here: it opens on "Ani as in 1978" and is kept in this browser; a
+// new story that Ani as in 1978 stops on (test/stories/tortoise-and-hare.lisp, as the
+// model's reply) is explained, with "Make it again with the revival's repairs", which
+// makes it with MEND, and the glass box then says in plain English what each repair
+// did; and Ken's 1978 film is as it was throughout.
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about seven minutes)
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -16,6 +21,10 @@ import { join, extname, normalize } from "node:path";
 
 // the kind stepmother's film, as tools/run-pass2.mjs and run-scene.mjs (or src/pipeline.js) make it in Node
 const EXPECTED_LAST_FRAMES = [78, 133, 40, 200, 94];
+// the tortoise and the hare with the revival's repairs: The Boast and The Race film in 187
+// and 108 frames (node tools/run-story.mjs test/stories/tortoise-and-hare.lisp --extensions
+// mend; test/stories/stress/README.md), so they end at frames 186 and 107
+const EXPECTED_MENDED_LAST_FRAMES = [186, 107];
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
@@ -91,6 +100,39 @@ try {
   })()`);
   check(errors.length === 0 && /^0\.0 \//.test(played), "Play from the start of each scene, twenty times, without an error");
   await shot("1-film.png");
+  // Ken's 1978 film, as shipped: each scene's length and the first caption, to compare at the end
+  const film1978 = () => js(`(async () => {
+    document.querySelector('#runbar [data-view="0"]').click();
+    const out = [];
+    for (const b of document.querySelectorAll("#scenes button")) {
+      b.click();
+      await new Promise((r) => setTimeout(r, 30));
+      out.push(document.getElementById("frame-label").textContent.split("/")[1].trim());
+    }
+    document.querySelector("#scenes button").click();
+    await new Promise((r) => setTimeout(r, 30));
+    return out.join(" ") + " | " + document.getElementById("caption-0").innerText;
+  })()`);
+  const shipped = await film1978();
+
+  // the switch for the films made here: "Ani as in 1978" at first, kept in this browser
+  const pressed = () => js(`[...document.querySelectorAll("#side [data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join()`);
+  await js(`document.getElementById("open-editor").click()`);
+  await sleep(200);
+  const first = await pressed();
+  const panel = await js(`(() => { const p = document.querySelector("#side .ext-panel"); return p ? (p.open ? "open" : "closed") + " " + p.textContent : "none"; })()`);
+  await js(`document.querySelector('#side [data-mode="revival"]').click()`);
+  await open();
+  await js(`document.getElementById("open-editor").click()`);
+  await sleep(200);
+  const kept = await pressed();
+  await js(`document.querySelector('#side [data-mode="1978"]').click()`);
+  await sleep(100);
+  const back = await pressed();
+  await js(`document.getElementById("ed-close").click()`);
+  await sleep(200);
+  check(first === "1978" && kept === "revival" && back === "1978", `the switch opens on "Ani as in 1978" and is kept in this browser (${first}, after a reload ${kept}, then ${back})`);
+  check(/^closed /.test(panel) && /MEND/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs");
 
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
@@ -173,6 +215,93 @@ try {
   check(drafted.asked === "claude-sonnet-5-5" && drafted.prompt > 5000, `the story goes to the model with Ani's vocabulary (${drafted.prompt} characters to ${drafted.asked})`);
   check(/4 characters/.test(drafted.result) && /nothing wrong/.test(drafted.result), "the drafted description passes Ani's checks");
   check(/Red Riding Hood/.test(drafted.editor) && drafted.make, "the editor shows the new cast, ready to make the film");
+
+  // a new story Ani as in 1978 stops on: the model's reply is stood in for again
+  // (test/stories/tortoise-and-hare.lisp), and Ani makes it in 1978 mode
+  await open();
+  const asked = await js(`(async () => {
+    const lisp = await (await fetch("/test/stories/tortoise-and-hare.lisp")).text();
+    const real = window.fetch;
+    let prompt = null;
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      prompt = JSON.parse(opts.body).messages[0].content;
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "\`\`\`lisp\\n" + lisp + "\\n\`\`\`" }] }), { status: 200 });
+    };
+    document.getElementById("open-teller").click();
+    await new Promise((r) => setTimeout(r, 200));
+    const side = document.getElementById("side");
+    side.querySelector('[data-provider="anthropic"]').click();
+    await new Promise((r) => setTimeout(r, 100));
+    side.querySelector('[data-story="1"]').click();
+    const key = side.querySelector("#tell-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input"));
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await new Promise((r) => setTimeout(r, 100));
+    side.querySelector("#tell-edit").click();
+    await new Promise((r) => setTimeout(r, 200));
+    document.getElementById("ed-make").click();
+    return prompt;
+  })()`);
+  check(/everyone else leaves/.test(asked || "") && /Ani can't show \(meets X Y\) on its own/.test(asked || ""), "in 1978 mode the prompt says what (alone X Y) means, and that Ani can't show meeting on its own");
+  const finished = async () => {
+    let status = "";
+    for (let k = 0; k < 150; k++) {
+      await sleep(3000);
+      status = await js(`document.getElementById("run-status").innerText`);
+      if (!/·/.test(status)) break;
+    }
+    return status;
+  };
+  const stopped = await finished();
+  const told = await js(`(() => { const b = document.querySelector("#side .stop-box"); return b ? b.innerText : ""; })()`);
+  check(/0 of 3 scenes filmed, 3 stopped/.test(stopped), `Ani as in 1978 stops on the tortoise and the hare: ${stopped}`);
+  check(/gave up on the hare's activity level/.test(told) && /can't weigh a value of none/.test(told), "the page says why, in a plain sentence");
+  check(/Make it again with the revival's repairs/.test(told), "and offers \"Make it again with the revival's repairs\"");
+  await shot("4-stopped-in-1978.png");
+
+  // made again with the revival's repairs (MEND)
+  const t1 = Date.now();
+  await js(`document.querySelector("#side .stop-box [data-remake]").click()`);
+  await sleep(300);
+  const mode = await js(`localStorage.getItem("ani-cinderella:mode:v1")`);
+  const mended = await finished();
+  check(mode === "revival" && /with the revival's repairs: 2 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
+  const mendedLasts = await js(`(async () => {
+    document.querySelector('#runbar [data-view="1"]').click();
+    const out = [];
+    for (const b of [...document.querySelectorAll("#scenes button")].slice(0, 2)) {
+      b.click();
+      await new Promise((r) => setTimeout(r, 30));
+      out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
+    }
+    return out;
+  })()`);
+  check(JSON.stringify(mendedLasts) === JSON.stringify(EXPECTED_MENDED_LAST_FRAMES), `its first two scenes end at frames ${mendedLasts.join(", ")} (Node: ${EXPECTED_MENDED_LAST_FRAMES.join(", ")})`);
+  await shot("5-made-with-repairs.png");
+  const glass = await js(`(async () => {
+    document.querySelector("#scenes button").click();
+    const s = document.getElementById("scrub"); s.value = 10; s.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 100));
+    const c = document.querySelector("#fig-1 canvas");
+    const r = c.getBoundingClientRect();
+    for (let y = 0; y < 413; y += 3) for (let x = 0; x < 551; x += 3) {
+      const at = { clientX: r.left + x / 551 * r.width, clientY: r.top + y / 413 * r.height, bubbles: true };
+      c.dispatchEvent(new MouseEvent("mousemove", at));
+      if (c.classList.contains("over")) {
+        c.dispatchEvent(new MouseEvent("click", at));
+        const box = document.querySelector("#side .repairs");
+        return box ? box.innerText : "no repairs section: " + document.getElementById("side").innerText.slice(0, 200);
+      }
+    }
+    return "no character found";
+  })()`);
+  check(/Ani's pass 1 gave up on the hare's activity level; the revival's repairs read it as medium, as Ani already reads an element she never set\./.test(glass), "the glass box says what the repairs did, in plain English");
+  await js(`document.querySelector("#side .repairs") && document.querySelector("#side .repairs").scrollIntoView({ block: "start" })`);
+  await shot("6-glass-box-repairs.png");
+  check(await film1978() === shipped, "Ken's 1978 film is as it was shipped");
+  await js(`document.querySelector('#runbar [data-view="both"]').click()`);
   check(errors.length === 0, `no uncaught errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
 } catch (e) {
   check(false, e.message);

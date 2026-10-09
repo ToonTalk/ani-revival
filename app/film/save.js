@@ -153,23 +153,32 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
 }
 
 // A film file: the description Ani was told, pass 1's choice points and each scene's
-// plan and film, gzipped inside a small JSON wrapper.
+// plan and film, gzipped inside a small JSON wrapper. A film made by Ani as in 1978 is
+// version 1, as every film file was before the revival's extensions; one made with them
+// is version 2, which records which (extensions) and the notes their repairs left in
+// pass 1 (repairs; each scene's are in its glass box). Both are read; version 1 means
+// Ani as in 1978.
 const FILM_FORMAT = "ani-film";
 async function filmFile(run) {
-  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds });
-  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: 1, about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
+  const extensions = runExtensions(run);
+  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds,
+    ...(extensions.length ? { extensions, ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}) } : {}) });
+  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: extensions.length ? 2 : 1, about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
 }
 async function readFilmFile(text) {
   let outer;
   try { outer = JSON.parse(text); } catch { throw new Error("That isn't a film file (it isn't JSON)."); }
-  if (!outer || outer.format !== FILM_FORMAT || outer.version !== 1 || typeof outer.gzip !== "string") throw new Error("That isn't one of Ani's film files.");
+  if (!outer || outer.format !== FILM_FORMAT || typeof outer.gzip !== "string") throw new Error("That isn't one of Ani's film files.");
+  if (outer.version !== 1 && outer.version !== 2) throw new Error("That film file was made by a newer page than this one.");
   const d = JSON.parse(await inflate(outer.gzip));
   if (typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("That film file is damaged.");
+  d.extensions = outer.version === 2 && Array.isArray(d.extensions) ? d.extensions : [];
   return d;
 }
 async function openFilm(d, name) {
   stopRun({ quiet: true });
-  const run = makeRun({ label: "Your version", short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes });
+  const extensions = d.extensions || [];
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs });
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
   RUNS[1] = run;
   saveRun(run);

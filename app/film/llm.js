@@ -92,7 +92,10 @@ function wordList(kind) {
 function cindyExample() {
   return DATA.cindy.split("\n").filter((line, k) => k === 0 || !/^\s*;/.test(line)).join("\n").replace(/\n{3,}/g, "\n\n");
 }
-function storyPrompt(story, { compact = false } = {}) {
+// extensions: the revival's extensions the film will be made with (the page's switch);
+// with the repairs (MEND), Ani can show a meeting on its own too.
+function storyPrompt(story, { compact = false, extensions = [] } = {}) {
+  const mend = extensions.includes("mend");
   return `Ani is a program Ken Kahn wrote at MIT in 1978. Given a film description in his Lisp notation, it plans and animates a short film in which each character is a simple shape (Cinderella was a star). Turn the story at the end into a film description Ani can run.
 
 Write it in exactly the form of the example (Ken's own description of Cinderella), using ONLY the words listed here; Ani stops on anything else.
@@ -123,10 +126,12 @@ SCENES (2 to 5, in story order)
   (convey (chases X Y))
   (convey (hurts X Y))
   (convey (pushes X Y))
-  (convey (alone X Y))
+  (convey (alone X Y)) means everyone else leaves, so that X and Y are alone together (Ani shows it by the others leaving the stage); don't use it for X leaving Y alone
   (convey (getting-it-on X Y)) for two characters in love coming together
-  (convey (aware X (getting-it-on Y Z)))
-  Nothing else: Ani can't show (meets X Y) on its own, or helps, gives, says, and so on.
+  (convey (aware X (getting-it-on Y Z)))${mend ? `
+  (convey (meets X Y)) for X going to meet Y
+  Nothing else: Ani can't show helps, gives, says, and so on.` : `
+  Nothing else: Ani can't show (meets X Y) on its own, or helps, gives, says, and so on.`}
 - M (mood): normal, hopeful, depressing, joyous, anticipatory, (very joyous), (changes hopeful depressing), (and joyous anticipatory)
 - R (rhythm): normal, fast, slow, (changes fast slow)
 - L (length): short, medium or long
@@ -365,6 +370,7 @@ function tellerPanel() {
         <div class="chips" id="tell-model-chips"></div>
       </div>
     </div>
+    ${SWITCHED.length ? `<div class="ed-group"><p class="label">Which Ani</p><div class="make-settings">${modeSwitch()}</div><p class="note mode-note">${esc(modeNote())}</p></div>` : ""}
     <div class="actions"><button type="button" class="btn primary" id="tell-go">Write the film description</button><button type="button" class="linkish" id="tell-stop" hidden>Stop</button></div>
     <p class="note" id="tell-status" aria-live="polite"></p>
     <div id="tell-result"></div>`;
@@ -436,7 +442,7 @@ async function draftStory({ repair = null } = {}) {
   try {
     const turns = repair
       ? [...repair.turns, { role: "assistant", content: repair.reply }, { role: "user", content: repairPrompt(repair.problems) }]
-      : [{ role: "user", content: storyPrompt(story, { compact: id === "nano" }) }];
+      : [{ role: "user", content: storyPrompt(story, { compact: id === "nano", extensions: modeExtensions() }) }];
     const reply = await CALLS[id](turns, { signal: ctl.signal, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = text.slice(-1500); } } });
     if (!String(reply).trim()) throw new Error("The model sent back an empty answer.");
     const { text, balanced } = lispOf(reply);
@@ -459,7 +465,11 @@ function showDraft(failure = null) {
   const result = document.getElementById("tell-result");
   const d = teller.draft;
   if (!result || !d) return;
-  const { story, problems, notes } = checkStory(d.text);
+  const { story, problems: hard, notes, stops } = checkStory(d.text);
+  // where Ani as in 1978 stops is a problem in 1978 mode, and a note of what the repairs do in theirs
+  const as1978 = MODE === "1978";
+  const problems = [...hard, ...(as1978 ? stops.map((x) => x.as1978) : [])];
+  const mended = as1978 ? [] : stops.map((x) => `<span class="made-with">${x.mended}</span>`);
   const cast = Object.keys(story.characters);
   const scenes = Object.keys(story.scenes);
   result.innerHTML = `
@@ -469,7 +479,7 @@ function showDraft(failure = null) {
         : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b>: ${esc(words(cast.map((c) => nameOf(story, c))))}. <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>: ${esc(words(scenes.map((s) => titleOf(story, s))))}.</p>`}
       ${d.balanced ? `<p class="note">The model left the parentheses of ${d.balanced} form${d.balanced === 1 ? "" : "s"} unbalanced; the page balanced them, closing each form at its last line.</p>` : ""}
       ${problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : `<p class="note">Ani's checks find nothing wrong.</p>`}
-      ${notes.length ? `<ul class="changes note">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
+      ${notes.length || mended.length ? `<ul class="changes note">${[...mended, ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
       <div class="actions">
         ${problems.length ? `<button type="button" class="btn" id="tell-fix">Ask ${esc(PROVIDERS[d.provider].label)} to fix these</button>` : ""}
         ${story.missingPairs && story.missingPairs.length ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships</button>` : ""}

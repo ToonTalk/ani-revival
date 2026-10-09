@@ -23,5 +23,10 @@ How it differs from the page itself:
 - **Saving** goes through claude.ai's downloads capability where the artifact declares
   it, and is an ordinary download otherwise.
 
+Like the page itself, it opens in 1978 mode: the films made in it are made by Ani as
+Ken left her, unless the switch beside the frame rate ("Ani as in 1978 / Ani with the
+revival's repairs") turns on the revival's repairs, whose files it carries with Ken's.
+The in-page runner loads them as the page's worker does.
+
 It stays under claude.ai's limits: the build refuses a page over 950 KB or a script over
 800 KB.

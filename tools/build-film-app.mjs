@@ -6,7 +6,9 @@
 //   KEN;CINDY 46                     the film description, from tape 7005017
 // and, for making the film again in the browser, Ani's runtime (src/pipeline.js and
 // what it imports, as one classic script for a worker) and the files Ani reads
-// (app/data/ani-bundle-files.json, from tools/build-ani-bundle.mjs).
+// (app/data/ani-bundle-files.json, from tools/build-ani-bundle.mjs), with the revival's
+// extensions (src/director/revive/) for the page's switch, "Ani as in 1978 / Ani with
+// the revival's repairs", and an index of their code for the glass box's links.
 // Everything is inlined, gzipped as base64, so the page works opened directly, served,
 // or published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/llm.js (telling Ani a new story)
@@ -16,9 +18,10 @@
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { EXTENSIONS } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
@@ -46,7 +49,38 @@ function codeIndex(root) {
     relationship: ["sugest.123", sugest["establish-relationship-suggestions"]],
     "emotional-state": ["sugest.123", sugest["combine-emotional-state-suggestions"]],
   };
-  return { display: { file: "disply.311", methods: display }, convey: { file: "convey.64", verbs: convey }, establish };
+  return { display: { file: "disply.311", methods: display }, convey: { file: "convey.64", verbs: convey }, establish, revive: reviveIndex(root) };
+}
+
+// The revival's own Lisp (src/director/revive/, REVIVE;<name>), every file there, so
+// that a repair file added later is listed with no change here: what each file is (its
+// title line), where each kind of repair note is written (the definition around each
+// (revival-note actor 'kind ...), for the page's plain sentences), and the display
+// methods a file defines (MEND5's move-to). Ids are the code page's (build-source-app).
+// The bridge first, then the files in the order the extensions load them, then any
+// others.
+export function reviveFiles(root) {
+  const dir = `${root}/src/director/revive`;
+  const order = ["bridge", ...EXTENSIONS.flatMap((e) => e.files)];
+  const rank = (name) => (order.includes(name) ? order.indexOf(name) : order.length);
+  return readdirSync(dir).filter((f) => f.endsWith(".lisp")).map((f) => f.replace(/\.lisp$/, ""))
+    .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, "en", { numeric: true }))
+    .map((name) => ({ name, path: `src/director/revive/${name}.lisp`, text: readFileSync(`${dir}/${name}.lisp`, "utf8").replace(/\r\n?/g, "\n") }));
+}
+function reviveIndex(root) {
+  const files = [], notes = {}, methods = {};
+  for (const { name, text } of reviveFiles(root)) {
+    const id = `revive-${name}`;
+    const title = (text.match(/^;;;\s*REVIVE;[A-Z0-9]+:\s*(.+)$/m) || [])[1] || "";
+    files.push({ name, id, its: `REVIVE;${name.toUpperCase()}`, title });
+    const defs = definitions(text);
+    const lineAt = (i) => text.slice(0, i).split("\n").length;
+    const around = (line) => (defs.filter((d) => d.line <= line).pop() || { line }).line;
+    for (const m of text.matchAll(/\(revival-note\s+\S+\s+'([a-z0-9+-]+)/g)) notes[m[1]] ||= [id, around(lineAt(m.index))];
+    for (const m of text.matchAll(/\(define ([a-z0-9:+-]+) display-method\b/g)) (methods[m[1]] ||= { file: id }).define = lineAt(m.index);
+    for (const m of text.matchAll(/\(define-receiver \(run ([a-z0-9:+-]+) /g)) (methods[m[1]] ||= { file: id }).run = lineAt(m.index);
+  }
+  return { files, notes, methods };
 }
 
 // The words Ani knows for describing characters and relationships, from DSCRP and
@@ -143,9 +177,13 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     pass1: { cp29: pass1.cp29, choicePoints: pass1.choicePoints },
     code: codeIndex(root),
     words: vocabulary(root),
+    // the revival's extensions (src/pipeline.js EXTENSIONS), which the page's switch
+    // turns on for the films it makes; Ken's 1978 film above is as it was made
+    extensions: EXTENSIONS.map(({ id, label, files, requires, changes1978, note }) => ({ id, label, files, requires, changes1978, note })),
   };
   const packed = (text) => gzipSync(Buffer.from(text, "utf8"), { level: 9 }).toString("base64");
-  const runtime = bundleModules(["src/pipeline.js", "src/its/bundle-fs.js"], "AniRuntime", root);
+  // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last
+  const runtime = bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js"], "AniRuntime", root);
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
   const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };

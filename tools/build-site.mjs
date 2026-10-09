@@ -4,12 +4,16 @@
 // Usage: node tools/build-site.mjs <site folder>   (the folder of the ani repository)
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { buildFilmApp } from "./build-film-app.mjs";
+import { buildSourceApp } from "./build-source-app.mjs";
 
 export const SITE_URL = "https://toontalk.github.io/ani/";
 
 export function buildSite(out, root = ".") {
   mkdirSync(out, { recursive: true });
   buildFilmApp(root);
+  // the code page too, so it has every file the film page's code links name (the
+  // revival's extensions among them)
+  buildSourceApp(root);
   // on the site the film page is index.html, so "Back to the film" goes to the folder
   const toIndex = (html) => html.replace(/href="film\.html"/g, 'href="./"');
   writeFileSync(`${out}/index.html`, readFileSync(`${root}/app/film.html`, "utf8"));
