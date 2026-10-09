@@ -65,7 +65,7 @@ const TRUNCATE_FIX = (f) => Math.floor(f / UNIT_BIT);
 const FIXIFY = (x) => ROUND(x * FLOAT_UNIT);
 const MOD$ = (a, m) => a - m * FIX(a / m); // TVRTLE's \$
 
-export { randomBits, toWord };
+export { randomBits, toWord, UNIT_BIT };
 
 export class TvTurtle {
   // L: the Lisp; display: a FrameBuffer; color: run as LLOGO;COLORT.

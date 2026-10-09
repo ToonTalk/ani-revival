@@ -1,0 +1,1097 @@
+<title>Ani's Cinderella</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<style>
+/* A screening room beside a notebook: the film on its TV screen at left, what Ani
+   was told (or, once a character is clicked, why it does what it does) at right. */
+:root {
+  --paper: #f3f5f2;
+  --sheet: #ffffff;
+  --ink: #1c2320;
+  --muted: #5b6661;
+  --rule: #d5dbd6;
+  --accent: #1f5a8e;
+  --accent-soft: #e2ebf3;
+  --chosen: #2b7a49;
+  --chosen-soft: #e3f1e7;
+  --rejected: #a3433a;
+  --screen: #0a0c0b;
+  --screen-edge: #2c3330;
+  --cinderella: #23893c;
+  --stepmother: #bf3a2c;
+  --godmother: #c8641a;
+  --prince: #a68200;
+  --display: "Spectral", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+    --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80;
+    --screen: #000000; --screen-edge: #313a36;
+    --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+  --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80;
+  --screen: #000000; --screen-edge: #313a36;
+  --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.55 var(--body);
+  padding-inline: max(16px, 3vw);
+  padding-block: 24px 56px;
+}
+.wrap { max-width: 1340px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: 1.25rem; line-height: 1.25; }
+h3 { font-size: 1.02rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--mono); font-size: 0.84em; }
+.label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+button { font: inherit; color: inherit; }
+
+header { display: grid; gap: 8px; max-width: 78ch; }
+header .intro { color: var(--muted); font-size: 1.02rem; }
+
+.stage { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 900px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+
+/* the screen */
+.screen-col { display: grid; gap: 12px; min-width: 0; }
+.scenes { display: flex; flex-wrap: wrap; gap: 6px; }
+.scenes button {
+  border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px;
+  padding: 4px 12px; font-size: 0.86rem; cursor: pointer;
+}
+.scenes button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.screen {
+  background: var(--screen); border-radius: 14px; padding: 14px;
+  box-shadow: inset 0 0 0 1px var(--screen-edge), 0 1px 0 var(--rule);
+}
+.screen canvas { display: block; width: 100%; height: auto; aspect-ratio: 551 / 413; cursor: default; touch-action: manipulation; }
+.screen canvas.over { cursor: pointer; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.controls .btn {
+  border: 1px solid var(--rule); background: var(--sheet); border-radius: 8px;
+  min-width: 36px; height: 34px; padding: 0 10px; cursor: pointer; display: inline-grid; place-items: center;
+}
+.controls .btn.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); min-width: 74px; }
+.scrub { flex: 1 1 220px; min-width: 160px; position: relative; height: 34px; }
+.scrub canvas { position: absolute; inset: 9px 0 auto 0; width: 100%; height: 16px; border-radius: 4px; }
+.scrub input { position: absolute; inset: 0; width: 100%; margin: 0; opacity: 0.0001; cursor: pointer; }
+.scrub .head { position: absolute; top: 5px; width: 2px; height: 24px; background: var(--ink); border-radius: 1px; pointer-events: none; }
+.frame-label { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); min-width: 10ch; text-align: right; font-variant-numeric: tabular-nums; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--sheet); padding: 0 10px; height: 32px; cursor: pointer; font-size: 0.84rem; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.caption { color: var(--ink); font-size: 0.98rem; min-height: 3.1em; }
+.caption .part { color: var(--muted); font-size: 0.86rem; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 0.84rem; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* the side: what Ani was told, or why */
+.side { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 20px; display: grid; gap: 14px; min-width: 0; }
+@media (min-width: 901px) { .side { position: sticky; top: max(12px, env(safe-area-inset-top, 0px)); max-height: calc(100vh - 24px); overflow: auto; } }
+.side-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.linkish { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-size: 0.88rem; }
+.people { display: grid; gap: 10px; }
+.person { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 4px 10px; align-items: start; }
+.person svg { margin-top: 3px; }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 0.8rem; border: 1px solid var(--rule); border-radius: 999px; padding: 0 8px; color: var(--muted); }
+.rels { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 0.92rem; }
+.scene-list { display: grid; gap: 6px; }
+.scene-card {
+  text-align: left; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper);
+  padding: 9px 12px; cursor: pointer; display: grid; gap: 3px;
+}
+.scene-card[aria-current="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.scene-card .t { font-family: var(--display); font-weight: 600; font-size: 1rem; }
+.scene-card ul { margin: 0; padding-left: 18px; font-size: 0.9rem; }
+.scene-card .mood { color: var(--muted); font-size: 0.82rem; }
+.lisp {
+  font-family: var(--mono); font-size: 0.78rem; line-height: 1.45; white-space: pre-wrap; word-break: break-word;
+  background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 10px 12px; margin: 0; overflow-x: auto;
+}
+.lisp mark { background: var(--accent-soft); color: inherit; border-radius: 3px; }
+.note { color: var(--muted); font-size: 0.84rem; }
+.para { border-bottom: 1px dotted var(--muted); }
+
+/* the glass box */
+.who { display: flex; align-items: center; gap: 10px; }
+.who h2 { font-size: 1.4rem; }
+.where { color: var(--muted); font-size: 0.86rem; }
+.lead { font-size: 1.04rem; }
+.lead em { font-style: italic; }
+details { border-top: 1px solid var(--rule); padding-top: 10px; }
+details > summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: baseline; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--muted); font-size: 0.8em; transition: transform .15s; display: inline-block; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
+.chain { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.chain li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; font-size: 0.93rem; }
+.chain li::before { content: "↑"; color: var(--muted); text-align: center; }
+.chain li:first-child::before { content: "•"; }
+.methods { display: grid; gap: 8px; }
+.method { border: 1px solid var(--rule); border-radius: 10px; padding: 8px 10px; display: grid; gap: 5px; font-size: 0.92rem; }
+.method.chosen { border-color: var(--chosen); background: var(--chosen-soft); }
+.method .verdict { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.method.chosen .verdict { color: var(--chosen); }
+.method.rejected .verdict { color: var(--rejected); }
+.scores { display: grid; grid-template-columns: max-content minmax(60px, 1fr) 3ch; gap: 2px 8px; align-items: center; font-size: 0.8rem; color: var(--muted); }
+.scores .bar { height: 7px; border-radius: 4px; background: var(--rule); overflow: hidden; }
+.scores .bar i { display: block; height: 100%; background: var(--accent); }
+.method.chosen .scores .bar i { background: var(--chosen); }
+.scores .n { font-family: var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.dyn { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.dyn th, .dyn td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.dyn th { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.dyn .v { font-weight: 600; white-space: nowrap; }
+.dyn .why { color: var(--muted); }
+.cp { display: grid; gap: 6px; border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; font-size: 0.9rem; }
+.cp ul { margin: 0; padding-left: 18px; }
+.idle { color: var(--muted); }
+
+footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
+    <h1>Ani's Cinderella</h1>
+    <p class="intro">Ani, the program in Ken Kahn's 1979 thesis, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
+  </header>
+
+  <main class="stage">
+    <section class="screen-col" aria-label="The film">
+      <div class="scenes" id="scenes" role="group" aria-label="Scenes"></div>
+      <div class="screen"><canvas id="screen" width="551" height="413" aria-label="The film. Click a character to see why it does what it does."></canvas></div>
+      <div class="controls">
+        <button class="btn primary" id="play" type="button">Play</button>
+        <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
+        <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
+        <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
+        <span class="frame-label" id="frame-label"></span>
+        <div class="seg" role="group" aria-label="Picture">
+          <button type="button" id="mode-bw" aria-pressed="true">TV</button>
+          <button type="button" id="mode-color" aria-pressed="false">Color</button>
+        </div>
+      </div>
+      <p class="caption" id="caption" aria-live="polite"></p>
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <aside class="side" id="side" aria-live="polite"></aside>
+  </main>
+
+  <footer>
+    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs, four frames a second on a 550 by 413 picture, as Ken's camera took them. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
+    <p>Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>.</p>
+  </footer>
+</div>
+
+<script type="application/json" id="film-data">/*FILM-DATA*/</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("film-data").textContent);
+
+// ---------------------------------------------------------------- Lisp, as Ani printed it
+
+// Ani's records arrive printed; read them back into nested arrays of strings.
+function parse(text) {
+  let i = 0;
+  const s = String(text);
+  function skip() { while (i < s.length && /\s/.test(s[i])) i++; }
+  function read() {
+    skip();
+    const c = s[i];
+    if (c === "(") {
+      i++;
+      const list = [];
+      for (;;) {
+        skip();
+        if (i >= s.length) return list;
+        if (s[i] === ")") { i++; return list; }
+        if (s[i] === "." && /\s/.test(s[i + 1] || "")) { i++; list.push(read()); skip(); if (s[i] === ")") i++; return list; }
+        list.push(read());
+      }
+    }
+    if (c === "'") { i++; return ["quote", read()]; }
+    if (c === "|") { const j = s.indexOf("|", i + 1); const tok = s.slice(i, j + 1); i = j + 1; return tok; }
+    if (c === '"') { const j = s.indexOf('"', i + 1); const tok = s.slice(i, j + 1); i = j + 1; return tok; }
+    let j = i;
+    while (j < s.length && !/[\s()]/.test(s[j])) j++;
+    const tok = s.slice(i, j);
+    i = j;
+    return tok;
+  }
+  return read();
+}
+const show = (x) => (Array.isArray(x) ? `(${x.map(show).join(" ")})` : String(x));
+// The value after a keyword in a record such as (task: description ... for-who ...).
+function kv(list, key) {
+  if (!Array.isArray(list)) return undefined;
+  const i = list.indexOf(key);
+  return i > 0 ? list[i + 1] : undefined;
+}
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+// Lisp shown as a person would lay it out: words run on along the line, and a list
+// that won't fit in what is left of the line starts a new one, under its parent.
+function pretty(x, indent = 0, width = 66) {
+  const flat = show(x);
+  if (!Array.isArray(x) || indent + flat.length <= width) return flat;
+  const pad = "\n" + " ".repeat(indent + 2);
+  let out = "(" + pretty(x[0], indent + 1, width);
+  let col = indent + 1 + out.length - 1;
+  for (let k = 1; k < x.length; k++) {
+    const e = x[k];
+    const one = show(e);
+    if (col + 1 + one.length <= width) { out += " " + one; col += 1 + one.length; continue; }
+    const piece = pretty(e, indent + 2, width);
+    out += pad + piece;
+    col = piece.includes("\n") ? piece.length - piece.lastIndexOf("\n") - 1 : indent + 2 + piece.length;
+  }
+  return out + ")";
+}
+
+// ---------------------------------------------------------------- the cast
+
+const CHARS = {
+  cinderella: { name: "Cinderella", the: "Cinderella", shape: "star", tone: "--cinderella", film: "#5be06f", she: "she", her: "her", sides: 5, turn: 144 },
+  "step-mother": { name: "The stepmother", the: "the stepmother", shape: "square", tone: "--stepmother", film: "#ff4b3e", she: "she", her: "her", sides: 4, turn: 90 },
+  prince: { name: "The Prince", the: "the Prince", shape: "triangle", tone: "--prince", film: "#ffd84a", she: "he", her: "him", sides: 3, turn: 120 },
+  "fairy-godmother": { name: "The fairy godmother", the: "the fairy godmother", shape: "circle", tone: "--godmother", film: "#ff9a2e", she: "she", her: "her", sides: 24, turn: 15 },
+};
+const CAST = Object.keys(CHARS);
+// Sizes and offsets for drawing in color: ANINIT made the characters MANY-POLYS, each
+// drawn again inside itself every OFFSET turtle units (20 for the star, "since a star
+// is denser", 10 for the rest); a character's size is its ani-size (0.07 for the
+// stepmother, 0.05 for the rest) times the square root of the turtle's 1334.95 by 1000.
+const ROOT = Math.sqrt(1334.9515 * 1000);
+const NEST = { cinderella: [0.05 * ROOT, 20], "step-mother": [0.07 * ROOT, 10], prince: [0.05 * ROOT, 10], "fairy-godmother": [0.05 * ROOT, 10] };
+
+function who(x) {
+  if (Array.isArray(x)) {
+    const names = x.map(who);
+    return names.length > 1 ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1] : names[0] || "";
+  }
+  return CHARS[x] ? CHARS[x].the : String(x).replace(/-/g, " ");
+}
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+function icon(c, size = 16) {
+  const k = CHARS[c];
+  if (!k) return "";
+  const r = size / 2 - 1.5, cx = size / 2, cy = size / 2;
+  let d = "";
+  if (k.shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(${k.tone})" stroke-width="1.6"/></svg>`;
+  const pts = [];
+  let a = k.shape === "square" ? -45 : -90;
+  const rr = k.shape === "square" ? r * 1.0 : r;
+  for (let n = 0; n < k.sides; n++) { pts.push([cx + rr * Math.cos(a * Math.PI / 180), cy + rr * Math.sin(a * Math.PI / 180)]); a += k.shape === "star" ? 144 : 360 / k.sides; }
+  d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join("L") + "Z";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(${k.tone})" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+}
+
+// ---------------------------------------------------------------- plain English
+
+// Each reading is ours; para() marks it, with Ani's own words in its tooltip.
+const para = (text, original) => `<span class="para" title="${esc(typeof original === "string" ? original : show(original))}">${text}</span>`;
+const ELEMENTS = {
+  speed: "speed", "activity-level": "activity", "rhythmic-level": "rhythm", acceleration: "acceleration",
+  repetiveness: "repetitiveness", deliberateness: "deliberateness", "path-length": "length of each curve",
+  "path-curvature": "curvature of the path", "path-jaggedness": "jaggedness of the path", "rotational-speed": "turning speed",
+};
+const elementName = (e) => ELEMENTS[e] || String(e).replace(/-/g, " ");
+const FEEL = { joy: ["happy", "unhappy"], pride: ["proud", "ashamed"], anticipation: ["eager", "reluctant"] };
+const DEGREE = { low: "a little ", medium: "", high: "very " };
+function feeling(f) {
+  if (!Array.isArray(f)) return String(f);
+  if (f[0] === "and") return f.slice(1).map(feeling).join(" and ");
+  const words = FEEL[f[0]];
+  const [sign, amount] = Array.isArray(f[1]) ? f[1] : ["positive", f[1]];
+  if (!words) return show(f);
+  return (DEGREE[amount] ?? "") + (sign === "negative" ? words[1] : words[0]);
+}
+// what a task is about
+function about(d) {
+  if (!Array.isArray(d)) return esc(String(d).replace(/-/g, " "));
+  const [h, a, b] = d;
+  switch (h) {
+    case "personality": return `what ${who(a)} is like (${traitsOf(a)})`;
+    case "emotional-state": return `${who(a)} is ${feeling(b)}`;
+    case "relationship": return relationshipText(a);
+    case "wants": return `${who(a)} wants ${b && b[0] === "meets" ? "to meet " + who(b[2]) : b && b[0] === "getting-it-on" ? "to “get it on” with " + who(b[2]) : about(b)}`;
+    case "prevents": return `${who(a)} prevents ${b && b[0] === "meets" ? who(b[1]) + " from meeting " + who(b[2]) : about(b)}`;
+    case "undoes": {
+      const inner = Array.isArray(b) && b[0] === "from-scene" ? b : null;
+      return inner ? `${who(a)} undoes what happened in ${sceneTitle(inner[1])}: that ${about(inner[2][1])}` : `${who(a)} undoes ${about(b)}`;
+    }
+    case "meets": return `${who(a)} meets ${who(b)}`;
+    case "alone": return `${who(a)} and ${who(b)} are alone`;
+    case "getting-it-on": return `${who(a)} and ${who(b)} are “getting it on”`;
+    case "accompanys": return `${who(a)} accompanies ${who(b)}`;
+    case "helps": return `${who(a)} helps ${who(b)}`;
+    case "hurts": return `${who(a)} hurts ${who(b)}`;
+    case "chases": return `${who(a)} chases ${who(b)}`;
+    case "pushes": return `${who(a)} pushes ${who(b)} around`;
+    case "aware": return `${who(a)} becomes aware that ${about(b)}`;
+    case "convey": case "establish": return about(a);
+    default: return esc(show(d));
+  }
+}
+// a task: establish ... or convey ...
+function taskText(kind, d) {
+  if (kind !== "establish") return `to convey that ${about(d)}`;
+  return Array.isArray(d) && d[0] === "personality" ? `to establish ${about(d)}` : `to establish that ${about(d)}`;
+}
+// what a task is for, at the top of its chain: the description's own words
+function purpose(t) {
+  for (let guard = 0; t && t.source && t.source !== "initial-description" && guard < 6; guard++) {
+    const up = taskByName(t.source);
+    if (!up) break;
+    t = up;
+  }
+  return t;
+}
+// a place
+function place(p) {
+  if (!Array.isArray(p)) {
+    if (p === "nowhere") return "off the stage";
+    return esc(String(p).replace(/-/g, " "));
+  }
+  const [h, a, b, c] = p;
+  const near = (x) => (Array.isArray(x) && x[0] === "vicinity-of" ? who(x[1]) : place(x));
+  switch (h) {
+    case "screen-position": return `the ${[a, b].map((w) => String(w).replace(/-/g, " ")).join(" ")} of the screen`.replace("middle left", "middle of the left side");
+    case "xy-position": return "where the last scene left " + "them";
+    case "vicinity-of": return who(a);
+    case "good-distance-from": return `a good distance from ${near(a)}`;
+    case "medium-distance-from": return `a medium distance from ${near(a)}`;
+    case "medium-distance-from-and-offstage": return `off the stage, a medium distance from ${near(a)}`;
+    case "small-distance-from-and-offstage": return `just off the stage near ${near(a)}`;
+    case "small-way-from": return `a small way from ${near(a)} towards ${near(b)}`;
+    case "small-way-from-plus-size": return `just past ${near(a)}, between ${near(a)} and ${near(b)}`;
+    case "distance-away-from": return `a little way from ${near(a)}, away from ${near(b)}`;
+    case "distance-towards-from": return `a little way from ${near(a)} towards ${near(b)}`;
+    case "contact-with": return `touching ${who(a)}`;
+    case "far-from-both": return `far from both ${near(a)} and ${near(b)}`;
+    case "away-from": return `the side of ${near(a)} away from ${near(b)}`;
+    case "current-goal-of": return `where ${who(a)} is heading`;
+    case "on-stage-near": return `on the stage near ${place(b)}`;
+    case "between": return `between ${near(a)} and ${near(b)}`;
+    case "symbolic-position": return a === "dont-know-enuf" ? "somewhere still to be worked out" : place(a);
+    case "move-from-xy-position": return place(a);
+    default: return esc(show(p));
+  }
+}
+// why a place was chosen
+function reason(w) {
+  if (!Array.isArray(w)) return esc(String(w).replace(/-/g, " "));
+  const [h, a, b] = w;
+  switch (h) {
+    case "so-that": return "so that it could " + methodText(a, true);
+    case "so": return w[1] === "that" ? "so that " + methodText(w[2], true) : esc(show(w));
+    case "and": return a === "move-character" ? reason(b) + ", and then moved there" : esc(show(w));
+    case "cut": {
+      const why = w[2];
+      if (Array.isArray(why) && why[0] === "known-to-be-distance") {
+        const d = why[1];
+        return `a film cut: ${who(d[1][1])} and ${who(d[2][1])} were left too close together`;
+      }
+      if (Array.isArray(why) && why[0] === "since") return "a film cut: " + why.slice(1).map((x) => who(x)).join(" ").replace(" nor ", " nor ") + " (no one was placed yet)";
+      return "a film cut";
+    }
+    case "must-stand-guard": return `to stand guard over ${who(a)}`;
+    case "ended": return "where the last scene left " + "them";
+    default: return esc(show(w));
+  }
+}
+// a method of display, or of conveying, or a change in dynamics
+function methodText(m, bare = false) {
+  if (!Array.isArray(m)) return esc(String(m));
+  const [h, a, b, c] = m;
+  const s = (t) => (bare ? t.replace(/^(\S+) (\S+)/, (all, x, v) => all) : t);
+  switch (h) {
+    case "method:": return `convey that ${about(kv(m, "value"))}`;
+    case "pushes-around": return `${who(a)} pushes ${who(b)} around`;
+    case "chases-to": return Array.isArray(c) && /offstage/.test(c[0]) ? `${who(a)} chases ${who(b)} off the stage` : `${who(a)} chases ${who(b)}`;
+    case "chases": return `${who(a)} chases ${who(b)}`;
+    case "move-to-and-hits": return `${who(a)} goes to ${who(b)} and hits ${CHARS[b] ? CHARS[b].her : "them"}`;
+    case "goes-to-and-accompanys": case "goes-to-and-accompanies": return `${who(a)} goes to ${who(b)} and accompanies ${CHARS[b] ? CHARS[b].her : "them"}`;
+    case "move-small-part-towards": return `${who(a)} moves a small part of the way towards ${Array.isArray(b) ? who(b[1]) : who(b)}`;
+    case "stands-guard": return Array.isArray(c) && c[0] === "away-from" && Array.isArray(c[2]) && c[2][0] === "vicinity-of"
+      ? `${who(a)} stands guard, keeping ${who(b)} away from ${who(c[2][1])}`
+      : `${who(a)} stands guard over ${who(b)}, keeping ${CHARS[b] ? CHARS[b].her : "them"} at ${place(c)}`;
+    case "makes-fence": return `${who(a)} draws a fence ${place(b)}`;
+    case "kills": return `${who(a)} kills ${who(b)}`;
+    case "exit-by": return `${who(a)} leave${Array.isArray(a) && a.length > 1 ? "" : "s"} the stage`;
+    case "alternately-turn": return `${who(a)} and ${who(b)} turn towards each other and away, in turn`;
+    case "move-to-each-other": return `${who(a)} moves to ${who(b)}`;
+    case "repeatedly-come-in-contact": return `${who(a)} and ${who(b)} come together and part, again and again`;
+    case "move-near-and-turn": return `${who(a)} moves near ${who(b)} and turns to look at each`;
+    case "change:": { const el = kv(m, "element"); const [sg, am] = kv(m, "amount") || []; return `${who(el[0])}'s ${elementName(el[1])} ${sg === "negative" ? "falls" : "rises"} ${am === "high" ? "a lot" : am === "low" ? "a little" : ""}`.trim(); }
+    case "change-to:": { const el = kv(m, "element"); return `${who(el[0])}'s ${elementName(el[1])} changes to ${kv(m, "new-value")}`; }
+    default: return esc(show(m));
+  }
+}
+const ACTIVITY = {
+  "pusher-comes-in-contact": "running into the other",
+  "moving-together": "pushing the other along",
+  "pushee-coasts": "coasting on after the push",
+  "pushee-moves-away": "getting away",
+  "chasee-runs-away": "running away",
+  "chaser-pursues": "chasing",
+  "goes-to-to-hit": "going to hit the other",
+  "hitting-other": "hitting the other",
+  "getting-on-stage": "coming onto the stage",
+  "goes-to-to-accompany": "going to the other, to accompany them",
+  "accompanying-each-other": "going across together",
+  "moving-small-part-towards": "moving a small part of the way towards the other",
+  "prisoner-escapes": "trying to get past",
+  "guard-chases": "heading the other off",
+  "prisoner-escapes-again-plan": "trying again",
+  "resume-guard": "taking up guard again",
+  "make-guarding-more-interesting": "wandering, to make the guarding more interesting",
+  "exit-by-character": "leaving the stage",
+  "turn-character": "turning towards the other",
+  "turn-character-back": "turning back",
+  "moving-towards-each-other": "moving towards the other",
+  "move-near-the-group": "moving near the couple",
+  "turn-towards-others": "turning to look at each of them",
+  "goes-to-contact-other": "moving until they touch",
+  "move-apart-a-little": "moving apart a little",
+  "wander-around": "wandering around",
+};
+// Which display method made which activities (DISPLY 311's plans).
+const FAMILY = {
+  "pushes-around": ["pusher-comes-in-contact", "moving-together", "pushee-coasts", "pushee-moves-away"],
+  "chases-to": ["chasee-runs-away", "chaser-pursues"],
+  "move-to-and-hits": ["goes-to-to-hit", "hitting-other"],
+  "goes-to-and-accompanys": ["getting-on-stage", "goes-to-to-accompany", "accompanying-each-other"],
+  "move-small-part-towards": ["moving-small-part-towards"],
+  "stands-guard": ["prisoner-escapes", "guard-chases", "prisoner-escapes-again-plan", "resume-guard", "make-guarding-more-interesting"],
+  "exit-by": ["exit-by-character"],
+  "alternately-turn": ["turn-character", "turn-character-back"],
+  "move-to-each-other": ["moving-towards-each-other"],
+  "repeatedly-come-in-contact": ["goes-to-contact-other", "move-apart-a-little"],
+  "move-near-and-turn": ["move-near-the-group", "turn-towards-others"],
+};
+const familyOf = (activityBase) => Object.keys(FAMILY).find((m) => FAMILY[m].includes(activityBase));
+const VALUE = { low: "low", medium: "medium", high: "high", long: "long", short: "short" };
+const REJECT = {
+  "no-idea-how-to-convey-method": "Ani knows no way to show this",
+  "much-less-strongly-suggested": "much less strongly suggested than another",
+  "less-strongly-suggested": "less strongly suggested than another",
+};
+function beginText(b) {
+  if (!Array.isArray(b)) return Number(b) === 0 ? "at the start of the part" : `${b} s into the part`;
+  const [h, ev, n] = b;
+  if (h === "after" && Array.isArray(ev)) {
+    const target = Array.isArray(ev[1]) && ev[1][0] === "activity-of" ? `“${ACTIVITY[ev[1][1]] || String(ev[1][1]).replace(/-/g, " ")}”` : who(ev[1]);
+    const when = ev[0] === "end-of" ? "ends" : "begins";
+    const secs = Number(n);
+    return secs ? `${secs} s after ${target} ${when}` : `as soon as ${target} ${when}`;
+  }
+  return show(b);
+}
+function rejectText(r) {
+  if (Array.isArray(r) && r[0] === "too-much-time:") {
+    const d = Number(kv(r, "ideal-difference")), w = Number(kv(r, "will-accept"));
+    return `it doesn't fit the time: it would end ${Math.abs(d).toFixed(1)} s ${d < 0 ? "too soon" : "too late"} (Ani accepts ${Math.abs(w).toFixed(1)})`;
+  }
+  if (Array.isArray(r) && r[0] === "too-little-time:") {
+    const d = Number(kv(r, "ideal-difference"));
+    return `it doesn't fit the time (off by ${Math.abs(d).toFixed(1)} s)`;
+  }
+  return REJECT[r] || esc(show(r).replace(/-/g, " "));
+}
+
+// ---------------------------------------------------------------- the story Ani was told
+
+const STORY = (() => {
+  const forms = [];
+  // read CINDY's defines (skipping comments)
+  const src = DATA.cindy.replace(/;[^\n]*/g, "");
+  let k = 0;
+  while ((k = src.indexOf("(define", k)) >= 0) {
+    let depth = 0, j = k;
+    for (; j < src.length; j++) { if (src[j] === "(") depth++; else if (src[j] === ")") { depth--; if (depth === 0) break; } }
+    forms.push(parse(src.slice(k, j + 1)));
+    k = j + 1;
+  }
+  const characters = {}, relationships = [], scenes = {};
+  for (const f of forms) {
+    const [, name, parent, ...body] = f;
+    const desc = body.find((b) => Array.isArray(b) && b[0] === "process");
+    const d = desc ? desc[3] !== undefined ? desc.slice(3) : [] : [];
+    if (parent === "character") {
+      const parts = Object.fromEntries((d || []).map((x) => [x[0], x[1]]));
+      const list = (v) => (Array.isArray(v) && v[0] === "and" ? v.slice(1) : v ? [v] : []);
+      characters[name] = { physical: list(parts.physical), personality: list(parts.personality), role: parts["role-in-story"] };
+    } else if (parent === "relationship") {
+      const v = d[0];
+      relationships.push({ from: name[1], to: name[2], how: Array.isArray(v) && v[0] === "and" ? v.slice(1) : [v] });
+    } else if (parent === "scene") {
+      const settings = Object.fromEntries(body.filter((b) => Array.isArray(b) && b[0] === "set").map((b) => [b[2], b[4]]));
+      scenes[name] = { tasks: d[0], settings };
+    }
+  }
+  return { characters, relationships, scenes };
+})();
+function traitsOf(c) {
+  const k = STORY.characters[c];
+  return k ? k.personality.map((t) => String(t).replace(/-/g, " ")).join(", ") : "";
+}
+const VERB = {
+  dominates: "dominates", hates: "hates", "is-obedient-to": "is obedient to", "is-tolerant-of": "is tolerant of",
+  "is-polite-to": "is polite to", "is-grateful-to": "is grateful to", "is-protective-of": "is protective of",
+  "is-generous-towards": "is generous towards", "is-helpful-towards": "is helpful towards", loves: "loves",
+};
+function relationshipText(r) {
+  const [, a, b] = Array.isArray(r) ? r : [];
+  const rel = STORY.relationships.find((x) => x.from === a && x.to === b);
+  if (!rel) return `how ${who(a)} feels about ${who(b)}`;
+  const verbs = rel.how.map((v) => VERB[v] || String(v).replace(/-/g, " "));
+  return `${who(a)} ${verbs.length > 1 ? verbs.slice(0, -1).join(", ") + " and " + verbs[verbs.length - 1] : verbs[0]} ${who(b)}`;
+}
+function tasksOf(t) {
+  if (!Array.isArray(t)) return [];
+  if (t[0] === "and" || t[0] === "sequence:") return t.slice(1).flatMap(tasksOf);
+  return [t];
+}
+
+// ---------------------------------------------------------------- each scene's plan and film
+
+const SCENES = DATA.scenes.map((s) => {
+  const actors = new Map();
+  const add = (a) => actors.set(a.name, a);
+  [s.glass.scene, ...s.glass.tasks, ...s.glass.subscenes, ...s.glass.plans, ...s.glass.dynamics].forEach(add);
+  const v = (name, key) => { const a = actors.get(name); return a && a.variables[key] !== undefined ? parse(a.variables[key]) : undefined; };
+  // the subscenes and activities, as the movie noted their beginnings and ends
+  const spans = new Map();
+  for (const [frame, ev] of s.film.events) {
+    const e = parse(ev);
+    if (!Array.isArray(e) || !Array.isArray(e[1])) continue;
+    const key = show(e[1]);
+    if (e[0] === "beginning-of") { if (!spans.has(key)) spans.set(key, []); spans.get(key).push({ begin: frame, end: null }); }
+    if (e[0] === "end-of") { const list = spans.get(key); if (list) { const open = [...list].reverse().find((x) => x.end === null); if (open) open.end = frame; else list.push({ begin: frame, end: frame }); } }
+  }
+  const last = s.film.frames.length - 1;
+  const subscenes = s.glass.subscenes.map((sub, n) => {
+    const list = spans.get(sub.name) || [];
+    const span = list[0] || { begin: null, end: null };
+    return { name: sub.name, n: n + 1, begin: span.begin, end: span.end === null ? last : Math.max(span.end, span.begin ?? 0), parasite: v(sub.name, "status") };
+  });
+  const activities = [];
+  for (const p of s.glass.plans) {
+    const code = p.variables.plans || "";
+    const chars = new Set();
+    for (const m of code.matchAll(/cause \(([^()]*)\) to/g)) m[1].split(/\s+/).forEach((c) => c && chars.add(c));
+    for (const m of code.matchAll(/\(ask ([a-z-]+) set your special-dynamics/g)) chars.add(m[1]);
+    const base = parse(p.name)[1];
+    for (const span of spans.get(p.name) || []) activities.push({ name: p.name, base, chars: [...chars], begin: span.begin, end: span.end === null ? last : span.end, subscene: v(p.name, "subscene") });
+  }
+  return { ...s, actors, v, subscenes, activities, last };
+});
+function sceneTitle(id) { const s = SCENES.find((x) => x.id === id); return s ? s.title : who(id); }
+
+// ---------------------------------------------------------------- pass 1's choices
+
+const CP = new Map(DATA.pass1.choicePoints.map((c) => [show(c.name), c]));
+function choicePoint(char, element) { return CP.get(show(["choice-point-of", char, element])); }
+
+// ---------------------------------------------------------------- state and drawing
+
+const state = { scene: 0, frame: 0, playing: false, color: false, selected: null, timer: null, speed: 1 };
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+const scene = () => SCENES[state.scene];
+const frameData = () => scene().film.frames[state.frame];
+
+function sizeCanvas() {
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  const w = canvas.clientWidth || 551;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(w * 413 / 551 * dpr);
+}
+function centroid(seg) {
+  let x = 0, y = 0;
+  for (let k = 0; k < seg.length; k += 2) { x += seg[k]; y += seg[k + 1]; }
+  const n = seg.length / 2;
+  return [x / n, y / n];
+}
+function draw() {
+  const fr = frameData();
+  const sx = canvas.width / 551, sy = canvas.height / 413;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = state.color ? "#05060f" : "#000";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  for (const c of CAST) {
+    const seg = fr.segs[c];
+    if (!seg) continue;
+    const selected = state.selected === c;
+    const stroke = state.color ? CHARS[c].film : "#f4f4f4";
+    const copies = [1];
+    if (state.color) { const [size, offset] = NEST[c]; for (let k = 1; size - k * offset > 0; k++) copies.push((size - k * offset) / size); }
+    const [cx, cy] = centroid(seg);
+    if (selected) {
+      ctx.save();
+      ctx.shadowColor = state.color ? CHARS[c].film : "#9fd0ff";
+      ctx.shadowBlur = 14;
+    }
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = (selected ? 2.2 : 1.3) / Math.min(sx, sy) * Math.min(sx, sy) / 1.0;
+    ctx.lineWidth = selected ? 2.2 : 1.25;
+    ctx.beginPath();
+    for (const f of copies) {
+      for (let k = 0; k < seg.length; k += 4) {
+        ctx.moveTo(cx + (seg[k] - cx) * f, cy + (seg[k + 1] - cy) * f);
+        ctx.lineTo(cx + (seg[k + 2] - cx) * f, cy + (seg[k + 3] - cy) * f);
+      }
+    }
+    ctx.stroke();
+    if (selected) ctx.restore();
+  }
+}
+// the character drawn nearest a point (in picture dots), if any is near enough
+function hit(px, py) {
+  const fr = frameData();
+  let best = null, bestD = 14;
+  for (const c of CAST) {
+    const seg = fr.segs[c];
+    if (!seg) continue;
+    for (let k = 0; k < seg.length; k += 4) {
+      const d = distToSegment(px, py, seg[k], seg[k + 1], seg[k + 2], seg[k + 3]);
+      if (d < bestD) { bestD = d; best = c; }
+    }
+    // inside the shape counts too
+    const xs = [], ys = [];
+    for (let k = 0; k < seg.length; k += 2) { xs.push(seg[k]); ys.push(seg[k + 1]); }
+    if (px > Math.min(...xs) && px < Math.max(...xs) && py > Math.min(...ys) && py < Math.max(...ys) && bestD > 3) { if (!best || c === best) { best = c; bestD = 3; } }
+  }
+  return best;
+}
+function distToSegment(px, py, x0, y0, x1, y1) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const len = dx * dx + dy * dy;
+  let t = len ? ((px - x0) * dx + (py - y0) * dy) / len : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (x0 + t * dx), py - (y0 + t * dy));
+}
+function pointer(ev) {
+  const r = canvas.getBoundingClientRect();
+  return [(ev.clientX - r.left) / r.width * 551, (ev.clientY - r.top) / r.height * 413];
+}
+
+// ---------------------------------------------------------------- the timeline strip
+
+const bands = document.getElementById("bands");
+const bctx = bands.getContext("2d");
+function drawBands() {
+  const s = scene();
+  const w = bands.clientWidth || 600;
+  const dpr = Math.min(3, window.devicePixelRatio || 1);
+  bands.width = Math.round(w * dpr); bands.height = Math.round(16 * dpr);
+  bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const css = getComputedStyle(document.documentElement);
+  bctx.fillStyle = css.getPropertyValue("--rule");
+  bctx.fillRect(0, 0, w, 16);
+  const x = (f) => (f / Math.max(1, s.last)) * w;
+  let k = 0;
+  for (const sub of s.subscenes) {
+    if (sub.begin === null || sub.end <= sub.begin) continue;
+    const [y, h] = sub.parasite ? [11, 5] : [0, 16];
+    bctx.fillStyle = css.getPropertyValue(sub.parasite ? "--godmother" : k++ % 2 ? "--accent" : "--muted");
+    bctx.globalAlpha = sub.parasite ? 0.8 : 0.32;
+    bctx.fillRect(x(sub.begin) + 0.5, y, Math.max(2, x(sub.end) - x(sub.begin) - 1), h);
+    bctx.globalAlpha = 1;
+    if (!sub.parasite && x(sub.end) - x(sub.begin) > 12) {
+      bctx.fillStyle = css.getPropertyValue("--ink");
+      bctx.font = "600 10px " + css.getPropertyValue("--body");
+      bctx.fillText(String(sub.n), x(sub.begin) + 4, 11.5);
+    }
+  }
+}
+function placeHead() {
+  const s = scene();
+  const head = document.getElementById("head");
+  head.style.left = `calc(${(state.frame / Math.max(1, s.last)) * 100}% - 1px)`;
+}
+
+// ---------------------------------------------------------------- what is happening
+
+function subsceneAt(f) {
+  const s = scene();
+  return s.subscenes.filter((x) => x.begin !== null && f >= x.begin && f <= x.end && x.end > x.begin || (x.begin === f && x.end === f));
+}
+function activitiesAt(f, char) {
+  return scene().activities.filter((a) => a.begin !== null && f >= a.begin && f <= a.end && (!char || a.chars.includes(char)));
+}
+// the tasks of a subscene, with what each chose
+function tasksIn(subName) {
+  const s = scene();
+  return s.glass.tasks.filter((t) => t.variables.subscene === subName).map(taskInfo);
+}
+function taskInfo(t) {
+  const task = parse(t.variables.task);
+  const kind = t.variables.parent === "establish-task" ? "establish" : "convey";
+  const choice = parse(t.variables["current-choice"] || "nil");
+  return { actor: t, name: t.name, kind, description: kv(task, "description"), source: kv(task, "source"), choice: Array.isArray(choice) ? choice : [] };
+}
+function taskByName(name) {
+  const t = scene().glass.tasks.find((x) => x.name === name);
+  return t ? taskInfo(t) : null;
+}
+// the task whose chosen method made an activity
+function taskOfActivity(act) {
+  const fam = familyOf(act.base);
+  const subName = act.subscene ? show(act.subscene) : null;
+  const tasks = scene().glass.tasks.map(taskInfo).filter((t) => !subName || t.actor.variables.subscene === subName);
+  return tasks.find((t) => t.choice.some((m) => Array.isArray(m) && (m[0] === fam || (fam === "goes-to-and-accompanys" && m[0] === "goes-to-and-accompanies")))) || null;
+}
+
+function caption() {
+  const s = scene();
+  const subs = subsceneAt(state.frame);
+  const el = document.getElementById("caption");
+  const main = subs.find((x) => !x.parasite) || subs[0];
+  if (!main) { el.innerHTML = `<span class="part">${esc(s.title)}</span>The screen is cleared before the scene begins.`; return; }
+  const parts = s.subscenes.length;
+  const alongside = subs.filter((x) => x !== main).map((x) => x.n);
+  const shows = [], changes = [];
+  for (const sub of subs) {
+    for (const t of tasksIn(sub.name)) {
+      const m = t.choice[0];
+      if (!Array.isArray(m)) continue;
+      if (m[0] === "change:" || m[0] === "change-to:") { changes.push(t); continue; }
+      if (m[0] === "method:") continue;
+      const top = purpose(t);
+      shows.push(`<b>${cap(methodText(m))}</b>, ${top === t ? taskText(t.kind, t.description) : taskText(top.kind, top.description).replace(/^to establish /, "to show ")}.`);
+    }
+  }
+  const feel = changes.map((t) => about(t.description));
+  const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
+  el.innerHTML = `<span class="part">${esc(s.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}`;
+}
+
+// ---------------------------------------------------------------- the side: the story
+
+function storyPanel() {
+  const side = document.getElementById("side");
+  const cur = scene().id;
+  const people = CAST.map((c) => {
+    const k = STORY.characters[c];
+    if (!k) return "";
+    const tags = [...k.physical, ...k.personality].map((t) => `<span class="tag">${esc(String(t).replace(/-/g, " "))}</span>`).join("");
+    return `<div class="person">${icon(c)}<div><b>${esc(CHARS[c].name)}</b>${k.role ? ` <span class="note">(${esc(String(k.role).replace(/-/g, " "))})</span>` : ""}<div class="tags">${tags}</div></div></div>`;
+  }).join("");
+  const rels = STORY.relationships.map((r) => `<li>${cap(relationshipText(["relationship-of", r.from, r.to]))}.</li>`).join("");
+  const cards = SCENES.map((s, i) => {
+    const st = STORY.scenes[s.id];
+    const tasks = st ? tasksOf(st.tasks).map((t) => `<li>${cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("") : "";
+    const set = st ? st.settings : {};
+    const mood = [set.mood && `mood ${show(set.mood).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1")}`, set.rhythm && `rhythm ${show(set.rhythm).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1")}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
+    return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${s.id === cur}"><span class="t">${esc(s.title)}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
+  }).join("");
+  side.innerHTML = `
+    <div class="side-head"><h2>What Ani was told</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
+    <p class="note">The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it.</p>
+    <div class="people">${people}</div>
+    <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
+    <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
+    <pre class="lisp" id="cindy" hidden></pre>`;
+  side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), 0)));
+  side.querySelector("#show-lisp").addEventListener("click", (e) => {
+    const pre = side.querySelector("#cindy");
+    const showing = !pre.hidden;
+    pre.hidden = showing;
+    e.target.textContent = showing ? "Show it as Ani read it" : "Hide Ani's version";
+    if (!showing) {
+      const text = DATA.cindy.replace(/^;;.*-\*-lisp-\*-\s*/, "");
+      const at = text.indexOf(`(define ${cur} scene`);
+      pre.innerHTML = at < 0 ? esc(text) : esc(text.slice(0, at)) + "<mark>" + esc(text.slice(at, text.indexOf("\n\n", at) > 0 ? text.indexOf("\n\n", at) : undefined)) + "</mark>" + esc(text.slice(text.indexOf("\n\n", at) > 0 ? text.indexOf("\n\n", at) : text.length));
+      const m = pre.querySelector("mark");
+      if (m) m.scrollIntoView({ block: "nearest" });
+    }
+  });
+}
+
+// ---------------------------------------------------------------- the side: why
+
+function dynamicsChain(name) {
+  const s = scene();
+  const chain = [];
+  let n = name;
+  for (let guard = 0; n && guard < 12; guard++) {
+    const a = s.actors.get(n);
+    if (!a) break;
+    chain.push(a);
+    n = a.variables.parent;
+    if (n === "special-dynamics") break;
+  }
+  return chain;
+}
+const ORDER = ["speed", "acceleration", "activity-level", "rhythmic-level", "deliberateness", "repetiveness", "path-curvature", "path-length", "path-jaggedness"];
+function packagesFor(subName, char) {
+  const sub = scene().actors.get(subName);
+  const out = {};
+  if (!sub) return out;
+  for (const item of sub.items) {
+    const it = parse(item);
+    if (it[0] !== "special-dynamics-packages-for") continue;
+    for (const p of it[2] || []) {
+      if (kv(p, "who") !== char) continue;
+      for (let k = 1; k + 1 < p.length; k += 2) if (p[k] !== "who") out[show(p[k])] = p[k + 1];
+    }
+  }
+  return out;
+}
+function dynamicsTable(char, dynName, subName) {
+  const chain = dynamicsChain(dynName);
+  if (!chain.length) return `<p class="idle">Ani gave ${esc(who(char))} no special dynamics here.</p>`;
+  const root = chain[chain.length - 1];
+  const pkg = packagesFor(subName, char);
+  const rows = ORDER.map((el) => {
+    const base = root.variables[el];
+    if (base === undefined) return "";
+    let factor = null, factorFrom = null;
+    for (const a of chain) { const f = a.variables[`(${el} factor)`]; if (f !== undefined) { factor = Number(f); factorFrom = a; break; } }
+    const cp = choicePoint(char, el);
+    const chosen = cp ? show(cp.currentChoice) : null;
+    let why;
+    if (pkg[el] !== undefined || pkg[`(${el} factor)`] !== undefined) why = "asked for by the method chosen for this part";
+    else if (chosen === base) why = `as Ani chose for ${who(char)} in pass 1 <button type="button" class="linkish" data-cp="${esc(char)}|${esc(el)}">why ${esc(base)}?</button>`;
+    else why = chosen ? `changed for this scene (pass 1 chose ${esc(chosen)} <button type="button" class="linkish" data-cp="${esc(char)}|${esc(el)}">why?</button>)` : "set for this scene";
+    const fac = factor !== null && factor !== 1 ? ` × ${+factor.toFixed(2)}` : "";
+    const facWhy = factor !== null && factor !== 1 ? (pkg[`(${el} factor)`] !== undefined && factorFrom === chain[chain.length - 1] ? "" : `; × ${+factor.toFixed(2)} for this activity`) : "";
+    return `<tr><td>${esc(cap(elementName(el)))}</td><td class="v">${esc(VALUE[base] || base)}${esc(fac)}</td><td class="why">${why}${facWhy}</td></tr>`;
+  }).join("");
+  return `<table class="dyn"><thead><tr><th>Element</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function choicePointBox(char, el) {
+  const cp = choicePoint(char, el);
+  if (!cp) return "";
+  const sug = (s) => `${esc(show(kv(s, "value")))} (${esc(kv(s, "strength"))}), because ${who(char)} is ${esc(show(kv(s, "source")).replace(/[()]/g, "").replace(/\band\b /, "").replace(/ /g, ", ").replace(/-/g, " "))}`;
+  const kept = (cp.memory || []).filter((m) => m[0] === "suggestion:").map((m) => `<li>${sug(m)}</li>`).join("");
+  const rejected = (cp.rejectedSuggestions || []).map((r) => `<li>${sug(kv(r, "suggestion"))}: set aside, ${esc(rejectText(kv(r, "reason")))}</li>`).join("");
+  const conflicts = (cp.conflictsResolved || []).length;
+  const slug = `${char}-${el}`;
+  return `<div class="cp"><b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(show(cp.currentChoice))}</b>
+    ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
+    ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions were settled on the way.</span>` : ""}
+    <a href="pass1.html#${esc(slug)}">See every step of this choice</a></div>`;
+}
+function methodsBox(t) {
+  if (!t) return "";
+  const v = t.actor.variables;
+  const rejected = v["rejected-suggestions"] ? parse(v["rejected-suggestions"]) : [];
+  const scores = v.scores ? parse(v.scores) : [];
+  const chosen = t.choice.map(show);
+  const cards = [];
+  const valueOf = (sug) => kv(kv(sug, "value"), "value") ?? kv(sug, "value");
+  for (const sc of Array.isArray(scores) ? scores : []) {
+    const m = valueOf(kv(sc, "suggestion"));
+    const isChosen = chosen.includes(show(m));
+    const rows = ["strength", "prerequisite", "best-when", "time-fit", "originality", "variety"].map((k) => {
+      const n = Number(kv(sc, k));
+      return Number.isFinite(n) ? `<span>${esc(k.replace(/-/g, " "))}</span><span class="bar"><i style="width:${Math.max(0, Math.min(100, n))}%"></i></span><span class="n">${n}</span>` : "";
+    }).join("");
+    cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)}</span><div class="scores">${rows}</div></div>`);
+  }
+  if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)}</span></div>`);
+  for (const r of Array.isArray(rejected) ? rejected : []) {
+    const m = valueOf(kv(r, "suggestion"));
+    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span></div>`);
+  }
+  return `<div class="methods">${cards.join("")}</div>`;
+}
+function chainOfTask(t) {
+  const steps = [];
+  for (let guard = 0; t && guard < 6; guard++) {
+    steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","}</span></li>`);
+    t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
+  }
+  return `<ul class="chain">${steps.join("")}</ul>`;
+}
+function whyPanel(char) {
+  const side = document.getElementById("side");
+  const s = scene();
+  const f = state.frame;
+  const fr = frameData();
+  const st = fr.chars[char] || {};
+  const subs = subsceneAt(f);
+  const main = subs.find((x) => !x.parasite) || subs[0];
+  const acts = activitiesAt(f, char);
+  const k = CHARS[char];
+  const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(k.name)}</h2></div><button type="button" class="linkish" id="back-to-story">Back to the description</button></div>
+    <p class="where">${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last}</p>`;
+  let lead, sections = "";
+  // between two steps of a plan, the step before or after stands in for the current one
+  let act = acts[0], between = null;
+  if (!act && main) {
+    const mine = s.activities.filter((a) => a.chars.includes(char) && a.begin !== null && (!a.subscene || show(a.subscene) === main.name));
+    const next = mine.filter((a) => a.begin > f).sort((a, b) => a.begin - b.begin)[0];
+    const prev = mine.filter((a) => a.end <= f).sort((a, b) => b.end - a.end)[0];
+    if (next || prev) { act = next || prev; between = { next, prev }; }
+  }
+  if (!act) {
+    lead = `<p class="lead idle">${esc(cap(k.the))} has no part in Ani's plan for ${main ? `part ${main.n}` : "this moment"}, so ${esc(k.she)} stays where ${esc(k.she)} is.</p>`;
+  } else {
+    const label = (a) => esc(ACTIVITY[a.base] || String(a.base).replace(/-/g, " "));
+    const t = taskOfActivity(act);
+    const fam = familyOf(act.base);
+    const with_ = act.chars.filter((c) => c !== char);
+    const method = t && (t.choice.find((m) => Array.isArray(m) && (m[0] === fam || m[0] === "goes-to-and-accompanies")) || t.choice[0]);
+    lead = (between
+      ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at frame ${between.next.begin}` : ""}.</p>`
+      : `<p class="lead">${esc(cap(k.the))} is ${para(label(act) + (with_.length ? ` (with ${esc(who(with_))})` : ""), act.name)}.</p>`) +
+      (method ? `<p>This is part of Ani's plan for ${main ? `part ${main.n}` : "this part"}: ${para(cap(methodText(method)), method)}.</p>` : "");
+    if (t) {
+      sections += `<details open><summary>Why</summary><div class="body">${chainOfTask(t)}</div></details>`;
+      sections += `<details><summary>How Ani chose this</summary><div class="body"><p class="note">The methods Ani considered ${esc(taskText(t.kind, "").replace(/that $/, "that ") ? "" : "")}for this task, and how they scored.</p>${methodsBox(t)}</div></details>`;
+    }
+    const code = s.actors.get(act.name);
+    if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
+  }
+  if (st.dynamics) {
+    sections += `<details><summary>How ${esc(k.she)} moves</summary><div class="body">${dynamicsTable(char, st.dynamics, main ? main.name : null)}<div id="cp-box"></div></div></details>`;
+  }
+  if (main) {
+    const loc = s.v(main.name, `(location-of ${char})`);
+    if (loc) sections += `<details><summary>Where ${esc(k.she)} started this part</summary><div class="body"><p>${cap(place(kv(loc, "where")))}: ${reason(kv(loc, "why"))}.</p><pre class="lisp">${esc(pretty(loc))}</pre></div></details>`;
+  }
+  const records = [main && main.name, st.dynamics].filter(Boolean).map((n) => {
+    const a = s.actors.get(n);
+    if (!a) return "";
+    const vars = Object.entries(a.variables).filter(([key]) => key !== "name").map(([key, val]) => `(set your ${key} to ${val})`).join("\n");
+    return `<p class="label">${esc(n)}</p><pre class="lisp">${esc(vars)}</pre>`;
+  }).join("");
+  sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
+  side.innerHTML = head + lead + sections;
+  if (/[?&]open\b/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
+  side.querySelector("#back-to-story").addEventListener("click", () => select(null));
+  side.querySelectorAll("[data-cp]").forEach((b) => b.addEventListener("click", () => {
+    const [c, el] = b.dataset.cp.split("|");
+    const box = side.querySelector("#cp-box");
+    box.innerHTML = choicePointBox(c, el);
+    box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }));
+}
+
+// ---------------------------------------------------------------- controls
+
+const scrub = document.getElementById("scrub");
+function render() {
+  draw();
+  placeHead();
+  const s = scene();
+  scrub.max = String(s.last);
+  scrub.value = String(state.frame);
+  document.getElementById("frame-label").textContent = `${state.frame} / ${s.last}`;
+  caption();
+}
+function goScene(i, frame = 0) {
+  state.scene = i;
+  state.frame = frame;
+  document.querySelectorAll("#scenes button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+  drawBands();
+  render();
+  if (state.selected) whyPanel(state.selected); else storyPanel();
+}
+function select(c, { scroll = true } = {}) {
+  state.selected = c;
+  if (c) { pause(); whyPanel(c); } else storyPanel();
+  draw();
+  // on a narrow screen the panel is below the film
+  if (c && scroll && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
+    document.getElementById("side").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+function step(d) {
+  const s = scene();
+  let f = state.frame + d;
+  if (f > s.last) {
+    if (state.playing && state.scene < SCENES.length - 1) { goScene(state.scene + 1, 0); return; }
+    f = s.last;
+    pause();
+  }
+  if (f < 0) f = 0;
+  state.frame = f;
+  render();
+  if (state.selected) whyPanel(state.selected);
+}
+function play() {
+  if (state.frame >= scene().last && state.scene === SCENES.length - 1) goScene(0, 0);
+  state.playing = true;
+  document.getElementById("play").textContent = "Pause";
+  const tick = () => { if (!state.playing) return; step(1); state.timer = setTimeout(tick, 250 / state.speed); };
+  state.timer = setTimeout(tick, 250 / state.speed);
+}
+function pause() {
+  state.playing = false;
+  clearTimeout(state.timer);
+  document.getElementById("play").textContent = "Play";
+}
+
+document.getElementById("scenes").innerHTML = SCENES.map((s, i) => `<button type="button" aria-pressed="${i === 0}">${esc(s.title)}</button>`).join("");
+document.querySelectorAll("#scenes button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
+document.getElementById("play").addEventListener("click", () => (state.playing ? pause() : play()));
+document.getElementById("back").addEventListener("click", () => { pause(); step(-1); });
+document.getElementById("fwd").addEventListener("click", () => { pause(); step(1); });
+scrub.addEventListener("input", () => { pause(); state.frame = Number(scrub.value); render(); if (state.selected) whyPanel(state.selected); });
+document.getElementById("mode-bw").addEventListener("click", () => setColor(false));
+document.getElementById("mode-color").addEventListener("click", () => setColor(true));
+canvas.addEventListener("click", (ev) => { const [x, y] = pointer(ev); select(hit(x, y)); });
+canvas.addEventListener("mousemove", (ev) => { const [x, y] = pointer(ev); canvas.classList.toggle("over", !!hit(x, y)); });
+document.addEventListener("keydown", (ev) => {
+  if (ev.target.closest && ev.target.closest("input, textarea, select")) return;
+  if (ev.key === " ") { ev.preventDefault(); state.playing ? pause() : play(); }
+  else if (ev.key === "ArrowRight") { pause(); step(1); }
+  else if (ev.key === "ArrowLeft") { pause(); step(-1); }
+  else if (ev.key === "Escape") select(null);
+});
+document.getElementById("legend").innerHTML = CAST.map((c) => `<span>${icon(c)}${esc(CHARS[c].name.replace(/^The /, "the ").replace(/^the /, (m) => m)).replace(/^the /, "The ")}: ${esc(CHARS[c].shape)}</span>`).join("");
+window.addEventListener("resize", () => { sizeCanvas(); drawBands(); draw(); });
+if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => drawBands());
+
+// A link can open at a moment: #kept-apart.48, #kept-apart.48.cinderella, and in
+// color with .color at the end.
+function setColor(color) {
+  state.color = color;
+  document.getElementById("mode-bw").setAttribute("aria-pressed", String(!color));
+  document.getElementById("mode-color").setAttribute("aria-pressed", String(color));
+  draw();
+}
+function fromHash() {
+  const parts = decodeURIComponent(location.hash.slice(1)).split(".");
+  const i = SCENES.findIndex((x) => x.id === parts[0]);
+  if (i < 0) return false;
+  if (parts.includes("color")) setColor(true);
+  goScene(i, Math.max(0, Math.min(SCENES[i].last, Number(parts[1]) || 0)));
+  if (parts[2] && CHARS[parts[2]]) select(parts[2], { scroll: false });
+  return true;
+}
+window.addEventListener("hashchange", fromHash);
+
+sizeCanvas();
+if (!fromHash()) goScene(0, 1);
+</script>

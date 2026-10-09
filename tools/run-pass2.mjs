@@ -3,9 +3,13 @@
 // Director program that will show it (KEN;INTROD UCTION and so on), with its
 // summary (KEN1;INTROD MINI) and printout (KEN1;INTROD PRINT). Each file is also
 // copied to reports/pass2/.
-// Usage: node tools/run-pass2.mjs [scene] [--no-backtrace]
+// Usage: node tools/run-pass2.mjs [scene] [--no-backtrace] [--glass-box]
 //   scene is introduction (the default), kept-apart, no-longer-kept-apart,
 //   meeting or justice.
+//   --glass-box  also write reports/pass2/<scene>.glass.json for the web app: every
+//   actor of the scene's plan as Ani left it (the scene, its tasks with the methods
+//   suggested, rejected and scored, its subscenes, activities and special dynamics),
+//   each as its variables and what it memorized, printed as Lisp.
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -77,5 +81,41 @@ for (const name of [{ dir: "KEN", fn1, fn2 }, { dir: "KEN1", fn1, fn2: "MINI" },
   const path = `reports/pass2/${name.dir.toLowerCase()}-${name.fn1.toLowerCase()}.${name.fn2.toLowerCase()}`;
   writeFileSync(path, text);
   console.log(`${label}: ${text.length} characters, copied to ${path}`);
+}
+// The glass box: each actor of the plan, as its own variables (recalled as print-all
+// recalls them) and the items it memorized.
+if (ok && process.argv.includes("--glass-box")) {
+  const lisp = (x) => L.print(x).toLowerCase();
+  const ev = (src) => L.evalString(src);
+  function actor(name) {
+    const out = { name: lisp(name), variables: {}, items: [] };
+    L.intern("*GB-ACTOR*").value = name;
+    for (const v of L.toArray(ev("(ask ,*gb-actor* list all your variable names)"))) {
+      if (v === L.NIL) continue;
+      L.intern("*GB-VARIABLE*").value = v;
+      out.variables[lisp(v)] = lisp(ev("(ask ,*gb-actor* recall your ,*gb-variable*)"));
+    }
+    out.items = L.toArray(ev("(ask ,*gb-actor* collect items)")).map(lisp);
+    return out;
+  }
+  const names = (src) => L.toArray(ev(src)).filter((x) => x !== L.NIL);
+  const sceneName = L.intern(scene.toUpperCase());
+  const tasks = [...names(`(ask ${scene} recall your convey-tasks)`), ...names(`(ask ${scene} recall your establish-tasks)`)];
+  const subscenes = names(`(ask ${scene} recall your subscenes)`);
+  const plans = [];
+  for (const s of subscenes) {
+    L.intern("*GB-ACTOR*").value = s;
+    for (const p of names("(ask ,*gb-actor* recall your plans)")) plans.push(p);
+  }
+  const glass = {
+    scene: actor(sceneName),
+    tasks: tasks.map(actor),
+    subscenes: subscenes.map(actor),
+    plans: plans.map(actor),
+    dynamics: names("(ask special-dynamics recall your descendants)").map(actor),
+    choices: actor(L.readFromString(`(choices-made-in ${scene})`)),
+  };
+  writeFileSync(`reports/pass2/${scene}.glass.json`, JSON.stringify(glass, null, 1));
+  console.log(`glass box: ${glass.tasks.length} tasks, ${glass.subscenes.length} subscenes, ${glass.plans.length} activities, ${glass.dynamics.length} special dynamics in reports/pass2/${scene}.glass.json`);
 }
 process.exit(ok ? 0 : 1);
