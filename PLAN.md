@@ -80,7 +80,7 @@
     - A word Ani doesn't know (say "grumpy") changes none of pass 1's choices, but stops pass 2 with `NO-SUCH-ACTOR`. The editor offers only Ani's words and flags others.
     - A defiant Cinderella (determined, stubborn, strong; hates the stepmother, is impolite to and intolerant of her) stops pass 2. Pass 1 chose "not high" for the stepmother's rhythm and repetitiveness: `COSUG`'s `absolute-three-value` gives `(not X)` when two of three values remain. `INTERF`'s `WEIGHTIFY` accepts only low, medium and high. `CINDY` never led to such a choice, so 1978 never met it.
     - `CINDY` itself gives "strong", a personality word, as the Prince's looks, and uses `is-protective-of`, which `RELATE` doesn't define (it has `is-protective-to`).
-  - **Publishing:** not yet done; see "Still to settle".
+  - **Publishing:** a private claude.ai artifact, https://claude.ai/artifact/Mzd3BBMGbn9Qs2AcyojhmM (9 October): the film page, with the code and choice-point pages beside it. Its pages carry only code and the film description; every comment and string in the bundled files was read first. It is shared from the page's Share menu. toontalk.github.io is not cloned on this machine, so the GitHub Pages copy waits for your word: the three files `app/film.html`, `app/source.html` and `app/pass1.html` go in one folder as they are.
 
 ## In brief
 
@@ -292,4 +292,4 @@ Each phase ends with something you can look at.
 
 ## Still to settle
 
-- Where the finished app should live: toontalk.github.io/AI/apps, a claude.ai artifact, or both.
+- Where on toontalk.github.io the app should go (the artifact is up, private).
