@@ -9,6 +9,32 @@
 //   --content-only writes the page without its document skeleton (for publishing).
 import { readFileSync, writeFileSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { decodeItsText } from "../src/its/text.js";
+import { definitions } from "./lisp-defs.mjs";
+
+// Where in Ani's code each method, kind of task and plan is, for links into the code
+// page (app/source.html#<file>-<line>).
+function codeIndex(root) {
+  const defs = (file) => definitions(decodeItsText(readFileSync(`${root}/original/7005017/${file}`)).text);
+  const display = {};
+  for (const d of defs("disply.311")) {
+    if (d.kind === "define" && d.name && d.parent === "display-method") (display[d.name] ||= {}).define = d.line;
+    const run = d.pattern && d.pattern.match(/^\(run ([a-z:-]+) /);
+    if (run) (display[run[1]] ||= {}).run = d.line;
+  }
+  const convey = {};
+  for (const d of defs("convey.64")) {
+    const m = d.pattern && d.pattern.match(/\(convey \(([a-z-]+) /);
+    if (m && !convey[m[1]]) convey[m[1]] = d.line;
+  }
+  const sugest = Object.fromEntries(defs("sugest.123").filter((d) => d.name).map((d) => [d.name, d.line]));
+  const establish = {
+    personality: ["sugest.123", sugest["establish-personality-suggestions"]],
+    relationship: ["sugest.123", sugest["establish-relationship-suggestions"]],
+    "emotional-state": ["sugest.123", sugest["combine-emotional-state-suggestions"]],
+  };
+  return { display: { file: "disply.311", methods: display }, convey: { file: "convey.64", verbs: convey }, establish };
+}
 
 const SCENES = [
   ["introduction", "The Introduction"],
@@ -31,6 +57,7 @@ export function buildFilmApp(root = ".", { contentOnly = null } = {}) {
     })),
     cindy,
     pass1: { cp29: pass1.cp29, choicePoints: pass1.choicePoints },
+    code: codeIndex(root),
   };
   const json = JSON.stringify(data).replace(/</g, "\\u003c");
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");

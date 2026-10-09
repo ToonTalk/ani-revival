@@ -1,0 +1,237 @@
+<title>Ani's Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:wght@500;600&display=swap">
+<style>
+/* A reading room for the code: the shelf of files at left, the open file at right,
+   each name a link to where it is defined. */
+:root {
+  --paper: #f3f5f2;
+  --sheet: #ffffff;
+  --ink: #1c2320;
+  --muted: #5b6661;
+  --rule: #d5dbd6;
+  --accent: #1f5a8e;
+  --accent-soft: #e2ebf3;
+  --comment: #6c7a73;
+  --string: #8a5a14;
+  --paren: #a5afa9;
+  --def: #f2ead3;
+  --flash: #ffe9a8;
+  --ours: #7a4a92;
+  --display: "Spectral", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+    --accent: #84b4e2; --accent-soft: #1b2733; --comment: #7f8d86; --string: #e0b46e; --paren: #4f5953;
+    --def: #2a2618; --flash: #4a3f10; --ours: #c49ad8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+  --accent: #84b4e2; --accent-soft: #1b2733; --comment: #7f8d86; --string: #e0b46e; --paren: #4f5953;
+  --def: #2a2618; --flash: #4a3f10; --ours: #c49ad8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); padding-inline: max(16px, 3vw); padding-block: 24px 48px; }
+.wrap { max-width: 1340px; margin: 0 auto; display: grid; gap: 20px; }
+h1, h2 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem); line-height: 1.1; }
+h2 { font-size: 1.3rem; }
+p { margin: 0; }
+a { color: var(--accent); }
+.label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 8px; max-width: 80ch; }
+header .intro { color: var(--muted); }
+.room { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .room { grid-template-columns: minmax(0, 1fr); } }
+.shelf { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px; display: grid; gap: 14px; }
+@media (min-width: 861px) { .shelf { position: sticky; top: max(12px, env(safe-area-inset-top, 0px)); max-height: calc(100vh - 24px); overflow: auto; } }
+.search { position: relative; }
+.search input { width: 100%; font: inherit; padding: 7px 10px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); }
+.results { margin: 6px 0 0; padding: 0; list-style: none; display: grid; gap: 2px; max-height: 50vh; overflow: auto; }
+.results button { width: 100%; text-align: left; border: 0; background: none; padding: 4px 6px; border-radius: 6px; cursor: pointer; font: inherit; color: inherit; display: grid; }
+.results button:hover, .results button:focus { background: var(--accent-soft); }
+.results .n { font-family: var(--mono); font-size: 0.82rem; }
+.results .w { color: var(--muted); font-size: 0.76rem; }
+.group { display: grid; gap: 4px; }
+.group .gnote { color: var(--muted); font-size: 0.8rem; }
+.file { text-align: left; border: 0; background: none; border-radius: 8px; padding: 5px 8px; cursor: pointer; display: grid; font: inherit; color: inherit; }
+.file:hover { background: var(--paper); }
+.file[aria-current="true"] { background: var(--accent-soft); }
+.file .its { font-family: var(--mono); font-size: 0.82rem; font-weight: 500; }
+.file .what { color: var(--muted); font-size: 0.78rem; line-height: 1.35; }
+.file.ours .its { color: var(--ours); }
+.reader { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; min-width: 0; overflow: hidden; }
+.reader-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--rule); display: grid; gap: 4px; }
+.reader-head .meta { color: var(--muted); font-size: 0.86rem; }
+.code { margin: 0; padding: 10px 0 18px; font-family: var(--mono); font-size: 0.8rem; line-height: 1.5; overflow-x: auto; white-space: pre; tab-size: 8; counter-reset: none; }
+.code .l { display: block; padding: 0 18px 0 0; min-width: max-content; }
+.code .l:target, .code .l.flash { background: var(--flash); }
+.code .l.d { background: var(--def); }
+.code .ln { display: inline-block; width: 5ch; padding-right: 1.6ch; text-align: right; color: var(--paren); user-select: none; }
+.code .c { color: var(--comment); font-style: italic; }
+.code .s { color: var(--string); }
+.code .p { color: var(--paren); }
+.code a.r { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--accent); }
+.code a.r:hover { color: var(--accent); border-bottom-style: solid; }
+.code .dn { font-weight: 600; color: var(--accent); }
+.code .also { font-family: var(--body); font-size: 0.74rem; color: var(--muted); margin-left: 1.5ch; white-space: normal; }
+.code .also a { color: var(--ours); }
+footer { color: var(--muted); font-size: 0.84rem; border-top: 1px solid var(--rule); padding-top: 12px; max-width: 90ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
+    <h1>Ani's Code</h1>
+    <p class="intro">The code Ani and Director ran, as it was recovered from the MIT AI Lab's backup tapes, and what this revival added. Each name that is defined somewhere links to its definition. <a href="film.html">Back to the film</a>.</p>
+  </header>
+  <main class="room">
+    <nav class="shelf" aria-label="Files">
+      <div class="search">
+        <label class="label" for="find">Find a definition</label>
+        <input id="find" type="search" placeholder="e.g. stands-guard, choose" autocomplete="off">
+        <ul class="results" id="results"></ul>
+      </div>
+      <div id="groups"></div>
+    </nav>
+    <article class="reader" id="reader" aria-live="polite"></article>
+  </main>
+  <footer>Ken's files are shown as they were on tape 7005017 (backed up around 5 February 1979), decoded from ITS's format and otherwise unchanged. The revival's files are marked in purple; they are this project's, not Ken's.</footer>
+</div>
+
+<script type="application/json" id="source-data">/*SOURCE-DATA*/</script>
+<script>
+"use strict";
+const DATA = JSON.parse(document.getElementById("source-data").textContent);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const byId = new Map(DATA.files.map((f) => [f.id, f]));
+const GROUP_ORDER = ["ani", "drivers", "director", "revival"];
+
+// every named definition, by name; Ken's files first
+const INDEX = new Map();
+for (const g of GROUP_ORDER) {
+  for (const f of DATA.files.filter((x) => x.group === g)) {
+    for (const d of f.defs) {
+      if (!d.name || d.kind === "define-abbreviation") continue;
+      if (!INDEX.has(d.name)) INDEX.set(d.name, []);
+      INDEX.get(d.name).push({ file: f, line: d.line, kind: d.kind });
+    }
+  }
+}
+const DEFS = DATA.files.flatMap((f) => f.defs.map((d) => ({ ...d, file: f })));
+
+function anchor(f, line) { return line ? `${f.id}-${line}` : f.id; }
+
+// Code into HTML, a line at a time; strings and |symbols| may run over lines.
+function render(f) {
+  const defAt = new Map(f.defs.map((d) => [d.line, d]));
+  const out = [];
+  let state = null; // inside a string (") or a |symbol| across lines
+  const lines = f.text.split("\n");
+  lines.forEach((line, k) => {
+    const n = k + 1;
+    const d = defAt.get(n);
+    let html = "";
+    let i = 0;
+    const flush = (cls, s) => { html += cls ? `<span class="${cls}">${esc(s)}</span>` : esc(s); };
+    while (i < line.length) {
+      if (state) {
+        let j = i;
+        while (j < line.length && line[j] !== state) { if (line[j] === "/") j++; j++; }
+        flush(state === '"' ? "s" : "", line.slice(i, Math.min(j + 1, line.length)));
+        if (j < line.length) state = null;
+        i = j + 1;
+        continue;
+      }
+      const c = line[i];
+      if (c === ";") { flush("c", line.slice(i)); break; }
+      if (c === '"' || c === "|") {
+        let j = i + 1;
+        while (j < line.length && line[j] !== c) { if (line[j] === "/") j++; j++; }
+        if (j >= line.length) state = c;
+        const tok = line.slice(i, Math.min(j + 1, line.length));
+        if (c === "|") symbol(tok); else flush("s", tok);
+        i = j + 1;
+        continue;
+      }
+      if (c === "(" || c === ")") { flush("p", c); i++; continue; }
+      if (/\s/.test(c)) { let j = i; while (j < line.length && /\s/.test(line[j])) j++; html += line.slice(i, j); i = j; continue; }
+      let j = i;
+      while (j < line.length && !/[\s();"|]/.test(line[j])) { if (line[j] === "/") j++; j++; }
+      symbol(line.slice(i, j));
+      i = j;
+    }
+    function symbol(tok) {
+      const m = tok.match(/^([',`!#@]*)(.*)$/);
+      const pre = m[1], word = m[2];
+      const key = word.toLowerCase();
+      const defs = INDEX.get(key);
+      if (d && d.name === key) { html += esc(pre) + `<span class="dn">${esc(word)}</span>`; return; }
+      if (defs && word.length > 1) {
+        const t = defs[0];
+        html += esc(pre) + `<a class="r" href="#${anchor(t.file, t.line)}" title="${esc(`${t.kind} in ${t.file.its}, line ${t.line}`)}">${esc(word)}</a>`;
+      } else html += esc(tok);
+    }
+    let also = "";
+    if (d && d.name) {
+      const others = (INDEX.get(d.name) || []).filter((t) => !(t.file === f && t.line === n));
+      if (others.length) also = `<span class="also">also defined in ${others.map((t) => `<a href="#${anchor(t.file, t.line)}">${esc(t.file.its)}</a>`).join(", ")}</span>`;
+    }
+    out.push(`<span class="l${d ? " d" : ""}" id="${anchor(f, n)}"><span class="ln">${n}</span>${html}${also}</span>`);
+  });
+  return out.join("");
+}
+
+function shelf(current) {
+  const groups = document.getElementById("groups");
+  groups.innerHTML = DATA.groups.map((g) => `
+    <div class="group"><p class="label">${esc(g.title)}</p><p class="gnote">${esc(g.note)}</p>
+    ${DATA.files.filter((f) => f.group === g.id).map((f) => `<button type="button" class="file${g.id === "revival" ? " ours" : ""}" data-id="${esc(f.id)}" aria-current="${f === current}"><span class="its">${esc(f.its)}</span>${f.note ? `<span class="what">${esc(f.note)}</span>` : ""}</button>`).join("")}</div>`).join("");
+  groups.querySelectorAll(".file").forEach((b) => b.addEventListener("click", () => { location.hash = b.dataset.id; }));
+}
+
+let shown = null;
+function open(f, line) {
+  if (shown !== f) {
+    const reader = document.getElementById("reader");
+    const names = f.defs.filter((d) => d.name).length, methods = f.defs.filter((d) => d.pattern).length;
+    reader.innerHTML = `<div class="reader-head"><p class="label">${esc(DATA.groups.find((g) => g.id === f.group).title)}</p><h2>${esc(f.its)}</h2>
+      <p class="meta">${esc(f.note)}${f.note ? " · " : ""}${f.text.split("\n").length} lines · ${names} named definitions, ${methods} methods and actors with list names · ${esc(f.origin)}</p></div>
+      <pre class="code">${render(f)}</pre>`;
+    shown = f;
+    shelf(f);
+  }
+  const el = line ? document.getElementById(anchor(f, line)) : null;
+  document.querySelectorAll(".code .l.flash").forEach((x) => x.classList.remove("flash"));
+  if (el) { el.classList.add("flash"); el.scrollIntoView({ block: "center" }); }
+}
+function fromHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  const m = h.match(/^(.*?)(?:-(\d+))?$/);
+  const f = byId.get(m[1]) || byId.get(h);
+  if (f) open(f, m[2] ? Number(m[2]) : null);
+  else open(byId.get("cindy.46") || DATA.files[0], null);
+}
+
+// the search
+const find = document.getElementById("find");
+const results = document.getElementById("results");
+find.addEventListener("input", () => {
+  const q = find.value.trim().toLowerCase();
+  if (q.length < 2) { results.innerHTML = ""; return; }
+  const hits = DEFS.filter((d) => (d.name || d.pattern || "").includes(q)).slice(0, 40);
+  results.innerHTML = hits.map((d, k) => `<li><button type="button" data-k="${k}"><span class="n">${esc(d.name || d.pattern)}</span><span class="w">${esc(d.kind)}${d.actor ? " for " + esc(d.actor) : ""} · ${esc(d.file.its)}, line ${d.line}</span></button></li>`).join("") || `<li class="w">Nothing defined by that name.</li>`;
+  results.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { const d = hits[Number(b.dataset.k)]; location.hash = anchor(d.file, d.line); }));
+});
+find.addEventListener("keydown", (e) => { if (e.key === "Enter") { const b = results.querySelector("button"); if (b) b.click(); } });
+
+window.addEventListener("hashchange", fromHash);
+fromHash();
+</script>

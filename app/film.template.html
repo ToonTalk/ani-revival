@@ -165,6 +165,8 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .cp { display: grid; gap: 6px; border-left: 3px solid var(--accent); padding: 4px 0 4px 10px; font-size: 0.9rem; }
 .cp ul { margin: 0; padding-left: 18px; }
 .idle { color: var(--muted); }
+.code-link { font-family: var(--mono); font-size: 0.74rem; white-space: nowrap; margin-left: 4px; }
+.code-link::before { content: "‹›"; margin-right: 3px; color: var(--muted); }
 
 footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
@@ -201,7 +203,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
 
   <footer>
     <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs, four frames a second on a 550 by 413 picture, as Ken's camera took them. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
-    <p>Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>.</p>
+    <p>Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
   </footer>
 </div>
 
@@ -520,6 +522,25 @@ function rejectText(r) {
     return `it doesn't fit the time (off by ${Math.abs(d).toFixed(1)} s)`;
   }
   return REJECT[r] || esc(show(r).replace(/-/g, " "));
+}
+
+// ---------------------------------------------------------------- links into the code
+
+const CODE = DATA.code;
+const codeLink = (file, line, label = "code") => (file && line ? `<a class="code-link" href="source.html#${file}-${line}" title="${esc(`${file}, line ${line}`)}">${label}</a>` : "");
+function methodCode(m, which = "define") {
+  if (!Array.isArray(m)) return "";
+  if (m[0] === "method:") { const v = kv(m, "value"); return Array.isArray(v) ? codeLink(CODE.convey.file, CODE.convey.verbs[v[0]]) : ""; }
+  const name = m[0] === "goes-to-and-accompanies" ? "goes-to-and-accompanys" : m[0];
+  const at = CODE.display.methods[name];
+  return at ? codeLink(CODE.display.file, at[which] || at.define || at.run) : "";
+}
+function taskCode(t) {
+  const d = t.description;
+  if (!Array.isArray(d)) return "";
+  if (t.kind === "convey") return codeLink(CODE.convey.file, CODE.convey.verbs[d[0]]);
+  const at = CODE.establish[d[0]];
+  return at ? codeLink(at[0], at[1]) : "";
 }
 
 // ---------------------------------------------------------------- the story Ani was told
@@ -915,19 +936,19 @@ function methodsBox(t) {
       const n = Number(kv(sc, k));
       return Number.isFinite(n) ? `<span>${esc(k.replace(/-/g, " "))}</span><span class="bar"><i style="width:${Math.max(0, Math.min(100, n))}%"></i></span><span class="n">${n}</span>` : "";
     }).join("");
-    cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)}</span><div class="scores">${rows}</div></div>`);
+    cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)} ${methodCode(m)}</span><div class="scores">${rows}</div></div>`);
   }
-  if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)}</span></div>`);
+  if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)} ${methodCode(m)}</span></div>`);
   for (const r of Array.isArray(rejected) ? rejected : []) {
     const m = valueOf(kv(r, "suggestion"));
-    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span></div>`);
+    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)} ${methodCode(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span></div>`);
   }
   return `<div class="methods">${cards.join("")}</div>`;
 }
 function chainOfTask(t) {
   const steps = [];
   for (let guard = 0; t && guard < 6; guard++) {
-    steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","}</span></li>`);
+    steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","} ${taskCode(t)}</span></li>`);
     t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
   }
   return `<ul class="chain">${steps.join("")}</ul>`;
@@ -964,13 +985,13 @@ function whyPanel(char) {
     lead = (between
       ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at frame ${between.next.begin}` : ""}.</p>`
       : `<p class="lead">${esc(cap(k.the))} is ${para(label(act) + (with_.length ? ` (with ${esc(who(with_))})` : ""), act.name)}.</p>`) +
-      (method ? `<p>This is part of Ani's plan for ${main ? `part ${main.n}` : "this part"}: ${para(cap(methodText(method)), method)}.</p>` : "");
+      (method ? `<p>This is part of Ani's plan for ${main ? `part ${main.n}` : "this part"}: ${para(cap(methodText(method)), method)}. ${methodCode(method, "run")}</p>` : "");
     if (t) {
       sections += `<details open><summary>Why</summary><div class="body">${chainOfTask(t)}</div></details>`;
       sections += `<details><summary>How Ani chose this</summary><div class="body"><p class="note">The methods Ani considered ${esc(taskText(t.kind, "").replace(/that $/, "that ") ? "" : "")}for this task, and how they scored.</p>${methodsBox(t)}</div></details>`;
     }
     const code = s.actors.get(act.name);
-    if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
+    if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">Written by the method's code in DISPLY ${methodCode([fam], "run")}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
   }
   if (st.dynamics) {
     sections += `<details><summary>How ${esc(k.she)} moves</summary><div class="body">${dynamicsTable(char, st.dynamics, main ? main.name : null)}<div id="cp-box"></div></div></details>`;
