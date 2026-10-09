@@ -3,7 +3,9 @@
 // filming, a scene that fails reported and the next one tried), and say what happened
 // at each step: ok or FAILED, how many frames each scene filmed and whether it hit the
 // cap (a scene that never ends), the error and the first lines of Lisp's backtrace, and
-// any repair notes the revival's extensions left in the glass box.
+// any repair notes the revival's extensions left in the glass box or while filming.
+// Pass 1's choices that pass 2 can't use as they are, (not X) and none, are listed, and
+// apart from them those it never reads (a none on an attraction).
 // Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 600] [--fps 4]
 //                                  [--scenes s1,s2] [--out file.json] [--no-backtrace]
 //   --extensions  the revival's extensions to load (src/pipeline.js EXTENSIONS); none
@@ -99,14 +101,21 @@ function printFailure(r) {
   if (bt.stack) console.log("  " + bt.stack.join("\n  "));
 }
 
-// Choices pass 2 can't take as they are: (not X) and none.
+// Choices pass 2 can't take as they are: (not X) and none (odd), and those it never
+// reads (unread). A character's attractions (attraction-towards-friends, ...: ELEMNT's
+// movement-tendency-elements, elemnt.1:96-105) are chosen in pass 1 and read nowhere
+// after it: special dynamics take only the normal-movement elements (char.2:58-68), and
+// the attractions' only other mention is a type list (nodes.38:102). So a none there
+// does no harm, and is listed apart.
 function oddChoices(choicePoints) {
-  const odd = [];
+  const odd = [], unread = [];
   for (const cp of choicePoints || []) {
     const v = cp.currentChoice;
-    if (v === "none" || (Array.isArray(v) && v[0] === "not")) odd.push({ choicePoint: cp.name, value: v });
+    if (v !== "none" && !(Array.isArray(v) && v[0] === "not")) continue;
+    const element = cp.elementName || (Array.isArray(cp.name) ? cp.name[2] : null);
+    (/^attraction-/.test(element || "") ? unread : odd).push({ choicePoint: cp.name, value: v });
   }
-  return odd;
+  return { odd, unread };
 }
 const show = (x) => (Array.isArray(x) ? `(${x.map(show).join(" ")})` : String(x));
 
@@ -145,11 +154,13 @@ const steps = makeFilmSteps(fs, {
     at = { step, scene: scene || null, t0: step === "film" ? at.t0 : Date.now() }; // a scene's time is its pass 2's and its filming's
   },
   onPass1: (p) => {
-    const odd = oddChoices(p.choicePoints);
-    result.pass1 = { ok: true, seconds: seconds(at.t0), choices: p.choices, odd };
+    const { odd, unread } = oddChoices(p.choicePoints);
+    result.pass1 = { ok: true, seconds: seconds(at.t0), choices: p.choices, odd, unread };
     if (p.repairs) result.pass1.repairs = repairNotes(p.repairs);
-    console.log(`ok     pass 1 (${result.pass1.seconds}s): ${p.choices} choices${odd.length ? `, ${odd.length} that pass 2 can't use as they are:` : ""}`);
+    console.log(`ok     pass 1 (${result.pass1.seconds}s): ${p.choices} choices${odd.length ? `, ${odd.length} that pass 2 can't use as ${odd.length === 1 ? "it is" : "they are"}:` : ""}`);
     for (const o of odd) console.log(`         ${show(o.choicePoint)} = ${show(o.value)}`);
+    if (unread.length) console.log(`       ${unread.length} not read in pass 2 (on an attraction, which only pass 1 uses):`);
+    for (const o of unread) console.log(`         ${show(o.choicePoint)} = ${show(o.value)}`);
     for (const n of result.pass1.repairs || []) console.log(`         repair: ${n}`);
   },
   onScene: (s) => {
@@ -182,8 +193,10 @@ const steps = makeFilmSteps(fs, {
         console.log(`         ${t.task.padEnd(16)} ${oneLine(t.description, 70)}: ${oneLine(String(what), 110)}`);
       }
     }
-    if (s.glass && s.glass.repairs) {
-      r.repairs = repairNotes(s.glass.repairs);
+    // pass 2's notes, in the glass box, then those left while the scene was filmed
+    const notes = [...repairNotes(s.glass && s.glass.repairs), ...repairNotes(s.film && s.film.repairs).map((n) => `${n} (while filming)`)];
+    if (notes.length) {
+      r.repairs = notes;
       for (const n of r.repairs) console.log(`         repair: ${n}`);
     }
     result.scenes.push(r);

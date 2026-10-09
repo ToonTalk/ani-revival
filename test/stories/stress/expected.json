@@ -1,0 +1,57 @@
+{
+ "about": "What each stress story does with MEND and without it (tools/check-stress.mjs, which says what each field means).",
+ "frames": 600,
+ "fps": 4,
+ "stories": {
+  "not-high": {
+   "file": "test/stories/stress/not-high.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"introduction":"failed in pass 2: shouldnt happen (WEIGHTIFY ((NOT HIGH) IS NOT LOW SHORT MEDIUM LONG OR HIGH))"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"introduction":145},"finished":1,"notes":{"narrowed":1}}
+  },
+  "none-value": {
+   "file": "test/stories/stress/none-value.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"the-boast":"failed in pass 2: shouldnt happen (WEIGHTIFY (NONE IS NOT LOW SHORT MEDIUM LONG OR HIGH))"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"the-boast":136},"finished":1,"notes":{"gave-up":1}}
+  },
+  "unknown-word": {
+   "file": "test/stories/stress/unknown-word.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: break NO-SUCH-ACTOR, GRUMPY is not an actor"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":11},"finished":1,"notes":{"unknown-word":1}}
+  },
+  "missing-relationships": {
+   "file": "test/stories/stress/missing-relationships.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: break NO-SUCH-ACTOR, (RELATIONSHIP-OF GOAT TROLL) is not an actor"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":41},"finished":1,"notes":{"missing-relationship":1}}
+  },
+  "meets-alone": {
+   "file": "test/stories/stress/meets-alone.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: break NO-SUCH-ACTOR, MOVE-TO is not an actor"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":53},"finished":1,"notes":{"defined-display-method":1}}
+  },
+  "offstage-victim": {
+   "file": "test/stories/stress/offstage-victim.lisp",
+   "without": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":47},"finished":1,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":50},"finished":1,"notes":{"brought-on-stage":1}}
+  },
+  "no-descriptors": {
+   "file": "test/stories/stress/no-descriptors.lisp",
+   "without": {"exit":1,"pass1":"failed: shouldnt happen (SUMMARIZE-COMPARISON ((COMPARISON-OF GOAT KID) DOES NOT EXIST))","scenes":{},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":128},"finished":1,"notes":{"nothing-to-compare":1}}
+  },
+  "joy-plus-feeling": {
+   "file": "test/stories/stress/joy-plus-feeling.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: shouldnt happen (CHANGE:-PACKAGE (BAD CHANGE: PACKAGE IN EITHER (SUGGESTION: ELEMENT (ESTABLISH (EMOTIONAL-STA"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":11},"finished":1,"notes":{"combined-changes":4}}
+  },
+  "tortoise-and-hare": {
+   "file": "test/stories/tortoise-and-hare.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"the-boast":"failed in pass 2: shouldnt happen (WEIGHTIFY (NONE IS NOT LOW SHORT MEDIUM LONG OR HIGH))","the-race":"failed in pass 2: shouldnt happen (WEIGHTIFY (NONE IS NOT LOW SHORT MEDIUM LONG OR HIGH))","the-finish":"failed in pass 2: shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM2 POSIT) |does not exist|))"},"finished":0,"notes":{}},
+   "with": {"exit":1,"pass1":"ok","scenes":{"the-boast":187,"the-race":108,"the-finish":"failed in pass 2: break NO-SUCH-ACTOR, WANDER-AROUND is not an actor"},"finished":2,"notes":{"gave-up":2}}
+  },
+  "red-riding-hood": {
+   "file": "test/stories/red-riding-hood.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"into-the-woods":"capped","the-wolf-waits":86,"the-woodcutter-comes":61,"together-again":93},"finished":3,"notes":{}},
+   "with": {"exit":1,"pass1":"ok","scenes":{"into-the-woods":"capped","the-wolf-waits":86,"the-woodcutter-comes":61,"together-again":93},"finished":3,"notes":{}}
+  }
+ }
+}
