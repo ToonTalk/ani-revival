@@ -330,7 +330,16 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 - `build-ani-bundle` also runs with all extensions on. It rewrites `app/data`, which is expected.
 - The shipped 1978 data, `frames[].chars`, and the LLM prompt with extensions off stay byte-identical.
 
-## Open questions for you
+## Decisions (Ken, 9 October)
+
+1. **After a change, Ani rederives only the changed character**, with everyone else held as they were ("as if the character were brand new"). The full recompute is shown in the glass box as a comparison, with its knock-on changes.
+2. **SLIPS is offered as its own switch, off by default.** Each correction quotes the line it corrects and comes with a written Cinderella diff; the DICHAR/DISPLY speed inversion goes in only if a run confirms it.
+3. **The site opens in 1978 mode.** The switch turns on MEND, KNOW, APPEAR and CHANGE; SLIPS and DETAIL are opt-in.
+4. **The revival may add knowledge the thesis doesn't state**, labeled "the revival's" with its reason and checked against Ken's legitimacy rule; any entry that reproduces his 1978 looks is dropped.
+5. **When the mini-Ani ships: still being discussed.**
+
+## The questions as they were put
+
 
 1. **After a change, should Ani's fresh look rederive only the changed character, with everyone else held as they were, or recompute the whole cast?** Recommended: hold the others fixed, as your "as if the character were brand new" suggests, and show the full recompute's knock-on changes in the glass box as a comparison.
 2. **Should SLIPS be offered at all, given that it changes your Cinderella?** Recommended: yes, as a separate switch that is off by default. Each correction quotes the line it corrects and comes with a written diff. The DICHAR/DISPLY speed inversion is included only if a run confirms it.
