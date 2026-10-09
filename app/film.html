@@ -946,11 +946,11 @@ const state = { view: 0, scene: 0, time: 0, playing: false, color: false, select
 const scene = () => R.scenes[state.scene];
 const shown = () => (state.view === "both" ? [0, 1] : [state.view]);
 const sceneOf = (r) => (RUNS[r] ? RUNS[r].scenes[state.scene] : null);
-const ready = (sc) => sc && !sc.error;
+const ready = (sc) => !!sc && !sc.error && sc.film.frames.length > 0;
 // Each film has its own rate (4 frames a second unless it says otherwise); the screens
 // show the frame each film had reached at the same moment.
 const fpsOf = (sc) => (sc && sc.film && sc.film.fps) || 4;
-const frameIn = (sc) => Math.min(sc.last, Math.floor(state.time * fpsOf(sc) + 1e-6));
+const frameIn = (sc) => Math.max(0, Math.min(sc.last, Math.floor(state.time * fpsOf(sc) + 1e-6) || 0));
 // the longest of the scenes shown, in seconds: the scrubber's length
 function maxTime() {
   let m = 0;
@@ -1045,6 +1045,7 @@ function draw() { for (const r of shown()) drawScreen(r); }
 function messageFor(run, sc) {
   if (run && state.scene >= run.sceneIds.length) return [`${run === RUNS[0] ? "Ken's film" : "This version"} has no scene ${state.scene + 1}.`];
   if (sc && sc.error) return ["Ani stopped while making this scene.", stopText(sc.error)];
+  if (sc && !sc.film.frames.length) return ["Director filmed nothing in this scene.", "Ani planned no movement for it."];
   const st = run && run.status;
   if (st && st.running) return ["Ani hasn't made this scene yet.", `Now: ${st.what || "starting"}`];
   return ["Ani didn't get to this scene."];
@@ -1825,7 +1826,7 @@ async function startRun(description, fps = editor.fps) {
   RUNS[1] = run;
   state.selected = null;
   state.panel = "compare";
-  setView("both");
+  try { setView("both"); } catch (e) { console.error(e); }
   try {
     if (!ani.runtime) {
       const [rt, bundle] = await Promise.all([inflate(document.getElementById("ani-runtime").textContent), inflate(document.getElementById("ani-bundle").textContent)]);
@@ -2143,7 +2144,7 @@ function play() {
   let drawn = shownFrames();
   const loop = (now) => {
     if (!state.playing) return;
-    state.time += Math.min(0.25, (now - last) / 1000) * state.speed;
+    state.time = Math.max(0, state.time + Math.min(0.25, Math.max(0, now - last) / 1000) * state.speed);
     last = now;
     if (state.time > maxTime()) {
       if (state.scene < sceneCount() - 1) { goScene(state.scene + 1, 0); drawn = shownFrames(); }

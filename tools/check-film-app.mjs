@@ -76,6 +76,20 @@ try {
 
   await open();
   check(/The stepmother pushes Cinderella around/.test(await js(`document.getElementById("caption-0").innerText`)), "the 1978 film starts, with its caption");
+  // Play pressed at the very start of a scene: an animation frame's time can come a little
+  // before the click's, and a clock run backwards once broke every redraw after it
+  const played = await js(`(async () => {
+    for (let k = 0; k < 20; k++) {
+      document.querySelectorAll("#scenes button")[k % 5].click();
+      await new Promise((r) => setTimeout(r, 20));
+      document.getElementById("play").click();
+      await new Promise((r) => setTimeout(r, 60));
+      if (document.getElementById("play").textContent === "Pause") document.getElementById("play").click();
+    }
+    document.querySelector("#scenes button").click();
+    return document.getElementById("frame-label").textContent;
+  })()`);
+  check(errors.length === 0 && /^0\.0 \//.test(played), "Play from the start of each scene, twenty times, without an error");
   await shot("1-film.png");
 
   await js(`document.getElementById("open-editor").click()`);
