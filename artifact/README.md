@@ -1,0 +1,27 @@
+# Ani's Cinderella for claude.ai
+
+`ani-cinderella-claude-artifact.html` is the film page (`app/film.html`) made to run as a
+claude.ai artifact. Build it with:
+
+    node tools/build-film-app.mjs --claude-artifact artifact/ani-cinderella-claude-artifact.html [--site URL]
+
+To make the artifact, upload the file to a claude.ai chat and ask Claude to copy it,
+exactly as it is, into an HTML artifact.
+
+How it differs from the page itself:
+
+- **Telling Ani a new story** uses Claude through claude.ai, on the viewer's own account
+  and with no key (the chat's proxy, or the `sample` capability where the artifact is
+  published with it), or Gemini Nano where Chrome has it. A claude.ai artifact can't
+  reach other sites, so Claude, ChatGPT and Gemini with your own keys are left out.
+- **Ani runs on the page itself**, a step at a time, because a chat artifact refuses
+  workers. The page is unresponsive while each step runs (up to a minute) and comes back
+  between steps.
+- **The code and choice-point pages** are separate pages, which a one-page artifact
+  doesn't have. With `--site URL` (where `source.html` and `pass1.html` are on the web)
+  the links go there; without it they are left out.
+- **Saving** goes through claude.ai's downloads capability where the artifact declares
+  it, and is an ordinary download otherwise.
+
+It stays under claude.ai's limits: the build refuses a page over 950 KB or a script over
+800 KB.

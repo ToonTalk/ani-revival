@@ -127,6 +127,37 @@ try {
   await open();
   await sleep(1500);
   check(/5 of 5 scenes filmed/.test(await js(`document.getElementById("run-status").innerText`)), "the new film comes back after a reload");
+
+  // a new story: the model's reply is stood in for (test/stories/red-riding-hood.lisp),
+  // so nothing leaves the page; this checks drafting, the checks and the editor
+  const drafted = await js(`(async () => {
+    const lisp = await (await fetch("/test/stories/red-riding-hood.lisp")).text();
+    const real = window.fetch;
+    let asked = null;
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      asked = JSON.parse(opts.body);
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "\`\`\`lisp\\n" + lisp + "\\n\`\`\`" }] }), { status: 200 });
+    };
+    document.getElementById("open-teller").click();
+    await new Promise((r) => setTimeout(r, 200));
+    const side = document.getElementById("side");
+    side.querySelector('[data-provider="anthropic"]').click();
+    await new Promise((r) => setTimeout(r, 100));
+    side.querySelector('[data-story="0"]').click();
+    const key = side.querySelector("#tell-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input"));
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await new Promise((r) => setTimeout(r, 100));
+    const result = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-edit").click();
+    await new Promise((r) => setTimeout(r, 200));
+    return { asked: asked && asked.model, prompt: asked && asked.messages[0].content.length, result, editor: document.getElementById("ed-chars").innerText, make: !document.getElementById("ed-make").disabled };
+  })()`);
+  check(drafted.asked === "claude-sonnet-5-5" && drafted.prompt > 5000, `the story goes to the model with Ani's vocabulary (${drafted.prompt} characters to ${drafted.asked})`);
+  check(/4 characters/.test(drafted.result) && /nothing wrong/.test(drafted.result), "the drafted description passes Ani's checks");
+  check(/Red Riding Hood/.test(drafted.editor) && drafted.make, "the editor shows the new cast, ready to make the film");
   check(errors.length === 0, `no uncaught errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
 } catch (e) {
   check(false, e.message);

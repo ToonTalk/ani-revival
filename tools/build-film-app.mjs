@@ -9,8 +9,13 @@
 // (app/data/ani-bundle-files.json, from tools/build-ani-bundle.mjs).
 // Everything is inlined, gzipped as base64, so the page works opened directly, served,
 // or published as a claude.ai artifact (which can fetch nothing).
-// Usage: node tools/build-film-app.mjs [--content-only out.html]
+// The page's script is the template's, with app/film/llm.js (telling Ani a new story)
+// and app/film/save.js (saving films) put in at /*FILM-PARTS*/.
+// Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
+//   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
+//     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
+//     artifact refuses workers), and the code pages are linked at --site, or left out.
 import { readFileSync, writeFileSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -91,7 +96,7 @@ const SCENES = [
 ];
 
 export const sizes = {};
-export function buildFilmApp(root = ".", { contentOnly = null } = {}) {
+export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = null, site = "" } = {}) {
   const fs = makeProjectFileSystem(root);
   const cindy = fs.textOf(fs.find({ dir: "KEN", fn1: "CINDY", fn2: "46" }));
   const pass1 = JSON.parse(readFileSync(`${root}/app/data/pass1.json`, "utf8"));
@@ -112,10 +117,18 @@ export function buildFilmApp(root = ".", { contentOnly = null } = {}) {
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
   const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
+  const parts = ["llm.js", "save.js"].map((f) => readFileSync(`${root}/app/film/${f}`, "utf8")).join("\n");
   let content = template;
-  for (const [mark, b64] of Object.entries(blocks)) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
-    content = content.replace(mark, () => b64);
+    content = content.replace(mark, () => text);
+  }
+  if (claudeArtifact) {
+    const flags = { "/*ARTIFACT-BUILD*/false": "true", '/*CODE-SITE*/""': JSON.stringify(site || "none") };
+    for (const [mark, value] of Object.entries(flags)) {
+      if (content.split(mark).length !== 2) throw new Error(`the page should have one ${mark}`);
+      content = content.replace(mark, () => value);
+    }
   }
   sizes.data = blocks["/*FILM-DATA*/"].length;
   sizes.runtime = blocks["/*ANI-RUNTIME*/"].length;
@@ -126,13 +139,21 @@ export function buildFilmApp(root = ".", { contentOnly = null } = {}) {
   }
   const page = `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n` +
     `<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head>\n<body>\n${content}\n</body>\n</html>\n`;
+  if (claudeArtifact) {
+    // claude.ai refused pages over about 950 KB, and drops an inline script over about 1.2 MB
+    const scripts = [...page.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => Buffer.byteLength(m[1]));
+    if (Buffer.byteLength(page) > 950000) throw new Error(`the claude.ai copy is ${Math.round(Buffer.byteLength(page) / 1024)} KB, over claude.ai's limit`);
+    if (scripts.some((n) => n > 800000)) throw new Error("a script in the claude.ai copy is over 800 KB");
+    writeFileSync(claudeArtifact, page);
+    return claudeArtifact;
+  }
   writeFileSync(`${root}/app/film.html`, page);
   return `${root}/app/film.html`;
 }
 
 if (process.argv[1]?.endsWith("build-film-app.mjs")) {
-  const i = process.argv.indexOf("--content-only");
-  const out = buildFilmApp(".", { contentOnly: i > 0 ? process.argv[i + 1] : null });
+  const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
+  const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
   console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)})`);
 }

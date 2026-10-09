@@ -1,4 +1,5 @@
 <title>Ani's Cinderella</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0c0b'/%3E%3Cpath d='M32 10.5 L45.2 51.2 L10.6 26 L53.4 26 L18.8 51.2 Z' fill='none' stroke='%235be06f' stroke-width='5.2' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
@@ -24,6 +25,8 @@
   --stepmother: #bf3a2c;
   --godmother: #c8641a;
   --prince: #a68200;
+  --pentagon: #2f6fb8;
+  --hexagon: #8a49b8;
   --display: "Spectral", Georgia, "Times New Roman", serif;
   --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -33,7 +36,7 @@
     --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
     --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
     --screen: #000000; --screen-edge: #313a36;
-    --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+    --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a; --pentagon: #6db8ff; --hexagon: #d79bff;
     color-scheme: dark;
   }
 }
@@ -41,7 +44,7 @@
   --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
   --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
   --screen: #000000; --screen-edge: #313a36;
-  --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+  --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a; --pentagon: #6db8ff; --hexagon: #d79bff;
   color-scheme: dark;
 }
 
@@ -232,6 +235,25 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .cmp-scene .vs span:nth-child(odd) { color: var(--muted); }
 .stopped { color: var(--rejected); }
 
+/* telling a new story */
+.story-box, .key-row input[type="text"], .key-row input[type="password"] {
+  width: 100%; font: inherit; font-size: 0.92rem; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px;
+}
+.story-box { resize: vertical; min-height: 7em; line-height: 1.45; }
+.key-row { display: grid; gap: 5px; font-size: 0.88rem; }
+.key-row > label:first-child { font-weight: 600; }
+.check { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.84rem; }
+#tell-providers { justify-self: start; }
+.model-chip { border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; cursor: pointer; }
+.model-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.draft { display: grid; gap: 10px; border-top: 1px solid var(--rule); padding-top: 12px; }
+.inpage { border-left: 3px solid var(--godmother); padding-left: 10px; }
+
+/* saving */
+.save-panel { display: grid; gap: 8px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
+.save-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.save-options .btn { height: auto; min-height: 34px; padding: 4px 12px; text-align: left; }
+
 footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
@@ -276,7 +298,9 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
           <button type="button" id="mode-bw" aria-pressed="true">TV</button>
           <button type="button" id="mode-color" aria-pressed="false">Color</button>
         </div>
+        <button class="btn" id="save" type="button" aria-expanded="false" aria-controls="save-panel">Save</button>
       </div>
+      <div class="save-panel" id="save-panel" hidden></div>
       <div class="captions" id="captions">
         <p class="caption" id="caption-0" aria-live="polite"></p>
         <p class="caption" id="caption-1" aria-live="polite" hidden></p>
@@ -289,8 +313,8 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
 
   <footer>
     <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs, four frames a second on a 550 by 413 picture, as Ken's camera took them. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
-    <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser.</p>
-    <p>Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
+    <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
+    <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
   </footer>
 </div>
 
@@ -388,12 +412,40 @@ const CHARS = {
   "fairy-godmother": { name: "The fairy godmother", the: "the fairy godmother", shape: "circle", tone: "--godmother", film: "#ff9a2e", she: "she", her: "her", sides: 24, turn: 15 },
 };
 const CAST = Object.keys(CHARS);
-// Sizes and offsets for drawing in color: ANINIT made the characters MANY-POLYS, each
-// drawn again inside itself every OFFSET turtle units (20 for the star, "since a star
-// is denser", 10 for the rest); a character's size is its ani-size (0.07 for the
-// stepmother, 0.05 for the rest) times the square root of the turtle's 1334.95 by 1000.
+// How each shape looks. In color ANINIT made the characters MANY-POLYS, each drawn
+// again inside itself every OFFSET turtle units (20 for the star, "since a star is
+// denser", 10 for the rest); a character's size is its ani-size (0.07 for the square,
+// 0.05 for the rest) times the square root of the turtle's 1334.95 by 1000. A new
+// story's characters take the shapes Ken's didn't, in order (src/pipeline.js SHAPES).
 const ROOT = Math.sqrt(1334.9515 * 1000);
-const NEST = { cinderella: [0.05 * ROOT, 20], "step-mother": [0.07 * ROOT, 10], prince: [0.05 * ROOT, 10], "fairy-godmother": [0.05 * ROOT, 10] };
+const SHAPE_LOOK = {
+  star: { tone: "--cinderella", film: "#5be06f", sides: 5, size: 0.05, offset: 20 },
+  square: { tone: "--stepmother", film: "#ff4b3e", sides: 4, size: 0.07, offset: 10 },
+  triangle: { tone: "--prince", film: "#ffd84a", sides: 3, size: 0.05, offset: 10 },
+  circle: { tone: "--godmother", film: "#ff9a2e", sides: 24, size: 0.05, offset: 10 },
+  pentagon: { tone: "--pentagon", film: "#5ab4ff", sides: 5, size: 0.05, offset: 10 },
+  hexagon: { tone: "--hexagon", film: "#d58cff", sides: 6, size: 0.05, offset: 10 },
+};
+const SHAPE_ORDER = Object.keys(SHAPE_LOOK);
+const KEN_SHAPE = { cinderella: "star", "step-mother": "square", prince: "triangle", "fairy-godmother": "circle" };
+function shapesOf(characters) {
+  const taken = new Set(characters.map((c) => KEN_SHAPE[c]).filter(Boolean));
+  const free = SHAPE_ORDER.filter((x) => !taken.has(x));
+  return Object.fromEntries(characters.map((c) => [c, KEN_SHAPE[c] || free.shift() || "circle"]));
+}
+// A character met in a new story: named as the film description's cast line says
+// (";; cast: wolf = the wolf (he)"), or else by its Lisp name.
+function meet(story, c) {
+  if (CHARS[c]) return CHARS[c];
+  const given = story && story.names && story.names[c];
+  const the = given ? given.name : plain(c);
+  const pronoun = given ? given.pronoun : "they";
+  const her = { she: "her", he: "him", it: "it" }[pronoun] || "them";
+  CHARS[c] = { name: cap(the), the, she: pronoun, her };
+  return CHARS[c];
+}
+// she stays, they stay
+const agree = (k, singular, plural) => (k.she === "they" ? plural : singular);
 
 function who(x) {
   if (Array.isArray(x)) {
@@ -405,16 +457,17 @@ function who(x) {
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const words = (list) => (list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0] || "");
 const plain = (w) => String(w).replace(/-/g, " ");
-function icon(c, size = 16) {
-  const k = CHARS[c];
-  if (!k) return "";
+function icon(c, size = 16, run = R) {
+  const shape = (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
+  const look = SHAPE_LOOK[shape];
+  if (!look) return "";
   const r = size / 2 - 1.5, cx = size / 2, cy = size / 2;
-  if (k.shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(${k.tone})" stroke-width="1.6"/></svg>`;
+  if (shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(${look.tone})" stroke-width="1.6"/></svg>`;
   const pts = [];
-  let a = k.shape === "square" ? -45 : -90;
-  for (let n = 0; n < k.sides; n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += k.shape === "star" ? 144 : 360 / k.sides; }
+  let a = shape === "square" ? -45 : -90;
+  for (let n = 0; n < look.sides; n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += shape === "star" ? 144 : 360 / look.sides; }
   const d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join("L") + "Z";
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(${k.tone})" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(${look.tone})" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
 
 // ---------------------------------------------------------------- runs of Ani
@@ -430,7 +483,11 @@ function using(run, f) {
   R = run;
   try { return f(); } finally { R = keep; }
 }
-const sceneTitle = (id) => TITLES[id] || who(id);
+const sceneTitle = (id) => (R && R.titles && R.titles[id]) || TITLES[id] || titleCase(id);
+const SMALL_WORDS = new Set(["a", "an", "and", "the", "of", "in", "on", "to", "for", "at", "by", "with"]);
+const titleCase = (id) => String(id).split("-").map((w, k) => (k && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(" ");
+const nameOf = (story, c) => (story.names && story.names[c] ? story.names[c].name : CHARS[c] ? CHARS[c].the : plain(c));
+const titleOf = (story, id) => (story.titles && story.titles[id]) || TITLES[id] || titleCase(id);
 
 // ---------------------------------------------------------------- plain English
 
@@ -650,7 +707,11 @@ function rejectText(r) {
 // ---------------------------------------------------------------- links into the code
 
 const CODE = DATA.code;
-const codeLink = (file, line, label = "code") => (file && line ? `<a class="code-link" href="source.html#${file}-${line}" title="${esc(`${file}, line ${line}`)}">${label}</a>` : "");
+// Where the code and choice-point pages are: beside this page, or (in the claude.ai copy,
+// which is one page) on the web, or nowhere ("none": the links are left out).
+const CODE_SITE = /*CODE-SITE*/"";
+const codeLink = (file, line, label = "code") => (file && line && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${file}-${line}" title="${esc(`${file}, line ${line}`)}">${label}</a>` : "");
+if (CODE_SITE) document.querySelectorAll(".code-pages a").forEach((a) => { if (CODE_SITE === "none") a.closest(".code-pages").hidden = true; else a.href = CODE_SITE + a.getAttribute("href"); });
 function methodCode(m, which = "define") {
   if (!Array.isArray(m)) return "";
   if (m[0] === "method:") { const v = kv(m, "value"); return Array.isArray(v) ? codeLink(CODE.convey.file, CODE.convey.verbs[v[0]]) : ""; }
@@ -727,7 +788,23 @@ function readStory(text) {
       scenes[name] = { tasks: d[0], settings, span };
     }
   }
-  return { characters, relationships, scenes, error };
+  // the names for people: ";; cast: wolf = the wolf (he); ..." and ";; scenes: a-b = A B; ..."
+  const names = {}, titles = {};
+  const castLine = text.match(/^;+\s*cast:\s*(.+)$/m), scenesLine = text.match(/^;+\s*scenes:\s*(.+)$/m);
+  if (castLine) for (const part of castLine[1].split(";")) {
+    const m = part.match(/^\s*([a-z0-9+-]+)\s*=\s*([^()]+?)\s*(?:\((she|he|they|it)\b[^)]*\))?\s*$/i);
+    if (m) names[m[1].toLowerCase()] = { name: m[2].trim(), pronoun: (m[3] || "they").toLowerCase() };
+  }
+  if (scenesLine) for (const part of scenesLine[1].split(";")) {
+    const m = part.match(/^\s*([a-z0-9+-]+)\s*=\s*(.+?)\s*$/i);
+    if (m) titles[m[1].toLowerCase()] = m[2];
+  }
+  const films = [], focuses = [];
+  for (const span of forms) {
+    const head = text.slice(span.start, Math.min(span.end, span.start + 200)).match(/^\(define\s+([a-z0-9+-]+)\s+(film|focus)\b/i);
+    if (head) (head[2].toLowerCase() === "film" ? films : focuses).push(head[1].toLowerCase());
+  }
+  return { characters, relationships, scenes, error, names, titles, films, focuses };
 }
 function traitsOf(c) {
   const k = R.story.characters[c];
@@ -753,8 +830,8 @@ function tasksOf(t) {
 
 // ---------------------------------------------------------------- each scene's plan and film
 
-function prepScene(s) {
-  const title = TITLES[s.id];
+function prepScene(s, run) {
+  const title = (run && run.titles[s.id]) || TITLES[s.id] || titleCase(s.id);
   if (s.error) return { id: s.id, title, error: s.error };
   const actors = new Map();
   const add = (a) => actors.set(a.name, a);
@@ -787,21 +864,30 @@ function prepScene(s) {
   return { ...s, title, actors, v, subscenes, activities, last };
 }
 function makeRun({ label, short, cindy, choicePoints = [], scenes = [] }) {
-  const run = { label, short, cindy, story: readStory(cindy), raw: { choicePoints, scenes: [] }, scenes: SCENE_IDS.map(() => null), status: null };
+  const story = readStory(cindy);
+  const sceneIds = Object.keys(story.scenes);
+  const cast = Object.keys(story.characters);
+  const titles = Object.fromEntries(sceneIds.map((id) => [id, story.titles[id] || TITLES[id] || titleCase(id)]));
+  const run = { label, short, cindy, story, sceneIds, cast, titles, shapes: shapesOf(cast), raw: { choicePoints, scenes: [] }, scenes: sceneIds.map(() => null), status: null };
+  for (const c of cast) meet(story, c);
   setChoicePoints(run, choicePoints);
   for (const s of scenes) addScene(run, s);
   return run;
 }
+// Two runs of the same story (Ken's, or a version of it): same characters and scenes.
+const sameStory = (a, b) => !!a && !!b && a.sceneIds.join() === b.sceneIds.join() && [...a.cast].sort().join() === [...b.cast].sort().join();
+const storyTitle = (run) => (run === RUNS[0] ? "Cinderella" : run.story.films[0] ? titleCase(run.story.films[0].replace(/-film$/, "")) : run.label);
 function setChoicePoints(run, cps) {
   run.choicePoints = cps;
   run.raw.choicePoints = cps;
   run.cp = new Map(cps.map((c) => [show(c.name), c]));
 }
 function addScene(run, s) {
-  const i = SCENE_IDS.indexOf(s.id);
+  const i = run.sceneIds.indexOf(s.id);
   if (i < 0) return;
   run.raw.scenes[i] = s;
-  run.scenes[i] = prepScene(s);
+  if (s.film && s.film.cast) for (const c of s.film.cast) run.shapes[c.name] = c.shape;
+  run.scenes[i] = prepScene(s, run);
 }
 RUNS[0] = makeRun({ label: "Ani's 1978 film", short: "1978", cindy: DATA.cindy, choicePoints: DATA.pass1.choicePoints, scenes: DATA.scenes });
 R = RUNS[0];
@@ -868,23 +954,28 @@ function drawScreen(r) {
   ctx.setTransform(sx, 0, 0, sy, 0, 0);
   const sc = sceneOf(r);
   if (!ready(sc)) { screenMessage(ctx, messageFor(RUNS[r], sc)); return; }
-  const fr = sc.film.frames[frameIn(sc)];
+  drawFrame(ctx, RUNS[r], sc, frameIn(sc), { color: state.color, selected: state.selected && state.selected.run === r ? state.selected.char : null });
+}
+// One frame of a scene, in picture dots (the caller has set the scale and the background).
+function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
+  const fr = sc.film.frames[f];
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  for (const c of CAST) {
+  for (const c of run.cast) {
     const seg = fr.segs[c];
     if (!seg) continue;
-    const selected = state.selected && state.selected.run === r && state.selected.char === c;
+    const look = SHAPE_LOOK[run.shapes[c]] || SHAPE_LOOK.circle;
+    const isSelected = selected === c;
     const copies = [1];
-    if (state.color) { const [size, offset] = NEST[c]; for (let k = 1; size - k * offset > 0; k++) copies.push((size - k * offset) / size); }
+    if (color) { const size = look.size * ROOT; for (let k = 1; size - k * look.offset > 0; k++) copies.push((size - k * look.offset) / size); }
     const [cx, cy] = centroid(seg);
-    if (selected) {
+    if (isSelected) {
       ctx.save();
-      ctx.shadowColor = state.color ? CHARS[c].film : "#9fd0ff";
+      ctx.shadowColor = color ? look.film : "#9fd0ff";
       ctx.shadowBlur = 14;
     }
-    ctx.strokeStyle = state.color ? CHARS[c].film : "#f4f4f4";
-    ctx.lineWidth = selected ? 2.2 : 1.25;
+    ctx.strokeStyle = color ? look.film : "#f4f4f4";
+    ctx.lineWidth = isSelected ? 2.2 : 1.25;
     ctx.beginPath();
     for (const f of copies) {
       for (let k = 0; k < seg.length; k += 4) {
@@ -893,12 +984,13 @@ function drawScreen(r) {
       }
     }
     ctx.stroke();
-    if (selected) ctx.restore();
+    if (isSelected) ctx.restore();
   }
 }
 function draw() { for (const r of shown()) drawScreen(r); }
 // what a screen says when its scene isn't there to show
 function messageFor(run, sc) {
+  if (run && state.scene >= run.sceneIds.length) return [`${run === RUNS[0] ? "Ken's film" : "This version"} has no scene ${state.scene + 1}.`];
   if (sc && sc.error) return ["Ani stopped while making this scene.", stopText(sc.error)];
   const st = run && run.status;
   if (st && st.running) return ["Ani hasn't made this scene yet.", `Now: ${st.what || "starting"}`];
@@ -934,7 +1026,7 @@ function hit(r, px, py) {
   if (!ready(sc)) return null;
   const fr = sc.film.frames[frameIn(sc)];
   let best = null, bestD = 14;
-  for (const c of CAST) {
+  for (const c of RUNS[r].cast) {
     const seg = fr.segs[c];
     if (!seg) continue;
     for (let k = 0; k < seg.length; k += 4) {
@@ -1036,7 +1128,8 @@ function caption(r) {
   const sc = sceneOf(r);
   const tag = state.view === "both" ? `${esc(run.short)} · ` : "";
   if (!ready(sc)) {
-    el.innerHTML = `<span class="part">${tag}${esc(TITLES[SCENE_IDS[state.scene]])}</span>${sc ? "Ani stopped while making this scene." : run.status && run.status.running ? "Not made yet." : "Not made."}`;
+    const id = run.sceneIds[state.scene];
+    el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? "Ani stopped while making this scene." : run.status && run.status.running ? "Not made yet." : "Not made."}`;
     return;
   }
   using(run, () => {
@@ -1059,7 +1152,8 @@ function caption(r) {
     }
     const feel = changes.map((t) => about(t.description));
     const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
-    el.innerHTML = `<span class="part">${tag}${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}`;
+    const capped = sc.film.frames.length > CAP_FRAMES && f === sc.last ? `<span class="part">Director stopped filming here, at ${CAP_FRAMES} frames; the scene hadn't ended.</span>` : "";
+    el.innerHTML = `<span class="part">${tag}${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}`;
   });
 }
 
@@ -1070,34 +1164,36 @@ function storyPanel() {
   const run = R;
   const mine = run !== RUNS[0];
   const base = RUNS[0].story;
-  const cur = SCENE_IDS[state.scene];
-  const people = CAST.map((c) => {
+  const cur = run.sceneIds[state.scene];
+  const newStory = mine && !sameStory(RUNS[0], run);
+  const people = run.cast.map((c) => {
     const k = run.story.characters[c];
     if (!k) return "";
     const was = base.characters[c];
     const old = was ? new Set([...was.physical, ...was.personality, ...was.movement]) : new Set();
-    const tags = [...k.physical, ...k.personality, ...k.movement].map((t) => `<span class="tag${mine && !old.has(t) ? " new" : ""}">${esc(plain(t))}</span>`).join("");
-    return `<div class="person">${icon(c)}<div><b>${esc(CHARS[c].name)}</b>${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}<div class="tags">${tags}</div></div></div>`;
+    const tags = [...k.physical, ...k.personality, ...k.movement].map((t) => `<span class="tag${mine && !newStory && !old.has(t) ? " new" : ""}">${esc(plain(t))}</span>`).join("");
+    return `<div class="person">${icon(c)}<div><b>${esc(meet(run.story, c).name)}</b>${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}<div class="tags">${tags}</div></div></div>`;
   }).join("");
   const rels = run.story.relationships.map((r) => `<li>${cap(relationshipText(["relationship-of", r.from, r.to]))}.</li>`).join("");
-  const cards = SCENE_IDS.map((id, i) => {
+  const cards = run.sceneIds.map((id, i) => {
     const st = run.story.scenes[id];
     const tasks = st ? tasksOf(st.tasks).map((t) => `<li>${cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("") : "";
     const set = st ? st.settings : {};
     const setting = (v) => show(v).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1");
     const mood = [set.mood && `mood ${setting(set.mood)}`, set.rhythm && `rhythm ${setting(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
-    return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${id === cur}"><span class="t">${esc(TITLES[id])}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
+    return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${id === cur}"><span class="t">${esc(run.titles[id])}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
   }).join("");
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
-    <p class="note">${mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}</p>
-    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button></div>
+    <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}</p>
+    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button></div>
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
     <pre class="lisp" id="cindy" hidden></pre>`;
   side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), 0)));
   side.querySelector("#open-editor").addEventListener("click", openEditor);
+  side.querySelector("#open-teller").addEventListener("click", openTeller);
   side.querySelector("#show-lisp").addEventListener("click", (e) => {
     const pre = side.querySelector("#cindy");
     const showing = !pre.hidden;
@@ -1174,7 +1270,7 @@ function choicePointBox(char, el) {
   const rejected = (cp.rejectedSuggestions || []).map((r) => `<li>${sug(kv(r, "suggestion"))}: set aside, ${esc(rejectText(kv(r, "reason")))}</li>`).join("");
   const conflicts = (cp.conflictsResolved || []).length;
   const slug = `${char}-${el}`;
-  const more = R === RUNS[0] ? `<a href="pass1.html#${esc(slug)}">See every step of this choice</a>` : `<span class="note">Made in your version's pass 1.</span>`;
+  const more = R !== RUNS[0] ? `<span class="note">Made in your version's pass 1.</span>` : CODE_SITE === "none" ? "" : `<a href="${CODE_SITE}pass1.html#${esc(slug)}">See every step of this choice</a>`;
   return `<div class="cp"><b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(show(cp.currentChoice))}</b>
     ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions were settled on the way.</span>` : ""}
@@ -1222,7 +1318,7 @@ function whyPanel(char) {
   const subs = subsceneAt(f);
   const main = subs.find((x) => !x.parasite) || subs[0];
   const acts = activitiesAt(f, char);
-  const k = CHARS[char];
+  const k = meet(R.story, char);
   const runNote = state.view === "both" || R !== RUNS[0] ? `${esc(R.label)} · ` : "";
   const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(k.name)}</h2></div><button type="button" class="linkish" id="back-to-story">Back</button></div>
     <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last}</p>`;
@@ -1236,7 +1332,7 @@ function whyPanel(char) {
     if (next || prev) { act = next || prev; between = { next, prev }; }
   }
   if (!act) {
-    lead = `<p class="lead idle">${esc(cap(k.the))} has no part in Ani's plan for ${main ? `part ${main.n}` : "this moment"}, so ${esc(k.she)} stays where ${esc(k.she)} is.</p>`;
+    lead = `<p class="lead idle">${esc(cap(k.the))} has no part in Ani's plan for ${main ? `part ${main.n}` : "this moment"}, so ${esc(k.she)} ${agree(k, "stays", "stay")} where ${esc(k.she)} ${agree(k, "is", "are")}.</p>`;
   } else {
     const label = (a) => esc(ACTIVITY[a.base] || plain(a.base));
     const t = taskOfActivity(act);
@@ -1255,7 +1351,7 @@ function whyPanel(char) {
     if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">Written by the method's code in DISPLY ${methodCode([fam], "run")}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
   }
   if (st.dynamics) {
-    sections += `<details><summary>How ${esc(k.she)} moves</summary><div class="body">${dynamicsTable(char, st.dynamics, main ? main.name : null)}<div id="cp-box"></div></div></details>`;
+    sections += `<details><summary>How ${esc(k.she)} ${agree(k, "moves", "move")}</summary><div class="body">${dynamicsTable(char, st.dynamics, main ? main.name : null)}<div id="cp-box"></div></div></details>`;
   }
   if (main) {
     const loc = s.v(main.name, `(location-of ${char})`);
@@ -1365,10 +1461,75 @@ function checkStory(text) {
     if (!c.personality.length) notes.push(`${esc(cap(who(name)))} has no personality words; Ani may have nothing to show when a scene asks to establish it.`);
   }
   for (const r of story.relationships) {
-    if (!r.how.length) problems.push(`${esc(cap(who(r.from)))} has no words for ${esc(who(r.to))}.`);
-    for (const w of r.how) if (!WORDS[w]) notes.push(`Ani doesn't know “${esc(plain(w))}” (how ${esc(who(r.from))} feels about ${esc(who(r.to))})${nearWord(w) ? `; it knows “${esc(plain(nearWord(w)))}”` : ""}. It is remembered, but suggests nothing.`);
+    if (!r.how.length) problems.push(`${esc(cap(nameOf(story, r.from)))} has no words for ${esc(nameOf(story, r.to))}.`);
+    for (const w of r.how) if (!WORDS[w]) notes.push(`Ani doesn't know “${esc(plain(w))}” (how ${esc(nameOf(story, r.from))} feels about ${esc(nameOf(story, r.to))})${nearWord(w) ? `; it knows “${esc(plain(nearWord(w)))}”` : ""}. It is remembered, but suggests nothing.`);
   }
+  story.missingPairs = [];
+  if (story.error) return { story, problems, notes };
+  const cast = Object.keys(story.characters);
+  const kenCast = cast.length === CAST.length && CAST.every((c) => cast.includes(c));
+  if (!cast.length) problems.push("It defines no characters.");
+  if (cast.length > SHAPE_ORDER.length) problems.push(`Ani's films have shapes for at most ${SHAPE_ORDER.length} characters; this story has ${cast.length}.`);
+  for (const r of story.relationships) if (!story.characters[r.from] || !story.characters[r.to]) problems.push(`(relationship-of ${esc(r.from)} ${esc(r.to)}) names a character the story doesn't define.`);
+  // Ani asks how a friendly character feels about each of the others in turn, and stops
+  // at a pair it hasn't been told about (SUGEST's first-sibling-that-satisfies-relationship);
+  // for a new cast every pair is asked for, as Cinderella is related to everyone
+  const has = (a, b) => story.relationships.some((r) => r.from === a && r.to === b);
+  for (const a of cast) for (const b of cast) {
+    if (a !== b && !has(a, b) && (!kenCast || story.characters[a].personality.includes("friendly"))) story.missingPairs.push([a, b]);
+  }
+  const missing = story.missingPairs;
+  if (missing.length) problems.push(`Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and stops at a pair it hasn't been told about. Missing: ${missing.slice(0, 5).map(([a, b]) => `how ${esc(nameOf(story, a))} feels about ${esc(nameOf(story, b))}`).join("; ")}${missing.length > 5 ? `; and ${missing.length - 5} more` : ""}.`);
+  const sceneIds = Object.keys(story.scenes);
+  if (!sceneIds.length) problems.push("It defines no scenes.");
+  sceneIds.forEach((id, k) => checkTasks(story, id, sceneIds.slice(0, k), problems));
+  if (!story.films.length) problems.push("It defines no film: Ani needs one, like Ken's (define cinderella-film film ...).");
+  if (cast.length && !Object.values(story.characters).some((c) => c.role === "most-important")) notes.push("No character has (role-in-story most-important), as Ken gave Cinderella.");
   return { story, problems, notes };
+}
+// What a scene asks of Ani: only the tasks Ani has ways to show.
+const emotionOk = (f) => Array.isArray(f) && (f[0] === "and" ? f.length > 1 && f.slice(1).every(emotionOk)
+  : ["joy", "pride"].includes(f[0]) && Array.isArray(f[1]) && ["positive", "negative"].includes(f[1][0]) && ["low", "medium", "high"].includes(f[1][1]));
+function checkTasks(story, sceneId, earlier, problems) {
+  const where = `in ${esc(titleOf(story, sceneId))}`;
+  const isChar = (x) => typeof x === "string" && !!story.characters[x];
+  const bad = (t, why) => problems.push(`<code>${esc(show(t))}</code> ${where}: ${why}`);
+  const visit = (t) => {
+    if (!Array.isArray(t)) return bad(t, "isn't a task.");
+    if (t[0] === "and" || t[0] === "sequence:") return t.slice(1).forEach(visit);
+    const [kind, d] = t;
+    if ((kind !== "establish" && kind !== "convey") || !Array.isArray(d)) return bad(t, "a task is (establish ...) or (convey ...).");
+    if (kind === "establish") {
+      if (d[0] === "personality") return isChar(d[1]) || bad(t, "that character isn't defined.");
+      if (d[0] === "emotional-state") return !isChar(d[1]) ? bad(t, "that character isn't defined.") : emotionOk(d[2]) || bad(t, "Ani knows feelings like (joy (positive low)): positive or negative, and low, medium or high.");
+      if (d[0] === "relationship") { const r = d[1]; return (Array.isArray(r) && r[0] === "relationship-of" && story.relationships.some((x) => x.from === r[1] && x.to === r[2])) || bad(t, "that relationship isn't defined."); }
+      return bad(t, "Ani can establish only a personality, an emotional state or a relationship.");
+    }
+    const verb = d[0];
+    if (["accompanys", "chases", "hurts", "pushes", "getting-it-on"].includes(verb)) return (isChar(d[1]) && isChar(d[2]) && d.length === 3) || bad(t, `write (${verb} x y) with two defined characters.`);
+    if (verb === "alone") return (d.length > 2 && d.slice(1).every(isChar)) || bad(t, "write (alone x y) with defined characters.");
+    if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
+    if (verb === "aware") return (isChar(d[1]) && Array.isArray(d[2])) || bad(t, "write (aware x (getting-it-on y z)).");
+    if (verb === "undoes") {
+      const from = d[2];
+      if (!isChar(d[1]) || !Array.isArray(from) || from[0] !== "from-scene") return bad(t, "write (undoes x (from-scene earlier-scene THAT-SCENE'S-TASK)).");
+      if (!earlier.includes(from[1])) return bad(t, `${esc(from[1])} isn't an earlier scene.`);
+      return tasksOf(story.scenes[from[1]].tasks).map(show).includes(show(from[2])) || bad(t, `that isn't one of ${esc(titleOf(story, from[1]))}'s tasks; copy it exactly.`);
+    }
+    if (verb === "meets") return bad(t, "Ani has no way to show meeting on its own (DISPLY has no move-to method); use (accompanys x y), or (wants x (meets x y)).");
+    return bad(t, `Ani doesn't know how to convey “${esc(plain(verb))}”.`);
+  };
+  visit(story.scenes[sceneId].tasks);
+}
+// The relationships a story is missing, filled in with a word that suggests nothing.
+function fillRelationships(text, word = "is-polite-to") {
+  const { story } = checkStory(text);
+  const missing = story.missingPairs || [];
+  if (!missing.length) return text;
+  const spans = [...story.relationships.map((r) => r.span), ...Object.values(story.characters).map((c) => c.span)];
+  const after = spans.sort((a, b) => b.end - a.end)[0];
+  const added = "\n\n;; how the others feel about each other (filled in: Ani asks about every pair)\n\n" + missing.map(([a, b]) => relationshipForm(a, b, [word])).join("\n\n");
+  return after ? text.slice(0, after.end) + added + text.slice(after.end) : text + added;
 }
 // How one description differs from another, in plain English.
 function storyChanges(a, b, textA, textB) {
@@ -1431,7 +1592,7 @@ function editorPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
     <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes about three minutes on a laptop; each scene plays as soon as it is filmed, beside the 1978 one.</p>
-    <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.label)}</button>`).join("")}</div>
+    <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.label)}</button>`).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
     <p class="note">Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it. Hover over a word for more.</p>
@@ -1442,9 +1603,11 @@ function editorPanel() {
     <div id="ed-check"></div>
     <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button><button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>`;
   side.querySelector("#ed-close").addEventListener("click", () => select(null));
+  side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
-    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), editor.text));
+    const base = readStory(editor.text).characters.cinderella ? editor.text : DATA.cindy;
+    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base));
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy));
   side.querySelector("#ed-make").addEventListener("click", () => {
@@ -1483,20 +1646,29 @@ function refreshEditor({ fromLisp = false } = {}) {
     chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read.</p>`;
     rels.innerHTML = "";
   } else {
-    chars.innerHTML = CAST.filter((c) => story.characters[c]).map((c) => {
+    const cast = Object.keys(story.characters);
+    const look = { shapes: shapesOf(cast) };
+    const order = [...CAST.filter((c) => story.characters[c]), ...cast.filter((c) => !CAST.includes(c))];
+    chars.innerHTML = order.map((c) => {
       const k = story.characters[c];
       const rows = ["physical", "personality", "movement"].map((slot) => `<div class="ed-row"><span>${SLOT_LABEL[slot]}</span>${chipsFor(k[slot], { char: c, slot }, false)}</div>`).join("");
-      return `<div class="ed-char"><b>${icon(c)} ${esc(CHARS[c].name)}${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}</b>${rows}</div>`;
+      return `<div class="ed-char"><b>${icon(c, 16, look)} ${esc(cap(nameOf(story, c)))}${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}</b>${rows}</div>`;
     }).join("");
-    rels.innerHTML = story.relationships.map((r) => `<div class="ed-rel"><span>${icon(r.from, 13)} ${esc(cap(who(r.from)))} → ${esc(who(r.to))}</span>${chipsFor(r.how, { from: r.from, to: r.to }, true)}</div>`).join("");
+    rels.innerHTML = story.relationships.filter((r) => story.characters[r.from] && story.characters[r.to]).map((r) => `<div class="ed-rel"><span>${icon(r.from, 13, look)} ${esc(cap(nameOf(story, r.from)))} → ${esc(nameOf(story, r.to))}</span>${chipsFor(r.how, { from: r.from, to: r.to }, true)}</div>`).join("") +
+      (story.missingPairs && story.missingPairs.length ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
+    rels.querySelector("#ed-fill")?.addEventListener("click", () => setEditorText(fillRelationships(editor.text)));
   }
   const ta = side.querySelector("#ed-lisp");
   if (!fromLisp && ta.value !== editor.text) ta.value = editor.text;
-  const changes = story.error ? [] : storyChanges(RUNS[0].story, story, DATA.cindy, editor.text);
+  const castNow = Object.keys(story.characters);
+  const fresh = !story.error && !(castNow.length === CAST.length && CAST.every((c) => castNow.includes(c)));
+  const changes = story.error ? [] : fresh
+    ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.`]
+    : storyChanges(RUNS[0].story, story, DATA.cindy, editor.text);
   const same = editor.text === (RUNS[1] ? RUNS[1].cindy : null);
   side.querySelector("#ed-check").innerHTML =
     (problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
-    (story.error ? "" : changes.length ? `<div><p class="label">Your changes to Ken's story</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>` : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
+    (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>` : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
     (notes.length ? `<ul class="changes note">${notes.map((n) => `<li>${n}</li>`).join("")}</ul>` : "") +
     (same && RUNS[1] && !RUNS[1].status?.running ? `<p class="note">Your version was made from exactly this.</p>` : "");
   const make = side.querySelector("#ed-make");
@@ -1540,6 +1712,7 @@ self.onmessage = function (e) {
     AniRuntime.makeFilm(fs, {
       description: e.data.description,
       keepGoing: true,
+      frames: e.data.frames,
       progress: function (step, what, scene) { post({ type: "progress", step: step, what: what, scene: scene || null }); },
       onPass1: function (p) { post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints }); },
       onScene: function (s) { post({ type: "scene", scene: s }); }
@@ -1552,15 +1725,17 @@ self.onmessage = function (e) {
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
 // How long each step took for Ken's story, in seconds: the progress bar's estimate.
 const STEP_SECONDS = { pass1: 18, introduction: [5, 20], "kept-apart": [4, 46], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
-const STEPS = [["pass1", null], ...SCENE_IDS.flatMap((id) => [["pass2", id], ["film", id]])];
 const stepSeconds = ([step, id]) => (step === "pass1" ? STEP_SECONDS.pass1 : (STEP_SECONDS[id] || [5, 25])[step === "pass2" ? 0 : 1]);
-function progressOf(st) {
-  const total = STEPS.reduce((a, s) => a + stepSeconds(s), 0);
+// A scene that never ends is filmed for at most this many frames (Ken's runs used 1,000).
+const CAP_FRAMES = 600;
+function progressOf(st, run = RUNS[1]) {
   if (!st.running) return 1;
-  const k = STEPS.findIndex(([s, id]) => s === st.step && (s === "pass1" || id === st.scene));
+  const steps = [["pass1", null], ...(run ? run.sceneIds : SCENE_IDS).flatMap((id) => [["pass2", id], ["film", id]])];
+  const total = steps.reduce((a, s) => a + stepSeconds(s), 0);
+  const k = steps.findIndex(([s, id]) => s === st.step && (s === "pass1" || id === st.scene));
   if (k < 0) return 0;
-  const before = STEPS.slice(0, k).reduce((a, s) => a + stepSeconds(s), 0);
-  const now = Math.min(stepSeconds(STEPS[k]) * 0.95, (Date.now() - st.stepStarted) / 1000);
+  const before = steps.slice(0, k).reduce((a, s) => a + stepSeconds(s), 0);
+  const now = Math.min(stepSeconds(steps[k]) * 0.95, (Date.now() - st.stepStarted) / 1000);
   return (before + now) / total;
 }
 const clock = (ms) => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
@@ -1589,13 +1764,24 @@ async function startRun(description) {
       ani.bundle = bundle;
     }
     if (RUNS[1] !== run) return; // started again meanwhile
-    const url = URL.createObjectURL(new Blob([ani.runtime, "\n", GLUE], { type: "text/javascript" }));
-    const w = new Worker(url);
-    URL.revokeObjectURL(url);
-    ani.worker = w;
-    w.onmessage = (e) => onWorker(run, e.data);
-    w.onerror = (e) => { e.preventDefault(); finishRun(run, { error: e.message || "The worker running Ani failed." }); };
-    w.postMessage({ bundle: ani.bundle, description });
+    if (ARTIFACT_BUILD) { runInPage(run, description); }
+    else {
+      let heard = false;
+      let w;
+      try {
+        const url = URL.createObjectURL(new Blob([ani.runtime, "\n", GLUE], { type: "text/javascript" }));
+        w = new Worker(url);
+        URL.revokeObjectURL(url);
+      } catch { w = null; }
+      if (!w) runInPage(run, description);
+      else {
+        ani.worker = w;
+        w.onmessage = (e) => { heard = true; onWorker(run, e.data); };
+        // a page whose sandbox refuses workers made from blobs hears nothing but this
+        w.onerror = (e) => { e.preventDefault(); if (!heard) { w.terminate(); ani.worker = null; runInPage(run, description); } else finishRun(run, { error: e.message || "The worker running Ani failed." }); };
+        w.postMessage({ bundle: ani.bundle, description, frames: CAP_FRAMES });
+      }
+    }
   } catch (err) {
     finishRun(run, { error: `Ani couldn't start here: ${err.message || err}` });
     return;
@@ -1603,6 +1789,35 @@ async function startRun(description) {
   clearInterval(ani.tick);
   ani.tick = setInterval(() => { if (run.status.running) { updateRunbar(); updateProgress(); if (!ready(sceneOf(1))) draw(); } }, 1000);
   updateRunbar();
+}
+// Ani on the page itself, a step at a time, for a page that may not start a worker (a
+// claude.ai chat refuses them): the page shows each step before running it, and is
+// unresponsive while it runs (up to a minute).
+async function runInPage(run, description) {
+  run.status.inPage = true;
+  let AniRuntime;
+  try {
+    AniRuntime = ani.inPage || (ani.inPage = new Function(ani.runtime + "\nreturn self.AniRuntime;")());
+  } catch (e) { finishRun(run, { error: `Ani couldn't start on this page: ${e.message || e}` }); return; }
+  const fs = AniRuntime.makeBundleFileSystem(JSON.parse(ani.bundle));
+  const t0 = Date.now();
+  const post = (m) => onWorker(run, { ...m, t: Date.now() - t0 });
+  let steps;
+  try {
+    steps = AniRuntime.makeFilmSteps(fs, {
+      description, keepGoing: true, frames: CAP_FRAMES,
+      progress: (step, what, scene) => post({ type: "progress", step, what, scene: scene || null }),
+      onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints }),
+      onScene: (s) => post({ type: "scene", scene: s }),
+    });
+  } catch (e) { post({ type: "error", message: String((e && e.message) || e) }); return; }
+  for (;;) {
+    await new Promise((r) => setTimeout(r, 80)); // let the page show the step first
+    if (RUNS[1] !== run || !run.status.running) return;
+    let r;
+    try { r = steps.next(); } catch (e) { post({ type: "error", message: String((e && e.message) || e) }); return; }
+    if (r.done) { post({ type: "done" }); return; }
+  }
 }
 function onWorker(run, m) {
   if (RUNS[1] !== run) return;
@@ -1616,7 +1831,8 @@ function onWorker(run, m) {
     if (state.panel === "compare") comparePanel();
   } else if (m.type === "scene") {
     addScene(run, m.scene);
-    if (SCENE_IDS[state.scene] === m.scene.id) { drawBands(); render(); }
+    renderSceneButtons();
+    if (run.sceneIds[state.scene] === m.scene.id) { drawBands(); render(); }
     if (state.panel === "compare") comparePanel();
   } else if (m.type === "done") {
     finishRun(run, {});
@@ -1678,11 +1894,11 @@ function updateRunbar() {
   } else if (st.error) {
     status.innerHTML = `<span class="stopped">Ani stopped: ${esc(stopText(st.error))}</span>`;
   } else if (st.stopped) {
-    status.textContent = `Stopped after ${clock(st.seconds * 1000)}, with ${filmed} of 5 scenes filmed.`;
+    status.textContent = `Stopped after ${clock(st.seconds * 1000)}, with ${filmed} of ${run.sceneIds.length} scenes filmed.`;
   } else {
     const failed = run.scenes.filter((s) => s && s.error).length;
     const when = st.made ? new Date(st.made).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
-    status.textContent = `Your version: ${filmed} of 5 scenes filmed${failed ? `, ${failed} stopped` : ""}${st.seconds ? `, in ${clock(st.seconds * 1000)}` : ""}${st.restored && when ? ` (made ${when})` : ""}.${st.kept === false ? " This browser couldn't keep it." : ""}`;
+    status.textContent = `Your version: ${filmed} of ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"} filmed${failed ? `, ${failed} stopped` : ""}${st.seconds ? `, in ${clock(st.seconds * 1000)}` : ""}${st.restored && when ? ` (made ${when})` : ""}.${st.kept === false ? " This browser couldn't keep it." : ""}`;
   }
   document.getElementById("run-stop").hidden = !st.running;
 }
@@ -1712,7 +1928,10 @@ function comparePanel() {
   const a = RUNS[0], b = RUNS[1];
   if (!b) { state.panel = "story"; renderSide(); return; }
   const st = b.status || {};
-  const changes = storyChanges(a.story, b.story, a.cindy, b.cindy);
+  const other = !sameStory(a, b);
+  const changes = other
+    ? [`A new story: ${esc(words(b.cast.map((c) => meet(b.story, c).the)))}, in ${b.sceneIds.length} scene${b.sceneIds.length === 1 ? "" : "s"} (${esc(words(b.sceneIds.map((id) => b.titles[id])))}).`]
+    : storyChanges(a.story, b.story, a.cindy, b.cindy);
   // pass 1: the choices that differ
   const diffs = [];
   let relative = 0;
@@ -1728,20 +1947,23 @@ function comparePanel() {
     const old = a.cp.get(show(cp.name));
     return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(valueOf(cp.currentChoice))}</b> <span class="was">(was ${esc(old ? valueOf(old.currentChoice) : "—")})</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
   }).join("");
-  const scenes = SCENE_IDS.map((id, i) => {
+  const scenes = [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
     const x = a.scenes[i], y = b.scenes[i];
+    const id = a.sceneIds[i] || b.sceneIds[i];
     const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / 4)} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
     const yours = ready(y) ? len(y) : y && y.error ? `<span class="stopped">Ani stopped: ${esc(stopText(y.error))}</span>` : st.running ? "not made yet" : "not made";
     const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "—"; };
-    return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${esc(TITLES[id])}</span>
-      <span class="vs"><span>1978</span><span>${len(x)}: ${lines(a, x)}</span><span>Yours</span><span>${yours}${ready(y) ? `: ${lines(b, y)}` : ""}</span></span></button>`;
+    const title = other ? `Scene ${i + 1}` : esc(a.titles[id] || b.titles[id]);
+    const name = (run, sc, k) => (other && run.sceneIds[k] ? `${esc(run.titles[run.sceneIds[k]])}, ` : "");
+    return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${title}</span>
+      <span class="vs"><span>1978</span><span>${a.sceneIds[i] ? `${name(a, x, i)}${len(x)}: ${lines(a, x)}` : "—"}</span><span>Yours</span><span>${b.sceneIds[i] ? `${name(b, y, i)}${yours}${ready(y) ? `: ${lines(b, y)}` : ""}` : "—"}</span></span></button>`;
   }).join("");
   side.innerHTML = `
-    <div class="side-head"><h2>Two films of one story</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
-    ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span><div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
+    <div class="side-head"><h2>${other ? "Two stories, side by side" : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
+    ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.error ? `<p class="problems">Ani stopped: ${esc(stopText(st.error))}</p>` : ""}
     <div><p class="label">What you changed</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}</div>
-    <div><p class="label">How Ani's choices changed</p>${b.choicePoints.length
+    <div><p class="label">How Ani's choices changed</p>${other ? `<p class="note">${b.choicePoints.length ? `In pass 1 Ani made ${b.choicePoints.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : b.choicePoints.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${b.choicePoints.length} choices came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}</div>
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
@@ -1767,6 +1989,7 @@ function renderSide() {
   if (key !== lastPanel) { document.getElementById("side").scrollTop = 0; lastPanel = key; }
   if (state.panel === "why" && state.selected) return using(RUNS[state.selected.run], () => whyPanel(state.selected.char));
   if (state.panel === "edit") return editorPanel();
+  if (state.panel === "tell") return tellerPanel();
   if (state.panel === "compare") return comparePanel();
   return using(RUNS[state.view === 1 ? 1 : 0], storyPanel);
 }
@@ -1781,13 +2004,28 @@ function render() {
   document.getElementById("frame-label").textContent = `${state.frame} / ${last}`;
   for (const r of shown()) caption(r);
 }
+// The scene buttons: the scenes of the film shown, or numbers for two different stories.
+function renderSceneButtons() {
+  const runs = shown().map((r) => RUNS[r]).filter(Boolean);
+  const count = Math.max(...runs.map((r) => r.sceneIds.length));
+  const same = runs.length < 2 || sameStory(runs[0], runs[1]);
+  const titles = [...Array(count).keys()].map((i) => (same ? runs[0].titles[runs[0].sceneIds[i]] : `Scene ${i + 1}`));
+  const el = document.getElementById("scenes");
+  el.innerHTML = titles.map((t, i) => `<button type="button" aria-pressed="${i === state.scene}"${same ? "" : ` title="${esc(runs.map((r) => r.titles[r.sceneIds[i]] || "—").join(" / "))}"`}>${esc(t)}</button>`).join("");
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
+  const cast = [];
+  for (const run of runs) for (const c of run.cast) if (!cast.some((x) => x[0] === c)) cast.push([c, run]);
+  document.getElementById("legend").innerHTML = cast.map(([c, run]) => `<span>${icon(c, 16, run)}${esc(meet(run.story, c).name)}: ${esc(run.shapes[c])}</span>`).join("");
+}
+const sceneCount = () => Math.max(...shown().map((r) => (RUNS[r] ? RUNS[r].sceneIds.length : 0)));
 function goScene(i, frame = 0) {
-  state.scene = i;
+  state.scene = Math.max(0, Math.min(i, sceneCount() - 1));
   state.frame = frame;
-  document.querySelectorAll("#scenes button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === i)));
+  document.querySelectorAll("#scenes button").forEach((b, k) => b.setAttribute("aria-pressed", String(k === state.scene)));
   drawBands();
   render();
-  if (state.panel === "edit") return;
+  if (!document.getElementById("save-panel").hidden) renderSavePanel();
+  if (state.panel === "edit" || state.panel === "tell") return;
   if (state.panel === "why" && state.selected && !ready(sceneOf(state.selected.run))) { state.selected = null; state.panel = defaultPanel(); }
   renderSide();
 }
@@ -1806,10 +2044,13 @@ function setView(view) {
   state.view = view === "both" || view === 1 ? view : 0;
   if (state.view !== "both" && !RUNS[state.view]) state.view = 0;
   if (state.selected && !shown().includes(state.selected.run)) state.selected = null;
-  if (state.panel !== "edit" && state.panel !== "why") state.panel = defaultPanel();
+  if (state.panel !== "edit" && state.panel !== "why" && state.panel !== "tell") state.panel = defaultPanel();
   if (state.panel === "why" && !state.selected) state.panel = defaultPanel();
   layout();
   updateRunbar();
+  state.scene = Math.min(state.scene, sceneCount() - 1);
+  renderSceneButtons();
+  if (!document.getElementById("save-panel").hidden) renderSavePanel();
   state.frame = Math.min(state.frame, maxLast());
   drawBands();
   render();
@@ -1819,7 +2060,7 @@ function step(d) {
   const last = maxLast();
   let f = state.frame + d;
   if (f > last) {
-    if (state.playing && state.scene < SCENE_IDS.length - 1) { goScene(state.scene + 1, 0); return; }
+    if (state.playing && state.scene < sceneCount() - 1) { goScene(state.scene + 1, 0); return; }
     f = last;
     pause();
   }
@@ -1829,7 +2070,7 @@ function step(d) {
   if (state.panel === "why" && state.selected) renderSide();
 }
 function play() {
-  if (state.frame >= maxLast() && state.scene === SCENE_IDS.length - 1) goScene(0, 0);
+  if (state.frame >= maxLast() && state.scene === sceneCount() - 1) goScene(0, 0);
   state.playing = true;
   document.getElementById("play").textContent = "Pause";
   const tick = () => { if (!state.playing) return; step(1); state.timer = setTimeout(tick, 250 / state.speed); };
@@ -1847,8 +2088,6 @@ function setColor(color) {
   draw();
 }
 
-document.getElementById("scenes").innerHTML = SCENE_IDS.map((id, i) => `<button type="button" aria-pressed="${i === 0}">${esc(TITLES[id])}</button>`).join("");
-document.querySelectorAll("#scenes button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
 document.getElementById("play").addEventListener("click", () => (state.playing ? pause() : play()));
 document.getElementById("back").addEventListener("click", () => { pause(); step(-1); });
 document.getElementById("fwd").addEventListener("click", () => { pause(); step(1); });
@@ -1857,6 +2096,7 @@ document.getElementById("mode-bw").addEventListener("click", () => setColor(fals
 document.getElementById("mode-color").addEventListener("click", () => setColor(true));
 document.querySelectorAll("#runbar [data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view === "both" ? "both" : Number(b.dataset.view))));
 document.getElementById("run-stop").addEventListener("click", () => stopRun());
+document.getElementById("save").addEventListener("click", () => toggleSavePanel());
 FIGS.forEach(({ canvas }, r) => {
   canvas.addEventListener("click", (ev) => { const [x, y] = pointer(canvas, ev); const c = hit(r, x, y); select(c ? { run: r, char: c } : null); });
   canvas.addEventListener("mousemove", (ev) => { const [x, y] = pointer(canvas, ev); canvas.classList.toggle("over", !!hit(r, x, y)); });
@@ -1868,7 +2108,6 @@ document.addEventListener("keydown", (ev) => {
   else if (ev.key === "ArrowLeft") { pause(); step(-1); }
   else if (ev.key === "Escape" && state.panel === "why") select(null);
 });
-document.getElementById("legend").innerHTML = CAST.map((c) => `<span>${icon(c)}${esc(CHARS[c].name)}: ${esc(CHARS[c].shape)}</span>`).join("");
 window.addEventListener("resize", () => { sizeCanvases(); drawBands(); draw(); });
 if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => drawBands());
 
@@ -1885,8 +2124,20 @@ function fromHash() {
   return true;
 }
 window.addEventListener("hashchange", fromHash);
+// a film file dropped on the page opens it
+document.addEventListener("dragover", (e) => { if ([...(e.dataTransfer?.types || [])].includes("Files")) e.preventDefault(); });
+document.addEventListener("drop", async (e) => {
+  const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (!file || !/\.json$/i.test(file.name)) return;
+  e.preventDefault();
+  try { await openFilm(await readFilmFile(await file.text()), file.name); } catch (err) { toggleSavePanel(true); setSaveStatus(err.message); }
+});
+
+/*FILM-PARTS*/
 
 layout();
+renderSceneButtons();
 if (!fromHash()) goScene(0, 1);
 restoreRun();
+probeModels();
 </script>
