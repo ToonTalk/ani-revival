@@ -2,7 +2,7 @@
 // program (written by tools/run-pass2.mjs into reports/pass2/), film it, and save
 // where each character ended up (KEN1;INTRO POSIT and so on, which pass 2 loads to
 // plan the next scene). The position file is copied to reports/pass2/.
-// Usage: node tools/run-scene.mjs [scene] [--frames n] [--fps n] [--png] [--color] [--no-backtrace]
+// Usage: node tools/run-scene.mjs [scene] [--frames n] [--fps n] [--png] [--color] [--no-backtrace] [--extensions a,b]
 //   --png  photograph each frame as the 1978 film was shot: after each new frame
 //          the movie evaluates its after-new-frame-made, which here calls CLICK, the
 //          camera (lost; ours saves the TV picture), into reports/film/<scene>/NNN.png.
@@ -14,9 +14,15 @@
 //          frame, the line segments each character was drawn with (TV dots from the
 //          picture's top left) and each character's state; and every event the movie
 //          noted (the beginnings and ends of subscenes and activities), by frame.
+//   --extensions  also load the revival's extensions (src/pipeline.js EXTENSIONS).
+//          The scene's program and the positions are read from reports/ext/<a+b>/
+//          (as tools/run-pass2.mjs --extensions writes them), or else from
+//          reports/pass2/, and what this run writes goes to reports/ext/<a+b>/.
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { extensionsFor, loadExtensions } from "../src/pipeline.js";
 import { encodePNG } from "../src/tv/png.js";
 import { Flonum } from "../src/maclisp/types.js";
 import { pictureArea } from "../src/tv/canvas.js";
@@ -27,10 +33,14 @@ const scene = args.find((a, i) => !a.startsWith("--") && !/^--/.test(args[i - 1]
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 ? Number(args[i + 1]) : dflt; };
 const frames = opt("--frames", 1000);
 const fps = opt("--fps", 4);
+const extAt = args.indexOf("--extensions");
+const extensions = extensionsFor(extAt >= 0 ? (args[extAt + 1] || "").split(",").filter(Boolean) : []).map((e) => e.id);
+const extDir = extensions.length ? `reports/ext/${extensions.join("+")}` : null;
 
 const fs = makeProjectFileSystem();
 // Files the earlier steps wrote: every scene program and position file so far.
 mountRunOutputs(fs); // what earlier steps wrote (KEN;INTROD UCTION, ...)
+if (extDir) mountRunOutputs(fs, join(process.cwd(), extDir));
 
 const L = createLisp({ fs });
 L.formStack = args.includes("--no-backtrace") ? null : [];
@@ -49,7 +59,7 @@ const pdp10 = args.includes("--pdp10");
 if (pdp10) Flonum.pdp10 = true;
 const png = args.includes("--png") || color;
 const record = args.includes("--record");
-const filmDir = `reports/film/${scene}${color ? "-color" : ""}${pdp10 ? "-pdp10" : ""}`;
+const filmDir = `${extDir ? `${extDir}/film` : "reports/film"}/${scene}${color ? "-color" : ""}${pdp10 ? "-pdp10" : ""}`;
 // ANINIT's color hook waits until 3 seconds have passed since the last click (the
 // camera needed them); here no time need pass.
 if (color) L.defsubr("SLEEP", () => L.NIL);
@@ -125,8 +135,8 @@ const isSend = (f) => /^\((ASK|ASK1|ASK-EACH|DO-AS-IF-YOU-WERE|DEFINE) /.test(L.
 function step(what, src) {
   const t0 = Date.now();
   try {
-    const v = L.evalString(src);
-    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${L.print(v).slice(0, 120)}`);
+    const v = typeof src === "function" ? src() : L.evalString(src);
+    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${(Array.isArray(v) ? v.join(" ") : L.print(v)).slice(0, 120)}`);
     return true;
   } catch (e) {
     console.log(`FAILED ${what}: ${e.message}${e.where ? ` (at ${e.where})` : ""}`);
@@ -147,6 +157,7 @@ L.evalString("(setq :print-load-messages nil)");
 const ok =
   step("(director '(ani direct))", "(director '(ani direct))") &&
   step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
+  (!extensions.length || step(`load the extensions ${extensions.join(", ")}`, () => loadExtensions(L, extensions))) &&
   (!color || step("(run-color): the color TV", "(run-color)")) &&
   step("(cs): start the TV display", "(cs)") &&
   step("load ANINIT (Director extended to run Ani's scenes)", "(load '|ken;aninit >|)") &&
@@ -184,8 +195,10 @@ if (ok) {
     console.log(`${L.print(s).toLowerCase().padEnd(42)}${n(b).padStart(6)}${n(e).padStart(6)}${len.padStart(8)}  ${typeof est === "number" ? est.toFixed(2) : "-"}`);
   }
   if (record) {
-    writeFileSync(`reports/film/${scene}${color ? "-color" : ""}.film.json`, JSON.stringify(film));
-    console.log(`recorded ${film.frames.length} frames and ${film.events.length} events in reports/film/${scene}${color ? "-color" : ""}.film.json`);
+    const path = `${extDir || "reports/film"}/${scene}${color ? "-color" : ""}.film.json`;
+    mkdirSync(extDir || "reports/film", { recursive: true });
+    writeFileSync(path, JSON.stringify(film));
+    console.log(`recorded ${film.frames.length} frames and ${film.events.length} events in ${path}`);
   }
   const name = L.print(L.evalString(`(get '${scene} 'movie-name)`)).toLowerCase();
   const e = fs.find({ dir: "KEN1", fn1: name.toUpperCase(), fn2: "POSIT" });
@@ -196,8 +209,10 @@ if (ok) {
     console.log(`KEN1;${name.toUpperCase()} POSIT: not copied (color run)
 ` + fs.textOf(e));
   } else if (e) {
-    writeFileSync(`reports/pass2/ken1-${name}.posit`, fs.textOf(e));
-    console.log(`KEN1;${name.toUpperCase()} POSIT: copied to reports/pass2/ken1-${name}.posit\n` + fs.textOf(e));
+    const dir = extDir || "reports/pass2";
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(`${dir}/ken1-${name}.posit`, fs.textOf(e));
+    console.log(`KEN1;${name.toUpperCase()} POSIT: copied to ${dir}/ken1-${name}.posit\n` + fs.textOf(e));
   }
 }
 process.exit(ok ? 0 : 1);

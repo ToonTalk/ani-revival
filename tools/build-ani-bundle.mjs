@@ -5,16 +5,19 @@
 // It runs the pipeline (src/pipeline.js: pass 1, then each scene's pass 2 and
 // filming) on the project's files, noting every file read; lists those, together
 // with all of Ani's, Director's and the drivers' files (a changed film description
-// may need parts the standard run doesn't), the revival's files and the recovered
-// FASL sources; writes the bundle itself to app/data/ani-bundle.json (for
-// test/rerun.html); then runs the pipeline again on the bundle alone and checks that
-// it makes the same film, frame for frame.
-// Usage: node tools/build-ani-bundle.mjs [--no-check]
+// may need parts the standard run doesn't), the revival's files (all of
+// src/director/revive, extensions included) and the recovered FASL sources; writes the
+// bundle itself to app/data/ani-bundle.json (for test/rerun.html); then runs the
+// pipeline again on the bundle alone and checks that it makes the same film, frame
+// for frame.
+// Usage: node tools/build-ani-bundle.mjs [--no-check] [--extensions a,b]
+//   --extensions  make both films with the revival's extensions (src/pipeline.js
+//   EXTENSIONS), to check that the bundle has every file they need.
 import { writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { makeBundleFileSystem } from "../src/its/bundle-fs.js";
-import { makeFilm } from "../src/pipeline.js";
+import { makeFilm, extensionsFor } from "../src/pipeline.js";
 import { ANI_FILES, DRIVER_FILES, DIRECTOR_FILES } from "../src/sources.js";
 
 // The bundle for a manifest: { files: [[dir, fn1, fn2]], fasl: [[dir, fn1]] }.
@@ -56,7 +59,10 @@ if (process.argv[1]?.endsWith("build-ani-bundle.mjs")) {
 
   const t0 = Date.now();
   const progress = (step, what) => console.log(`${((Date.now() - t0) / 1000).toFixed(0).padStart(4)} s  ${what}`);
-  const first = makeFilm(fs, { progress });
+  const extAt = process.argv.indexOf("--extensions");
+  const extensions = extensionsFor(extAt > 0 ? (process.argv[extAt + 1] || "").split(",").filter(Boolean) : []).map((e) => e.id);
+  if (extensions.length) console.log(`with the extensions ${extensions.join(", ")}`);
+  const first = makeFilm(fs, { progress, extensions });
   console.log(`made the film from the project's files: ${first.choices} choices, ${first.scenes.map((s) => `${s.id} ${s.film.frames.length}`).join(", ")}`);
 
   // The files to bundle: those read, and every file of Ani, her drivers and Director.
@@ -88,7 +94,7 @@ if (process.argv[1]?.endsWith("build-ani-bundle.mjs")) {
 
   if (!process.argv.includes("--no-check")) {
     const digest = (scenes) => scenes.map((s) => createHash("sha256").update(JSON.stringify(s.film.frames)).digest("hex").slice(0, 12));
-    const second = makeFilm(makeBundleFileSystem(bundle), { progress });
+    const second = makeFilm(makeBundleFileSystem(bundle), { progress, extensions });
     const a = digest(first.scenes), b = digest(second.scenes);
     const same = a.every((x, k) => x === b[k]);
     console.log(same ? "the bundle alone makes the same film, frame for frame" : `the bundle's film differs: ${a.join(" ")} vs ${b.join(" ")}`);

@@ -1,8 +1,11 @@
 // Run Ani's pass 1 the way KEN;DATEST did: load the Cinderella film description,
 // make the choices about the characters' dynamics, and save the answers; then
-// compare them with CP 29, the file pass 1 wrote in September 1978.
-// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all] [--glass-box]
+// compare them with CP 29, the file pass 1 wrote in September 1978. Exits non-zero
+// unless every choice is CP 29's, in its place.
+// Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all] [--glass-box] [--extensions a,b]
+//   --extensions  also load the revival's extensions (src/pipeline.js EXTENSIONS)
 import { createLisp } from "../src/maclisp/index.js";
+import { extensionsFor, loadExtensions } from "../src/pipeline.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { writeFileSync } from "node:fs";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
@@ -10,6 +13,9 @@ import { installAttemptLog, collectChoicePoints, collectStory } from "../src/gla
 import { buildGlassBox } from "./build-glassbox.mjs";
 
 const trace = process.argv.includes("--trace");
+const extAt = process.argv.indexOf("--extensions");
+const extensions = extAt > 0 ? (process.argv[extAt + 1] || "").split(",").filter(Boolean) : [];
+extensionsFor(extensions); // an unknown one stops here
 const fs = makeProjectFileSystem();
 const L = createLisp({ fs });
 L.formStack = process.argv.includes("--no-backtrace") ? null : []; // a backtrace for errors, at some cost in speed
@@ -22,8 +28,8 @@ L.breakHandler = (tag) => {
 function step(what, src) {
   const t0 = Date.now();
   try {
-    const v = L.evalString(src);
-    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${L.print(v).slice(0, 120)}`);
+    const v = typeof src === "function" ? src() : L.evalString(src);
+    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${(Array.isArray(v) ? v.join(" ") : L.print(v)).slice(0, 120)}`);
     return true;
   } catch (e) {
     console.log(`FAILED ${what}: ${e.message}${e.where ? ` (at ${e.where})` : ""}`);
@@ -45,6 +51,7 @@ let attempts = null;
 const ok =
   step("(director '(ani direct))", "(director '(ani direct))") &&
   step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
+  (!extensions.length || step(`load the extensions ${extensions.join(", ")}`, () => loadExtensions(L, extensions))) &&
   step("load DATEST", "(load '|ken;datest >|)") &&
   step("(init nil): load CINDY, study descriptor use", "(init nil)") &&
   (glassBox ? (attempts = installAttemptLog(L), true) : true) &&
@@ -69,6 +76,7 @@ const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 2500 chars):\n" + out.slice(-2500));
 if (L.warnings.length) console.log("\nwarnings:\n  " + L.warnings.slice(-8).join("\n  "));
 
+let asCp29 = false;
 if (ok) {
   const entry = fs.find({ dir: "KEN1", fn1: "CP", fn2: "TEST" });
   console.log(`\nwrote KEN1;CP TEST (${entry ? fs.textOf(entry).length : 0} characters)`);
@@ -92,6 +100,7 @@ if (ok) {
       const b = [...ours.keys()];
       const inPlace = a.filter((k, i) => b[i] === k).length;
       console.log(`  in the same place in the file: ${inPlace} of ${a.length}`);
+      if (label.startsWith("CP 29")) asCp29 = c.same === theirs.size && ours.size === theirs.size && inPlace === a.length;
       if (process.argv.includes("--diff")) {
         for (const [k, a, b] of c.differ) console.log(`  ${k}: ${a} then, ${b} now`);
         for (const [k, a] of c.onlyA) console.log(`  missing ${k} = ${a}`);
@@ -100,4 +109,5 @@ if (ok) {
     }
   }
 }
-process.exit(ok ? 0 : 1);
+if (ok && !asCp29) console.log("\nFAILED: the choices are not CP 29's");
+process.exit(ok && asCp29 ? 0 : 1);

@@ -8,10 +8,12 @@
 //            (KEN1;KA POSIT, ...), which the next scene's pass 2 starts from
 //
 // Each step boots a fresh Lisp, as each was a separate job on ITS; they pass files.
+// Any of the revival's extensions asked for (EXTENSIONS) are loaded into each of them.
 // Besides the files, pass2() returns the scene's plan as Ani left it (its glass box)
 // and film() a record of every frame. Used by tools/run-pass2.mjs, tools/run-scene.mjs
 // and the web app's worker, so it runs in Node and in a browser.
 import { createLisp } from "./maclisp/index.js";
+import { Cons } from "./maclisp/types.js";
 import { pictureArea } from "./tv/canvas.js";
 import { UNIT_BIT } from "./tv/turtle.js";
 import { collectChoicePoints } from "./glassbox-pass1.js";
@@ -22,8 +24,51 @@ export const SCENES = ["introduction", "kept-apart", "no-longer-kept-apart", "me
 export const FILE_NAMES = { introduction: "INTROD UCTION", "kept-apart": "KEPT APART", "no-longer-kept-apart": "NO LONGER", meeting: "MEET ING", justice: "JUST ICE" };
 export const CHARACTERS = ["cinderella", "step-mother", "prince", "fairy-godmother"];
 
-// A fresh Lisp with Director and the 1978 conventions loaded, as Ken's saved jobs had.
-export function boot(fs, { backtrace = false } = {}) {
+// ---------------------------------------------------------------- extensions
+
+// The revival's extensions to Ani (reports/chapter-x/PLAN.md): files of ours in
+// src/director/revive/ (REVIVE;<file>), loaded after the bridge, in this order, only
+// when asked for. With none, Ani runs as in 1978. changes1978: whether it changes what
+// Ken's Cinderella makes (tools/check-1978.mjs --extensions checks those that don't).
+export const EXTENSIONS = [
+  {
+    id: "mend",
+    label: "Repairs for new stories",
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7"],
+    requires: [],
+    changes1978: false,
+    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, and COSUG's combine for change suggestions. Each leaves a (revival-repair: ...) note where it acted.",
+  },
+];
+
+// The entries for a list of extension ids, with those they require, in registry
+// order. An unknown id is an error.
+export function extensionsFor(ids = []) {
+  const byId = new Map(EXTENSIONS.map((e) => [e.id, e]));
+  const wanted = new Set();
+  const want = (id, by) => {
+    if (!byId.has(id)) throw new Error(`no such extension: ${id}${by ? ` (required by ${by})` : ""}; known: ${EXTENSIONS.map((e) => e.id).join(", ")}`);
+    if (wanted.has(id)) return;
+    wanted.add(id);
+    for (const r of byId.get(id).requires) want(r, id);
+  };
+  for (const id of ids || []) want(id);
+  return EXTENSIONS.filter((e) => wanted.has(e.id));
+}
+
+// Load the extensions' files into a Lisp that has loaded the bridge: in registry
+// order, each file once. Returns the files loaded. The tools that boot a Lisp step by
+// step (tools/run-pass1.mjs, ...) call this too, so the two can't drift apart.
+export function loadExtensions(L, ids = []) {
+  const files = [];
+  for (const e of extensionsFor(ids)) for (const f of e.files) if (!files.includes(f)) files.push(f);
+  for (const f of files) L.evalString(`(load '|revive;${f} >|)`);
+  return files;
+}
+
+// A fresh Lisp with Director and the 1978 conventions loaded, as Ken's saved jobs had,
+// and any of the revival's extensions asked for.
+export function boot(fs, { backtrace = false, extensions = [] } = {}) {
   const L = createLisp({ fs });
   L.formStack = backtrace ? [] : null;
   L.backtraceDepth = 4000;
@@ -37,6 +82,7 @@ export function boot(fs, { backtrace = false } = {}) {
   L.evalString("(setq :print-load-messages nil)");
   L.evalString("(director '(ani direct))");
   L.evalString("(load '|revive;bridge >|)");
+  loadExtensions(L, extensions);
   return L;
 }
 
@@ -45,8 +91,8 @@ export function boot(fs, { backtrace = false } = {}) {
 // Ani's choices for the film description in KEN;CINDY, saved as KEN;CP <version>, the
 // file pass 2 loads (KEN;CP >). Returns how many choices were made and each choice
 // point with its reasons (its glass box, as app/data/pass1.json has them).
-export function pass1(fs, { cpVersion = 30, backtrace = false } = {}) {
-  const L = boot(fs, { backtrace });
+export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] } = {}) {
+  const L = boot(fs, { backtrace, extensions });
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
   L.evalString("(z)");
@@ -60,9 +106,9 @@ export function pass1(fs, { cpVersion = 30, backtrace = false } = {}) {
 // The scene planned and saved. Returns its glass box: every actor of the plan as Ani
 // left it (the scene, its tasks with the methods suggested, rejected and scored, its
 // subscenes, activities and special dynamics), each as its variables and the items it
-// memorized, printed as Lisp.
-export function pass2(fs, scene, { backtrace = false, setup = null, plan = null } = {}) {
-  const L = boot(fs, { backtrace });
+// memorized, printed as Lisp; and, if the revival's repairs left notes, those.
+export function pass2(fs, scene, { backtrace = false, setup = null, plan = null, extensions = [] } = {}) {
+  const L = boot(fs, { backtrace, extensions });
   L.evalString("(cs)"); // Ken's Director was saved with the TV started; pass 2 measures places on it
   L.evalString("(load '|ken;run >|)");
   let before = "";
@@ -101,7 +147,7 @@ export function glassBox(L, scene) {
     L.intern("*GB-ACTOR*").value = s;
     for (const p of names("(ask ,*gb-actor* recall your plans)")) plans.push(p);
   }
-  return {
+  const glass = {
     scene: actor(L.intern(scene.toUpperCase())),
     tasks: tasks.map(actor),
     subscenes: subscenes.map(actor),
@@ -109,6 +155,35 @@ export function glassBox(L, scene) {
     dynamics: names("(ask special-dynamics recall your descendants)").map(actor),
     choices: actor(L.readFromString(`(choices-made-in ${scene})`)),
   };
+  const repairs = repairNotes(L, glass);
+  if (repairs.length) glass.repairs = repairs; // only then, so a 1978 glass box is as it was
+  return glass;
+}
+
+// The notes the revival's repairs left, (revival-repair: what W was X now Y because R)
+// (REVIVE;WRAP), as { actor, note }: those of the glass box's actors, then of the
+// choice points (pass 2 reads them from KEN;CP), then of any other actor
+// revival-note noted, each actor once.
+export function repairNotes(L, glass) {
+  const lisp = (x) => L.print(x).toLowerCase();
+  const isNote = (item) => item.startsWith("(revival-repair: ");
+  const out = [];
+  const seen = new Set();
+  const add = (name, items) => {
+    if (seen.has(name)) return;
+    seen.add(name);
+    for (const note of items.filter(isNote)) out.push({ actor: name, note });
+  };
+  for (const a of [glass.scene, ...glass.tasks, ...glass.subscenes, ...glass.plans, ...glass.dynamics, glass.choices]) add(a.name, a.items);
+  const others = L.toArray(L.evalString("(and (actor-of 'choice-point dont-autoload) (ask choice-point recall your childless-descendants))"));
+  const noted = L.intern(":REVIVAL-NOTED").value;
+  if (noted instanceof Cons) others.push(...L.toArray(noted).reverse());
+  for (const x of others) {
+    if (x === L.NIL || seen.has(lisp(x))) continue;
+    L.intern("*GB-ACTOR*").value = x;
+    add(lisp(x), L.toArray(L.evalString("(ask ,*gb-actor* collect items)")).map(lisp));
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- filming
@@ -184,8 +259,8 @@ export function recorder(L, { onClick = null, cast = CHARACTERS } = {}) {
 
 // The scene filmed in black and white, with a record of every frame; its end positions
 // are saved as KEN1;<movie> POSIT for the next scene's pass 2.
-export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null } = {}) {
-  const L = boot(fs, { backtrace });
+export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [] } = {}) {
+  const L = boot(fs, { backtrace, extensions });
   L.evalString("(cs)");
   L.evalString("(load '|ken;aninit >|)");
   let cast = CHARACTERS;
@@ -341,6 +416,7 @@ export function storyPlan(outline) {
 // frames Director films a second: 4, as on Ken's TV previews and in the thesis's
 // flipbook, or 24, as the film was shot (ANINIT's running-color); each scene's pass 2
 // starts from where the last one's filming left the characters, so the two runs differ.
+// extensions: the revival's extensions (EXTENSIONS) every step loads; none, as in 1978.
 export function makeFilm(fs, options = {}) {
   const steps = makeFilmSteps(fs, options);
   for (;;) {
@@ -352,7 +428,8 @@ export function makeFilm(fs, options = {}) {
 // The same, one step at a time: a generator that pauses after reporting each step's
 // progress and before running it, so a page can show the progress before the step
 // (up to a minute's work) holds it up.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, onPass1 = () => {}, onScene = () => {} } = {}) {
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {} } = {}) {
+  extensionsFor(extensions); // an unknown one stops the run before it starts
   let plan = null;
   if (description !== null) {
     const versions = fs.dirs.get("KEN")?.get("CINDY");
@@ -363,18 +440,19 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
   const order = scenes || (plan ? plan.scenes.map((s) => s.id) : SCENES);
   progress("pass1", "Pass 1: choosing how each character moves");
   yield;
-  const p1 = pass1(fs);
+  const p1 = pass1(fs, { extensions });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
+  if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
   onPass1({ choices: p1.choices, choicePoints: p1.choicePoints });
   for (const scene of order) {
     let done;
     try {
       progress("pass2", `Pass 2: planning ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { glass } = pass2(fs, scene, { plan });
+      const { glass } = pass2(fs, scene, { plan, extensions });
       progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { film: f } = film(fs, scene, { plan, frames, fps });
+      const { film: f } = film(fs, scene, { plan, frames, fps, extensions });
       done = { id: scene, film: f, glass };
     } catch (e) {
       if (!keepGoing) throw e;

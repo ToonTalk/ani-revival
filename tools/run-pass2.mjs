@@ -3,25 +3,36 @@
 // Director program that will show it (KEN;INTROD UCTION and so on), with its
 // summary (KEN1;INTROD MINI) and printout (KEN1;INTROD PRINT). Each file is also
 // copied to reports/pass2/.
-// Usage: node tools/run-pass2.mjs [scene] [--no-backtrace] [--glass-box]
+// Usage: node tools/run-pass2.mjs [scene] [--no-backtrace] [--glass-box] [--extensions a,b]
 //   scene is introduction (the default), kept-apart, no-longer-kept-apart,
 //   meeting or justice.
 //   --glass-box  also write reports/pass2/<scene>.glass.json for the web app: every
 //   actor of the scene's plan as Ani left it (the scene, its tasks with the methods
 //   suggested, rejected and scored, its subscenes, activities and special dynamics),
-//   each as its variables and what it memorized, printed as Lisp.
+//   each as its variables and what it memorized, printed as Lisp (src/pipeline.js
+//   glassBox).
+//   --extensions  also load the revival's extensions (src/pipeline.js EXTENSIONS).
+//   The files go to reports/ext/<a+b>/ instead, so the 1978 ones stay as they are;
+//   the files of earlier scenes are read from there, or else from reports/pass2/.
 import { createLisp } from "../src/maclisp/index.js";
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { FILE_NAMES, extensionsFor, loadExtensions, glassBox } from "../src/pipeline.js";
 
-const scene = process.argv.slice(2).find((a) => !a.startsWith("--")) || "introduction";
+const args = process.argv.slice(2);
+const scene = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--extensions") || "introduction";
+const extAt = args.indexOf("--extensions");
+const extensions = extensionsFor(extAt >= 0 ? (args[extAt + 1] || "").split(",").filter(Boolean) : []).map((e) => e.id);
+const outDir = extensions.length ? `reports/ext/${extensions.join("+")}` : "reports/pass2";
 // Each scene's file names (KEN;RUN's defprops): the program is KEN;<fn1> <fn2>, the
 // summary KEN1;<fn1> MINI and the printout KEN1;<fn1> PRINT.
-const fileNames = { introduction: "INTROD UCTION", "kept-apart": "KEPT APART", "no-longer-kept-apart": "NO LONGER", meeting: "MEET ING", justice: "JUST ICE" };
-const ownFn1 = (fileNames[scene] || "").split(" ")[0];
+const ownFn1 = (FILE_NAMES[scene] || "").split(" ")[0];
 const fs = makeProjectFileSystem();
 // positions saved by earlier scenes (KEN1;INTRO POSIT, ...), but not what this run writes
-mountRunOutputs(fs, undefined, [`KEN;${fileNames[scene]}`, `KEN1;${ownFn1} MINI`, `KEN1;${ownFn1} PRINT`]);
+const writes = [`KEN;${FILE_NAMES[scene]}`, `KEN1;${ownFn1} MINI`, `KEN1;${ownFn1} PRINT`];
+mountRunOutputs(fs, undefined, writes);
+if (extensions.length) mountRunOutputs(fs, join(process.cwd(), outDir), writes);
 const L = createLisp({ fs });
 L.formStack = process.argv.includes("--no-backtrace") ? null : [];
 L.backtraceDepth = 4000;
@@ -37,8 +48,8 @@ const isSend = (f) => /^\((ASK|ASK1|ASK-EACH|DO-AS-IF-YOU-WERE|DEFINE|DEFINE-FUN
 function step(what, src) {
   const t0 = Date.now();
   try {
-    const v = L.evalString(src);
-    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${L.print(v).slice(0, 120)}`);
+    const v = typeof src === "function" ? src() : L.evalString(src);
+    console.log(`ok     ${what} (${((Date.now() - t0) / 1000).toFixed(1)}s)  => ${(Array.isArray(v) ? v.join(" ") : L.print(v)).slice(0, 120)}`);
     return true;
   } catch (e) {
     console.log(`FAILED ${what}: ${e.message}${e.where ? ` (at ${e.where})` : ""}`);
@@ -59,6 +70,7 @@ L.evalString("(setq :print-load-messages nil)");
 const ok =
   step("(director '(ani direct))", "(director '(ani direct))") &&
   step("load REVIVE;BRIDGE (the 1978 conventions)", "(load '|revive;bridge >|)") &&
+  (!extensions.length || step(`load the extensions ${extensions.join(", ")}`, () => loadExtensions(L, extensions))) &&
   // Ken's Director was a saved job with the TV display already started (KEN;DUMP
   // clears the screen before saving it); pass 2 measures places on that screen.
   step("(cs): start the TV display", "(cs)") &&
@@ -70,7 +82,7 @@ const out = L.ttyText.join("");
 if (out.trim()) console.log("\nterminal output (last 3000 characters):\n" + out.slice(-3000));
 
 // what was written
-mkdirSync("reports/pass2", { recursive: true });
+mkdirSync(outDir, { recursive: true });
 const fileName = L.evalString(`(get '${scene} 'file-name)`);
 const [fn1, fn2] = [L.print(fileName.car), L.print(fileName.cdr.car)];
 for (const name of [{ dir: "KEN", fn1, fn2 }, { dir: "KEN1", fn1, fn2: "MINI" }, { dir: "KEN1", fn1, fn2: "PRINT" }]) {
@@ -78,44 +90,15 @@ for (const name of [{ dir: "KEN", fn1, fn2 }, { dir: "KEN1", fn1, fn2: "MINI" },
   const label = `${name.dir};${name.fn1} ${name.fn2}`;
   if (!e) { console.log(`${label}: not written`); continue; }
   const text = fs.textOf(e);
-  const path = `reports/pass2/${name.dir.toLowerCase()}-${name.fn1.toLowerCase()}.${name.fn2.toLowerCase()}`;
+  const path = `${outDir}/${name.dir.toLowerCase()}-${name.fn1.toLowerCase()}.${name.fn2.toLowerCase()}`;
   writeFileSync(path, text);
   console.log(`${label}: ${text.length} characters, copied to ${path}`);
 }
 // The glass box: each actor of the plan, as its own variables (recalled as print-all
-// recalls them) and the items it memorized.
+// recalls them) and the items it memorized, and any notes the revival's repairs left.
 if (ok && process.argv.includes("--glass-box")) {
-  const lisp = (x) => L.print(x).toLowerCase();
-  const ev = (src) => L.evalString(src);
-  function actor(name) {
-    const out = { name: lisp(name), variables: {}, items: [] };
-    L.intern("*GB-ACTOR*").value = name;
-    for (const v of L.toArray(ev("(ask ,*gb-actor* list all your variable names)"))) {
-      if (v === L.NIL) continue;
-      L.intern("*GB-VARIABLE*").value = v;
-      out.variables[lisp(v)] = lisp(ev("(ask ,*gb-actor* recall your ,*gb-variable*)"));
-    }
-    out.items = L.toArray(ev("(ask ,*gb-actor* collect items)")).map(lisp);
-    return out;
-  }
-  const names = (src) => L.toArray(ev(src)).filter((x) => x !== L.NIL);
-  const sceneName = L.intern(scene.toUpperCase());
-  const tasks = [...names(`(ask ${scene} recall your convey-tasks)`), ...names(`(ask ${scene} recall your establish-tasks)`)];
-  const subscenes = names(`(ask ${scene} recall your subscenes)`);
-  const plans = [];
-  for (const s of subscenes) {
-    L.intern("*GB-ACTOR*").value = s;
-    for (const p of names("(ask ,*gb-actor* recall your plans)")) plans.push(p);
-  }
-  const glass = {
-    scene: actor(sceneName),
-    tasks: tasks.map(actor),
-    subscenes: subscenes.map(actor),
-    plans: plans.map(actor),
-    dynamics: names("(ask special-dynamics recall your descendants)").map(actor),
-    choices: actor(L.readFromString(`(choices-made-in ${scene})`)),
-  };
-  writeFileSync(`reports/pass2/${scene}.glass.json`, JSON.stringify(glass, null, 1));
-  console.log(`glass box: ${glass.tasks.length} tasks, ${glass.subscenes.length} subscenes, ${glass.plans.length} activities, ${glass.dynamics.length} special dynamics in reports/pass2/${scene}.glass.json`);
+  const glass = glassBox(L, scene);
+  writeFileSync(`${outDir}/${scene}.glass.json`, JSON.stringify(glass, null, 1));
+  console.log(`glass box: ${glass.tasks.length} tasks, ${glass.subscenes.length} subscenes, ${glass.plans.length} activities, ${glass.dynamics.length} special dynamics${glass.repairs ? `, ${glass.repairs.length} repair notes` : ""} in ${outDir}/${scene}.glass.json`);
 }
 process.exit(ok ? 0 : 1);
