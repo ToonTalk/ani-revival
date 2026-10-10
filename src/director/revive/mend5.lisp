@@ -66,7 +66,13 @@
 ;;    place.45:524-538), from wherever the two start, so it includes any walk of the
 ;;    mover onto the stage; a third of the screen if they have no places yet, as for
 ;;    hits (disply.311:120-124); and the other's getting on the stage before it, if
-;;    any (MEND6's plus-time-to-bring-on).
+;;    any (MEND6's plus-time-to-bring-on). Ani makes it while she chooses, before
+;;    anyone has a place (run.65:49-53); whether the other will start off the stage is
+;;    then read from where the last scene left her (MEND6's where-the-last-scene-left),
+;;    so that the task is allotted time for her walk on. Allotted only the walk to
+;;    contact, the Reunion of test/stories/stress/meets-offstage.lisp, where the kid
+;;    meets the goat the last scene sent off, was given a second and filmed in five
+;;    frames, the goat crossing a fifth of the screen in one.
 ;;  - At the end they are in contact: two characters' sizes apart, .05 each
 ;;    (dichar.103:10), for the next subscene (record-distance-estimates, as each of
 ;;    DISPLY's methods does).
@@ -84,7 +90,7 @@
 	(let ((other (character-involved-in place)))
 	     (revival-note subscene 'defined-display-method 'not-defined
 			   '(move-to ,character ,place) '(named-in convey))
-	     (cond ((starts-off-the-stage? other character subscene)
+	     (cond ((brings-on? other character subscene '(move-to ,character ,place))
 		    (initial-locations-for-move-to character place subscene)
 		    (let ((get-on-stage-plan (bring-on other character factor subscene 'move-to)))
 			 (ask ,subscene

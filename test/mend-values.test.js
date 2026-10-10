@@ -25,12 +25,15 @@ const CP = `
 `;
 
 // A Lisp booted with MEND whose KEN;CP > is CP above, with a film of the given
-// variety level; loading the CP is left to the test, as RUN does it (run.65:44-45).
+// variety level, and RUN loaded, as in pass 2 (MEND1 and MEND2 act only in RUN's job:
+// test/mend-fixes.test.js); loading the CP is left to the test, as RUN does it
+// (run.65:44-45).
 function withChoices(variety) {
   const fs = makeProjectFileSystem();
   fs.addFile("KEN", "CP", "999", { text: CP, origin: "test" });
   const L = boot(fs, { extensions: ["mend"] });
   const run = (src) => L.print(L.evalString(src));
+  run("(load '|ken;run >|)");
   run(`(define mendv-film film (set your level of variety to ${variety}))`);
   return { L, run };
 }

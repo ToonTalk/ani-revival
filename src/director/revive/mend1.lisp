@@ -43,6 +43,14 @@
 ;;; glosug.41:63, and the thesis say the least used; low the least used. MEND does
 ;;; not change that.)
 ;;;
+;;; Only in pass 2. The hook fires whenever KEN;CP loads. RUN loads it, once per job,
+;;; and keeps that it has in :choice-points-loaded, which RUN sets when it loads
+;;; (run.65:29, 44-45). A pass-1 job may load it too, as CHANGE's fresh look is to
+;;; (reports/chapter-x/PLAN.md, item 3: load the story's CP, reset one character's
+;;; choice points, and choose again), and there a (not X) is pass 1's own value, which
+;;; later pass-1 reasoning reads as Ken's code made it. So the choices are narrowed
+;;; only in RUN's job: only when :choice-points-loaded is bound.
+;;;
 ;;; Only normal movement elements are narrowed: they are the ones the special
 ;;; dynamics carry (char.2:68). A (not X) of any other element, or of a value the
 ;;; element doesn't have, is left as it is; REVIVE;MEND2's guard on weightify reads
@@ -123,4 +131,6 @@
 					    '(middle-element ken1 reconstruction)))
 				     (t (list '(variety level) variety-level counts))))))))
 
-(+after-load '|ken;cp >| '(narrow-not-values-of-choice-points))
+;; Only in pass 2, RUN's job (see above).
+(+after-load '|ken;cp >|
+  '(and (boundp ':choice-points-loaded) (narrow-not-values-of-choice-points)))
