@@ -28,10 +28,10 @@ const CP = `
 // variety level, and RUN loaded, as in pass 2 (MEND1 and MEND2 act only in RUN's job:
 // test/mend-fixes.test.js); loading the CP is left to the test, as RUN does it
 // (run.65:44-45).
-function withChoices(variety) {
+function withChoices(variety, { extensions = ["mend"], cp = CP } = {}) {
   const fs = makeProjectFileSystem();
-  fs.addFile("KEN", "CP", "999", { text: CP, origin: "test" });
-  const L = boot(fs, { extensions: ["mend"] });
+  fs.addFile("KEN", "CP", "999", { text: cp, origin: "test" });
+  const L = boot(fs, { extensions });
   const run = (src) => L.print(L.evalString(src));
   run("(load '|ken;run >|)");
   run(`(define mendv-film film (set your level of variety to ${variety}))`);
@@ -61,6 +61,24 @@ test("M1: after KEN;CP loads, (not X) is narrowed by the variety level, with cou
   assert.equal(choice(run, "d", "attraction-towards-friends"), "(POSITIVE HIGH)");
   assert.equal(run("(ask (relative-choice-point-of (d a) relative-speed) recall your current-choice)"), "DIFFERENT-FROM");
   assert.equal(notes(run, "(choice-point-of a speed)"), "NIL");
+});
+
+// With APPEAR on too, absolute-choice-point has a child, APPEAR's appearance-choice-point,
+// among its offspring, as well as the choice points pass 1 made; M1 and M2 take only
+// those (REVIVE;MEND1 choice-points-pass-1-made). Before, M1 asked the child for its
+// element-name, and pass 2 of any story with a (not X) on a movement element stopped
+// (test/stories/fresh/fox-and-crow.lisp, test/stories/stress/not-high.lisp).
+test("M1 and M2 with APPEAR on: only the choice points pass 1 made are read, not APPEAR's kind of choice point", () => {
+  const cp = `${CP}(define (choice-point-of d size) appearance-choice-point (set your current-choice to (not high)))\n`;
+  const { run } = withChoices("medium", { extensions: ["mend", "appear"], cp });
+  run("(load '|ken;cp >|)");
+  assert.match(run("(ask absolute-choice-point recall your offspring)"), /APPEARANCE-CHOICE-POINT/);
+  assert.doesNotMatch(run("(choice-points-pass-1-made)"), /APPEARANCE-CHOICE-POINT|SIZE/);
+  assert.equal(choice(run, "d", "speed"), "LOW");
+  assert.equal(choice(run, "d", "activity-level"), "MEDIUM");
+  // APPEAR's own (not X) stays as pass 1 chose it: APPEAR reads it (appearance-number)
+  assert.equal(choice(run, "d", "size"), "(NOT HIGH)");
+  assert.equal(notes(run, "(choice-point-of d size)"), "NIL");
 });
 
 test("M1: high and low variety pick as GLOSUG's pick-value-with-variety does", () => {

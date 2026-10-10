@@ -49,19 +49,20 @@
 ;;; Cinderella's CP 29 has no none, and every value her run weighs is one weightify
 ;;; knows, so in her run this does nothing but read each choice.
 
-;; In pass 2, a normal movement element given up on reads as medium.
+;; In pass 2, a normal movement element given up on reads as medium. The choice points
+;; are those pass 1 made, in the CP's order, as REVIVE;MEND1 takes them
+;; (choice-points-pass-1-made): absolute-choice-point's instances, not a kind of choice
+;; point defined as its child, such as REVIVE;APPEAR's appearance-choice-point.
 (defun read-given-up-values-as-medium ()
-  (and (actor-of 'absolute-choice-point dont-autoload)
-       (mapc (function
-	      (lambda (choice-point)
-		      (cond ((and (eq (ask ,choice-point recall your current-choice) 'none)
-				  (let ((element-name (ask ,choice-point recall your element-name)))
-				       (ask ,element-name are you a normal-movement-element)))
-			     (ask ,choice-point set your current-choice to medium)
-			     (revival-note choice-point 'gave-up 'none 'medium
-					   '(interf reads an unset element as medium))))))
-	     ;;newest first, so reversed into the CP's order
-	     (reverse (ask absolute-choice-point recall your offspring)))))
+  (mapc (function
+	 (lambda (choice-point)
+		 (cond ((and (eq (ask ,choice-point recall your current-choice) 'none)
+			     (let ((element-name (ask ,choice-point recall your element-name)))
+				  (ask ,element-name are you a normal-movement-element)))
+			(ask ,choice-point set your current-choice to medium)
+			(revival-note choice-point 'gave-up 'none 'medium
+				      '(interf reads an unset element as medium))))))
+	(choice-points-pass-1-made)))
 
 ;; Only in pass 2, RUN's job (see above).
 (+after-load '|ken;cp >|

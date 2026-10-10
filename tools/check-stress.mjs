@@ -1,10 +1,14 @@
 // Check that the stress stories still do what test/stories/stress/README.md says they
-// do, with MEND and without it. Each story in test/stories/stress/, and the two
-// controls, test/stories/tortoise-and-hare.lisp and red-riding-hood.lisp, is made with
+// do, with MEND and without it, and that MEND and APPEAR together film them too. Each
+// story in test/stories/stress/, the two controls, test/stories/tortoise-and-hare.lisp
+// and red-riding-hood.lisp, and the fresh fables in test/stories/fresh/ is made with
 // tools/run-story.mjs as the README makes it (the page's "Make the film", at 4 frames a
-// second and at most 600 frames a scene), once as Ani as in 1978 and once with
-// --extensions mend, and what happened is held against test/stories/stress/expected.json.
-// For each story, under "without" and "with", that file gives:
+// second and at most 600 frames a scene), three times: as Ani as in 1978 ("without"),
+// with --extensions mend ("with"), and with --extensions mend,appear ("with-appear":
+// APPEAR adds a kind of choice point that MEND's repairs must step over, and its sizes
+// change Director's collisions, so a story films differently). What happened is held
+// against test/stories/stress/expected.json. For each story, under each of those
+// three, that file gives:
 //   exit      run-story's exit status: 0 if every scene filmed and ended, else 1
 //   pass1     "ok", or "failed: " and the start of the error pass 1 stopped with
 //   scenes    each scene, in order: the frames it filmed; "under the cap", if it ended in
@@ -19,10 +23,12 @@
 // kept elsewhere is named by its entry's file. To add one, put it in the folder and run
 //   node tools/check-stress.mjs <name> --record
 // (or, for a story kept elsewhere, give its file: test/stories/<name>.lisp), which makes
-// it both ways and writes what it did as its entry, keeping the others. Read it over
+// it each way and writes what it did as its entry, keeping the others. Read it over
 // (git diff), and loosen what may change: a scene's frames to "under the cap", say.
-// Usage: node tools/check-stress.mjs [name ...] [--jobs n] [--record]
+// Usage: node tools/check-stress.mjs [name ...] [--modes m,...] [--jobs n] [--record]
 //   name      only these stories (by name, as in expected.json, or by file); all by default
+//   --modes   only these of without, with and with-appear (all by default); with
+//             --record, the others stay as expected.json has them
 //   --jobs    how many runs at once, each a process of its own (default: the cores less two, at most 6)
 //   --record  write what each story did into expected.json as its expectations
 // Reports each story, ok or FAIL with each difference; exits non-zero on any.
@@ -37,17 +43,19 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const folder = "test/stories/stress";
 const expectedPath = join(root, folder, "expected.json");
 const args = process.argv.slice(2);
-const valued = new Set(["--jobs"]);
+const valued = new Set(["--jobs", "--modes"]);
 const names = args.filter((a, i) => !a.startsWith("--") && !valued.has(args[i - 1]));
 const record = args.includes("--record");
 const at = args.indexOf("--jobs");
 const jobs = at >= 0 ? Math.max(1, Number(args[at + 1]) || 1) : Math.max(1, Math.min(6, availableParallelism() - 2));
-const MODES = [["without", []], ["with", ["--extensions", "mend"]]];
-const label = { without: "without MEND", with: "with MEND" };
+const ALL_MODES = [["without", []], ["with", ["--extensions", "mend"]], ["with-appear", ["--extensions", "mend,appear"]]];
+const label = { without: "without MEND", with: "with MEND", "with-appear": "with MEND and APPEAR" };
+const modesAt = args.indexOf("--modes");
+const MODES = modesAt >= 0 ? (args[modesAt + 1] || "").split(",").filter(Boolean).map((m) => ALL_MODES.find(([n]) => n === m) || (() => { throw new Error(`no mode ${m}: known are ${ALL_MODES.map(([n]) => n).join(", ")}`); })()) : ALL_MODES;
 
 const expected = existsSync(expectedPath)
   ? JSON.parse(readFileSync(expectedPath, "utf8"))
-  : { about: "What each stress story does with MEND and without it (tools/check-stress.mjs, which says what each field means).", frames: 600, fps: 4, stories: {} };
+  : { about: "What each stress story does without MEND, with it, and with MEND and APPEAR (tools/check-stress.mjs, which says what each field means).", frames: 600, fps: 4, stories: {} };
 // the stories: those with an entry, in its order, then any in the folder without one
 const stories = Object.entries(expected.stories).map(([name, e]) => ({ name, file: e.file || `${folder}/${name}.lisp` }));
 for (const f of readdirSync(join(root, folder)).filter((f) => f.endsWith(".lisp")).sort()) {
@@ -164,7 +172,7 @@ function writeExpected() {
 
 // ---------------------------------------------------------------- the check
 
-console.log(`${chosen.length} stor${chosen.length === 1 ? "y" : "ies"}, each without MEND and with it, ${jobs} at a time${record ? "; recording what they do in " + folder + "/expected.json" : ""}\n`);
+console.log(`${chosen.length} stor${chosen.length === 1 ? "y" : "ies"}, each ${MODES.map(([mode]) => label[mode]).join(", ")}, ${jobs} at a time${record ? "; recording what they do in " + folder + "/expected.json" : ""}\n`);
 const t0 = Date.now();
 let failures = 0;
 const missing = chosen.filter((s) => !record && !expected.stories[s.name]);
@@ -185,16 +193,18 @@ function report(story) {
   const got = Object.fromEntries(MODES.map(([mode], k) => [mode, observed(results[k])]));
   const time = Math.max(...results.map((r) => r.seconds));
   if (record) {
-    expected.stories[story.name] = { file: story.file, without: got.without, with: got.with };
+    // the modes run now, and any others as they were
+    const kept = entry || {};
+    expected.stories[story.name] = { file: story.file, ...Object.fromEntries(ALL_MODES.map(([mode]) => [mode, got[mode] || kept[mode]]).filter(([, v]) => v)) };
     console.log(`noted  ${story.name} (${time} s)`);
   } else {
-    const diffs = MODES.flatMap(([mode]) => differences(entry[mode], got[mode]).map((d) => `${label[mode]}: ${d}`));
+    const diffs = MODES.flatMap(([mode]) => (entry[mode] ? differences(entry[mode], got[mode]) : [`no expectations (make them with: node tools/check-stress.mjs ${story.name} --modes ${mode} --record)`]).map((d) => `${label[mode]}: ${d}`));
     if (diffs.length) failures++;
     console.log(`${diffs.length ? "FAIL  " : "ok    "} ${story.name} (${time} s)`);
     for (const d of diffs) console.log(`         ${d}`);
     if (diffs.length) for (const r of results) console.log(`         see ${r.logPath}`);
   }
-  for (const [mode] of MODES) console.log(`         ${(label[mode] + ":").padEnd(14)}${summary(got[mode])}`);
+  for (const [mode] of MODES) console.log(`         ${(label[mode] + ":").padEnd(22)}${summary(got[mode])}`);
   reported.push(story.name);
 }
 async function worker() {

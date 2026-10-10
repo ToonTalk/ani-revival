@@ -66,9 +66,7 @@
 
 ;; Narrow every (not X) of a movement element among the choice points pass 1 made.
 (defun narrow-not-values-of-choice-points ()
-  (let ((choice-points (cond ((actor-of 'absolute-choice-point dont-autoload)
-			      ;;newest first, so reversed into the CP's order
-			      (reverse (ask absolute-choice-point recall your offspring))))))
+  (let ((choice-points (choice-points-pass-1-made)))
        (let ((to-narrow (mapcan (function
 				 (lambda (choice-point)
 					 (and (narrowable-not-value? choice-point)
@@ -79,6 +77,21 @@
 			   (count-choices-again element-name choice-points)))
 		  (elements-of-choice-points to-narrow))
 	    (mapc 'narrow-not-value to-narrow))))
+
+;; The choice points pass 1 made, in the CP's order: the instances of absolute-choice-
+;; point, each named for its thing and element, (choice-point-of cinderella speed)
+;; (cpoint.87:86-90). Its offspring are kept newest first, so they are reversed. They
+;; also hold any kind of choice point defined as its child, an atom with no thing or
+;; element of its own: REVIVE;APPEAR's appearance-choice-point is one (its own
+;; instances, (choice-point-of cinderella size), are its offspring, not these), and
+;; asked for its element-name it would take the third of its name. So only the
+;; instances are kept. In 1978 absolute-choice-point has no child, so this is every
+;; one of its offspring, as before.
+(defun choice-points-pass-1-made ()
+  (and (actor-of 'absolute-choice-point dont-autoload)
+       (mapcan (function
+		(lambda (choice-point) (and (not (atom choice-point)) (list choice-point))))
+	       (reverse (ask absolute-choice-point recall your offspring)))))
 
 ;; Is the choice point's value (not X), X one of a normal movement element's values?
 ;; The value is read first, so that a choice point with any other value is only read.
