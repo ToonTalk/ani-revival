@@ -8,7 +8,9 @@
 // what it imports, as one classic script for a worker) and the files Ani reads
 // (app/data/ani-bundle-files.json, from tools/build-ani-bundle.mjs), with the revival's
 // extensions (src/director/revive/) for the page's switch, "Ani as in 1978 / Ani with
-// the revival's repairs", and an index of their code for the glass box's links.
+// the revival's extensions", an index of their code for the glass box's links, and how
+// Ken drew his cast in 1978 (src/pipeline.js KEN_LOOKS, with ANINIT's lines) for "How she
+// looks".
 // Everything is inlined, gzipped as base64, so the page works opened directly, served,
 // or published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/llm.js (telling Ani a new story)
@@ -21,7 +23,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { gzipSync } from "node:zlib";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { EXTENSIONS } from "../src/pipeline.js";
+import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
@@ -50,6 +52,28 @@ function codeIndex(root) {
     "emotional-state": ["sugest.123", sugest["combine-emotional-state-suggestions"]],
   };
   return { display: { file: "disply.311", methods: display }, convey: { file: "convey.64", verbs: convey }, establish, revive: reviveIndex(root) };
+}
+
+// How Ken drew his four in 1978 (src/pipeline.js KEN_LOOKS), with where in ANINIT he
+// said so, for the glass box's "In 1978 Ken drew her himself as ...": each character's
+// definition in initialize-characters (its shape, and its size if not every
+// director-character's, dichar.103:10) and its color in running-color.
+function kenLooks(root) {
+  const lines = decodeItsText(readFileSync(`${root}/original/7005017/aninit.65`)).text.split("\n");
+  const lineOf = (re) => lines.findIndex((l) => re.test(l)) + 1;
+  const dichar = decodeItsText(readFileSync(`${root}/original/7005017/dichar.103`)).text.split("\n");
+  const characters = {};
+  for (const [c, look] of Object.entries(KEN_LOOKS)) {
+    const defineLine = lineOf(new RegExp(`^\\s*\\(define ${c} director-character`));
+    const colorLine = lineOf(new RegExp(`^\\s*\\(ask ${c} set your colors to \\(${look.color}\\)`));
+    if (!defineLine || !colorLine) throw new Error(`aninit.65 doesn't draw ${c} as KEN_LOOKS says`);
+    characters[c] = { ...look, defineLine, colorLine };
+  }
+  return {
+    file: "aninit.65", characters,
+    initialize: lineOf(/^\(define-function initialize-characters/), runningColor: lineOf(/^\(define-form \(running-color/),
+    size: { file: "dichar.103", line: dichar.findIndex((l) => /set your ani-size to \.05/.test(l)) + 1 },
+  };
 }
 
 // The revival's own Lisp (src/director/revive/, REVIVE;<name>), every file there, so
@@ -180,7 +204,10 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     words: vocabulary(root),
     // the revival's extensions (src/pipeline.js EXTENSIONS), which the page's switch
     // turns on for the films it makes; Ken's 1978 film above is as it was made
-    extensions: EXTENSIONS.map(({ id, label, files, requires, changes1978, note }) => ({ id, label, files, requires, changes1978, note })),
+    extensions: EXTENSIONS.map(({ id, label, files, requires, changes1978, note, recorder }) => ({ id, label, files, requires, changes1978, note, ...(recorder && recorder.looks ? { looks: true } : {}) })),
+    // the elements Ani chooses a look by (REVIVE;APPEAR), and how Ken drew his cast in 1978
+    appearanceElements: APPEARANCE_ELEMENTS,
+    kenLooks: kenLooks(root),
   };
   const packed = (text) => gzipSync(Buffer.from(text, "utf8"), { level: 9 }).toString("base64");
   // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last

@@ -232,6 +232,10 @@ const HEAD = { speed: ["speed"], "activity-level": ["activity"], "rhythmic-level
   "path-curvature": ["path", "curvature"], "path-jaggedness": ["path", "jaggedness"], "attraction-towards-friends": ["to", "friends"],
   "attraction-towards-enemies": ["to", "enemies"], "attraction-towards-strangers": ["to", "strangers"] };
 const RELATIVE = ELEMENTS.slice(0, 9);
+// The revival's APPEAR (src/pipeline.js APPEARANCE_ELEMENTS): in a run made with it, Ani
+// also chooses how each character looks, after the 102, and these get a group of their own.
+const LOOKS = ["size", "shape-jaggedness", "shape-complexity"];
+Object.assign(ELEMENT, { size: "size", "shape-jaggedness": "shape jaggedness", "shape-complexity": "shape complexity" });
 const PAIRS = [["cinderella", "step-mother"], ["cinderella", "fairy-godmother"], ["cinderella", "prince"],
   ["step-mother", "fairy-godmother"], ["step-mother", "prince"], ["fairy-godmother", "prince"]];
 
@@ -271,6 +275,8 @@ function sourceText(s) {
   if (s[0] === "opposite-of") return `“${s[1].replace(/-/g, " ")}”, by the opposite of what “${s[2].replace(/-/g, " ")}” suggests`;
   if (s[0] === "neighbor-of") return `“${s[1].replace(/-/g, " ")}”, by what its neighbor “${s[2].replace(/-/g, " ")}” suggests`;
   if (s[0] === "relative-choice-point-of") return `how ${who(s[1][0])} compares with ${who(s[1][1])} in ${elementName(s[2])}`;
+  if (s[0] === "dynamics-of") return `how ${who(s[1])} moves: ${who(s[1])}'s ${elementName(s[2])} (the revival's APPEAR)`;
+  if (s[0] === "look-alike:") return `the shape experts would draw ${listText((plist(s, "of-who") || []).slice(1).map((c) => who(c)))} alike, as ${String(plist(s, "shape")).replace(/-/g, " ")}s (the revival's APPEAR)`;
   if (s[0] === "uniqueness-summary:") {
     const type = plist(s, "descriptor-type");
     return `${who(plist(s, "of-who"), true)} stands out (${plist(s, "uniqueness-level")}) ${type === "all" ? "overall" : "in " + String(type).replace(/-/g, " ")}`;
@@ -319,6 +325,11 @@ const points = DATA.choicePoints.map((c) => {
   };
 });
 const byKey = new Map(points.map((p) => [p.key, p]));
+// a run made with APPEAR: its looks' rows follow the others', in a group of their own
+const HAS_LOOKS = points.some((p) => LOOKS.includes(p.elem));
+const ROWS = HAS_LOOKS ? [...ELEMENTS, ...LOOKS] : ELEMENTS;
+const REL_ROWS = HAS_LOOKS ? [...RELATIVE, ...LOOKS] : RELATIVE;
+const isLook = (p) => LOOKS.includes(p.elem);
 for (const p of points) for (const s of p.synonyms || []) byKey.set(lisp(s), p);
 for (const a of DATA.attempts) { const p = byKey.get(lisp(a.choicePoint)); if (p) { a.point = p; p.attempts.push(a); } }
 for (const p of points) {
@@ -343,6 +354,10 @@ function slug(p) {
   document.getElementById("facts").innerHTML =
     `<span><b>${points.length}</b> choice points</span><span><b>${total}</b> attempts</span>` +
     `<span class="ok"><b>${matches} of ${cp29.size}</b> the same as the file Ani wrote on 14 September 1978</span>`;
+  if (HAS_LOOKS) {
+    const looks = points.filter(isLook).length;
+    document.querySelector("header .intro").insertAdjacentHTML("beforeend", ` In this run, made with the revival's APPEAR, Ani also chose how each character looks (in 1978 Ken drew them himself): ${looks} more choice points, made after the 102, in the groups called looks.`);
+  }
 }
 
 // ---------------------------------------------------------------- glyphs: star, square, circle, triangle
@@ -370,8 +385,8 @@ function cellHTML(p, flip) {
 {
   // qualities down the side, characters (or pairs) across the top
   let html = `<thead><tr><th></th>${CAST.map((c) => `<th scope="col" class="col"><span class="who col">${glyph(c)}${WHO_ROW[c]}</span></th>`).join("")}</tr></thead><tbody>`;
-  ELEMENTS.forEach((e, i) => {
-    if (i === 0 || i === 9) html += `<tr><th class="group" colspan="5">${i === 0 ? "movement" : "attraction"}</th></tr>`;
+  ROWS.forEach((e, i) => {
+    if (i === 0 || i === 9 || i === ELEMENTS.length) html += `<tr><th class="group" colspan="5">${i === 0 ? "movement" : i === 9 ? "attraction" : "looks (the revival's APPEAR)"}</th></tr>`;
     html += `<tr><th scope="row" class="row">${ELEMENT[e].replace(/^attraction to /, "to ")}</th>`;
     for (const c of CAST) html += cellHTML(byKey.get(lisp(["choice-point-of", c, e])), false);
     html += `</tr>`;
@@ -379,14 +394,16 @@ function cellHTML(p, flip) {
   document.getElementById("cast-grid").innerHTML = html + "</tbody>";
 
   let rel = `<thead><tr><th></th>${PAIRS.map(([a, b]) => `<th scope="col" class="col" title="${WHO_ROW[a]} compared with ${who(b)}"><span class="who pair">${glyph(a)}${glyph(b)}</span><span class="pairname">${WHO_ROW[a].split(" ")[0]}<br>${WHO_ROW[b].split(" ")[0].toLowerCase()}</span></th>`).join("")}</tr></thead><tbody>`;
-  for (const e of RELATIVE) {
+  REL_ROWS.forEach((e, i) => {
+    // the groups are named only when there are looks, so a 1978 run's grid is as it was
+    if (HAS_LOOKS && (i === 0 || i === RELATIVE.length)) rel += `<tr><th class="group" colspan="${PAIRS.length + 1}">${i === 0 ? "movement" : "looks (the revival's APPEAR)"}</th></tr>`;
     rel += `<tr><th scope="row" class="row">${ELEMENT[e]}</th>`;
     for (const [a, b] of PAIRS) {
       const here = byKey.get(lisp(["relative-choice-point-of", [a, b], "relative-" + e]));
       rel += cellHTML(here, here && here.pair[0] !== a);
     }
     rel += `</tr>`;
-  }
+  });
   document.getElementById("rel-grid").innerHTML = rel + "</tbody>";
 }
 
@@ -433,7 +450,7 @@ function show(p, push = true) {
       <span class="lisp">${esc(p.key)}</span></div>
     <div class="verdict"><span class="value">${esc(verdict)}</span>
       <span class="when">${p.decidedAt ? `decided at attempt ${p.decidedAt} of ${total}, after ${p.attempts.filter((a) => a.postponed !== undefined && a.step < p.decidedAt).length} postponements` : "never decided"}</span>
-      ${p.cp29 !== undefined ? `<span class="pill ${same ? "match" : "diff"}">${same ? "✓ same as in 1978" : "1978: " + esc(p.cp29)}</span>` : ""}</div>
+      ${p.cp29 !== undefined ? `<span class="pill ${same ? "match" : "diff"}">${same ? "✓ same as in 1978" : "1978: " + esc(p.cp29)}</span>` : isLook(p) ? `<span class="pill">the revival's APPEAR: Ken drew his cast himself</span>` : ""}</div>
     ${verdictLine}
     ${p.key === "(choice-point-of step-mother speed)" ? THESIS_STEPMOTHER : ""}
     <div class="block"><h3>What happened <span class="count">${p.attempts.length} attempts</span></h3><ol class="story">${story || "<li>Never attempted.</li>"}</ol></div>
@@ -464,9 +481,10 @@ document.addEventListener("click", (e) => {
 
 // ---------------------------------------------------------------- timeline
 const rows = [];
-for (const c of CAST) for (const e of ELEMENTS) { const p = byKey.get(lisp(["choice-point-of", c, e])); if (p) rows.push(p); }
+for (const c of CAST) for (const e of ROWS) { const p = byKey.get(lisp(["choice-point-of", c, e])); if (p) rows.push(p); }
 const relStart = rows.length;
-for (const [a, b] of PAIRS) for (const e of RELATIVE) { const p = byKey.get(lisp(["relative-choice-point-of", [a, b], "relative-" + e])); if (p) rows.push(p); }
+for (const [a, b] of PAIRS) for (const e of REL_ROWS) { const p = byKey.get(lisp(["relative-choice-point-of", [a, b], "relative-" + e])); if (p) rows.push(p); }
+const PER = ROWS.length; // rows for each character
 const rowOf = new Map(rows.map((p, i) => [p, i]));
 let selected = null;
 const canvas = document.getElementById("timeline");
@@ -485,10 +503,10 @@ function drawTimeline() {
   g.clearRect(0, 0, width, height);
   const span = width - LEFT - 6, x = (step) => LEFT + ((step - 0.5) / total) * span;
   g.font = `11px ${getComputedStyle(document.body).fontFamily}`; g.textBaseline = "middle"; g.fillStyle = muted;
-  CAST.forEach((c, k) => { g.fillStyle = cssColor(`var(${COLOR[c]})`); g.fillText(WHO_ROW[c], 4, yOf(k * 12 + 6)); });
-  g.fillStyle = muted; g.fillText("comparisons", 4, yOf(relStart + 27));
+  CAST.forEach((c, k) => { g.fillStyle = cssColor(`var(${COLOR[c]})`); g.fillText(WHO_ROW[c], 4, yOf(k * PER + PER / 2)); });
+  g.fillStyle = muted; g.fillText("comparisons", 4, yOf(relStart + (rows.length - relStart) / 2));
   g.strokeStyle = rule; g.lineWidth = 1;
-  for (let k = 1; k < 4; k++) { const y = yOf(k * 12) - 0.5; g.beginPath(); g.moveTo(LEFT, y); g.lineTo(width - 6, y); g.stroke(); }
+  for (let k = 1; k < 4; k++) { const y = yOf(k * PER) - 0.5; g.beginPath(); g.moveTo(LEFT, y); g.lineTo(width - 6, y); g.stroke(); }
   g.beginPath(); g.moveTo(LEFT, yOf(relStart) - GAP / 2); g.lineTo(width - 6, yOf(relStart) - GAP / 2); g.stroke();
   if (selected && rowOf.has(selected)) { g.fillStyle = cssColor("var(--accent-soft)"); g.fillRect(LEFT, yOf(rowOf.get(selected)) - 1, span, ROW + 2); }
   for (const a of DATA.attempts) {
@@ -500,7 +518,7 @@ function drawTimeline() {
     } else { g.fillStyle = p === selected ? accent : post; g.fillRect(x(a.step) - 1, y, 2, ROW - 1); }
   }
   g.fillStyle = muted; g.textBaseline = "alphabetic";
-  for (const t of [1, 200, 400, 600, 800]) if (t <= total) { g.fillText(String(t), x(t) - 4, height - 6); }
+  for (const t of [1, 200, 400, 600, 800, 1000, 1200, 1400]) if (t <= total) { g.fillText(String(t), x(t) - 4, height - 6); }
   g.fillText("attempt", LEFT - 50, height - 6);
 }
 function hit(ev) {

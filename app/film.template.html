@@ -279,6 +279,21 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .btn.revival { border-color: var(--ours); color: var(--ours); background: var(--ours-soft); font-weight: 600; height: auto; min-height: 34px; padding: 4px 12px; }
 .made-with { color: var(--ours); }
 
+/* how Ani chose a character's look (REVIVE;APPEAR) */
+.looks .body { gap: 12px; }
+.look-line .aspect { font-weight: 600; }
+.cp .src .evidence { display: block; }
+.cp .evidence { color: var(--muted); font-size: 0.86rem; }
+.cp .evidence q { font-style: italic; quotes: "“" "”"; }
+.ours-tag { color: var(--ours); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.ken-1978 { border-left: 3px solid var(--rule); padding-left: 10px; font-size: 0.9rem; }
+.cast-looks { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.9rem; }
+.cast-looks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: start; }
+.cast-looks li svg { margin-top: 3px; }
+.look-box:empty { display: none; }
+#cmp-look { display: grid; gap: 10px; margin-top: 8px; }
+#cmp-look:empty { display: none; }
+
 footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
@@ -486,6 +501,23 @@ function shapesOf(characters) {
   const free = SHAPE_ORDER.filter((x) => !taken.has(x));
   return Object.fromEntries(characters.map((c) => [c, KEN_SHAPE[c] || free.shift() || "circle"]));
 }
+// How Director draws each shape, the six above and the rest of the shape experts'
+// (REVIVE;SHAPES), which only a film made with Ani's looks has: draw-poly goes forward
+// and turns right by the angle until the figure closes, 360/gcd(angle, 360) sides
+// (the circle is drawn with 72, its icon with 24). In color, the denser stars are drawn
+// again inside themselves every 20 turtle units, the rest every 10 (ANINIT's offset).
+const DRAWN = {
+  star: { turn: 144, offset: 20 }, square: { turn: 90 }, triangle: { turn: 120 }, circle: { turn: 15 }, pentagon: { turn: 72 }, hexagon: { turn: 60 },
+  octagon: { turn: 45 }, "eight-pointed-star": { turn: 135, offset: 20 }, "ten-pointed-star": { turn: 108, offset: 20 },
+};
+// Ani doesn't choose colors yet, so in color each character keeps its own: Ken's four
+// theirs from 1978, a new one that of the shape it would have had (run.slots, as
+// shapesOf gives them), whatever shape Ani gave it.
+function colorOf(run, c) {
+  const slot = (run && run.slots && run.slots[c]) || (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
+  return SHAPE_LOOK[slot] || SHAPE_LOOK.circle;
+}
+const shapeName = (s) => String(s).replace(/-star$/, " star");
 // A character met in a new story: named as the film description's cast line says
 // (";; cast: wolf = the wolf (he)"), or else by its Lisp name.
 function meet(story, c) {
@@ -510,15 +542,18 @@ function who(x) {
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const words = (list) => (list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0] || "");
 const plain = (w) => String(w).replace(/-/g, " ");
+// A character's icon: its shape (Ani's, in a film made with her looks), in its color.
 function icon(c, size = 16, run = R) {
   const shape = (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
-  const look = SHAPE_LOOK[shape];
-  if (!look) return "";
+  const drawn = DRAWN[shape];
+  if (!drawn) return "";
+  const look = colorOf(run, c);
   const r = size / 2 - 1.5, cx = size / 2, cy = size / 2;
   if (shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(${look.tone})" stroke-width="1.6"/></svg>`;
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
   const pts = [];
-  let a = shape === "square" ? -45 : -90;
-  for (let n = 0; n < look.sides; n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += shape === "star" ? 144 : 360 / look.sides; }
+  let a = shape === "square" ? -45 : shape === "octagon" ? -67.5 : -90;
+  for (let n = 0; n < 360 / gcd(drawn.turn, 360); n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += drawn.turn; }
   const d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join("L") + "Z";
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(${look.tone})" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
@@ -551,6 +586,8 @@ const ELEMENTS = {
   repetiveness: "repetitiveness", deliberateness: "deliberateness", "path-length": "length of each curve",
   "path-curvature": "curvature of the path", "path-jaggedness": "jaggedness of the path", "rotational-speed": "turning speed",
   "attraction-towards-strangers": "liking for strangers", "attraction-towards-enemies": "liking for enemies", "attraction-towards-friends": "liking for friends",
+  // the revival's (REVIVE;APPEAR)
+  size: "size", "shape-jaggedness": "jaggedness of the shape", "shape-complexity": "complexity of the shape",
 };
 const elementName = (e) => ELEMENTS[e] || plain(e);
 const FEEL = { joy: ["happy", "unhappy"], pride: ["proud", "ashamed"], anticipation: ["eager", "reluctant"] };
@@ -818,12 +855,14 @@ function taskCode(t) {
 // Lisp of ours in Ken's idioms, in files of its own (src/director/revive/), loaded after
 // his (src/pipeline.js EXTENSIONS; reports/chapter-x/PLAN.md). Ken's decision of 9
 // October 2026: the site opens in 1978 mode, and the switch turns on MEND, KNOW, APPEAR
-// and CHANGE, those of them written so far (MEND, the repairs); SLIPS and DETAIL will be
-// switches of their own, off unless turned on. Ken's 1978 film is shown as it was made
-// either way: the switch is for the films made here.
+// and CHANGE, those of them written so far (MEND, the repairs, and APPEAR, Ani choosing
+// how her characters look); SLIPS and DETAIL will be switches of their own, off unless
+// turned on. Ken's 1978 film is shown as it was made either way: the switch is for the
+// films made here.
 const EXTENSIONS = DATA.extensions || [];
 const SWITCHED = ["mend", "know", "appear", "change"].filter((id) => EXTENSIONS.some((e) => e.id === id));
-// what a run's extensions are called: so far the switch turns on only the repairs
+// what a run's extensions are called: the repairs alone (as the switch turned on before
+// APPEAR), all those the switch turns on, or a list of them
 const extensionsName = (ids) => (ids.length === 1 && ids[0] === "mend" ? "the revival's repairs"
   : ids.join() === SWITCHED.join() ? "the revival's extensions" : `the revival's extensions (${ids.map((x) => x.toUpperCase()).join(", ")})`);
 const REVIVAL = extensionsName(SWITCHED);
@@ -833,10 +872,13 @@ const modeExtensions = () => (MODE === "revival" ? [...SWITCHED] : []);
 const runExtensions = (run) => (run && run.extensions) || [];
 const madeWith = (run) => (runExtensions(run).length ? `with ${extensionsName(runExtensions(run))}` : "by Ani as in 1978");
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
+// whether the switch changes what Ken's own story makes (APPEAR does: Ani draws his cast)
+const switchChanges1978 = () => MODE === "revival" && SWITCHED.some((id) => EXTENSIONS.find((e) => e.id === id).changes1978);
+const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", appear: "chooses each character's size and shape, which Ken drew himself" };
 function modeNote() {
   if (MODE !== "revival") return "Ani as in 1978 runs Ken's files and nothing more, so a new story may stop where his Ani stopped; the page then says why.";
-  const same = SWITCHED.every((id) => !EXTENSIONS.find((e) => e.id === id).changes1978);
-  return `With ${REVIVAL}, Ani goes on where Ken's stopped on a new story, and the glass box says where each repair acted.${same ? " Ken's Cinderella comes out exactly as in 1978 with them." : ""}`;
+  const clauses = SWITCHED.map((id) => MODE_CLAUSE[id]).filter(Boolean);
+  return `With ${REVIVAL}, Ani ${words(clauses)}, and the glass box says where each one acted.${switchChanges1978() ? " Ken's own Cinderella comes out differently with them: make it as it is to see." : " Ken's Cinderella comes out exactly as in 1978 with them."}`;
 }
 // The switch, beside the frame rate of the films made here.
 function modeSwitch() {
@@ -860,9 +902,14 @@ document.addEventListener("click", (e) => {
 // and each of the revival's files; a file not here is described by its title line.
 const EXTENSION_TEXT = {
   mend: "Where Ani as in 1978 stops on a story Ken never gave her, each repair lets her go on the way her own code already goes on elsewhere, and notes where it acted. Ken's Cinderella comes out exactly as in 1978.",
+  appear: "Ani chooses each character's size and shape as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
 };
 const REVIVE_TEXT = {
-  wrap: "The helper every repair goes through: it wraps one of Ken's functions once a job, and notes each repair where it acted.",
+  wrap: "The helper every extension goes through: it wraps one of Ken's functions once a job, and notes each repair where it acted.",
+  appear: "Choice points for each character's size, the jaggedness of its shape and the complexity of its shape, made with Ken's own machinery after his 102 choices; and two characters who would be drawn alike told apart by choosing again.",
+  apsug: "Where the suggestions for a look come from: nine words, each with its evidence; one character dominating another; characters who stand out; how the character moves; and the film's flashiness, complexity and obviousness.",
+  shapes: "The shape experts, for polygons, stars and a circle, who find a shape that fits the choices, and set aside the least justified choice when none does.",
+  looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
   mend3: "A personality word Ani doesn't know is left out, and named.",
@@ -888,8 +935,10 @@ function extensionsPanel() {
       <details><summary>What each of its ${e.files.length} files does</summary><ul class="ext-files">${files}</ul></details></div>`;
   }).join("");
   const later = [["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how her characters look (APPEAR)"], ["change", "characters who change (CHANGE)"]].filter(([id]) => !SWITCHED.includes(id)).map(([, t]) => t);
+  // what is still to come of those switched on: Ani's colors (APPEAR's next stage)
+  const colors = SWITCHED.includes("appear") ? " Ani's own colors, and looks that change during a scene, are APPEAR's next stage; until then, in color, each character keeps the color it has with Ani as in 1978." : "";
   return `<details class="ext-panel"><summary>Which extensions</summary><div class="body">${groups}
-    ${later.length ? `<p class="note">${esc(cap(words(later)))} will join this switch as they are written. Corrections of slips in Ken's files (SLIPS), and a few more of the thesis's details (DETAIL), will be switches of their own, off unless you turn them on.</p>` : ""}
+    ${later.length ? `<p class="note">${esc(cap(words(later)))} will join this switch as they are written.${colors} Corrections of slips in Ken's files (SLIPS), and a few more of the thesis's details (DETAIL), will be switches of their own, off unless you turn them on.</p>` : ""}
     <p class="note">Each is the revival's Lisp, in Ken's idioms, in files of its own that load after his only when the switch asks for them. Ken's 1978 film is shown as it was made, whichever is chosen.</p></div></details>`;
 }
 
@@ -1008,6 +1057,16 @@ function repairSentence({ actor, what, notes }, sc) {
       const c = Array.isArray(was) ? was[0] : null;
       return `${cap(who(c))} kept turning without coming round to face the way ${CHARS[c] ? CHARS[c].she : "they"} had to go, and with Ani as in 1978 the scene would never have ended; after 3 seconds, the most Ani allows for half a turn, the revival's repairs take the turn as done.`;
     }
+    case "read-as-number": {
+      // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), or gave up on
+      const el = Array.isArray(a) ? a[2] : "size";
+      const c = Array.isArray(a) ? a[1] : null;
+      const her = CHARS[c] ? CHARS[c].her : "them";
+      const mid = Array.isArray(because) && because[0] === "midway" ? because.filter((x) => LOOK_VALUE[el] && LOOK_VALUE[el][x]).map((x) => LOOK_VALUE[el][x]) : [];
+      return Array.isArray(was) && was[0] === "not"
+        ? `Ani chose ${cp} ${quoted(["not", (LOOK_VALUE[el] || {})[was[1]] || was[1]])}, and her table of sizes has a number only for ${words(Object.values(LOOK_VALUE[el] || {}))}; the revival's repairs draw ${her} ${mid.length === 2 ? `midway between ${mid[0]} and ${mid[1]}` : "in between"} (${esc(now)}).`
+        : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${(LOOK_VALUE[el] || {}).medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
+    }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
       const [c, assumed] = Array.isArray(was) ? was : [];
@@ -1125,6 +1184,390 @@ document.addEventListener("click", (e) => {
   if (b && RUNS[1]) remakeWithRepairs(RUNS[1]);
 });
 
+// ---------------------------------------------------------------- how she looks
+
+// With APPEAR (REVIVE;APPEAR, APSUG, SHAPES and LOOKS), Ani chooses each character's size,
+// the jaggedness of its shape and the complexity of its shape, as she chooses how it
+// moves, and shape experts turn the choices into a shape. Pass 1 returns how she chose
+// each look (src/glassbox-pass1.js collectAppearances): for each character its look,
+// the winning suggestion's sources for each element, and what the experts did; with
+// every piece of knowledge a suggestion can come from and its evidence. Every sentence
+// here is made from those and from the choice points: a source is said as what it is
+// (the word, the film's level, how the character moves, how it is to compare with
+// another), and only those whose own suggestion was the value chosen are given as its
+// reasons; Ani combined the others' into it too, as the choice's box says.
+
+// The elements of a look (src/pipeline.js APPEARANCE_ELEMENTS) and their values in words.
+const APPEAR_ELEMENTS = DATA.appearanceElements || ["size", "shape-jaggedness", "shape-complexity"];
+const isAppearance = (el) => APPEAR_ELEMENTS.includes(String(el).replace(/^relative-/, ""));
+const LOOK_VALUE = {
+  size: { low: "small", medium: "middle-sized", high: "large" },
+  "shape-jaggedness": { low: "smooth", medium: "angular", high: "jagged" },
+  "shape-complexity": { low: "simple", medium: "moderately complex", high: "complex" },
+};
+const lispValue = (v) => (typeof v === "string" && v.startsWith("(") ? parse(v) : v);
+function lookValue(el, v) {
+  const x = lispValue(v);
+  const w = LOOK_VALUE[el] || {};
+  if (Array.isArray(x) && x[0] === "not") return `not ${w[x[1]] || plain(x[1])}`;
+  // a relative suggestion's value, (different-from high): another than large, and so on
+  const rel = { "different-from": "other than", "greater-than": "more than", "less-than": "less than", "same-as": "the same as" };
+  if (Array.isArray(x) && rel[x[0]]) return `${rel[x[0]]} ${lookValue(el, x[1])}`;
+  if (x === "none" || x === undefined || x === null) return "undecided";
+  return w[x] || plain(show(x));
+}
+// How Ken drew his four in 1978 (src/pipeline.js KEN_LOOKS, with ANINIT's lines).
+const KEN_DREW = DATA.kenLooks || null;
+const article = (w) => (/^[aeiou]/i.test(String(w)) ? "an" : "a");
+// a drawn size in a word: Ani's sizes are .036, .05 (every director-character's) and .07,
+// and a (not X) is drawn midway between the two values left (REVIVE;APPEAR)
+const sizeWord = (n) => (n == null || n === 0.05 ? "" : n <= 0.036 ? "small" : n >= 0.07 ? "large" : n < 0.05 ? "fairly small" : "fairly large");
+const aShape = (look) => { const adj = sizeWord(look.aniSize); const name = shapeName(look.shape); return `${article(adj || name)} ${adj ? adj + " " : ""}${name}`; };
+const sameValue = (a, b) => show(lispValue(a)) === show(lispValue(b));
+const opposite3 = (v) => ({ high: "low", low: "high" })[v] || v;
+const FLIP = { "greater-than": "less-than", "less-than": "greater-than" };
+
+// A choice point by its name or one of its synonyms ((relative-choice-point-of (a b) e)
+// is also (relative-choice-point-of (b a) e)).
+function cpNamed(run, name) {
+  const key = typeof name === "string" ? name : show(name);
+  if (run.cp.has(key)) return run.cp.get(key);
+  if (!run.cpSyn) { run.cpSyn = new Map(); for (const cp of run.choicePoints) for (const s of cp.synonyms || []) run.cpSyn.set(show(s), cp); }
+  return run.cpSyn.get(key) || null;
+}
+// The knowledge a look's suggestion came from (REVIVE;APSUG's appearance-knowledge).
+const knowledgeOf = (run) => (run.raw.appearances && run.raw.appearances.knowledge) || [];
+const knowFor = (run, kind, source, el) => knowledgeOf(run).find((k) => k.kind === kind && k.source === source && (Array.isArray(k.element) ? k.element.includes(el) : k.element === el));
+// The value the character's dynamics suggest (REVIVE;APSUG dynamics-suggests): by the
+// dynamics value's rank, the same way or the other way round.
+function dynamicsSuggests(value, relation) {
+  if (Array.isArray(value) && value[0] === "not") { const v = dynamicsSuggests(value[1], relation); return v ? ["not", v] : null; }
+  const rank = { high: "top", long: "top", medium: "middle", low: "bottom", short: "bottom" }[value];
+  if (!rank) return null;
+  if (rank === "middle") return "medium";
+  return (rank === "top") === (relation === "same") ? "high" : "low";
+}
+// The value a film's level suggests (REVIVE;APSUG film-level-appearance-suggestion).
+const levelSuggests = (level, rule) => (rule === "same" ? level : rule === "medium-unless-high" ? (level === "high" ? null : "medium") : null);
+// a word the character has, or has through Ken's CHAR (a beautiful character is graceful, char.2:13-20)
+function wordFrom(run, c, w) {
+  const ch = run.story.characters[c];
+  const own = ch ? [...ch.physical, ...ch.personality, ...ch.movement] : [];
+  if (own.includes(w)) return {};
+  if (w === "graceful" && own.includes("beautiful")) return { from: "beautiful" };
+  return {};
+}
+// One source of the suggestion that won: what it is, and the value it suggests by itself,
+// where that can be worked out (undefined: it can't, as for the film's variety).
+function lookSource(run, c, el, src) {
+  const x = lispValue(src);
+  if (typeof x === "string") {
+    const row = knowFor(run, "descriptor", x, el);
+    return { kind: "word", word: x, suggests: row ? row.value : undefined, row, ...wordFrom(run, c, x) };
+  }
+  if (!Array.isArray(x)) return { kind: "other", src };
+  if (x[0] === "opposite-of" || x[0] === "neighbor-of") {
+    // (opposite-of brazen shy): brazen, and what shy suggests the other way round
+    const row = knowFor(run, "descriptor", x[2], el);
+    return { kind: "word", word: x[1], via: [x[0], x[2]], suggests: row ? (x[0] === "opposite-of" ? opposite3(row.value) : row.value) : undefined, row, ...wordFrom(run, c, x[1]) };
+  }
+  if (x.length === 2 && x[1] === "level") {
+    const level = run.story.levels[x[0]];
+    const row = knowFor(run, "film", show(x), el);
+    return { kind: "film", name: x[0], level, suggests: row ? levelSuggests(level, row.value) : undefined, row };
+  }
+  if (x[0] === "dynamics-of") {
+    const cp = cpNamed(run, ["choice-point-of", x[1], x[2]]);
+    const value = cp ? cp.currentChoice : undefined;
+    const row = knowFor(run, "dynamics", x[2], el);
+    return { kind: "dynamics", element: x[2], value, suggests: row && value !== undefined ? dynamicsSuggests(value, row.value) : undefined, row };
+  }
+  if (x[0] === "relative-choice-point-of") {
+    const cp = cpNamed(run, x);
+    const [a, b] = cp ? cp.name[1] : x[1];
+    let relation = cp ? cp.currentChoice : undefined;
+    if (a !== c && FLIP[relation]) relation = FLIP[relation];
+    const other = a === c ? b : a;
+    const theirs_ = cpNamed(run, ["choice-point-of", other, String(cp ? cp.name[2] : x[2]).replace(/^relative-/, "")]);
+    return { kind: "relative", element: cp ? cp.name[2] : x[2], other, relation, otherValue: theirs_ ? theirs_.currentChoice : undefined, cp };
+  }
+  return { kind: "other", src };
+}
+// Whether a relation between two three-valued choices holds ((not X) is either value left):
+// true, false, or null if it can't be told.
+const RANK3 = { low: 0, medium: 1, high: 2 };
+function valuesOf(v) {
+  const x = lispValue(v);
+  if (Array.isArray(x) && x[0] === "not") return Object.keys(RANK3).filter((k) => k !== x[1]);
+  return RANK3[x] !== undefined ? [x] : [];
+}
+function relationFits(relation, mine, theirs_) {
+  const A = valuesOf(mine), B = valuesOf(theirs_);
+  const holds = { "greater-than": (a, b) => RANK3[a] > RANK3[b], "less-than": (a, b) => RANK3[a] < RANK3[b], "different-from": (a, b) => a !== b, "same-as": (a, b) => a === b }[relation];
+  if (!holds || !A.length || !B.length) return null;
+  return A.some((a) => B.some((b) => holds(a, b)));
+}
+// Whether a source's own suggestion was the value chosen. Ani's record of the winning
+// suggestion gives the sources COSUG combined into it, and some of them argued for
+// another value (Cinderella's medium-jagged paths, for her smooth outline), or for a
+// value no one recorded (the film's variety): only those known to have argued for the
+// value chosen are given as its reasons.
+function agreesWith(s, chosen) {
+  if (s.kind === "relative") return relationFits(s.relation, chosen, s.otherValue) === true;
+  return s.suggests !== undefined && s.suggests !== null && sameValue(s.suggests, chosen);
+}
+
+// what each is, in words
+const DYN_WORDS = {
+  speed: (k, v) => `${agree(k, "moves", "move")} ${({ low: "slowly", medium: "at a medium speed", high: "fast" })[v] || `at a speed ${show(v)}`}`,
+  "path-jaggedness": (k, v) => `${agree(k, "has", "have")} ${({ low: "smooth paths", medium: "paths of medium jaggedness", high: "jagged paths" })[v] || `paths of jaggedness ${show(v)}`}`,
+};
+const dynamicsPred = (k, s) => (DYN_WORDS[s.element] || ((kk, v) => `${agree(kk, "has", "have")} ${elementWords(s.element)} ${show(v)}`))(k, s.value);
+const REL_WORDS = {
+  "relative-size": { "greater-than": "larger than", "less-than": "smaller than", "different-from": "a different size from", "same-as": "the same size as" },
+  "relative-shape-jaggedness": { "greater-than": "more jagged than", "less-than": "smoother than", "different-from": "different in outline from", "same-as": "the same in outline as" },
+  "relative-shape-complexity": { "greater-than": "more complex than", "less-than": "simpler than", "different-from": "different in complexity from", "same-as": "the same in complexity as" },
+};
+const relWords = (s) => (REL_WORDS[s.element] || {})[s.relation] || `${plain(show(s.relation))} ${plain(s.element)}`;
+const FILM_WORDS = {
+  flashiness: { low: "the film isn't to be flashy", medium: "the film is to be a little flashy", high: "the film is to be flashy" },
+  complexity: { low: "the film is to be simple", medium: "the film is to be moderately complex", high: "the film is to be complex" },
+  obviousness: { low: "the film is to be subtle", medium: "the film is to be fairly obvious", high: "the film is to be obvious" },
+};
+const filmWords = (s) => (FILM_WORDS[s.name] || {})[s.level] || `the film's ${plain(s.name)} is ${plain(s.level || "unknown")}`;
+const wordWords = (s) => `${plain(s.word)}${s.via ? ` (${s.via[0] === "opposite-of" ? "the opposite of" : "close to"} ${plain(s.via[1])})` : ""}`;
+// The sources as one clause: "she is shy and the film isn't to be flashy". With only,
+// those whose own suggestion was the value chosen (agreesWith); the film's variety and
+// originality, which suggest a value for any element but whose suggestion isn't
+// recorded, are never given as reasons here.
+function reasonClause(run, c, el, sources, { only = true } = {}) {
+  const k = meet(run.story, c);
+  const chosen = lispValue(run.appearances.get(c).elements[el].value);
+  const all = sources.map((src) => lookSource(run, c, el, src));
+  const used = all.filter((s) => !only || agreesWith(s, chosen));
+  const is = agree(k, "is", "are");
+  const preds = [];
+  const ws = used.filter((s) => s.kind === "word").map(wordWords);
+  if (ws.length) preds.push(`${is} ${words(ws)}`);
+  for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s));
+  const rels = new Map();
+  for (const s of used.filter((x) => x.kind === "relative")) { const w = relWords(s); if (!rels.has(w)) rels.set(w, []); rels.get(w).push(s.other); }
+  if (rels.size) preds.push(`${is} to be ${words([...rels].map(([w, others]) => `${w} ${who(others)}`))}`);
+  const clauses = [];
+  if (preds.length) clauses.push(`${k.she} ${words(preds)}`);
+  for (const s of used.filter((x) => x.kind === "film" && !["variety", "originality"].includes(x.name))) clauses.push(filmWords(s));
+  for (const s of used.filter((x) => x.kind === "other")) clauses.push(esc(plain(show(lispValue(s.src)))));
+  // clauses that have an "and" of their own are set apart with commas
+  const text = clauses.length > 1 && clauses.some((x) => / and /.test(x)) ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : words(clauses);
+  return { text, all, used };
+}
+// "Ani made her a small circle: small because she is shy and the film isn't to be
+// flashy; smooth because ...; simple because ...", each aspect a button that opens its
+// choice point (data-look).
+function lookSentence(run, c) {
+  const entry = run.appearances.get(c);
+  const k = meet(run.story, c);
+  const parts = [];
+  for (const el of APPEAR_ELEMENTS) {
+    const e = entry.elements[el];
+    if (!e) continue;
+    const sources = e.sources || [];
+    // only the sources known to have argued for the value chosen; with none of them, the
+    // suggestions were combined, and the aspect's box says which argued for what
+    const why = reasonClause(run, c, el, sources).text;
+    const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
+    parts.push(why ? `${word} because ${why}` : sources.length ? `${word}, from suggestions Ani combined` : `${word} (nothing suggested a value)`);
+  }
+  return `Ani made ${k.her} ${aShape(entry.look)}: ${parts.join("; ")}.`;
+}
+
+// Ani's own record of a look, in plain words: what the shape experts did ((considered: ...),
+// (relaxed: ...), (chosen: ...) on (appearance-of c), REVIVE;SHAPES).
+function expertsText(run, c) {
+  const entry = run.appearances.get(c);
+  const k = meet(run.story, c);
+  const out = [];
+  for (const item of entry.experts || []) {
+    const x = parse(item);
+    if (!Array.isArray(x)) continue;
+    if (x[0] === "considered:") {
+      const cons = (kv(x, "constraints") || []).filter(Array.isArray).map(([el, v]) => lookValue(el, v));
+      const offered = (kv(x, "offered") || []).filter(Array.isArray);
+      const by = new Map();
+      for (const [expert, shape] of offered) { if (!by.has(expert)) by.set(expert, []); by.get(expert).push(`${article(shapeName(shape))} ${shapeName(shape)}`); }
+      out.push(`Ani asked the shape experts for a shape that is ${cons.length ? words(cons) : "anything at all"}; ${by.size ? words([...by].map(([e, s]) => `the ${plain(e)} offered ${words(s)}`)) : "none had one"}.`);
+    } else if (x[0] === "relaxed:") {
+      const because = kv(x, "because");
+      const alike = Array.isArray(because) && because[0] === "drawn-alike-with" ? because[1] : null;
+      out.push(`${alike ? `The only shape that fit is the one ${who(alike)} is drawn as` : "No shape fits all of these"}, so Ani set aside the least justified, that ${k.she} be ${lookValue(kv(x, "element"), kv(x, "value"))} (thesis p. 164: “a constraint can be eliminated”).`);
+    } else if (x[0] === "chosen:") {
+      const from = kv(x, "from") || [];
+      if (Array.isArray(from) && from.length > 1) out.push(`Of these, Ani took the ${shapeName(kv(x, "shape"))}, as the film's variety, complexity and originality choose among shapes offered.`);
+    }
+  }
+  return out.join(" ");
+}
+// What telling the characters apart did, and where the experts overrode a choice, for c:
+// the comparisons' (look-alike: ...) and (alike-after-all: ...), and the choice points'
+// (redetermined: ...) and (overridden-by: ...), each in a sentence.
+function lookNotes(run, c, el = null) {
+  const k = meet(run.story, c);
+  const out = [];
+  const els = el ? [el] : APPEAR_ELEMENTS;
+  for (const e of els) {
+    const cp = cpNamed(run, ["choice-point-of", c, e]);
+    for (const item of (cp && cp.memory) || []) {
+      if (item[0] === "redetermined:") {
+        const other = kv(item, "to-tell-apart-from");
+        const look = kv(item, "look-alike");
+        out.push(`Ani chose ${theirs(c)} ${elementWords(e)} again, to tell ${k.her} apart from ${who(other)}: the shape experts would have drawn them both as ${Array.isArray(look) ? `${article(shapeName(kv(look, "shape")))} ${shapeName(kv(look, "shape"))}` : "the same shape"}, and “the difference between two similar characters should be accented” (thesis p. 94).`);
+      } else if (item[0] === "overridden-by:") {
+        const because = kv(item, "because");
+        const alike = Array.isArray(because) && because[0] === "drawn-alike-with" ? because[1] : null;
+        out.push(`The shape experts drew ${k.her} as ${article(shapeName(kv(item, "drawn")))} ${shapeName(kv(item, "drawn"))} although Ani chose ${theirs(c)} ${elementWords(e)} ${lookValue(e, cp.currentChoice)}: ${alike ? `the shape that fit is the one ${who(alike)} is drawn as` : `no shape fits all of ${theirs(c)} choices`}, and this one was the least justified.`);
+      }
+    }
+  }
+  // what telling them apart found, unless this character's own choice made again says it
+  if (!el) for (const f of (run.raw.appearances && run.raw.appearances.findings) || []) {
+    const pair = parse(f.comparison);
+    if (!Array.isArray(pair) || !pair.includes(c)) continue;
+    const other = pair[1] === c ? pair[2] : pair[1];
+    for (const item of f.items.map(parse)) {
+      const shape = shapeName(kv(item, "shape"));
+      if (item[0] === "look-alike:") {
+        const again = redeterminedFor(run, other, c);
+        if (redeterminedFor(run, c, other)) continue;
+        out.push(`The shape experts would have drawn ${who(pair[1])} and ${who(pair[2])} both as ${article(shape)} ${shape}, and in black and white two characters drawn alike can't be told apart, so Ani chose ${again ? `${who(other)}'s ${elementWords(again)}` : "one of their shape choices"} again (thesis p. 94).`);
+      }
+      if (item[0] === "alike-after-all:") out.push(`Ani still chose ${who(pair[1])} and ${who(pair[2])} alike, since the story makes them alike, so the experts drew the second as another shape than ${article(shape)} ${shape}.`);
+    }
+  }
+  return out;
+}
+// the element of c's whose choice Ani made again to tell c apart from other, if any
+function redeterminedFor(run, c, other) {
+  return APPEAR_ELEMENTS.find((e) => {
+    const cp = cpNamed(run, ["choice-point-of", c, e]);
+    return cp && (cp.memory || []).some((m) => m[0] === "redetermined:" && kv(m, "to-tell-apart-from") === other);
+  }) || null;
+}
+// "In 1978 Ken drew her himself as a green star", with where he said so; a new character
+// has no 1978 look, but Ani as in 1978 would have drawn it as the next shape free.
+function ken1978Note(run, c) {
+  const k = meet(run.story, c);
+  const ken = KEN_DREW && KEN_DREW.characters[c];
+  if (ken) {
+    const adj = sizeWord(ken.aniSize);
+    const shape = shapeName(ken.shape);
+    const size = adj ? "" : `, at the size every character has ${codeLink(KEN_DREW.size.file, KEN_DREW.size.line)}`;
+    return `In 1978 Ken drew ${k.her} himself as ${article(adj || ken.color)} ${adj ? adj + " " : ""}${esc(ken.color)} ${esc(shape)}: the ${esc(shape)}${adj ? " and its size" : ""} in initialize-characters ${codeLink(KEN_DREW.file, ken.defineLine)}${size}, and the ${esc(ken.color)} in running-color ${codeLink(KEN_DREW.file, ken.colorLine)}.`;
+  }
+  const slot = run.slots && run.slots[c];
+  return slot ? `With Ani as in 1978, ${who(c)} would be ${article(shapeName(slot))} ${shapeName(slot)}: a new character takes the next of the six shapes no one in the story has.` : "";
+}
+// The body of "How she looks": the sentence, a box for the aspect opened, the experts,
+// telling apart, and 1978.
+function looksBody(run, c, boxId) {
+  const look = lookOf(run, c);
+  if (!look) return "";
+  const k = meet(run.story, c);
+  const entry = run.appearances && run.appearances.get(c);
+  const sentence = entry ? lookSentence(run, c) : `${cap(k.the)} ${agree(k, "is", "are")} drawn as ${aShape(look)}, as Ani chose in pass 1.`;
+  const experts = entry ? expertsText(run, c) : "";
+  const notes = entry ? lookNotes(run, c) : [];
+  return `<p class="look-line">${sentence}</p><div class="look-box" id="${esc(boxId)}"></div>
+    ${experts ? `<p class="note">${experts} ${fileLink("shapes")}</p>` : ""}
+    ${notes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
+    <p class="ken-1978">${ken1978Note(run, c)}</p>`;
+}
+// A look's choice point: the suggestion that won, each of its sources with what it
+// suggests and its evidence (the thesis or Ken's code quoted; the revival's own
+// knowledge marked, with its reason), what was set aside, and what happened to it.
+function evidenceText(ev) {
+  if (!ev) return "";
+  if (Array.isArray(ev)) return ev.map(evidenceText).filter(Boolean).join("; ");
+  if (ev.why) return `<span class="ours-tag">the revival's</span>: ${esc(ev.why)}`;
+  if (ev.thesis) return `<q>${esc(ev.text)}</q> (thesis, p. ${esc(ev.thesis)})`;
+  if (ev.code) { const [file, line] = String(ev.code).split(":"); return `<q>${esc(ev.text)}</q> (Ken's code, ${esc(ev.code)}) ${codeLink(file, Number(line))}`; }
+  return "";
+}
+function sourceLine(run, c, el, s, chosen) {
+  const k = meet(run.story, c);
+  const is = agree(k, "is", "are");
+  // what it argued for: the value chosen, or another, which Ani combined into the winner
+  const suggests = s.suggests === undefined ? "" : s.suggests === null ? ", which suggests nothing here" : sameValue(s.suggests, chosen) ? `, which suggests ${lookValue(el, s.suggests)}` : `, which argued for ${lookValue(el, s.suggests)}`;
+  const ev = s.row ? evidenceText(s.row.evidence) : "";
+  switch (s.kind) {
+    case "word": return `${cap(k.she)} ${is} ${esc(wordWords(s))}${s.from ? ` (Ken's Ani makes every ${esc(s.from)} character ${esc(s.word)} ${codeLink("char.2", 13)})` : ""}${suggests}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
+    case "dynamics": return `${cap(k.she)} ${dynamicsPred(k, s)}${suggests}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
+    case "film":
+      if (s.name === "variety" || s.name === "originality") {
+        const how = s.name === "variety" ? ({ high: "the value used least so far", low: "the value used most so far", medium: "the value used the middle-most number of times so far" })[s.level] : "a value by how often each was chosen before";
+        return `The film's ${esc(s.name)} is ${esc(s.level || "unknown")}: for any element, Ken's GLOSUG suggests ${esc(how || "a value")} ${codeLink("glosug.41", s.name === "variety" ? 43 : 87)}; what it suggested here isn't recorded.`;
+      }
+      return `${cap(filmWords(s))}${suggests}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
+    case "relative": {
+      const why = relativeWhy(run, c, s);
+      const fits = relationFits(s.relation, chosen, s.otherValue);
+      return `${cap(k.she)} ${is} to be ${esc(relWords(s))} ${who(s.other)}${why.text}${fits === false ? `, which argued against ${lookValue(el, chosen)} (${who(s.other)} is ${lookValue(el, s.otherValue)})` : ""}.${why.evidence.length ? ` <span class="evidence">${why.evidence.join("; ")}</span>` : ""}`;
+    }
+    default: return esc(plain(show(lispValue(s.src))));
+  }
+}
+// why a relative choice came out as it did, from its winning suggestion's sources: the
+// reasons, as a clause (", since the stepmother dominates Cinderella"), and their evidence
+function relativeWhy(run, c, s) {
+  const none = { text: "", evidence: [] };
+  const won = s.cp && (s.cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), s.cp.currentChoice));
+  if (!won) return none;
+  const src = kv(won, "source");
+  const list = Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src];
+  const pair = s.cp.name[1];
+  const out = [], evidence = [];
+  const cite = (row) => { const e = row ? evidenceText(row.evidence) : ""; if (e && !evidence.includes(e)) evidence.push(e); };
+  for (const x of list) {
+    if (typeof x !== "string") continue;
+    const rel = run.story.relationships.find((r) => pair.includes(r.from) && pair.includes(r.to) && r.how.includes(x));
+    if (rel) { out.push(`${who(rel.from)} ${verb(x)} ${who(rel.to)}`); cite(knowFor(run, "relationship", x, s.element)); }
+  }
+  const unique = list.filter((x) => Array.isArray(x) && x[0] === "uniqueness-summary:" && ["high", "medium"].includes(kv(x, "uniqueness-level"))).map((x) => kv(x, "of-who"));
+  // Ken's comparison summaries (CSUMRY): how alike the two are, (positive high) to (negative high)
+  const similar = (sign) => list.some((x) => Array.isArray(x) && x[0] === "comparison-summary:" && Array.isArray(kv(x, "similarity-level")) && kv(x, "similarity-level")[0] === sign);
+  const alike = list.find((x) => Array.isArray(x) && x[0] === "look-alike:");
+  const standOut = [...new Set(unique)];
+  if (standOut.length) out.push(`${who(standOut)} ${standOut.length > 1 ? "each stand" : "stands"} out among the characters`);
+  if (similar("negative")) out.push("they are unlike each other");
+  else if (similar("positive")) out.push("they are alike");
+  if (standOut.length) cite(knowFor(run, "comparison", "(uniqueness-summary: physical)", s.element));
+  if (alike) { out.push("the shape experts would have drawn them alike"); cite(knowFor(run, "comparison", "look-alike:", s.element)); }
+  return out.length ? { text: `, since ${words(out)}`, evidence } : none;
+}
+function lookChoiceBox(run, char, el) {
+  const entry = run.appearances && run.appearances.get(char);
+  const e = entry && entry.elements[el];
+  const cp = cpNamed(run, ["choice-point-of", char, el]);
+  if (!e || !cp) return "";
+  const chosen = lispValue(e.value);
+  // the character's own words first, then how it moves and compares, then the film's levels
+  const rank = (s) => (s.kind === "film" ? (["variety", "originality"].includes(s.name) ? 4 : 3) : ({ word: 0, dynamics: 1, relative: 2 })[s.kind] ?? 5);
+  const kept = (e.sources || []).map((src) => lookSource(run, char, el, src)).sort((x, y) => rank(x) - rank(y)).map((s) => `<li class="src">${sourceLine(run, char, el, s, chosen)}</li>`).join("");
+  const short = (src) => {
+    const list = Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src];
+    return reasonClause(run, char, el, list.map(show), { only: false }).text || esc(show(src));
+  };
+  const rejected = (cp.rejectedSuggestions || []).map((r) => { const s = kv(r, "suggestion"); return `<li>${esc(lookValue(el, kv(s, "value")))}, because ${short(kv(s, "source"))} (${esc(rejectText(kv(r, "reason")))})</li>`; }).join("");
+  const conflicts = (cp.conflictsResolved || []).length;
+  const fixes = repairItems(run, (run.raw.repairs || []).filter((x) => x.actor === show(cp.name)));
+  const notes = lookNotes(run, char, el);
+  return `<div class="cp"><b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(lookValue(el, e.value))}</b>
+    <span>Ani combined these suggestions into the one that won${e.strength ? `, with ${esc(e.strength)} strength` : ""}:</span><ul>${kept || "<li>nothing: Ani gave up</li>"}</ul>
+    ${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
+    ${[...notes, ...fixes.map((f) => `${f.html} ${repairCode(f.what)}`)].map((n) => `<p class="fix-line">${n}</p>`).join("")}
+    ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
+    <span class="note">Chosen in this version's pass 1, after all ${run.choicePoints.filter((x) => !isAppearance(x.name[2])).length} of its choices of how the characters move, by REVIVE;APPEAR ${fileLink("appear")}; the knowledge is REVIVE;APSUG's ${fileLink("apsug")}.</span></div>`;
+}
+
 // ---------------------------------------------------------------- the story Ani was told
 
 // A film description's top-level forms, with where each is in the text, read as
@@ -1198,11 +1641,16 @@ function readStory(text) {
     if (m) titles[m[1].toLowerCase()] = m[2];
   }
   const films = [], focuses = [];
+  // the film's levels, (set your level of variety to medium), which Ani's choices weigh
+  const levels = {};
   for (const span of forms) {
     const head = text.slice(span.start, Math.min(span.end, span.start + 200)).match(/^\(define\s+([a-z0-9+-]+)\s+(film|focus)\b/i);
     if (head) (head[2].toLowerCase() === "film" ? films : focuses).push(head[1].toLowerCase());
+    if (head && head[2].toLowerCase() === "film" && films.length === 1) {
+      for (const m of uncomment(text.slice(span.start, span.end)).matchAll(/\(set your level of ([a-z-]+) to ([a-z-]+)\)/gi)) levels[m[1].toLowerCase()] = m[2].toLowerCase();
+    }
   }
-  return { characters, relationships, scenes, error, names, titles, films, focuses };
+  return { characters, relationships, scenes, error, names, titles, films, focuses, levels };
 }
 function traitsOf(c) {
   const k = R.story.characters[c];
@@ -1261,16 +1709,21 @@ function prepScene(s, run) {
   }
   return { ...s, title, actors, v, subscenes, activities, last };
 }
-// extensions: the revival's extensions it was made with (none: by Ani as in 1978), and
-// repairs, the notes they left in pass 1.
-function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null }) {
+// extensions: the revival's extensions it was made with (none: by Ani as in 1978);
+// repairs, the notes they left in pass 1; appearances, how Ani chose each character's
+// look in pass 1, when an extension chose them (REVIVE;APPEAR; src/pipeline.js pass1).
+// run.slots: the shape each character has with Ani as in 1978 (Ken's four theirs, a new
+// one the next shape free), which gives it its color; run.shapes: the shape it is drawn
+// as, Ani's in a film made with her looks.
+function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null, appearances = null }) {
   const story = readStory(cindy);
   const sceneIds = Object.keys(story.scenes);
   const cast = Object.keys(story.characters);
   const titles = Object.fromEntries(sceneIds.map((id) => [id, story.titles[id] || TITLES[id] || titleCase(id)]));
-  const run = { label, short, cindy, story, sceneIds, cast, titles, shapes: shapesOf(cast), extensions, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}) }, scenes: sceneIds.map(() => null), status: null };
+  const run = { label, short, cindy, story, sceneIds, cast, titles, shapes: shapesOf(cast), slots: shapesOf(cast), extensions, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}) }, scenes: sceneIds.map(() => null), status: null };
   for (const c of cast) meet(story, c);
   setChoicePoints(run, choicePoints);
+  setAppearances(run, appearances);
   for (const s of scenes) addScene(run, s);
   return run;
 }
@@ -1281,13 +1734,46 @@ function setChoicePoints(run, cps) {
   run.choicePoints = cps;
   run.raw.choicePoints = cps;
   run.cp = new Map(cps.map((c) => [show(c.name), c]));
+  run.cpSyn = null; // made again when asked for (cpNamed)
 }
 function addScene(run, s) {
   const i = run.sceneIds.indexOf(s.id);
   if (i < 0) return;
   run.raw.scenes[i] = s;
-  if (s.film && s.film.cast) for (const c of s.film.cast) run.shapes[c.name] = c.shape;
+  if (s.film && s.film.cast) for (const c of s.film.cast) { run.slots[c.name] = c.shape; run.shapes[c.name] = c.shape; }
   run.scenes[i] = prepScene(s, run);
+  drawnShapes(run);
+}
+// How Ani chose each character's look, by character (src/glassbox-pass1.js
+// collectAppearances): { characters, knowledge, findings }, kept raw for saving.
+function setAppearances(run, a) {
+  run.appearances = new Map();
+  if (!a || !Array.isArray(a.characters)) { delete run.raw.appearances; drawnShapes(run); return; }
+  run.raw.appearances = a;
+  for (const entry of a.characters) run.appearances.set(entry.character, entry);
+  drawnShapes(run);
+}
+// The look a character was drawn with in a film made with Ani's looks, as pass 1 chose
+// it, or else as a scene's filming recorded it first (film.looks); null without looks.
+function lookOf(run, c) {
+  const a = run.appearances && run.appearances.get(c);
+  if (a && a.look && a.look.shape) return a.look;
+  for (const s of run.raw.scenes) {
+    const l = s && s.film && (s.film.looks || []).find((x) => x[1] === c);
+    if (l) return l[2];
+  }
+  return null;
+}
+const hasLooks = (run) => !!run && run.cast.some((c) => lookOf(run, c));
+function drawnShapes(run) {
+  for (const c of run.cast) { const l = lookOf(run, c); if (l && DRAWN[l.shape]) run.shapes[c] = l.shape; }
+}
+// The look Director drew a character with at frame f of a scene filmed with Ani's
+// looks (film.looks: [frame, character, look], each change in order), or null.
+function lookAt(sc, c, f) {
+  let found = null;
+  for (const [frame, who, look] of (sc.film.looks || [])) { if (frame > f) break; if (who === c) found = look; }
+  return found;
 }
 // Ken's film at 24 frames a second, as it was shot (ANINIT's running-color), or at 4, as
 // his TV previews ran and the thesis's flipbook shows. Each is a whole run: a scene's
@@ -1383,10 +1869,19 @@ function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
   for (const c of run.cast) {
     const seg = fr.segs[c];
     if (!seg) continue;
-    const look = SHAPE_LOOK[run.shapes[c]] || SHAPE_LOOK.circle;
+    // the segments are as Director drew them, Ani's shape and size in a film made with
+    // her looks; color draws a shape again inside itself, by its own size and density,
+    // in the character's color
+    const look = colorOf(run, c);
+    const drawn = lookAt(sc, c, f);
+    const shape = drawn && DRAWN[drawn.shape] ? drawn.shape : run.shapes[c];
     const isSelected = selected === c;
     const copies = [1];
-    if (color) { const size = look.size * ROOT; for (let k = 1; size - k * look.offset > 0; k++) copies.push((size - k * look.offset) / size); }
+    if (color) {
+      const size = (drawn && drawn.aniSize ? drawn.aniSize : (SHAPE_LOOK[run.shapes[c]] || SHAPE_LOOK.circle).size) * ROOT;
+      const offset = (DRAWN[shape] && DRAWN[shape].offset) || 10;
+      for (let k = 1; size - k * offset > 0; k++) copies.push((size - k * offset) / size);
+    }
     const [cx, cy] = centroid(seg);
     if (isSelected) {
       ctx.save();
@@ -1574,8 +2069,17 @@ function caption(r) {
     const feel = changes.map((t) => about(t.description));
     const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
     const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after two and a half minutes; the scene hadn't ended.</span>` : "";
-    el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}`;
+    el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}${lookCaption(sc, f)}`;
   });
+}
+// What a caption says of a film made with Ani's looks: a look that changes here (for a
+// second after it changes; looks change during a scene in APPEAR's next stage), and, in
+// color, whose colors they are.
+function lookCaption(sc, f) {
+  if (!sc.film.looks) return "";
+  const changed = sc.film.looks.filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
+  return (changed.length ? `<span class="part">Here Ani changes how they look: ${esc(words(changed))}.</span>` : "")
+    + (state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "");
 }
 
 // ---------------------------------------------------------------- the side: the story
@@ -1606,7 +2110,7 @@ function storyPanel() {
   }).join("");
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
-    <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
+    <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
     ${mine ? stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button></div>
     <div class="people">${people}</div>
@@ -1687,6 +2191,7 @@ function dynamicsTable(char, dynName, subName) {
   return `<div class="table-wrap"><table class="dyn"><thead><tr><th>Element</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 function choicePointBox(char, el) {
+  if (isAppearance(el)) return lookChoiceBox(R, char, el);
   const cp = choicePoint(char, el);
   if (!cp) return "";
   const sug = (s) => `${esc(show(kv(s, "value")))} (${esc(kv(s, "strength"))}), because ${who(char)} is ${esc(show(kv(s, "source")).replace(/[()]/g, "").replace(/\band\b /, "").replace(/ /g, ", ").replace(/-/g, " "))}`;
@@ -1699,7 +2204,7 @@ function choicePointBox(char, el) {
   return `<div class="cp"><b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(show(cp.currentChoice))}</b>
     ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${fix ? `<p class="fix-line">${fix.html} ${repairCode(fix.what)}</p>` : ""}
-    ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions were settled on the way.</span>` : ""}
+    ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
     ${more}</div>`;
 }
 function methodsBox(t) {
@@ -1753,7 +2258,7 @@ function whyPanel(char) {
   // character first; shown after Why, or first if there is no Why
   const fixes = repairsIn(R, s);
   const mentions = (x) => `${x.actor} ${x.raw.join(" ")}`.split(/[\s()]+/).includes(char);
-  let fixSection = !fixes.length ? "" : `<details class="repairs"${fixes.length <= 4 ? " open" : ""}><summary>What ${esc(extensionsName(runExtensions(R)))} did here (${fixes.length})</summary><div class="body">
+  let fixSection = !fixes.length ? "" : `<details class="repairs"${fixes.length <= 4 ? " open" : ""}><summary>What the revival's repairs did here (${fixes.length})</summary><div class="body">
     ${repairList([...fixes.filter(mentions), ...fixes.filter((x) => !mentions(x))])}
     <p class="note">Ani as in 1978 would have stopped at each of these, or done otherwise. The repairs are the revival's Lisp, not Ken's; open one for Ani's own record of it.</p></div></details>`;
   // between two steps of a plan, the step before or after stands in for the current one
@@ -1789,6 +2294,9 @@ function whyPanel(char) {
       : `Written by the method's code in DISPLY ${methodCode([fam], "run")}`;
     if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
   }
+  // in a film made with Ani's looks (REVIVE;APPEAR), how she chose this one
+  const looks = looksBody(R, char, "look-box");
+  if (looks) sections += `<details class="looks"><summary>How ${esc(k.she)} ${agree(k, "looks", "look")}</summary><div class="body">${looks}</div></details>`;
   if (st.dynamics) {
     sections += `<details><summary>How ${esc(k.she)} ${agree(k, "moves", "move")}</summary><div class="body">${dynamicsTable(char, st.dynamics, main ? main.name : null)}<div id="cp-box"></div></div></details>`;
   }
@@ -1812,6 +2320,20 @@ function whyPanel(char) {
     const box = side.querySelector("#cp-box");
     box.innerHTML = using(run, () => choicePointBox(c, el));
     box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }));
+  wireLooks(side, run, "#look-box");
+}
+// The aspects of a look ("small", "smooth", ...) each open their choice point in the box.
+function wireLooks(root, run, boxSelector) {
+  root.querySelectorAll("[data-look]").forEach((b) => b.addEventListener("click", () => {
+    const [c, el] = b.dataset.look.split("|");
+    const box = root.querySelector(boxSelector);
+    if (!box) return;
+    const again = box.dataset.open === b.dataset.look;
+    box.innerHTML = again ? "" : using(run, () => choicePointBox(c, el));
+    box.dataset.open = again ? "" : b.dataset.look;
+    root.querySelectorAll("[data-look]").forEach((x) => x.setAttribute("aria-expanded", String(!again && x === b)));
+    if (!again) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }));
 }
 
@@ -2148,11 +2670,14 @@ function refreshEditor({ fromLisp = false } = {}) {
   const as1978 = MODE === "1978";
   side.querySelector("#ed-check").innerHTML =
     (problems.length || (stops.length && as1978) ? `<ul class="problems">${[...problems, ...(as1978 ? stops.map((x) => x.as1978) : [])].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
-    (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>` : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
+    (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
+      : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(REVIVAL)} Ani ${esc(words(SWITCHED.filter((id) => EXTENSIONS.find((e) => e.id === id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
+      : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
     (notes.length || (stops.length && !as1978) ? `<ul class="changes note">${[...(as1978 ? [] : stops.map((x) => `<span class="made-with">${x.mended}</span>`)), ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : "") +
     (same && !RUNS[1].status?.running ? `<p class="note">Your version was made from exactly this, ${esc(madeWith(RUNS[1]))}.</p>` : "");
   const make = side.querySelector("#ed-make");
-  make.disabled = problems.length > 0 || !changes.length;
+  // Ken's story as it is can be made again when the switch changes what it makes (APPEAR)
+  make.disabled = problems.length > 0 || (!changes.length && !switchChanges1978());
   make.textContent = RUNS[1] && RUNS[1].status && RUNS[1].status.running ? "Start again with this" : "Make the film";
   // in 1978 mode, a story the repairs would take further can be made with them at once
   side.querySelector("#ed-make-mend").hidden = !(as1978 && stops.length && SWITCHED.includes("mend") && !make.disabled);
@@ -2214,7 +2739,7 @@ self.onmessage = function (e) {
       fps: e.data.fps,
       extensions: e.data.extensions || [],
       progress: function (step, what, scene) { post({ type: "progress", step: step, what: what, scene: scene || null }); },
-      onPass1: function (p) { post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null }); },
+      onPass1: function (p) { post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }); },
       onScene: function (s) { if (s.error) s.typed = typed(); post({ type: "scene", scene: s }); }
     });
     post({ type: "done" });
@@ -2314,7 +2839,7 @@ async function runInPage(run, description) {
     steps = AniRuntime.makeFilmSteps(fs, {
       description, keepGoing: true, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions,
       progress: (step, what, scene) => post({ type: "progress", step, what, scene: scene || null }),
-      onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null }),
+      onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }),
       onScene: (s) => post({ type: "scene", scene: s.error ? { ...s, typed: typed() } : s }),
     });
   } catch (e) { failed(e); return; }
@@ -2336,6 +2861,7 @@ function onWorker(run, m) {
   } else if (m.type === "pass1") {
     setChoicePoints(run, m.choicePoints);
     if (m.repairs && m.repairs.length) run.raw.repairs = m.repairs; // the notes the revival's repairs left in pass 1
+    if (m.appearances) { setAppearances(run, m.appearances); renderSceneButtons(); } // how Ani chose each look
     if (state.panel === "compare") comparePanel();
   } else if (m.type === "scene") {
     addScene(run, m.scene);
@@ -2365,13 +2891,15 @@ function stopRun({ quiet = false } = {}) {
   finishRun(run, { stopped: true });
 }
 // The last version made is kept in this browser, so it survives a reload: as version 1,
-// or, made with the revival's extensions, as version 2, which records them and the notes
-// their repairs left in pass 1 (version 1 was always by Ani as in 1978).
+// or, made with the revival's extensions or with Ani's looks, as version 2, which records
+// the extensions, the notes their repairs left in pass 1, and how Ani chose each look
+// (version 1 was always by Ani as in 1978). Each scene keeps its own looks, in its
+// glass box and its film.
+const runVersion = (run) => (runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
+const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}) } : {});
 async function saveRun(run) {
   try {
-    const ext = runExtensions(run);
-    const json = JSON.stringify({ v: ext.length ? 2 : 1, cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds,
-      ...(ext.length ? { extensions: ext, ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}) } : {}) });
+    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run) });
     run.status.kept = store.set(RUN_KEY, await deflate(json));
   } catch { run.status.kept = false; }
   updateRunbar();
@@ -2383,7 +2911,7 @@ async function restoreRun() {
     const d = JSON.parse(await inflate(b64));
     if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) return;
     const extensions = d.v === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs });
+    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null });
     run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
     RUNS[1] = run;
     updateRunbar();
@@ -2446,10 +2974,12 @@ function comparePanel() {
   const changes = other
     ? [`A new story: ${esc(words(b.cast.map((c) => meet(b.story, c).the)))}, in ${b.sceneIds.length} scene${b.sceneIds.length === 1 ? "" : "s"} (${esc(words(b.sceneIds.map((id) => b.titles[id])))}).`]
     : storyChanges(a.story, b.story, a.cindy, b.cindy);
-  // pass 1: the choices that differ
+  // pass 1: the choices that differ (of how they move: the looks Ani chose with APPEAR
+  // have no 1978 choice to differ from, Ken drew them himself, so they are listed apart)
+  const moving = b.choicePoints.filter((cp) => !isAppearance(cp.name[2]));
   const diffs = [];
   let relative = 0;
-  for (const cp of b.choicePoints) {
+  for (const cp of moving) {
     const old = a.cp.get(show(cp.name));
     if (old && show(old.currentChoice) === show(cp.currentChoice)) continue;
     if (cp.name[0] !== "choice-point-of") { relative++; continue; }
@@ -2493,9 +3023,10 @@ function comparePanel() {
     ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.running ? "" : stopBox(b)}
     <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
-    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${b.choicePoints.length ? `In pass 1 Ani made ${b.choicePoints.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : b.choicePoints.length
-      ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${b.choicePoints.length} choices came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
+    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
+      ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}</div>
+    ${drawnList(b)}
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
     <p class="note">${other ? `Click a character to see why Ani made it do what it does. Ken's Cinderella is a different story, so it isn't shown beside yours; the buttons over the screen show it.` : "Click a character on either screen to see why Ani made it do what it does."}</p>`;
   updateProgress();
@@ -2508,6 +3039,26 @@ function comparePanel() {
     box.innerHTML = using(b, () => choicePointBox(c, e));
     box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }));
+  side.querySelectorAll("[data-cmp-look]").forEach((el) => el.addEventListener("click", () => {
+    const box = side.querySelector("#cmp-look");
+    const again = box.dataset.open === el.dataset.cmpLook;
+    box.innerHTML = again ? "" : using(b, () => looksBody(b, el.dataset.cmpLook, "cmp-look-box"));
+    box.dataset.open = again ? "" : el.dataset.cmpLook;
+    wireLooks(box, b, "#cmp-look-box");
+    if (!again) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }));
+}
+// How Ani drew a film's characters, when she chose their looks: "Cinderella: a small
+// circle (Ken drew a green star)", each opening how she chose it.
+function drawnList(run) {
+  if (!hasLooks(run)) return "";
+  const rows = run.cast.map((c) => {
+    const look = lookOf(run, c);
+    if (!look) return "";
+    const ken = KEN_DREW && KEN_DREW.characters[c];
+    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
+  }).join("");
+  return `<div><p class="label">How Ani drew them</p><ul class="cast-looks">${rows}</ul><div id="cmp-look"></div></div>`;
 }
 
 // ---------------------------------------------------------------- controls
@@ -2546,9 +3097,15 @@ function renderSceneButtons() {
   const el = document.getElementById("scenes");
   el.innerHTML = titles.map((t, i) => `<button type="button" aria-pressed="${i === state.scene}"${same ? "" : ` title="${esc(runs.map((r) => r.titles[r.sceneIds[i]] || "—").join(" / "))}"`}>${esc(t)}</button>`).join("");
   el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
+  // each character as it is drawn: "Cinderella: star", or, where the two films draw it
+  // differently (one made with Ani's looks), "Cinderella: star in 1978, circle in yours"
   const cast = [];
-  for (const run of runs) for (const c of run.cast) if (!cast.some((x) => x[0] === c)) cast.push([c, run]);
-  document.getElementById("legend").innerHTML = cast.map(([c, run]) => `<span>${icon(c, 16, run)}${esc(meet(run.story, c).name)}: ${esc(run.shapes[c])}</span>`).join("");
+  for (const run of runs) for (const c of run.cast) { const x = cast.find((y) => y[0] === c); if (x) x[1].push(run); else cast.push([c, [run]]); }
+  document.getElementById("legend").innerHTML = cast.map(([c, rs]) => {
+    const differ = rs.length > 1 && rs[0].shapes[c] !== rs[1].shapes[c];
+    const shapes = differ ? rs.map((r) => `${shapeName(r.shapes[c])} in ${r === RUNS[0] ? "1978" : "yours"}`).join(", ") : shapeName(rs[0].shapes[c]);
+    return `<span>${differ ? rs.map((r) => icon(c, 16, r)).join("") : icon(c, 16, rs[0])}${esc(meet(rs[0].story, c).name)}: ${esc(shapes)}</span>`;
+  }).join("");
 }
 const sceneCount = () => Math.max(...shown().map((r) => (RUNS[r] ? RUNS[r].sceneIds.length : 0)));
 function goScene(i, time = 0) {
@@ -2645,6 +3202,7 @@ function setColor(color) {
   document.getElementById("mode-bw").setAttribute("aria-pressed", String(!color));
   document.getElementById("mode-color").setAttribute("aria-pressed", String(color));
   draw();
+  for (const r of shown()) caption(r); // a film made with Ani's looks says whose colors they are
 }
 
 document.getElementById("play").addEventListener("click", () => (state.playing ? pause() : play()));

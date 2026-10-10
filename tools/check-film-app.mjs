@@ -4,10 +4,15 @@
 // box opens on the new film, and the new film comes back after a reload. And the switch
 // for the films made here: it opens on "Ani as in 1978" and is kept in this browser; a
 // new story that Ani as in 1978 stops on (test/stories/tortoise-and-hare.lisp, as the
-// model's reply) is explained, with "Make it again with the revival's repairs", which
-// makes it with MEND, and the glass box then says in plain English what each repair
-// did; and Ken's 1978 film is as it was throughout.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about seven minutes)
+// model's reply) is explained, with "Make it again with the revival's extensions", which
+// makes it with MEND and APPEAR, and the glass box then says in plain English what each
+// repair did, and the hare and the tortoise are drawn as Ani chose; Ken's own Cinderella,
+// made as it is with the extensions, is drawn with Ani's looks (a small circle, a large
+// triangle, an eight-pointed star and a large hexagon), its glass box has "How she looks"
+// with a sentence made from Ani's reasons and Ken's 1978 look, and it comes back, looks
+// and all, from the browser's copy and from a film file; while in 1978 mode Ken's story
+// as it is can't be made again, and Ken's 1978 film is as it was throughout.
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about fifteen minutes)
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -21,10 +26,15 @@ import { join, extname, normalize } from "node:path";
 
 // the kind stepmother's film, as tools/run-pass2.mjs and run-scene.mjs (or src/pipeline.js) make it in Node
 const EXPECTED_LAST_FRAMES = [78, 133, 40, 200, 94];
-// the tortoise and the hare with the revival's repairs: The Boast, The Race and The Finish
-// film in 187, 108 and 29 frames (node tools/run-story.mjs test/stories/tortoise-and-hare.lisp
-// --extensions mend; test/stories/stress/expected.json), so they end at frames 186, 107 and 28
-const EXPECTED_MENDED_LAST_FRAMES = [186, 107, 28];
+// the tortoise and the hare with the revival's extensions (MEND and APPEAR): The Boast,
+// The Race and The Finish film in 187, 111 and 29 frames (node tools/run-story.mjs
+// test/stories/tortoise-and-hare.lisp --extensions mend,appear; with MEND alone, 187,
+// 108 and 29, test/stories/stress/expected.json: the hare's larger size changes the
+// race), so they end at frames 186, 110 and 28
+const EXPECTED_MENDED_LAST_FRAMES = [186, 110, 28];
+// Ken's Cinderella with the revival's extensions: 193, 116, 19, 175 and 92 frames, as
+// reports/ext/appear/README.md has them (and run-story.mjs with --extensions mend,appear)
+const EXPECTED_LOOKS_LAST_FRAMES = [192, 115, 18, 174, 91];
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
@@ -132,7 +142,7 @@ try {
   await js(`document.getElementById("ed-close").click()`);
   await sleep(200);
   check(first === "1978" && kept === "revival" && back === "1978", `the switch opens on "Ani as in 1978" and is kept in this browser (${first}, after a reload ${kept}, then ${back})`);
-  check(/^closed /.test(panel) && /MEND/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs");
+  check(/^closed /.test(panel) && /MEND/.test(panel) && /APPEAR/.test(panel) && /SHAPES/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs and Ani choosing the looks");
 
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
@@ -245,9 +255,9 @@ try {
     return prompt;
   })()`);
   check(/everyone else leaves/.test(asked || "") && /Ani can't show \(meets X Y\) on its own/.test(asked || ""), "in 1978 mode the prompt says what (alone X Y) means, and that Ani can't show meeting on its own");
-  const finished = async () => {
+  const finished = async (tries = 150) => {
     let status = "";
-    for (let k = 0; k < 150; k++) {
+    for (let k = 0; k < tries; k++) {
       await sleep(3000);
       status = await js(`document.getElementById("run-status").innerText`);
       if (!/·/.test(status)) break;
@@ -258,26 +268,28 @@ try {
   const told = await js(`(() => { const b = document.querySelector("#side .stop-box"); return b ? b.innerText : ""; })()`);
   check(/0 of 3 scenes filmed, 3 stopped/.test(stopped), `Ani as in 1978 stops on the tortoise and the hare: ${stopped}`);
   check(/gave up on the hare's activity level/.test(told) && /can't weigh a value of none/.test(told), "the page says why, in a plain sentence");
-  check(/Make it again with the revival's repairs/.test(told), "and offers \"Make it again with the revival's repairs\"");
+  check(/Make it again with the revival's extensions/.test(told), "and offers \"Make it again with the revival's extensions\"");
   await shot("4-stopped-in-1978.png");
 
-  // made again with the revival's repairs (MEND)
+  // made again with the revival's extensions (MEND and APPEAR)
   const t1 = Date.now();
   await js(`document.querySelector("#side .stop-box [data-remake]").click()`);
   await sleep(300);
   const mode = await js(`localStorage.getItem("ani-cinderella:mode:v1")`);
   const mended = await finished();
-  check(mode === "revival" && /with the revival's repairs: 3 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
-  const mendedLasts = await js(`(async () => {
+  check(mode === "revival" && /with the revival's extensions: 3 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
+  // the last frame of each scene of your version, at 4 frames a second
+  const lastsOf = (n) => js(`(async () => {
     document.querySelector('#runbar [data-view="1"]').click();
     const out = [];
-    for (const b of [...document.querySelectorAll("#scenes button")].slice(0, 3)) {
+    for (const b of [...document.querySelectorAll("#scenes button")].slice(0, ${n})) {
       b.click();
       await new Promise((r) => setTimeout(r, 30));
       out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
     }
     return out;
   })()`);
+  const mendedLasts = await lastsOf(3);
   check(JSON.stringify(mendedLasts) === JSON.stringify(EXPECTED_MENDED_LAST_FRAMES), `its three scenes end at frames ${mendedLasts.join(", ")} (Node: ${EXPECTED_MENDED_LAST_FRAMES.join(", ")})`);
   await shot("5-made-with-repairs.png");
   const glass = await js(`(async () => {
@@ -300,6 +312,116 @@ try {
   check(/Ani's pass 1 gave up on the hare's activity level; the revival's repairs read it as medium, as Ani already reads an element she never set\./.test(glass), "the glass box says what the repairs did, in plain English");
   await js(`document.querySelector("#side .repairs") && document.querySelector("#side .repairs").scrollIntoView({ block: "start" })`);
   await shot("6-glass-box-repairs.png");
+  // a new character has no 1978 look of Ken's: "How he looks" ends with the shape Ani as in
+  // 1978 would have given him
+  const newLooks = await js(`(() => { const d = document.querySelector("#side details.looks"); if (!d) return ""; d.open = true; return d.innerText; })()`);
+  check(/^How (he|she|they) looks?\s+Ani made (him|her|them) (a|an) /.test(newLooks) && /With Ani as in 1978, the (hare|tortoise) would be (a|an) [a-z]+: a new character takes the next of the six shapes no one in the story has\.\s*$/.test(newLooks), `a new character's "How he looks": ${newLooks.split("\n").filter((l) => l.trim()).slice(1).join(" ")}`);
+  // with APPEAR, the hare and the tortoise are drawn as Ani chose them (tools/run-story.mjs:
+  // the tortoise a small square, the hare a large eight-pointed star)
+  const fable = await js(`document.getElementById("legend").innerText`);
+  check(/The hare: eight-pointed star/.test(fable) && /The tortoise: square/.test(fable), `the hare and the tortoise are drawn as Ani chose them (${fable.replace(/\n/g, "; ")})`);
+
+  // Ken's Cinderella as it is, made with the extensions: with APPEAR, Ani draws his cast
+  await open();
+  await js(`document.getElementById("open-editor").click()`);
+  await sleep(200);
+  await js(`document.getElementById("ed-reset").click()`);
+  await sleep(200);
+  const asIs = await js(`({ enabled: !document.getElementById("ed-make").disabled, note: document.getElementById("ed-check").innerText, mode: ([...document.querySelectorAll("#side [data-mode]")].find((b) => b.getAttribute("aria-pressed") === "true") || {}).dataset?.mode })`);
+  check(asIs.mode === "revival" && asIs.enabled && /This is Ken's story as it is\. With the revival's extensions Ani chooses each character's size and shape/.test(asIs.note), "with the extensions on, Ken's story as it is can be made again, and the editor says why");
+  await js(`document.querySelector('#side [data-mode="1978"]').click()`);
+  await sleep(100);
+  const as1978 = await js(`!document.getElementById("ed-make").disabled`);
+  await js(`document.querySelector('#side [data-mode="revival"]').click()`);
+  await sleep(100);
+  check(!as1978, "in 1978 mode it can't: it is Ken's film");
+  const t2 = Date.now();
+  await js(`document.getElementById("ed-make").click()`);
+  const looked = await finished(400);
+  check(/with the revival's extensions: 5 of 5 scenes filmed/.test(looked), `Ani makes Ken's Cinderella with the extensions (${Math.round((Date.now() - t2) / 1000)} s): ${looked}`);
+  const looksLasts = await lastsOf(5);
+  check(JSON.stringify(looksLasts) === JSON.stringify(EXPECTED_LOOKS_LAST_FRAMES), `its scenes end at frames ${looksLasts.join(", ")} (reports/ext/appear: ${EXPECTED_LOOKS_LAST_FRAMES.join(", ")})`);
+  // the legend and each icon from Ani's looks, beside Ken's: a path's points, or a circle
+  const cast = () => js(`(() => {
+    document.querySelector('#runbar [data-view="both"]').click();
+    const legend = [...document.querySelectorAll("#legend span")].map((s) => s.innerText + " [" + [...s.querySelectorAll("svg")].map((g) => (g.querySelector("circle") ? "circle" : g.querySelector("path").getAttribute("d").split("L").length + " points")).join(", ") + "]").join("; ");
+    const drawn = document.querySelector("#side .cast-looks");
+    return { legend, drawn: drawn ? drawn.innerText.replace(/\\s*why\\?/g, "").replace(/\\n+/g, "; ") : "" };
+  })()`);
+  const drew = await cast();
+  const castOk = (x) => /Cinderella: star in 1978, circle in yours \[5 points, circle\]/.test(x.legend) && /The stepmother: square in 1978, triangle in yours \[4 points, 3 points\]/.test(x.legend)
+    && /The fairy godmother: circle in 1978, eight-pointed star in yours \[circle, 8 points\]/.test(x.legend) && /The Prince: triangle in 1978, hexagon in yours \[3 points, 6 points\]/.test(x.legend);
+  check(castOk(drew), `the screens' legend and icons are Ani's looks beside Ken's: ${drew.legend}`);
+  check(/Cinderella: a small circle \(in 1978, a green star\)/.test(drew.drawn) && /The stepmother: a large triangle \(in 1978, a red square\)/.test(drew.drawn) && /The fairy godmother: an eight-pointed star \(in 1978, an orange circle\)/.test(drew.drawn) && /The Prince: a large hexagon \(in 1978, a yellow triangle\)/.test(drew.drawn), `"How Ani drew them": ${drew.drawn}`);
+  await js(`(() => { document.querySelector("#scenes button").click(); const s = document.getElementById("scrub"); s.value = 12; s.dispatchEvent(new Event("input")); })()`);
+  await sleep(200);
+  await shot("7-cinderella-with-looks.png");
+  // her glass box: "How she looks", closed, a sentence made from Ani's reasons, each aspect
+  // opening its choice point with the evidence, and Ken's 1978 look at the end
+  const clickOn = (fig, name, then) => js(`(async () => {
+    const c = document.querySelector("#${fig} canvas");
+    for (let y = 0; y < 413; y += 3) for (let x = 0; x < 551; x += 3) {
+      const r = c.getBoundingClientRect();
+      const at = { clientX: r.left + x / 551 * r.width, clientY: r.top + y / 413 * r.height, bubbles: true };
+      c.dispatchEvent(new MouseEvent("mousemove", at));
+      if (!c.classList.contains("over")) continue;
+      c.dispatchEvent(new MouseEvent("click", at));
+      await new Promise((r) => setTimeout(r, 20));
+      const h = document.querySelector("#side h2");
+      if (h && h.innerText === ${JSON.stringify(name)}) return (${then})();
+    }
+    return { found: false };
+  })()`);
+  const how = await clickOn("fig-1", "Cinderella", `async () => {
+    const d = document.querySelector("#side details.looks");
+    if (!d) return { found: true, text: "" };
+    const closed = !d.open;
+    d.open = true;
+    d.querySelector('[data-look="cinderella|size"]').click();
+    await new Promise((r) => setTimeout(r, 50));
+    d.scrollIntoView({ block: "start" });
+    return { found: true, closed, text: d.innerText, box: d.querySelector("#look-box").innerText };
+  }`);
+  check(how.found && how.closed && /^How she looks\s+Ani made her a small circle: small because she is shy and the film isn't to be flashy; smooth because she is friendly and graceful; simple because she is shy and the film is to be simple\./.test(how.text), `her glass box has "How she looks", closed, with a sentence from Ani's reasons: ${(how.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
+  const howText = how.text || "", howBox = how.box || "";
+  check(/In 1978 Ken drew her himself as a green star: the star in initialize-characters/.test(howText) && /the green in running-color/.test(howText) && /In 1978 Ken drew her/.test(howText.split("\n").filter(Boolean).pop() || ""), "it ends with how Ken drew her in 1978, and where he said so");
+  check(/She is shy, which suggests small\.\s*the revival's: a shy character keeps small and takes up little room/.test(howBox) && /size is also bigger is flashier.{0,3}\s*\(Ken's code, glosug\.41:39\)/.test(howBox), "\"small\" opens her size's choice point, with Ken's code quoted and the revival's knowledge marked as the revival's");
+  await shot("8-how-she-looks.png");
+  const kens = await clickOn("fig-0", "Cinderella", `() => ({ found: true, looks: !!document.querySelector("#side details.looks") })`);
+  check(kens.found && !kens.looks, "Ken's 1978 film's glass box has no \"How she looks\": he drew her himself");
+  // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
+  await open();
+  await sleep(1500);
+  const restored = await cast();
+  check(castOk(restored) && /5 of 5 scenes filmed/.test(await js(`document.getElementById("run-status").innerText`)), "it comes back after a reload, drawn with Ani's looks");
+  const saved = await js(`(async () => {
+    const orig = HTMLAnchorElement.prototype.click;
+    let got = null;
+    HTMLAnchorElement.prototype.click = function () { if (this.download) got = { name: this.download, href: this.href }; else orig.call(this); };
+    try {
+      if (document.getElementById("save-panel").hidden) document.getElementById("save").click();
+      document.querySelector('#save-panel [data-save="file"]').click();
+      for (let k = 0; k < 100 && !got; k++) await new Promise((r) => setTimeout(r, 100));
+    } finally { HTMLAnchorElement.prototype.click = orig; }
+    if (!got) return { saved: false };
+    const text = await (await fetch(got.href)).text();
+    sessionStorage.setItem("ani-check-film", text);
+    localStorage.removeItem("ani-cinderella:run:v1");
+    return { saved: true, name: got.name, version: JSON.parse(text).version, kb: Math.round(text.length / 1024) };
+  })()`);
+  await open();
+  await sleep(500);
+  const none = await js(`document.getElementById("runbar").hidden`);
+  await js(`(async () => {
+    const text = sessionStorage.getItem("ani-check-film");
+    const dt = new DataTransfer();
+    dt.items.add(new File([text], "film.json", { type: "application/json" }));
+    document.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+    for (let k = 0; k < 50 && document.getElementById("runbar").hidden; k++) await new Promise((r) => setTimeout(r, 100));
+  })()`);
+  await sleep(300);
+  const reopened = await cast();
+  check(saved.saved && saved.version === 2 && none && castOk(reopened), `saved as a film file (${saved.name}, version ${saved.version}, ${saved.kb} KB) and opened again on a fresh page, it is drawn with Ani's looks`);
   check(await film1978() === shipped, "Ken's 1978 film is as it was shipped");
   await js(`document.querySelector('#runbar [data-view="both"]').click()`);
   check(errors.length === 0, `no uncaught errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);

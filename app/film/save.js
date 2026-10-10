@@ -154,16 +154,16 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
 
 // A film file: the description Ani was told, pass 1's choice points and each scene's
 // plan and film, gzipped inside a small JSON wrapper. A film made by Ani as in 1978 is
-// version 1, as every film file was before the revival's extensions; one made with them
-// is version 2, which records which (extensions) and the notes their repairs left in
-// pass 1 (repairs; each scene's are in its glass box). Both are read; version 1 means
-// Ani as in 1978.
+// version 1, as every film file was before the revival's extensions; one made with them,
+// or with Ani's looks, is version 2, which records which extensions, the notes their
+// repairs left in pass 1 (repairs; each scene's are in its glass box) and how Ani chose
+// each character's look (appearances; each scene's film and glass box have its looks,
+// so the film is drawn with them when it is opened again). Both are read; version 1
+// means Ani as in 1978.
 const FILM_FORMAT = "ani-film";
 async function filmFile(run) {
-  const extensions = runExtensions(run);
-  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds,
-    ...(extensions.length ? { extensions, ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}) } : {}) });
-  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: extensions.length ? 2 : 1, about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
+  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds, ...version2(run) });
+  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: runVersion(run), about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
 }
 async function readFilmFile(text) {
   let outer;
@@ -173,12 +173,13 @@ async function readFilmFile(text) {
   const d = JSON.parse(await inflate(outer.gzip));
   if (typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("That film file is damaged.");
   d.extensions = outer.version === 2 && Array.isArray(d.extensions) ? d.extensions : [];
+  if (outer.version !== 2) delete d.appearances;
   return d;
 }
 async function openFilm(d, name) {
   stopRun({ quiet: true });
   const extensions = d.extensions || [];
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs });
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null });
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
   RUNS[1] = run;
   saveRun(run);
