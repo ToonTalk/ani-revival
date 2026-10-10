@@ -46,12 +46,37 @@
   "tortoise-and-hare": {
    "file": "test/stories/tortoise-and-hare.lisp",
    "without": {"exit":1,"pass1":"ok","scenes":{"the-boast":"failed in pass 2: shouldnt happen (WEIGHTIFY (NONE IS NOT LOW SHORT MEDIUM LONG OR HIGH))","the-race":"failed in pass 2: shouldnt happen (WEIGHTIFY (NONE IS NOT LOW SHORT MEDIUM LONG OR HIGH))","the-finish":"failed in pass 2: shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM2 POSIT) |does not exist|))"},"finished":0,"notes":{}},
-   "with": {"exit":1,"pass1":"ok","scenes":{"the-boast":187,"the-race":108,"the-finish":"failed in pass 2: break NO-SUCH-ACTOR, WANDER-AROUND is not an actor"},"finished":2,"notes":{"gave-up":2}}
+   "with": {"exit":0,"pass1":"ok","scenes":{"the-boast":187,"the-race":108,"the-finish":29},"finished":3,"notes":{"gave-up":3,"defined-action":1}}
   },
   "red-riding-hood": {
    "file": "test/stories/red-riding-hood.lisp",
    "without": {"exit":1,"pass1":"ok","scenes":{"into-the-woods":"capped","the-wolf-waits":86,"the-woodcutter-comes":61,"together-again":93},"finished":3,"notes":{}},
-   "with": {"exit":1,"pass1":"ok","scenes":{"into-the-woods":"capped","the-wolf-waits":86,"the-woodcutter-comes":61,"together-again":93},"finished":3,"notes":{}}
+   "with": {"exit":0,"pass1":"ok","scenes":{"into-the-woods":237,"the-wolf-waits":100,"the-woodcutter-comes":56,"together-again":156},"finished":4,"notes":{"overdue-move":3}}
+  },
+  "alone-two": {
+   "file": "test/stories/stress/alone-two.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: shouldnt happen (GET-ESTIMATED-TIME-OF (|couldn't get a time bound out of | (SUGGESTION: ELEMENT (CONVEY (ALON"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":8},"finished":1,"notes":{"already-alone":1}}
+  },
+  "cant-do-adjusted": {
+   "file": "test/stories/stress/cant-do-adjusted.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: not a number: NIL"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":6},"finished":1,"notes":{"in-scene-first":1,"no-running-time":1}}
+  },
+  "feeling-only-first": {
+   "file": "test/stories/stress/feeling-only-first.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":"failed in pass 2: break NO-SUCH-ACTOR, WANDER-AROUND is not an actor"},"finished":0,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":7},"finished":1,"notes":{"defined-action":2}}
+  },
+  "meets-offstage": {
+   "file": "test/stories/stress/meets-offstage.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"on-the-bridge":46,"reunion":"failed in pass 2: break NO-SUCH-ACTOR, MOVE-TO is not an actor"},"finished":1,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"on-the-bridge":46,"reunion":67},"finished":2,"notes":{"brought-on-stage":1,"defined-display-method":1}}
+  },
+  "pushee-blocked": {
+   "file": "test/stories/stress/pushee-blocked.lisp",
+   "without": {"exit":1,"pass1":"ok","scenes":{"by-the-bridge":14,"on-the-bridge":"capped"},"finished":1,"notes":{}},
+   "with": {"exit":0,"pass1":"ok","scenes":{"by-the-bridge":14,"on-the-bridge":134},"finished":2,"notes":{"overdue-move":4}}
   }
  }
 }

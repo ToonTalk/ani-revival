@@ -1,6 +1,6 @@
 # Stress stories for MEND
 
-Eight small film descriptions, each written to meet one failure that Ani as in 1978 runs into with a new story. They are the test bed for MEND, the revival's repairs (`reports/chapter-x/PLAN.md`, "Item 4, part 1: MEND", repairs M1 to M7, and M8, added for no-descriptors). Each one is in the form of your CINDY (`original/7005017/cindy.46`), uses only words Ani knows apart from the one it is testing, and has a single scene.
+Thirteen small film descriptions, each written to meet one failure that Ani as in 1978 runs into with a new story. They are the test bed for MEND, the revival's repairs (`reports/chapter-x/PLAN.md`, "Item 4, part 1: MEND", repairs M1 to M7, M8, added for no-descriptors, and M9 to M12, added for the failures found while building these and by the reviewers). Each one is in the form of your CINDY (`original/7005017/cindy.46`), uses only words Ani knows apart from the one it is testing, and has a single scene (meets-offstage and pushee-blocked have two).
 
 Run one with:
 
@@ -25,6 +25,11 @@ The observations of each story below were first made on 9 October 2026, with no 
 | offstage-victim | filming | no error; the chase and the hits happen off the picture | sugest.123:373-395, place.45:137-141 | M6 |
 | no-descriptors | pass 1 | `shouldnt happen (SUMMARIZE-COMPARISON ((COMPARISON-OF GOAT KID) DOES NOT EXIST))` | compar.69:16-26, 106-119, sumcom.53:8-10 | M8 (not in the plan's M1-M7) |
 | joy-plus-feeling | pass 2 | `shouldnt happen (CHANGE:-PACKAGE (BAD CHANGE: PACKAGE IN EITHER ...))` | sugest.123:213-234, cosug.215:449-477 | M7 |
+| feeling-only-first | pass 2 | `break NO-SUCH-ACTOR` (WANDER-AROUND) | scene.9:199-218 | M9 |
+| alone-two | pass 2 | `shouldnt happen (GET-ESTIMATED-TIME-OF (couldn't get a time bound out of ... (EXIT-BY NIL) ...))` | convey.64:236-243, chomet.123:448-460 | M10 |
+| cant-do-adjusted | pass 2 | `not a number: NIL` | chomet.123:141-160, scene.9:137-139 | M11 |
+| pushee-blocked | filming | no error; the second scene never ends (a bystander stands between the pushee and her target) | disply.311:243-328 | M12 |
+| meets-offstage | pass 2 | `break NO-SUCH-ACTOR` (MOVE-TO); with M5 alone, the meeting filmed in 5 frames, the goat crossing the stage in one | convey.64:73-80, scene.9:161-169 | M5, M6 |
 
 Two of the eight don't behave as the plan expected. offstage-victim never hits the frame cap, and no-descriptors fails in pass 1 for a reason none of M1 to M7 repairs, so MEND gained M8 for it. Both are explained in their sections below. Five more failures turned up while building these; they are listed at the end.
 
@@ -42,10 +47,15 @@ Each story was run with `node tools/run-story.mjs <story>` and again with `--ext
 | offstage-victim | nowhere: 47 frames, but the chase and the hits are off the picture | 1 of 1 | 50, all on the picture | no | brought-on-stage, the goat by getting-on-stage, on (subscene-of on-the-bridge 2) |
 | no-descriptors | pass 1: `SUMMARIZE-COMPARISON ((COMPARISON-OF GOAT KID) DOES NOT EXIST)` | 1 of 1 | 128, frame for frame as the control | no | nothing-to-compare, an empty comparison, on (comparison-of goat kid) (pass 1) |
 | joy-plus-feeling | pass 2: `CHANGE:-PACKAGE (BAD CHANGE: PACKAGE ...)` | 1 of 1 | 11 | no | combined-changes, four of them (acceleration, rhythmic-level, speed, activity-level), on establish-task-2 |
-| tortoise-and-hare | pass 2 of The Boast and The Race: `WEIGHTIFY (NONE ...)`; The Finish has no FILM2 POSIT (a knock-on) | 2 of 3 | 187, 108; The Finish stops in pass 2: `WANDER-AROUND is not an actor` | no | gave-up, none to medium, on (choice-point-of hare activity-level), in both |
-| red-riding-hood | Into the Woods never ends (601 frames); the other three film | 3 of 4 | 601 (capped), 86, 61, 93, as without MEND | yes, Into the Woods | none |
+| feeling-only-first | pass 2: `NO-SUCH-ACTOR`, WANDER-AROUND | 1 of 1 | 7 | no | defined-action, twice: the troll and the goat each wander, on the subscene |
+| alone-two | pass 2: `GET-ESTIMATED-TIME-OF`, no time bound for `(exit-by nil)` | 1 of 1 | 8 | no | already-alone, the exit-by set aside, on the task |
+| cant-do-adjusted | pass 2: `not a number: NIL` | 1 of 1 | 6 | no | no-running-time, 0.0 for the kid's cant-do task; in-scene-first |
+| pushee-blocked | the second scene never ends (601 frames) | 2 of 2 | 14, 134 | no | overdue-move, four of them, on the subscene |
+| meets-offstage | Reunion stops in pass 2: `NO-SUCH-ACTOR`, MOVE-TO | 2 of 2 | 46, 67 | no | brought-on-stage, defined-display-method |
+| tortoise-and-hare | pass 2 of The Boast and The Race: `WEIGHTIFY (NONE ...)`; The Finish has no FILM2 POSIT (a knock-on) | 3 of 3 | 187, 108, 29 | no | gave-up, none to medium, on (choice-point-of hare activity-level), in each; defined-action, the tortoise's wander, in The Finish |
+| red-riding-hood | Into the Woods never ends (601 frames); the other three film | 4 of 4 | 237, 100, 56, 156 | no | overdue-move, three of them, in Into the Woods |
 
-So every stress story finishes with MEND, each in under 600 frames, with its notes, and each fails or misbehaves without it as described. The two controls stop where MEND doesn't reach: tortoise-and-hare's The Finish on wander-around, and red-riding-hood's Into the Woods on the circling pushee (failures 2 and 4 at the end). With MEND on, your Cinderella comes out byte for byte as without it (`node tools/check-1978.mjs --extensions mend`).
+So every stress story, and both controls, finish with MEND, each scene in under 600 frames, with its notes, and each fails or misbehaves without it as described. (The five stories from feeling-only-first on, and the controls' new results, are from 10 October, after MEND's second round: M9 to M12 and the fixes to M5 and M6.) Red Riding Hood's later scenes film differently with MEND because Into the Woods now ends, so everyone starts them from somewhere else. With MEND on, your Cinderella comes out byte for byte as without it (`node tools/check-1978.mjs --extensions mend`).
 
 "Frame for frame as the control" was checked with `makeFilm` (src/pipeline.js): the story with MEND against its control as described in its section, in 1978 mode. Frames, events and picture are identical, and pass 1 makes the same choices in the same places.
 
@@ -179,7 +189,7 @@ The never-ending scene PLAN.md describes is `test/stories/red-riding-hood.lisp`'
 - Pass 1: 33 choices; `(choice-point-of hare activity-level) = none`.
 - The Boast and The Race: FAILED in pass 2, WEIGHTIFY of none (as none-value).
 - The Finish: FAILED, because no FILM2 POSIT was written. This is a knock-on of The Race; the tool says so.
-- With MEND, The Boast films in 187 frames and The Race in 108, each with the gave-up note on `(choice-point-of hare activity-level)`. The Finish then stops on a different failure. Ani doesn't know pride, so the hare's task can't be done, and the tortoise's joy is all the first subscene has for her, so SCENE plans `(wander-around tortoise)`: `WANDER-AROUND is not an actor` (see "Feelings alone" below). MEND doesn't take this story to the end.
+- With MEND, The Boast films in 187 frames and The Race in 108, each with the gave-up note on `(choice-point-of hare activity-level)`. In The Finish, Ani doesn't know pride, so the hare's task can't be done, and the tortoise's joy is all the first subscene has for her, so SCENE plans `(wander-around tortoise)`, which M9 now defines: she wanders, and the scene films in 29 frames.
 
 `node tools/run-story.mjs test/stories/red-riding-hood.lisp`
 - Pass 1: 102 choices.
@@ -189,14 +199,14 @@ The never-ending scene PLAN.md describes is `test/stories/red-riding-hood.lisp`'
   - So the four later subscenes never start, and the grandmother, whom she goes to accompany in the fifth, never comes on.
   - Her feeling makes the difference. `(joy (positive medium))` suggests change-to: path-curvature high and path-length long, and bigger changes than (positive low) does (emote.9:11-60). With `(joy (positive low))` the scene ends in 213 frames; without the feeling, in 120.
 - The Wolf Waits: 86 frames. The Woodcutter Comes: 61. Together Again: 93.
-- With MEND, all four come out the same (601 capped, 86, 61, 93), with no notes.
+- With MEND, M12 stops the pushee's walk once it has gone on longer than Ani allows for it, with an overdue-move note, and Into the Woods ends in 237 frames. The other three then film in 100, 56 and 156 frames, since everyone starts them from somewhere else.
 
 ## Other failures found while building these
 
-None of these is among M1 to M7. Each was seen with Ani as in 1978. MEND's M8 repairs the first; the others are still open with MEND on.
+None of these is among M1 to M7. Each was seen with Ani as in 1978. MEND's second round repairs the first four (M8, M9, M11, M12); the fifth is still open with MEND on.
 
 1. **Two characters with nothing to compare** (pass 1, `SUMMARIZE-COMPARISON ... DOES NOT EXIST`, sumcom.53:8-10). It happens whenever two characters share no descriptor, opposite or neighbor, and their relationships to each other, if they have any, share none either. no-descriptors is one case. Another is the skeleton with the goat "shabby" instead of "beautiful": pass 1 stops on (comparison-of goat troll). The tortoise and hare without "lazy" are a third. Repaired by M8 (see no-descriptors).
-2. **Feelings alone at the start of a scene** (pass 2, `WANDER-AROUND is not an actor`). When a character's only part in a scene's first subscene is a change of feeling, SCENE plans `(wander-around c)` (scene.9:199-218), and no 1978 file defines wander-around. Examples: a scene whose only task is `(establish (emotional-state troll (joy (positive low))))`; tortoise-and-hare's The Finish. PLAN.md gives wander-around a plan receiver under CHANGE; new stories need it sooner.
-3. **A task Ani can't do, in a scene whose length must be adjusted** (pass 2, the JavaScript error `not a number: NIL`). The recipe is the skeleton with On the Bridge's tasks `(establish (personality troll))`, `(establish (personality goat))` and `(establish (relationship (relationship-of troll goat)))`. Good's helps and prevents find no one, so the goat's personality task is cant-do. A task asked for a different time than it was allotted, and the scene's new length fell outside its bounds (60 to 120 seconds for this film's medium scene), so Ani adjusts every task's length (chomet.123:9-22, 39-65). adjust-task-lengths skips a cant-do task and never sets its running time (chomet.123:141-157). Then the subscene's running-time demon takes `(apply 'max ...)` of its tasks' times, and one of them is NIL (scene.9:137-139). When no adjustment is needed, give-every-task-its-ideal-time gives a cant-do task 0.0 (chomet.123:95-99). That is why Cinderella's cant-do tasks never mattered.
-4. **A pushee who circles her target** (filming, the frame cap): red-riding-hood's Into the Woods, above.
+2. **Feelings alone at the start of a scene** (pass 2, `WANDER-AROUND is not an actor`). When a character's only part in a scene's first subscene is a change of feeling, SCENE plans `(wander-around c)` (scene.9:199-218), and no 1978 file defines wander-around. Examples: a scene whose only task is `(establish (emotional-state troll (joy (positive low))))`; tortoise-and-hare's The Finish. PLAN.md gave wander-around a plan receiver under CHANGE; new stories needed it sooner, so it is MEND's M9 (feeling-only-first).
+3. **A task Ani can't do, in a scene whose length must be adjusted** (pass 2, the JavaScript error `not a number: NIL`). The recipe is the skeleton with On the Bridge's tasks `(establish (personality troll))`, `(establish (personality goat))` and `(establish (relationship (relationship-of troll goat)))`. Good's helps and prevents find no one, so the goat's personality task is cant-do. A task asked for a different time than it was allotted, and the scene's new length fell outside its bounds (60 to 120 seconds for this film's medium scene), so Ani adjusts every task's length (chomet.123:9-22, 39-65). adjust-task-lengths skips a cant-do task and never sets its running time (chomet.123:141-157). Then the subscene's running-time demon takes `(apply 'max ...)` of its tasks' times, and one of them is NIL (scene.9:137-139). When no adjustment is needed, give-every-task-its-ideal-time gives a cant-do task 0.0 (chomet.123:95-99). That is why Cinderella's cant-do tasks never mattered. Repaired by M11 (cant-do-adjusted), which gives such a task 0.0 as Ken's own path does.
+4. **A pushee who circles her target** (filming, the frame cap): red-riding-hood's Into the Woods, above. Repaired by M12, with pushee-blocked, where a bystander stands in the way.
 5. **A stack overflow in pass 2** (`Maximum call stack size exceeded` in INTERF's move-from-xy-position-1, interf.149:109-118). The recipe uses the skeleton plus the kid. The first scene is `(convey (alone troll kid))`, which sends off the goat although she has never been on the stage. The second is `(establish (personality troll))`, with the goat as the troll's victim. The recursion halves its step until the new place is on the stage (interf.149:113-117), and here it never ends. If the goat has been on the stage first (she accompanies the kid, then is sent off), the second scene films in 95 frames.
