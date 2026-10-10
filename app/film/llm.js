@@ -136,6 +136,13 @@ SCENES (2 to 5, in story order)
 - R (rhythm): normal, fast, slow, (changes fast slow)
 - L (length): short, medium or long
 
+MAKING A GOOD FILM
+- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's shame (establish emotional-state), a rivalry becomes chases or pushes, a friendship accompanys.
+- Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
+- chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a sequence: with other tasks after them; never make a scene of pushes alone.
+- Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+
 THE FILM
 - After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.
 - Keep the example's first lines (the -*-lisp-*- line, (include |ai:ken;declar >|), (defcomment cindy)) and its last line, (compile-actors).
@@ -436,7 +443,9 @@ async function draftStory({ repair = null } = {}) {
   result.innerHTML = `<div class="draft"><p class="note" id="tell-working">${esc(doing)}…</p><pre class="lisp" id="tell-stream" hidden></pre><div class="actions"><button type="button" class="linkish" id="tell-stop-here">Stop</button></div></div>`;
   result.querySelector("#tell-stop-here").addEventListener("click", () => ctl.abort());
   result.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  const say = (text) => { setTellerStatus(text); const w = document.getElementById("tell-working"); if (w) w.textContent = text; };
+  // while it works the draft box says so; the status line under the buttons stays empty, so it isn't said twice
+  setTellerStatus("");
+  const say = (text) => { const w = document.getElementById("tell-working"); if (w) w.textContent = text; else setTellerStatus(text); };
   const tick = setInterval(() => say(`${doing}… ${clock(Date.now() - t0)}`), 1000);
   say(`${doing}…`);
   try {

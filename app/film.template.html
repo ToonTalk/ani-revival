@@ -1572,7 +1572,7 @@ function caption(r) {
     const feel = changes.map((t) => about(t.description));
     const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
     const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after two and a half minutes; the scene hadn't ended.</span>` : "";
-    el.innerHTML = `<span class="part">${tag}${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}`;
+    el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}`;
   });
 }
 
@@ -2258,7 +2258,8 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
   RUNS[1] = run;
   state.selected = null;
   state.panel = "compare";
-  try { setView("both"); } catch (e) { console.error(e); }
+  // a changed Cinderella is shown beside Ken's; a new story on its own
+  try { setView(sameStory(RUNS[0], run) ? "both" : 1); } catch (e) { console.error(e); }
   try {
     if (!ani.runtime) {
       const [rt, bundle] = await Promise.all([inflate(document.getElementById("ani-runtime").textContent), inflate(document.getElementById("ani-bundle").textContent)]);
@@ -2460,28 +2461,41 @@ function comparePanel() {
     const old = a.cp.get(show(cp.name));
     return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(valueOf(cp.currentChoice))}</b> <span class="was">(was ${esc(old ? valueOf(old.currentChoice) : "—")})</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
   }).join("");
-  const scenes = [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
-    const x = a.scenes[i], y = b.scenes[i];
-    const id = a.sceneIds[i] || b.sceneIds[i];
-    const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
+  const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
+  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "—"; };
+  const yoursOf = (y) => {
     const fixed = ready(y) ? repairItems(b, sceneNotes(y), y).length : 0;
-    const yours = ready(y) ? `${len(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : st.running ? "not made yet" : "not made";
-    const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "—"; };
-    const title = other ? `Scene ${i + 1}` : esc(a.titles[id] || b.titles[id]);
-    const name = (run, sc, k) => (other && run.sceneIds[k] ? `${esc(run.titles[run.sceneIds[k]])}, ` : "");
-    return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${title}</span>
-      <span class="vs"><span>1978</span><span>${a.sceneIds[i] ? `${name(a, x, i)}${len(x)}: ${lines(a, x)}` : "—"}</span><span>Yours</span><span>${b.sceneIds[i] ? `${name(b, y, i)}${yours}${ready(y) ? `: ${lines(b, y)}` : ""}` : "—"}</span></span></button>`;
-  }).join("");
+    const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">never ended</span>` : "";
+    return ready(y) ? `${len(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}${capped}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : st.running ? "not made yet" : "not made";
+  };
+  // what the story asks of a scene, in plain words (as the story panel's scene cards say it)
+  const told = (run, id) => {
+    const t = run.story.scenes[id];
+    const tasks = t ? tasksOf(t.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))) : [];
+    return tasks.length ? esc(tasks.join("; ")) : "—";
+  };
+  const scenes = other
+    ? b.sceneIds.map((id, i) => {
+      const y = b.scenes[i];
+      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">Scene ${i + 1}: ${esc(b.titles[id])}</span>
+      <span class="vs"><span>Asked</span><span>${told(b, id)}</span><span>Made</span><span>${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}</span></span></button>`;
+    }).join("")
+    : [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
+      const x = a.scenes[i], y = b.scenes[i];
+      const id = a.sceneIds[i] || b.sceneIds[i];
+      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${esc(a.titles[id] || b.titles[id])}</span>
+      <span class="vs"><span>1978</span><span>${a.sceneIds[i] ? `${len(x)}: ${lines(a, x)}` : "—"}</span><span>Yours</span><span>${b.sceneIds[i] ? `${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}` : "—"}</span></span></button>`;
+    }).join("");
   side.innerHTML = `
-    <div class="side-head"><h2>${other ? "Two stories, side by side" : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
+    <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
     ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.running ? "" : stopBox(b)}
-    <div><p class="label">What you changed</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
-    <div><p class="label">How Ani's choices changed</p>${other ? `<p class="note">${b.choicePoints.length ? `In pass 1 Ani made ${b.choicePoints.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : b.choicePoints.length
+    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
+    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${b.choicePoints.length ? `In pass 1 Ani made ${b.choicePoints.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : b.choicePoints.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${b.choicePoints.length} choices came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}</div>
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
-    <p class="note">Click a character on either screen to see why Ani made it do what it does.</p>`;
+    <p class="note">${other ? `Click a character to see why Ani made it do what it does. Ken's Cinderella is a different story, so it isn't shown beside yours; the buttons over the screen show it.` : "Click a character on either screen to see why Ani made it do what it does."}</p>`;
   updateProgress();
   side.querySelector("#cmp-edit").addEventListener("click", openEditor);
   side.querySelector("#cmp-stop")?.addEventListener("click", () => stopRun());
@@ -2507,7 +2521,9 @@ function renderSide() {
   if (state.panel === "compare") return comparePanel();
   return using(RUNS[state.view === 1 ? 1 : 0], storyPanel);
 }
-const defaultPanel = () => (state.view === "both" ? "compare" : "story");
+// A new story (not Cinderella, changed or not) has its own panel, whichever screens show.
+const newStoryShown = () => !!RUNS[1] && !sameStory(RUNS[0], RUNS[1]) && state.view !== 0;
+const defaultPanel = () => (state.view === "both" || newStoryShown() ? "compare" : "story");
 const scrub = document.getElementById("scrub");
 function render() {
   draw();
