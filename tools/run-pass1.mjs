@@ -1,7 +1,9 @@
 // Run Ani's pass 1 the way KEN;DATEST did: load the Cinderella film description,
 // make the choices about the characters' dynamics, and save the answers; then
 // compare them with CP 29, the file pass 1 wrote in September 1978. Exits non-zero
-// unless every choice is CP 29's, in its place.
+// unless every choice is CP 29's, in its place. An extension that adds choices
+// (REVIVE;APPEAR's for the characters' looks, made after (z) by its afterPass1)
+// leaves CP 29's in their order, which is what is compared.
 // Usage: node tools/run-pass1.mjs [--trace] [--show] [--diff] [--save] [--save-all] [--glass-box]
 //                                 [--extensions a,b] [--out folder] [--no-backtrace]
 //   --save        copy the choices (KEN1;CP TEST: CP 29's content as our pass 1 writes
@@ -16,12 +18,12 @@
 //                 pass1.json, pass1.html), so the 1978 ones stay as they are.
 //   --out         write those files to this folder instead, under the same names
 //                 (tools/check-1978.mjs uses it)
-import { boot, extensionsFor } from "../src/pipeline.js";
+import { boot, extensionsFor, isAppearanceChoice } from "../src/pipeline.js";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { printString } from "../src/maclisp/printer.js";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
-import { installAttemptLog, collectChoicePoints, collectStory } from "../src/glassbox-pass1.js";
+import { installAttemptLog, collectChoicePoints, collectStory, collectAppearances } from "../src/glassbox-pass1.js";
 import { buildGlassBox } from "./build-glassbox.mjs";
 
 const args = process.argv.slice(2);
@@ -65,6 +67,7 @@ const ok =
   step("(init nil): load CINDY, study descriptor use", "(init nil)") &&
   (glassBox ? (attempts = installAttemptLog(L), true) : true) &&
   step("(z): make the choices", "(z)") &&
+  extensionsFor(extensions).every((e) => !e.afterPass1 || step(`${e.afterPass1}: ${e.label}`, e.afterPass1)) &&
   step("(save-answers ...)", "(save-answers '((ken1) cp test))") &&
   (!args.includes("--save-all") || step("(save-it-all ...): every choice point with its reasons", "(save-it-all '((ken1) run test))"));
 
@@ -76,6 +79,8 @@ if (ok && glassBox) {
     attempts,
     choicePoints: collectChoicePoints(L),
   };
+  const appearances = collectAppearances(L);
+  if (appearances) data.appearances = appearances; // REVIVE;APPEAR's, how each character looks
   writeFileSync(out.data, JSON.stringify(data));
   console.log(`saved ${out.data} (${attempts.length} attempts, ${data.choicePoints.length} choice points)`);
   console.log("built " + buildGlassBox(".", { data: out.data, out: out.page }));
@@ -91,14 +96,17 @@ if (ok) {
   console.log(`\nwrote KEN1;CP TEST (${entry ? fs.textOf(entry).length : 0} characters)`);
   if (entry && args.includes("--show")) console.log("\n" + fs.textOf(entry).slice(0, 3000));
   if (entry) {
-    const ours = choicesOfText(fs.textOf(entry));
+    const all = choicesOfText(fs.textOf(entry));
+    // the extensions' own choices aside (REVIVE;APPEAR's), Ken's
+    const ours = new Map([...all].filter(([k]) => !isAppearanceChoice(k)));
+    if (ours.size !== all.size) console.log(`\n${all.size - ours.size} more choices, the extensions' own, for the characters' looks`);
     if (args.includes("--save")) {
       writeFileSync(out.choices, fs.textOf(entry));
       console.log(`saved ${out.choices}`);
     }
-    const all = fs.find({ dir: "KEN1", fn1: "RUN", fn2: "TEST" });
-    if (all) {
-      writeFileSync(out.reasons, fs.textOf(all));
+    const reasons = fs.find({ dir: "KEN1", fn1: "RUN", fn2: "TEST" });
+    if (reasons) {
+      writeFileSync(out.reasons, fs.textOf(reasons));
       console.log(`saved ${out.reasons} (as RUN24 2 records them)`);
     }
     for (const [label, path] of [["CP 29 (Sep 1978)", "original/7005017/cp.29"], ["RUN24 2 (Dec 1978)", "original/9004336/run24.2"]]) {

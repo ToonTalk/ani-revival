@@ -72,6 +72,124 @@ export function collectChoicePoints(L) {
   return out;
 }
 
+// ---------------------------------------------------------------- appearances
+
+// (get list key) of a list such as (suggestion: element speed value low ...), as
+// Ken's code reads them: the value after the key, or NIL.
+export function plistGet(L, list, key) {
+  const items = L.toArray(list);
+  for (let i = 1; i + 1 < items.length; i += 2) if (items[i] instanceof Sym && items[i].name === key.toUpperCase()) return items[i + 1];
+  return L.NIL;
+}
+
+// Whether REVIVE;APPEAR is loaded: its function is defined. Looked up without
+// interning anything, so that a Lisp running as in 1978 is left exactly as it was.
+function defined(L, name) {
+  const s = L.obarray.find(name.toUpperCase());
+  return Boolean(s) && L.evalString(`(and (getl '${name} '(expr subr lsubr fexpr)) t)`) !== L.NIL;
+}
+
+// A piece of evidence from REVIVE;APSUG, with the case of its words kept: (thesis 161
+// |smooth is friendly|) as { thesis: 161, text }, (code |relate.22:63| |...|) as
+// { code: "relate.22:63", text }, (why |...|) as { why: text }, the revival's own
+// reason, and (and e1 e2) as a list of them.
+export function evidenceJSON(L, x) {
+  const items = L.toArray(x);
+  const word = (s) => (s instanceof Sym ? s.name : L.print(s));
+  const kind = word(items[0]).toLowerCase();
+  if (kind === "and") return items.slice(1).map((e) => evidenceJSON(L, e));
+  if (kind === "thesis") return { thesis: items[1], text: word(items[2]) };
+  if (kind === "code") return { code: word(items[1]), text: word(items[2]) };
+  if (kind === "why") return { why: word(items[1]) };
+  return { other: L.print(x) };
+}
+
+// How Ani chose each character's look (REVIVE;APPEAR, APSUG and SHAPES), for the glass
+// box's "How she looks": for each character, in focus order,
+//   { character,
+//     look: { shape, angle, centerOffset, aniSize },          what Director is to draw
+//     elements: { size: { choicePoint, value, strength, sources }, shape-jaggedness: ...,
+//                 shape-complexity: ... },                    each choice, its winning
+//                                                             suggestion's strength and
+//                                                             sources (the choice point
+//                                                             itself is in choicePoints)
+//     experts: [ "(considered: ...)", "(relaxed: ...)", "(chosen: ...)" ] }
+// with knowledge, every piece of knowledge a look's suggestion can come from, each
+// { kind, source, element, value, strength, evidence }, and findings, what telling
+// the characters apart found: { comparison, items: ["(look-alike: ...)", ...] }.
+// Empty if REVIVE;APPEAR is not loaded or chose nothing.
+export function collectAppearances(L) {
+  if (!defined(L, "choose-appearances") || L.evalString("(actor-of 'appearance dont-autoload)") === L.NIL) return null;
+  const lisp = (x) => L.print(x).toLowerCase();
+  const ev = (src) => L.evalString(src);
+  const characters = L.toArray(ev("(characters-in-focus-order)"));
+  const out = { characters: [], knowledge: [], findings: [] };
+  for (const c of characters) {
+    const name = lisp(c);
+    L.intern("*GB-ACTOR*").value = L.readFromString(`(appearance-of ${name})`);
+    if (ev("(exists? *gb-actor*)") === L.NIL) continue;
+    const recall = (v) => ev(`(ask ,*gb-actor* recall your ${v})`);
+    const num = (v) => (v === L.NIL ? null : L.num.val(v));
+    const shape = recall("shape");
+    const entry = {
+      character: name,
+      look: { shape: shape === L.NIL ? null : lisp(shape), angle: num(recall("angle")), centerOffset: recall("center-offset") === L.NIL ? null : lisp(recall("center-offset")), aniSize: num(recall("ani-size")) },
+      elements: {},
+      experts: L.toArray(ev("(ask ,*gb-actor* collect items)")).map(lisp).reverse(),
+    };
+    for (const element of L.toArray(ev("(ask appearance-element recall your offspring)")).reverse()) {
+      const e = lisp(element);
+      const cp = `(choice-point-of ${name} ${e})`;
+      if (ev(`(exists? '${cp})`) === L.NIL) continue;
+      const value = ev(`(ask ${cp} recall your current-choice)`);
+      // the suggestion record-choice memorized, with the value chosen (choose.198:596-603)
+      const chosen = L.toArray(ev(`(ask ${cp} collect items memorized matching (suggestion: %))`)).find((s) => lisp(plistGet(L, s, "value")) === lisp(value));
+      const field = (k) => (chosen ? plistGet(L, chosen, k) : L.NIL);
+      const source = field("source");
+      const sources = source === L.NIL ? [] : source instanceof Cons && lisp(source.car) === "and" ? L.toArray(source.cdr).map(lisp) : [lisp(source)];
+      entry.elements[e] = { choicePoint: cp, value: lisp(value), strength: chosen ? lisp(field("strength")) : null, sources };
+    }
+    out.characters.push(entry);
+  }
+  out.knowledge = collectKnowledge(L);
+  for (const comparison of L.toArray(ev("(and (actor-of 'character-comparison dont-autoload) (ask character-comparison recall your offspring))"))) {
+    if (comparison === L.NIL) continue;
+    L.intern("*GB-ACTOR*").value = comparison;
+    const items = L.toArray(ev("(ask ,*gb-actor* collect items)")).map(lisp).filter((i) => i.startsWith("(look-alike: ") || i.startsWith("(alike-after-all: "));
+    if (items.length) out.findings.push({ comparison: lisp(comparison), items: items.reverse() });
+  }
+  return out;
+}
+
+// Every piece of knowledge a look's suggestion can come from (REVIVE;APSUG's
+// appearance-knowledge), each { kind, source, element, value, strength, evidence }:
+// kind descriptor, relationship, comparison, dynamics or film; source the word, the
+// relationship, the summary, the dynamics element or the film's level; element the
+// appearance element (or a list of relative ones); value the value, relation or rule
+// (same, opposite, medium-unless-high); evidence as evidenceJSON makes it.
+export function collectKnowledge(L) {
+  if (!defined(L, "appearance-knowledge")) return [];
+  const lisp = (x) => L.print(x).toLowerCase();
+  return L.toArray(L.evalString("(appearance-knowledge)")).map((row) => {
+    const [kind, source, element, value, strength, evidence] = L.toArray(row);
+    return { kind: lisp(kind), source: lisp(source), element: element instanceof Cons ? L.toArray(element).map(lisp) : lisp(element), value: lisp(value), strength: lisp(strength), evidence: evidenceJSON(L, evidence) };
+  });
+}
+
+// The look each character is to take in the scene, as pass 2 writes it at the end of
+// the scene's program (REVIVE;APPEAR's take-look-forms): [{ character, shape, angle,
+// centerOffset, aniSize, form }]. Empty if REVIVE;APPEAR is not loaded.
+export function collectLooks(L, scene) {
+  if (!defined(L, "take-look-forms")) return [];
+  const lisp = (x) => L.print(x).toLowerCase();
+  return L.toArray(L.evalString(`(take-look-forms '${scene})`)).map((form) => {
+    const [, character, , , look] = L.toArray(form);
+    const get = (k) => plistGet(L, look, k);
+    const num = (v) => (v === L.NIL ? null : L.num.val(v));
+    return { character: lisp(character), shape: get("shape") === L.NIL ? null : lisp(get("shape")), angle: num(get("angle")), centerOffset: get("center-offset") === L.NIL ? null : lisp(get("center-offset")), aniSize: num(get("ani-size")), form: lisp(form) };
+  });
+}
+
 // What the characters were told, and what each descriptor suggests, for context.
 export function collectStory(L) {
   const characters = toJSON(L, L.evalString("(ask character recall your offspring)")) || [];

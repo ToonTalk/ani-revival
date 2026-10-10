@@ -23,7 +23,7 @@
 import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { extensionsFor, boot, recorder } from "../src/pipeline.js";
+import { extensionsFor, choosesLooks, boot, recorder } from "../src/pipeline.js";
 import { encodePNG } from "../src/tv/png.js";
 import { Flonum } from "../src/maclisp/types.js";
 import { printString } from "../src/maclisp/printer.js";
@@ -46,6 +46,14 @@ if (extDir) mountRunOutputs(fs, join(process.cwd(), extDir));
 // The camera. ANINIT's after-new-frame-made calls (click) once the frame is on the
 // screen; the frames are numbered from 0 as the movie numbers them.
 const color = args.includes("--color");
+// ANINIT's color filming makes the characters many-polys whose parts are copies made
+// before the program is loaded (bridge.lisp, define-many-polys), so they would keep
+// Ken's shapes while the outline takes Ani's (REVIVE;LOOKS): not supported with the
+// extensions that choose the characters' looks.
+if (color && choosesLooks(extensions)) {
+  console.log(`--color is not supported with ${extensions.join(", ")}: Director's color filming keeps Ken's shapes in its many-polys, where Ani has chosen others (REVIVE;LOOKS)`);
+  process.exit(1);
+}
 // --pdp10: round every flonum to PDP-10 single precision (an experiment; frames go to
 // reports/film/<scene>-pdp10/ and the positions are left alone).
 const pdp10 = args.includes("--pdp10");
@@ -100,7 +108,7 @@ const ok =
   step("(tvsize 550 413): the picture the film was made at", "(tvsize 550 413)") &&
   (!(png || record) || color || step("the camera: a click after each new frame", "(ask ani-movie set your after-new-frame-made to (click))")) &&
   (!(png || record) || step("the recorder: who draws each segment, each character's state, and each event",
-    () => { film = recorder(L, { onClick: png ? photograph : null }); return []; })) &&
+    () => { film = recorder(L, { onClick: png ? photograph : null, ...Object.assign({}, ...extensionsFor(extensions).map((e) => e.recorder || {})) }); return []; })) &&
   (!color || step("color filming: start calls ANINIT's running-color", "(setq :running-color t)")) &&
   step(`(start '${scene} ${fps})`, `(start '${scene} ${fps})`) &&
   step(`(m ${frames}): film the scene`, `(m ${frames})`) &&

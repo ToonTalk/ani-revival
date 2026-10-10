@@ -19,7 +19,7 @@ import { createLisp } from "./maclisp/index.js";
 import { Cons, UNBOUND } from "./maclisp/types.js";
 import { pictureArea } from "./tv/canvas.js";
 import { UNIT_BIT } from "./tv/turtle.js";
-import { collectChoicePoints } from "./glassbox-pass1.js";
+import { collectChoicePoints, collectAppearances, collectLooks } from "./glassbox-pass1.js";
 
 export const SCENES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"];
 // RUN's file names for each scene: the program is KEN;<fn1> <fn2>, the summary
@@ -31,8 +31,15 @@ export const CHARACTERS = ["cinderella", "step-mother", "prince", "fairy-godmoth
 
 // The revival's extensions to Ani (reports/chapter-x/PLAN.md): files of ours in
 // src/director/revive/ (REVIVE;<file>), loaded after the bridge, in this order, only
-// when asked for. With none, Ani runs as in 1978. changes1978: whether it changes what
-// Ken's Cinderella makes (tools/check-1978.mjs --extensions checks those that don't).
+// when asked for, each file once (REVIVE;WRAP, the helper every extension wraps Ken's
+// functions with, is the first file of each that needs it). With none, Ani runs as in
+// 1978. changes1978: whether it changes what Ken's Cinderella makes
+// (tools/check-1978.mjs --extensions checks those that don't; tools/check-ext.mjs
+// compares those that do with their goldens). afterPass1: Lisp that pass 1 evaluates
+// after (z) has made the choices and before save-answers saves them. recorder: what
+// the filming records besides (recorder's options); looks: true means the extension
+// chooses how the characters look (pass 1 returns its appearances, each scene's
+// glass box its looks, and a cast may be larger than SHAPES).
 export const EXTENSIONS = [
   {
     id: "mend",
@@ -42,7 +49,30 @@ export const EXTENSIONS = [
     changes1978: false,
     note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, and two characters with nothing to compare. Each leaves a (revival-repair: ...) note where it acted.",
   },
+  {
+    id: "appear",
+    label: "Ani chooses how her characters look",
+    files: ["wrap", "appear", "apsug", "shapes", "looks"],
+    requires: [],
+    changes1978: true,
+    afterPass1: "(choose-appearances)",
+    recorder: { looks: true },
+    note: "Ani chooses each character's size and shape as she chooses how it moves (thesis pp. 163-164): choice points for size, shape-jaggedness and shape-complexity, made after the 102 dynamics choices, with suggestions from the characters' words, relationships, comparisons and dynamics and the film's levels, each with its evidence; shape experts turn the choices into a polygon, star or circle, and characters drawn alike have a shape choice made again to tell them apart. Pass 2 writes each character's look into the scene's program, and Director draws it.",
+  },
 ];
+
+// The appearance elements REVIVE;APPEAR defines, and their relative elements: a
+// choice point for one of them is one of APPEAR's, not one of Ken's 102.
+export const APPEARANCE_ELEMENTS = ["size", "shape-jaggedness", "shape-complexity"];
+export function isAppearanceChoice(name) {
+  const m = /\s(relative-)?([a-z-]+)\)$/.exec(String(name).toLowerCase());
+  return Boolean(m) && APPEARANCE_ELEMENTS.includes(m[2]);
+}
+
+// Whether any of the extensions chooses how the characters look (recorder.looks).
+export function choosesLooks(ids = []) {
+  return extensionsFor(ids).some((e) => e.recorder && e.recorder.looks);
+}
 
 // The entries for a list of extension ids, with those they require, in registry
 // order. An unknown id is an error.
@@ -102,16 +132,21 @@ export function boot(fs, { backtrace = false, extensions = [] } = {}) {
 // Ani's choices for the film description in KEN;CINDY, saved as KEN;CP <version>, the
 // file pass 2 loads (KEN;CP >). Returns how many choices were made and each choice
 // point with its reasons (its glass box, as app/data/pass1.json has them), and, if the
-// revival's repairs left notes (REVIVE;MEND8's on a comparison, say), those.
+// revival's repairs left notes (REVIVE;MEND8's on a comparison, say), those. An
+// extension's afterPass1 runs after (z), before the choices are saved; with one that
+// chooses the characters' looks (REVIVE;APPEAR), pass 1 also returns appearances
+// (src/glassbox-pass1.js collectAppearances).
 export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] } = {}) {
   const L = boot(fs, { backtrace, extensions });
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
   L.evalString("(z)");
+  for (const e of extensionsFor(extensions)) if (e.afterPass1) L.evalString(e.afterPass1);
   L.evalString(`(save-answers '((ken) cp ${cpVersion}))`);
   const choicePoints = collectChoicePoints(L);
   const repairs = noting(L) ? repairNotes(L) : [];
-  return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), lisp: L };
+  const appearances = choosesLooks(extensions) ? collectAppearances(L) : null;
+  return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), ...(appearances ? { appearances } : {}), lisp: L };
 }
 
 // ---------------------------------------------------------------- pass 2
@@ -172,6 +207,10 @@ export function glassBox(L, scene) {
   // that a 1978 glass box is as it was and is made as it was
   const repairs = noting(L) ? repairNotes(L, glass) : [];
   if (repairs.length) glass.repairs = repairs;
+  // the look each character is to take, as the program ends (REVIVE;APPEAR), only if
+  // there are looks, for the same reason
+  const looks = collectLooks(L, scene);
+  if (looks.length) glass.looks = looks;
   return glass;
 }
 
@@ -207,9 +246,15 @@ export function repairNotes(L, glass = null) {
 // calls (click) once the frame is on the screen. For each frame: the line segments
 // each character was drawn with (TV dots from the picture's top left) and each
 // character's state; and every event the movie noted, by frame. onClick, if given, is
-// called at each click too (to save a picture, say).
-export function recorder(L, { onClick = null, cast = CHARACTERS } = {}) {
+// called at each click too (to save a picture, say). With looks (an extension that
+// chooses how the characters look, REVIVE;APPEAR and LOOKS), film.looks records who
+// looks how from which frame, changes only: [frame, character, { shape, angle,
+// centerOffset, aniSize }], frame counted from 0 as frames are; frames[].chars is as
+// it is without.
+export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false } = {}) {
   const film = { picture: null, frames: [], events: [] };
+  if (looks) film.looks = [];
+  const lastLook = {};
   let drawing = null;
   let segs = {};
   const seen = new Set();
@@ -240,9 +285,29 @@ export function recorder(L, { onClick = null, cast = CHARACTERS } = {}) {
     });
     film.frames.push({ segs, chars });
     segs = {};
+    if (looks) recordLooks(film.frames.length - 1);
     if (onClick) onClick(film.frames.length - 1);
     return L.T;
   });
+  // each character's look as Director now draws it, kept when it changes
+  function recordLooks(frame) {
+    const all = L.evalString(`(mapcar (function (lambda (c) (list (ask ,c recall your shape) (ask ,c recall your angle)
+                                                                  (ask ,c recall your center-offset) (ask ,c recall your ani-size))))
+                                      '(${cast.join(" ")}))`);
+    L.toArray(all).forEach((x, i) => {
+      const [shape, angle, offset, size] = L.toArray(x);
+      const num = (v) => (v === L.NIL ? null : Math.round(L.num.val(v) * 10000) / 10000);
+      const look = {
+        shape: shape === L.NIL ? null : L.print(shape).toLowerCase(), angle: num(angle),
+        centerOffset: offset === L.NIL ? null : L.print(offset).toLowerCase(), aniSize: num(size),
+      };
+      const key = JSON.stringify(look);
+      if (lastLook[cast[i]] !== key) {
+        lastLook[cast[i]] = key;
+        film.looks.push([frame, cast[i], look]);
+      }
+    });
+  }
   // who draws each segment, and each event the movie notes
   L.evalString(`(progn
      (define-extension-method (display) object
@@ -298,7 +363,9 @@ export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onC
   // thesis's flipbook confirms; the size changes how far characters go
   L.evalString("(tvsize 550 413)");
   L.evalString("(ask ani-movie set your after-new-frame-made to (click))");
-  const record = recorder(L, { onClick, cast });
+  // what the extensions record besides (EXTENSIONS: recorder), such as the looks
+  const more = Object.assign({}, ...extensionsFor(extensions).map((e) => e.recorder || {}));
+  const record = recorder(L, { onClick, cast, ...more });
   L.evalString(`(start '${scene} ${fps})`);
   L.evalString(`(m ${frames})`);
   L.evalString(`(save-positions '${scene} '((ken1) ,(get '${scene} 'movie-name) posit))`);
@@ -328,6 +395,19 @@ export const SHAPES = [
   { shape: "hexagon", lisp: "(set your angle to 60)" },
 ];
 const KEN_SHAPES = { cinderella: 0, "step-mother": 1, prince: 2, "fairy-godmother": 3 };
+// When Ani chooses the looks (REVIVE;APPEAR), a character beyond those six starts as a
+// hexagon of the usual size, which the look its scene's program gives it then replaces
+// (REVIVE;LOOKS).
+export const NEUTRAL_LOOK = { shape: "hexagon", lisp: "(set your angle to 60)" };
+// How Ken drew his four in 1978: initialize-characters' shapes and sizes (aninit.65:36-47;
+// .05 is every director-character's size, dichar.103:10) and running-color's colors
+// (aninit.65:83-87). The film page and tools/check-appear.mjs set Ani's looks beside them.
+export const KEN_LOOKS = {
+  cinderella: { shape: "star", angle: 144, aniSize: 0.05, color: "green" },
+  "step-mother": { shape: "square", angle: 90, aniSize: 0.07, color: "red" },
+  prince: { shape: "triangle", angle: 120, aniSize: 0.05, color: "yellow" },
+  "fairy-godmother": { shape: "circle", angle: 5, aniSize: 0.05, color: "orange" },
+};
 
 // A film description read as MacLisp would (; comments, |symbols|, "strings", / escapes),
 // enough to find its top-level forms.
@@ -397,8 +477,10 @@ export function storyOutline(text) {
 // everything as RUN and ANINIT have it (ken); any other list of scenes is numbered:
 // KEN;STORY<n> SCENE for the program, KEN1;STORY<n> MINI for the summary, FILM<n> for
 // the movie, each scene starting from the POSIT file of the one before. Ken's four
-// characters keep their shapes; new ones take the others in order.
-export function storyPlan(outline) {
+// characters keep their shapes; new ones take the others in order. With looks (Ani
+// chooses them, REVIVE;APPEAR), those beyond SHAPES start with NEUTRAL_LOOK, which their
+// chosen look replaces; without, there are shapes for six.
+export function storyPlan(outline, { looks = false } = {}) {
   if (!outline.scenes.length) throw new Error("the film description defines no scenes");
   if (!outline.characters.length) throw new Error("the film description defines no characters");
   const ken = outline.scenes.length === SCENES.length && outline.scenes.every((s, k) => s === SCENES[k]);
@@ -416,6 +498,7 @@ export function storyPlan(outline) {
   const free = SHAPES.map((_, k) => k).filter((k) => !taken.has(k));
   const cast = outline.characters.map((name) => {
     const k = KEN_SHAPES[name] ?? free.shift();
+    if (k === undefined && looks) return { name, shape: NEUTRAL_LOOK.shape, lisp: NEUTRAL_LOOK.lisp };
     if (k === undefined) throw new Error(`Ani's films have shapes for at most ${SHAPES.length} characters`);
     return { name, shape: SHAPES[k].shape, lisp: SHAPES[k].lisp };
   });
@@ -454,16 +537,17 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     const versions = fs.dirs.get("KEN")?.get("CINDY");
     const top = versions ? Math.max(0, ...[...versions.keys()].filter((k) => /^\d+$/.test(k)).map(Number)) : 0;
     fs.addFile("KEN", "CINDY", String(top + 1), { text: description, origin: "changed" });
-    plan = storyPlan(storyOutline(description));
+    plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions) });
   }
   const order = scenes || (plan ? plan.scenes.map((s) => s.id) : SCENES);
-  progress("pass1", "Pass 1: choosing how each character moves");
+  progress("pass1", choosesLooks(extensions) ? "Pass 1: choosing how each character moves and looks" : "Pass 1: choosing how each character moves");
   yield;
   const p1 = pass1(fs, { extensions });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
   if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
   if (p1.repairs) out.repairs = p1.repairs; // pass 1's, as each scene's glass box has its own
-  onPass1({ choices: p1.choices, choicePoints: p1.choicePoints, ...(p1.repairs ? { repairs: p1.repairs } : {}) });
+  if (p1.appearances) out.appearances = p1.appearances; // how Ani chose each character's look
+  onPass1({ choices: p1.choices, choicePoints: p1.choicePoints, ...(p1.repairs ? { repairs: p1.repairs } : {}), ...(p1.appearances ? { appearances: p1.appearances } : {}) });
   for (const scene of order) {
     let done;
     try {
