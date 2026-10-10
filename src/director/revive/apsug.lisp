@@ -106,7 +106,7 @@
 		      (ask ,relationship process suggestions
 			   (for (,element ? ?) (quote ,relation) strength (quote ,strength)))
 		      (putprop relationship
-			       (cons (list element relation strength (first evidence))
+			       (cons (list element relation strength (cons 'and evidence))
 				     (get relationship 'appearance-evidence))
 			       'appearance-evidence))))
 	:appearance-relationship-knowledge))

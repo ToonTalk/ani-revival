@@ -22,7 +22,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { makeFilmSteps, storyOutline, storyPlan, pass1, pass2, film } from "../src/pipeline.js";
+import { makeFilmSteps, storyOutline, storyPlan, pass1, pass2, film, isAppearanceChoice, choosesLooks } from "../src/pipeline.js";
 import { Lisp } from "../src/maclisp/index.js";
 import { printString } from "../src/maclisp/printer.js";
 
@@ -47,7 +47,7 @@ const description = readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n");
 const root = fileURLToPath(new URL("..", import.meta.url));
 const fs = makeProjectFileSystem(root);
 // as makeFilmSteps makes it, for running a failed step again
-const plan = storyPlan(storyOutline(description));
+const plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions) });
 
 // Each step boots its own Lisp (src/pipeline.js boot), which first loads KEN;LISP; the
 // last one booted is the step that stopped, and what it typed (Ken's warnings, and the
@@ -113,6 +113,7 @@ function oddChoices(choicePoints) {
     const v = cp.currentChoice;
     if (v !== "none" && !(Array.isArray(v) && v[0] === "not")) continue;
     const element = cp.elementName || (Array.isArray(cp.name) ? cp.name[2] : null);
+    if (isAppearanceChoice(show(cp.name))) continue; // REVIVE;APPEAR reads its own (not X) and none
     (/^attraction-/.test(element || "") ? unread : odd).push({ choicePoint: cp.name, value: v });
   }
   return { odd, unread };
@@ -162,6 +163,14 @@ const steps = makeFilmSteps(fs, {
     if (unread.length) console.log(`       ${unread.length} not read in pass 2 (on an attraction, which only pass 1 uses):`);
     for (const o of unread) console.log(`         ${show(o.choicePoint)} = ${show(o.value)}`);
     for (const n of result.pass1.repairs || []) console.log(`         repair: ${n}`);
+    // how Ani chose each character's look (REVIVE;APPEAR)
+    if (p.appearances) {
+      result.pass1.looks = p.appearances.characters.map((c) => ({ character: c.character, ...c.look, elements: c.elements }));
+      for (const c of p.appearances.characters) {
+        console.log(`         ${c.character} looks: ${c.look.shape}, size ${c.look.aniSize} (${Object.entries(c.elements).map(([e, x]) => `${e} ${show(x.value)} from ${x.sources.join(", ")}`).join("; ")})`);
+      }
+      for (const f of p.appearances.findings) console.log(`         telling apart: ${f.items.join(" ")}`);
+    }
   },
   onScene: (s) => {
     const r = { id: s.id, ok: !s.error, seconds: seconds(at.t0) };

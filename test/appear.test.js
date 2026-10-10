@@ -10,7 +10,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { boot, pass1, EXTENSIONS, APPEARANCE_ELEMENTS, isAppearanceChoice } from "../src/pipeline.js";
+import { boot, pass1, recorder, storyPlan, EXTENSIONS, APPEARANCE_ELEMENTS, isAppearanceChoice } from "../src/pipeline.js";
 import { UNIT_BIT } from "../src/tv/turtle.js";
 import { gatherWorld, checkAlone } from "../tools/check-appear.mjs";
 import { choicesOfItsFile } from "../tools/choices.mjs";
@@ -247,4 +247,25 @@ test("Director takes a look: the shape and the size it draws change", () => {
   assert.equal(drawn("step-mother").count, 4); // Ken's square
   run("(ask step-mother take look (look: shape triangle angle 120 center-offset (right 30) ani-size 0.07))");
   assert.equal(drawn("step-mother").count, 3);
+  // the recorder keeps who looks how from which frame, changes only
+  const film = recorder(L, { looks: true, cast: ["cinderella", "step-mother"] });
+  run("(click)");
+  run("(ask cinderella take look (look: shape hexagon angle 60 center-offset nil ani-size 0.05))");
+  run("(click)");
+  run("(click)");
+  assert.equal(film.frames.length, 3);
+  assert.deepEqual(film.looks, [
+    [0, "cinderella", { shape: "circle", angle: 5, centerOffset: null, aniSize: 0.072 }],
+    [0, "step-mother", { shape: "triangle", angle: 120, centerOffset: "(right 30)", aniSize: 0.07 }],
+    [1, "cinderella", { shape: "hexagon", angle: 60, centerOffset: null, aniSize: 0.05 }],
+  ]);
+  assert.deepEqual(Object.keys(film.frames[0].chars.cinderella), ["state", "visible", "dynamics", "goal"]); // frames[].chars as without
+});
+
+test("a cast larger than SHAPES' six: with Ani choosing the looks, those beyond start as a hexagon her look then replaces", () => {
+  const outline = { scenes: ["one"], characters: ["a", "b", "c", "d", "e", "f", "g"], fromScenes: { one: [] } };
+  assert.throws(() => storyPlan(outline), /at most 6 characters/);
+  const plan = storyPlan(outline, { looks: true });
+  assert.deepEqual(plan.cast.map((c) => c.shape), ["star", "square", "triangle", "circle", "pentagon", "hexagon", "hexagon"]);
+  assert.equal(plan.cast[6].lisp, "(set your angle to 60)");
 });
