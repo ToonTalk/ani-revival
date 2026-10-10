@@ -9,7 +9,8 @@
 ;;;
 ;;; The repair. A move that has gone on for longer than the most time Ani allows for a
 ;;; walk that long stops where it is, as if there, and its subscene notes it. For a
-;;; move to a moving target, only the time the mover stands still counts.
+;;; move to a moving target, only the time the mover spends waiting for someone to
+;;; move counts.
 ;;;
 ;;; Where it never ends. Director moves a character to a place a step a tick, and the
 ;;; move ends when its stop condition says this step gets there (go in arc,
@@ -67,21 +68,25 @@
 ;;; ...) (action.152:283-293), the whole time counts. A move to a moving target, such
 ;;; as contact with someone, may rightly take longer, since the target may move away
 ;;; (Ken stops those that may not end with stop-when-there-then's plans and
-;;; move-only-original-distance); so for it only the ticks the mover stands still
-;;; count, for standing still gets nearer to nothing. Those of Ken's conditions that
-;;; have a receiver of their own (move-only-original-distance, stop-if-either-wants-to,
-;;; always-happy-condition) answer as before; through stop-if-either-wants-to, a
-;;; stop-when-there inside it is held to the time too.
+;;; move-only-original-distance); so for it only the ticks in which Ken's careful step
+;;; backs up to wait for someone to move count (dichar.103:317-318), for waiting gets
+;;; nearer to nothing. The step is extended to note that on the mover, and does all
+;;; else as before. Those of Ken's conditions that have a receiver of their own
+;;; (move-only-original-distance, stop-if-either-wants-to, always-happy-condition)
+;;; answer as before; through stop-if-either-wants-to, a stop-when-there inside it is
+;;; held to the time too.
 ;;;
 ;;; The note, on the subscene, while filming:
 ;;;   (revival-repair: what overdue-move was (witch going-to <the place>)
 ;;;		       now stopped-as-if-there because (more-than <the most> seconds))
-;;; or, for a moving target, because (still-for-more-than <the most> seconds).
-;;; Every move of Ken's Cinderella gets there in its time, so in her run this only
-;;; counts the time of each move.
+;;; or, for a moving target, because (waiting-for-more-than <the most> seconds).
+;;; In Ken's Cinderella no move to a stationary place runs over its time, and no one
+;;; waits for longer than that, at 4 frames a second or at 24 (reports/film/24fps), so
+;;; in her run this only counts.
 
 ;; Ken's stop-when-there condition, which first asks if this step gets there, and
-;; otherwise if the move is overdue (0.0) or not (nil).
+;; otherwise if the move is overdue (0.0) or not (nil). And Ken's careful step, which
+;; is as it was, but notes on the mover when it waits for someone to move.
 (defun extend-stop-when-there-to-stop-overdue-moves ()
   (let ((:insert-methods-at-end nil))
        (define-extension-method
@@ -89,13 +94,32 @@
 	arc-stop-condition
 	(or (ask-old :self should ,who stop after moving ,distance of ,distance-left
 		     to ,destination)
-	    (overdue-move-stops :self who)))))
+	    (overdue-move-stops :self who)))
+       (define-extension-method
+	(forward ?distance towards ?goal originally ?original-goal
+		 dragging ?others-being-dragged along
+		 avoiding ?others-on-stage ?offset degrees off target)
+	director-character
+	(note-if-waiting
+	 :self
+	 (ask-old :self forward ,distance towards ,goal originally ,original-goal
+		  dragging ,others-being-dragged along
+		  avoiding ,others-on-stage ,offset degrees off target)))))
+
+;; Ken's careful step answers (waiting for <the other> to move) when it backs up to wait
+;; (dichar.103:317-318). That is kept on the mover, as a property, for its stop
+;; condition to read when next asked; whatever the step answered is its answer still.
+(defun note-if-waiting (mover answer)
+  (and (not (atom answer))
+       (eq (first answer) 'waiting)
+       (putprop mover t 'revival-waited))
+  answer)
 
 (defun overdue-move-stops (condition who)
   (let ((goal (ask ,who recall your current-goal))
 	(most (most-time-for-move condition who))
-	(stood-still? (stood-still-since-asked? condition who)))
-       (cond ((not (or (eq (first goal) 'stationary-target) stood-still?)) nil)
+	(waited? (waited-since-asked? who)))
+       (cond ((not (or (eq (first goal) 'stationary-target) waited?)) nil)
 	     (t (let ((gone (ask ,condition set your revival-seconds-gone to
 				 ,(+$ (or (ask ,condition recall your revival-seconds-gone)
 					  0.0)
@@ -109,18 +133,19 @@
 					  'stopped-as-if-there
 					  (cond ((eq (first goal) 'stationary-target)
 						 (list 'more-than most 'seconds))
-						(t (list 'still-for-more-than most 'seconds))))
+						(t (list 'waiting-for-more-than most 'seconds))))
 			    0.0) ;;done and don't go anymore
 			   (t nil)))))))
 
-;; Whether the mover is where it was when last asked, to within the 1.0 that go in arc
-;; counts as there (dichar.103:177-178).
-(defun stood-still-since-asked? (condition who)
-  (let ((here (ask ,who recall your position))
-	(before (ask ,condition recall your revival-position-asked)))
-       (ask ,condition set your revival-position-asked to ,here)
-       (and before
-	    (< (float (ask ,who yield distance to ,before)) 1.0))))
+;; Whether the mover's last step waited for someone to move, the note taken away. Only
+;; waiting counts, not going slowly or not yet going: at 24 frames a second Cinderella,
+;; going to meet the Prince in Justice, stays where she is for ten frames, then goes
+;; half a dot a frame, and is still on her way when the most for her walk, three
+;; seconds, is up (reports/film/24fps/justice.film.json, frames 352-436).
+(defun waited-since-asked? (who)
+  (let ((waited? (get who 'revival-waited)))
+       (remprop who 'revival-waited)
+       waited?))
 
 ;; Ani's most for the walk, from the distance the move started with and the mover's
 ;; speed (place.45:528-559), made once, when the condition is first asked. nil if
@@ -141,6 +166,7 @@
 (defun seconds-a-tick ()
   (//$ (*$ (float :frames-per-second) (float :ticks-per-frame))))
 
-;; arc-stop-condition is DICHAR's, so it is extended once DICHAR has loaded.
+;; arc-stop-condition and director-character's careful step are DICHAR's, so they are
+;; extended once DICHAR has loaded.
 (+after-load '|ken;dichar >|
   '(revival-once 'mend12-overdue 'extend-stop-when-there-to-stop-overdue-moves))
