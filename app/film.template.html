@@ -594,7 +594,9 @@ function about(d) {
 // a task: establish ... or convey ...
 function taskText(kind, d) {
   if (kind !== "establish") return `to convey that ${about(d)}`;
-  return Array.isArray(d) && d[0] === "personality" ? `to establish ${about(d)}` : `to establish that ${about(d)}`;
+  const t = about(d);
+  // "what the hare is like (...)" and "how the hare feels about ..." take no "that"
+  return /^(what|how) /.test(t) ? `to establish ${t}` : `to establish that ${t}`;
 }
 // what a task is for, at the top of its chain: the description's own words
 function purpose(t) {
@@ -2462,18 +2464,18 @@ function comparePanel() {
     return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(valueOf(cp.currentChoice))}</b> <span class="was">(was ${esc(old ? valueOf(old.currentChoice) : "—")})</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
   }).join("");
   const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
-  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "—"; };
+  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : other ? "no actions; Ani changes how they move" : "—"; };
   const yoursOf = (y) => {
     const fixed = ready(y) ? repairItems(b, sceneNotes(y), y).length : 0;
     const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">never ended</span>` : "";
     return ready(y) ? `${len(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}${capped}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : st.running ? "not made yet" : "not made";
   };
   // what the story asks of a scene, in plain words (as the story panel's scene cards say it)
-  const told = (run, id) => {
+  const told = (run, id) => using(run, () => {
     const t = run.story.scenes[id];
     const tasks = t ? tasksOf(t.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))) : [];
     return tasks.length ? esc(tasks.join("; ")) : "—";
-  };
+  });
   const scenes = other
     ? b.sceneIds.map((id, i) => {
       const y = b.scenes[i];
