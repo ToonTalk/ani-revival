@@ -135,9 +135,12 @@ export function boot(fs, { backtrace = false, extensions = [] } = {}) {
 // revival's repairs left notes (REVIVE;MEND8's on a comparison, say), those. An
 // extension's afterPass1 runs after (z), before the choices are saved; with one that
 // chooses the characters' looks (REVIVE;APPEAR), pass 1 also returns appearances
-// (src/glassbox-pass1.js collectAppearances).
-export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [] } = {}) {
+// (src/glassbox-pass1.js collectAppearances). setup, if given, is called with the Lisp
+// once it has booted, before DATEST loads (tools/check-appear.mjs leaves out some of
+// APPEAR's knowledge with it).
+export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null } = {}) {
   const L = boot(fs, { backtrace, extensions });
+  if (setup) setup(L);
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
   L.evalString("(z)");

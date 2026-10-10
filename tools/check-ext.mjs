@@ -11,18 +11,31 @@
 //     characters (reports/pass2's POSIT files, as tools/check-1978.mjs --quick has
 //     them): its program, once the looks written at its end are taken off, and its
 //     summary (KEN1;<fn1> MINI) and printout are byte for byte reports/pass2's, its
-//     glass box, without its looks, is reports/pass2/<scene>.glass.json, and the
-//     program ends with a look for each character, as pass 1 chose it;
+//     glass box, without its looks, is reports/pass2/<scene>.glass.json, and what
+//     follows 1978's program is exactly the take-look forms, one for each character,
+//     as pass 1 chose its look (REVIVE;APPEAR take-look-forms), each printed on a line
+//     of its own as dicks-print prints every form of the program;
 //   - the whole film, chained, at 4 frames a second (pass 1, then each scene's pass 2
 //     and filming, each starting from where the last filming left the characters, as
 //     the film page makes it): each scene's program, summary, printout, glass box,
 //     film (frames, events and looks) and POSIT file are those in reports/ext/appear/.
 //     Director's collisions use the characters' sizes (dichar.103:348-358), so these
 //     differ from 1978's; reports/ext/appear/README.md says how and why.
-// Usage: node tools/check-ext.mjs [--extensions appear] [--quick] [--save]
+// Usage: node tools/check-ext.mjs [--extensions appear] [--quick] [--fps 24] [--save]
 //   --quick  skip the chained film (about three of its four minutes)
-//   --save   write the chained film's files to reports/ext/<ids>/ instead of comparing
-//            them (and pass 1's KEN;CP 30 and appearances), after checking the rest
+//   --fps 24 film the chain at 24 frames a second, as the film page does by default,
+//            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
+//            from 1978's positions doesn't depend on the frame rate and is left to the
+//            check at 4). Only with MEND as well, as the page makes it with the
+//            revival's extensions: --extensions mend,appear, against
+//            reports/ext/mend+appear/24fps. At 24 frames a second, APPEAR alone films a
+//            Meeting that never ends: going to meet the Prince, Cinderella waits where
+//            she stands, turning this way and that, for someone in her way to move, and
+//            never sets off; REVIVE;MEND12 stops a walk that waits so long, as if she had
+//            got there. About 20 minutes.
+//   --save   write the chained film's files to reports/ext/<ids>/ (or its 24fps/)
+//            instead of comparing them (and pass 1's KEN;CP 30 and appearances), after
+//            checking the rest
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -37,7 +50,14 @@ if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.jo
 if (!extensions.includes("appear")) throw new Error("so far tools/check-ext.mjs knows what APPEAR should make; give it --extensions with appear");
 const quick = args.includes("--quick");
 const save = args.includes("--save");
+const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
+if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
+if (fps === 24 && quick) throw new Error("--quick skips the chained film, so --fps 24 would check only pass 1");
+if (fps === 24 && !extensions.includes("mend")) throw new Error("at 24 frames a second APPEAR alone films a Meeting that never ends (going to meet the Prince, Cinderella waits for someone in her way to move, and never sets off), a walk REVIVE;MEND12 stops: the goldens at 24 are of MEND and APPEAR, as the film page makes them (--extensions mend,appear)");
+// as tools/check-1978.mjs films: a scene takes six times the frames at 24 that it takes at 4
+const frames = fps === 24 ? 6000 : 1000;
 const dir = `reports/ext/${extensions.join("+")}`;
+const filmDir = fps === 24 ? `${dir}/24fps` : dir;
 
 const read = (path) => readFileSync(path, "utf8");
 const t0 = Date.now();
@@ -70,7 +90,7 @@ const textIn = (fs, d, fn1, fn2) => {
 };
 // A golden of the chained film: written with --save, else compared.
 function golden(what, name, text) {
-  const path = `${dir}/${name}`;
+  const path = `${filmDir}/${name}`;
   if (save) {
     writeFileSync(path, text);
     return console.log(`saved  ${what} as ${path}`);
@@ -82,7 +102,7 @@ function finish() {
   console.log(failures ? `\n${failures} check${failures > 1 ? "s" : ""} FAILED (${total} s)` : `\nall checks ok (${total} s)`);
   process.exit(failures ? 1 : 0);
 }
-if (save) mkdirSync(dir, { recursive: true });
+if (save) mkdirSync(filmDir, { recursive: true });
 
 // The program pass 2 wrote, without the looks REVIVE;APPEAR writes at its end:
 // (ASK CINDERELLA TAKE LOOK (LOOK: ...)) and so on, one for each character, each on a
@@ -102,7 +122,7 @@ const withoutLooksKey = (glass) => {
   return rest;
 };
 
-console.log(`Ani with the extensions ${extensions.join(", ")}, against 1978 and ${dir}${quick ? ", without the chained film" : ""}${save ? " (saving the chained film's files)" : ""}\n`);
+console.log(`Ani with the extensions ${extensions.join(", ")}, against 1978 and ${filmDir}${quick ? ", without the chained film" : `, the chained film at ${fps} frames a second`}${save ? " (saving the chained film's files)" : ""}\n`);
 
 // ---------------------------------------------------------------- pass 1
 const fs1 = makeProjectFileSystem();
@@ -134,7 +154,7 @@ const characters = (p1.value.appearances?.characters || []).map((c) => c.charact
 // ---------------------------------------------------------------- pass 2, from 1978's positions
 // Each scene planned from where the 1978 film left the characters, so that its plan can
 // be set beside 1978's: with the looks taken off, the same files.
-{
+if (fps === 4) {
   const fs2 = makeProjectFileSystem();
   fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
   for (const f of readdirSync("reports/pass2")) {
@@ -147,9 +167,15 @@ const characters = (p1.value.appearances?.characters || []).map((c) => c.charact
     const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
     const program = textIn(fs2, "KEN", fn1, fn2);
     check(`${scene}: KEN;${fn1} ${fn2}, without its looks, as 1978's (reports/pass2)`, same(withoutLooks(program), read(`reports/pass2/ken-${lower}.${fn2.toLowerCase()}`)), p2.seconds);
-    const looks = looksOf(program);
-    const missing = characters.filter((c) => !looks.includes(`(ASK ${c.toUpperCase()} TAKE LOOK `));
-    check(`${scene}: the program ends with a look for each of the ${characters.length} characters`, missing.length || !characters.length ? `none for ${missing.join(", ") || "anyone"}` : null);
+    // what was taken off is exactly the take-look forms, one for each character, as
+    // the Lisp that wrote the program prints them: nothing else, nothing missing
+    const L = p2.value.lisp;
+    const forms = L.toArray(L.evalString(`(take-look-forms '${scene})`));
+    const expected = forms.map((f) => `\n${L.print(f)} `).join("");
+    const named = forms.map((f) => L.print(L.toArray(f)[1]).toLowerCase());
+    const missing = characters.filter((c) => !named.includes(c));
+    check(`${scene}: what follows 1978's program is exactly the ${forms.length} take-look forms`, same(looksOf(program), expected));
+    check(`${scene}: a look for each of the ${characters.length} characters`, missing.length || !characters.length ? `none for ${missing.join(", ") || "anyone"}` : null);
     check(`${scene}: KEN1;${fn1} MINI as 1978's`, same(textIn(fs2, "KEN1", fn1, "MINI"), read(`reports/pass2/ken1-${lower}.mini`)));
     check(`${scene}: KEN1;${fn1} PRINT as 1978's`, same(textIn(fs2, "KEN1", fn1, "PRINT"), read(`reports/pass2/ken1-${lower}.print`)));
     check(`${scene}: the glass box, without its looks, as 1978's`, same(JSON.stringify(withoutLooksKey(p2.value.glass), null, 1), read(`reports/pass2/${scene}.glass.json`)));
@@ -169,7 +195,7 @@ if (!quick) {
     golden(`${scene}: KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs3, "KEN1", fn1, "MINI"));
     golden(`${scene}: KEN1;${fn1} PRINT`, `ken1-${lower}.print`, textIn(fs3, "KEN1", fn1, "PRINT"));
     golden(`${scene}: the glass box`, `${scene}.glass.json`, JSON.stringify(p2.value.glass, null, 1));
-    const f = run(`${scene}: filming, chained`, () => film(fs3, scene, { extensions }));
+    const f = run(`${scene}: filming, chained`, () => film(fs3, scene, { extensions, fps, frames }));
     const ours = f.value.film;
     console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events, ${ours.looks.length} looks`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));

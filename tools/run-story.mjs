@@ -166,8 +166,12 @@ const steps = makeFilmSteps(fs, {
     // how Ani chose each character's look (REVIVE;APPEAR)
     if (p.appearances) {
       result.pass1.looks = p.appearances.characters.map((c) => ({ character: c.character, ...c.look, elements: c.elements }));
+      // each choice with where it came from, and, where the look as drawn has another
+      // value (a (not X) drawn as one value, or a choice the shape experts overrode),
+      // that value and the experts' (overridden-by: ...)
+      const drawnAs = (x) => (x.drawn && x.drawn !== show(x.value) ? `, drawn ${x.drawn}${x.overriddenBy ? ` ${x.overriddenBy.join(" ")}` : ""}` : "");
       for (const c of p.appearances.characters) {
-        console.log(`         ${c.character} looks: ${c.look.shape}, size ${c.look.aniSize} (${Object.entries(c.elements).map(([e, x]) => `${e} ${show(x.value)} from ${x.sources.join(", ")}`).join("; ")})`);
+        console.log(`         ${c.character} looks: ${c.look.shape}, size ${c.look.aniSize} (${Object.entries(c.elements).map(([e, x]) => `${e} ${show(x.value)} from ${x.sources.join(", ")}${drawnAs(x)}`).join("; ")})`);
       }
       for (const f of p.appearances.findings) console.log(`         telling apart: ${f.items.join(" ")}`);
     }

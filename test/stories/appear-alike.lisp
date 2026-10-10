@@ -2,9 +2,9 @@
 ;; cast: dum = Dum (he); dee = Dee (he)
 ;; scenes: the-meeting = The Meeting
 ;; A test story for REVIVE;APPEAR (test/appear.test.js): two characters whose words
-;; would have the shape experts draw both as a circle (friendly is smooth, shy is plain),
-;; but who are not so alike that Ani's comparisons tell her to keep them so, since
-;; only Dee is hard-working. Ani tells them apart by choosing the least justified of
+;; would have the shape experts draw both alike, as a hexagon (friendly is smooth, and
+;; both are shy), but who are not so alike that Ani's comparisons tell her to keep them
+;; so, since only Dee is hard-working. Ani tells them apart by choosing the least justified of
 ;; their shape choices again.
 
 (include |ai:ken;declar >|)

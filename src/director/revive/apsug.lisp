@@ -26,13 +26,15 @@
 ;;;     are jagged is drawn jagged, and one that moves quickly is drawn simply, since
 ;;;     detail is lost in quick movement.
 ;;;  5. The film's levels: "size is also bigger is flashier" (Ken's comment in
-;;;     (flashiness level), glosug.41:39); the shape experts choose "on the basis of
-;;;     the desired levels of variety, simplicity, originality" (p. 164), so the film's
-;;;     complexity suggests the shapes' complexity; "if the film is supposed to be
+;;;     (flashiness level), glosug.41:39). The revival's: a film that is not obvious
+;;;     leans the looks toward medium, motivated by "if the film is supposed to be
 ;;;     obvious, then many aspects should be used---if subtle, then only a few"
-;;;     (p. 165), so a subtle film keeps the looks medium. Variety and originality need
-;;;     nothing: they suggest a value for any element with possible values
-;;;     (glosug.41:43-55, 87-104).
+;;;     (p. 165). Variety and originality need nothing: they suggest a value for any
+;;;     element with possible values (glosug.41:43-55, 87-104). The film's complexity
+;;;     suggests nothing for the shape elements: p. 164 has the experts' offers
+;;;     "selected between on the basis of the desired levels of variety, simplicity,
+;;;     originality", which REVIVE;SHAPES's select-shape does, and a suggestion for
+;;;     shape-complexity as well would count the film's complexity twice.
 ;;;
 ;;; Every piece of knowledge here carries its evidence, which the glass box shows: the
 ;;; thesis's page, (thesis 161 |smooth is friendly|); a line of Ken's code,
@@ -45,15 +47,23 @@
 
 ;;; ------------------------------------------------- 1. descriptors
 
-;; (descriptor element value strength evidence). The thesis's p. 238 is cited only for
-;; strong's size: it names a large shape for "a strong friendly ally" as a deliberately
-;; atypical choice, not that strong means pointed (pointed is "typically an unfriendly
-;; shape", which unfriendly gets from friendly's opposite). Evil's red, which would give
-;; back Ken's red stepmother, is not here.
+;; (descriptor element value strength evidence). Only friendly's smooth is the thesis's
+;; own (p. 161); the rest are the revival's, each with its reason. shabby's ragged
+;; outline is motivated by p. 166, where the script changes Cinderella "from being
+;; shabby and ragged", which says what shabby is, not how Ani is to draw it. Two are not
+;; here, since each would give back one of Ken's 1978 looks, and Ken's decision of 9
+;; October 2026 drops any piece of the revival's that does (reports/chapter-x/PLAN.md,
+;; "Decisions" 4):
+;;  - evil's red, Ken's red stepmother;
+;;  - strong's large size, the revival's generalization of p. 238, which gives a large
+;;    shape to "a strong friendly ally" only as a deliberately atypical choice for a
+;;    friendly character. With it Ani drew the stepmother large, as Ken drew her, and
+;;    without it she doesn't (tools/check-appear.mjs, 5: Ken's own dominates,
+;;    relate.22:63, loses to her looking different from the Prince). Nor does strong
+;;    mean pointed: pointed is "typically an unfriendly shape", which unfriendly gets
+;;    from friendly's opposite.
 (setq :appearance-knowledge
-      '((strong size high medium
-	 (thesis 238 |The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally|))
-	(physically-strong size high high
+      '((physically-strong size high high
 	 (why |bodily strength shows most directly as bulk|))
 	(shy size low medium
 	 (why |a shy character keeps small and takes up little room|))
@@ -62,9 +72,9 @@
 	(graceful shape-jaggedness low medium
 	 (why |graceful movement is smooth movement, and graceful already suggests smooth paths (dscrp.17:100), so a smooth outline|))
 	(shabby shape-jaggedness high low
-	 (thesis 166 |changes Cinderella from being shabby and ragged|))
+	 (why |a shabby character is ragged, so its outline is ragged too (motivated by p. 166, where the fairy godmother changes Cinderella from being shabby and ragged to being beautiful and elegant)|))
 	(mean shape-jaggedness high medium
-	 (why |a mean character is drawn sharp and spiky, the other side of smooth is friendly (p. 161)|))
+	 (why |sharp, spiky outlines read as hostile, so a mean character is drawn jagged: a convention, of the kind appearances rest on (p. 161)|))
 	(shy shape-complexity low low
 	 (why |a shy character draws no attention to itself, so a plain shape|))
 	(magical shape-complexity high medium
@@ -121,7 +131,15 @@
 ;; on each relative appearance element, as strongly as it is unique. And look-alike:,
 ;; a summary as uniqueness-summary: is, whose finding, two characters the experts would
 ;; draw alike (REVIVE;APPEAR, 3), suggests that they differ on the shape's elements.
+;; Each of the two is taught by a function of its own, so that tools/check-appear.mjs
+;; can leave either out when it asks what Ani would choose without it.
 (defun teach-comparisons-about-appearance ()
+  (teach-uniqueness-about-appearance)
+  (let ((:insert-methods-at-end nil))
+       (define look-alike: summary))
+  (teach-look-alike-about-appearance))
+
+(defun teach-uniqueness-about-appearance ()
   (ask uniqueness-summary: process suggestions
        (suggestion: element ({or relative-size relative-shape-jaggedness
 				 relative-shape-complexity}
@@ -135,15 +153,15 @@
 	   '((physical (relative-size relative-shape-jaggedness relative-shape-complexity)
 		       different-from level
 		       (thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|)))
-	   'appearance-evidence)
-  (let ((:insert-methods-at-end nil))
-       (define look-alike: summary
-	(process suggestions
-		 (suggestion: element ({or relative-shape-jaggedness relative-shape-complexity}
-				       ? ?)
-			      value 'different-from
-			      strength 'high
-			      source (look-alike: shape ? of-who ?)))))
+	   'appearance-evidence))
+
+(defun teach-look-alike-about-appearance ()
+  (ask look-alike: process suggestions
+       (suggestion: element ({or relative-shape-jaggedness relative-shape-complexity}
+			     ? ?)
+		    value 'different-from
+		    strength 'high
+		    source (look-alike: shape ? of-who ?)))
   (putprop 'look-alike:
 	   '((drawn-alike (relative-shape-jaggedness relative-shape-complexity)
 			  different-from high
@@ -266,24 +284,27 @@
 
 ;; Which of the film's levels suggest a value for each appearance element:
 ;; ((level relation strength evidence) ...). same: the level's value (flashiness low,
-;; size low); medium-unless-high: medium, unless the level is high.
+;; size low); medium-unless-high: medium, unless the level is high. p. 165 says how
+;; many aspects a film should use, not what a look's values should be: reading "only a
+;; few" as a subtle film leaving the looks it doesn't use at medium, which says
+;; nothing, is the revival's. The film's complexity is not here (see the top of this
+;; file): p. 164 gives it to choosing among the experts' shapes, REVIVE;SHAPES's
+;; select-shape.
 (defprop size
 	 (((flashiness level) same medium
 	   (code |glosug.41:39| |size is also bigger is flashier|))
 	  ((obviousness level) medium-unless-high low
-	   (thesis 165 |If the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few|)))
+	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
 	 film-level-suggestions)
 
 (defprop shape-jaggedness
 	 (((obviousness level) medium-unless-high low
-	   (thesis 165 |If the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few|)))
+	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
 	 film-level-suggestions)
 
 (defprop shape-complexity
-	 (((complexity level) same medium
-	   (thesis 164 |combined, compared, and selected between on the basis of the desired levels of variety, simplicity, originality|))
-	  ((obviousness level) medium-unless-high low
-	   (thesis 165 |If the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few|)))
+	 (((obviousness level) medium-unless-high low
+	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
 	 film-level-suggestions)
 
 ;; Each of those levels answers as before (glosug.41), and, if that is nothing, with
@@ -292,9 +313,6 @@
 (defun extend-film-levels-to-appearance ()
   (let ((:insert-methods-at-end nil))
        (define-extension-method (yield suggestions for ?choice-point) (flashiness level)
-	(or (ask-old :self yield suggestions for ,choice-point)
-	    (film-level-appearance-suggestion :self choice-point)))
-       (define-extension-method (yield suggestions for ?choice-point) (complexity level)
 	(or (ask-old :self yield suggestions for ,choice-point)
 	    (film-level-appearance-suggestion :self choice-point)))
        (define-extension-method (yield suggestions for ?choice-point) (obviousness level)

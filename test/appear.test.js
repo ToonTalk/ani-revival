@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { boot, pass1, recorder, storyPlan, EXTENSIONS, APPEARANCE_ELEMENTS, isAppearanceChoice } from "../src/pipeline.js";
 import { UNIT_BIT } from "../src/tv/turtle.js";
-import { gatherWorld, checkAlone } from "../tools/check-appear.mjs";
+import { gatherWorld, checkAlone, checkPairs, checkCombinations } from "../tools/check-appear.mjs";
 import { choicesOfItsFile } from "../tools/choices.mjs";
 
 function lisp(extensions = ["appear"]) {
@@ -86,19 +86,23 @@ test("in 1978 mode none of this is there", () => {
 test("the knowledge: each entry is taught as Ken's process suggestions takes it, with its evidence", () => {
   const { run, L } = setUp();
   const entries = L.toArray(L.evalString(":appearance-knowledge"));
-  assert.ok(entries.length >= 9);
+  assert.ok(entries.length >= 8);
   for (const entry of entries) {
     const [descriptor, element, value, strength, evidence] = L.toArray(entry).map((x) => L.print(x));
     assert.match(evidence, /^\((THESIS \d+|CODE |WHY )/, `${descriptor}'s ${element} has its evidence`);
     assert.equal(run(`(ask ${descriptor} collect items memorized matching (suggestion: element ${element} value ? strength ? source ?))`),
       `((SUGGESTION: ELEMENT ${element} VALUE ${value} STRENGTH ${strength} SOURCE ${descriptor}))`);
   }
-  // the review's corrections: p. 238 only for strong's size; no strong pointed, no evil red
+  // the reviews' corrections: no strong pointed, no evil red, and no strong large (the
+  // revival's generalization of p. 238's atypical example, which gave back Ken's large
+  // stepmother: tools/check-appear.mjs); only friendly's smooth is the thesis's own
+  // (p. 161), and shabby's ragged outline is the revival's, motivated by p. 166
   const text = entries.map((e) => L.print(e)).join(" ");
-  assert.equal((text.match(/THESIS 238/g) || []).length, 1);
-  assert.match(text, /\(STRONG SIZE HIGH MEDIUM \(THESIS 238 /);
-  assert.doesNotMatch(text, /\(STRONG SHAPE-JAGGEDNESS/);
+  assert.doesNotMatch(text, /THESIS 238/);
+  assert.doesNotMatch(text, /\(STRONG /);
   assert.doesNotMatch(text, /\(EVIL /);
+  assert.deepEqual(text.match(/\(THESIS \d+/g), ["(THESIS 161"]);
+  assert.match(text, /\(SHABBY SHAPE-JAGGEDNESS HIGH LOW \(WHY \|.*motivated by p\. 166/);
   // dominates suggests a greater relative size, as its comment says (relate.22:63)
   assert.equal(run("(ask dominates collect items memorized matching (suggestion: element (relative-size step-mother cinderella) value ? strength ? source ?))"),
     "((SUGGESTION: ELEMENT (RELATIVE-SIZE STEP-MOTHER CINDERELLA) VALUE GREATER-THAN STRENGTH MEDIUM SOURCE DOMINATES))");
@@ -121,12 +125,21 @@ test("check-appear: no piece of the revival's knowledge gives back Ken's 1978 lo
   const found = checkAlone(world, cp29);
   assert.deepEqual(found.filter((f) => f.revivals), []);
   // Ken's own knowledge that agrees with his drawing is listed, not failed
-  assert.deepEqual(found.map((f) => `${f.knowledge.source} ${f.knowledge.element}`).sort(), ["dominates relative-size", "strong size"]);
+  assert.deepEqual(found.map((f) => `${f.knowledge.source} ${f.knowledge.element}`).sort(), ["dominates relative-size"]);
+  // his .05 is his medium (p. 17): a piece that makes the stepmother large and the
+  // fairy godmother and the Prince large too doesn't give back his looks wherever it
+  // reaches, but where it gives the stepmother his large size it is flagged, pair by pair
+  const strongLarge = { kind: "descriptor", source: "strong", element: "size", value: "high", strength: "medium", evidence: { why: "test" } };
+  assert.deepEqual(checkAlone({ ...world, knowledge: [strongLarge] }, cp29), []);
+  assert.deepEqual(checkPairs({ ...world, knowledge: [strongLarge] }, cp29).map((p) => [p.character, p.value, p.apart]), [["step-mother", "high", true]]);
+  // two of the revival's that together give the stepmother Ken's square are flagged
+  const combos = checkCombinations(world, cp29);
+  assert.deepEqual(combos.map((c) => [c.character, c.shape, c.parts.map((p) => p.knowledge.source).join(" + ")]), [["step-mother", "square", "path-jaggedness + speed"]]);
   // the kind of entry the rule forbids
-  const evilRed = { kind: "descriptor", source: "ugly", element: "size", value: "high", strength: "high", evidence: { why: "an ugly character looms" } };
+  const dominatesLarger = { kind: "relationship", source: "dominates", element: "relative-size", value: "greater-than", strength: "medium", evidence: { why: "test" } };
   const squareish = { kind: "descriptor", source: "mean", element: "shape-jaggedness", value: "medium", strength: "medium", evidence: { why: "test" } };
-  const caught = checkAlone({ ...world, knowledge: [evilRed, squareish] }, cp29);
-  assert.deepEqual(caught.map((f) => [f.knowledge.source, f.revivals]), [["ugly", true], ["mean", true]]);
+  const caught = checkAlone({ ...world, knowledge: [dominatesLarger, squareish] }, cp29);
+  assert.deepEqual(caught.map((f) => [f.knowledge.source, f.revivals]), [["dominates", true], ["mean", true]]);
 });
 
 // Constraints as REVIVE;SHAPES makes them, for (element value justification).
@@ -168,12 +181,20 @@ test("the shape experts: when no shape fits, the least justified constraint is r
   assert.equal(run("(ask (appearance-of t-dum) collect items memorized matching (relaxed: %))"), "((RELAXED: ELEMENT SHAPE-COMPLEXITY VALUE LOW JUSTIFICATION 3 BECAUSE NO-SHAPE-FITS))");
   assert.equal(run("(ask (choice-point-of t-dum shape-complexity) collect items memorized matching (overridden-by: %))"), "((OVERRIDDEN-BY: SHAPE-EXPERTS DRAWN TEN-POINTED-STAR BECAUSE NO-SHAPE-FITS))");
   assert.equal(run("(ask (appearance-of t-dum) recall your angle)"), "108");
-  // one Ani chose alike after all is drawn as no shape another is already drawn as
-  assert.equal(run("(get (draw-character 't-dee '((t-dum square)) t t) 'name)"), "PENTAGON");
-  assert.equal(run("(ask (choice-point-of t-dee shape-complexity) collect items memorized matching (overridden-by: %))"), "((OVERRIDDEN-BY: SHAPE-EXPERTS DRAWN PENTAGON BECAUSE (DRAWN-ALIKE-WITH T-DUM)))");
+  // one Ani chose alike after all is drawn as no shape another is already drawn as, and
+  // as one that differs from it on both elements: relaxing complexity leaves only
+  // squares, pentagons and ten-pointed stars, all as jagged as the square, so jaggedness
+  // is relaxed too, and of those left the film's low complexity takes the simplest
+  assert.equal(run("(get (draw-character 't-dee '((t-dum square)) t t) 'name)"), "HEXAGON");
+  for (const e of ["shape-complexity", "shape-jaggedness"]) {
+    assert.equal(run(`(ask (choice-point-of t-dee ${e}) collect items memorized matching (overridden-by: %))`), "((OVERRIDDEN-BY: SHAPE-EXPERTS DRAWN HEXAGON BECAUSE (DRAWN-ALIKE-WITH T-DUM)))");
+  }
+  assert.equal(run("(length (ask (appearance-of t-dee) collect items memorized matching (relaxed: %)))"), "2");
+  // the value drawn, beside the value chosen, for the glass box
+  assert.equal(run("(list (drawn-value 't-dee 'shape-jaggedness) (drawn-value 't-dee 'shape-complexity))"), "(LOW MEDIUM)");
 });
 
-test("sizes: APPEAR's own numbers, never weightify's; (not X) midway between the two values left, none medium, each with a note", () => {
+test("sizes: APPEAR's own numbers, never weightify's; (not X) one of the two values left, picked by the film's variety, none medium, each with a note", () => {
   const { run } = setUp();
   const size = (who, value) => {
     run(`(ask appearance-choice-point if new make (choice-point-of ${who} size))`);
@@ -182,8 +203,16 @@ test("sizes: APPEAR's own numbers, never weightify's; (not X) midway between the
   };
   assert.equal(size("t-small", "low"), "0.036");
   assert.equal(size("t-large", "high"), "0.07");
-  assert.equal(Number(size("t-not-high", "(not high)")), 0.043);
-  assert.match(run("(ask (choice-point-of t-not-high size) collect items memorized matching (revival-repair: %))"), /READ-AS-NUMBER WAS \(NOT HIGH\) NOW 0\.043 BECAUSE \(MIDWAY BETWEEN LOW AND MEDIUM\)/);
+  // (not high): of medium and low, neither chosen yet, medium variety takes the middle
+  // of the two (glosug.41:71-72), low, as REVIVE;MEND1 narrows a movement element's
+  assert.equal(size("t-not-high", "(not high)"), "0.036");
+  assert.equal(run("(ask (choice-point-of t-not-high size) collect items memorized matching (revival-repair: %))"),
+    "((REVIVAL-REPAIR: WHAT READ-AS-NUMBER WAS (NOT HIGH) NOW 0.036 BECAUSE (NARROWED-TO LOW (VARIETY LEVEL) MEDIUM (COUNTS (0 MEDIUM) (0 LOW)) (MIDDLE-ELEMENT KEN1 RECONSTRUCTION))))");
+  // low now counts as chosen, so of high and low, (not medium) takes the less used, high
+  assert.equal(size("t-not-medium", "(not medium)"), "0.07");
+  assert.match(run("(ask (choice-point-of t-not-medium size) collect items memorized matching (revival-repair: %))"), /NARROWED-TO HIGH \(VARIETY LEVEL\) MEDIUM \(COUNTS \(0 HIGH\) \(1 LOW\)\)/);
+  // the choice point keeps Ani's (not X), as the CP does
+  assert.equal(run("(ask (choice-point-of t-not-high size) recall your current-choice)"), "(NOT HIGH)");
   assert.equal(size("t-none", "none"), "0.05");
   assert.match(run("(ask (choice-point-of t-none size) collect items memorized matching (revival-repair: %))"), /READ-AS-NUMBER WAS NONE NOW 0\.05/);
 });
@@ -193,22 +222,23 @@ test("telling apart: two characters drawn alike have their least justified shape
   fs.addFile("KEN", "CINDY", "47", { text: readFileSync("test/stories/appear-alike.lisp", "utf8"), origin: "test" });
   const p1 = pass1(fs, { extensions: ["appear"] });
   const looks = Object.fromEntries(p1.appearances.characters.map((c) => [c.character, c]));
-  // both would be circles; Dum's complexity, the least justified, is chosen again
-  assert.deepEqual(p1.appearances.findings, [{ comparison: "(comparison-of dum dee)", items: ["(look-alike: shape circle of-who (comparison-of dum dee))"] }]);
+  // both would be hexagons; Dum's complexity, the least justified, is chosen again
+  assert.deepEqual(p1.appearances.findings, [{ comparison: "(comparison-of dum dee)", items: ["(look-alike: shape hexagon of-who (comparison-of dum dee))"] }]);
   const cp = (name) => p1.choicePoints.find((c) => JSON.stringify(c.name) === JSON.stringify(name));
   const dum = cp(["choice-point-of", "dum", "shape-complexity"]);
-  assert.deepEqual(dum.previousChoices, ["low"]);
+  assert.deepEqual(dum.previousChoices, ["medium"]);
   assert.ok(dum.memory.some((m) => m[0] === "redetermined:" && m[2] === "dee"));
   // the relative choice point got the different-from, from the look-alike: finding
   const relative = cp(["relative-choice-point-of", ["dum", "dee"], "relative-shape-complexity"]);
   assert.equal(relative.currentChoice, "different-from");
-  assert.ok(JSON.stringify(relative.memory).includes('["look-alike:","shape","circle"'));
+  assert.ok(JSON.stringify(relative.memory).includes('["look-alike:","shape","hexagon"'));
   // what the choice points say is what is drawn
-  assert.equal(dum.currentChoice, "medium");
-  assert.equal(looks.dum.look.shape, "hexagon");
-  assert.equal(looks.dee.look.shape, "circle");
-  assert.equal(looks.dee.elements["shape-complexity"].value, "low");
+  assert.equal(dum.currentChoice, "low");
+  assert.equal(looks.dum.look.shape, "circle");
+  assert.equal(looks.dee.look.shape, "hexagon");
+  assert.equal(looks.dee.elements["shape-complexity"].value, "medium");
   assert.ok(!JSON.stringify(p1.choicePoints).includes("overridden-by:"));
+  for (const c of Object.values(looks)) for (const x of Object.values(c.elements)) assert.equal(x.drawn, x.value);
 });
 
 test("Director takes a look: the shape and the size it draws change", () => {

@@ -108,11 +108,19 @@ export function evidenceJSON(L, x) {
 // box's "How she looks": for each character, in focus order,
 //   { character,
 //     look: { shape, angle, centerOffset, aniSize },          what Director is to draw
-//     elements: { size: { choicePoint, value, strength, sources }, shape-jaggedness: ...,
-//                 shape-complexity: ... },                    each choice, its winning
+//     elements: { size: { choicePoint, value, strength, sources, drawn, overriddenBy },
+//                 shape-jaggedness: ..., shape-complexity: ... },
+//                                                             each choice, its winning
 //                                                             suggestion's strength and
 //                                                             sources (the choice point
-//                                                             itself is in choicePoints)
+//                                                             itself is in choicePoints),
+//                                                             the value the look has as
+//                                                             drawn (differing where the
+//                                                             shape experts overrode the
+//                                                             choice, one value for a (not
+//                                                             X)), and, only if they
+//                                                             overrode it, the choice
+//                                                             point's (overridden-by: ...)
 //     experts: [ "(considered: ...)", "(relaxed: ...)", "(chosen: ...)" ] }
 // with knowledge, every piece of knowledge a look's suggestion can come from, each
 // { kind, source, element, value, strength, evidence }, and findings, what telling
@@ -147,7 +155,12 @@ export function collectAppearances(L) {
       const field = (k) => (chosen ? plistGet(L, chosen, k) : L.NIL);
       const source = field("source");
       const sources = source === L.NIL ? [] : source instanceof Cons && lisp(source.car) === "and" ? L.toArray(source.cdr).map(lisp) : [lisp(source)];
-      entry.elements[e] = { choicePoint: cp, value: lisp(value), strength: chosen ? lisp(field("strength")) : null, sources };
+      // the value as drawn (REVIVE;SHAPES drawn-value), which differs from the choice
+      // where the shape experts overrode it, and is one value for a (not X); and the
+      // choice point's (overridden-by: ...), if the experts overrode it
+      const drawn = defined(L, "drawn-value") ? ev(`(drawn-value '${name} '${e})`) : L.NIL;
+      const overriddenBy = L.toArray(ev(`(ask ${cp} collect items memorized matching (overridden-by: %))`)).map(lisp);
+      entry.elements[e] = { choicePoint: cp, value: lisp(value), strength: chosen ? lisp(field("strength")) : null, sources, drawn: drawn === L.NIL ? null : lisp(drawn), ...(overriddenBy.length ? { overriddenBy } : {}) };
     }
     out.characters.push(entry);
   }

@@ -45,7 +45,9 @@
 ;;;     a shape; a size is a number, from APPEAR's own table (never INTERF's
 ;;;     weightify), whose values are ANINIT's: .05, every director-character's size
 ;;;     (dichar.103:10), and .07, the stepmother's (aninit.65:41), and below them .036,
-;;;     as much smaller as .07 is larger.
+;;;     as much smaller as .07 is larger. A size chosen as (not X) is drawn as one of
+;;;     the two values left, picked by the film's variety as REVIVE;MEND1 picks a
+;;;     movement element's in pass 2.
 ;;;  5. What is saved. Pass 1's answers file (KEN;CP) gains the appearance choices,
 ;;;     as save-answers writes every choice point (datest.56:47-58), and each
 ;;;     character's look, (define (appearance-of cinderella) appearance ...). Pass 2
@@ -145,13 +147,15 @@
 ;; appearance choice points, made as NODES makes the characters' (nodes.38:60-97); then
 ;; Ken's make-choices-until-completed, which takes the focus's characters first
 ;; (chocho.19:58-69), as for the dynamics. Then the characters the experts would draw
-;; alike are told apart, and the experts draw each of them (REVIVE;SHAPES). Run by the
-;; pipeline after (z) (src/pipeline.js, EXTENSIONS: afterPass1).
+;; alike are told apart, the sizes chosen are counted again (4, below), and the experts
+;; draw each of them (REVIVE;SHAPES). Run by the pipeline after (z) (src/pipeline.js,
+;; EXTENSIONS: afterPass1).
 (defun choose-appearances ()
   (define appearances-node top-level-node)
   (mapc 'make-appearance-node (ask character recall your offspring))
   (make-choices-until-completed 'appearances-node)
   (tell-apart-characters-drawn-alike)
+  (count-appearance-choices-again 'size) ;;the element read as a number (4)
   (draw-the-characters t (not (eq (film-level-of 'variety) 'low))))
 
 (defun make-appearance-node (character)
@@ -201,9 +205,10 @@
 ;; p. 164). Each choice is redetermined at most once, so it ends. Two that Ani still
 ;; chooses alike, as she will two whose descriptions are the same (her comparisons
 ;; then tell her strongly that they move and look the same), have their comparison
-;; memorize (alike-after-all: ...); the experts then draw the second of them as no
-;; shape the first is drawn as, relaxing its least justified shape choice, which
-;; memorizes that the drawn shape overrode it (REVIVE;SHAPES, draw-character).
+;; memorize (alike-after-all: ...); the experts then draw the second of them as a shape
+;; that differs from the first's on both shape elements, relaxing its shape choices,
+;; the least justified first, each of which memorizes that the drawn shape overrode it
+;; (REVIVE;SHAPES, draw-character).
 (defun tell-apart-characters-drawn-alike ()
   (or (eq (film-level-of 'variety) 'low)
       (do ((alike (characters-drawn-alike) (characters-drawn-alike)))
@@ -308,12 +313,24 @@
 ;; .07 times .714, and .036 is .05 times .72).
 (defprop size ((low .036) (medium .05) (high .07)) appearance-numbers)
 
-;; The number for a choice. A (not X) (cosug.215:395-402) is the number midway between
-;; the two values left; none, given up on (choose.198:69-73), is medium's, as INTERF
-;; reads an element no one set as medium (interf.149:846). Either is noted on the
-;; choice point:
-;;   (revival-repair: what read-as-number was (not high) now .043
-;;		       because (midway between low and medium))
+;; The number for a choice. A (not X) (cosug.215:395-402) is one of the two values left,
+;; picked as REVIVE;MEND1 narrows a movement element's (not X) in pass 2: by GLOSUG's
+;; pick-value-with-variety (glosug.41:61-74) at the film's variety level, from how often
+;; each value was chosen for the element (count-of-each, glosug.41:77-84), the counts
+;; counted again from the characters' choices (count-appearance-choices-again, below);
+;; the value picked then counts as chosen, as record-choice would have counted it
+;; (choose.198:600). So a size is always one of the three in the table, as a shape is
+;; always one the experts know (REVIVE;SHAPES, where a (not X) allows either value
+;; left). The choice point keeps Ani's (not X), as the CP keeps it, and notes the value
+;; and number it was read as:
+;;   (revival-repair: what read-as-number was (not high) now .036
+;;		       because (narrowed-to low (variety level) medium
+;;				(counts (1 medium) (0 low)) (middle-element ken1 reconstruction)))
+;; for medium variety with REVIVE;MEND1's warning that middle-element is a KEN1
+;; reconstruction (src/director/ken1/util.lisp). None, given up on (choose.198:69-73),
+;; is medium's, as INTERF reads an element no one set as medium (interf.149:846):
+;;   (revival-repair: what read-as-number was none now .05
+;;		       because (given up so medium as interf reads an unset element))
 (defun appearance-number (choice-point)
   (let ((value (ask ,choice-point recall your current-choice))
 	(element (ask ,choice-point recall your element-name)))
@@ -321,20 +338,51 @@
 	    (cond ((and (atom value) (assq value numbers))
 		   (second (assq value numbers)))
 		  ((and (not (atom value)) (eq (first value) 'not) (assq (second value) numbers))
-		   (let ((left (mapcan (function
-					(lambda (pair)
-						(and (not (eq (first pair) (second value)))
-						     (list pair))))
-				       numbers)))
-			(let ((number (//$ (+$ (second (first left)) (second (second left))) 2.0)))
-			     (revival-note choice-point 'read-as-number value number
-					   (list 'midway 'between (first (first left))
-						 'and (first (second left))))
-			     number)))
+		   (let ((narrowed (narrow-appearance-value choice-point)))
+			(second (assq narrowed numbers))))
 		  (t (revival-note choice-point 'read-as-number value
 				   (second (assq 'medium numbers))
 				   '(given up so medium as interf reads an unset element))
 		     (second (assq 'medium numbers)))))))
+
+;; One of the two values a (not X) leaves, as REVIVE;MEND1's narrow-not-value picks it,
+;; noted on the choice point.
+(defun narrow-appearance-value (choice-point)
+  (let ((value (ask ,choice-point recall your current-choice))
+	(element-name (ask ,choice-point recall your element-name))
+	(variety-level (film-level-of 'variety)))
+       (let ((values-left (set-minus (ask ,element-name recall your possible-values)
+				     (rest value))))
+	    (let ((counts (cons 'counts (count-of-each values-left element-name)))
+		  (narrowed (pick-value-with-variety variety-level values-left element-name)))
+		 (ask ,element-name increment your (count-for ,narrowed) by 1)
+		 (revival-note choice-point 'read-as-number value
+			       (second (assq narrowed (get element-name 'appearance-numbers)))
+			       (append (list 'narrowed-to narrowed '(variety level) variety-level counts)
+				       (and (eq variety-level 'medium)
+					    '((middle-element ken1 reconstruction)))))
+		 narrowed))))
+
+;; How often each of an element's values was chosen for the characters, counted again
+;; from their choice points before any is read as a number, as REVIVE;MEND1's
+;; count-choices-again counts them from the CP. record-choice's counts (choose.198:600)
+;; would do in this job, but they also count, each time, a choice made again to tell two
+;; characters apart (3, above), and a (not X) under its own name.
+(defun count-appearance-choices-again (element-name)
+  (let ((choices (mapcar (function
+			  (lambda (character)
+				  (let ((choice-point '(choice-point-of ,character ,element-name)))
+				       (and (exists? choice-point)
+					    (ask ,choice-point recall your current-choice)))))
+			 (ask character recall your offspring))))
+       (mapc (function
+	      (lambda (value)
+		      (let ((count (length (mapcan (function
+						    (lambda (choice)
+							    (and (equal choice value) (list choice))))
+						   choices))))
+			   (ask ,element-name set your (count-for ,value) to ,count))))
+	     (ask ,element-name recall your possible-values))))
 
 ;;; ------------------------------------------------- 5. what is saved
 

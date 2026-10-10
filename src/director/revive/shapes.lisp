@@ -40,7 +40,10 @@
 ;;; Telling characters apart is first Ani's: two characters drawn alike have one of
 ;;; their shape choices made again (REVIVE;APPEAR, 3), so that what the choice points
 ;;; say and what is drawn agree. Only two she still chooses alike are kept apart here,
-;;; as a last resort, by relaxing a constraint (draw-character).
+;;; as a last resort, by relaxing constraints until the second is drawn as a shape that
+;;; differs from the first's on both elements (draw-character); its choice points then
+;;; say what the experts overrode, and the glass box shows the value drawn beside the
+;;; value chosen (drawn-value).
 ;;;
 ;;; What the experts did is memorized on the character's appearance, (appearance-of
 ;;; cinderella), for the glass box: (considered: ...), (relaxed: ...) and (chosen: ...);
@@ -168,42 +171,76 @@
 ;; apart at all. So, with keep-apart, a shape already drawn for another character
 ;; does not fit, and if no other does, the least justified constraint is relaxed as
 ;; when no shape fits, its choice point memorizing (overridden-by: shape-experts drawn
-;; hexagon because (drawn-alike-with dum)).
+;; triangle because (drawn-alike-with dum)). Once a constraint has been relaxed to
+;; keep the character apart from another, only a shape that differs from the other's
+;; on both shape elements fits: the drawing already departs from Ani's choice, and a
+;; pentagon beside a hexagon of the same size, which differ by one step on one
+;; element, are told apart hardly better than two pentagons ("divergent values for one
+;; or two elements to help the viewer distinguish the two characters", p. 94). If none
+;; does, the next least justified constraint is relaxed too ("the 'constraint
+;; relaxation' ... methods can be applied iteratively", p. 164); with none left, any
+;; shape not yet drawn will do.
+;; Two characters alike are kept apart even if they never share a scene: a viewer
+;; knows a character from scene to scene by how it looks, and two drawn the same in
+;; different scenes would be taken for one.
 (defun draw-character (character drawn record keep-apart)
   (let ((appearance '(appearance-of ,character))
 	(taken (mapcar 'second drawn)))
        (and record (ask appearance if new make ,appearance))
        (do ((constraints (shape-constraints character))
-	    (relaxed nil))
+	    (relaxed nil)
+	    (alike nil)) ;;(dum pentagon), once a constraint is relaxed to keep it apart from dum
 	   (nil)
 	   (let ((offered (shapes-offered constraints)))
-		(let ((untaken (shapes-not-taken offered taken)))
+		(let ((untaken (shapes-not-taken offered taken))
+		      (apart (and alike (shapes-apart-from (shapes-not-taken offered taken)
+							   (second alike)))))
 		     (and record
 			  (ask ,appearance memorize
 			       (considered: constraints ,(mapcar 'constraint-summary constraints)
 					    offered ,(mapcar 'offer-summary offered))))
-		     (cond ((and offered (or untaken (not keep-apart) (null constraints)))
-			    (let ((chosen (select-shape offered taken)))
+		     (cond ((and offered
+				 (or (not keep-apart)
+				     (null constraints)
+				     (cond (alike apart) (t untaken))))
+			    (let ((chosen (select-shape (cond (apart apart) (t offered)) taken)))
 				 (and record (record-shape character chosen offered relaxed))
 				 (return (second chosen))))
 			   ((null constraints)
 			    (shouldnt-happen 'draw-character
 					     '(no expert has any shape for ,character)))
-			   (t (let ((least (least-justified-constraint constraints))
-				    (because (cond (offered
-						    (list 'drawn-alike-with
-							  (first (rassq-shape (get (second (first offered))
-										   'name)
-									      drawn))))
-						   (t 'no-shape-fits))))
-				   (and record
-					(ask ,appearance memorize
-					     (relaxed: element ,(get least 'element)
-						       value ,(get least 'value)
-						       justification ,(get least 'justification)
-						       because ,because)))
-				   (setq relaxed (cons (list least because) relaxed))
-				   (setq constraints (delq least (append constraints nil)))))))))))
+			   (t (let ((least (least-justified-constraint constraints)))
+				   (and offered (null alike)
+					(setq alike (rassq-shape (get (second (first offered)) 'name)
+								 drawn)))
+				   (let ((because (cond (alike (list 'drawn-alike-with (first alike)))
+							(t 'no-shape-fits))))
+					(and record
+					     (ask ,appearance memorize
+						  (relaxed: element ,(get least 'element)
+							    value ,(get least 'value)
+							    justification ,(get least 'justification)
+							    because ,because)))
+					(setq relaxed (cons (list least because) relaxed))
+					(setq constraints (delq least (append constraints nil))))))))))))
+
+;; Of the offers, those whose shape differs from the shape named on both shape elements.
+(defun shapes-apart-from (offered name)
+  (let ((other (shape-named name)))
+       (mapcan (function
+		(lambda (offer)
+			(and (not (eq (get (second offer) 'shape-jaggedness)
+				      (get other 'shape-jaggedness)))
+			     (not (eq (get (second offer) 'shape-complexity)
+				      (get other 'shape-complexity)))
+			     (list offer))))
+	       offered)))
+
+;; The shape an expert knows by its name.
+(defun shape-named (name)
+  (do ((offers (shapes-offered nil) (rest offers)))
+      ((null offers) nil)
+      (and (eq (get (second (first offers)) 'name) name) (return (second (first offers))))))
 
 ;; The character in drawn ((cinderella circle) ...) drawn as the shape.
 (defun rassq-shape (shape drawn)
@@ -270,3 +307,18 @@
 	    (ask ,appearance set your ani-size to
 		 ,(cond ((exists? size-choice) (appearance-number size-choice))
 			(t .05))))))
+
+;; The value a character's look, as drawn, has on an element: its shape's place on a
+;; shape element (the table above), or the value whose number its size is
+;; (REVIVE;APPEAR's table). It differs from Ani's choice where the experts overrode it,
+;; and is one value where she chose (not X); the glass box shows it beside her choice
+;; (src/glassbox-pass1.js collectAppearances).
+(defun drawn-value (character element)
+  (let ((appearance '(appearance-of ,character)))
+       (and (exists? appearance)
+	    (cond ((get element 'appearance-numbers)
+		   (let ((number (ask ,appearance recall your ani-size)))
+			(do ((n (get element 'appearance-numbers) (rest n)))
+			    ((null n) nil)
+			    (and (equal (second (first n)) number) (return (first (first n)))))))
+		  (t (get (shape-named (ask ,appearance recall your shape)) element))))))
