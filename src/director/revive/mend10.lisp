@@ -31,8 +31,11 @@
 ;;; task that is done already (Ken's tasks are cant-do or being-handled-by-convey-tasks,
 ;;; chomet.123:25, 34, 503), and a method that does nothing would need an estimate and
 ;;; a run of the revival's making. So the task is cant-do, as Cinderella's helps was
-;;; in the Introduction (AI-TR-540 L1857-1859), and the note says why. (exit-by's own
-;;; run already passes over anyone not on the stage, located?, disply.311:1026-1027.)
+;;; in the Introduction (AI-TR-540 L1857-1859), and the note says why. (When the others
+;;; are all off the stage already, the list is not NIL, and this doesn't act: exit-by's
+;;; run walks off each of them who has a place in the subscene, located? meaning just
+;;; that (disply.311:1026-1027, interf.149:139-140), so one already off goes further
+;;; off, out of the picture, and the subscene ends.)
 ;;;
 ;;; The note, on the task:
 ;;;   (revival-repair: what already-alone was (exit-by nil) now rejected

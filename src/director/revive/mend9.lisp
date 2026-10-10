@@ -9,10 +9,10 @@
 ;;;
 ;;; The repair. When a character's only part in a subscene is a change of how it moves,
 ;;; SCENE extends the previous subscene by this one's time, so that what went on there
-;;; goes on while the character changes (extend-last-actions-of, scene.9:216-240); in a
+;;; goes on while the character changes (extend-last-actions-of, scene.9:223-240); in a
 ;;; scene's first subscene there is none, and SCENE plans (wander-around c) instead
-;;; (plan-something-if-only-changes, scene.9:199-218). No 1978 file defines
-;;; wander-around, so pass 2 stopped:
+;;; (plan your actions, scene.9:199-214; plan-something-if-only-changes, scene.9:216-221).
+;;; No 1978 file defines wander-around, so pass 2 stopped:
 ;;; "WANDER-AROUND is not an actor", NO-SUCH-ACTOR. The thesis says what it is for:
 ;;; "If Ani cannot extend the previous subscene then the character in question will
 ;;; "wander around" so that the changes are apparent" (AI-TR-540 L3391-3393). It is

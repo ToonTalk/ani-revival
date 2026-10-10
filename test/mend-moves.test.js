@@ -4,7 +4,9 @@
 // installed once its Ken file has loaded, and what it does on small cases made here.
 // The stress stories show them in a whole film (node tools/run-story.mjs <story>
 // --extensions mend): test/stories/stress/alone-two.lisp for M10, and
-// test/stories/stress/pushee-blocked.lisp and test/stories/red-riding-hood.lisp for M12.
+// test/stories/stress/pushee-blocked.lisp, push-mutual.lisp and
+// test/stories/red-riding-hood.lisp for M12; tools/check-no-change.mjs checks that M12
+// leaves alone moves that end, however long they take.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -81,9 +83,10 @@ test("M10: only an exit-by of no one is set aside", () => {
 });
 
 // A Lisp that has loaded DICHAR as the filming job does (after the TV is started), with
-// a character going to a stationary place, as ACTION's cause ... to gradually go in arc
-// sets one up (action.152:283-306): its current goal, the stop condition with the
-// distance to go, and the movie's frames a second.
+// a character going to a stationary place and the stop condition go in arc asks for the
+// move, told the move's goal as go in arc tells it (REVIVE;MEND12's extension of go in
+// arc), and the movie's frames a second.
+const GOAL = "(stationary-target (vicinity-of t-kid) (xy-position 0.1 0.1))";
 function withAMove(extensions = ["mend"], fps = 4) {
   const { L, run } = lisp(extensions);
   run("(cs)");
@@ -93,67 +96,128 @@ function withAMove(extensions = ["mend"], fps = 4) {
   run("(define t-mover director-character)");
   run("(ask t-mover set your position to (10.0 20.0))");
   run("(ask t-mover set your special-dynamics to t-sd)");
-  run("(ask t-mover set your current-goal to (stationary-target (vicinity-of t-kid) (xy-position 0.1 0.1)))");
+  run(`(ask t-mover set your current-goal to ${GOAL})`);
   run("(define t-sub something)");
-  run("(setq t-condition (stop-when-there 't-sub))");
-  run("(ask ,t-condition set your original-distance to 137.5)");
+  newCondition(run, extensions.length > 0);
   run(`(setq :frames-per-second ${fps} :ticks-per-frame 1)`);
   return { L, run };
 }
+function newCondition(run, told = true) {
+  run("(setq t-condition (stop-when-there 't-sub))");
+  if (told) run(`(ask ,t-condition set your revival-goal to ${GOAL})`);
+}
 
-// Ask the condition each tick, as go in arc does (dichar.103:173-176), until it says
-// stop: the ticks it took, and its answer. With step, the mover moves that far between
-// one tick and the next. With waiting, each tick it takes Ken's careful step towards a
-// place where the kid stands, and backs up to wait for him (dichar.103:285-318).
-const ticksToStop = (run, most = 100, step = 0, waiting = false) =>
+// Ask the condition each tick, as go in arc does (dichar.103:173-176), with 100.0 to go
+// (the distance go in arc reckons along the arc), until it says stop: the ticks it took,
+// and its answer. Between one tick and the next the mover is put where place says, a
+// Lisp form of the tick i; with waiting, it takes Ken's careful step towards a place
+// where the kid stands, and backs up to wait for him (dichar.103:285-318).
+const ticksToStop = (run, most = 100, place = "(list 10.0 20.0)", waiting = false) =>
   run(`(do ((i 1 (1+ i))
-            (a nil (progn ${waiting ? WAITING_STEP : `(ask t-mover set your position to (,(*$ ${step.toFixed(1)} (float i)) 20.0))`}
-                          (ask ,t-condition should t-mover stop after moving 1.0 of 100.0 to (0 0)))))
+            (a nil (progn ${waiting ? WAITING_STEP : `(ask t-mover set your position to ,${place})`}
+                          (ask ,t-condition should t-mover stop after moving 1.0 of 100.0 to (0.0 0.0)))))
            ((or a (> i ${most})) (list (1- i) a)))`);
 const WAITING_STEP = "(ask t-mover forward 5.0 towards (0.0 0.0) originally (stationary-target (vicinity-of t-elf) (xy-position 0.0 0.0)) dragging nil along avoiding (t-kid) 0.0 degrees off target)";
 function withTheKidInTheWay(run) {
   run("(define t-kid director-character)");
   run("(ask t-kid set your position to (0.0 0.0))");
 }
+const parse = (answer) => answer.replace(/[()]/g, "").split(" ");
 
 // Ani's most for a walk is 2.5 times its ideal, the distance at the mover's speed and a
-// third of a second (place.45:528-559): here 137.5 at medium speed.
-const mostFor = (run) => 2.5 * (137.5 / Number(run("(ask t-sd yield real value for speed)")) + 0.33);
+// third of a second (place.45:528-559): here the 100.0 go in arc gives the condition, at
+// medium speed.
+const mostFor = (run) => 2.5 * (100 / Number(run("(ask t-sd yield real value for speed)")) + 0.33);
+const notes = (run) => run("(ask t-sub collect items memorized matching (revival-repair: %))");
+const most = (run) => run("(ask ,t-condition recall your revival-most-time)");
 
-test("MEND12 extends the arc stop condition once DICHAR has loaded, and not in 1978 mode", () => {
+test("MEND12 extends go in arc and the arc stop condition once DICHAR has loaded, and not in 1978 mode", () => {
   const { run } = withAMove();
-  assert.equal(run("(get 'mend12-overdue 'revival-done)"), "T");
+  assert.equal(run("(get 'mend12-moves 'revival-done)"), "T");
   // MEND12 loaded again, so its hook fires again: still one extension (two would each
   // count the time, and stop the move in half the ticks)
   run("(load '|revive;mend12 >|)");
   assert.equal(ticksToStop(run), ticksToStop(withAMove().run));
   const ken = withAMove([]);
-  assert.equal(ken.run("(get 'mend12-overdue 'revival-done)"), "NIL");
-  // Ken's waits on (a mover that never arrives goes on for ever)
+  assert.equal(ken.run("(get 'mend12-moves 'revival-done)"), "NIL");
+  // Ken's goes on for ever, standing still
   assert.equal(ticksToStop(ken.run), "(100 NIL)");
 });
 
-test("M12: a move to a stationary place that runs past the most time Ani allows for it stops as if there", () => {
+test("M12: go in arc tells the condition the move's own goal, not the mover's current one", () => {
   const { run } = withAMove();
-  const most = mostFor(run);
-  // moving all the while (circling), or standing still (waiting): the whole time counts
-  for (const step of [50, 0]) {
-    const { run } = withAMove();
-    const [ticks, answer] = ticksToStop(run, 100, step).replace(/[()]/g, "").split(" ");
-    // asked once a tick, a quarter of a second at 4 frames a second: it stops on the
-    // first tick past the most, going no further (the counting-down condition's 0.0,
-    // dichar.103:498)
+  newCondition(run, false);
+  // a character in two moves at once has the current goal of the one started last
+  // (ACTION sets it on everyone in a move, action.152:283, 293)
+  run("(ask t-mover set your current-goal to (contact-with t-someone-else by t-mover))");
+  run("(ask t-mover set your last-curvature-sign to 1.0)");
+  assert.match(run(`(ask t-mover go in arc regardless of collisions dragging nil along to ${GOAL} stopping if ,t-condition)`), /^\(GO IN ARC /);
+  assert.equal(run("(ask ,t-condition recall your revival-goal)"), GOAL.toUpperCase());
+  // and its most, from the distance go in arc gave it along the arc
+  assert.ok(Number(most(run)) > 0);
+  // in 1978 mode go in arc is Ken's alone
+  const ken = withAMove([]);
+  ken.run("(ask t-mover set your last-curvature-sign to 1.0)");
+  ken.run(`(ask t-mover go in arc regardless of collisions dragging nil along to ${GOAL} stopping if ,t-condition)`);
+  assert.equal(ken.run("(ask ,t-condition recall your revival-goal)"), "NIL");
+});
+
+test("M12: a mover that waits for longer than the most stops as if there", () => {
+  for (const fps of [4, 24]) {
+    const { run } = withAMove(["mend"], fps);
+    withTheKidInTheWay(run);
+    const m = mostFor(run);
+    const [ticks, answer] = parse(ticksToStop(run, 400, null, true));
+    // asked once a tick: it stops on the first tick past the most, going no further (the
+    // counting-down condition's 0.0, dichar.103:498), at 4 frames a second and at 24.
+    // Here each step comes before the asking; go in arc asks first, then steps
+    // (dichar.103:173-202), so the step before the first asking is no part of the move,
+    // and the waiting counted starts a tick later
     assert.equal(answer, "0.0");
-    assert.equal(Number(ticks), Math.floor(most * 4) + 1);
+    assert.equal(Number(ticks), Math.floor(m * fps) + 2);
+    assert.ok(Math.abs(Number(most(run)) - m) < 1e-4);
+    assert.equal(notes(run),
+      `((REVIVAL-REPAIR: WHAT OVERDUE-MOVE WAS (T-MOVER GOING-TO (VICINITY-OF T-KID)) NOW STOPPED-AS-IF-THERE BECAUSE (WAITING-FOR-MORE-THAN ${most(run)} SECONDS)))`);
+    assert.match(run(":revival-noted"), /\bT-SUB\b/);
   }
-  ticksToStop(run, 100, 50);
-  assert.ok(Math.abs(Number(run("(ask ,t-condition recall your revival-most-time)")) - most) < 1e-4);
-  assert.equal(run("(ask t-sub collect items memorized matching (revival-repair: %))"),
-    `((REVIVAL-REPAIR: WHAT OVERDUE-MOVE WAS (T-MOVER GOING-TO (VICINITY-OF T-KID)) NOW STOPPED-AS-IF-THERE BECAUSE (MORE-THAN ${run("(ask ,t-condition recall your revival-most-time)")} SECONDS)))`);
-  assert.match(run(":revival-noted"), /\bT-SUB\b/);
-  // at 24 frames a second it takes as long
-  const at24 = withAMove(["mend"], 24);
-  assert.equal(ticksToStop(at24.run, 200, 50).replace(/[()]/g, "").split(" ")[0], String(Math.floor(most * 24) + 1));
+});
+
+test("M12: a mover that gets no nearer for longer than the most stops as if there", () => {
+  const cases = {
+    // standing still, not waiting for anyone (two of its moves cancelling out)
+    still: "(list 10.0 20.0)",
+    // going away
+    away: "(list (+$ 10.0 (*$ 5.0 (float i))) 20.0)",
+    // looping round, each loop further off: a circle of 50 about a centre going away
+    out: "(list (+$ 200.0 (*$ 3.0 (float i)) (*$ 50.0 (cos (*$ 1.0472 (float i))))) (*$ 50.0 (sin (*$ 1.0472 (float i)))))",
+  };
+  for (const [what, place] of Object.entries(cases)) {
+    const { run } = withAMove();
+    const m = mostFor(run);
+    const [ticks, answer] = parse(ticksToStop(run, 100, place));
+    assert.equal(answer, "0.0", what);
+    // the first tick is its nearest (for the loop, one in its first turn): it stops on
+    // the first tick past the most after that
+    assert.ok(Number(ticks) >= Math.floor(m * 4) + 1 && Number(ticks) <= Math.floor(m * 4) + 7, `${what}: ${ticks}`);
+    assert.equal(notes(run),
+      `((REVIVAL-REPAIR: WHAT OVERDUE-MOVE WAS (T-MOVER GOING-TO (VICINITY-OF T-KID)) NOW STOPPED-AS-IF-THERE BECAUSE (NO-NEARER-FOR-MORE-THAN ${most(run)} SECONDS)))`, what);
+  }
+});
+
+test("M12: a mover that keeps getting nearer goes on, however slowly or roundabout", () => {
+  const cases = {
+    // half a dot a tick (Cinderella in Justice at 24 frames a second)
+    slowly: "(list (-$ 1000.0 (*$ 0.5 (float i))) 0.0)",
+    // looping round, each loop nearer (Red Riding Hood's third push)
+    in: "(list (-$ 600.0 (*$ 2.0 (float i)) (*$ 50.0 (cos (*$ 1.0472 (float i))))) (*$ 50.0 (sin (*$ 1.0472 (float i)))))",
+    // standing still, for less than the most, before it goes
+    late: "(cond ((< i 8) (list 500.0 0.0)) (t (list (-$ 500.0 (*$ 3.0 (float i))) 0.0)))",
+  };
+  for (const [what, place] of Object.entries(cases)) {
+    const { run } = withAMove();
+    assert.equal(ticksToStop(run, 150, place), "(150 NIL)", what);
+    assert.equal(notes(run), "NIL", what);
+  }
 });
 
 test("M12: Ken's careful step is as he wrote it, and notes on the mover when it waits", () => {
@@ -173,38 +237,91 @@ test("M12: Ken's careful step is as he wrote it, and notes on the mover when it 
   }
 });
 
-test("M12: a move to a moving target stops once the mover has waited for longer than the most", () => {
+test("M12: a step waited before the move began doesn't count", () => {
   const { run } = withAMove();
-  withTheKidInTheWay(run);
-  const most = mostFor(run);
-  run("(ask t-mover set your current-goal to (contact-with t-kid by t-mover))");
-  const [ticks, answer] = ticksToStop(run, 100, 0, true).replace(/[()]/g, "").split(" ");
-  assert.equal(answer, "0.0");
-  assert.equal(Number(ticks), Math.floor(most * 4) + 1);
-  assert.equal(run("(ask t-sub collect items memorized matching (revival-repair: %))"),
-    `((REVIVAL-REPAIR: WHAT OVERDUE-MOVE WAS (T-MOVER GOING-TO (CONTACT-WITH T-KID BY T-MOVER)) NOW STOPPED-AS-IF-THERE BECAUSE (WAITING-FOR-MORE-THAN ${run("(ask ,t-condition recall your revival-most-time)")} SECONDS)))`);
+  run("(putprop 't-mover t 'revival-waited)");
+  // first asked: the most is made, and the old step forgotten
+  run("(ask ,t-condition should t-mover stop after moving 1.0 of 100.0 to (0.0 0.0))");
+  assert.equal(run("(ask ,t-condition recall your revival-seconds-waiting)"), "0.0");
 });
 
-test("M12: otherwise Ken's stop condition answers as he wrote it", () => {
+test("M12: otherwise Ken's stop conditions answer as he wrote them", () => {
   const { run } = withAMove();
   // there: the last little bit (dichar.103:411-414)
   assert.equal(run("(ask ,t-condition should t-mover stop after moving 10.0 of 5.0 to (0 0))"), "10.0");
-  // a moving target, followed however long, however slowly, and standing still before
-  // it goes (Cinderella in Justice at 24 frames a second), so long as it doesn't wait
-  run("(ask t-mover set your current-goal to (contact-with t-kid by t-mover))");
-  for (const step of [50, 0.5, 0]) {
-    run("(setq t-condition (stop-when-there 't-sub))");
-    run("(ask ,t-condition set your original-distance to 137.5)");
-    assert.equal(ticksToStop(run, 100, step), "(100 NIL)");
-  }
-  // a condition with no distance to go (made other than by ACTION) has no most
-  run("(ask t-mover set your current-goal to (stationary-target (vicinity-of t-kid) (xy-position 0.1 0.1)))");
-  run("(setq t-condition (stop-when-there 't-sub))");
+  // a stop-when-there that go in arc doesn't ask itself, as stop-if-either-wants-to asks
+  // the one beside its timer (disply.311:219-222), isn't told a goal, and is Ken's alone
+  newCondition(run, false);
   assert.equal(ticksToStop(run), "(100 NIL)");
+  run("(setq t-either (stop-if-either-wants-to (stop-when-there 't-sub)))");
+  run(`(ask ,t-either set your revival-goal to ${GOAL})`);
+  assert.equal(run("(do ((i 1 (1+ i)) (a nil (ask ,t-either should t-mover stop after moving 1.0 of 100.0 to (0.0 0.0)))) ((or a (> i 100)) (list (1- i) a)))"), "(100 NIL)");
   // Ken's other conditions have receivers of their own (dichar.103:433-446)
   run("(setq t-condition (move-only-original-distance 't-sub))");
+  run(`(ask ,t-condition set your revival-goal to ${GOAL})`);
   run("(ask ,t-condition set your original-distance to 137.5)");
   assert.equal(run("(ask ,t-condition should t-mover stop after moving 100.0 of 200.0 to (0 0))"), "NIL");
   assert.equal(run("(ask ,t-condition should t-mover stop after moving 100.0 of 200.0 to (0 0))"), "37.5");
   assert.equal(run("(ask t-sub collect items)"), "NIL");
+});
+
+// ACTION's plan faces a character at the start of a move, a turn a tick, re-sent each
+// tick until the heading is reached (action.152:309-322). Here the facing is asked about
+// tick by tick, the movie's frame count going up one a tick, with the character's
+// heading as heading(i) says.
+function withAFacing(extensions = ["mend"]) {
+  const { L, run } = withAMove(extensions);
+  run("(load '|ken;action >|)");
+  run("(define t-movie something)");
+  run("(ask t-movie set your frame-count to 0)");
+  run("(ask movie set your current-movie to t-movie)");
+  run("(define t-plan something)");
+  run("(ask t-plan set your subscene to t-sub)");
+  return { L, run };
+}
+// facing (0 500) from (10 20): a heading of about 1 (OBJECT's bearings)
+const turnsToStop = (run, heading, ticks = 60) =>
+  run(`(do ((i 1 (1+ i))
+            (a nil (progn (ask t-movie set your frame-count to ,i)
+                          (ask t-mover set your heading to ,${heading})
+                          (never-ending-turn? 't-plan 't-mover '(0.0 500.0) 0.0))))
+           ((or a (> i ${ticks})) (list (1- i) a)))`);
+
+test("MEND12 extends the plan's facing once ACTION has loaded, and not in 1978 mode", () => {
+  const { run } = withAMove();
+  assert.equal(run("(get 'mend12-facing 'revival-done)"), "NIL");
+  run("(load '|ken;action >|)");
+  assert.equal(run("(get 'mend12-facing 'revival-done)"), "T");
+  const ken = withAMove([]);
+  ken.run("(load '|ken;action >|)");
+  assert.equal(ken.run("(get 'mend12-facing 'revival-done)"), "NIL");
+});
+
+test("M12: a facing that turns no nearer for longer than the most for turning round is done as if turned", () => {
+  const { run } = withAFacing();
+  // Ani's most for a turn is three times the degrees at the rotational speed
+  // (place.45:435-443): for half a turn at medium speed, half of her 2 seconds to turn
+  // around (interf.149:915), three seconds, 12 ticks at 4 frames a second. Two facings
+  // cancelling out leave the heading where it was.
+  const [ticks, answer] = parse(turnsToStop(run, "90.0"));
+  assert.equal(answer, "T");
+  assert.equal(Number(ticks), 3 * 4 + 2);
+  assert.equal(notes(run),
+    "((REVIVAL-REPAIR: WHAT OVERDUE-TURN WAS (T-MOVER FACING (0.0 500.0)) NOW FACED-AS-IF-TURNED BECAUSE (NO-NEARER-FOR-MORE-THAN 3.0 SECONDS)))");
+  // turning nearer, however slowly, goes on: a degree and a half a tick, or under a
+  // degree a tick (Hansel in Home Again at 24 frames a second), which is nearer by a
+  // degree every other tick
+  for (const heading of ["(-$ 90.0 (*$ 1.5 (float i)))", "(-$ 90.0 (*$ 0.75 (float i)))"]) {
+    const slowly = withAFacing();
+    assert.equal(turnsToStop(slowly.run, heading), "(60 NIL)", heading);
+    assert.equal(notes(slowly.run), "NIL");
+  }
+  // a facing asked again after a tick or more without it is another, begun again
+  const again = withAFacing();
+  assert.equal(again.run(`(do ((i 1 (1+ i))
+                               (a nil (progn (ask t-movie set your frame-count to ,(* 2 i))
+                                             (ask t-mover set your heading to 90.0)
+                                             (never-ending-turn? 't-plan 't-mover '(0.0 500.0) 0.0))))
+                              ((or a (> i 60)) (list (1- i) a)))`), "(60 NIL)");
+  assert.equal(notes(again.run), "NIL");
 });
