@@ -872,7 +872,7 @@ const REVIVE_TEXT = {
   mend9: "wander-around, which SCENE asks for when a character's only part is a change of feeling but Ken never wrote, is made from DISACT's walks.",
   mend10: "When “alone” would send off everyone else and there is no one else, that way of showing it is set aside: the two are already alone.",
   mend11: "A task Ani can't show, left with no running time when she fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
-  mend12: "A walk that has gone on longer than Ani allows for it, because someone is in the way, stops where it is, as if there, so the scene ends.",
+  mend12: "A walk or turn that would never end (someone keeps it waiting, or it goes round and round and gets no nearer for longer than Ani allows) stops where it is, as if there; every walk that ends on its own is left alone.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
@@ -996,10 +996,15 @@ function repairSentence({ actor, what, notes }, sc) {
       const [c, , goal] = Array.isArray(was) ? was : [];
       const n = Array.isArray(because) ? Number(because[1]) : NaN;
       const secs = Number.isFinite(n) ? `${n < 10 ? n.toFixed(1) : Math.round(n)} seconds` : "the most time Ani allows";
-      const waiting = Array.isArray(because) && because[0] === "waiting-for-more-than";
-      return waiting
-        ? `${cap(who(c))} kept stepping back to wait for someone to move for more than ${secs}, the most Ani allows for that walk, and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, as if ${CHARS[c] ? CHARS[c].she : "they"} had got there.`
-        : `${cap(who(c))} was still on ${theirs(c)} way to ${place(goal)} after more than ${secs}, the most Ani allows for a walk that long (someone was in the way), and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, as if ${CHARS[c] ? CHARS[c].she : "they"} had got there.`;
+      const as = `as if ${CHARS[c] ? CHARS[c].she : "they"} had got there`;
+      const to = goal ? ` to ${place(goal)}` : "";
+      return Array.isArray(because) && because[0] === "waiting-for-more-than"
+        ? `${cap(who(c))} kept stepping back to wait for someone in the way to move, for more than ${secs}, the most Ani allows for that walk, and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, ${as}.`
+        : `On ${theirs(c)} way${to}, ${who(c)} went more than ${secs}, the most Ani allows for that walk, without getting any nearer, and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, ${as}.`;
+    }
+    case "overdue-turn": {
+      const c = Array.isArray(was) ? was[0] : null;
+      return `${cap(who(c))} kept turning without coming round to face the way ${CHARS[c] ? CHARS[c].she : "they"} had to go, and with Ani as in 1978 the scene would never have ended; after 3 seconds, the most Ani allows for half a turn, the revival's repairs take the turn as done.`;
     }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
