@@ -77,6 +77,13 @@
 
 (+after-load '|ken;elemnt >| '(revival-once 'appear-elements 'define-appearance-elements))
 
+;; The tags give these two ELEMNT as their file, as load.33 fills them for Ken's actors,
+;; so that exists? knows them before ELEMNT has loaded. The elements themselves get no
+;; entry: size is also the name of every object's variable (object.401:9), and a tags
+;; entry for it would have Director, which never loads ELEMNT, load it.
+(defprop appearance-element |KEN;ELEMNT| actor-load)
+(defprop relative-appearance-element |KEN;ELEMNT| actor-load)
+
 ;;; ------------------------------------------------- 2. the choice points
 
 ;; An appearance's choice point is an absolute choice point (cpoint.87:86-90): its

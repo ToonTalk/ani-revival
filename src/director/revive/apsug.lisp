@@ -153,6 +153,10 @@
 (+after-load '|ken;csumry >|
   '(revival-once 'apsug-comparisons 'teach-comparisons-about-appearance))
 
+;; look-alike: is a top-level actor of ours defined once CSUMRY has loaded, so the tags
+;; give it CSUMRY as its file, as load.33 fills them for Ken's.
+(defprop look-alike: |KEN;CSUMRY| actor-load)
+
 ;; A comparison's suggestions for a relative element (sugrel.54:10-19), and, once two
 ;; characters have been drawn alike (REVIVE;APPEAR sets :appear-look-alikes), those
 ;; of each look-alike: finding the comparison memorized, gathered as SUGREL gathers a

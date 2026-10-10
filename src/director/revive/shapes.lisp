@@ -84,6 +84,14 @@
 
 (+after-load '|ken;elemnt >| '(revival-once 'shape-experts 'define-shape-experts))
 
+;; The experts are top-level actors of ours defined once ELEMNT has loaded, so the tags
+;; give them ELEMNT as their file, as load.33 fills them for Ken's: exists? knows them
+;; before, and asking one loads it.
+(defprop shape-expert |KEN;ELEMNT| actor-load)
+(defprop polygon-expert |KEN;ELEMNT| actor-load)
+(defprop star-expert |KEN;ELEMNT| actor-load)
+(defprop blob-expert |KEN;ELEMNT| actor-load)
+
 ;; The shapes that satisfy every constraint.
 (defun shapes-satisfying (shapes constraints)
   (mapcan (function
