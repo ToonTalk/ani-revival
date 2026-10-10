@@ -869,6 +869,10 @@ const REVIVE_TEXT = {
   mend6: "A victim, friend or stranger is looked for among the scene's characters first, and one who starts off the stage is brought on with Ken's own getting-on-stage step.",
   mend7: "Two feelings that change the same way of moving are combined, as COSUG's combine meant to (it reads an older format).",
   mend8: "Two characters with nothing to compare get an empty comparison, so pass 1 goes on.",
+  mend9: "wander-around, which SCENE asks for when a character's only part is a change of feeling but Ken never wrote, is made from DISACT's walks.",
+  mend10: "When “alone” would send off everyone else and there is no one else, that way of showing it is set aside: the two are already alone.",
+  mend11: "A task Ani can't show, left with no running time when she fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
+  mend12: "A walk that has gone on longer than Ani allows for it, because someone is in the way, stops where it is, as if there, so the scene ends.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
@@ -975,6 +979,33 @@ function repairSentence({ actor, what, notes }, sc) {
     case "nothing-to-compare": {
       const [, x, y] = Array.isArray(a) ? a : [];
       return `In pass 1, ${who(x)} and ${who(y)} had nothing to compare (no word, opposite or neighbor in common), and Ani as in 1978 stopped there; the revival's repairs go on with an empty comparison, as Ani goes on with one too slight to summarize.`;
+    }
+    case "defined-action": {
+      const c = Array.isArray(now) ? now[1] : null;
+      return `${cap(who(c))}'s only part here is a change of feeling, so Ken's SCENE asks for ${CHARS[c] ? CHARS[c].her : "them"} to wander around "so that the changes are apparent", but no file of his defines wander-around, and Ani as in 1978 stopped there; the revival made it from DISACT's walks, and ${who(c)} walks across the stage and back for as long as the part lasts.`;
+    }
+    case "already-alone": {
+      const [, x, y] = Array.isArray(d) && d[0] === "alone" ? d : [];
+      return `To show ${x && y ? `${who(x)} and ${who(y)}` : "two characters"} alone, Ken's CONVEY sends everyone else off, but this story has no one else, and Ani as in 1978 stopped trying to time that; the revival's repairs set that way aside, since the two are already alone.`;
+    }
+    case "no-running-time": {
+      const status = Array.isArray(because) ? because[1] : null;
+      return `${status === "cant-do" ? `Ani has no idea how to show ${subject ? `${who(subject)}'s part` : "this"}` : "This is shown by the scene's other tasks"}, and when she fitted the scene's tasks to its length she gave it no running time, so Ani as in 1978 stopped on a missing number; the revival's repairs give it none at all, 0 seconds, as Ani's ideal-time-for-task already does.`;
+    }
+    case "overdue-move": {
+      const [c, , goal] = Array.isArray(was) ? was : [];
+      const n = Array.isArray(because) ? Number(because[1]) : NaN;
+      const secs = Number.isFinite(n) ? `${n < 10 ? n.toFixed(1) : Math.round(n)} seconds` : "the most time Ani allows";
+      const waiting = Array.isArray(because) && because[0] === "waiting-for-more-than";
+      return waiting
+        ? `${cap(who(c))} kept stepping back to wait for someone to move for more than ${secs}, the most Ani allows for that walk, and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, as if ${CHARS[c] ? CHARS[c].she : "they"} had got there.`
+        : `${cap(who(c))} was still on ${theirs(c)} way to ${place(goal)} after more than ${secs}, the most Ani allows for a walk that long (someone was in the way), and with Ani as in 1978 the scene would never have ended; the revival's repairs stop the walk where it is, as if ${CHARS[c] ? CHARS[c].she : "they"} had got there.`;
+    }
+    case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
+    case "bringing-on-assumed": {
+      const [c, assumed] = Array.isArray(was) ? was : [];
+      const actual = Array.isArray(now) ? now[1] : null;
+      return `When Ani timed this part she ${assumed === "brought-on" ? "counted" : "didn't count"} a walk to bring ${who(c)} on, but by the time it ran, ${actual === "brought-on" ? `${who(c)} still had to be brought on` : `an earlier step had already put ${CHARS[c] ? CHARS[c].her : "them"} on the stage`}; the part keeps the timing Ani worked out.`;
     }
     default: return `The revival's repairs (${esc(plain(what))}) acted on ${esc(actor)}: ${esc(show(was))} became ${esc(show(now))}${because !== undefined ? `, because ${esc(plain(show(because)))}` : ""}.`;
   }

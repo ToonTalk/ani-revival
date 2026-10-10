@@ -21,10 +21,10 @@ import { join, extname, normalize } from "node:path";
 
 // the kind stepmother's film, as tools/run-pass2.mjs and run-scene.mjs (or src/pipeline.js) make it in Node
 const EXPECTED_LAST_FRAMES = [78, 133, 40, 200, 94];
-// the tortoise and the hare with the revival's repairs: The Boast and The Race film in 187
-// and 108 frames (node tools/run-story.mjs test/stories/tortoise-and-hare.lisp --extensions
-// mend; test/stories/stress/README.md), so they end at frames 186 and 107
-const EXPECTED_MENDED_LAST_FRAMES = [186, 107];
+// the tortoise and the hare with the revival's repairs: The Boast, The Race and The Finish
+// film in 187, 108 and 29 frames (node tools/run-story.mjs test/stories/tortoise-and-hare.lisp
+// --extensions mend; test/stories/stress/expected.json), so they end at frames 186, 107 and 28
+const EXPECTED_MENDED_LAST_FRAMES = [186, 107, 28];
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
@@ -267,18 +267,18 @@ try {
   await sleep(300);
   const mode = await js(`localStorage.getItem("ani-cinderella:mode:v1")`);
   const mended = await finished();
-  check(mode === "revival" && /with the revival's repairs: 2 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
+  check(mode === "revival" && /with the revival's repairs: 3 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
   const mendedLasts = await js(`(async () => {
     document.querySelector('#runbar [data-view="1"]').click();
     const out = [];
-    for (const b of [...document.querySelectorAll("#scenes button")].slice(0, 2)) {
+    for (const b of [...document.querySelectorAll("#scenes button")].slice(0, 3)) {
       b.click();
       await new Promise((r) => setTimeout(r, 30));
       out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
     }
     return out;
   })()`);
-  check(JSON.stringify(mendedLasts) === JSON.stringify(EXPECTED_MENDED_LAST_FRAMES), `its first two scenes end at frames ${mendedLasts.join(", ")} (Node: ${EXPECTED_MENDED_LAST_FRAMES.join(", ")})`);
+  check(JSON.stringify(mendedLasts) === JSON.stringify(EXPECTED_MENDED_LAST_FRAMES), `its three scenes end at frames ${mendedLasts.join(", ")} (Node: ${EXPECTED_MENDED_LAST_FRAMES.join(", ")})`);
   await shot("5-made-with-repairs.png");
   const glass = await js(`(async () => {
     document.querySelector("#scenes button").click();

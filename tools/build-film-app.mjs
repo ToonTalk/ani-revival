@@ -76,7 +76,8 @@ function reviveIndex(root) {
     const defs = definitions(text);
     const lineAt = (i) => text.slice(0, i).split("\n").length;
     const around = (line) => (defs.filter((d) => d.line <= line).pop() || { line }).line;
-    for (const m of text.matchAll(/\(revival-note\s+\S+\s+'([a-z0-9+-]+)/g)) notes[m[1]] ||= [id, around(lineAt(m.index))];
+    // the actor is a name, or a form such as (ask ,condition recall your subscene)
+    for (const m of text.matchAll(/\(revival-note\s+(?:\([^()]*\)|\S+)\s+'([a-z0-9+-]+)/g)) notes[m[1]] ||= [id, around(lineAt(m.index))];
     for (const m of text.matchAll(/\(define ([a-z0-9:+-]+) display-method\b/g)) (methods[m[1]] ||= { file: id }).define = lineAt(m.index);
     for (const m of text.matchAll(/\(define-receiver \(run ([a-z0-9:+-]+) /g)) (methods[m[1]] ||= { file: id }).run = lineAt(m.index);
   }
