@@ -1,0 +1,386 @@
+{
+ "characters": [
+  {
+   "character": "cinderella",
+   "look": {
+    "shape": "hexagon",
+    "angle": 60,
+    "centerOffset": null,
+    "aniSize": 0.036
+   },
+   "elements": {
+    "size": {
+     "choicePoint": "(choice-point-of cinderella size)",
+     "value": "low",
+     "strength": "medium",
+     "sources": [
+      "(variety level)",
+      "(flashiness level)",
+      "shy"
+     ],
+     "drawn": "low"
+    },
+    "shape-jaggedness": {
+     "choicePoint": "(choice-point-of cinderella shape-jaggedness)",
+     "value": "low",
+     "strength": "medium",
+     "sources": [
+      "(dynamics-of cinderella path-jaggedness)",
+      "(variety level)",
+      "friendly",
+      "graceful"
+     ],
+     "drawn": "low"
+    },
+    "shape-complexity": {
+     "choicePoint": "(choice-point-of cinderella shape-complexity)",
+     "value": "medium",
+     "strength": "low",
+     "sources": [
+      "shy",
+      "(variety level)",
+      "(dynamics-of cinderella speed)"
+     ],
+     "drawn": "medium"
+    }
+   },
+   "experts": [
+    "(considered: constraints ((shape-jaggedness low 18) (shape-complexity medium 6)) offered ((polygon-expert hexagon)))",
+    "(chosen: shape hexagon by polygon-expert from (hexagon))"
+   ]
+  },
+  {
+   "character": "step-mother",
+   "look": {
+    "shape": "eight-pointed-star",
+    "angle": 135,
+    "centerOffset": null,
+    "aniSize": 0.036
+   },
+   "elements": {
+    "size": {
+     "choicePoint": "(choice-point-of step-mother size)",
+     "value": "low",
+     "strength": "medium",
+     "sources": [
+      "(flashiness level)",
+      "(variety level)",
+      "(relative-choice-point-of (step-mother prince) relative-size)"
+     ],
+     "drawn": "low"
+    },
+    "shape-jaggedness": {
+     "choicePoint": "(choice-point-of step-mother shape-jaggedness)",
+     "value": "high",
+     "strength": "medium",
+     "sources": [
+      "mean",
+      "(relative-choice-point-of (step-mother cinderella) relative-shape-jaggedness)",
+      "(relative-choice-point-of (step-mother fairy-godmother) relative-shape-jaggedness)",
+      "(relative-choice-point-of (step-mother prince) relative-shape-jaggedness)"
+     ],
+     "drawn": "high"
+    },
+    "shape-complexity": {
+     "choicePoint": "(choice-point-of step-mother shape-complexity)",
+     "value": "high",
+     "strength": "medium",
+     "sources": [
+      "(relative-choice-point-of (step-mother prince) relative-shape-complexity)",
+      "(relative-choice-point-of (step-mother cinderella) relative-shape-complexity)"
+     ],
+     "drawn": "high"
+    }
+   },
+   "experts": [
+    "(considered: constraints ((shape-jaggedness high 30) (shape-complexity high 16)) offered ((star-expert eight-pointed-star)))",
+    "(chosen: shape eight-pointed-star by star-expert from (eight-pointed-star))"
+   ]
+  },
+  {
+   "character": "fairy-godmother",
+   "look": {
+    "shape": "pentagon",
+    "angle": 72,
+    "centerOffset": "(right 54)",
+    "aniSize": 0.05
+   },
+   "elements": {
+    "size": {
+     "choicePoint": "(choice-point-of fairy-godmother size)",
+     "value": "medium",
+     "strength": "high",
+     "sources": [
+      "(relative-choice-point-of (fairy-godmother prince) relative-size)",
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-size)"
+     ],
+     "drawn": "medium"
+    },
+    "shape-jaggedness": {
+     "choicePoint": "(choice-point-of fairy-godmother shape-jaggedness)",
+     "value": "(not low)",
+     "strength": "high",
+     "sources": [
+      "(relative-choice-point-of (fairy-godmother prince) relative-shape-jaggedness)",
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-shape-jaggedness)"
+     ],
+     "drawn": "medium"
+    },
+    "shape-complexity": {
+     "choicePoint": "(choice-point-of fairy-godmother shape-complexity)",
+     "value": "medium",
+     "strength": "low",
+     "sources": [
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-shape-complexity)",
+      "(relative-choice-point-of (fairy-godmother step-mother) relative-shape-complexity)",
+      "(dynamics-of fairy-godmother speed)",
+      "(variety level)",
+      "(relative-choice-point-of (fairy-godmother prince) relative-shape-complexity)",
+      "magical"
+     ],
+     "drawn": "medium"
+    }
+   },
+   "experts": [
+    "(considered: constraints ((shape-jaggedness (not low) 24) (shape-complexity medium 18)) offered ((polygon-expert pentagon) (star-expert star)))",
+    "(chosen: shape pentagon by polygon-expert from (pentagon star))"
+   ]
+  },
+  {
+   "character": "prince",
+   "look": {
+    "shape": "circle",
+    "angle": 5,
+    "centerOffset": null,
+    "aniSize": 0.07
+   },
+   "elements": {
+    "size": {
+     "choicePoint": "(choice-point-of prince size)",
+     "value": "high",
+     "strength": "medium",
+     "sources": [
+      "(relative-choice-point-of (prince cinderella) relative-size)",
+      "(variety level)"
+     ],
+     "drawn": "high"
+    },
+    "shape-jaggedness": {
+     "choicePoint": "(choice-point-of prince shape-jaggedness)",
+     "value": "low",
+     "strength": "medium",
+     "sources": [
+      "(dynamics-of prince path-jaggedness)",
+      "graceful"
+     ],
+     "drawn": "low"
+    },
+    "shape-complexity": {
+     "choicePoint": "(choice-point-of prince shape-complexity)",
+     "value": "low",
+     "strength": "medium",
+     "sources": [
+      "(relative-choice-point-of (prince cinderella) relative-shape-complexity)",
+      "(dynamics-of prince speed)"
+     ],
+     "drawn": "low"
+    }
+   },
+   "experts": [
+    "(considered: constraints ((shape-jaggedness low 10) (shape-complexity low 12)) offered ((blob-expert circle)))",
+    "(chosen: shape circle by blob-expert from (circle))"
+   ]
+  }
+ ],
+ "knowledge": [
+  {
+   "kind": "descriptor",
+   "source": "physically-strong",
+   "element": "size",
+   "value": "high",
+   "strength": "high",
+   "evidence": {
+    "why": "bodily strength shows most directly as bulk"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "shy",
+   "element": "size",
+   "value": "low",
+   "strength": "medium",
+   "evidence": {
+    "why": "a shy character keeps small and takes up little room"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "friendly",
+   "element": "shape-jaggedness",
+   "value": "low",
+   "strength": "medium",
+   "evidence": {
+    "thesis": 161,
+    "text": "smooth is friendly"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "graceful",
+   "element": "shape-jaggedness",
+   "value": "low",
+   "strength": "medium",
+   "evidence": {
+    "why": "graceful movement is smooth movement, and graceful already suggests smooth paths (dscrp.17:100), so a smooth outline"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "shabby",
+   "element": "shape-jaggedness",
+   "value": "high",
+   "strength": "low",
+   "evidence": {
+    "why": "a shabby character is ragged, so its outline is ragged too (motivated by p. 166, where the fairy godmother changes Cinderella from being shabby and ragged to being beautiful and elegant)"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "mean",
+   "element": "shape-jaggedness",
+   "value": "high",
+   "strength": "medium",
+   "evidence": {
+    "why": "sharp, spiky outlines read as hostile, so a mean character is drawn jagged: a convention, of the kind appearances rest on (p. 161)"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "shy",
+   "element": "shape-complexity",
+   "value": "low",
+   "strength": "low",
+   "evidence": {
+    "why": "a shy character draws no attention to itself, so a plain shape"
+   }
+  },
+  {
+   "kind": "descriptor",
+   "source": "magical",
+   "element": "shape-complexity",
+   "value": "high",
+   "strength": "medium",
+   "evidence": {
+    "why": "magic sparkles: a shape with many points"
+   }
+  },
+  {
+   "kind": "relationship",
+   "source": "dominates",
+   "element": "relative-size",
+   "value": "greater-than",
+   "strength": "medium",
+   "evidence": [
+    {
+     "code": "relate.22:63",
+     "text": "even more typical would be size"
+    },
+    {
+     "thesis": 157,
+     "text": "could have the dominating character typically appear above the other, do things first as a rule, or be larger than the other"
+    }
+   ]
+  },
+  {
+   "kind": "comparison",
+   "source": "(uniqueness-summary: physical)",
+   "element": [
+    "relative-size",
+    "relative-shape-jaggedness",
+    "relative-shape-complexity"
+   ],
+   "value": "different-from",
+   "strength": "level",
+   "evidence": {
+    "thesis": 94,
+    "text": "the finding that a character is unique suggests that that character move (or appear) differently from the others"
+   }
+  },
+  {
+   "kind": "comparison",
+   "source": "look-alike:",
+   "element": [
+    "relative-shape-jaggedness",
+    "relative-shape-complexity"
+   ],
+   "value": "different-from",
+   "strength": "high",
+   "evidence": {
+    "thesis": 94,
+    "text": "the difference between two similar characters should be accented by choosing divergent values for one or two elements to help the viewer distinguish the two characters"
+   }
+  },
+  {
+   "kind": "dynamics",
+   "source": "path-jaggedness",
+   "element": "shape-jaggedness",
+   "value": "same",
+   "strength": "medium",
+   "evidence": {
+    "why": "a character whose paths are jagged is drawn jagged, so its look and its movement say the same (motivated by p. 175)"
+   }
+  },
+  {
+   "kind": "dynamics",
+   "source": "speed",
+   "element": "shape-complexity",
+   "value": "opposite",
+   "strength": "low",
+   "evidence": {
+    "why": "detail is lost on a character that moves quickly, so it is drawn simply, and a slow one can carry more (motivated by p. 175)"
+   }
+  },
+  {
+   "kind": "film",
+   "source": "(flashiness level)",
+   "element": "size",
+   "value": "same",
+   "strength": "medium",
+   "evidence": {
+    "code": "glosug.41:39",
+    "text": "size is also bigger is flashier"
+   }
+  },
+  {
+   "kind": "film",
+   "source": "(obviousness level)",
+   "element": "size",
+   "value": "medium-unless-high",
+   "strength": "low",
+   "evidence": {
+    "why": "a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)"
+   }
+  },
+  {
+   "kind": "film",
+   "source": "(obviousness level)",
+   "element": "shape-jaggedness",
+   "value": "medium-unless-high",
+   "strength": "low",
+   "evidence": {
+    "why": "a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)"
+   }
+  },
+  {
+   "kind": "film",
+   "source": "(obviousness level)",
+   "element": "shape-complexity",
+   "value": "medium-unless-high",
+   "strength": "low",
+   "evidence": {
+    "why": "a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)"
+   }
+  }
+ ],
+ "findings": []
+}
