@@ -485,7 +485,7 @@ function showDraft(failure = null) {
     <div class="draft">
       ${failure ? `<p class="problems">${esc(failure)}</p>` : ""}
       ${story.error ? `<p><b>Ani can't read this film description yet.</b></p>`
-        : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b>: ${esc(words(cast.map((c) => nameOf(story, c))))}. <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>: ${esc(words(scenes.map((s) => titleOf(story, s))))}.</p>`}
+        : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b> and <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>, in plain words:</p>${storyInWords(story)}`}
       ${d.balanced ? `<p class="note">The model left the parentheses of ${d.balanced} form${d.balanced === 1 ? "" : "s"} unbalanced; the page balanced them, closing each form at its last line.</p>` : ""}
       ${problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : `<p class="note">Ani's checks find nothing wrong.</p>`}
       ${notes.length || mended.length ? `<ul class="changes note">${[...mended, ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
@@ -494,13 +494,14 @@ function showDraft(failure = null) {
         ${story.missingPairs && story.missingPairs.length ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships</button>` : ""}
         <button type="button" class="btn primary" id="tell-edit">${problems.length ? "Open it in the editor" : "Look it over, then make the film"}</button>
       </div>
-      <details><summary>The film description</summary><div class="body"><pre class="lisp">${esc(d.text)}</pre></div></details>
+      <details><summary>The film description, as Ani will read it</summary><div class="body"><pre class="lisp">${esc(formatLisp(d.text))}</pre></div></details>
     </div>`;
   result.querySelector("#tell-fix")?.addEventListener("click", () => draftStory({ repair: { turns: d.turns, reply: d.reply, problems } }));
   result.querySelector("#tell-fill")?.addEventListener("click", () => { d.text = fillRelationships(d.text); showDraft(); });
   result.querySelector("#tell-edit").addEventListener("click", () => {
-    editor.text = d.text;
-    store.set(DRAFT_KEY, d.text);
+    // laid out to fit the editor; printed again only where not a word changes
+    editor.text = formatLisp(d.text);
+    store.set(DRAFT_KEY, editor.text);
     select(null, { panel: "edit" });
   });
 }

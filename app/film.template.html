@@ -471,6 +471,72 @@ function pretty(x, indent = 0, width = 66) {
   return out + ")";
 }
 
+// A film description laid out to fit a narrow panel: each (define ...) form is printed
+// again at the width given, as pretty() prints Ani's records; comments, blank lines and
+// any form with a comment inside it are kept as written, and a form is kept as written
+// too if printing it again would change a single word.
+function formatLisp(text, width = 54) {
+  const lines = String(text).replace(/\r/g, "").split("\n");
+  const codeEnd = (line) => {
+    let inString = false, inBar = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === "/" && !inString) { i++; continue; }
+      if (c === '"' && !inBar) inString = !inString;
+      else if (c === "|" && !inString) inBar = !inBar;
+      else if (c === ";" && !inString && !inBar) return i;
+    }
+    return line.length;
+  };
+  const depth = (line) => {
+    let d = 0;
+    const code = line.slice(0, codeEnd(line)).replace(/\|[^|]*\||"(?:[^"\/]|\/.)*"|\/./g, "");
+    for (const c of code) { if (c === "(") d++; else if (c === ")") d--; }
+    return d;
+  };
+  const words = (t) => t.replace(/[()]/g, " $& ").split(/\s+/).filter(Boolean).join(" ").toLowerCase();
+  const out = [];
+  for (let i = 0; i < lines.length;) {
+    if (!/^\(define\b/.test(lines[i])) { out.push(lines[i++]); continue; }
+    const start = i;
+    let d = 0;
+    do { d += depth(lines[i]); i++; } while (d > 0 && i < lines.length);
+    const form = lines.slice(start, i);
+    const text1 = form.join("\n");
+    if (form.some((l) => codeEnd(l) < l.length)) { out.push(...form); continue; }
+    // as Ken wrote them: the (define name kind) line, then each part on a line of its own
+    let again = null;
+    try {
+      const f = parse(text1);
+      again = `(define ${show(f[1])} ${show(f[2])}\n` + f.slice(3).map((e) => "  " + pretty(e, 2, width)).join("\n") + ")";
+    } catch { again = null; }
+    out.push(...(again && words(again) === words(text1) ? again.split("\n") : form));
+  }
+  return out.join("\n");
+}
+// A story as Ani would be told it, in plain words: each character with their words, how
+// they feel about each other, and each scene with what it asks for and how it is to go.
+function storyInWords(story) {
+  const cast = Object.keys(story.characters || {});
+  cast.forEach((c) => meet(story, c));
+  return using({ story, cast }, () => {
+    const chars = cast.map((c) => {
+      const k = story.characters[c];
+      const w = [...k.physical, ...k.personality, ...(k.movement || [])].map(plain);
+      return `<li><b>${esc(cap(nameOf(story, c)))}</b>${k.role ? " (the main character)" : ""}: ${esc(words(w))}.</li>`;
+    }).join("");
+    const rels = (story.relationships || []).filter((r) => story.characters[r.from] && story.characters[r.to]).map((r) => `<li>${cap(relationshipText(["relationship-of", r.from, r.to]))}.</li>`).join("");
+    const scenes = Object.keys(story.scenes || {}).map((id) => {
+      const st = story.scenes[id];
+      const tasks = tasksOf(st.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, "")));
+      const set = st.settings || {};
+      const how = [set.mood && `${show(set.mood).replace(/[()]/g, "").replace(/^changes /, "changing from ")} mood`, set.rhythm && `${show(set.rhythm).replace(/[()]/g, "").replace(/^changes /, "changing from ")} rhythm`, set.length && `${set.length} length`].filter(Boolean).map((t) => t.replace(/ (\w+) (mood|rhythm)$/, (m, a, b) => (/changing from/.test(t) ? ` to ${a} ${b}` : m)));
+      return `<li><b>${esc(titleOf(story, id))}</b>${how.length ? ` <span class="note">(${esc(how.join(", "))})</span>` : ""}: ${esc(tasks.join("; "))}.</li>`;
+    }).join("");
+    return `<p class="label">The characters</p><ul class="changes">${chars}</ul>${rels ? `<p class="label">How they feel about each other</p><ul class="changes">${rels}</ul>` : ""}<p class="label">The scenes</p><ol class="changes">${scenes}</ol>`;
+  });
+}
+
 // ---------------------------------------------------------------- the cast
 
 const CHARS = {
@@ -2144,7 +2210,7 @@ function storyPanel() {
     pre.hidden = showing;
     e.target.textContent = showing ? "Show it as Ani read it" : "Hide Ani's version";
     if (!showing) {
-      const text = run.cindy.replace(/^;;.*-\*-lisp-\*-\s*/, "");
+      const text = formatLisp(run.cindy.replace(/^;;.*-\*-lisp-\*-\s*/, ""));
       const at = text.indexOf(`(define ${cur} scene`);
       const end = at < 0 ? -1 : text.indexOf("\n\n", at);
       pre.innerHTML = at < 0 ? esc(text) : esc(text.slice(0, at)) + "<mark>" + esc(text.slice(at, end > 0 ? end : undefined)) + "</mark>" + esc(end > 0 ? text.slice(end) : "");
@@ -2515,8 +2581,8 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
     if (verb === "meets") {
       if (!(isChar(d[1]) && isChar(d[2]) && d.length === 3)) return bad(t, "write (meets x y) with two defined characters.");
       return stops.push({
-        as1978: `<code>${esc(show(t))}</code> ${where}: Ani shows a meeting with move-to, which Ken's CONVEY names but no file of his defines, so Ani as in 1978 stops there. Use (accompanys x y), or (wants x (meets x y)), or make it with the revival's repairs, which make move-to from DISPLY's own parts.`,
-        mended: `<code>${esc(show(t))}</code> ${where}: the revival's repairs show the meeting with move-to, which they make from DISPLY's own parts.`,
+        as1978: `“${esc(using({ story }, () => cap(about(d))))}” ${where}: Ani shows a meeting with move-to, which Ken's CONVEY names but no file of his defines, so Ani as in 1978 stops there. Use (accompanys x y), or (wants x (meets x y)), or make it with the revival's repairs, which make move-to from DISPLY's own parts.`,
+        mended: `“${esc(using({ story }, () => cap(about(d))))}” ${where}: the revival's repairs show the meeting with move-to, which they make from DISPLY's own parts.`,
       });
     }
     return bad(t, `Ani doesn't know how to convey “${esc(plain(verb))}”.`);
@@ -2681,7 +2747,7 @@ function refreshEditor({ fromLisp = false } = {}) {
   const castNow = Object.keys(story.characters);
   const fresh = !story.error && !(castNow.length === CAST.length && CAST.every((c) => castNow.includes(c)));
   const changes = story.error ? [] : fresh
-    ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.`]
+    ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.${storyInWords(story)}`]
     : storyChanges(RUNS[0].story, story, DATA.cindy, editor.text);
   const same = RUNS[1] && editor.text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
   // where Ani as in 1978 stops: a warning in 1978 mode, a note of what the repairs do in theirs
