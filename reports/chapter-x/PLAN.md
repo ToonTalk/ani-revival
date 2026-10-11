@@ -338,6 +338,11 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 4. **The revival may add knowledge the thesis doesn't state**, labeled "the revival's" with its reason and checked against Ken's legitimacy rule; any entry that reproduces his 1978 looks is dropped.
 5. **The mini-Ani is built now, as a test of how expressive the Agent Kit is and which tasks fit it.** Ken has no plans to use it with children; a workshop (perhaps at Chipping Norton Library) may come later, and grandchildren first. So films, the programs-only example and the AI voices can all go ahead, with a short write-up of what the kit expressed easily, what needed new features, and what it can't do.
 
+## Decisions (Ken, 11 October)
+
+6. **"Strong suggests large" is Ken's knowledge, from thesis p. 238.** There an improved Ani might give a very pleasant friendly character a large pointed shape, "chosen because the character is supposed to be a strong friendly ally". REVIVE;APSUG keeps the entry as Ken's (thesis 238), with that passage as its evidence, noting that the thesis gives it for a strong friendly ally. Decision 4 drops only the revival's own entries that give back his 1978 looks; his own knowledge may agree with them, as this does for the stepmother's large size. (The review of 10 October had relabeled it the revival's generalization and so dropped it.)
+7. **In color mode, a film with Ani's own looks keeps each character's 1978 color** (`running-color`, `aninit.65:83-87`), and a new character gets the color of the shape it would have had as in 1978, until stage 5 has Ani choose colors. The film page already does this.
+
 ## The questions as they were put
 
 

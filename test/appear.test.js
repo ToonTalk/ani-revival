@@ -93,15 +93,15 @@ test("the knowledge: each entry is taught as Ken's process suggestions takes it,
     assert.equal(run(`(ask ${descriptor} collect items memorized matching (suggestion: element ${element} value ? strength ? source ?))`),
       `((SUGGESTION: ELEMENT ${element} VALUE ${value} STRENGTH ${strength} SOURCE ${descriptor}))`);
   }
-  // the reviews' corrections: no strong pointed, no evil red, and no strong large (the
-  // revival's generalization of p. 238's atypical example, which gave back Ken's large
-  // stepmother: tools/check-appear.mjs); only friendly's smooth is the thesis's own
-  // (p. 161), and shabby's ragged outline is the revival's, motivated by p. 166
+  // the reviews' corrections: no strong pointed, no evil red; strong large is Ken's,
+  // from p. 238 (his decision of 11 October), and with friendly's smooth (p. 161) the
+  // only entries that are the thesis's own; shabby's ragged outline is the revival's,
+  // motivated by p. 166
   const text = entries.map((e) => L.print(e)).join(" ");
-  assert.doesNotMatch(text, /THESIS 238/);
-  assert.doesNotMatch(text, /\(STRONG /);
+  assert.match(text, /\(STRONG SIZE HIGH MEDIUM \(THESIS 238 \|The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally\|\)\)/);
+  assert.doesNotMatch(text, /\(STRONG SHAPE-JAGGEDNESS/);
   assert.doesNotMatch(text, /\(EVIL /);
-  assert.deepEqual(text.match(/\(THESIS \d+/g), ["(THESIS 161"]);
+  assert.deepEqual(text.match(/\(THESIS \d+/g), ["(THESIS 238", "(THESIS 161"]);
   assert.match(text, /\(SHABBY SHAPE-JAGGEDNESS HIGH LOW \(WHY \|.*motivated by p\. 166/);
   // dominates suggests a greater relative size, as its comment says (relate.22:63)
   assert.equal(run("(ask dominates collect items memorized matching (suggestion: element (relative-size step-mother cinderella) value ? strength ? source ?))"),

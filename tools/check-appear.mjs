@@ -40,7 +40,9 @@
 // reproduces Ken's looks (1, or 5), which decision 4 drops; and anything flagged (2, 3,
 // 5) that has not been reviewed: REVIEWED below gives the decision for each, and why,
 // as reports/ext/appear/README.md does. Knowledge that is Ken's own (its evidence his
-// thesis or his code) is listed, not failed: it is his.
+// thesis or his code) is listed, not failed: it is his, and decision 4 drops only the
+// revival's own entries (Ken's decision of 11 October 2026, "Decisions" 6: strong's
+// large size, from p. 238, may give back his stepmother's size).
 // Prints, for each character, Ken's look beside Ani's, with the sources of Ani's.
 //
 // Usage: node tools/check-appear.mjs [--run] [--quick] [--jobs n]
@@ -63,15 +65,16 @@ const opposite = (v) => (v === "high" ? "low" : v === "low" ? "high" : v);
 
 // What was flagged and reviewed under Ken's decision 4, and the decision, keyed as
 // flagKey makes them. reports/ext/appear/README.md, "Ken's looks and the revival's
-// knowledge", gives the same. (Reviewed on 10 October 2026, when strong's large size
-// was dropped: the ablation found that it alone made Ani draw the stepmother large.)
+// knowledge", gives the same. (Reviewed on 10 October 2026, and again on 11 October,
+// when Ken decided that strong's large size is his own knowledge, from p. 238, which may
+// give back his stepmother's size: PLAN.md, "Decisions" 6.)
 export const REVIEWED = {
   "pair: path-jaggedness shape-jaggedness, step-mother medium":
     "kept: the rule (a character's outline follows its paths, motivated by p. 175) reaches all four, and gives Ken's value only to the stepmother; Cinderella's medium paths, the fairy godmother's jagged ones and the Prince's smooth ones disagree with his star, circle and triangle. In Ani's film she is not a square, and no look of Ken's in it needs the rule (5).",
   "combination: path-jaggedness shape-jaggedness + speed shape-complexity, step-mother square":
     "kept, both: together the two dynamics rules give the stepmother a square only where nothing else speaks. The speed rule (fast, so simple) agrees with Ken for her and the Prince, whose square and triangle are both simple, and not for Cinderella or the fairy godmother. In Ani's film Ken's own uniqueness summary (p. 94) and mean's jagged outline draw her otherwise.",
   "only the revival's: step-mother shape":
-    "kept: with Ken's own knowledge of looks left out (friendly's smooth, dominates, the physical uniqueness and look-alike summaries, flashiness), her jaggedness is a compromise between mean's jagged, her medium paths and the film's variety, and her complexity is the one value left once she is to differ from the fairy godmother (complex) and Cinderella (medium), as Ken's own comparison summaries (CSUMRY) ask of characters so unlike. Ani's film has all of Ken's knowledge in it, and there she is not a square; nothing is dropped for a film Ani doesn't make.",
+    "kept: with Ken's own knowledge of looks left out (friendly's smooth, strong's large size, dominates, the physical uniqueness and look-alike summaries, flashiness), her jaggedness is a compromise between mean's jagged, her medium paths and the film's variety, and her complexity is the one value left once she is to differ from the fairy godmother (complex) and Cinderella (medium), as Ken's own comparison summaries (CSUMRY) ask of characters so unlike. Ani's film has all of Ken's knowledge in it, and there she is not a square; nothing is dropped for a film Ani doesn't make.",
 };
 
 // What the check needs to know of Ken's Cinderella, from a Lisp with APPEAR that has

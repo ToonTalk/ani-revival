@@ -47,23 +47,24 @@
 
 ;;; ------------------------------------------------- 1. descriptors
 
-;; (descriptor element value strength evidence). Only friendly's smooth is the thesis's
-;; own (p. 161); the rest are the revival's, each with its reason. shabby's ragged
-;; outline is motivated by p. 166, where the script changes Cinderella "from being
-;; shabby and ragged", which says what shabby is, not how Ani is to draw it. Two are not
-;; here, since each would give back one of Ken's 1978 looks, and Ken's decision of 9
-;; October 2026 drops any piece of the revival's that does (reports/chapter-x/PLAN.md,
-;; "Decisions" 4):
-;;  - evil's red, Ken's red stepmother;
-;;  - strong's large size, the revival's generalization of p. 238, which gives a large
-;;    shape to "a strong friendly ally" only as a deliberately atypical choice for a
-;;    friendly character. With it Ani drew the stepmother large, as Ken drew her, and
-;;    without it she doesn't (tools/check-appear.mjs, 5: Ken's own dominates,
-;;    relate.22:63, loses to her looking different from the Prince). Nor does strong
-;;    mean pointed: pointed is "typically an unfriendly shape", which unfriendly gets
-;;    from friendly's opposite.
+;; (descriptor element value strength evidence). Two are the thesis's own: friendly's
+;; smooth (p. 161), and strong's large size, Ken's knowledge (his decision of 11 October
+;; 2026, reports/chapter-x/PLAN.md, "Decisions" 6) from p. 238, where an improved Ani
+;; gives a very pleasant friendly character a large pointed shape, "chosen because the
+;; character is supposed to be a strong friendly ally". The thesis gives it for a strong
+;; friendly ally, as a reason for an atypical size; here strong suggests large for any
+;; strong character. It gives the stepmother the large size Ken drew her with: his
+;; decision 4 drops only the revival's own entries that give back his 1978 looks, and
+;; his own knowledge may agree with them. The rest are the revival's, each with its
+;; reason. shabby's ragged outline is motivated by p. 166, where the script changes
+;; Cinderella "from being shabby and ragged", which says what shabby is, not how Ani is
+;; to draw it. Evil's red is not here: it would give back Ken's red stepmother, and
+;; decision 4 drops it. Nor does strong mean pointed: pointed is "typically an
+;; unfriendly shape" (p. 238), which unfriendly gets from friendly's opposite.
 (setq :appearance-knowledge
-      '((physically-strong size high high
+      '((strong size high medium
+	 (thesis 238 |The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally|))
+	(physically-strong size high high
 	 (why |bodily strength shows most directly as bulk|))
 	(shy size low medium
 	 (why |a shy character keeps small and takes up little room|))
