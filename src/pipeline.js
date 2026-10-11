@@ -171,8 +171,10 @@ export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], 
 // box of a change: Director draws speed and the path's curvature, length and
 // jaggedness (dichar.103:164-169); pass 2 repeats an activity as often as the
 // rhythmic level, activity level and repetiveness say (place.45:411-420); acceleration
-// and deliberateness are chosen and used by neither, as in 1978 (thesis X.B.3 (f),
-// L4853-4856); the attractions only pass 1 reads.
+// and deliberateness are chosen and used by neither, as in 1978 (thesis X.B.3: (d),
+// L4830-4836, characters "accelerate instantaneously despite the fact that much effort
+// was expended determining the acceleration"; (f), L4853-4856, deliberateness); the
+// attractions only pass 1 reads.
 export const ELEMENT_USE = {
   speed: "director", "path-curvature": "director", "path-length": "director", "path-jaggedness": "director",
   "rhythmic-level": "cycles", "activity-level": "cycles", repetiveness: "cycles",
@@ -181,6 +183,11 @@ export const ELEMENT_USE = {
 };
 
 const becomeFiles = (fn1s) => `'(${fn1s.map((fn1) => `((ken1) ${fn1} become)`).join(" ")})`;
+// The extensions a job of CHANGE's own boots with: those asked for, and CHANGE.
+const withChange = (extensions) => (extensions.includes("change") ? extensions : [...extensions, "change"]);
+// What becomes of a changed character's looks while the fresh look rederives only how
+// she moves (REVIVE;APPEAR on): kept as pass 1 chose them; stage 6 links the two.
+export const LOOKS_KEPT = "kept until stage 6";
 // The characters a choice point is of: (choice-point-of c e) and
 // (relative-choice-point-of (a b) e), as toJSON gives them.
 const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(name[1]) ? name[1] : [name[1]]) : []);
@@ -194,15 +201,18 @@ const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(na
 // (storyPlan with change); becomes, if given, names the earlier BECOME files to hold
 // (by default the plan's). Returns, for the glass box:
 //   { scene, file, characters: [{ character, actor, changes, causes, values,
-//     relativeValues, choicePoints }], held, lisp }
+//     relativeValues, choicePoints, notDescribed, looks? }], held, lisp }
 // values: every element, { element, before, after, changed, use } (use: ELEMENT_USE);
 // relativeValues: { choicePoint, value }; choicePoints: the fresh look's choice points
 // of the character, absolute and relative, as pass 1's glass box has them
-// (collectChoicePoints); held: each other choice the fresh look held that would have
-// come out differently, { choicePoint, heldAt, wouldHaveChosen }.
+// (collectChoicePoints); notDescribed: the old words of her changes her description
+// didn't have, so that the change took nothing away for them; looks: LOOKS_KEPT when
+// Ani chooses the looks (REVIVE;APPEAR), which the fresh look leaves as they were;
+// held: each other choice the fresh look held that would have come out differently,
+// { choicePoint, heldAt, wouldHaveChosen }.
 export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions) });
   const lisp = (x) => L.print(x).toLowerCase();
   L.evalString("(load '|ken;datest >|)");
   const definitions = L.toArray(L.evalString(`(take-a-fresh-look '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} '((ken1) ${s.become} become))`));
@@ -226,6 +236,8 @@ export function freshLook(fs, scene, { plan, extensions = [], becomes = null, ba
       })),
       relativeValues: pairs(set["relative-values"]).map(([choicePoint, value]) => ({ choicePoint, value })),
       choicePoints: choicePoints.filter((c) => choicePointCharacters(c.name).includes(character)),
+      notDescribed: L.toArray(set["not-described"]).map(lisp),
+      ...(choosesLooks(extensions) ? { looks: LOOKS_KEPT } : {}),
     };
   });
   const held = L.toArray(L.evalString(":change-held-against")).reverse().map((x) => {
@@ -241,7 +253,7 @@ export function freshLook(fs, scene, { plan, extensions = [], becomes = null, ba
 // and the earlier BECOME files): { choicePoint, characters, before, after }.
 export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions) });
   L.evalString("(load '|ken;datest >|)");
   const differences = L.toArray(L.evalString(`(recompute-everyone-as-of '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])})`)).map((x) => {
     const [choicePoint, before, after] = L.toArray(x).map((y) => toJSON(L, y));
@@ -289,8 +301,9 @@ export function pass2(fs, scene, { backtrace = false, setup = null, plan = null,
   }
   // who the characters changed in earlier scenes have become (REVIVE;CHANGE): those
   // scenes' BECOME files, made so; becomes, if given, names those to load instead of
-  // the plan's (makeFilmSteps gives those its fresh looks made)
-  const learned = becomes || (s && s.becomes) || [];
+  // the plan's (makeFilmSteps gives those its fresh looks made); only those on fs (a
+  // scene planned on its own, say, after a fresh look that wasn't made)
+  const learned = (becomes || (s && s.becomes) || []).filter((fn1) => fs.find({ dir: "KEN1", fn1: fn1.toUpperCase(), fn2: "BECOME" }));
   if (learned.length) before.push(`(learn-who-they-have-become '(${learned.map((fn1) => `((ken1) ${fn1} become)`).join(" ")}))`);
   if (setup) setup(L);
   L.evalString(`(run '${scene}${before.length ? ` nil '(progn ${before.join(" ")})` : ""})`);
@@ -345,14 +358,20 @@ export function glassBox(L, scene) {
 
 // What pass 2 made so of the earlier scenes' changes (REVIVE;CHANGE
 // learn-who-they-have-become): for each (change-of c in s) actor, in film order,
-// { actor, character, scene, changes, causes, madeSo: [{ element, was, now }] }, each
-// change and cause printed as Lisp (a cause nil if there was none). Looked up without
-// interning anything unless REVIVE;CHANGE is loaded, so that a Lisp running as in 1978
-// is left as it was.
+// { actor, character, scene, changes, causes, described: [{ type, was, now }],
+// madeSo: [{ element, was, now }], notDescribed, looks? }, each change, cause and
+// value printed as Lisp (a cause nil if there was none). described: the descriptions
+// it changed (by the character each change describes; for a relationship, the
+// first); madeSo: the values the fresh look chose differently, made so; notDescribed:
+// the old words her description didn't have; looks: LOOKS_KEPT when Ani chooses the
+// looks (REVIVE;APPEAR). Looked up without interning anything unless REVIVE;CHANGE is
+// loaded, so that a Lisp running as in 1978 is left as it was.
 export function collectBecomes(L) {
   if (!L.obarray.find("CHANGES-OF-EARLIER-SCENES") || L.evalString("(get 'changes-of-earlier-scenes 'expr)") === L.NIL) return [];
   const lisp = (x) => L.print(x).toLowerCase();
   const out = [];
+  // REVIVE;APPEAR loaded: its take-look-forms defined
+  const looks = Boolean(L.obarray.find("TAKE-LOOK-FORMS")) && L.evalString("(get 'take-look-forms 'expr)") !== L.NIL;
   for (const actor of L.toArray(L.evalString("(changes-of-earlier-scenes)"))) {
     if (actor === L.NIL) continue;
     L.intern("*GB-ACTOR*").value = actor;
@@ -361,11 +380,18 @@ export function collectBecomes(L) {
       const [, , element, , was, , now] = L.toArray(item).map(lisp);
       return { element, was, now };
     });
+    const described = L.toArray(L.evalString("(ask ,*gb-actor* collect items memorized matching (described-anew: %))")).map((item) => {
+      const [, , type, , was, , now] = L.toArray(item).map(lisp);
+      return { type, was, now };
+    });
     out.push({
       actor: lisp(actor), character, scene,
       changes: L.toArray(L.evalString("(ask ,*gb-actor* recall your changes)")).map(lisp),
       causes: L.toArray(L.evalString("(ask ,*gb-actor* recall your causes)")).map(lisp),
-      madeSo: madeSo.reverse(), // memorized newest first
+      described: described.reverse(), // memorized newest first
+      madeSo: madeSo.reverse(),
+      notDescribed: L.toArray(L.evalString("(ask ,*gb-actor* recall your not-described)")).map(lisp),
+      ...(looks ? { looks: LOOKS_KEPT } : {}),
     });
   }
   return out;
@@ -628,7 +654,8 @@ export function storyOutline(text) {
     if (f[2] === "scene") {
       scenes.push(f[1]);
       fromScenes[f[1]] = [...new Set(refs(f, []))];
-      const found = changesIn(f.slice(3), null);
+      const found = f.slice(3).filter((x) => Array.isArray(x) && x[0] === "process" && x[1] === "initial" && x[2] === "description")
+        .flatMap((x) => x.slice(3)).flatMap(changesOfTasks);
       if (found.length) changes[f[1]] = found;
     }
     if (f[2] === "character") characters.push(f[1]);
@@ -636,23 +663,34 @@ export function storyOutline(text) {
   return { scenes, characters, fromScenes, changes };
 }
 
-// The changes in a scene's description, as REVIVE;CHANGE finds them (changes-in): each
-// (change (TYPE WHO OLD) (TYPE WHO NEW)), as Ken wrote one in his commented-out
-// cinderella-beautified (cindy.46:94-105), with the causer of a (causes CAUSER ...)
-// around it. { type, who, from, to, cause, characters }: who is a character or
+// The changes a scene's tasks make, as REVIVE;CHANGE takes them (changes-in): a convey
+// or establish task whose description is (change (TYPE WHO OLD) (TYPE WHO NEW)), as Ken
+// wrote one in his commented-out cinderella-beautified (cindy.46:94-105), or a change
+// inside (causes CAUSER ...), with the causer; only of a lasting description (physical,
+// personality, movement, role-in-story or relationship). A change anywhere else in a
+// task (inside wants, prevents or undoes, or in a display task) isn't made, and isn't
+// here. Each is { type, who, from, to, cause, characters }: who is a character or
 // ["relationship-of", a, b]; from and to are lists of words; characters are those it
-// changes, both of a relationship's.
+// changes, both of a relationship's. ordering is a task or an (and ...) or
+// (sequence: ...) of them.
+const LASTING = ["physical", "personality", "movement", "role-in-story", "relationship"];
+function changesOfTasks(ordering) {
+  if (!Array.isArray(ordering)) return [];
+  if (ordering[0] === "and" || ordering[0] === "sequence:") return ordering.slice(1).flatMap(changesOfTasks);
+  return ordering[0] === "convey" || ordering[0] === "establish" ? changesIn(ordering[1], null) : [];
+}
 function changesIn(x, cause) {
   if (!Array.isArray(x)) return [];
   const part = (p) => Array.isArray(p) && p.length === 3 && typeof p[0] === "string";
   if (x[0] === "change" && x.length === 3 && part(x[1]) && part(x[2])) {
+    if (!LASTING.includes(x[1][0])) return [];
     const words = (d) => (Array.isArray(d) && d[0] === "and" ? d.slice(1) : [d]);
     const who = x[1][1];
     const characters = Array.isArray(who) ? who.slice(1, 3) : [who];
     return [{ type: x[1][0], who, from: words(x[1][2]), to: words(x[2][2]), cause, characters }];
   }
   if (x[0] === "causes" && x.length > 2) return x.slice(2).flatMap((y) => changesIn(y, x[1]));
-  return x.flatMap((y) => changesIn(y, cause));
+  return [];
 }
 
 // How a story's scenes and cast are named and drawn. Ken's own five scenes keep
@@ -766,9 +804,10 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     const earlier = [...became];
     if (planned && planned.changes) {
       // Ani's fresh look at whoever the scene changes, and the full recompute beside it
-      const who = [...new Set(planned.changes.flatMap((c) => c.characters))].map((c) => c.replace(/-/g, " ")).join(" and ");
+      const changing = [...new Set(planned.changes.flatMap((c) => c.characters))];
+      const who = changing.map((c) => c.replace(/-/g, " ")).join(" and ");
       try {
-        progress("fresh-look", `Pass 1 again: a fresh look at ${who}, who change${planned.changes.length > 1 || who.includes(" and ") ? "" : "s"} in ${scene.replace(/-/g, " ")}`, scene);
+        progress("fresh-look", `Pass 1 again: a fresh look at ${who}, who change${changing.length > 1 ? "" : "s"} in ${scene.replace(/-/g, " ")}`, scene);
         yield;
         const look = freshLook(fs, scene, { plan, extensions, becomes: earlier });
         progress("recompute", `Pass 1 again, to compare: everyone chosen afresh as of ${scene.replace(/-/g, " ")}`, scene);

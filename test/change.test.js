@@ -215,9 +215,10 @@ test("the choices as they were: KEN;CP's, read as save-answers wrote them; the e
 const BECOME = `(DEFINE (CHANGE-OF STEP-MOTHER IN CHANGE-OF-HEART) DESCRIPTION-CHANGE
  (SET YOUR CHANGES TO ((CHANGE (PERSONALITY STEP-MOTHER (AND EVIL MEAN)) (PERSONALITY STEP-MOTHER (AND GOOD KIND)))))
  (SET YOUR CAUSES TO (PRINCE))
- (SET YOUR OLD-VALUES TO ((PATH-CURVATURE LOW) (SPEED HIGH) (ACCELERATION HIGH)))
- (SET YOUR NEW-VALUES TO ((PATH-CURVATURE HIGH) (SPEED (NOT HIGH)) (ACCELERATION HIGH)))
- (SET YOUR RELATIVE-VALUES TO NIL))
+ (SET YOUR OLD-VALUES TO ((PATH-CURVATURE LOW) (SPEED HIGH) (ACCELERATION HIGH) (DELIBERATENESS (NOT HIGH))))
+ (SET YOUR NEW-VALUES TO ((PATH-CURVATURE HIGH) (SPEED (NOT HIGH)) (ACCELERATION HIGH) (DELIBERATENESS (NOT HIGH))))
+ (SET YOUR RELATIVE-VALUES TO NIL)
+ (SET YOUR NOT-DESCRIBED TO (GRUMPY)))
 `;
 
 test("who they have become: a later scene's pass 2 makes the change so, and MEND narrows what it can't use", () => {
@@ -239,6 +240,10 @@ test("who they have become: a later scene's pass 2 makes the change so, and MEND
     "((changed-in: change-of-heart was low by (change-of step-mother in change-of-heart)))");
   // acceleration was as it is: nothing to make so
   assert.equal(run("(ask (choice-point-of step-mother acceleration) collect items memorized matching (changed-in: %))"), "nil");
+  // deliberateness: the fresh look left it as it was, a (not high) MEND narrows, so it
+  // is left as pass 2 has it, not made so again
+  assert.equal(run("(ask (choice-point-of step-mother deliberateness) recall your current-choice)"), "high");
+  assert.equal(run("(ask (choice-point-of step-mother deliberateness) collect items memorized matching (changed-in: %))"), "nil");
   // (not high) narrowed by REVIVE;MEND1, which notes it
   assert.match(run("(ask (choice-point-of step-mother speed) recall your current-choice)"), /^(low|medium)$/);
   assert.match(run("(ask (choice-point-of step-mother speed) collect items memorized matching (revival-repair: %))"), /what narrowed was \(not high\)/);
@@ -249,6 +254,57 @@ test("who they have become: a later scene's pass 2 makes the change so, and MEND
   assert.deepEqual(becomes[0].causes, ["prince"]);
   assert.deepEqual(becomes[0].madeSo.map((m) => m.element), ["path-curvature", "speed"]);
   assert.deepEqual(becomes[0].madeSo[0], { element: "path-curvature", was: "low", now: "high" });
+  // the description it changed, and the old word she was never described as
+  assert.deepEqual(becomes[0].described, [{ type: "personality", was: "(and evil mean)", now: "(and good kind)" }]);
+  assert.deepEqual(becomes[0].notDescribed, ["grumpy"]);
+  assert.equal(becomes[0].looks, undefined); // APPEAR isn't on
+});
+
+// Ken's CINDY 46 with scenes of our own before no-longer-kept-apart.
+const withScenes = (scenes) => KEN_CINDY.replace("(define no-longer-kept-apart scene", `${scenes.map(([name, task]) => `(define ${name} scene
+	(process initial description ${task}))
+
+`).join("")}(define no-longer-kept-apart scene`);
+const SHY_TO_BRAZEN = "(change (personality cinderella shy) (personality cinderella brazen))";
+
+test("a change is made only by a task of its own or inside causes: wanted, prevented, undone or displayed, it is left alone, with a note", () => {
+  const cindy = withScenes([
+    ["hoping", `(convey (wants cinderella ${SHY_TO_BRAZEN}))`],
+    ["stopping", `(convey (prevents step-mother ${SHY_TO_BRAZEN}))`],
+    ["shown", `(display ${SHY_TO_BRAZEN})`],
+    ["cheering-up", "(convey (change (emotional-state cinderella sad) (emotional-state cinderella happy)))"],
+    ["learning", `(convey ${SHY_TO_BRAZEN})`],
+    ["undone", `(convey (undoes fairy-godmother (from-scene learning (convey ${SHY_TO_BRAZEN}))))`],
+    ["made-over", "(convey (causes fairy-godmother (change (physical cinderella shabby) (physical cinderella elegant))))"],
+  ]);
+  // the outline takes the same changes as REVIVE;CHANGE
+  assert.deepEqual(Object.keys(storyOutline(cindy).changes), ["learning", "made-over"]);
+  const { run } = pass1Ready(["change"], cindy);
+  for (const [scene, n, because] of [["hoping", 0, "(inside wants)"], ["stopping", 0, "(inside prevents)"], ["undone", 0, "(inside undoes)"],
+    ["cheering-up", 0, "(emotional-state is not a lasting description)"], ["learning", 1, null], ["made-over", 1, null]]) {
+    assert.equal(run(`(length (changes-in-scene '${scene}))`), String(n), scene);
+    const notes = run(`(mapcar (function (lambda (x) (ask ,x collect items memorized matching (revival-repair: %)))) (ask ${scene} recall your tasks))`);
+    const escaped = (t) => t.replace(/[()]/g, "\\$&");
+    if (because) assert.match(notes, new RegExp(`what change-not-made was ${escaped("(change ")}.*${escaped(") now left-alone because ")}${escaped(because)}`), scene);
+    else assert.doesNotMatch(notes, /change-not-made/, scene);
+  }
+  // a display task is not one of the scene's tasks (scene.9:11-13): noted on it
+  assert.match(run("(mapcar (function (lambda (x) (ask ,x collect items memorized matching (revival-repair: %)))) (ask shown recall your display-tasks))"), /change-not-made .* because \(in a display task\)/);
+  assert.equal(run("(changes-in-scene 'shown)"), "nil");
+});
+
+test("a relationship the story never gave is made, then changed; an old word she never had is said", () => {
+  const { run } = pass1Ready(["change"], null);
+  assert.equal(run("(exists? '(relationship-of prince step-mother))"), "nil");
+  assert.equal(run("(make-description-change '(change (relationship (relationship-of prince step-mother) hates) (relationship (relationship-of prince step-mother) loves)))"), "(hates)");
+  assert.match(run("(ask (relationship-of prince step-mother) collect items memorized matching (description: %))"), /descriptor loves source initial-description/);
+  assert.equal(run("(make-description-change '(change (personality cinderella (and shy grumpy)) (personality cinderella brazen)))"), "(grumpy)");
+});
+
+test("a change naming no character of the story stops with that said", () => {
+  const x = lisp(["change"], withScenes([["typo", "(convey (change (personality cindrella shy) (personality cindrella brazen)))"]]));
+  x.run("(load '|ken;datest >|)");
+  assert.throws(() => x.run("(init nil)"), /CINDRELLA IS NOT A CHARACTER OF THE STORY/);
 });
 
 test("the glass box has no becomes unless CHANGE is loaded and made something so", () => {

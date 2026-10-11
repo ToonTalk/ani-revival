@@ -186,14 +186,19 @@ const steps = makeFilmSteps(fs, {
       console.log(`FAILED fresh look ${scene}: ${c.error}`);
       return;
     }
-    r.characters = c.characters.map((x) => ({ character: x.character, changes: x.changes, changed: x.values.filter((v) => v.changed).map((v) => ({ element: v.element, before: v.before, after: v.after, use: v.use })) }));
+    r.characters = c.characters.map((x) => ({
+      character: x.character, changes: x.changes, changed: x.values.filter((v) => v.changed).map((v) => ({ element: v.element, before: v.before, after: v.after, use: v.use })),
+      ...(x.notDescribed && x.notDescribed.length ? { notDescribed: x.notDescribed } : {}), ...(x.looks ? { looks: x.looks } : {}),
+    }));
     r.held = c.held;
     r.knockOns = c.recompute.knockOns;
     console.log(`ok     fresh look ${scene}: ${c.file}`);
     for (const x of r.characters) {
       console.log(`         ${x.character}: ${x.changes.join(" ")}`);
       for (const v of x.changed) console.log(`           ${v.element} ${show(v.before)} -> ${show(v.after)}${v.use === "none" ? " (Director and pass 2 don't use it)" : v.use === "cycles" ? " (how often pass 2 repeats an activity)" : ""}`);
-      if (!x.changed.length) console.log("           nothing changes in how she moves");
+      if (!x.changed.length) console.log(`           nothing changes in how ${x.character} moves`);
+      if (x.notDescribed) console.log(`           not described as ${x.notDescribed.join(" or ")}, so the change took nothing away for ${x.notDescribed.length > 1 ? "those words" : "that word"}`);
+      if (x.looks) console.log(`           looks: ${x.looks}`);
     }
     for (const h of r.held) console.log(`         held ${show(h.choicePoint)} at ${show(h.heldAt)} (would have chosen ${show(h.wouldHaveChosen)})`);
     for (const k of r.knockOns) console.log(`         a full recompute would also change ${show(k.choicePoint)} ${show(k.before)} -> ${show(k.after)}`);
@@ -230,8 +235,9 @@ const steps = makeFilmSteps(fs, {
     }
     // who the characters changed in earlier scenes have become, as pass 2 made them so
     for (const b of (s.glass && s.glass.becomes) || []) {
-      r.becomes = (r.becomes || []).concat([{ character: b.character, scene: b.scene, madeSo: b.madeSo }]);
-      console.log(`         as ${b.character} became in ${b.scene}: ${b.madeSo.map((m) => `${m.element} ${show(m.was)} -> ${show(m.now)}`).join(", ") || "nothing to make so"}`);
+      r.becomes = (r.becomes || []).concat([{ character: b.character, scene: b.scene, described: b.described, madeSo: b.madeSo, ...(b.looks ? { looks: b.looks } : {}) }]);
+      const made = [...(b.described || []).map((d) => `${d.type} ${d.was} -> ${d.now}`), ...b.madeSo.map((m) => `${m.element} ${show(m.was)} -> ${show(m.now)}`)];
+      console.log(`         as ${b.character} became in ${b.scene}: ${made.join(", ") || "nothing to make so"}${b.looks ? `; looks ${b.looks}` : ""}`);
     }
     // pass 2's notes, in the glass box, then those left while the scene was filmed
     const notes = [...repairNotes(s.glass && s.glass.repairs), ...repairNotes(s.film && s.film.repairs).map((n) => `${n} (while filming)`)];

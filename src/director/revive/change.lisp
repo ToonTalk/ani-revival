@@ -72,22 +72,30 @@
 
 ;;; ------------------------------------------------- 1. a change, as Ken wrote one
 
-;; Every change in a task's description, each with its cause, ((change cause) ...): a
-;; (change (TYPE WHO OLD) (TYPE WHO NEW)) anywhere in it, and the CAUSER of a
-;; (causes CAUSER ...) around it, or nil.
+;; The changes a task makes, each with its cause, ((change cause) ...): the task's own
+;; description, (change (TYPE WHO OLD) (TYPE WHO NEW)), or a change inside
+;; (causes CAUSER ...), as Ken wrote it in cinderella-beautified (cindy.46:96-99), its
+;; cause the CAUSER (nil for a change on its own). Only a change of a lasting
+;; description counts (below). A change anywhere else in a task, inside (wants x ...),
+;; (prevents x ...) or (undoes x (from-scene ...)), is wanted, prevented or undone, not
+;; made, and is left alone, with a note (2, below).
 (defun changes-in (form)
-  (changes-in-1 form nil))
+  (changes-caused-in form nil))
 
-(defun changes-in-1 (form cause)
+(defun changes-caused-in (form cause)
   (cond ((atom form) nil)
-	((a-change? form) (list (list form cause)))
+	((a-change? form)
+	 (and (lasting-description? (change-type form)) (list (list form cause))))
 	((and (eq (first form) 'causes) (not (atom (rest form))))
 	 (apply 'append
-		(mapcar (function (lambda (part) (changes-in-1 part (second form))))
-			(rest (rest form)))))
-	(t (apply 'append
-		  (mapcar (function (lambda (part) (changes-in-1 part cause)))
-			  form)))))
+		(mapcar (function (lambda (part) (changes-caused-in part (second form))))
+			(rest (rest form)))))))
+
+;; Every change anywhere in a task's description, made or not.
+(defun changes-anywhere (form)
+  (cond ((atom form) nil)
+	((a-change? form) (list form))
+	(t (apply 'append (mapcar 'changes-anywhere form)))))
 
 (defun a-change? (form)
   (and (eq (first form) 'change)
@@ -101,6 +109,14 @@
 (defun change-who (change) (second (second change)))
 (defun change-old (change) (third (second change)))
 (defun change-new (change) (third (third change)))
+
+;; The descriptions a change may change, those that are "assumed to be permanent"
+;; (L4394-4396): a character's physical, personality and movement descriptors and role
+;; in the story, as CHAR keeps them (char.2:73-88; movement is graceful's, char.2:14-20),
+;; and a relationship (char.2:157-171). An emotional state is not one: it passes, and
+;; establish tasks show it (sugest.123).
+(defun lasting-description? (type)
+  (memq type '(physical personality movement role-in-story relationship)))
 
 ;; The words of a description, (and a b) or a.
 (defun words-of (description)
@@ -116,6 +132,22 @@
        (cond ((atom who) (list who))
 	     (t (list (second who) (third who))))))
 
+;; A change names a character of the story, or a relationship of two. One that doesn't
+;; stops the job with that said, where Ken's code would stop on the missing actor
+;; (NO-SUCH-ACTOR) with nothing said about the change.
+(defun check-who-a-change-names (change)
+  (let ((who (change-who change)))
+       (or (cond ((atom who) (a-character? who))
+		 (t (and (eq (first who) 'relationship-of)
+			 (= (length who) 3)
+			 (a-character? (second who))
+			 (a-character? (third who)))))
+	   (shouldnt-happen 'change
+			    (list who 'is 'not 'a 'character 'of 'the 'story 'in change)))))
+
+(defun a-character? (who)
+  (and who (atom who) (exists? who) (ask ,who are you a character)))
+
 ;;; ------------------------------------------------- 2. who takes part
 
 ;; process-task-description (scene.9:440-467), for a task with a change in it. Every
@@ -123,30 +155,43 @@
 ;; standing alone, (convey (change (personality cinderella shy) ...)), is made by Ken's
 ;; function as the task (convey (change cinderella)), so that it is for the changed
 ;; character and she notes her part, and is then given its own description. Each
-;; character a change changes notes its part in the scene, as the one a task is for
-;; does: (scene-participation: scene learning task convey-task-2).
+;; character a change of the task changes notes its part in the scene, as the one a
+;; task is for does: (scene-participation: scene learning task convey-task-2). A change
+;; counts in a convey or an establish task, the scene's tasks (scene.9:11-13); one in a
+;; display task, one inside anything but causes, and one of a passing state are left
+;; alone, each with a note on the task:
+;;   (revival-repair: what change-not-made was (change ...) now left-alone
+;;		      because (inside wants))
 (defun process-task-description-with-changes (description scene source)
-  (let ((changes (and (not (atom description))
-		      (not (atom (rest description)))
-		      (changes-in (second description)))))
-       (cond ((null changes)
+  (let ((anywhere (and (not (atom description))
+		       (not (atom (rest description)))
+		       (changes-anywhere (second description)))))
+       (cond ((null anywhere)
 	      (funcall (revival-wrapped 'process-task-description 'change)
 		       description scene source))
-	     ((a-change? (second description))
-	      (let ((character (first (characters-changed-by (second description)))))
-		   (let ((task (funcall (revival-wrapped 'process-task-description 'change)
-					(list (first description) (list 'change character))
-					scene source)))
-			(ask ,task set your task to
-			     (task: description ,(second description)
-				    for-who ,character
-				    source ,source))
-			(note-parts-in-changes changes scene task)
-			task)))
-	     (t (let ((task (funcall (revival-wrapped 'process-task-description 'change)
-				     description scene source)))
-		     (note-parts-in-changes changes scene task)
-		     task)))))
+	     (t (let ((changes (and (memq (first description) '(convey establish))
+				    (changes-in (second description)))))
+		     (mapc (function (lambda (change+cause) (check-who-a-change-names (first change+cause))))
+			   changes)
+		     (let ((task (cond ((a-change? (second description))
+					(check-who-a-change-names (second description))
+					(make-change-task description scene source))
+				       (t (funcall (revival-wrapped 'process-task-description 'change)
+						   description scene source)))))
+			  (note-parts-in-changes changes scene task)
+			  (note-changes-not-made anywhere changes description task)
+			  task))))))
+
+(defun make-change-task (description scene source)
+  (let ((character (first (characters-changed-by (second description)))))
+       (let ((task (funcall (revival-wrapped 'process-task-description 'change)
+			    (list (first description) (list 'change character))
+			    scene source)))
+	    (ask ,task set your task to
+		 (task: description ,(second description)
+			for-who ,character
+			source ,source))
+	    task)))
 
 (defun note-parts-in-changes (changes scene task)
   (mapc (function
@@ -157,6 +202,19 @@
 				     (scene-participation: scene ,scene task ,task))))
 		       (characters-changed-by (first change+cause)))))
 	changes))
+
+;; Each change of the task that isn't made, noted on the task with why.
+(defun note-changes-not-made (anywhere changes description task)
+  (mapc (function
+	 (lambda (change)
+		 (or (assq change changes)
+		     (revival-note task 'change-not-made change 'left-alone
+				   (cond ((not (memq (first description) '(convey establish)))
+					  (list 'in 'a (first description) 'task))
+					 ((not (lasting-description? (change-type change)))
+					  (list (change-type change) 'is 'not 'a 'lasting 'description))
+					 (t (list 'inside (first (second description)))))))))
+	anywhere))
 
 (+after-load '|ken;scene >|
   '(revival-wrap 'process-task-description 'change 'process-task-description-with-changes))
@@ -179,35 +237,60 @@
 ;; as the words' source instead, SUMCOM would leave them out, and the repentant
 ;; stepmother's path-curvature would come out high, not medium:
 ;; reports/ext/change/README.md.)
+;; A relationship the story never described, (relationship-of prince step-mother), is
+;; made first, as CINDY's define makes one (char.2:157-158), so that it can be described.
+;; Returns the old words the description didn't have, which the change took nothing
+;; away for: the change-of actor and the run's record say so.
 (defun make-description-change (change)
   (let ((who (change-who change))
 	(type (change-type change)))
-       (mapc (function
-	      (lambda (word)
-		      (ask ,who forget items matching
-			   (description: type ? descriptor ,word source ?))
-		      (ask ,who forget items matching
-			   (description: type ? descriptor ? source ,word))))
-	     (words-of (change-old change)))
-       (cond ((eq type 'relationship)
-	      (ask ,who process initial description ,(change-new change)))
-	     (t (ask ,who process initial description ,(list type (change-new change)))))))
+       (and (eq type 'relationship)
+	    (not (exists? who))
+	    (ask relationship if new make ,who))
+       (let ((not-described
+	      (mapcan (function
+		       (lambda (word)
+			       (and (not (ask ,who recall if any items match
+					      (description: type ? descriptor ,word source ?)))
+				    (list word))))
+		      (words-of (change-old change)))))
+	    (mapc (function
+		   (lambda (word)
+			   (ask ,who forget items matching
+				(description: type ? descriptor ,word source ?))
+			   (ask ,who forget items matching
+				(description: type ? descriptor ? source ,word))))
+		  (words-of (change-old change)))
+	    (cond ((eq type 'relationship)
+		   (ask ,who process initial description ,(change-new change)))
+		  (t (ask ,who process initial description ,(list type (change-new change)))))
+	    not-described)))
 
 ;;; ------------------------------------------------- 4. pass 1 again: the fresh look
 
 ;; DATEST's init (datest.56:4-8) as of a scene: the film description loaded, every
 ;; change of the scenes up to and including this one made, then study-descriptor-use.
+;; Each change's old words that the description didn't have are kept in
+;; :change-not-described, ((change words) ...), for the BECOME file.
 (defun init-as-of (scene)
   (let ((:print-load-messages nil))
        (setq :load-priorities '(tryout))
        (director-load 'cindy '(to define the film as of a scene))
+       (setq :change-not-described nil)
        (mapc (function
 	      (lambda (s)
 		      (mapc (function
-			     (lambda (change+cause) (make-description-change (first change+cause))))
+			     (lambda (change+cause)
+				     (let ((not-described (make-description-change (first change+cause))))
+					  (and not-described
+					       (setq :change-not-described
+						     (cons (list (first change+cause) not-described)
+							   :change-not-described))))))
 			    (changes-in-scene s))))
 	     (scenes-up-to scene))
        (study-descriptor-use)))
+
+(or (boundp ':change-not-described) (setq :change-not-described nil))
 
 ;; The film's scenes in the order the film description defines them (SCENE's offspring
 ;; are kept newest first), up to and including scene.
@@ -389,10 +472,12 @@
 ;;	     (set your causes to (prince))
 ;;	     (set your old-values to ((path-jaggedness medium) ... (attraction-towards-friends (negative high))))
 ;;	     (set your new-values to ((path-jaggedness low) ... (attraction-towards-friends (positive high))))
-;;	     (set your relative-values to (((relative-choice-point-of (step-mother prince) relative-speed) different-from) ...)))
+;;	     (set your relative-values to (((relative-choice-point-of (step-mother prince) relative-speed) different-from) ...))
+;;	     (set your not-described to nil))
 ;; old-values are as they were, new-values as Ani chose them again, for every element
 ;; (her absolute choice points, which pass 2 reads: scene.9:265-275, prereq.19:31-38);
-;; relative-values her relative choice points, which a later fresh look holds.
+;; relative-values her relative choice points, which a later fresh look holds;
+;; not-described the old words her description didn't have.
 (defun change-of-definition (character scene)
   (let ((changes (changes-of-character character scene)))
        '(define (change-of ,character in ,scene) description-change
@@ -400,7 +485,19 @@
 		(set your causes to ,(mapcar 'second changes))
 		(set your old-values to ,(values-as-they-were character))
 		(set your new-values to ,(values-now character))
-		(set your relative-values to ,(relative-values-now character)))))
+		(set your relative-values to ,(relative-values-now character))
+		(set your not-described to ,(old-words-not-described character changes)))))
+
+;; The old words of the character's changes that her description didn't have (the
+;; change took nothing away for them), as init-as-of found them; for a relationship's
+;; change, the first character's.
+(defun old-words-not-described (character changes)
+  (apply 'append
+	 (mapcar (function
+		  (lambda (change+cause)
+			  (and (eq (first (characters-changed-by (first change+cause))) character)
+			       (second (assoc (first change+cause) :change-not-described)))))
+		 changes)))
 
 (defun changes-of-character (character scene)
   (mapcan (function
@@ -503,24 +600,33 @@
 
 ;; Making a change so: the character's descriptions change (by the change-of actor of
 ;; the character each change describes, once for a relationship's two), and each of
-;; its choice points takes the value Ani's fresh look chose. A choice point whose value
-;; changes memorizes where its new value came from, and the change-of actor what it
-;; made so:
+;; her choice points the fresh look chose differently from the choices as they were
+;; takes its new value. One the fresh look left as it was is left as pass 2 has it: a
+;; (not X) the fresh look held, which MEND has narrowed, stays narrowed. The change-of
+;; actor memorizes what it made so, each description and each value, and a choice
+;; point whose value changes where its new value came from:
+;;   (described-anew: type personality was (and evil mean) now (and good kind))
+;;   (made-so: element path-curvature was low now medium)
 ;;   (changed-in: change-of-heart was low by (change-of step-mother in change-of-heart))
-;;   (made-so: element path-curvature was low now high)
 (defun make-change-so (change-of)
   (let ((character (second change-of))
-	(scene (fourth change-of)))
+	(scene (fourth change-of))
+	(old-values (ask ,change-of recall your old-values)))
        (mapc (function
 	      (lambda (change)
-		      (and (eq (first (characters-changed-by change)) character)
-			   (make-description-change change))))
+		      (cond ((eq (first (characters-changed-by change)) character)
+			     (make-description-change change)
+			     (ask ,change-of memorize
+				  (described-anew: type ,(change-type change)
+						   was ,(change-old change)
+						   now ,(change-new change)))))))
 	     (ask ,change-of recall your changes))
        (mapc (function
 	      (lambda (element+value)
 		      (let ((choice-point (list 'choice-point-of character (first element+value)))
 			    (now (second element+value)))
-			   (and (exists? choice-point)
+			   (and (not (equal now (second (assq (first element+value) old-values))))
+				(exists? choice-point)
 				(let ((was (ask ,choice-point recall your current-choice)))
 				     (cond ((not (equal was now))
 					    (ask ,choice-point memorize
