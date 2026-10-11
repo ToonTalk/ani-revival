@@ -4,7 +4,7 @@
 // "ask the model to fix these" round if the checks find problems (repairPrompt, as the
 // page's button sends it), and then Ani herself on the result (tools/run-story.mjs), with
 // the revival's extensions. Writes each step to reports/llm-trials/<date> <model>/.
-// Usage: node tools/try-stories.mjs [--model gpt-6.1-sol] [--extensions mend,appear] [--only name,...] [--story "text"]
+// Usage: node tools/try-stories.mjs [--model gpt-6.1-sol] [--extensions mend,appear] [--only name,...] [--story "text"] [--stories file.json]
 //   By default it tries the page's example stories (EXAMPLE_STORIES in app/film/llm.js).
 //   The key is read from the OPENAI_API_KEY environment variable and never printed or
 //   saved. Each story costs one call, or two when a fix is asked for. --reuse reads the
@@ -23,6 +23,7 @@ const model = arg("--model", "gpt-6.1-sol");
 const extensions = arg("--extensions", "mend,appear").split(",").filter(Boolean);
 const only = arg("--only", "").split(",").filter(Boolean).map((s) => s.toLowerCase());
 const oneStory = arg("--story", null);
+const storiesFile = arg("--stories", null); // a JSON list of [name, story] pairs, e.g. test/stories/trial-stories.json
 const reuse = process.argv.includes("--reuse"); // read replies saved by an earlier run instead of asking again
 const key = process.env.OPENAI_API_KEY;
 if (!key) throw new Error("OPENAI_API_KEY isn't set");
@@ -95,7 +96,7 @@ function runAni(file) {
 const summary = [];
 try {
   const evaluate = await page();
-  let stories = oneStory ? [["Your story", oneStory]] : await evaluate("window.__ani.EXAMPLE_STORIES");
+  let stories = oneStory ? [["Your story", oneStory]] : storiesFile ? JSON.parse(readFileSync(storiesFile, "utf8")) : await evaluate("window.__ani.EXAMPLE_STORIES");
   if (only.length) stories = stories.filter(([name]) => only.some((o) => name.toLowerCase().includes(o)));
   console.log(`${stories.length} stories, ${model}, Ani with ${extensions.join(" and ") || "nothing"}; writing to ${out}`);
   const runs = [];
