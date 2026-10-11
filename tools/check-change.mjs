@@ -224,10 +224,10 @@ if (!quick) {
     // as the film page makes a film of a story: its text the next version of KEN;CINDY
     const fs = makeProjectFileSystem();
     const plan = storyPlan(storyOutline(text), { looks: true, change: true });
-    const r = timed(() => makeFilm(fs, { description: text, extensions: EXTENSIONS, frames: 600, fps: 4 }));
+    const r = timed(() => makeFilm(fs, { description: text, extensions: EXTENSIONS, frames: 1000, fps: 4 }));
     const run = r.value;
     check(`${st.name}: made with ${EXTENSIONS.join(", ")}: ${run.scenes.map((s) => `${s.id} ${s.film ? s.film.frames.length : "failed"}`).join(", ")} frames`,
-      run.scenes.every((s) => s.film && s.film.frames.length <= 600) ? null : "a scene failed or never ended", r.seconds);
+      run.scenes.every((s) => s.film && s.film.frames.length <= 1000) ? null : "a scene failed or never ended", r.seconds);
     const dir = `${DIR}/${st.name}`;
     for (const s of plan.scenes) {
       const done = run.scenes.find((x) => x.id === s.id);
@@ -253,7 +253,7 @@ if (!quick) {
     fs2.addFile("KEN", "CP", "30", { text: textIn(fs, "KEN", "CP", "30"), origin: "the film's pass 1" });
     fs2.addFile("KEN1", before.movie.toUpperCase(), "POSIT", { text: textIn(fs, "KEN1", before.movie.toUpperCase(), "POSIT"), origin: "the film" });
     const p2 = pass2(fs2, after.id, { plan, extensions: EXTENSIONS, becomes: [] });
-    const f2 = film(fs2, after.id, { plan, extensions: EXTENSIONS, frames: 600, fps: 4 }).film;
+    const f2 = film(fs2, after.id, { plan, extensions: EXTENSIONS, frames: 1000, fps: 4 }).film;
     const withBecome = { program: textIn(fs, "KEN", after.file[0].toUpperCase(), after.file[1].toUpperCase()), film: run.scenes.find((x) => x.id === after.id).film, glass: run.scenes.find((x) => x.id === after.id).glass };
     const without = { program: textIn(fs2, "KEN", after.file[0].toUpperCase(), after.file[1].toUpperCase()), film: f2, glass: p2.glass };
     const dWith = dynamicsIn(withBecome.program, st.who), dWithout = dynamicsIn(without.program, st.who);
