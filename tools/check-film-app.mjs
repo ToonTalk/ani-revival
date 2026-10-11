@@ -168,6 +168,22 @@ try {
   await sleep(200);
   const changes = await js(`document.getElementById("ed-check").innerText`);
   check(/now pretty/.test(changes) && /now loves/.test(changes), "the editor applies \"A kind stepmother\"");
+  // a change inside (wants ...) isn't made (REVIVE;CHANGE changes-in): the story check says
+  // so plainly; then back to "A kind stepmother"
+  const leftAlone = await js(`(async () => {
+    const lisp = await (await fetch("/test/stories/change-of-heart.lisp")).text();
+    const ta = document.getElementById("ed-lisp");
+    ta.value = lisp.replace("(convey (causes prince", "(convey (wants prince");
+    ta.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 700));
+    const said = document.getElementById("ed-check").innerText;
+    document.getElementById("ed-reset").click();
+    await new Promise((r) => setTimeout(r, 200));
+    document.querySelector('[data-preset="0"]').click();
+    await new Promise((r) => setTimeout(r, 200));
+    return { said, again: document.getElementById("ed-check").innerText };
+  })()`);
+  check(/a change is made only by a task of its own, \(convey \(change \.\.\.\)\), or inside \(causes x \(change \.\.\.\)\); inside \(wants \.\.\.\) Ani leaves it alone, and no one changes\./.test(leftAlone.said) && leftAlone.again === changes, "a change inside (wants ...) is said, plainly, to be left alone");
   await shot("2-editor.png");
 
   const t0 = Date.now();
@@ -563,7 +579,7 @@ try {
   // the table's rows: Director's elements, then pass 2's, then those Director doesn't use, each group under a line that says so
   const rows = changed.rows || [];
   const at = (re) => rows.findIndex((r) => re.test(r));
-  const groups = [/^Director moves her by these$/, /^Pass 2 repeats an activity as often as these say$/, /^Chosen again; Director doesn't use these, as in 1978 \(thesis p\. 186\)$/].map(at);
+  const groups = [/^Director moves her by these$/, /^Pass 2 repeats an activity as often as these say$/, /^Chosen again; Director doesn't use these, as in 1978 \(thesis pp\. 185-186\)$/].map(at);
   check(rows.length === 15 && groups.join() === "0,5,9" && /^Curvature of the path low medium why\?$/.test(rows[2] || "") && /^Acceleration high medium why\?$/.test(rows[10] || "") && /^Liking for enemies strong dislike strong liking why\?$/.test(rows[13] || ""), `her twelve elements before and after, Director's first, and those Director doesn't use marked so (${rows.slice(0, 3).join("; ")}; ...; ${rows.slice(9, 11).join("; ")}; ...)`);
   check(/^Ani's fresh look after Change of Heart\s+The stepmother's curvature of the path: medium/.test(changed.box || "") && /good \(the opposite of evil\)/.test(changed.box || "") && /her curvature of the path is to be different from Cinderella's, the fairy godmother's and the Prince's/.test(changed.box || ""), `its "why?" opens the fresh look's choice point: ${(changed.box || "").split("\n").slice(0, 3).join(" | ")}`);
   check(/Without holding them, the Prince's deliberateness would have been high, not medium\./.test(changed.held || "") && /with everyone chosen afresh as of Change of Heart, the Prince's deliberateness would be high, not medium, and her deliberateness would be medium, not high/.test(changed.held || ""), "one click away, what was held, and the full recompute to compare");

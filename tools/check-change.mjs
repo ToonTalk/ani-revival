@@ -21,6 +21,13 @@
 //       beautified   Ken's cinderella-beautified (cindy.46:94-105, uncommented as the
 //                    film description is read, in memory only): shabby to elegant
 //                    changes nothing, as his footnote predicts (thesis L4354-4355);
+//       made-beautiful  the fairy godmother makes the stepmother beautiful, on Ken's
+//                    CINDY with a scene added: beautiful tells graceful, and she moves
+//                    at medium speed, with longer, more curved paths;
+//       makes-up     the stepmother comes to love Cinderella (a relationship, both
+//                    chosen again): nothing changes in how either moves;
+//     and, for each, everyone else's choices after the fresh look are the story's
+//     CP's, all of them;
 //   - the two stories end to end, at 4 frames a second, with MEND, APPEAR and CHANGE,
 //     as the film page makes them: every scene films and ends; each scene's program,
 //     summary, glass box, film and POSIT file, each BECOME file, and the run's record
@@ -31,8 +38,8 @@
 // Usage: node tools/check-change.mjs [--quick] [--save] [--only repents,...]
 //   --quick  only the fresh looks and the held control (about four minutes, not twelve)
 //   --save   write the goldens instead of comparing them, after the facts are checked
-//   --only   these cases only (held, repents, socializes, beautified,
-//            change-of-heart, socializing)
+//   --only   these cases only (held, repents, socializes, beautified, made-beautiful,
+//            makes-up, change-of-heart, socializing)
 // Prints each check with ok or FAIL; exits non-zero if any fails.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -88,6 +95,18 @@ export function beautifiedCindy() {
   return cindy.slice(0, start) + block + cindy.slice(end);
 }
 const storyText = (name) => read(`test/stories/${name}.lisp`).replace(/\r\n/g, "\n");
+// Ken's CINDY 46 with a scene of ours before no-longer-kept-apart: the task, then joy.
+function kenWithScene(name, task) {
+  const cindy = readFileSync("original/7005017/cindy.46", "latin1");
+  return cindy.replace("(define no-longer-kept-apart scene", `(define ${name} scene
+	(process initial description
+		 (sequence: ${task}
+			    (establish (emotional-state step-mother (joy (positive medium))))))
+	(set your mood to joyous)
+	(set your length to short))
+
+(define no-longer-kept-apart scene`);
+}
 function withCindy(text) {
   const fs = makeProjectFileSystem();
   fs.addFile("KEN", "CINDY", "47", { text, origin: "check-change" });
@@ -156,6 +175,15 @@ const CASES = [
     ],
   },
   { name: "beautified", text: beautifiedCindy, scene: "cinderella-beautified", who: "cinderella", changed: {}, held: [], knockOns: [] },
+  // two more on Ken's CINDY with a scene added: the fairy godmother makes the stepmother
+  // beautiful (physical: beautiful tells graceful, char.2:13-20), and the stepmother
+  // comes to love Cinderella (a relationship, which changes both; nothing in how they
+  // move)
+  {
+    name: "made-beautiful", text: () => kenWithScene("made-over", "(convey (causes fairy-godmother (change (physical step-mother ugly) (physical step-mother beautiful))))"), scene: "made-over", who: "step-mother",
+    changed: { "path-curvature": ["low", "medium"], "path-length": ["medium", "long"], "rhythmic-level": ["medium", "high"], speed: ["high", "medium"] }, held: [], knockOns: [],
+  },
+  { name: "makes-up", text: () => kenWithScene("making-up", "(convey (change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) loves)))"), scene: "making-up", who: "step-mother", changed: {}, held: [], knockOns: [] },
 ];
 const cp29 = choicesOfItsFile("original/7005017/cp.29");
 const freshLooks = {};
@@ -165,11 +193,24 @@ for (const k of CASES) {
   const ours = choicesOfText(textIn(r.fs, "KEN", "CP", "30"));
   const c = compareChoices(cp29, ours);
   check(`${k.name}: pass 1, CP 29's ${c.same} of ${cp29.size} choices by name and value`, c.same === cp29.size && ours.size === cp29.size ? null : `${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra`, r.p1.seconds);
-  check(`${k.name}: the fresh look at ${k.who} after ${k.scene} changes ${Object.keys(k.changed).length ? Object.entries(k.changed).map(([e, [a, b]]) => `${e} ${a} to ${b}`).join(", ") : "nothing"}`,
+  if (k.changed) check(`${k.name}: the fresh look at ${k.who} after ${k.scene} changes ${Object.keys(k.changed).length ? Object.entries(k.changed).map(([e, [a, b]]) => `${e} ${a} to ${b}`).join(", ") : "nothing"}`,
     sameObject(changedOf(r.record, k.who), k.changed), r.look.seconds);
   if (k.held) check(`${k.name}: the others' choices held that would have come out differently: ${k.held.join("; ") || "none"}`, sameObject(r.record.held.map((h) => `${show(h.choicePoint)} ${show(h.heldAt)} ${show(h.wouldHaveChosen)}`), k.held));
-  check(`${k.name}: a full recompute would also change ${k.knockOns.length ? k.knockOns.join("; ") : "no one else"}`, sameObject(knockOnsOf(r.record), k.knockOns), r.recompute.seconds);
-  check(`${k.name}: the BECOME file says so`, k.changed && Object.keys(k.changed).every((e) => new RegExp(`\\(${e.toUpperCase()} ${k.changed[e][1].toUpperCase().replace(/[()]/g, "\\$&")}\\)`).test(r.become.split("NEW-VALUES")[1] || "")) ? null : r.become.slice(0, 300));
+  if (k.knockOns) check(`${k.name}: a full recompute would also change ${k.knockOns.length ? k.knockOns.join("; ") : "no one else"}`, sameObject(knockOnsOf(r.record), k.knockOns), r.recompute.seconds);
+  if (k.changed) check(`${k.name}: the BECOME file says so`, Object.keys(k.changed).every((e) => new RegExp(`\\(${e.toUpperCase()} ${k.changed[e][1].toUpperCase().replace(/[()]/g, "\\$&")}\\)`).test(r.become.split("NEW-VALUES")[1] || "")) ? null : r.become.slice(0, 300));
+  // everyone else's choices after the fresh look, saved as pass 1 saves its answers:
+  // each as the story's CP has it (all but the changed characters' own, and their
+  // relative choices with the others)
+  {
+    const L = r.look.value.lisp;
+    L.evalString("(save-answers '((ken) cp 31))");
+    const after = choicesOfText(textIn(r.fs, "KEN", "CP", "31"));
+    const changed = r.record.characters.map((x) => x.character.toUpperCase());
+    const others = [...ours].filter(([name]) => !changed.some((c) => new RegExp(`[ (]${c}[ )]`, "i").test(name)));
+    const differ = others.filter(([name, v]) => after.get(name) !== v);
+    check(`${k.name}: everyone else's choices after the fresh look as the story's CP has them: ${others.length - differ.length} of ${others.length}`,
+      differ.length ? differ.slice(0, 3).map(([name, v]) => `${name} ${v} now ${after.get(name)}`).join("; ") : null);
+  }
   golden(`${k.name}: the fresh look's record`, `${DIR}/fresh-look/${k.name}.json`, recordJSON(r.record));
   golden(`${k.name}: the BECOME file`, `${DIR}/fresh-look/${k.name}.become`, r.become);
   freshLooks[k.name] = r.record;

@@ -1695,7 +1695,7 @@ function changeText(c, past = false) {
 }
 // Director's elements first (src/pipeline.js ELEMENT_USE), then pass 2's, then the rest.
 const CHANGE_ORDER = ["speed", "path-curvature", "path-length", "path-jaggedness", "activity-level", "rhythmic-level", "repetiveness", "acceleration", "deliberateness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
-const USE_WORDS = { director: "Director moves her by these", cycles: "Pass 2 repeats an activity as often as these say", none: "Chosen again; Director doesn't use these, as in 1978 (thesis p. 186)" };
+const USE_WORDS = { director: "Director moves her by these", cycles: "Pass 2 repeats an activity as often as these say", none: "Chosen again; Director doesn't use these, as in 1978 (thesis pp. 185-186)" };
 // a value in words: (negative high), a liking, is "strong dislike"
 const valueWords = (v) => { const x = lispValue(v); return Array.isArray(x) && x.length === 2 && ["positive", "negative"].includes(x[0]) ? `${({ low: "slight", medium: "moderate", high: "strong" })[x[1]] || x[1]} ${x[0] === "negative" ? "dislike" : "liking"}` : plain(show(x)); };
 const RANK = { low: 0, short: 0, medium: 1, high: 2, long: 2 };
@@ -1732,7 +1732,9 @@ function changedBody(run, c, k) {
   const val = (v) => esc(valueWords(v));
   const said = (n) => (n[0] === "choice-point-of" ? `${who(n[1])}'s ${elementWords(n[2])}` : `how ${who(n[1][0])} compares with ${who(n[1][1])} in ${elementWords(String(n[2]).replace(/^relative-/, ""))}`);
   return changesOf(run, c, k).map((x) => {
-    const sentence = `<p class="look-line">${changedSentence(run, x, c, k)}</p>`;
+    const sentence = `<p class="look-line">${changedSentence(run, x, c, k)}</p>`
+      + (x.rec.error || !(x.rec.characters.find((y) => y.character === c) || {}).looks ? ""
+        : `<p class="note">Ani keeps how ${kk.she} ${agree(kk, "looks", "look")} as pass 1 chose it; choosing ${kk.her} looks again after a change comes in a later stage.</p>`);
     if (x.rec.error) return sentence;
     const ch = x.rec.characters.find((y) => y.character === c);
     const order = (v) => ["director", "cycles", "none"].indexOf(v.use) * 20 + CHANGE_ORDER.indexOf(v.element);
@@ -2737,6 +2739,10 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
       return bad(t, "Ani can establish only a personality, an emotional state or a relationship.");
     }
     const verb = d[0];
+    // a change is made only by a task of its own or inside (causes x ...), as
+    // REVIVE;CHANGE takes it (src/pipeline.js storyOutline); one wanted, prevented or
+    // undone Ani leaves alone
+    if (verb !== "change" && verb !== "causes" && changesIn(d).length) return bad(t, `a change is made only by a task of its own, (convey (change ...)), or inside (causes x (change ...)); inside (${esc(plain(verb))} ...) Ani leaves it alone, and no one changes.`);
     if (["accompanys", "chases", "hurts", "pushes", "getting-it-on"].includes(verb)) return (isChar(d[1]) && isChar(d[2]) && d.length === 3) || bad(t, `write (${verb} x y) with two defined characters.`);
     if (verb === "alone") return (d.length > 2 && d.slice(1).every(isChar)) || bad(t, "write (alone x y) with defined characters.");
     if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
