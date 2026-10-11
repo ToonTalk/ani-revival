@@ -1,0 +1,340 @@
+{
+ "scene": {
+  "name": "change-of-heart",
+  "variables": {
+   "parent": "scene",
+   "name": "change-of-heart",
+   "convey-tasks": "(convey-task-2 convey-task-1)",
+   "establish-tasks": "(establish-task-4)",
+   "task-ordering": "(sequence: (and convey-task-1 convey-task-2) establish-task-4)",
+   "mood": "(changes depressing joyous)",
+   "rhythm": "normal",
+   "length": "short",
+   "subscenes": "((subscene-of change-of-heart 1) (subscene-of change-of-heart 2))",
+   "length-bounds": "(12.0 36.0)",
+   "running-time": "9.98"
+  },
+  "items": []
+ },
+ "tasks": [
+  {
+   "name": "convey-task-2",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-2",
+    "task": "(task: description (causes prince (change (personality step-mother (and evil mean)) (personality step-mother (and good kind)))) for-who prince source initial-description)",
+    "scene": "change-of-heart",
+    "share": "0.5",
+    "subscene": "(subscene-of change-of-heart 1)",
+    "current-choice": "nil",
+    "status": "cant-do",
+    "running-time": "0.0"
+   },
+   "items": []
+  },
+  {
+   "name": "convey-task-1",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-1",
+    "task": "(task: description (accompanys prince step-mother) for-who prince source initial-description)",
+    "scene": "change-of-heart",
+    "share": "0.5",
+    "subscene": "(subscene-of change-of-heart 1)",
+    "special-dynamics-packages": "nil",
+    "allocated-time": "(6.0 18.0)",
+    "scores": "((scores: suggestion (suggestion: element (convey (accompanys prince step-mother)) value (method: type display value (goes-to-and-accompanys prince step-mother (good-distance-from (vicinity-of prince)))) strength high source accompanys) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
+    "current-choice": "((goes-to-and-accompanys prince step-mother (good-distance-from (vicinity-of prince))))",
+    "running-time": "3.98"
+   },
+   "items": [
+    "(suggestion: element (convey (accompanys prince step-mother)) value (method: type display value (goes-to-and-accompanys prince step-mother (good-distance-from (vicinity-of prince)))) strength high source accompanys)"
+   ]
+  },
+  {
+   "name": "establish-task-4",
+   "variables": {
+    "parent": "establish-task",
+    "name": "establish-task-4",
+    "task": "(task: description (emotional-state step-mother (joy (positive medium))) for-who step-mother source initial-description)",
+    "scene": "change-of-heart",
+    "share": "0.5",
+    "subscene": "(subscene-of change-of-heart 2)",
+    "current-choice": "((change-to: element (step-mother path-curvature) new-value high speed high) (change-to: element (step-mother path-length) new-value long speed high) (change: element (step-mother acceleration) amount (positive medium) speed medium) (change: element (step-mother rhythmic-level) amount (positive medium) speed medium) (change: element (step-mother speed) amount (positive medium) speed medium) (change: element (step-mother activity-level) amount (positive medium) speed medium))",
+    "allocated-time": "(6.0 18.0)",
+    "running-time": "6.0"
+   },
+   "items": [
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change-to: element (step-mother path-curvature) new-value high speed high)) strength low source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change-to: element (step-mother path-length) new-value long speed high)) strength low source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change: element (step-mother acceleration) amount (positive medium) speed medium)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change: element (step-mother rhythmic-level) amount (positive medium) speed medium)) strength medium source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change: element (step-mother speed) amount (positive medium) speed medium)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (positive medium)))) value (method: type display-value-change value (change: element (step-mother activity-level) amount (positive medium) speed medium)) strength high source joy)"
+   ]
+  }
+ ],
+ "subscenes": [
+  {
+   "name": "(subscene-of change-of-heart 1)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of change-of-heart 1)",
+    "scene": "change-of-heart",
+    "convey-tasks": "(convey-task-2 convey-task-1)",
+    "(time-estimates-for (goes-to-and-accompanys prince step-mother (good-distance-from (vicinity-of prince))))": "(time-estimates: ideal 3.98 most 6.95 least 2.792)",
+    "(location-of prince)": "(place: where (xy-position -0.056576468 0.064379809) why (ended up here in at-home) status cool)",
+    "(location-of fairy-godmother)": "(place: where (xy-position 0.0 0.0) why (ended up here in at-home) status cool)",
+    "(location-of step-mother)": "(place: where (xy-position 0.0061874418 0.095275603) why (ended up here in at-home) status cool)",
+    "(location-of cinderella)": "(place: where (xy-position -0.054879334 0.14954058) why (ended up here in at-home) status cool)",
+    "parasites": "((subscene-of change-of-heart 2))",
+    "running-time": "9.98",
+    "stretched-by": "2.5075377",
+    "(actions-of step-mother)": "((walk of step-mother to (on-stage-near step-mother (vicinity-of prince)) as stationary-target careful of collisions starting at 0.0 using |(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6| called (activity-of getting-on-stage 2) stopping if (stop-when-there (quote (subscene-of change-of-heart 1)))))",
+    "(actions-of prince)": "((walk of prince with step-mother to (good-distance-from (vicinity-of prince)) as stationary-target careful of collisions starting at (after (end-of (activity-of goes-to-to-accompany 2)) 0.5) using |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1| called (activity-of accompanying-each-other 2) stopping if (stop-if-either-wants-to (stop-after-so-many-seconds 8.98) (stop-when-there (quote (subscene-of change-of-heart 1))))) (walk of prince to (contact-with step-mother by prince) as moving-target careful of collisions starting at 0.5 using |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5| called (activity-of goes-to-to-accompany 2) stopping if (stop-when-there-then (quote (subscene-of change-of-heart 1)) (stop-plan (quote (activity-of getting-on-stage 2))))))",
+    "movements": "((and (activity-of getting-on-stage 2) (activity-of goes-to-to-accompany 2) (activity-of accompanying-each-other 2)))",
+    "special-dynamics": "(|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6| |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5| |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1|)",
+    "plans": "((activity-of getting-on-stage 2) (activity-of goes-to-to-accompany 2) (activity-of accompanying-each-other 2))"
+   },
+   "items": [
+    "(extra-time-added 6.0 by (subscene-of change-of-heart 2))"
+   ]
+  },
+  {
+   "name": "(subscene-of change-of-heart 2)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of change-of-heart 2)",
+    "scene": "change-of-heart",
+    "establish-tasks": "(establish-task-4)",
+    "(time-estimates-for (change-to: element (step-mother path-curvature) new-value high speed high))": "(time-estimates: ideal 3.4657359 least 0.69314718 most 17.32868)",
+    "(time-estimates-for (change-to: element (step-mother path-length) new-value long speed high))": "(time-estimates: ideal 1.732868 least 0.34657359 most 8.6643398)",
+    "(time-estimates-for (change: element (step-mother acceleration) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
+    "(time-estimates-for (change: element (step-mother rhythmic-level) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
+    "(time-estimates-for (change: element (step-mother speed) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
+    "(time-estimates-for (change: element (step-mother activity-level) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
+    "stretched-by": "0.0",
+    "initial-actions": "((ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of change-of-heart 2))))",
+    "(changes-for step-mother)": "((gradually change by 1.25 factor for activity-level at medium speed) (gradually change by 1.25 factor for speed at medium speed) (gradually change by 1.25 factor for rhythmic-level at medium speed) (gradually change by 1.25 factor for acceleration at medium speed) (gradually change by 2.0 factor for path-length at high speed) (gradually change by 4.0 factor for path-curvature at high speed))",
+    "begin-time": "(after (beginning-of (subscene-of change-of-heart 1)) 3.98)",
+    "status": "(parasite-on (subscene-of change-of-heart 1))",
+    "(distance-between (vicinity-of prince) (vicinity-of step-mother))": "(screen-fraction 0.05)",
+    "(location-of step-mother)": "(place: where (symbolic-position (good-distance-from (good-distance-from (contact-with step-mother by prince)))) why (and move-character (ended up here in at-home)) status cool)",
+    "(location-of prince)": "(place: where (symbolic-position (good-distance-from (contact-with step-mother by prince))) why (and move-character (ended up here in at-home)) status cool)",
+    "running-time": "6.0"
+   },
+   "items": []
+  }
+ ],
+ "plans": [
+  {
+   "name": "(activity-of getting-on-stage 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of getting-on-stage 2)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of change-of-heart 1)",
+    "plans": "((sequence: (ask step-mother set your special-dynamics to |(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6|) (ask step-mother initialize your curvature-sign towards (on-stage-near step-mother (vicinity-of prince))) (ask (activity-of getting-on-stage 2) cause (step-mother) to gradually go in arc careful of collisions to (on-stage-near step-mother (vicinity-of prince)) as stationary-target stopping if (stop-when-there (quote (subscene-of change-of-heart 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of goes-to-to-accompany 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-to-accompany 2)",
+    "begin-time": "0.5",
+    "subscene": "(subscene-of change-of-heart 1)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5|) (ask prince initialize your curvature-sign towards (contact-with step-mother by prince)) (ask (activity-of goes-to-to-accompany 2) cause (prince) to gradually go in arc careful of collisions to (contact-with step-mother by prince) as moving-target stopping if (stop-when-there-then (quote (subscene-of change-of-heart 1)) (stop-plan (quote (activity-of getting-on-stage 2)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of accompanying-each-other 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of accompanying-each-other 2)",
+    "begin-time": "(after (end-of (activity-of goes-to-to-accompany 2)) 0.5)",
+    "subscene": "(subscene-of change-of-heart 1)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1|) (ask prince initialize your curvature-sign towards (good-distance-from (vicinity-of prince))) (ask (activity-of accompanying-each-other 2) cause (prince step-mother) to gradually go in arc careful of collisions to (good-distance-from (vicinity-of prince)) as stationary-target stopping if (stop-if-either-wants-to (stop-after-so-many-seconds 8.98) (stop-when-there (quote (subscene-of change-of-heart 1)))))))"
+   },
+   "items": []
+  }
+ ],
+ "dynamics": [
+  {
+   "name": "(special-dynamics-of step-mother in (subscene-of change-of-heart 2))",
+   "variables": {
+    "parent": "special-dynamics",
+    "name": "(special-dynamics-of step-mother in (subscene-of change-of-heart 2))",
+    "path-jaggedness": "medium",
+    "path-curvature": "low",
+    "path-length": "medium",
+    "deliberateness": "high",
+    "repetiveness": "medium",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "high",
+    "speed": "high",
+    "dominates": "(cinderella)"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6|",
+   "variables": {
+    "parent": "(special-dynamics-of step-mother in (subscene-of change-of-heart 1))",
+    "name": "|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6|",
+    "(speed factor)": "0.3987976"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-4|",
+   "variables": {
+    "parent": "(special-dynamics-of step-mother in (subscene-of change-of-heart 1))",
+    "name": "|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-4|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of step-mother in (subscene-of change-of-heart 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-6| |(special-dynamics-of step-mother in (subscene-of change-of-heart 1))-4|)",
+    "name": "(special-dynamics-of step-mother in (subscene-of change-of-heart 1))",
+    "path-jaggedness": "medium",
+    "path-curvature": "low",
+    "path-length": "medium",
+    "deliberateness": "high",
+    "repetiveness": "medium",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "high",
+    "speed": "high",
+    "dominates": "(cinderella)"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5|",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1|",
+    "(speed factor)": "0.31903808"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5-1|)",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5|",
+    "(speed factor)": "0.3987976"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3|",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3-1|",
+    "(speed factor)": "0.8"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3-1|)",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-3|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-2|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-2|",
+    "(speed factor)": "0.8"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-1|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+    "name": "|(special-dynamics-of prince in (subscene-of change-of-heart 1))-1|",
+    "(speed factor)": "0.8"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of change-of-heart 1))-5| |(special-dynamics-of prince in (subscene-of change-of-heart 1))-3| |(special-dynamics-of prince in (subscene-of change-of-heart 1))-2| |(special-dynamics-of prince in (subscene-of change-of-heart 1))-1|)",
+    "name": "(special-dynamics-of prince in (subscene-of change-of-heart 1))",
+    "path-jaggedness": "low",
+    "path-curvature": "medium",
+    "path-length": "long",
+    "deliberateness": "medium",
+    "repetiveness": "high",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "medium",
+    "speed": "high"
+   },
+   "items": []
+  }
+ ],
+ "choices": {
+  "name": "(choices-made-in change-of-heart)",
+  "variables": {
+   "parent": "something",
+   "name": "(choices-made-in change-of-heart)",
+   "(causes prince (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))))": "nil",
+   "(accompanys prince step-mother)": "((goes-to-and-accompanys prince step-mother (good-distance-from (vicinity-of prince))))",
+   "(emotional-state step-mother (joy (positive medium)))": "((change-to: element (step-mother path-curvature) new-value high speed high) (change-to: element (step-mother path-length) new-value long speed high) (change: element (step-mother acceleration) amount (positive medium) speed medium) (change: element (step-mother rhythmic-level) amount (positive medium) speed medium) (change: element (step-mother speed) amount (positive medium) speed medium) (change: element (step-mother activity-level) amount (positive medium) speed medium))"
+  },
+  "items": []
+ },
+ "looks": [
+  {
+   "character": "cinderella",
+   "shape": "hexagon",
+   "angle": 60,
+   "centerOffset": null,
+   "aniSize": 0.036,
+   "form": "(ask cinderella take look (look: shape hexagon angle 60 center-offset nil ani-size 0.036))"
+  },
+  {
+   "character": "step-mother",
+   "shape": "triangle",
+   "angle": 120,
+   "centerOffset": "(right 30)",
+   "aniSize": 0.07,
+   "form": "(ask step-mother take look (look: shape triangle angle 120 center-offset (right 30) ani-size 0.07))"
+  },
+  {
+   "character": "fairy-godmother",
+   "shape": "eight-pointed-star",
+   "angle": 135,
+   "centerOffset": null,
+   "aniSize": 0.05,
+   "form": "(ask fairy-godmother take look (look: shape eight-pointed-star angle 135 center-offset nil ani-size 0.05))"
+  },
+  {
+   "character": "prince",
+   "shape": "circle",
+   "angle": 5,
+   "centerOffset": null,
+   "aniSize": 0.07,
+   "form": "(ask prince take look (look: shape circle angle 5 center-offset nil ani-size 0.07))"
+  }
+ ]
+}

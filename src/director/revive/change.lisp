@@ -18,7 +18,7 @@
 ;;; character with the new personality as if the character were brand new. This is not
 ;;; an ideal solution since Ani would not portray the personality change itself, the
 ;;; character would only move and appear differently after the change" (AI-TR-540
-;;; pp. 168-169, L4389-4406).
+;;; pp. 168-169, L4389-4410).
 ;;;
 ;;; A change is a scene task written as Ken wrote one in his commented-out
 ;;; cinderella-beautified scene (cindy.46:94-105):
@@ -26,7 +26,7 @@
 ;;; (change (TYPE WHO OLD) (TYPE WHO NEW)), alone or inside (causes CAUSER ...). TYPE is
 ;;; physical, personality, movement or role-in-story, and WHO a character; or TYPE is
 ;;; relationship and WHO (relationship-of a b). OLD and NEW are a word or (and ...), as
-;;; in an initial description (char.2:73-77, 159-168).
+;;; in an initial description (char.2:80-88, 160-171).
 ;;;
 ;;; What it does:
 ;;;  1. Who takes part. Ken's process-task-description makes a task's second word the
@@ -61,7 +61,7 @@
 ;;; repetiveness, activity-level and attraction-towards-friends, four of the
 ;;; stepmother's, four of the Prince's, two of the fairy godmother's. Ken's pass 1 made
 ;;; each choice when the choices made before it were made and the others were not (the
-;;; focus's Cinderella first, chocho.19:58-69), and the comparisons it suggests from
+;;; focus's Cinderella first, chocho.19:40-43, 68-79), and the comparisons it suggests from
 ;;; read the others' choices as they then were; asked again with every other choice
 ;;; made, they answer differently. Shabby to elegant, which changes nothing in how she
 ;;; moves (the thesis's note, L4354-4355), would then make Cinderella move differently.
@@ -109,8 +109,8 @@
 
 ;; Who a change changes: the character, or both characters of a relationship, the
 ;; first, whose relationship it is, first. A relationship describes its first
-;; character's attitude to its second (char.2:150-168), and Ani's relative suggestions
-;; read it for both (cosug.215), so both are chosen again.
+;; character's attitude to its second (char.2:157-171), and Ani's comparisons read it
+;; for both (compare-relationships, compar.69:29-37), so both are chosen again.
 (defun characters-changed-by (change)
   (let ((who (change-who change)))
        (cond ((atom who) (list who))
@@ -165,16 +165,16 @@
 
 ;; A change made to the description: the old words are forgotten, and what they told
 ;; (graceful, told by beautiful: char.2:12-20); the new ones are memorized, as CHAR
-;; memorizes an initial description (char.2:80-84, 159-168), with the change as their
+;; memorizes an initial description (char.2:80-84, 160-171), with the change as their
 ;; source:
 ;;   (description: type personality descriptor good source (change-in change-of-heart))
 ;; A new beautiful tells graceful, as CHAR's demon does for an initial one (it asks for
 ;; source initial-description, char.2:13-16). The source is the change, so Ani's
 ;; records say where the word came from; and Ken's SUMCOM counts only an initial
 ;; description in its summaries ("i think i want to skip non initial description
-;; sources", sumcom.53:28-31, 118-125). With the new words memorized as initial
-;; descriptions instead, the repentant stepmother's path-curvature comes out medium,
-;; not high (reports/ext/change/README.md).
+;; sources", sumcom.53:26; it counts them at sumcom.53:19-31 and 118-125). With the
+;; new words memorized as initial descriptions instead, the repentant stepmother's
+;; path-curvature comes out medium, not high (reports/ext/change/README.md).
 (defun make-description-change (change scene)
   (let ((who (change-who change))
 	(type (change-type change))
@@ -189,7 +189,7 @@
        (mapc (function
 	      (lambda (word)
 		      (cond ((eq type 'relationship)
-			     (ask relationship-descriptor if new make ,word) ;;as char.2:164
+			     (ask relationship-descriptor if new make ,word) ;;as char.2:162
 			     (ask ,who memorize
 				  (description: type ,(ask ,word recall your type)
 						descriptor ,word
@@ -290,7 +290,7 @@
 		(return (last (first s)))))))
 
 ;; choices with name's value replaced, a relative choice point's under either of its
-;; names (cpoint.87:92-98).
+;; names (cpoint.87:98-104).
 (defun with-choice (choices name value)
   (cons (list name value)
 	(do ((c choices (rest c))
@@ -331,7 +331,7 @@
 
 ;; The value held for a choice point, as (value), or nil: a relative choice point held
 ;; under its other name has the value as that name reads it, as the relative choice
-;; point answers yield current choice for (cpoint.87:100-108).
+;; point answers yield current choice for (cpoint.87:106-114).
 (defun held-value-of (choice-point)
   (do ((c :change-held (rest c)))
       ((null c) nil)
@@ -421,7 +421,7 @@
 	  (changes-in-scene scene)))
 
 ;; Every element a character's dynamics is chosen for: NODES' element types and their
-;; elements (nodes.38:114-117), as CHAR lists a type's elements (char.2:58-68). The
+;; elements (nodes.38:100-102), as CHAR lists a type's elements (char.2:58-68). The
 ;; lists are put together with append: recall gives each type's own offspring list,
 ;; and mapcan's nconc would splice the next type's elements into it.
 (defun elements-chosen ()

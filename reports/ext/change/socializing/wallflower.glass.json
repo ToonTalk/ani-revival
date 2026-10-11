@@ -1,0 +1,352 @@
+{
+ "scene": {
+  "name": "wallflower",
+  "variables": {
+   "parent": "scene",
+   "name": "wallflower",
+   "establish-tasks": "(establish-task-2 establish-task-1)",
+   "task-ordering": "(and establish-task-2 (sequence: convey-task-2 convey-task-3))",
+   "mood": "depressing",
+   "rhythm": "slow",
+   "length": "medium",
+   "subscenes": "((subscene-of wallflower 1) (subscene-of wallflower 2))",
+   "convey-tasks": "(convey-task-3 convey-task-2)",
+   "length-bounds": "(24.0 72.0)",
+   "running-time": "13.17783"
+  },
+  "items": []
+ },
+ "tasks": [
+  {
+   "name": "convey-task-3",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-3",
+    "task": "(task: description (accompanys cinderella prince) for-who cinderella source establish-task-1)",
+    "scene": "wallflower",
+    "subscene": "(subscene-of wallflower 2)",
+    "share": "0.5",
+    "special-dynamics-packages": "nil",
+    "allocated-time": "(12.0 36.0)",
+    "scores": "((scores: suggestion (suggestion: element (convey (accompanys cinderella prince)) value (method: type display value (goes-to-and-accompanys cinderella prince (good-distance-from (vicinity-of cinderella)))) strength high source accompanys) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
+    "current-choice": "((goes-to-and-accompanys cinderella prince (good-distance-from (vicinity-of cinderella))))",
+    "running-time": "12.0"
+   },
+   "items": [
+    "(suggestion: element (convey (accompanys cinderella prince)) value (method: type display value (goes-to-and-accompanys cinderella prince (good-distance-from (vicinity-of cinderella)))) strength high source accompanys)"
+   ]
+  },
+  {
+   "name": "convey-task-2",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-2",
+    "task": "(task: description (helps cinderella prince) for-who cinderella source establish-task-1)",
+    "scene": "wallflower",
+    "subscene": "(subscene-of wallflower 1)",
+    "share": "0.5",
+    "current-choice": "nil",
+    "status": "cant-do",
+    "running-time": "0.0"
+   },
+   "items": []
+  },
+  {
+   "name": "establish-task-2",
+   "variables": {
+    "parent": "establish-task",
+    "name": "establish-task-2",
+    "task": "(task: description (emotional-state cinderella (joy (negative low))) for-who cinderella source initial-description)",
+    "scene": "wallflower",
+    "share": "1.0",
+    "subscene": "(subscene-of wallflower 1)",
+    "current-choice": "((change: element (cinderella acceleration) amount (negative low) speed low) (change: element (cinderella rhythmic-level) amount (negative low) speed low) (change: element (cinderella speed) amount (negative low) speed low) (change: element (cinderella activity-level) amount (negative low) speed low))",
+    "running-time": "1.1778304"
+   },
+   "items": [
+    "(suggestion: element (establish (emotional-state cinderella (joy (negative low)))) value (method: type display-value-change value (change: element (cinderella acceleration) amount (negative low) speed low)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state cinderella (joy (negative low)))) value (method: type display-value-change value (change: element (cinderella rhythmic-level) amount (negative low) speed low)) strength medium source joy)",
+    "(suggestion: element (establish (emotional-state cinderella (joy (negative low)))) value (method: type display-value-change value (change: element (cinderella speed) amount (negative low) speed low)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state cinderella (joy (negative low)))) value (method: type display-value-change value (change: element (cinderella activity-level) amount (negative low) speed low)) strength high source joy)"
+   ]
+  },
+  {
+   "name": "establish-task-1",
+   "variables": {
+    "parent": "establish-task",
+    "name": "establish-task-1",
+    "task": "(task: description (personality cinderella) for-who cinderella source initial-description)",
+    "scene": "wallflower",
+    "share": "1.0",
+    "subscene": "(subscene-of wallflower 1)",
+    "current-choice": "((method: type convey value (accompanys cinderella prince)) (method: type convey value (helps cinderella prince)))",
+    "status": "being-handled-by-convey-tasks",
+    "convey-tasks": "((convey (accompanys cinderella prince)) (convey (helps cinderella prince)))"
+   },
+   "items": [
+    "(related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (accompanys cinderella prince)) strength medium source friendly) relationship unique others nil)",
+    "(related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (helps cinderella prince)) strength high source friendly) relationship unique others nil)"
+   ]
+  }
+ ],
+ "subscenes": [
+  {
+   "name": "(subscene-of wallflower 1)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of wallflower 1)",
+    "scene": "wallflower",
+    "establish-tasks": "(establish-task-2)",
+    "convey-tasks": "(convey-task-2)",
+    "(time-estimates-for (change: element (cinderella acceleration) amount (negative low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella rhythmic-level) amount (negative low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella speed) amount (negative low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella activity-level) amount (negative low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "stretched-by": "0.0",
+    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of wallflower 1))))",
+    "(changes-for cinderella)": "((gradually change by 0.88888889 factor for activity-level at low speed) (gradually change by 0.88888889 factor for speed at low speed) (gradually change by 0.88888889 factor for rhythmic-level at low speed) (gradually change by 0.88888889 factor for acceleration at low speed))",
+    "(location-of cinderella)": "(place: where (screen-position middle middle) why (so that (wander-around cinderella)) status (placed by (subscene-of wallflower 1)))",
+    "(time-estimates-for (wander-around cinderella))": "(time-estimates: ideal 17.300563 most 43.251407 least 6.9202251)",
+    "special-dynamics": "(|(special-dynamics-of cinderella in (subscene-of wallflower 1))-3|)",
+    "plans": "((activity-of wander-around 2))",
+    "running-time": "1.1778304"
+   },
+   "items": [
+    "(revival-repair: what defined-action was not-defined now (wander-around cinderella) because (named-in scene))"
+   ]
+  },
+  {
+   "name": "(subscene-of wallflower 2)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of wallflower 2)",
+    "scene": "wallflower",
+    "convey-tasks": "(convey-task-3)",
+    "(time-estimates-for (goes-to-and-accompanys cinderella prince (good-distance-from (vicinity-of cinderella))))": "(time-estimates: ideal 8.93 most 19.325 least 4.772)",
+    "(cinderella acceleration)": "low",
+    "(cinderella rhythmic-level)": "high",
+    "(cinderella speed)": "low",
+    "(cinderella activity-level)": "high",
+    "stretched-by": "1.343785",
+    "(location-of prince)": "(place: where (medium-distance-from-and-offstage (vicinity-of cinderella)) why (so that (goes-to-and-accompanies cinderella prince)) status (placed by (subscene-of wallflower 2)))",
+    "(actions-of prince)": "((walk of prince to (on-stage-near prince (vicinity-of cinderella)) as stationary-target careful of collisions starting at 0.0 using |(special-dynamics-of prince in (subscene-of wallflower 2))-5| called (activity-of getting-on-stage 1) stopping if (stop-when-there (quote (subscene-of wallflower 2)))))",
+    "(actions-of cinderella)": "((walk of cinderella with prince to (good-distance-from (vicinity-of cinderella)) as stationary-target careful of collisions starting at (after (end-of (activity-of goes-to-to-accompany 1)) 0.5) using |(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1| called (activity-of accompanying-each-other 1) stopping if (stop-if-either-wants-to (stop-after-so-many-seconds 11.0) (stop-when-there (quote (subscene-of wallflower 2))))) (walk of cinderella to (contact-with prince by cinderella) as moving-target careful of collisions starting at 0.5 using |(special-dynamics-of cinderella in (subscene-of wallflower 2))-4| called (activity-of goes-to-to-accompany 1) stopping if (stop-when-there-then (quote (subscene-of wallflower 2)) (stop-plan (quote (activity-of getting-on-stage 1))))))",
+    "movements": "((and (activity-of getting-on-stage 1) (activity-of goes-to-to-accompany 1) (activity-of accompanying-each-other 1)))",
+    "(distance-between (vicinity-of cinderella) (vicinity-of prince))": "(screen-fraction 0.05)",
+    "special-dynamics": "(|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4| |(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1| |(special-dynamics-of prince in (subscene-of wallflower 2))-5|)",
+    "plans": "((activity-of goes-to-to-accompany 1) (activity-of accompanying-each-other 1) (activity-of getting-on-stage 1))",
+    "running-time": "12.0"
+   },
+   "items": []
+  }
+ ],
+ "plans": [
+  {
+   "name": "(activity-of wander-around 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of wander-around 2)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of wallflower 1)",
+    "plans": "((sequence: (sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of wallflower 1))-3|) (ask cinderella initialize your curvature-sign towards (good-distance-from (vicinity-of cinderella))) (ask (activity-of wander-around 2) cause (cinderella) to gradually go in arc careful of collisions to (good-distance-from (vicinity-of cinderella)) as stationary-target stopping if (stop-if-either-wants-to (stop-after-so-many-seconds 1.1778304) (stop-when-there (quote (subscene-of wallflower 1))))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of goes-to-to-accompany 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-to-accompany 1)",
+    "begin-time": "0.5",
+    "subscene": "(subscene-of wallflower 2)",
+    "plans": "((sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of wallflower 2))-4|) (ask cinderella initialize your curvature-sign towards (contact-with prince by cinderella)) (ask (activity-of goes-to-to-accompany 1) cause (cinderella) to gradually go in arc careful of collisions to (contact-with prince by cinderella) as moving-target stopping if (stop-when-there-then (quote (subscene-of wallflower 2)) (stop-plan (quote (activity-of getting-on-stage 1)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of accompanying-each-other 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of accompanying-each-other 1)",
+    "begin-time": "(after (end-of (activity-of goes-to-to-accompany 1)) 0.5)",
+    "subscene": "(subscene-of wallflower 2)",
+    "plans": "((sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1|) (ask cinderella initialize your curvature-sign towards (good-distance-from (vicinity-of cinderella))) (ask (activity-of accompanying-each-other 1) cause (cinderella prince) to gradually go in arc careful of collisions to (good-distance-from (vicinity-of cinderella)) as stationary-target stopping if (stop-if-either-wants-to (stop-after-so-many-seconds 11.0) (stop-when-there (quote (subscene-of wallflower 2)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of getting-on-stage 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of getting-on-stage 1)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of wallflower 2)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of wallflower 2))-5|) (ask prince initialize your curvature-sign towards (on-stage-near prince (vicinity-of cinderella))) (ask (activity-of getting-on-stage 1) cause (prince) to gradually go in arc careful of collisions to (on-stage-near prince (vicinity-of cinderella)) as stationary-target stopping if (stop-when-there (quote (subscene-of wallflower 2))))))"
+   },
+   "items": []
+  }
+ ],
+ "dynamics": [
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of wallflower 2))-5|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of wallflower 2))",
+    "name": "|(special-dynamics-of prince in (subscene-of wallflower 2))-5|",
+    "(speed factor)": "0.74416667"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of prince in (subscene-of wallflower 2))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of wallflower 2))-5|)",
+    "name": "(special-dynamics-of prince in (subscene-of wallflower 2))",
+    "path-jaggedness": "low",
+    "path-curvature": "medium",
+    "path-length": "long",
+    "deliberateness": "medium",
+    "repetiveness": "high",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "medium",
+    "speed": "high"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 1))-3|",
+   "variables": {
+    "parent": "(special-dynamics-of cinderella in (subscene-of wallflower 1))",
+    "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 1))-3|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of cinderella in (subscene-of wallflower 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of wallflower 1))-3|)",
+    "name": "(special-dynamics-of cinderella in (subscene-of wallflower 1))",
+    "path-jaggedness": "medium",
+    "path-curvature": "high",
+    "path-length": "medium",
+    "deliberateness": "medium",
+    "repetiveness": "medium",
+    "acceleration": "low",
+    "rhythmic-level": "high",
+    "activity-level": "high",
+    "speed": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4|",
+    "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1|",
+    "(speed factor)": "0.59533333"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4|",
+   "variables": {
+    "parent": "(special-dynamics-of cinderella in (subscene-of wallflower 2))",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4-1|)",
+    "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4|",
+    "(speed factor)": "0.74416667"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-2|",
+   "variables": {
+    "parent": "(special-dynamics-of cinderella in (subscene-of wallflower 2))",
+    "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-2|",
+    "(speed factor)": "0.8"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-1|",
+   "variables": {
+    "parent": "(special-dynamics-of cinderella in (subscene-of wallflower 2))",
+    "name": "|(special-dynamics-of cinderella in (subscene-of wallflower 2))-1|",
+    "(speed factor)": "0.8"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of cinderella in (subscene-of wallflower 2))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of wallflower 2))-4| |(special-dynamics-of cinderella in (subscene-of wallflower 2))-2| |(special-dynamics-of cinderella in (subscene-of wallflower 2))-1|)",
+    "name": "(special-dynamics-of cinderella in (subscene-of wallflower 2))",
+    "path-jaggedness": "medium",
+    "path-curvature": "high",
+    "path-length": "medium",
+    "deliberateness": "medium",
+    "repetiveness": "medium",
+    "acceleration": "low",
+    "rhythmic-level": "high",
+    "activity-level": "high",
+    "speed": "low"
+   },
+   "items": []
+  }
+ ],
+ "choices": {
+  "name": "(choices-made-in wallflower)",
+  "variables": {
+   "parent": "something",
+   "name": "(choices-made-in wallflower)",
+   "(accompanys cinderella prince)": "((goes-to-and-accompanys cinderella prince (good-distance-from (vicinity-of cinderella))))",
+   "(helps cinderella prince)": "nil",
+   "(emotional-state cinderella (joy (negative low)))": "((change: element (cinderella acceleration) amount (negative low) speed low) (change: element (cinderella rhythmic-level) amount (negative low) speed low) (change: element (cinderella speed) amount (negative low) speed low) (change: element (cinderella activity-level) amount (negative low) speed low))",
+   "(personality cinderella)": "((method: type convey value (accompanys cinderella prince)) (method: type convey value (helps cinderella prince)))"
+  },
+  "items": []
+ },
+ "repairs": [
+  {
+   "actor": "(subscene-of wallflower 1)",
+   "note": "(revival-repair: what defined-action was not-defined now (wander-around cinderella) because (named-in scene))"
+  }
+ ],
+ "looks": [
+  {
+   "character": "cinderella",
+   "shape": "hexagon",
+   "angle": 60,
+   "centerOffset": null,
+   "aniSize": 0.036,
+   "form": "(ask cinderella take look (look: shape hexagon angle 60 center-offset nil ani-size 0.036))"
+  },
+  {
+   "character": "step-mother",
+   "shape": "triangle",
+   "angle": 120,
+   "centerOffset": "(right 30)",
+   "aniSize": 0.07,
+   "form": "(ask step-mother take look (look: shape triangle angle 120 center-offset (right 30) ani-size 0.07))"
+  },
+  {
+   "character": "fairy-godmother",
+   "shape": "eight-pointed-star",
+   "angle": 135,
+   "centerOffset": null,
+   "aniSize": 0.05,
+   "form": "(ask fairy-godmother take look (look: shape eight-pointed-star angle 135 center-offset nil ani-size 0.05))"
+  },
+  {
+   "character": "prince",
+   "shape": "circle",
+   "angle": 5,
+   "centerOffset": null,
+   "aniSize": 0.07,
+   "form": "(ask prince take look (look: shape circle angle 5 center-offset nil ani-size 0.07))"
+  }
+ ]
+}
