@@ -343,6 +343,8 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 6. **"Strong suggests large" is Ken's knowledge, from thesis p. 238.** There an improved Ani might give a very pleasant friendly character a large pointed shape, "chosen because the character is supposed to be a strong friendly ally". REVIVE;APSUG keeps the entry as Ken's (thesis 238), with that passage as its evidence, noting that the thesis gives it for a strong friendly ally. Decision 4 drops only the revival's own entries that give back his 1978 looks; his own knowledge may agree with them, as this does for the stepmother's large size. (The review of 10 October had relabeled it the revival's generalization and so dropped it.)
 7. **In color mode, a film with Ani's own looks keeps each character's 1978 color** (`running-color`, `aninit.65:83-87`), and a new character gets the color of the shape it would have had as in 1978, until stage 5 has Ani choose colors. The film page already does this.
 
+- **A scene is filmed for up to 250 seconds**, the 1,000 frames of Ken's own runs at 4 frames a second, rather than 150, so a slow scene that ends on its own (his tortoise's Pushed Around, 799 frames) is filmed to its end. Found on the way, for SLIPS: Director multiplies a character's special-dynamics factors again each time the same dynamics are set (dichar.103:27-31), so a stretched push-around slows by a quarter each cycle.
+
 ## The questions as they were put
 
 
