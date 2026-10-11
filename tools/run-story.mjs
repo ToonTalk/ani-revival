@@ -47,7 +47,7 @@ const description = readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n");
 const root = fileURLToPath(new URL("..", import.meta.url));
 const fs = makeProjectFileSystem(root);
 // as makeFilmSteps makes it, for running a failed step again
-const plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions) });
+const plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions), change: extensions.includes("change") });
 
 // Each step boots its own Lisp (src/pipeline.js boot), which first loads KEN;LISP; the
 // last one booted is the step that stopped, and what it typed (Ken's warnings, and the
@@ -176,6 +176,28 @@ const steps = makeFilmSteps(fs, {
       for (const f of p.appearances.findings) console.log(`         telling apart: ${f.items.join(" ")}`);
     }
   },
+  // Ani's fresh look at whoever a scene changes (REVIVE;CHANGE), before its pass 2
+  onChange: (scene, c) => {
+    const r = { scene, ok: !c.error, seconds: seconds(at.t0) };
+    (result.changes ||= []).push(r);
+    if (c.error) {
+      r.error = c.error;
+      r.typed = typed();
+      console.log(`FAILED fresh look ${scene}: ${c.error}`);
+      return;
+    }
+    r.characters = c.characters.map((x) => ({ character: x.character, changes: x.changes, changed: x.values.filter((v) => v.changed).map((v) => ({ element: v.element, before: v.before, after: v.after, use: v.use })) }));
+    r.held = c.held;
+    r.knockOns = c.recompute.knockOns;
+    console.log(`ok     fresh look ${scene}: ${c.file}`);
+    for (const x of r.characters) {
+      console.log(`         ${x.character}: ${x.changes.join(" ")}`);
+      for (const v of x.changed) console.log(`           ${v.element} ${show(v.before)} -> ${show(v.after)}${v.use === "none" ? " (Director and pass 2 don't use it)" : v.use === "cycles" ? " (how often pass 2 repeats an activity)" : ""}`);
+      if (!x.changed.length) console.log("           nothing changes in how she moves");
+    }
+    for (const h of r.held) console.log(`         held ${show(h.choicePoint)} at ${show(h.heldAt)} (would have chosen ${show(h.wouldHaveChosen)})`);
+    for (const k of r.knockOns) console.log(`         a full recompute would also change ${show(k.choicePoint)} ${show(k.before)} -> ${show(k.after)}`);
+  },
   onScene: (s) => {
     const r = { id: s.id, ok: !s.error, seconds: seconds(at.t0) };
     if (s.error) {
@@ -206,6 +228,11 @@ const steps = makeFilmSteps(fs, {
         console.log(`         ${t.task.padEnd(16)} ${oneLine(t.description, 70)}: ${oneLine(String(what), 110)}`);
       }
     }
+    // who the characters changed in earlier scenes have become, as pass 2 made them so
+    for (const b of (s.glass && s.glass.becomes) || []) {
+      r.becomes = (r.becomes || []).concat([{ character: b.character, scene: b.scene, madeSo: b.madeSo }]);
+      console.log(`         as ${b.character} became in ${b.scene}: ${b.madeSo.map((m) => `${m.element} ${show(m.was)} -> ${show(m.now)}`).join(", ") || "nothing to make so"}`);
+    }
     // pass 2's notes, in the glass box, then those left while the scene was filmed
     const notes = [...repairNotes(s.glass && s.glass.repairs), ...repairNotes(s.film && s.film.repairs).map((n) => `${n} (while filming)`)];
     if (notes.length) {
@@ -235,7 +262,7 @@ try {
   }
   printFailure(r);
 }
-const failed = (result.pass1 && !result.pass1.ok ? 1 : 0) + result.scenes.filter((s) => !s.ok).length;
+const failed = (result.pass1 && !result.pass1.ok ? 1 : 0) + result.scenes.filter((s) => !s.ok).length + (result.changes || []).filter((c) => !c.ok).length;
 const capped = result.scenes.filter((s) => s.capped).length;
 console.log(`\n${failed ? `${failed} step${failed === 1 ? "" : "s"} failed` : "nothing failed"}${capped ? `, ${capped} scene${capped === 1 ? "" : "s"} never ended` : ""} (${seconds(t0)}s)`);
 if (outPath) {

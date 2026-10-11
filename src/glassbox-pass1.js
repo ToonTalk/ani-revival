@@ -54,12 +54,17 @@ const VARIABLES = [
 ];
 
 // After the run: each choice point (in the order save-answers writes them) with
-// its variables and the items it memorized.
-export function collectChoicePoints(L) {
+// its variables and the items it memorized. keep, if given, says which to collect,
+// from the name as toJSON gives it (src/pipeline.js freshLook keeps the changed
+// characters', and so never asks a kind of choice point with no instances, such as
+// REVIVE;APPEAR's appearance-choice-point in a job that chose no looks, for its
+// element, which it would take from its name).
+export function collectChoicePoints(L, keep = null) {
   const names = L.evalString("(ask choice-point recall your childless-descendants)");
   const out = [];
   for (let p = names; p instanceof Cons; p = p.cdr) {
     const name = p.car;
+    if (keep && !keep(toJSON(L, name))) continue;
     const src = L.print(name);
     const cp = { name: toJSON(L, name), parent: toJSON(L, L.evalString(`(ask ${src} recall your parent)`)) };
     for (const v of VARIABLES) {
