@@ -52,22 +52,22 @@
   {
    "character": "step-mother",
    "look": {
-    "shape": "eight-pointed-star",
-    "angle": 135,
-    "centerOffset": null,
-    "aniSize": 0.036
+    "shape": "triangle",
+    "angle": 120,
+    "centerOffset": "(right 30)",
+    "aniSize": 0.07
    },
    "elements": {
     "size": {
      "choicePoint": "(choice-point-of step-mother size)",
-     "value": "low",
+     "value": "high",
      "strength": "medium",
      "sources": [
-      "(flashiness level)",
-      "(variety level)",
-      "(relative-choice-point-of (step-mother prince) relative-size)"
+      "(relative-choice-point-of (step-mother cinderella) relative-size)",
+      "(relative-choice-point-of (step-mother fairy-godmother) relative-size)",
+      "strong"
      ],
-     "drawn": "low"
+     "drawn": "high"
     },
     "shape-jaggedness": {
      "choicePoint": "(choice-point-of step-mother shape-jaggedness)",
@@ -83,26 +83,26 @@
     },
     "shape-complexity": {
      "choicePoint": "(choice-point-of step-mother shape-complexity)",
-     "value": "high",
+     "value": "low",
      "strength": "medium",
      "sources": [
-      "(relative-choice-point-of (step-mother prince) relative-shape-complexity)",
+      "(relative-choice-point-of (step-mother fairy-godmother) relative-shape-complexity)",
       "(relative-choice-point-of (step-mother cinderella) relative-shape-complexity)"
      ],
-     "drawn": "high"
+     "drawn": "low"
     }
    },
    "experts": [
-    "(considered: constraints ((shape-jaggedness high 30) (shape-complexity high 16)) offered ((star-expert eight-pointed-star)))",
-    "(chosen: shape eight-pointed-star by star-expert from (eight-pointed-star))"
+    "(considered: constraints ((shape-jaggedness high 30) (shape-complexity low 16)) offered ((polygon-expert triangle)))",
+    "(chosen: shape triangle by polygon-expert from (triangle))"
    ]
   },
   {
    "character": "fairy-godmother",
    "look": {
-    "shape": "pentagon",
-    "angle": 72,
-    "centerOffset": "(right 54)",
+    "shape": "eight-pointed-star",
+    "angle": 135,
+    "centerOffset": null,
     "aniSize": 0.05
    },
    "elements": {
@@ -111,8 +111,9 @@
      "value": "medium",
      "strength": "high",
      "sources": [
-      "(relative-choice-point-of (fairy-godmother prince) relative-size)",
-      "(relative-choice-point-of (fairy-godmother cinderella) relative-size)"
+      "strong",
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-size)",
+      "(relative-choice-point-of (fairy-godmother prince) relative-size)"
      ],
      "drawn": "medium"
     },
@@ -124,26 +125,22 @@
       "(relative-choice-point-of (fairy-godmother prince) relative-shape-jaggedness)",
       "(relative-choice-point-of (fairy-godmother cinderella) relative-shape-jaggedness)"
      ],
-     "drawn": "medium"
+     "drawn": "high"
     },
     "shape-complexity": {
      "choicePoint": "(choice-point-of fairy-godmother shape-complexity)",
-     "value": "medium",
-     "strength": "low",
+     "value": "high",
+     "strength": "high",
      "sources": [
-      "(relative-choice-point-of (fairy-godmother cinderella) relative-shape-complexity)",
-      "(relative-choice-point-of (fairy-godmother step-mother) relative-shape-complexity)",
-      "(dynamics-of fairy-godmother speed)",
-      "(variety level)",
-      "(relative-choice-point-of (fairy-godmother prince) relative-shape-complexity)",
-      "magical"
+      "magical",
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-shape-complexity)"
      ],
-     "drawn": "medium"
+     "drawn": "high"
     }
    },
    "experts": [
-    "(considered: constraints ((shape-jaggedness (not low) 24) (shape-complexity medium 18)) offered ((polygon-expert pentagon) (star-expert star)))",
-    "(chosen: shape pentagon by polygon-expert from (pentagon star))"
+    "(considered: constraints ((shape-jaggedness (not low) 24) (shape-complexity high 21)) offered ((star-expert eight-pointed-star) (star-expert ten-pointed-star)))",
+    "(chosen: shape eight-pointed-star by star-expert from (eight-pointed-star ten-pointed-star))"
    ]
   },
   {
@@ -158,10 +155,10 @@
     "size": {
      "choicePoint": "(choice-point-of prince size)",
      "value": "high",
-     "strength": "medium",
+     "strength": "high",
      "sources": [
-      "(relative-choice-point-of (prince cinderella) relative-size)",
-      "(variety level)"
+      "strong",
+      "(relative-choice-point-of (prince cinderella) relative-size)"
      ],
      "drawn": "high"
     },
@@ -180,19 +177,31 @@
      "value": "low",
      "strength": "medium",
      "sources": [
-      "(relative-choice-point-of (prince cinderella) relative-shape-complexity)",
-      "(dynamics-of prince speed)"
+      "(dynamics-of prince speed)",
+      "(variety level)",
+      "(relative-choice-point-of (prince fairy-godmother) relative-shape-complexity)"
      ],
      "drawn": "low"
     }
    },
    "experts": [
-    "(considered: constraints ((shape-jaggedness low 10) (shape-complexity low 12)) offered ((blob-expert circle)))",
+    "(considered: constraints ((shape-jaggedness low 10) (shape-complexity low 14)) offered ((blob-expert circle)))",
     "(chosen: shape circle by blob-expert from (circle))"
    ]
   }
  ],
  "knowledge": [
+  {
+   "kind": "descriptor",
+   "source": "strong",
+   "element": "size",
+   "value": "high",
+   "strength": "medium",
+   "evidence": {
+    "thesis": 238,
+    "text": "The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally"
+   }
+  },
   {
    "kind": "descriptor",
    "source": "physically-strong",

@@ -26,13 +26,7 @@
 //   --fps 24 film the chain at 24 frames a second, as the film page does by default,
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
 //            from 1978's positions doesn't depend on the frame rate and is left to the
-//            check at 4). Only with MEND as well, as the page makes it with the
-//            revival's extensions: --extensions mend,appear, against
-//            reports/ext/mend+appear/24fps. At 24 frames a second, APPEAR alone films a
-//            Meeting that never ends: going to meet the Prince, Cinderella waits where
-//            she stands, turning this way and that, for someone in her way to move, and
-//            never sets off; REVIVE;MEND12 stops a walk that waits so long, as if she had
-//            got there. About 20 minutes.
+//            check at 4). About 15 minutes.
 //   --save   write the chained film's files to reports/ext/<ids>/ (or its 24fps/)
 //            instead of comparing them (and pass 1's KEN;CP 30 and appearances), after
 //            checking the rest
@@ -53,7 +47,6 @@ const save = args.includes("--save");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
 if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
 if (fps === 24 && quick) throw new Error("--quick skips the chained film, so --fps 24 would check only pass 1");
-if (fps === 24 && !extensions.includes("mend")) throw new Error("at 24 frames a second APPEAR alone films a Meeting that never ends (going to meet the Prince, Cinderella waits for someone in her way to move, and never sets off), a walk REVIVE;MEND12 stops: the goldens at 24 are of MEND and APPEAR, as the film page makes them (--extensions mend,appear)");
 // as tools/check-1978.mjs films: a scene takes six times the frames at 24 that it takes at 4
 const frames = fps === 24 ? 6000 : 1000;
 const dir = `reports/ext/${extensions.join("+")}`;
