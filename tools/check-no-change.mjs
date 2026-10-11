@@ -13,6 +13,10 @@
 //   through: n        the films are the same up to frame n (Ani as in 1978 is filmed only
 //                     that far), and MEND's ends: a scene that never ends in 1978, whose
 //                     film MEND must leave as it was until the move that never ends
+// A case with planWith is planned with those extensions (a story Ani as in 1978 can't
+// plan, stopping in pass 2): each scene's pass 2 is made once, with them, and its program
+// filmed twice, by Director as in 1978 (no extensions) and with MEND. A case's frames is
+// its cap, if not the page's two and a half minutes.
 // Usage: node tools/check-no-change.mjs [case ...] [--jobs n]
 //   case    only these cases (all by default)
 //   --jobs  how many cases at once, each a process of its own (default: the cores less two, at most 4)
@@ -38,6 +42,13 @@ const CASES = {
   // from frame 158, loops outwards for ever (her nearest is at frame 172). The third
   // push's loops round her place, frames 82 to 143, end, and must be left as they are
   "red-riding-hood-woods": { file: "test/stories/red-riding-hood.lisp", fps: 4, scenes: { "into-the-woods": { through: 172 } } },
+  // Ken's own tortoise and hare, made on the page (test/stories/stress/pushed-around.lisp).
+  // Ani as in 1978 stops in its pass 2 (the hare's activity level is none), so it is
+  // planned with MEND. Pushed Around's second push is stretched, and Director's special
+  // dynamics make each of its seven cycles take a third longer than the one before
+  // (dichar.103:27-31); the scene ends on its own at frame 799, past the page's two and a
+  // half minutes but within Ken's 1,000 frames, and M12 must leave it alone
+  "pushed-around": { file: "test/stories/stress/pushed-around.lisp", fps: 4, frames: 1000, planWith: ["mend"], scenes: { introduction: "lead-in", "pushed-around": "identical" } },
 };
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -84,10 +95,10 @@ function runCase(name) {
   const top = versions ? Math.max(0, ...[...versions.keys()].filter((k) => /^\d+$/.test(k)).map(Number)) : 0;
   fs.addFile("KEN", "CINDY", String(top + 1), { text: description, origin: "changed" });
   const plan = storyPlan(storyOutline(description));
-  pass1(fs, {});
-  const cap = c.fps * 150; // the page's cap, 600 frames at 4 a second
+  pass1(fs, { extensions: c.planWith || [] });
+  const cap = c.frames || c.fps * 150; // the page's cap, 600 frames at 4 a second
   const make = (scene, extensions, frames) => {
-    pass2(fs, scene, { plan, extensions });
+    pass2(fs, scene, { plan, extensions: c.planWith || extensions });
     return film(fs, scene, { plan, frames, fps: c.fps, extensions }).film;
   };
   let failed = 0;
