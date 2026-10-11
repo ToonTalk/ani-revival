@@ -158,8 +158,10 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
 // or with Ani's looks, is version 2, which records which extensions, the notes their
 // repairs left in pass 1 (repairs; each scene's are in its glass box) and how Ani chose
 // each character's look (appearances; each scene's film and glass box have its looks,
-// so the film is drawn with them when it is opened again). Both are read; version 1
-// means Ani as in 1978.
+// so the film is drawn with them when it is opened again), and, with CHANGE, Ani's fresh
+// look after each scene that changes someone (changes; each later scene's glass box has
+// what it made so), so the film opens again with "How she has changed". Both are read;
+// version 1 means Ani as in 1978.
 const FILM_FORMAT = "ani-film";
 async function filmFile(run) {
   const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds, ...version2(run) });
@@ -173,13 +175,13 @@ async function readFilmFile(text) {
   const d = JSON.parse(await inflate(outer.gzip));
   if (typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("That film file is damaged.");
   d.extensions = outer.version === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-  if (outer.version !== 2) delete d.appearances;
+  if (outer.version !== 2) { delete d.appearances; delete d.changes; }
   return d;
 }
 async function openFilm(d, name) {
   stopRun({ quiet: true });
   const extensions = d.extensions || [];
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null });
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null });
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
   RUNS[1] = run;
   saveRun(run);

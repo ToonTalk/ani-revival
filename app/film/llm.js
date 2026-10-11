@@ -93,9 +93,12 @@ function cindyExample() {
   return DATA.cindy.split("\n").filter((line, k) => k === 0 || !/^\s*;/.test(line)).join("\n").replace(/\n{3,}/g, "\n\n");
 }
 // extensions: the revival's extensions the film will be made with (the page's switch);
-// with the repairs (MEND), Ani can show a meeting on its own too.
+// with the repairs (MEND), Ani can show a meeting on its own too; with CHANGE, a scene may
+// change a character, in the form of Ken's commented-out cinderella-beautified
+// (cindy.46:94-105). With none, the prompt is as it was.
 function storyPrompt(story, { compact = false, extensions = [] } = {}) {
   const mend = extensions.includes("mend");
+  const change = extensions.includes("change");
   return `Ani is a program Ken Kahn wrote at MIT in 1978. Given a film description in his Lisp notation, it plans and animates a short film in which each character is a simple shape (Cinderella was a star). Turn the story at the end into a film description Ani can run.
 
 Write it in exactly the form of the example (Ken's own description of Cinderella), using ONLY the words listed here; Ani stops on anything else.
@@ -128,7 +131,8 @@ SCENES (2 to 5, in story order)
   (convey (pushes X Y))
   (convey (alone X Y)) means everyone else leaves, so that X and Y are alone together (Ani shows it by the others leaving the stage); don't use it for X leaving Y alone
   (convey (getting-it-on X Y)) for two characters in love coming together
-  (convey (aware X (getting-it-on Y Z)))${mend ? `
+  (convey (aware X (getting-it-on Y Z)))${change ? `
+  (convey (change (personality X OLD) (personality X NEW))) for X changing: OLD is the words of X's personality that go and NEW the words that take their place, each one word or (and word word ...); write it (convey (causes Y (change ...))) when Y brings the change about. physical works the same way, and so does how X feels about Y: (change (relationship (relationship-of X Y) OLD) (relationship (relationship-of X Y) NEW))` : ""}${mend ? `
   (convey (meets X Y)) for X going to meet Y
   Nothing else: Ani can't show helps, gives, says, and so on.` : `
   Nothing else: Ani can't show (meets X Y) on its own, or helps, gives, says, and so on.`}
@@ -141,7 +145,8 @@ MAKING A GOOD FILM
 - Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
 - chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a sequence: with other tasks after them; never make a scene of pushes alone.
 - Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
-- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.${change ? `
+- A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with (establish (personality X)).` : ""}
 
 THE FILM
 - After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.
