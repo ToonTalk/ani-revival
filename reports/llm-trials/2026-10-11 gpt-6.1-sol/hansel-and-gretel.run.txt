@@ -1,0 +1,46 @@
+reports\llm-trials\2026-10-11 gpt-6.1-sol\hansel-and-gretel.lisp: 5 scenes (introduction, driven-away, kept-apart, breaking-free, home-together), 4 characters; extensions: mend, appear; 4 frames a second, at most 600 a scene
+ok     pass 1 (28.8s): 132 choices
+         gretel looks: circle, size 0.036 (size low from (flashiness level), (variety level), (relative-choice-point-of (gretel witch) relative-size); shape-jaggedness low from (dynamics-of gretel path-jaggedness), (variety level); shape-complexity low from (dynamics-of gretel speed), (variety level))
+         hansel looks: ten-pointed-star, size 0.036 (size low from (flashiness level), (variety level), (relative-choice-point-of (hansel step-mother) relative-size), (relative-choice-point-of (hansel witch) relative-size); shape-jaggedness medium from friendly, (relative-choice-point-of (hansel gretel) relative-shape-jaggedness), (relative-choice-point-of (hansel step-mother) relative-shape-jaggedness); shape-complexity high from (dynamics-of hansel speed), (variety level), (relative-choice-point-of (hansel gretel) relative-shape-complexity), (relative-choice-point-of (hansel step-mother) relative-shape-complexity))
+         step-mother looks: star, size 0.05 (size medium from (relative-choice-point-of (step-mother witch) relative-size), (relative-choice-point-of (step-mother gretel) relative-size); shape-jaggedness high from mean, (relative-choice-point-of (step-mother gretel) relative-shape-jaggedness); shape-complexity medium from (relative-choice-point-of (step-mother gretel) relative-shape-complexity), (dynamics-of step-mother speed), (variety level))
+         witch looks: eight-pointed-star, size 0.07 (size high from strong, (neighbor-of powerful physically-strong); shape-jaggedness high from (dynamics-of witch path-jaggedness), (variety level), (relative-choice-point-of (witch hansel) relative-shape-jaggedness), (relative-choice-point-of (witch gretel) relative-shape-jaggedness), mean; shape-complexity high from magical, (relative-choice-point-of (witch gretel) relative-shape-complexity), (relative-choice-point-of (witch step-mother) relative-shape-complexity))
+ok     introduction (35.3s): 88 frames (22.0 s), 5 subscenes
+         convey-task-11   (accompanys hansel gretel): ((goes-to-and-accompanys hansel gretel (good-distance-from (vicinity-of hansel))))
+         convey-task-10   (helps hansel gretel): cant-do
+         convey-task-9    (wants gretel (getting-it-on gretel hansel)): ((move-to-each-other gretel hansel))
+         convey-task-8    (accompanys gretel hansel): ((goes-to-and-accompanys gretel hansel (good-distance-from (vicinity-of gretel))))
+         establish-task-4 (emotional-state gretel (joy (positive medium))): ((change-to: element (gretel path-curvature) new-value high speed high) (change-to: element (gretel path-lengt
+         establish-task-3 (relationship (relationship-of gretel hansel)): being-handled-by-convey-tasks
+         establish-task-2 (personality hansel): being-handled-by-convey-tasks
+         establish-task-1 (personality gretel): cant-do
+ok     driven-away (72s): 61 frames (15.3 s), 3 subscenes
+         convey-task-2    (accompanys gretel hansel): ((goes-to-and-accompanys gretel hansel (good-distance-from (vicinity-of gretel))))
+         convey-task-1    (chases step-mother hansel): ((chases-to step-mother hansel (distance-away-from (vicinity-of hansel) (vicinity-of step-mother) 0.25)))
+         establish-task-6 (emotional-state gretel (joy (negative medium))): ((change: element (gretel acceleration) amount (negative medium) speed medium) (change: element (gretel rhythm
+         establish-task-5 (emotional-state hansel (joy (negative medium))): ((change: element (hansel acceleration) amount (negative medium) speed medium) (change: element (hansel rhythm
+FAILED pass 2 kept-apart (9.2s): break BAD-MESSAGE
+  Lisp typed, last:
+    ;warning from MAKES-FENCE: (RUN MAKES-FENCE WITCH (BETWEEN (VICINITY-OF GRETEL) (VICINITY-OF HANSEL)) IN (SUBSCENE-OF KEPT-APART 2) STRETCHED BY 1.0) is not understood
+    --- type (?) for help
+  innermost forms:
+    (BREAK BAD-MESSAGE T)
+    (LET ((RETURNED (BREAK BAD-MESSAGE T))) (COND ((EQ RETURNED (QUOTE RETRY)) (ASK1 :SELF MESSAGE :SKIP-CURRENT-METHOD?)) ((EXISTS? RETURNED) (ASK1 (ACTOR-OF RETURNED) MESSAGE :SKIP-CURRENT-METHOD?)) ((ATOM RETURNED) RETURN
+    (LET ((? (CONS (QUOTE SINCE) (CONS ACTOR (CONS (QUOTE |did not understand |) (CONS MESSAGE (CONS (QUOTE | you can either modify|) (CONS ACTOR (CONS (QUOTE |so that it can understand the message and then type (return 'ret
+    (RECOVERABLE-BAD-MESSAGE (NAME-OF :SELF) :MESSAGE (CONS :MESSAGE (QUOTE (|is not understood --- type (?) for help|))))
+    (FUNCALL :MESSAGE-NOT-UNDERSTOOD :SELF :MESSAGE)
+    (NOT-UNDERSTOOD-MESSAGE :SELF :MESSAGE)
+  the sends that led there, innermost first:
+    (ASK1 (FIRST METHOD) (CONS (QUOTE RUN) (APPEND METHOD (CONS (QUOTE IN) (CONS :SELF (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL))))))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 SCENE (QUOTE (ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))
+FAILED pass 2 breaking-free (5s): shouldnt happen (FULL-FILE-NAME (|file| ((AR9 KEN1) KEPT MINI) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 home-together (9.1s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM4 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+3 steps failed (170.8s)
+wrote reports\llm-trials\2026-10-11 gpt-6.1-sol\hansel-and-gretel.run.json

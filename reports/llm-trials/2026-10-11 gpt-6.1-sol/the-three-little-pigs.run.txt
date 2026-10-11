@@ -1,0 +1,50 @@
+reports\llm-trials\2026-10-11 gpt-6.1-sol\the-three-little-pigs.lisp: 5 scenes (introduction, friends-together, wolf-chases, wolf-kept-out, happy-together), 4 characters; extensions: mend, appear; 4 frames a second, at most 600 a scene
+ok     pass 1 (84.1s): 132 choices
+         first-pig looks: hexagon, size 0.036 (size low from (flashiness level), (variety level); shape-jaggedness low from (originality level), (dynamics-of first-pig path-jaggedness), (relative-choice-point-of (first-pig wolf) relative-shape-jaggedness), friendly; shape-complexity medium from (variety level), (originality level), (dynamics-of first-pig speed), (relative-choice-point-of (first-pig wolf) relative-shape-complexity))
+         second-pig looks: triangle, size 0.036 (size low from (flashiness level), (variety level), (relative-choice-point-of (second-pig wolf) relative-size); shape-jaggedness low from (originality level), (dynamics-of second-pig path-jaggedness), (relative-choice-point-of (second-pig wolf) relative-shape-jaggedness), friendly, drawn high (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)); shape-complexity medium from (variety level), (originality level), (dynamics-of second-pig speed), (relative-choice-point-of (second-pig wolf) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)))
+         third-pig looks: ten-pointed-star, size 0.05 (size medium from strong, (relative-choice-point-of (third-pig first-pig) relative-size), (relative-choice-point-of (third-pig wolf) relative-size); shape-jaggedness medium from friendly, (relative-choice-point-of (third-pig first-pig) relative-shape-jaggedness), (relative-choice-point-of (third-pig wolf) relative-shape-jaggedness); shape-complexity high from (relative-choice-point-of (third-pig wolf) relative-shape-complexity), (relative-choice-point-of (third-pig first-pig) relative-shape-complexity))
+         wolf looks: pentagon, size 0.07 (size high from physically-strong, (relative-choice-point-of (wolf first-pig) relative-size); shape-jaggedness high from mean, (relative-choice-point-of (wolf first-pig) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)); shape-complexity low from (relative-choice-point-of (wolf first-pig) relative-shape-complexity), (dynamics-of wolf speed), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of first-pig second-pig)) (alike-after-all: shape hexagon of-who (comparison-of first-pig second-pig))
+ok     introduction (27.6s): 36 frames (9.0 s), 4 subscenes
+         convey-task-12   (hurts wolf first-pig): ((move-to-and-hits wolf first-pig))
+         convey-task-11   (chases wolf first-pig): ((chases-to wolf first-pig (distance-away-from (vicinity-of first-pig) (vicinity-of wolf) 0.25)))
+         convey-task-10   (hurts wolf first-pig): ((move-to-and-hits wolf first-pig))
+         establish-task-4 (emotional-state first-pig (joy (positive medium))): ((change-to: element (first-pig path-curvature) new-value high speed high) (change-to: element (first-pig path
+         establish-task-3 (relationship (relationship-of wolf first-pig)): being-handled-by-convey-tasks
+         establish-task-2 (personality wolf): being-handled-by-convey-tasks
+         establish-task-1 (personality first-pig): cant-do
+ok     friends-together (78.7s): 28 frames (7.0 s), 2 subscenes
+         convey-task-2    (accompanys third-pig first-pig): ((goes-to-and-accompanys third-pig first-pig (good-distance-from (vicinity-of third-pig))))
+         convey-task-1    (accompanys second-pig first-pig): ((goes-to-and-accompanys second-pig first-pig (good-distance-from (vicinity-of second-pig))))
+         establish-task-6 (personality third-pig): cant-do
+         establish-task-5 (personality second-pig): cant-do
+ok     wolf-chases (28.4s): 13 frames (3.3 s), 2 subscenes
+         convey-task-5    (chases wolf third-pig): ((chases-to wolf third-pig (distance-away-from (vicinity-of third-pig) (vicinity-of wolf) 0.25)))
+         convey-task-4    (chases wolf second-pig): ((chases-to wolf second-pig (distance-away-from (vicinity-of second-pig) (vicinity-of wolf) 0.25)))
+         convey-task-3    (chases wolf first-pig): ((chases-to wolf first-pig (distance-away-from (vicinity-of first-pig) (vicinity-of wolf) 0.25)))
+         establish-task-7 (emotional-state first-pig (joy (negative medium))): ((change: element (first-pig acceleration) amount (negative medium) speed medium) (change: element (first-pig 
+         repair: (subscene-of wolf-chases 1): (revival-repair: what brought-on-stage was (first-pig at (xy-position -0.59882809 0.49701153)) now (activity-of getting-on-stage 2) because (off-the-stage for chases-to))
+FAILED pass 2 wolf-kept-out (10.9s): break BAD-MESSAGE
+  Lisp typed, last:
+    ;warning from MAKES-FENCE: (RUN MAKES-FENCE THIRD-PIG (BETWEEN (VICINITY-OF WOLF) (VICINITY-OF FIRST-PIG)) IN (SUBSCENE-OF WOLF-KEPT-OUT 1) STRETCHED BY 1.0) is not understood
+    --- type (?) for help
+  innermost forms:
+    (BREAK BAD-MESSAGE T)
+    (LET ((RETURNED (BREAK BAD-MESSAGE T))) (COND ((EQ RETURNED (QUOTE RETRY)) (ASK1 :SELF MESSAGE :SKIP-CURRENT-METHOD?)) ((EXISTS? RETURNED) (ASK1 (ACTOR-OF RETURNED) MESSAGE :SKIP-CURRENT-METHOD?)) ((ATOM RETURNED) RETURN
+    (LET ((? (CONS (QUOTE SINCE) (CONS ACTOR (CONS (QUOTE |did not understand |) (CONS MESSAGE (CONS (QUOTE | you can either modify|) (CONS ACTOR (CONS (QUOTE |so that it can understand the message and then type (return 'ret
+    (RECOVERABLE-BAD-MESSAGE (NAME-OF :SELF) :MESSAGE (CONS :MESSAGE (QUOTE (|is not understood --- type (?) for help|))))
+    (FUNCALL :MESSAGE-NOT-UNDERSTOOD :SELF :MESSAGE)
+    (NOT-UNDERSTOOD-MESSAGE :SELF :MESSAGE)
+  the sends that led there, innermost first:
+    (ASK1 (FIRST METHOD) (CONS (QUOTE RUN) (APPEND METHOD (CONS (QUOTE IN) (CONS :SELF (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL))))))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 SCENE (QUOTE (ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))
+FAILED pass 2 happy-together (8.7s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM4 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+2 steps failed (249s)
+wrote reports\llm-trials\2026-10-11 gpt-6.1-sol\the-three-little-pigs.run.json

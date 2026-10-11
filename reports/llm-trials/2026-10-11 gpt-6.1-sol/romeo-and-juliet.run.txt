@@ -1,0 +1,46 @@
+reports\llm-trials\2026-10-11 gpt-6.1-sol\romeo-and-juliet.lisp: 4 scenes (lovers, kept-apart, the-fight, together-in-sadness), 5 characters; extensions: mend, appear; 4 frames a second, at most 600 a scene
+ok     pass 1 (122.8s): 191 choices
+         repair: (choice-point-of romeo size): (revival-repair: what read-as-number was (not high) now 0.036 because (narrowed-to low (variety level) medium (counts (0 medium) (0 low)) (middle-element ken1 reconstruction)))
+         repair: (choice-point-of juliet size): (revival-repair: what read-as-number was (not high) now 0.05 because (narrowed-to medium (variety level) medium (counts (0 medium) (1 low)) (middle-element ken1 reconstruction)))
+         romeo looks: circle, size 0.036 (size (not high) from (relative-choice-point-of (romeo tybalt) relative-size), (relative-choice-point-of (romeo romeo-family) relative-size), (relative-choice-point-of (romeo juliet-family) relative-size), drawn low; shape-jaggedness low from graceful, friendly, (dynamics-of romeo path-jaggedness); shape-complexity low from (dynamics-of romeo speed), (variety level), (originality level), (relative-choice-point-of (romeo juliet) relative-shape-complexity), (relative-choice-point-of (romeo romeo-family) relative-shape-complexity), (relative-choice-point-of (romeo juliet-family) relative-shape-complexity))
+         juliet looks: hexagon, size 0.05 (size (not high) from (relative-choice-point-of (juliet tybalt) relative-size), (relative-choice-point-of (juliet romeo) relative-size), (relative-choice-point-of (juliet romeo-family) relative-size), (relative-choice-point-of (juliet juliet-family) relative-size), drawn medium; shape-jaggedness low from (dynamics-of juliet path-jaggedness), (relative-choice-point-of (juliet tybalt) relative-shape-jaggedness), graceful; shape-complexity medium from (dynamics-of juliet speed), (variety level), (relative-choice-point-of (juliet tybalt) relative-shape-complexity))
+         romeo-family looks: ten-pointed-star, size 0.07 (size high from strong, (neighbor-of powerful physically-strong); shape-jaggedness medium from (opposite-of unfriendly friendly), (relative-choice-point-of (romeo-family romeo) relative-shape-jaggedness), (relative-choice-point-of (romeo-family juliet) relative-shape-jaggedness), (relative-choice-point-of (romeo-family juliet-family) relative-shape-jaggedness), (relative-choice-point-of (romeo-family tybalt) relative-shape-jaggedness); shape-complexity high from (relative-choice-point-of (romeo-family tybalt) relative-shape-complexity), (relative-choice-point-of (romeo-family romeo) relative-shape-complexity), (relative-choice-point-of (romeo-family juliet) relative-shape-complexity), (relative-choice-point-of (romeo-family juliet-family) relative-shape-complexity))
+         juliet-family looks: triangle, size 0.07 (size high from strong, (neighbor-of powerful physically-strong); shape-jaggedness medium from (opposite-of unfriendly friendly), (relative-choice-point-of (juliet-family romeo) relative-shape-jaggedness), (relative-choice-point-of (juliet-family juliet) relative-shape-jaggedness), (relative-choice-point-of (juliet-family romeo-family) relative-shape-jaggedness), (relative-choice-point-of (juliet-family tybalt) relative-shape-jaggedness), drawn high (overridden-by: shape-experts drawn triangle because (drawn-alike-with romeo-family)); shape-complexity high from (relative-choice-point-of (juliet-family tybalt) relative-shape-complexity), (relative-choice-point-of (juliet-family romeo) relative-shape-complexity), (relative-choice-point-of (juliet-family juliet) relative-shape-complexity), (relative-choice-point-of (juliet-family romeo-family) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn triangle because (drawn-alike-with romeo-family)))
+         tybalt looks: pentagon, size 0.07 (size high from physically-strong, strong; shape-jaggedness high from mean, (opposite-of unfriendly friendly), (relative-choice-point-of (tybalt romeo) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with juliet-family)); shape-complexity low from (relative-choice-point-of (tybalt juliet-family) relative-shape-complexity), (relative-choice-point-of (tybalt romeo) relative-shape-complexity), (relative-choice-point-of (tybalt romeo-family) relative-shape-complexity), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with juliet-family)))
+         telling apart: (look-alike: shape ten-pointed-star of-who (comparison-of romeo-family juliet-family)) (alike-after-all: shape ten-pointed-star of-who (comparison-of romeo-family juliet-family))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of romeo juliet))
+ok     lovers (41.5s): 84 frames (21.0 s), 6 subscenes
+         convey-task-9    (accompanys romeo juliet): ((goes-to-and-accompanys romeo juliet (good-distance-from (vicinity-of romeo))))
+         convey-task-8    (helps romeo juliet): cant-do
+         convey-task-7    (wants romeo (getting-it-on romeo juliet)): ((move-to-each-other romeo juliet))
+         convey-task-6    (accompanys romeo juliet): ((goes-to-and-accompanys romeo juliet (good-distance-from (vicinity-of romeo))))
+         establish-task-4 (emotional-state romeo (joy (positive high))): ((change-to: element (romeo path-curvature) new-value high speed high) (change-to: element (romeo path-length)
+         establish-task-3 (relationship (relationship-of romeo juliet)): being-handled-by-convey-tasks
+         establish-task-2 (personality juliet): cant-do
+         establish-task-1 (personality romeo): being-handled-by-convey-tasks
+FAILED pass 2 kept-apart (5.2s): break BAD-MESSAGE
+  Lisp typed, last:
+    ;warning from MAKES-FENCE: (RUN MAKES-FENCE ROMEO-FAMILY (BETWEEN (VICINITY-OF ROMEO) (VICINITY-OF JULIET)) IN (SUBSCENE-OF KEPT-APART 1) STRETCHED BY 1.0) is not understood
+    --- type (?) for help
+  innermost forms:
+    (BREAK BAD-MESSAGE T)
+    (LET ((RETURNED (BREAK BAD-MESSAGE T))) (COND ((EQ RETURNED (QUOTE RETRY)) (ASK1 :SELF MESSAGE :SKIP-CURRENT-METHOD?)) ((EXISTS? RETURNED) (ASK1 (ACTOR-OF RETURNED) MESSAGE :SKIP-CURRENT-METHOD?)) ((ATOM RETURNED) RETURN
+    (LET ((? (CONS (QUOTE SINCE) (CONS ACTOR (CONS (QUOTE |did not understand |) (CONS MESSAGE (CONS (QUOTE | you can either modify|) (CONS ACTOR (CONS (QUOTE |so that it can understand the message and then type (return 'ret
+    (RECOVERABLE-BAD-MESSAGE (NAME-OF :SELF) :MESSAGE (CONS :MESSAGE (QUOTE (|is not understood --- type (?) for help|))))
+    (FUNCALL :MESSAGE-NOT-UNDERSTOOD :SELF :MESSAGE)
+    (NOT-UNDERSTOOD-MESSAGE :SELF :MESSAGE)
+  the sends that led there, innermost first:
+    (ASK1 (FIRST METHOD) (CONS (QUOTE RUN) (APPEND METHOD (CONS (QUOTE IN) (CONS :SELF (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL))))))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 SCENE (QUOTE (ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))
+FAILED pass 2 the-fight (5.4s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) KA POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 together-in-sadness (4.9s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM3 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+3 steps failed (185.4s)
+wrote reports\llm-trials\2026-10-11 gpt-6.1-sol\romeo-and-juliet.run.json
