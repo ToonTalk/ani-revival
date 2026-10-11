@@ -200,7 +200,7 @@ A change is a scene task in the form of your `cindy.46:94-105`: `(change (TYPE W
 **Tests.**
 - `test/change.test.js`.
 - check-1978 with CHANGE on must be byte-identical, with the same loaded files.
-- Fresh-look goldens: evil and mean to good and kind (path-curvature goes from low to high, among others); shy to brazen (speed goes from low to medium); shabby to elegant (nothing changes).
+- Fresh-look goldens: evil and mean to good and kind (path-curvature goes from low to high, among others; from low to medium since decision 8); shy to brazen (speed goes from low to medium); shabby to elegant (nothing changes).
 - An ordering guard that fails if the change moves after `study-descriptor-use`.
 - Bridge timing on path-curvature (factor 4), measured from the contact frame at 4 and 24 fps.
 - End to end: `change-of-heart.lisp`, `socializing.lisp`, and your beautified scene uncommented at run time.
@@ -343,6 +343,7 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 
 6. **"Strong suggests large" is Ken's knowledge, from thesis p. 238.** There an improved Ani might give a very pleasant friendly character a large pointed shape, "chosen because the character is supposed to be a strong friendly ally". REVIVE;APSUG keeps the entry as Ken's (thesis 238), with that passage as its evidence, noting that the thesis gives it for a strong friendly ally. Decision 4 drops only the revival's own entries that give back his 1978 looks; his own knowledge may agree with them, as this does for the stepmother's large size. (The review of 10 October had relabeled it the revival's generalization and so dropped it.)
 7. **In color mode, a film with Ani's own looks keeps each character's 1978 color** (`running-color`, `aninit.65:83-87`), and a new character gets the color of the shape it would have had as in 1978, until stage 5 has Ani choose colors. The film page already does this.
+8. **In the fresh look after a change, the new words are the character's initial description**, "as if the character were brand new" (p. 168). So Ken's SUMCOM counts them when it compares her with the others; it counts only initial descriptions. The repentant stepmother's path-curvature then comes out medium, not high as the plan's first golden had it. Where each new word came from is kept with the change, not in the description.
 
 - **A scene is filmed for up to 250 seconds**, the 1,000 frames of Ken's own runs at 4 frames a second, rather than 150, so a slow scene that ends on its own (his tortoise's Pushed Around, 799 frames) is filmed to its end. Found on the way, for SLIPS: Director multiplies a character's special-dynamics factors again each time the same dynamics are set (dichar.103:27-31), so a stretched push-around slows by a quarter each cycle.
 
