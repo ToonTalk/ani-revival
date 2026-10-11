@@ -5,7 +5,7 @@
 A change is a scene task written the way you wrote one in your commented-out cinderella-beautified scene (`cindy.46:94-105`): `(change (TYPE WHO OLD) (TYPE WHO NEW))`, on its own or inside `(causes CAUSER ...)`. Stage 3 does three things with it:
 
 1. **Who takes part.** Your `process-task-description` makes a task's second word the one it is for, and asks that one to note its part in the scene (`scene.9:458-465`, where you asked "what about other participents?"). A change on its own would have the actor `(personality cinderella shy)` note it, and every job that loads the film description stopped with NO-SUCH-ACTOR. Now a change on its own is for the changed character, and every character a change changes notes its part. A relationship change changes both of its characters.
-2. **A fresh look** ("rederive the dynamics ... as if the character were brand new", p. 168, L4396-4402). This is an extra pass-1 job for each scene that changes someone. It runs DATEST's `init` with the change made after CINDY loads and before `study-descriptor-use`. Then Ani makes her choices again, in her own order, with every choice that isn't the changed character's held as it was. Her new values go to `KEN1;<fn1> BECOME`, written the way `save-answers` writes `KEN;CP`. A second job, a full recompute with everyone chosen afresh, is kept only for comparison (your decision 1).
+2. **A fresh look** ("rederive the dynamics ... as if the character were brand new", p. 168, L4396-4402). This is an extra pass-1 job for each scene that changes someone. It runs DATEST's `init` with the change made after CINDY loads and before `study-descriptor-use`. The old words are forgotten, and the character is described with the new ones through your own `process initial description`, as her initial description (your decision 8 of 11 October). Then Ani makes her choices again, in her own order, with every choice that isn't the changed character's held as it was. Her new values go to `KEN1;<fn1> BECOME`, written the way `save-answers` writes `KEN;CP`. A second job, a full recompute with everyone chosen afresh, is kept only for comparison (your decision 1).
 3. **Who they have become.** In every later scene, RUN's `to-do-before-running` (`run.65:48`) loads the earlier scenes' BECOME files and makes them so: the descriptions change, and the choice points take her new values. The scene's establish tasks then read the new words, and its special dynamics carry the new values. If MEND is loaded, it narrows any `(not X)` and reads any `none` as medium, as it does for the CP's values.
 
 The change itself isn't shown yet. Ani has no `change` or `causes` verb, so the change task is "cant-do", and in that scene the character moves as before. Stage 6 adds bridging the gap, the cause going to the one it changes, and the link to APPEAR.
@@ -37,7 +37,7 @@ The Prince causes the change: `(causes prince (change (personality step-mother (
 
 | Element | 1978 | Fresh look | Why | Who reads it |
 |---|---|---|---|---|
-| path-curvature | low | **high** | In 1978, `evil` gave low (with the three relative choices). Now `good` and `kind`, evil's opposites, give high: `(opposite-of good evil) (opposite-of kind evil)` | Director (×4) |
+| path-curvature | low | **medium** | In 1978, `evil` gave low, with her three relative choices. Now `good` and `kind`, evil's opposites, suggest high. Her relative choices say "different from" each of the others (Cinderella high, the fairy godmother low, the Prince medium), and together these give medium at low strength: `(opposite-of good evil) (opposite-of kind evil)` with the three relative choice points | Director (×2) |
 | path-length | medium | **long** | In 1978, `evil` and `strong` with the relative choices gave medium at low strength. Now the opposites of evil and `strong` give long at medium strength | Director (×2) |
 | path-jaggedness | medium | **low** | The same: low at medium strength, from the opposites of evil, `strong` and the film's levels | Director (×½) |
 | acceleration | high | **medium** | In 1978, `evil` and `strong` gave high. Now `strong` alone, with the film's levels and the relative choice against the Prince, gives medium | no one, as in 1978 (thesis (f), L4853-4856) |
@@ -48,7 +48,7 @@ The Prince causes the change: `(causes prince (change (personality step-mother (
 
 **Held:** the Prince's deliberateness, at medium. With the stepmother changed, Ani would have chosen high.
 
-**The full recompute** would also make the Prince more deliberate (medium to high), and it gives the stepmother medium deliberateness instead of high. Her other values are the same as in the fresh look. Because the Prince is held, her deliberateness stays as the relative choice with him needs it.
+**The full recompute** would also make the Prince more deliberate (medium to high), and it gives the stepmother medium deliberateness instead of high. Her other values, path-curvature medium among them, are the same as in the fresh look. Because the Prince is held, her deliberateness stays as the relative choice with him needs it.
 
 ### Socializes: Cinderella from shy to brazen (`test/stories/socializing.lisp`)
 
@@ -70,11 +70,11 @@ The change has no cause: `(change (personality cinderella shy) (personality cind
 
 **Nothing changes**: not her values, not anyone's held choice, and not the full recompute. This is what your footnote predicts: the scene was "meaningless until Ani is extended to handle appearances" (L4354-4355). Shabby and elegant suggest nothing about movement.
 
-## Two decisions this records
+## Two things this records
 
-**Where the new words come from.** A changed character memorizes her new words with the change as their source, for example `(description: type personality descriptor good source (change-in change-of-heart))`. That way Ani's records say where each word came from. Your SUMCOM counts only an initial description in its summaries ("i think i want to skip non initial description sources", `sumcom.53:26`). So with this source, good and kind do not count towards the stepmother's comparison and uniqueness summaries. If they were memorized as initial descriptions (through your own `process initial description`), the fresh look would give **path-curvature medium**, not high, and the same as above for everything else. The plan's golden (low to high) uses the change as the source, and so does this extension. It is a choice you may want to make differently.
+**The new words are her initial description** (your decision 8, `reports/chapter-x/PLAN.md`). A changed character is described with her new words through your own `process initial description` (`char.2:21-26, 80-88`; a relationship's, `char.2:157-171`), as if she were brand new: `(description: type personality descriptor good source initial-description)`. Everything of yours that reads an initial description then reads the new words as it reads the story's. Your CHAR demon tells graceful for a new beautiful. Your SUMCOM counts the new words when it compares her with the others; it counts only initial descriptions ("i think i want to skip non initial description sources", `sumcom.53:26`). Where a word came from is kept by the change: the change-of actor, the BECOME file and the run's record. Before your decision, the new words had the change as their source, `(change-in change-of-heart)`. SUMCOM left them out, and the stepmother's path-curvature came out high (the plan's first golden). Everything else was the same in all three cases.
 
-**When the change is made.** The ordering guard in `test/change.test.js` checks that `study-descriptor-use` sees the new words. After the change, the usage of good is (4 out-of 4) and of evil (0 out-of 4); in the scene before, (3 out-of 4) and (1 out-of 4). If the change is made after DATEST's `init` instead, the uniqueness and usage are those of the old words. The fresh look then makes the repentant stepmother **slow** (speed high to low, acceleration high to low), and six choices of Cinderella's and the Prince's would come out differently and have to be held.
+**When the change is made.** The ordering guard in `test/change.test.js` checks that `study-descriptor-use` sees the new words. After the change, the usage of good is (4 out-of 4) and of evil (0 out-of 4); in the scene before, (3 out-of 4) and (1 out-of 4). If the change is made after DATEST's `init` instead, the usage and uniqueness summaries are those of the old words. The fresh look then gives the repentant stepmother path-curvature **high**, not medium, with everything else as above.
 
 ## The two stories, end to end (`change-of-heart/`, `socializing/`)
 
@@ -87,7 +87,7 @@ Each story is made as the film page makes it, at 4 frames a second, with MEND, A
 
 **What changes from the next scene on.** For `moves-differently.json`, `check-change` plans and films the scene after the change a second time, from the same positions, without learning who she has become. It then compares the two programs and the two films:
 
-- **Kind Again**, the stepmother. Her special dynamics carry path-curvature high, not low (×4 in weightify, `interf.149:899-904`), path-length long, not medium (×2), path-jaggedness low, not medium (×½), and acceleration medium, not high (Director doesn't read acceleration). Her paths are curvier: she turns 431 degrees over 708 dots, against 327 over 720. She is also described as good and kind now, so she no longer hurts or chases Cinderella: without the change, her personality is shown by `move-to-and-hits` and `chases-to`. With it, Ani has no way yet to show a good and kind stepmother (KNOW, stage 4, adds some), and only her `goes-to-and-accompanys` Cinderella remains. The scene is 29 frames, against 32.
+- **Kind Again**, the stepmother. Her special dynamics carry path-curvature medium, not low (×2 in weightify, `interf.149:899-904`), path-length long, not medium (×2), path-jaggedness low, not medium (×½), and acceleration medium, not high (Director doesn't read acceleration). She turns 296 degrees over 716 dots, against 327 over 720: the halved jaggedness takes out more turning than the doubled curvature puts in. She is also described as good and kind now, so she no longer hurts or chases Cinderella: without the change, her personality is shown by `move-to-and-hits` and `chases-to`. With it, Ani has no way yet to show a good and kind stepmother (KNOW, stage 4, adds some), and only her `goes-to-and-accompanys` Cinderella remains. The scene is 29 frames, against 32.
 - **The Dance**, Cinderella. Her special dynamics carry speed medium, not low (×2), in each of the three subscenes she moves in. Ani plans the same tasks with the same methods either way. As shy as in 1978, though, Cinderella is slow and keeps the Prince waiting: REVIVE;MEND12 stops his walk to her after 33 seconds, and two more walks later, and the scene takes 258 frames. Brazen, her walks end on their own, and the scene takes 61 frames. She covers 2,767 dots against 2,579 and turns less (1,451 degrees against 2,333).
 
 **The changing scenes themselves.** In Change of Heart, the Prince goes to the stepmother and walks with her, and her joy makes her livelier. The `causes` task is "cant-do". Learning to Socialize is 2 frames: its change task is "cant-do", and Cinderella's joy is a change of dynamics with nothing to extend. Showing the change is stage 6.
@@ -110,13 +110,13 @@ Each story is made as the film page makes it, at 4 frames a second, with MEND, A
    "changes": ["(change (personality step-mother (and evil mean)) (personality step-mother (and good kind)))"],
    "causes": ["prince"],
    "values": [
-     { "element": "path-curvature", "before": "low", "after": "high", "changed": true, "use": "director" },
+     { "element": "path-curvature", "before": "low", "after": "medium", "changed": true, "use": "director" },
      { "element": "deliberateness", "before": "high", "after": "high", "changed": false, "use": "none" },
      { "element": "attraction-towards-friends", "before": ["negative", "high"], "after": ["positive", "high"], "changed": true, "use": "none" }
    ],
    "relativeValues": [{ "choicePoint": ["relative-choice-point-of", ["cinderella", "step-mother"], "relative-path-curvature"], "value": "different-from" }],
-   "choicePoints": [{ "name": ["choice-point-of", "step-mother", "path-curvature"], "currentChoice": "high",
-                      "memory": [["suggestion:", "element", "path-curvature", "value", "high", "strength", "medium",
+   "choicePoints": [{ "name": ["choice-point-of", "step-mother", "path-curvature"], "currentChoice": "medium",
+                      "memory": [["suggestion:", "element", "path-curvature", "value", "medium", "strength", "low",
                                   "source", ["and", ["relative-choice-point-of", ["step-mother", "cinderella"], "relative-path-curvature"],
                                              ["opposite-of", "good", "evil"], ["opposite-of", "kind", "evil"]]]] }]
  }],
@@ -145,7 +145,7 @@ The glass box of each later scene, `glass.becomes` (from `change-of-heart/kind-a
  "scene": "change-of-heart",
  "changes": ["(change (personality step-mother (and evil mean)) (personality step-mother (and good kind)))"],
  "causes": ["prince"],
- "madeSo": [{ "element": "path-curvature", "was": "low", "now": "high" }, { "element": "attraction-towards-friends", "was": "(negative high)", "now": "(positive high)" }]
+ "madeSo": [{ "element": "path-curvature", "was": "low", "now": "medium" }, { "element": "attraction-towards-friends", "was": "(negative high)", "now": "(positive high)" }]
 }]
 ```
 
@@ -156,4 +156,3 @@ Each choice point made so also memorizes `(changed-in: change-of-heart was low b
 - Portraying the change (stage 6). This means `bridge-to:`, `goes-to-and-transforms`, `changes-while-wandering`, and `change` and `causes` verbs. Until then, the change task is "cant-do".
 - The fresh look rederives how she moves, not how she looks. "rederive the dynamics (and appearance)": the link to APPEAR is stage 6.
 - Sequence-aware descriptions are deferred. Within the changing scene, every task reads the description as it was when the scene began, so the new personality is established from the next scene on.
-- The new words' source (above) is for you to decide.

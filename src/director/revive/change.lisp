@@ -164,21 +164,24 @@
 ;;; ------------------------------------------------- 3. the description changed
 
 ;; A change made to the description: the old words are forgotten, and what they told
-;; (graceful, told by beautiful: char.2:12-20); the new ones are memorized, as CHAR
-;; memorizes an initial description (char.2:80-84, 160-171), with the change as their
-;; source:
-;;   (description: type personality descriptor good source (change-in change-of-heart))
-;; A new beautiful tells graceful, as CHAR's demon does for an initial one (it asks for
-;; source initial-description, char.2:13-16). The source is the change, so Ani's
-;; records say where the word came from; and Ken's SUMCOM counts only an initial
-;; description in its summaries ("i think i want to skip non initial description
-;; sources", sumcom.53:26; it counts them at sumcom.53:19-31 and 118-125). With the
-;; new words memorized as initial descriptions instead, the repentant stepmother's
-;; path-curvature comes out medium, not high (reports/ext/change/README.md).
-(defun make-description-change (change scene)
+;; (graceful, told by beautiful: char.2:12-20); then the character is described with
+;; the new ones by CHAR's own process initial description (char.2:21-26, 80-88;
+;; a relationship's, char.2:157-171), "as if the character were brand new" (thesis
+;; p. 168, L4400-4402):
+;;   (description: type personality descriptor good source initial-description)
+;; So everything of Ken's that reads an initial description reads the new words as it
+;; reads the story's: CHAR's demon tells graceful for a new beautiful (char.2:13-20),
+;; and SUMCOM counts them in the comparison and uniqueness summaries, which count only
+;; an initial description ("i think i want to skip non initial description sources",
+;; sumcom.53:26; sumcom.53:19-31, 118-125). Ken's decision of 11 October
+;; (reports/chapter-x/PLAN.md, "Decisions", 8). Where a word came from is kept by the
+;; change-of actor that makes it so (5, below) and the BECOME file. (With the change
+;; as the words' source instead, SUMCOM would leave them out, and the repentant
+;; stepmother's path-curvature would come out high, not medium:
+;; reports/ext/change/README.md.)
+(defun make-description-change (change)
   (let ((who (change-who change))
-	(type (change-type change))
-	(source (list 'change-in scene)))
+	(type (change-type change)))
        (mapc (function
 	      (lambda (word)
 		      (ask ,who forget items matching
@@ -186,23 +189,9 @@
 		      (ask ,who forget items matching
 			   (description: type ? descriptor ? source ,word))))
 	     (words-of (change-old change)))
-       (mapc (function
-	      (lambda (word)
-		      (cond ((eq type 'relationship)
-			     (ask relationship-descriptor if new make ,word) ;;as char.2:162
-			     (ask ,who memorize
-				  (description: type ,(ask ,word recall your type)
-						descriptor ,word
-						source ,source)))
-			    (t (ask ,who memorize
-				    (description: type ,type descriptor ,word source ,source))
-			       (and (eq type 'physical)
-				    (eq word 'beautiful)
-				    (ask ,who memorize
-					 (description: type movement
-						       descriptor graceful
-						       source beautiful)))))))
-	     (words-of (change-new change)))))
+       (cond ((eq type 'relationship)
+	      (ask ,who process initial description ,(change-new change)))
+	     (t (ask ,who process initial description ,(list type (change-new change)))))))
 
 ;;; ------------------------------------------------- 4. pass 1 again: the fresh look
 
@@ -215,7 +204,7 @@
        (mapc (function
 	      (lambda (s)
 		      (mapc (function
-			     (lambda (change+cause) (make-description-change (first change+cause) s)))
+			     (lambda (change+cause) (make-description-change (first change+cause))))
 			    (changes-in-scene s))))
 	     (scenes-up-to scene))
        (study-descriptor-use)))
@@ -525,7 +514,7 @@
        (mapc (function
 	      (lambda (change)
 		      (and (eq (first (characters-changed-by change)) character)
-			   (make-description-change change scene))))
+			   (make-description-change change))))
 	     (ask ,change-of recall your changes))
        (mapc (function
 	      (lambda (element+value)

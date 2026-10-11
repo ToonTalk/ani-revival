@@ -144,21 +144,22 @@ test("the ordering guard: the change is made before study-descriptor-use works o
   assert.equal(before.run("(ask evil recall your usage)"), "(1 out-of 4)");
 });
 
-test("the description changed: the old words forgotten with what they told, the new ones from the change", () => {
+test("the description changed: the old words forgotten with what they told, the new ones described as if she were brand new", () => {
   const { run } = pass1Ready(["change"], null);
   const desc = (who) => run(`(ask ${who} collect items memorized matching (description: %))`);
-  run("(make-description-change '(change (physical cinderella (and beautiful shabby)) (physical cinderella elegant)) 'test-scene)");
+  run("(make-description-change '(change (physical cinderella (and beautiful shabby)) (physical cinderella elegant)))");
   const c = desc("cinderella");
   assert.doesNotMatch(c, /descriptor (beautiful|shabby|graceful) /); // graceful was told by beautiful
-  assert.match(c, /\(description: type physical descriptor elegant source \(change-in test-scene\)\)/);
-  // a new beautiful tells graceful, as CHAR's demon does for an initial one
-  run("(make-description-change '(change (physical step-mother ugly) (physical step-mother beautiful)) 'test-scene)");
+  // an initial description, as CHAR memorizes the story's (Ken's decision 8, 11 October)
+  assert.match(c, /\(description: type physical descriptor elegant source initial-description\)/);
+  // a new beautiful tells graceful: CHAR's own demon (char.2:13-20)
+  run("(make-description-change '(change (physical step-mother ugly) (physical step-mother beautiful)))");
   assert.match(desc("step-mother"), /\(description: type movement descriptor graceful source beautiful\)/);
   // a relationship's new word has the descriptor's own type
-  run("(make-description-change '(change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) is-polite-to)) 'test-scene)");
+  run("(make-description-change '(change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) is-polite-to)))");
   const r = desc("(relationship-of step-mother cinderella)");
   assert.doesNotMatch(r, /hates/);
-  assert.match(r, /\(description: type domination descriptor is-polite-to source \(change-in test-scene\)\)/);
+  assert.match(r, /\(description: type domination descriptor is-polite-to source initial-description\)/);
   assert.match(r, /descriptor dominates source initial-description/);
   assert.equal(run("(characters-changed-by '(change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) is-polite-to)))"), "(step-mother cinderella)");
 });
@@ -231,8 +232,8 @@ test("who they have become: a later scene's pass 2 makes the change so, and MEND
   run("(learn-who-they-have-become '(((ken1) story2 become)))");
   const desc = run("(ask step-mother collect items memorized matching (description: type personality %))");
   assert.doesNotMatch(desc, /evil|mean/);
-  assert.match(desc, /descriptor good source \(change-in change-of-heart\)/);
-  assert.match(desc, /descriptor kind source \(change-in change-of-heart\)/);
+  assert.match(desc, /descriptor good source initial-description/);
+  assert.match(desc, /descriptor kind source initial-description/);
   assert.equal(run("(ask (choice-point-of step-mother path-curvature) recall your current-choice)"), "high");
   assert.equal(run("(ask (choice-point-of step-mother path-curvature) collect items memorized matching (changed-in: %))"),
     "((changed-in: change-of-heart was low by (change-of step-mother in change-of-heart)))");

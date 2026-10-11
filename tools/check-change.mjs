@@ -10,7 +10,7 @@
 //     value; Ani's fresh look at whoever the scene changes; the full recompute beside
 //     it), against reports/ext/change/fresh-look/<case>.json, and the plan's facts:
 //       repents      the stepmother from evil and mean to good and kind
-//                    (test/stories/change-of-heart.lisp): path-curvature low to high,
+//                    (test/stories/change-of-heart.lisp): path-curvature low to medium,
 //                    path-length medium to long, path-jaggedness medium to low,
 //                    acceleration high to medium, her three attractions turned round,
 //                    her deliberateness held (the Prince's is held at medium); a full
@@ -141,7 +141,7 @@ const CASES = [
   {
     name: "repents", text: () => storyText("change-of-heart"), scene: "change-of-heart", who: "step-mother",
     changed: {
-      "path-jaggedness": ["medium", "low"], "path-curvature": ["low", "high"], "path-length": ["medium", "long"], acceleration: ["high", "medium"],
+      "path-jaggedness": ["medium", "low"], "path-curvature": ["low", "medium"], "path-length": ["medium", "long"], acceleration: ["high", "medium"],
       "attraction-towards-friends": ["(negative high)", "(positive high)"], "attraction-towards-enemies": ["(negative high)", "(positive high)"], "attraction-towards-strangers": ["(negative medium)", "(positive medium)"],
     },
     held: ["(choice-point-of prince deliberateness) medium high"],
