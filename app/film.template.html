@@ -1227,7 +1227,7 @@ function stopsOf(run) {
   run.scenes.forEach((sc, i) => {
     const title = run.titles[run.sceneIds[i]];
     if (sc && sc.error) add(title, whyStopped(run, sc.error, sc.typed, sc.id));
-    else if (ready(sc) && sc.film.frames.length > CAP_SECONDS * fpsOf(sc)) add(title, { text: "It never ended: Director stopped filming it after two and a half minutes.", repair: null });
+    else if (ready(sc) && sc.film.frames.length > CAP_SECONDS * fpsOf(sc)) add(title, { text: `It hadn't ended when Director stopped filming it, after ${CAP_WORDS}.`, repair: null });
   });
   return out;
 }
@@ -2152,7 +2152,7 @@ function caption(r) {
     }
     const feel = changes.map((t) => about(t.description));
     const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
-    const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after two and a half minutes; the scene hadn't ended.</span>` : "";
+    const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.</span>` : "";
     el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${capped}${lookCaption(sc, f)}`;
   });
 }
@@ -2835,8 +2835,10 @@ const ani = { runtime: null, bundle: null, worker: null, tick: null };
 // How long each step took for Ken's story, in seconds: the progress bar's estimate.
 const STEP_SECONDS = { pass1: 18, introduction: [5, 20], "kept-apart": [4, 46], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
 const stepSeconds = ([step, id], fps = 4) => (step === "pass1" ? STEP_SECONDS.pass1 : step === "pass2" ? (STEP_SECONDS[id] || [5, 25])[0] : (STEP_SECONDS[id] || [5, 25])[1] * fps / 4);
-// A scene that never ends is filmed for at most this long (Ken's runs stopped at 1,000 frames).
-const CAP_SECONDS = 150;
+// A scene is filmed for at most this long: Ken's runs stopped at 1,000 frames, 250 seconds
+// at 4 frames a second ((m 1000)); some of Ani's scenes end on their own only after 200.
+const CAP_SECONDS = 250;
+const CAP_WORDS = "about four minutes";
 function progressOf(st, run = RUNS[1]) {
   if (!st.running) return 1;
   const steps = [["pass1", null], ...(run ? run.sceneIds : SCENE_IDS).flatMap((id) => [["pass2", id], ["film", id]])];
@@ -3081,7 +3083,7 @@ function comparePanel() {
   const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : other ? "no actions; Ani changes how they move" : "—"; };
   const yoursOf = (y) => {
     const fixed = ready(y) ? repairItems(b, sceneNotes(y), y).length : 0;
-    const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">never ended</span>` : "";
+    const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">hadn't ended after ${CAP_WORDS}</span>` : "";
     return ready(y) ? `${len(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}${capped}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : st.running ? "not made yet" : "not made";
   };
   // what the story asks of a scene, in plain words (as the story panel's scene cards say it)
