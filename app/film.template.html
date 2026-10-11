@@ -1058,14 +1058,17 @@ function repairSentence({ actor, what, notes }, sc) {
       return `${cap(who(c))} kept turning without coming round to face the way ${CHARS[c] ? CHARS[c].she : "they"} had to go, and with Ani as in 1978 the scene would never have ended; after 3 seconds, the most Ani allows for half a turn, the revival's repairs take the turn as done.`;
     }
     case "read-as-number": {
-      // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), or gave up on
+      // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), narrowed to one of
+      // the two left as MEND1 narrows how characters move, or one she gave up on
       const el = Array.isArray(a) ? a[2] : "size";
       const c = Array.isArray(a) ? a[1] : null;
       const her = CHARS[c] ? CHARS[c].her : "them";
-      const mid = Array.isArray(because) && because[0] === "midway" ? because.filter((x) => LOOK_VALUE[el] && LOOK_VALUE[el][x]).map((x) => LOOK_VALUE[el][x]) : [];
+      const names = LOOK_VALUE[el] || {};
+      const to = Array.isArray(because) && because[0] === "narrowed-to" ? because[1] : null;
+      const level = Array.isArray(because) && typeof because[3] === "string" ? `${esc(because[3])} ` : "";
       return Array.isArray(was) && was[0] === "not"
-        ? `Ani chose ${cp} ${quoted(["not", (LOOK_VALUE[el] || {})[was[1]] || was[1]])}, and her table of sizes has a number only for ${words(Object.values(LOOK_VALUE[el] || {}))}; the revival's repairs draw ${her} ${mid.length === 2 ? `midway between ${mid[0]} and ${mid[1]}` : "in between"} (${esc(now)}).`
-        : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${(LOOK_VALUE[el] || {}).medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
+        ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and her table of sizes has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
+        : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${names.medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
     }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
@@ -1219,8 +1222,9 @@ function lookValue(el, v) {
 // How Ken drew his four in 1978 (src/pipeline.js KEN_LOOKS, with ANINIT's lines).
 const KEN_DREW = DATA.kenLooks || null;
 const article = (w) => (/^[aeiou]/i.test(String(w)) ? "an" : "a");
-// a drawn size in a word: Ani's sizes are .036, .05 (every director-character's) and .07,
-// and a (not X) is drawn midway between the two values left (REVIVE;APPEAR)
+// a drawn size in a word: Ani's sizes are .036, .05 (every director-character's) and .07;
+// a (not X) is drawn as one of the two values left, picked by the film's variety
+// (REVIVE;APPEAR appearance-number)
 const sizeWord = (n) => (n == null || n === 0.05 ? "" : n <= 0.036 ? "small" : n >= 0.07 ? "large" : n < 0.05 ? "fairly small" : "fairly large");
 const aShape = (look) => { const adj = sizeWord(look.aniSize); const name = shapeName(look.shape); return `${article(adj || name)} ${adj ? adj + " " : ""}${name}`; };
 const sameValue = (a, b) => show(lispValue(a)) === show(lispValue(b));
@@ -1376,7 +1380,11 @@ function lookSentence(run, c) {
     // suggestions were combined, and the aspect's box says which argued for what
     const why = reasonClause(run, c, el, sources).text;
     const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
-    parts.push(why ? `${word} because ${why}` : sources.length ? `${word}, from suggestions Ani combined` : `${word} (nothing suggested a value)`);
+    // the value the look has as drawn (appearances' drawn), where it isn't the one chosen:
+    // a (not X) is drawn as one of the two values left; the experts may override a choice
+    // (overriddenBy) to tell two characters apart
+    const drawn = e.drawn && !sameValue(e.drawn, e.value) ? `, ${(e.overriddenBy || []).length ? "but the shape experts drew it" : "drawn"} ${esc(lookValue(el, e.drawn))}` : "";
+    parts.push(why ? `${word} because ${why}${drawn}` : sources.length ? `${word}, from suggestions Ani combined${drawn}` : `${word} (nothing suggested a value)${drawn}`);
   }
   return `Ani made ${k.her} ${aShape(entry.look)}: ${parts.join("; ")}.`;
 }
@@ -1387,6 +1395,7 @@ function expertsText(run, c) {
   const entry = run.appearances.get(c);
   const k = meet(run.story, c);
   const out = [];
+  let apart = 0; // constraints relaxed so far to tell this character apart from another
   for (const item of entry.experts || []) {
     const x = parse(item);
     if (!Array.isArray(x)) continue;
@@ -1399,7 +1408,9 @@ function expertsText(run, c) {
     } else if (x[0] === "relaxed:") {
       const because = kv(x, "because");
       const alike = Array.isArray(because) && because[0] === "drawn-alike-with" ? because[1] : null;
-      out.push(`${alike ? `The only shape that fit is the one ${who(alike)} is drawn as` : "No shape fits all of these"}, so Ani set aside the least justified, that ${k.she} be ${lookValue(kv(x, "element"), kv(x, "value"))} (thesis p. 164: “a constraint can be eliminated”).`);
+      const value = lookValue(kv(x, "element"), kv(x, "value"));
+      if (alike && apart++ > 0) out.push(`Every shape left was like ${who(alike)}'s on one of the two elements, which tells two characters apart hardly better than the same shape, so Ani set aside the next least justified too, that ${k.she} be ${value} (thesis p. 164: the remedies “can be applied iteratively”).`);
+      else out.push(`${alike ? `The only shape that fit is the one ${who(alike)} is drawn as` : "No shape fits all of these"}, so Ani set aside the least justified, that ${k.she} be ${value} (thesis p. 164: “a constraint can be eliminated”).`);
     } else if (x[0] === "chosen:") {
       const from = kv(x, "from") || [];
       if (Array.isArray(from) && from.length > 1) out.push(`Of these, Ani took the ${shapeName(kv(x, "shape"))}, as the film's variety, complexity and originality choose among shapes offered.`);
@@ -1414,6 +1425,7 @@ function lookNotes(run, c, el = null) {
   const k = meet(run.story, c);
   const out = [];
   const els = el ? [el] : APPEAR_ELEMENTS;
+  const overridden = []; // [element, its choice point, (overridden-by: ...)]
   for (const e of els) {
     const cp = cpNamed(run, ["choice-point-of", c, e]);
     for (const item of (cp && cp.memory) || []) {
@@ -1422,11 +1434,17 @@ function lookNotes(run, c, el = null) {
         const look = kv(item, "look-alike");
         out.push(`Ani chose ${theirs(c)} ${elementWords(e)} again, to tell ${k.her} apart from ${who(other)}: the shape experts would have drawn them both as ${Array.isArray(look) ? `${article(shapeName(kv(look, "shape")))} ${shapeName(kv(look, "shape"))}` : "the same shape"}, and “the difference between two similar characters should be accented” (thesis p. 94).`);
       } else if (item[0] === "overridden-by:") {
-        const because = kv(item, "because");
-        const alike = Array.isArray(because) && because[0] === "drawn-alike-with" ? because[1] : null;
-        out.push(`The shape experts drew ${k.her} as ${article(shapeName(kv(item, "drawn")))} ${shapeName(kv(item, "drawn"))} although Ani chose ${theirs(c)} ${elementWords(e)} ${lookValue(e, cp.currentChoice)}: ${alike ? `the shape that fit is the one ${who(alike)} is drawn as` : `no shape fits all of ${theirs(c)} choices`}, and this one was the least justified.`);
+        overridden.push([e, cp, item]);
       }
     }
+  }
+  if (overridden.length) {
+    const item = overridden[0][2];
+    const because = kv(item, "because");
+    const alike = Array.isArray(because) && because[0] === "drawn-alike-with" ? because[1] : null;
+    const chose = words(overridden.map(([e, cp]) => `${theirs(c)} ${elementWords(e)} ${lookValue(e, cp.currentChoice)}`));
+    const one = overridden.length === 1;
+    out.push(`The shape experts drew ${k.her} as ${article(shapeName(kv(item, "drawn")))} ${shapeName(kv(item, "drawn"))} although Ani chose ${chose}: ${alike ? `Ani still chose ${k.her} as ${who(alike)} is drawn, so they set aside ${theirs(c)} least justified ${one ? "choice" : "choices, one at a time,"} until ${theirs(c)} shape was another than ${who(alike)}'s${one ? "" : ", unlike it in both its jaggedness and its complexity"} (thesis pp. 94, 164)` : `no shape fits all of ${theirs(c)} choices, and ${one ? "this one was" : "these were"} the least justified`}.`);
   }
   // what telling them apart found, unless this character's own choice made again says it
   if (!el) for (const f of (run.raw.appearances && run.raw.appearances.findings) || []) {

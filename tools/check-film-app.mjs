@@ -7,10 +7,11 @@
 // model's reply) is explained, with "Make it again with the revival's extensions", which
 // makes it with MEND and APPEAR, and the glass box then says in plain English what each
 // repair did, and the hare and the tortoise are drawn as Ani chose; Ken's own Cinderella,
-// made as it is with the extensions, is drawn with Ani's looks (a small circle, a large
-// triangle, an eight-pointed star and a large hexagon), its glass box has "How she looks"
-// with a sentence made from Ani's reasons and Ken's 1978 look, and it comes back, looks
-// and all, from the browser's copy and from a film file; while in 1978 mode Ken's story
+// made as it is with the extensions, is drawn with Ani's looks (a small hexagon, a large
+// triangle, an eight-pointed star and a large circle), its glass box has "How she looks"
+// (Cinderella's and the stepmother's) with a sentence made from Ani's reasons and Ken's
+// 1978 look, and it comes back, looks and all, from the browser's copy and from a film
+// file; while in 1978 mode Ken's story
 // as it is can't be made again, and Ken's 1978 film is as it was throughout.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about fifteen minutes)
 //
@@ -349,10 +350,10 @@ try {
     return { legend, drawn: drawn ? drawn.innerText.replace(/\\s*why\\?/g, "").replace(/\\n+/g, "; ") : "" };
   })()`);
   const drew = await cast();
-  const castOk = (x) => /Cinderella: star in 1978, circle in yours \[5 points, circle\]/.test(x.legend) && /The stepmother: square in 1978, triangle in yours \[4 points, 3 points\]/.test(x.legend)
-    && /The fairy godmother: circle in 1978, eight-pointed star in yours \[circle, 8 points\]/.test(x.legend) && /The Prince: triangle in 1978, hexagon in yours \[3 points, 6 points\]/.test(x.legend);
+  const castOk = (x) => /Cinderella: star in 1978, hexagon in yours \[5 points, 6 points\]/.test(x.legend) && /The stepmother: square in 1978, triangle in yours \[4 points, 3 points\]/.test(x.legend)
+    && /The fairy godmother: circle in 1978, eight-pointed star in yours \[circle, 8 points\]/.test(x.legend) && /The Prince: triangle in 1978, circle in yours \[3 points, circle\]/.test(x.legend);
   check(castOk(drew), `the screens' legend and icons are Ani's looks beside Ken's: ${drew.legend}`);
-  check(/Cinderella: a small circle \(in 1978, a green star\)/.test(drew.drawn) && /The stepmother: a large triangle \(in 1978, a red square\)/.test(drew.drawn) && /The fairy godmother: an eight-pointed star \(in 1978, an orange circle\)/.test(drew.drawn) && /The Prince: a large hexagon \(in 1978, a yellow triangle\)/.test(drew.drawn), `"How Ani drew them": ${drew.drawn}`);
+  check(/Cinderella: a small hexagon \(in 1978, a green star\)/.test(drew.drawn) && /The stepmother: a large triangle \(in 1978, a red square\)/.test(drew.drawn) && /The fairy godmother: an eight-pointed star \(in 1978, an orange circle\)/.test(drew.drawn) && /The Prince: a large circle \(in 1978, a yellow triangle\)/.test(drew.drawn), `"How Ani drew them": ${drew.drawn}`);
   await js(`(() => { document.querySelector("#scenes button").click(); const s = document.getElementById("scrub"); s.value = 12; s.dispatchEvent(new Event("input")); })()`);
   await sleep(200);
   await shot("7-cinderella-with-looks.png");
@@ -382,11 +383,24 @@ try {
     d.scrollIntoView({ block: "start" });
     return { found: true, closed, text: d.innerText, box: d.querySelector("#look-box").innerText };
   }`);
-  check(how.found && how.closed && /^How she looks\s+Ani made her a small circle: small because she is shy and the film isn't to be flashy; smooth because she is friendly and graceful; simple because she is shy and the film is to be simple\./.test(how.text), `her glass box has "How she looks", closed, with a sentence from Ani's reasons: ${(how.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
+  check(how.found && how.closed && /^How she looks\s+Ani made her a small hexagon: small because she is shy and the film isn't to be flashy; smooth because she is friendly and graceful; moderately complex, from suggestions Ani combined\./.test(how.text), `her glass box has "How she looks", closed, with a sentence from Ani's reasons: ${(how.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
   const howText = how.text || "", howBox = how.box || "";
   check(/In 1978 Ken drew her himself as a green star: the star in initialize-characters/.test(howText) && /the green in running-color/.test(howText) && /In 1978 Ken drew her/.test(howText.split("\n").filter(Boolean).pop() || ""), "it ends with how Ken drew her in 1978, and where he said so");
   check(/She is shy, which suggests small\.\s*the revival's: a shy character keeps small and takes up little room/.test(howBox) && /size is also bigger is flashier.{0,3}\s*\(Ken's code, glosug\.41:39\)/.test(howBox), "\"small\" opens her size's choice point, with Ken's code quoted and the revival's knowledge marked as the revival's");
   await shot("8-how-she-looks.png");
+  // the stepmother's: large, as Ken drew her, by his own knowledge (strong, p. 238, his
+  // decision of 11 October; dominates, relate.22:63), the thesis quoted as the thesis's
+  const step = await clickOn("fig-1", "The stepmother", `async () => {
+    const d = document.querySelector("#side details.looks");
+    if (!d) return { found: true, text: "" };
+    d.open = true;
+    d.querySelector('[data-look="step-mother|size"]').click();
+    await new Promise((r) => setTimeout(r, 50));
+    d.scrollIntoView({ block: "start" });
+    return { found: true, text: d.innerText, box: d.querySelector("#look-box").innerText };
+  }`);
+  check(step.found && /^How she looks\s+Ani made her a large triangle: large because she is strong and is to be larger than Cinderella/.test(step.text || "") && /strong friendly ally.{0,3}\s*\(thesis, p\. 238\)/.test(step.box || "") && /In 1978 Ken drew her himself as a large red square/.test(step.text || ""), `the stepmother's "How she looks": ${(step.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
+  await shot("8b-how-the-stepmother-looks.png");
   const kens = await clickOn("fig-0", "Cinderella", `() => ({ found: true, looks: !!document.querySelector("#side details.looks") })`);
   check(kens.found && !kens.looks, "Ken's 1978 film's glass box has no \"How she looks\": he drew her himself");
   // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
