@@ -6,12 +6,13 @@
 // any repair notes the revival's extensions left in the glass box or while filming.
 // Pass 1's choices that pass 2 can't use as they are, (not X) and none, are listed, and
 // apart from them those it never reads (a none on an attraction).
-// Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 600] [--fps 4]
+// Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 1000] [--fps 4]
 //                                  [--scenes s1,s2] [--out file.json] [--no-backtrace]
 //   --extensions  the revival's extensions to load (src/pipeline.js EXTENSIONS); none
 //                 by default, which is Ani as in 1978
-//   --frames      the most frames a scene is filmed for: 600, as the page films at 4
-//                 frames a second (two and a half minutes; Ken's runs stopped at 1,000)
+//   --frames      the most frames a scene is filmed for: 1,000, as the page films at 4
+//                 frames a second (250 seconds, its CAP_SECONDS) and as Ken's own runs
+//                 stopped, (m 1000)
 //   --scenes      make only these scenes (pass 1 always runs)
 //   --out         also write what happened as JSON
 //   --no-backtrace  a step that fails is not run again for its backtrace
@@ -31,12 +32,12 @@ const valued = new Set(["--extensions", "--frames", "--fps", "--scenes", "--out"
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : dflt; };
 const storyPath = args.find((a, i) => !a.startsWith("--") && !valued.has(args[i - 1]));
 if (!storyPath) {
-  console.log("Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 600] [--fps 4] [--scenes s1,s2] [--out file.json] [--no-backtrace]");
+  console.log("Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 1000] [--fps 4] [--scenes s1,s2] [--out file.json] [--no-backtrace]");
   process.exit(2);
 }
 const list = (s) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
 const extensions = list(opt("--extensions", ""));
-const frames = Number(opt("--frames", 600));
+const frames = Number(opt("--frames", 1000));
 const fps = Number(opt("--fps", 4));
 const only = list(opt("--scenes", ""));
 const outPath = opt("--out", null);

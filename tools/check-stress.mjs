@@ -3,10 +3,11 @@
 // story in test/stories/stress/, the two controls, test/stories/tortoise-and-hare.lisp
 // and red-riding-hood.lisp, and the fresh fables in test/stories/fresh/ is made with
 // tools/run-story.mjs as the README makes it (the page's "Make the film", at 4 frames a
-// second and at most 600 frames a scene), three times: as Ani as in 1978 ("without"),
-// with --extensions mend ("with"), and with --extensions mend,appear ("with-appear":
-// APPEAR adds a kind of choice point that MEND's repairs must step over, and its sizes
-// change Director's collisions, so a story films differently). What happened is held
+// second and at most 1,000 frames a scene, the page's 250 seconds), three times: as Ani
+// as in 1978 ("without"), with --extensions mend ("with"), and with --extensions
+// mend,appear ("with-appear": APPEAR adds a kind of choice point that MEND's repairs
+// must step over, and its sizes change Director's collisions, so a story films
+// differently). What happened is held
 // against test/stories/stress/expected.json. For each story, under each of those
 // three, that file gives:
 //   exit      run-story's exit status: 0 if every scene filmed and ended, else 1
@@ -55,7 +56,7 @@ const MODES = modesAt >= 0 ? (args[modesAt + 1] || "").split(",").filter(Boolean
 
 const expected = existsSync(expectedPath)
   ? JSON.parse(readFileSync(expectedPath, "utf8"))
-  : { about: "What each stress story does without MEND, with it, and with MEND and APPEAR (tools/check-stress.mjs, which says what each field means).", frames: 600, fps: 4, stories: {} };
+  : { about: "What each stress story does without MEND, with it, and with MEND and APPEAR (tools/check-stress.mjs, which says what each field means).", frames: 1000, fps: 4, stories: {} };
 // the stories: those with an entry, in its order, then any in the folder without one
 const stories = Object.entries(expected.stories).map(([name, e]) => ({ name, file: e.file || `${folder}/${name}.lisp` }));
 for (const f of readdirSync(join(root, folder)).filter((f) => f.endsWith(".lisp")).sort()) {
