@@ -999,6 +999,8 @@ const REVIVE_TEXT = {
   mend11: "A task Ani can't show, left with no running time when she fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
   mend12: "A walk or turn that would never end (someone keeps it waiting, or it goes round and round and gets no nearer for longer than Ani allows) stops where it is, as if there; every walk that ends on its own is left alone.",
   mend13: "A place reckoned from one character towards another standing at the very same spot, where Ani divided by zero and never got any further, goes straight up (or down) from the spot instead, as Ken's turtle would; and a step that isn't a number is never halved for ever.",
+  mend14: "makes-fence, a way of keeping two apart that DISPLY names but never gives a way to run, is set aside so Ani chooses another (as she chose stands guard for Cinderella); and a guard with no one else to walk across adds nothing Director can't run.",
+  mend15: "Two characters whose goals lead to each other (one guarding the other away from himself) are found where they stand, the second time round, as Ken's own code does for a goal that leads to itself.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
@@ -1147,6 +1149,19 @@ function repairSentence({ actor, what, notes }, sc) {
       return `${cap(pair)} stood at the very same spot, so there was no direction from one to the other, and reckoning a place between them Ani as in 1978 divided by zero and never got any further; the revival's repairs ${went}, as Ken's own turtle would, since its bearing to where it stands is 0.`;
     }
     case "no-step": return `Keeping a place on the stage, Ani halves a step until it is; this step was not a number (a division by zero), which no halving brings on the stage, and Ani as in 1978 never got any further; the revival's repairs leave the place where it was, as Ken's own code does with a place it can't move.`;
+    case "never-runs": {
+      const [, c, b] = Array.isArray(was) ? was : [];
+      const between = Array.isArray(b) && b[0] === "between" ? b.slice(1).map((p) => (Array.isArray(p) && p[0] === "vicinity-of" ? who(p[1]) : place(p))) : [];
+      return `To keep two apart, Ani chose to have ${who(c)} make a fence${between.length === 2 ? ` between ${between[0]} and ${between[1]}` : ""}, a way Ken's DISPLY names and estimates but never gives a way to run, and Ani as in 1978 stopped when the scene's methods ran; the revival's repairs set it aside, and Ani chose among the other ways as if it had never been suggested.`;
+    }
+    case "nothing-to-run": {
+      const m = Array.isArray(because) && Array.isArray(because[1]) ? because[1] : [];
+      return `${cap(who(m[1]))} stands guard over ${who(m[2])}, and Ken's stands-guard has someone else walk across meanwhile, but there is no one else; it planned that walk as nothing, which Director can't run, and Ani as in 1978 stopped there; the revival's repairs leave it out.`;
+    }
+    case "goal-loop": {
+      const c = Array.isArray(was) ? was[1] : null;
+      return `Where ${who(c)} was going depended on where someone else was going, which depended on where ${who(c)} was going, and Ani as in 1978 went round and round finding it; the revival's repairs take ${who(c)}'s own place the second time round, as Ken's code already does for a goal that leads to itself.`;
+    }
     case "read-as-number": {
       // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), narrowed to one of
       // the two left as MEND1 narrows how characters move, or one she gave up on

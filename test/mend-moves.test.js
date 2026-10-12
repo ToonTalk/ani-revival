@@ -30,15 +30,15 @@ function aloneTask(run, other = null) {
   if (other) run(`(ask mend-task memorize ${other})`);
 }
 
-test("MEND10 wraps score-suggestions once CHOMET has loaded, round MEND5's", () => {
+test("MEND10 wraps score-suggestions once CHOMET has loaded, round MEND5's (and MEND14 round it)", () => {
   const { run } = lisp();
   assert.equal(wraps(run, "score-suggestions"), "NIL");
   run("(load '|ken;chomet >|)");
-  assert.equal(wraps(run, "score-suggestions"), "(MEND10 MEND5)");
+  assert.equal(wraps(run, "score-suggestions"), "(MEND14 MEND10 MEND5)");
   // CHOMET or MEND10 loaded again: Ken's score-suggestions back, and wrapped again, once each
   run("(load '|ken;chomet >|)");
   run("(load '|revive;mend10 >|)");
-  assert.equal(wraps(run, "score-suggestions"), "(MEND10 MEND5)");
+  assert.equal(wraps(run, "score-suggestions"), "(MEND14 MEND10 MEND5)");
 });
 
 test("in 1978 mode score-suggestions is Ken's", () => {

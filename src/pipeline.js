@@ -48,7 +48,7 @@ export const EXTENSIONS = [
   {
     id: "mend",
     label: "Repairs for new stories",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15"],
     requires: [],
     changes1978: false,
     note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, and two characters with nothing to compare. Each leaves a (revival-repair: ...) note where it acted.",
