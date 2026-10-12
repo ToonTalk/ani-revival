@@ -29,6 +29,7 @@ import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
 import { assembleBundle } from "./build-ani-bundle.mjs";
 import { fullPage } from "./page-shell.mjs";
+import { stripComments, stringsOf } from "./strip-js-comments.mjs";
 
 // Where in Ani's code each method, kind of task and plan is, for links into the code
 // page (app/source.html#<file>-<line>).
@@ -227,6 +228,18 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
       if (content.split(mark).length !== 2) throw new Error(`the page should have one ${mark}`);
       content = content.replace(mark, () => value);
     }
+    // claude.ai refuses a page over about 950 KB, so this copy's page script goes without
+    // its comments (tools/strip-js-comments.mjs); every string, template and regular
+    // expression in it must come out exactly as written, or the build stops
+    const open = '<script type="module">';
+    const a = content.indexOf(open) + open.length;
+    const b = content.indexOf("</script>", a);
+    if (a < open.length || b < 0 || content.indexOf(open, a) >= 0) throw new Error("the page should have one module script");
+    const js = content.slice(a, b);
+    const stripped = stripComments(js);
+    if (JSON.stringify(stringsOf(js)) !== JSON.stringify(stringsOf(stripped))) throw new Error("taking the comments out of the claude.ai copy's script changed a string");
+    sizes.comments = js.length - stripped.length;
+    content = content.slice(0, a) + stripped + content.slice(b);
   }
   sizes.data = blocks["/*FILM-DATA*/"].length;
   sizes.runtime = blocks["/*ANI-RUNTIME*/"].length;
@@ -252,5 +265,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)})`);
+  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments left out` : ""})`);
 }
