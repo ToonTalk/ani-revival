@@ -998,6 +998,7 @@ const REVIVE_TEXT = {
   mend10: "When “alone” would send off everyone else and there is no one else, that way of showing it is set aside: the two are already alone.",
   mend11: "A task Ani can't show, left with no running time when she fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
   mend12: "A walk or turn that would never end (someone keeps it waiting, or it goes round and round and gets no nearer for longer than Ani allows) stops where it is, as if there; every walk that ends on its own is left alone.",
+  mend13: "A place reckoned from one character towards another standing at the very same spot, where Ani divided by zero and never got any further, goes straight up (or down) from the spot instead, as Ken's turtle would; and a step that isn't a number is never halved for ever.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
@@ -1133,6 +1134,19 @@ function repairSentence({ actor, what, notes }, sc) {
       const c = Array.isArray(was) ? was[0] : null;
       return `${cap(who(c))} kept turning without coming round to face the way ${CHARS[c] ? CHARS[c].she : "they"} had to go, and with Ani as in 1978 the scene would never have ended; after 3 seconds, the most Ani allows for half a turn, the revival's repairs take the turn as done.`;
     }
+    case "same-place": {
+      // REVIVE;MEND13: was (from <place> towards <place>), each (vicinity-of c) or an
+      // xy-position; now the place reckoned; because (both at <xy-position>)
+      const [, p1, , p2] = Array.isArray(was) ? was : [];
+      const whose = (p) => (Array.isArray(p) && p[0] === "vicinity-of" ? p[1] : null);
+      const x = whose(p1), y = whose(p2);
+      const pair = x && y ? `${who(x)} and ${who(y)}` : "two characters";
+      const at = Array.isArray(because) && Array.isArray(because[2]) ? Number(because[2][2]) : NaN;
+      const to = Array.isArray(now) ? Number(now[2]) : NaN;
+      const went = to > at ? "go straight up from the spot" : to < at ? "go straight down from the spot" : "take the spot itself";
+      return `${cap(pair)} stood at the very same spot, so there was no direction from one to the other, and reckoning a place between them Ani as in 1978 divided by zero and never got any further; the revival's repairs ${went}, as Ken's own turtle would, since its bearing to where it stands is 0.`;
+    }
+    case "no-step": return `Keeping a place on the stage, Ani halves a step until it is; this step was not a number (a division by zero), which no halving brings on the stage, and Ani as in 1978 never got any further; the revival's repairs leave the place where it was, as Ken's own code does with a place it can't move.`;
     case "read-as-number": {
       // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), narrowed to one of
       // the two left as MEND1 narrows how characters move, or one she gave up on
