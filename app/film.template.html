@@ -1224,6 +1224,12 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
     return { text: `Pass 1 left ${which(choices((c) => Array.isArray(c) && c[0] === "not" && c[1] === v))} as “not ${esc(v)}”, and pass 2 can't weigh that.`, repair: "narrow it to one of the two values left, as the film's variety picks" };
   }
   if ((x = m.match(/SUMMARIZE-COMPARISON \(\(COMPARISON-OF ([^\s)]+) ([^\s)]+)\)/i))) return { text: `In pass 1, ${who(x[1].toLowerCase())} and ${who(x[2].toLowerCase())} had nothing to compare: no word, opposite or neighbor in common.`, repair: "go on with an empty comparison" };
+  // REVIVE;MEND14: a fence, which Ken's DISPLY never gives a way to run, or a guard's walk
+  // across by no one (what Lisp typed names the message Director couldn't run)
+  if (/BAD-MESSAGE/i.test(m) && (x = said.match(/\(RUN MAKES-FENCE ([^\s)]+)/i))) return { text: `To keep two apart, Ani chose to have ${who(x[1].toLowerCase())} make a fence, a way Ken's DISPLY names but never gives a way to run.`, repair: "set the fence aside, so that Ani chooses another way, as she chose standing guard for Cinderella" };
+  if (/BAD-MESSAGE/i.test(m) && /\(RUN NIL\b/i.test(said)) return { text: "Standing guard, Ken's code has someone else walk across meanwhile; there was no one else, and it planned that walk as nothing, which Director can't run.", repair: "leave out the walk that isn't there" };
+  // REVIVE;MEND13 and MEND15: two characters at one spot, or two goals that lead to each other
+  if (/Maximum call stack size exceeded/i.test(m)) return { text: "Ani went round and round reckoning a place: two characters stood at the very same spot (a division by zero), or two characters' goals each depended on the other's.", repair: "reckon from a spot to itself as Ken's own turtle would, and take a character's own place when its goal leads back to it" };
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
   if (/NO-SUCH-ACTOR/i.test(m)) {
     const name = (said.match(/ASK: (.+?) is not an actor/) || [])[1];
