@@ -459,9 +459,13 @@ async function draftStory({ repair = null } = {}) {
       : [{ role: "user", content: storyPrompt(story, { compact: id === "nano", extensions: modeExtensions() }) }];
     const reply = await CALLS[id](turns, { signal: ctl.signal, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = text.slice(-1500); } } });
     if (!String(reply).trim()) throw new Error("The model sent back an empty answer.");
-    const { text, balanced } = lispOf(reply);
+    // balanced, then tidied (tidyStory), each said in the draft
+    const { text: balancedText, balanced } = lispOf(reply);
+    const tidy = tidyStory(balancedText);
+    const text = tidy.text;
     const { problems } = checkStory(text);
-    teller.draft = { text, reply, turns, problems, balanced, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
+    const tidied = [...(repair && teller.draft ? teller.draft.tidied || [] : []), ...tidy.fixes];
+    teller.draft = { text, reply, turns, problems, balanced, tidied, story: repair && teller.draft ? teller.draft.story : story, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
     say(`${PROVIDERS[id].label} ${repair ? "fixed" : "wrote"} it in ${clock(Date.now() - t0)}.`);
     showDraft();
   } catch (e) {
@@ -492,6 +496,7 @@ function showDraft(failure = null) {
       ${story.error ? `<p><b>Ani can't read this film description yet.</b></p>`
         : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b> and <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>, in plain words:</p>${storyInWords(story)}`}
       ${d.balanced ? `<p class="note">The model left the parentheses of ${d.balanced} form${d.balanced === 1 ? "" : "s"} unbalanced; the page balanced them, closing each form at its last line.</p>` : ""}
+      ${tidyNote(d.tidied)}
       ${problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : `<p class="note">Ani's checks find nothing wrong.</p>`}
       ${notes.length || mended.length ? `<ul class="changes note">${[...mended, ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
       <div class="actions">
@@ -507,6 +512,9 @@ function showDraft(failure = null) {
     // laid out to fit the editor; printed again only where not a word changes
     editor.text = formatLisp(d.text);
     store.set(DRAFT_KEY, editor.text);
+    // what the page tidied, and the story as told, go with it to the film
+    editor.tidied = [...(d.tidied || [])];
+    setTold({ story: d.story, provider: PROVIDERS[d.provider].org ? `${PROVIDERS[d.provider].label} (${PROVIDERS[d.provider].org})` : PROVIDERS[d.provider].label, model: d.model || (d.provider === "nano" ? "Gemini Nano" : "the usual model") });
     select(null, { panel: "edit" });
   });
 }

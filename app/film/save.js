@@ -181,7 +181,7 @@ async function readFilmFile(text) {
 async function openFilm(d, name) {
   stopRun({ quiet: true });
   const extensions = d.extensions || [];
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null });
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null, tidied: d.tidied, told: d.told });
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
   RUNS[1] = run;
   saveRun(run);

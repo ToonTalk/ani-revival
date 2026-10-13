@@ -257,6 +257,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .save-panel { display: grid; gap: 8px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
 .save-options { display: flex; flex-wrap: wrap; gap: 6px; }
 .save-options .btn { height: auto; min-height: 34px; padding: 4px 12px; text-align: left; }
+.save-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.tidy { display: grid; gap: 4px; border-left: 3px solid var(--accent); padding-left: 10px; }
+.tidy details { border-top: 0; padding-top: 0; }
+.tidy details > summary { font-weight: 400; font-size: 0.86rem; color: var(--muted); }
 
 /* the revival's extensions: the switch for the films made here, and its repairs */
 .make-settings { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
@@ -1294,7 +1298,7 @@ function stopBox(run) {
 function remakeWithRepairs(run) {
   if (!run) return;
   setMode("revival");
-  startRun(run.cindy, run.fps || 4);
+  startRun(run.cindy, run.fps || 4, modeExtensions(), { tidied: run.tidied, told: run.told });
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-remake]");
@@ -1964,13 +1968,16 @@ function prepScene(s, run) {
 // as, Ani's in a film made with her looks.
 // changes: with CHANGE, each changing scene's record (src/pipeline.js changeRecord);
 // run.changing: the changes each scene's tasks ask for, when CHANGE is on.
-function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null, appearances = null, changes = null }) {
+// tidied, what the page tidied in the description first (tidyStory); told, the story as
+// told in English and the model that put it into Ken's notation, when it came from "Tell
+// Ani a new story" ({ story, provider, model }).
+function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null, appearances = null, changes = null, tidied = null, told = null }) {
   const story = readStory(cindy);
   const sceneIds = Object.keys(story.scenes);
   const cast = Object.keys(story.characters);
   const titles = Object.fromEntries(sceneIds.map((id) => [id, story.titles[id] || TITLES[id] || titleCase(id)]));
   const changing = extensions.includes("change") ? Object.fromEntries(sceneIds.map((id) => [id, changesIn(story.scenes[id].tasks)]).filter(([, c]) => c.length)) : {};
-  const run = { label, short, cindy, story, sceneIds, cast, titles, changing, shapes: shapesOf(cast), slots: shapesOf(cast), extensions, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}), ...(changes ? { changes } : {}) }, scenes: sceneIds.map(() => null), status: null };
+  const run = { label, short, cindy, story, sceneIds, cast, titles, changing, shapes: shapesOf(cast), slots: shapesOf(cast), extensions, tidied: tidied || [], told: told || null, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}), ...(changes ? { changes } : {}) }, scenes: sceneIds.map(() => null), status: null };
   for (const c of cast) meet(story, c);
   setChoicePoints(run, choicePoints);
   setAppearances(run, appearances);
@@ -2365,7 +2372,7 @@ function storyPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
     <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
-    ${mine ? stopBox(run) : ""}
+    ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button></div>
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
@@ -2780,8 +2787,8 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
     if (verb !== "change" && verb !== "causes" && changesIn(d).length) return bad(t, `a change is made only by a task of its own, (convey (change ...)), or inside (causes x (change ...)); inside (${esc(plain(verb))} ...) Ani leaves it alone, and no one changes.`);
     if (["accompanys", "chases", "hurts", "pushes", "getting-it-on"].includes(verb)) return (isChar(d[1]) && isChar(d[2]) && d.length === 3) || bad(t, `write (${verb} x y) with two defined characters.`);
     if (verb === "alone") return (d.length > 2 && d.slice(1).every(isChar)) || bad(t, "write (alone x y) with defined characters.");
-    if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
-    if (verb === "aware") return (isChar(d[1]) && Array.isArray(d[2])) || bad(t, "write (aware x (getting-it-on y z)).");
+    if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar) && !wrongCount(d)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
+    if (verb === "aware") return (isChar(d[1]) && Array.isArray(d[2]) && !wrongCount(d)) || bad(t, "write (aware x (getting-it-on y z)).");
     if (verb === "undoes") {
       const from = d[2];
       if (!isChar(d[1]) || !Array.isArray(from) || from[0] !== "from-scene") return bad(t, "write (undoes x (from-scene earlier-scene THAT-SCENE'S-TASK)).");
@@ -2826,6 +2833,207 @@ function fillRelationships(text, word = "is-polite-to") {
   const added = "\n\n;; how the others feel about each other (filled in: Ani asks about every pair)\n\n" + missing.map(([a, b]) => relationshipForm(a, b, [word])).join("\n\n");
   return after ? text.slice(0, after.end) + added + text.slice(after.end) : text + added;
 }
+
+// ---- tidying a description
+
+// A language model's slips that Ani as in 1978 would stop on, or quietly lose, put right
+// before Ani reads the description, each said in a note (never silently), in both modes:
+// several words in a slot without (and ...) (Ken's Beauty and the Beast stopped pass 1 on
+// (physical ugly physically-strong), char.2:21-22 reading a slot as (type descriptor)); a
+// word given in another kind's slot (a scene that shows what someone is like reads only
+// their personality words, sugest.123:15-25), unless Ken gave it there himself (strong as
+// the Prince's looks, CINDY 46); a relationship in the focus written as three parts; a
+// feeling written (joy positive high); and a task with the wrong number of characters,
+// left out if its scene keeps another. Only these change: a description without them,
+// Ken's CINDY and every story in test/stories and reports/llm-trials, comes out as it was.
+// Each fix is { short, long (html), before, after } (after "" when left out).
+const TWO_PARTS = ["meets", "getting-it-on", "accompanys", "chases", "hurts", "pushes"];
+// A (convey ...) task's description with the wrong number of characters for its verb,
+// whoever they are: (meets belle), (prevents beast (meets belle)), (aware a (getting-it-on b)).
+function wrongCount(d) {
+  if (!Array.isArray(d) || typeof d[0] !== "string") return false;
+  const names = (x) => x.slice(1).every((y) => typeof y === "string");
+  if (TWO_PARTS.includes(d[0])) return names(d) && d.length !== 3;
+  if (d[0] === "alone") return names(d) && d.length < 3;
+  if (["wants", "prevents", "aware"].includes(d[0])) {
+    if (d.length < 3) return d.length === 2 && typeof d[1] === "string";
+    const inner = d[2];
+    return d.length === 3 && Array.isArray(inner) && TWO_PARTS.includes(inner[0]) && names(inner) && inner.length !== 3;
+  }
+  return false;
+}
+// Read a form keeping where each part is: { items, start, end } for a list, { atom,
+// start, end } for anything else, as MacLisp's reader would (; starts a comment, |...|
+// and "..." are one token, / escapes the next character).
+function spanAt(text, at) {
+  let i = at;
+  const skip = () => { for (;;) { while (i < text.length && /\s/.test(text[i])) i++; if (text[i] !== ";") return; while (i < text.length && text[i] !== "\n") i++; } };
+  const read = () => {
+    skip();
+    const start = i;
+    if (text[i] === "(") {
+      i++;
+      const items = [];
+      for (;;) { skip(); if (i >= text.length) return { items, start, end: i }; if (text[i] === ")") { i++; return { items, start, end: i }; } items.push(read()); }
+    }
+    if (text[i] === "|" || text[i] === '"') { const j = text.indexOf(text[i], i + 1); i = j < 0 ? text.length : j + 1; return { atom: text.slice(start, i), start, end: i }; }
+    while (i < text.length && !/[\s()";|]/.test(text[i])) i += text[i] === "/" ? 2 : 1;
+    if (i === start) i++; // a stray ) or ', taken as it is
+    return { atom: text.slice(start, i), start, end: i };
+  };
+  return read();
+}
+const lispOfSpan = (n) => (n.items ? `(${n.items.map(lispOfSpan).join(" ")})` : n.atom);
+const headIs = (n, ...ws) => !!n && !!n.items && ws.every((w, k) => n.items[k] && n.items[k].atom === w);
+// the words Ken gave in each slot himself (CINDY 46), which stay where he put them
+let KEN_SLOTS = null;
+const kenGave = (slot, w) => {
+  KEN_SLOTS ||= Object.values(readStory(DATA.cindy).characters).reduce((m, c) => { for (const [s, ws] of c.slots) for (const x of ws) m.add(`${s} ${x}`); return m; }, new Set());
+  return KEN_SLOTS.has(`${slot} ${w}`);
+};
+const KIND_WORDS = { physical: "looks", personality: "character", movement: "movement" };
+const NUMBER_WORDS = ["no", "one", "two", "three", "four", "five", "six"];
+function tidyStory(text) {
+  const { forms, error } = topForms(text);
+  if (error) return { text, fixes: [] };
+  const story = readStory(text);
+  const edits = [], fixes = [];
+  const fix = (short, long, before, after) => fixes.push({ short, long, before, after });
+  const replace = (start, end, by) => edits.push({ start, end, by });
+  const nodes = forms.map((f) => spanAt(text, f.start)).filter((n) => headIs(n, "define") && n.items.length > 2);
+  const isChar = (x) => typeof x === "string" && !!story.characters[x];
+  for (const n of nodes) {
+    const name = n.items[1], kind = n.items[2].atom;
+    if (kind === "character" && name.atom) {
+      const c = name.atom;
+      const proc = n.items.find((x) => headIs(x, "process", "initial", "description"));
+      const slots = proc ? proc.items.slice(3).filter((x) => x.items && x.items.length > 1 && x.items[0].atom) : [];
+      meet(story, c);
+      const whose = `${nameOf(story, c)}'s`;
+      // each slot's words (null: not words the page can read), and the slots a fix touched
+      const words_ = new Map(), touched = new Set();
+      for (const s of slots) {
+        const slot = s.items[0].atom, rest = s.items.slice(1);
+        const label = KIND_WORDS[slot] || plain(slot);
+        const atoms = (xs) => xs.every((x) => x.atom);
+        if (rest.length > 1 && atoms(rest)) {
+          words_.set(s, rest.map((x) => x.atom));
+          touched.add(s);
+          fix(`put (and ...) around ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as ${NUMBER_WORDS[rest.length] || rest.length} words in a row; Ani reads a slot as one word, or (and word word ...), and without the and Ani as in 1978 doesn't understand it and stops (break BAD-MESSAGE, char.2:21-22).`, lispOfSpan(s), `(${slot} (and ${rest.map((x) => x.atom).join(" ")}))`);
+        } else if (rest.length === 1 && rest[0].items && rest[0].items.length > 1 && atoms(rest[0].items) && rest[0].items[0].atom !== "and") {
+          words_.set(s, rest[0].items.map((x) => x.atom));
+          touched.add(s);
+          fix(`put “and” into ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as a list without “and”; Ani reads a list of words only as (and word word ...), and would warn that she doesn't understand it and leave the words out (char.2:80-89).`, lispOfSpan(s), `(${slot} (and ${rest[0].items.map((x) => x.atom).join(" ")}))`);
+        } else if (rest.length === 1 && rest[0].atom) words_.set(s, [rest[0].atom]);
+        else if (rest.length === 1 && headIs(rest[0], "and") && atoms(rest[0].items.slice(1))) words_.set(s, rest[0].items.slice(1).map((x) => x.atom));
+        else words_.set(s, null);
+      }
+      // a word in another kind's slot goes to its own, unless Ken gave it there himself
+      const bySlot = new Map(slots.map((s) => [s.items[0].atom, s]));
+      const added = new Map(); // a slot the character doesn't have yet -> its words
+      for (const s of slots) {
+        const slot = s.items[0].atom, ws = words_.get(s);
+        if (!ws || !SLOT_KIND[slot]) continue;
+        for (const w of [...ws]) {
+          const to = kindOf(w);
+          if (!to || !SLOT_KIND[to] || to === slot || kenGave(slot, w)) continue;
+          const target = bySlot.get(to);
+          if (target && !words_.get(target)) continue; // a slot the page can't read: left alone
+          ws.splice(ws.indexOf(w), 1);
+          touched.add(s);
+          if (target) { if (!words_.get(target).includes(w)) words_.get(target).push(w); touched.add(target); }
+          else { if (!added.has(to)) added.set(to, []); added.get(to).push(w); }
+          fix(`moved “${plain(w)}” from ${whose} ${KIND_WORDS[slot]} to ${theirs(c)} ${KIND_WORDS[to]}`, `“${esc(plain(w))}” is one of Ani's words for ${esc(KIND_WORDS[to])} (${esc(WORDS[w].file || "dscrp.17")}), given as ${esc(whose)} ${esc(KIND_WORDS[slot])}; Ani reads each kind of word from its own slot (a scene that shows what someone is like reads only their character words, sugest.123:15-25), so it now goes with ${esc(theirs(c))} ${esc(KIND_WORDS[to])}.`, `(${slot} … ${w} …)`, `(${to} … ${w})`);
+        }
+      }
+      // the slots a fix touched, as text again (one left with no words goes); a new slot
+      // goes after the last of physical, personality and movement before it, on a line of its own
+      for (const s of touched) {
+        const ws = words_.get(s);
+        if (ws.length) { replace(s.start, s.end, `(${s.items[0].atom} ${valueText(ws)})`); continue; }
+        let a = s.start;
+        while (a > 0 && /\s/.test(text[a - 1])) a--;
+        replace(a, s.end, "");
+      }
+      const order = ["physical", "personality", "movement"];
+      const rank = (s) => { const r = order.indexOf(s.items[0].atom); return r < 0 ? order.length : r; };
+      for (const [to, ws] of added) {
+        const after = [...slots].reverse().find((s) => rank(s) < order.indexOf(to));
+        const ref = after || slots[0];
+        const lead = ref ? text.slice(text.lastIndexOf("\n", ref.start) + 1, ref.start) : "";
+        const indent = lead && /^\s*$/.test(lead) ? lead : "\t\t ";
+        const form = `(${to} ${valueText(ws)})`;
+        if (after) replace(after.end, after.end, `\n${indent}${form}`);
+        else if (ref) replace(ref.start, ref.start, `${form}\n${indent}`);
+        else if (proc) replace(proc.items[2].end, proc.items[2].end, `\n${indent}${form}`);
+      }
+    } else if (kind === "focus") {
+      // (relationship-of a b) written as three parts of the focus
+      for (const set of n.items.filter((x) => headIs(x, "set", "your", "parts-of-the-focus", "to") && x.items[4] && x.items[4].items)) {
+        const parts = set.items[4].items;
+        for (let k = 0; k + 2 < parts.length; k++) {
+          if (parts[k].atom !== "relationship-of" || !isChar(parts[k + 1].atom) || !isChar(parts[k + 2].atom)) continue;
+          const now = `(relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom})`;
+          replace(parts[k].start, parts[k + 2].end, now);
+          fix(`made ${now} one part of the focus`, `The film's focus listed relationship-of, ${esc(parts[k + 1].atom)} and ${esc(parts[k + 2].atom)} as three parts; a relationship is one part, ${esc(now)}, as in Ken's focus (CINDY 46), and Ani looks for it there when she weighs what the film is about.`, `relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom}`, now);
+          k += 2;
+        }
+      }
+    } else if (kind === "scene" && name.atom) {
+      const proc = n.items.find((x) => headIs(x, "process", "initial", "description"));
+      const top = proc && proc.items[3];
+      if (!top) continue;
+      const title = titleOf(story, name.atom);
+      // tasks Ani can't plan for the number of characters they name, each with the list it is in
+      const wrong = [], all = [];
+      const visit = (t, parent, k) => {
+        if (!t.items) return;
+        if (headIs(t, "and") || headIs(t, "sequence:")) { t.items.slice(1).forEach((x, j) => visit(x, t, j + 1)); return; }
+        all.push(t);
+        // a feeling written (joy positive high): (joy (positive high))
+        const establish = headIs(t, "establish") && t.items[1] && headIs(t.items[1], "emotional-state") ? t.items[1].items[2] : null;
+        const feel = (f) => {
+          if (!f || !f.items) return;
+          if (headIs(f, "and")) return f.items.slice(1).forEach(feel);
+          const [h, sign, amount] = f.items;
+          if (f.items.length === 3 && h.atom && ["positive", "negative"].includes(sign.atom) && ["low", "medium", "high"].includes(amount.atom)) {
+            const now = `(${h.atom} (${sign.atom} ${amount.atom}))`;
+            replace(f.start, f.end, now);
+            fix(`wrote ${lispOfSpan(f)} as ${now}`, `Ani reads a feeling as ${esc(now)}, its sign and amount in a list of their own (emote.9); written ${esc(lispOfSpan(f))} she would find no feeling to show.`, lispOfSpan(f), now);
+          }
+        };
+        feel(establish);
+        if (headIs(t, "convey") && t.items[1] && t.items[1].items && wrongCount(parse(lispOfSpan(t.items[1])))) wrong.push({ t, parent, k });
+      };
+      visit(top, null, 0);
+      // left out only if the scene keeps another task, and no later scene undoes it
+      const undone = new Set(Object.values(story.scenes).flatMap((st) => tasksOf(st.tasks)).filter((x) => x[0] === "convey" && Array.isArray(x[1]) && x[1][0] === "undoes" && Array.isArray(x[1][2])).map((x) => show(x[1][2][2])));
+      const out = wrong.filter((w) => w.parent && !undone.has(show(parse(lispOfSpan(w.t)))));
+      if (out.length >= all.length) continue;
+      for (const { t, parent, k } of out) {
+        const prev = parent.items[k - 1];
+        replace(prev.end, t.end, "");
+        const d = parse(lispOfSpan(t.items[1]));
+        const inner = Array.isArray(d[2]) ? d[2] : d;
+        const n_ = inner.length - 1;
+        const verbWord = { meets: "meeting", "getting-it-on": "getting it on", accompanys: "accompanying", chases: "a chase", hurts: "hurting", pushes: "pushing around", alone: "being alone" }[inner[0]] || plain(inner[0]);
+        fix(`left out ${lispOfSpan(t.items[1])} in ${title}`, `${esc(lispOfSpan(t.items[1]))} names ${n_ === 0 ? "no one" : n_ === 1 ? "one character" : `${n_} characters`} for ${esc(verbWord)}, which takes ${inner[0] === "alone" ? "two or more" : "two"}, so Ani can't plan it (convey.64); it is left out of ${esc(title)}, which keeps its other tasks.`, lispOfSpan(t), "");
+      }
+    }
+  }
+  if (!edits.length) return { text, fixes: [] };
+  // applied from the end, so each edit's place is as read; edits never overlap
+  edits.sort((a, b) => b.start - a.start || b.end - a.end);
+  let out = text;
+  for (const e of edits) out = out.slice(0, e.start) + e.by + out.slice(e.end);
+  return { text: out, fixes };
+}
+// "The page tidied the description: ...", each fix one click away with what it was and is.
+function tidyNote(fixes, lead = "The page tidied the description") {
+  if (!fixes || !fixes.length) return "";
+  return `<div class="tidy"><p class="note made-tidy">${esc(lead)}: ${esc(fixes.map((f) => f.short).join("; "))}.</p>
+    <details><summary>What it changed, and why</summary><div class="body"><ul class="changes">${fixes.map((f) => `<li>${f.long}<pre class="lisp">${esc(f.before)}\n→ ${esc(f.after || "(left out)")}</pre></li>`).join("")}</ul></div></details></div>`;
+}
 // How one description differs from another, in plain English.
 function storyChanges(a, b, textA, textB) {
   const out = [];
@@ -2867,17 +3075,34 @@ const PRESETS = [
   { label: "A lazy Cinderella", changes: [[{ char: "cinderella", slot: "personality" }, ["good", "friendly", "lazy", "shy"]]] },
 ];
 const DRAFT_KEY = "ani-cinderella:draft:v1";
+const TOLD_KEY = "ani-cinderella:told:v1";
 const RUN_KEY = "ani-cinderella:run:v1";
 const FPS_KEY = "ani-cinderella:run-fps:v1";
-const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4 };
+// tidied: what the page has tidied in the text so far (tidyStory); told: the story as told,
+// when the text came from "Tell Ani a new story"
+const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4, tidied: [], told: (() => { try { return JSON.parse(store.get(TOLD_KEY) || "null"); } catch { return null; } })() };
 function openEditor() {
   editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
   select(null, { panel: "edit" });
 }
-function setEditorText(text, { fromLisp = false } = {}) {
+// A text from anywhere but the reader's typing is tidied at once; what they type is
+// tidied when they leave the box, or make the film. fresh: another story, not this one changed.
+function setEditorText(text, { fromLisp = false, fresh = false } = {}) {
+  if (fresh) { editor.tidied = []; setTold(null); }
+  if (!fromLisp) { const t = tidyStory(text); text = t.text; editor.tidied = [...editor.tidied, ...t.fixes]; }
   editor.text = text;
   store.set(DRAFT_KEY, text);
   refreshEditor({ fromLisp });
+}
+function setTold(told) {
+  editor.told = told;
+  if (told) store.set(TOLD_KEY, JSON.stringify(told)); else try { localStorage.removeItem(TOLD_KEY); } catch { /* nothing kept */ }
+}
+// Make the film of the editor's text, tidied first.
+function makeFromEditor() {
+  setEditorText(editor.text);
+  if (checkStory(editor.text).problems.length) return;
+  startRun(editor.text, editor.fps, modeExtensions(), { tidied: editor.tidied, told: editor.told });
 }
 function editorPanel() {
   const side = document.getElementById("side");
@@ -2903,9 +3128,9 @@ function editorPanel() {
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
     const base = readStory(editor.text).characters.cinderella ? editor.text : DATA.cindy;
-    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base));
+    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
-  side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy));
+  side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
   const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (some ten minutes on a laptop)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (about three minutes on a laptop). Choose 24 for the film's own rate."; };
   side.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => {
     editor.fps = Number(b.dataset.fps);
@@ -2914,20 +3139,18 @@ function editorPanel() {
     fpsNote();
   }));
   fpsNote();
-  side.querySelector("#ed-make").addEventListener("click", () => {
-    const { problems } = checkStory(editor.text);
-    if (!problems.length) startRun(editor.text);
-  });
+  side.querySelector("#ed-make").addEventListener("click", makeFromEditor);
   side.querySelector("#ed-make-mend").addEventListener("click", () => {
-    const { problems } = checkStory(editor.text);
-    if (problems.length) return;
+    if (checkStory(tidyStory(editor.text).text).problems.length) return;
     setMode("revival");
-    startRun(editor.text);
+    makeFromEditor();
   });
   const ta = side.querySelector("#ed-lisp");
   const wrap = side.querySelector("#ed-lisp-wrap");
   let timer = null;
   ta.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => setEditorText(ta.value, { fromLisp: true }), 250); });
+  // leaving the box tidies what was typed
+  ta.addEventListener("change", () => { clearTimeout(timer); setEditorText(ta.value); });
   // on a phone the keyboard covers the lower screen, so the Lisp moves to the top while edited
   ta.addEventListener("focus", () => { if (window.matchMedia("(max-width: 700px)").matches) wrap.classList.add("pinned"); });
   ta.addEventListener("blur", () => setTimeout(() => wrap.classList.remove("pinned"), 300));
@@ -2950,8 +3173,12 @@ function chipsFor(ws, target, forRelationship) {
 function refreshEditor({ fromLisp = false } = {}) {
   const side = document.getElementById("side");
   if (state.panel !== "edit" || !side.querySelector("#ed-chars")) return;
-  const { story, problems, notes, stops } = checkStory(editor.text);
+  // checked as it will be made: tidied (what is typed is tidied when the box is left)
+  const pending = tidyStory(editor.text);
+  const text = pending.text;
+  const { story, problems, notes, stops } = checkStory(text);
   const chars = side.querySelector("#ed-chars"), rels = side.querySelector("#ed-rels");
+  const as1978 = MODE === "1978";
   if (story.error) {
     chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read; fix it in “Ani's version” below.</p>`;
     rels.innerHTML = "";
@@ -2975,11 +3202,10 @@ function refreshEditor({ fromLisp = false } = {}) {
   const fresh = !story.error && !(castNow.length === CAST.length && CAST.every((c) => castNow.includes(c)));
   const changes = story.error ? [] : fresh
     ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.${storyInWords(story)}`]
-    : storyChanges(RUNS[0].story, story, DATA.cindy, editor.text);
-  const same = RUNS[1] && editor.text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
+    : storyChanges(RUNS[0].story, story, DATA.cindy, text);
+  const same = RUNS[1] && text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
   // where Ani as in 1978 stops: a warning in 1978 mode, a note of what the repairs do in theirs
-  const as1978 = MODE === "1978";
-  side.querySelector("#ed-check").innerHTML =
+  side.querySelector("#ed-check").innerHTML = tidyNote([...editor.tidied, ...pending.fixes]) +
     (problems.length || (stops.length && as1978) ? `<ul class="problems">${[...problems, ...(as1978 ? stops.map((x) => x.as1978) : [])].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
     (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
       : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(REVIVAL)} Ani ${esc(words(SWITCHED.filter((id) => EXTENSIONS.find((e) => e.id === id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
@@ -3095,9 +3321,11 @@ const stopText = (msg) => {
 
 // extensions: the revival's extensions to load (src/pipeline.js EXTENSIONS), as the
 // switch says; none is Ani as in 1978.
-async function startRun(description, fps = editor.fps, extensions = modeExtensions()) {
+async function startRun(description, fps = editor.fps, extensions = modeExtensions(), { tidied = [], told = null } = {}) {
   stopRun({ quiet: true });
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions });
+  const tidy = tidyStory(description);
+  description = tidy.text;
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions, tidied: [...(tidied || []), ...tidy.fixes], told });
   run.fps = fps;
   run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: "pass1", what: "Getting Ani ready", scene: null };
   RUNS[1] = run;
@@ -3225,10 +3453,13 @@ function stopRun({ quiet = false } = {}) {
 // scene that changes someone (changes). Each scene keeps its own looks, in its glass box
 // and its film, and what it made so of the changes before it (glass.becomes).
 const runVersion = (run) => (runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
+// what the page tidied first, and the story as told, in either version (a reader that
+// doesn't know them leaves them be)
+const madeFrom = (run) => ({ ...(run.tidied && run.tidied.length ? { tidied: run.tidied } : {}), ...(run.told ? { told: run.told } : {}) });
 const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
 async function saveRun(run) {
   try {
-    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run) });
+    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run), ...madeFrom(run) });
     run.status.kept = store.set(RUN_KEY, await deflate(json));
   } catch { run.status.kept = false; }
   updateRunbar();
@@ -3240,7 +3471,7 @@ async function restoreRun() {
     const d = JSON.parse(await inflate(b64));
     if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) return;
     const extensions = d.v === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null, changes: d.v === 2 ? d.changes : null });
+    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null, changes: d.v === 2 ? d.changes : null, tidied: d.tidied, told: d.told });
     run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
     RUNS[1] = run;
     updateRunbar();
@@ -3351,7 +3582,7 @@ function comparePanel() {
     <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
     ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.running ? "" : stopBox(b)}
-    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
+    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
     <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
