@@ -228,11 +228,30 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true
 // so the film is drawn with them when it is opened again), and, with CHANGE, Ani's fresh
 // look after each scene that changes someone (changes; each later scene's glass box has
 // what it made so), so the film opens again with "How she has changed". Both are read;
-// version 1 means Ani as in 1978.
+// version 1 means Ani as in 1978. Either may also keep what the page tidied in the
+// description first, and the story as told (madeFrom).
+// Outside the gzip, for a person or a program reading the file: what film it is, the story
+// as told in English and the model that put it into Ken's notation (when it came from
+// "Tell Ani a new story"), the description Ani read, the extensions and the date; the page
+// reads only the gzip.
 const FILM_FORMAT = "ani-film";
+const FILM_HOME = "https://toontalk.github.io/ani/";
 async function filmFile(run) {
-  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds, ...version2(run) });
-  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: runVersion(run), about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
+  const made = (run.status && run.status.made) || new Date().toISOString();
+  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
+  const title = storyTitle(run), told = run.told || {};
+  const outer = {
+    format: FILM_FORMAT, version: runVersion(run),
+    about: `A film of ${title}, made by Ani, Ken Kahn's 1978 animation program, revived; open it at ${FILM_HOME} to watch it with all of Ani's reasons.`,
+    title,
+    ...(told.story ? { story: told.story } : {}),
+    lisp: run.cindy,
+    ...(told.provider ? { model: told.model, provider: told.provider } : {}),
+    extensions: runExtensions(run),
+    date: made,
+    gzip: await deflate(inner),
+  };
+  return new Blob([JSON.stringify(outer, null, 2)], { type: "application/json" });
 }
 async function readFilmFile(text) {
   let outer;
