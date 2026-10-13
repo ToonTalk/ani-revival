@@ -2383,11 +2383,19 @@ function caption(r) {
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
     return;
   }
-  using(run, () => {
-    const f = frameIn(sc);
+  const c = captionAt(run, state.scene, frameIn(sc));
+  const colors = sc.film.looks && state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "";
+  el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+}
+// What a caption says at frame f of scene i of a run, as html: the part ("Scene 1 · The
+// Introduction · part 1 of 4"), what is shown and why, and more (meanwhile, a change, a
+// look); for the screen's caption and a video's subtitles.
+function captionAt(run, i, f) {
+  return atScene(i, () => using(run, () => {
+    const sc = run.scenes[i];
     const subs = subsceneAt(f);
     const main = subs.find((x) => !x.parasite) || subs[0];
-    if (!main) { el.innerHTML = `<span class="part">${tag}${esc(sc.title)}</span>The screen is cleared before the scene begins.`; return; }
+    if (!main) return { part: esc(sc.title), text: "The screen is cleared before the scene begins.", more: [] };
     const parts = sc.subscenes.length;
     const alongside = subs.filter((x) => x !== main).map((x) => x.n);
     const shows = [], changes = [];
@@ -2402,23 +2410,25 @@ function caption(r) {
       }
     }
     const feel = changes.map((t) => about(t.description));
-    const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
+    const more = [];
+    if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.`);
     // a change of who someone is (REVIVE;CHANGE), which Ani has no way to show yet
     const cant = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do").flatMap((t) => changesIn(t.description));
-    const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[state.scene + 1];
-    const changing = cant.length ? `<span class="part">Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}</span>` : "";
-    const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.</span>` : "";
-    el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${changing}${capped}${lookCaption(sc, f)}`;
-  });
+    const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
+    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
+    if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
+    // a look that changes here, for a second after it changes (looks change during a
+    // scene in APPEAR's next stage)
+    const looked = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
+    if (looked.length) more.push(`Here Ani changes how they look: ${esc(words(looked))}.`);
+    return { part: `Scene ${i + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}`, text: shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part."), more };
+  }));
 }
-// What a caption says of a film made with Ani's looks: a look that changes here (for a
-// second after it changes; looks change during a scene in APPEAR's next stage), and, in
-// color, whose colors they are.
-function lookCaption(sc, f) {
-  if (!sc.film.looks) return "";
-  const changed = sc.film.looks.filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
-  return (changed.length ? `<span class="part">Here Ani changes how they look: ${esc(words(changed))}.</span>` : "")
-    + (state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "");
+// The scene shown, for a while: the readings above read the scene state.scene names.
+function atScene(i, f) {
+  const keep = state.scene;
+  state.scene = i;
+  try { return f(); } finally { state.scene = keep; }
 }
 
 // ---------------------------------------------------------------- the side: the story

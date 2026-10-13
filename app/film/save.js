@@ -1,8 +1,9 @@
 // ---------------------------------------------------------------- saving films
 
 // A film can be saved as a video (WebM at the film's own rate, a title card before each
-// scene), or as a film file (.json) that this page opens again with all of
-// Ani's reasons. Inside claude.ai a save goes through the page's downloads capability,
+// scene unless turned off, and, if asked for, subtitles from the story and Ani's thinking
+// below the picture, also as a .vtt file), or as a film file (.json) that this page opens
+// again with all of Ani's reasons. Inside claude.ai a save goes through the page's downloads capability,
 // which asks the viewer first; elsewhere it is an ordinary download.
 
 // The smallest WebM that browsers and players accept: an EBML header, one segment with
@@ -62,22 +63,67 @@ function webm(frames, width, height, durationMs) {
   return new Blob([head, concatBytes([Uint8Array.from(EBML.segment), ebmlSize(body.length)]), body], { type: "video/webm" });
 }
 
-// The pictures of a video: for each scene shown, a one-second title card, then each frame,
-// drawn as the screen draws it (two films side by side when both are shown).
+// The video's options, kept in this browser: a title card before each scene (on unless
+// turned off), and subtitles (off unless turned on).
+const VIDEO_KEY = "ani-cinderella:video:v1";
+const videoOptions = { titles: true, subtitles: false };
+try { Object.assign(videoOptions, JSON.parse(store.get(VIDEO_KEY) || "{}")); } catch { /* as they are */ }
+
+// The pictures of a video: for each scene shown, a one-second title card (unless turned
+// off), then each frame, drawn as the screen draws it (two films side by side when both
+// are shown).
 function videoRate(runs, sceneIndexes) {
   return Math.max(4, ...sceneIndexes.flatMap((i) => runs.map((r) => r.scenes[i]).filter(ready).map(fpsOf)));
 }
-function videoPlan(runs, sceneIndexes, rate) {
+function videoPlan(runs, sceneIndexes, rate, titles = true) {
   const plan = [];
   for (const i of sceneIndexes) {
     const scenes = runs.map((r) => r.scenes[i]);
     const longest = Math.max(0, ...scenes.map((sc) => (ready(sc) ? sc.last / fpsOf(sc) : 0)));
-    for (let k = 0; k < rate; k++) plan.push({ i, title: true });
+    if (titles) for (let k = 0; k < rate; k++) plan.push({ i, title: true });
     for (let n = 0; n <= Math.round(longest * rate); n++) plan.push({ i, t: n / rate });
   }
   return plan;
 }
-function drawVideoFrame(ctx, runs, item, scale) {
+// The subtitles at one of a video's pictures, for one film: the scene and part, and what
+// the page's caption says there (what is shown, to show what), as plain text. The same
+// subscenes, looks and ending give the same words, so they are worked out once (memo).
+function subtitleAt(run, k, item, memo) {
+  const sc = run.scenes[item.i];
+  const tag = memo.both ? `${run.short} · ` : "";
+  if (item.title) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: "" };
+  if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
+  const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
+  const looks = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map((x) => x[0]).join();
+  const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${f === sc.last}`;
+  if (!memo.has(key)) {
+    const c = captionAt(run, item.i, f);
+    memo.set(key, { part: `${tag}${unmark(c.part)}`, text: unmark([c.text, ...c.more].filter(Boolean).join(" ")) });
+  }
+  return memo.get(key);
+}
+// Below each picture, a strip with its subtitles: the part in grey, then what the caption
+// says, wrapped, in at most five lines.
+const SUB_BAND = 124;
+function drawSubtitle(ctx, sub) {
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = `600 13px "Public Sans", system-ui, sans-serif`;
+  ctx.fillStyle = "#a9b5af";
+  ctx.fillText(sub.part, 12, 20, 527);
+  ctx.font = `400 15px "Public Sans", system-ui, sans-serif`;
+  ctx.fillStyle = "#e5ece8";
+  const lines = [];
+  let cur = "";
+  for (const w of sub.text.split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(next).width > 527 && cur) { lines.push(cur); cur = w; } else cur = next;
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > 5) { lines.length = 5; lines[4] = lines[4].replace(/\s*\S*$/, " …"); }
+  lines.forEach((l, n) => ctx.fillText(l, 12, 42 + n * 19, 527));
+}
+function drawVideoFrame(ctx, runs, item, scale, { subtitles = false, memo = null } = {}) {
   const w = 551 * scale, h = 413 * scale, gap = runs.length > 1 ? 12 * scale : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#000";
@@ -91,18 +137,39 @@ function drawVideoFrame(ctx, runs, item, scale) {
       screenMessage(ctx, lines);
     } else if (!ready(sc)) screenMessage(ctx, [sc ? "Ani stopped while making this scene." : "No such scene in this version."]);
     else drawFrame(ctx, run, sc, Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6)), { color: state.color });
+    if (subtitles && !item.title) {
+      ctx.setTransform(scale, 0, 0, scale, k * (w + gap), h);
+      drawSubtitle(ctx, subtitleAt(run, k, item, memo));
+    }
   });
 }
-async function makeVideo(runs, sceneIndexes, onProgress, signal) {
+// The same subtitles as a WebVTT file, timed to the video with these options: a cue for
+// each title card and each stretch of the same words.
+const vttTime = (sec) => { const ms = Math.round(sec * 1000); const p = (n, d = 2) => String(n).padStart(d, "0"); return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)}.${p(ms % 1000, 3)}`; };
+function makeSubtitles(runs, sceneIndexes, titles) {
+  const rate = videoRate(runs, sceneIndexes);
+  const memo = Object.assign(new Map(), { both: runs.length > 1 });
+  const cues = [];
+  videoPlan(runs, sceneIndexes, rate, titles).forEach((item, n) => {
+    const text = runs.map((run, k) => { const s = subtitleAt(run, k, item, memo); return s.text ? `${s.part}\n${s.text}` : s.part; }).join("\n");
+    const last = cues[cues.length - 1];
+    if (last && last.text === text) last.end = (n + 1) / rate;
+    else cues.push({ start: n / rate, end: (n + 1) / rate, text });
+  });
+  const clean = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `WEBVTT\n\n${cues.map((c, k) => `${k + 1}\n${vttTime(c.start)} --> ${vttTime(c.end)}\n${clean(c.text)}\n`).join("\n")}`;
+}
+async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true, subtitles = false } = {}) {
   const scale = 2;
-  const width = (551 * runs.length + (runs.length - 1) * 12) * scale, height = 413 * scale;
+  const width = (551 * runs.length + (runs.length - 1) * 12) * scale, height = (413 + (subtitles ? SUB_BAND : 0)) * scale;
   const even = (n) => n + (n % 2);
   const canvas = document.createElement("canvas");
   canvas.width = even(width);
   canvas.height = even(height);
   const ctx = canvas.getContext("2d");
   const rate = videoRate(runs, sceneIndexes);
-  const plan = videoPlan(runs, sceneIndexes, rate);
+  const plan = videoPlan(runs, sceneIndexes, rate, titles);
+  const draw = { subtitles, memo: Object.assign(new Map(), { both: runs.length > 1 }) };
   const frameUs = Math.round(1e6 / rate);
   const config = { codec: "vp8", width: canvas.width, height: canvas.height, bitrate: rate > 4 ? 4000000 : 2500000, framerate: rate };
   const webCodecs = typeof VideoEncoder !== "undefined" && typeof VideoFrame !== "undefined" && (await VideoEncoder.isConfigSupported(config).catch(() => ({}))).supported;
@@ -117,7 +184,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
     for (let n = 0; n < plan.length; n++) {
       if (signal && signal.aborted) { encoder.close(); throw Object.assign(new Error("Stopped."), { kind: "stopped" }); }
       if (failure) throw failure;
-      drawVideoFrame(ctx, runs, plan[n], scale);
+      drawVideoFrame(ctx, runs, plan[n], scale, draw);
       const frame = new VideoFrame(canvas, { timestamp: n * frameUs, duration: frameUs });
       encoder.encode(frame, { keyFrame: n % (rate * 4) === 0 });
       frame.close();
@@ -141,7 +208,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
   recorder.start();
   for (let n = 0; n < plan.length; n++) {
     if (signal && signal.aborted) { recorder.stop(); throw Object.assign(new Error("Stopped."), { kind: "stopped" }); }
-    drawVideoFrame(ctx, runs, plan[n], scale);
+    drawVideoFrame(ctx, runs, plan[n], scale, draw);
     if (track.requestFrame) track.requestFrame();
     onProgress(n / plan.length);
     await new Promise((r) => setTimeout(r, 1000 / rate));
@@ -240,6 +307,7 @@ function renderSavePanel() {
   const both = runs.length > 1;
   const mine = RUNS[1];
   const sc = runs[0].scenes[state.scene];
+  const { titles, subtitles } = videoOptions;
   panel.innerHTML = `
     <p class="label">Save</p>
     <div class="save-options">
@@ -248,9 +316,20 @@ function renderSavePanel() {
       ${mine ? `<button type="button" class="btn" data-save="file">Your version, as a film file</button>` : ""}
       <button type="button" class="btn" data-save="open">Open a saved film…</button>
     </div>
-    <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, with a title before each scene. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
-    <p class="note" id="save-status" aria-live="polite"></p>`;
+    <div class="save-settings">
+      <label class="check"><input type="checkbox" data-video="titles"${titles ? " checked" : ""}> A title card before each scene</label>
+      <label class="check"><input type="checkbox" data-video="subtitles"${subtitles ? " checked" : ""}> Subtitles: what each part shows, and why</label>
+      ${subtitles ? `<button type="button" class="linkish" data-save="vtt">The subtitles alone, as a .vtt file</button>` : ""}
+    </div>
+    <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, ${titles ? "with a title before each scene" : "with no titles"}${subtitles ? `, and with subtitles under ${both ? "each film" : "the picture"}: the scene, the part, and what Ani shows and why, as the caption says it. The .vtt file has them timed to the whole ${both ? "films" : "film"}, for a video player` : ""}. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
+    <p class="note" id="save-status" aria-live="polite"></p>
+    ${mine ? sendStoryButton(mine) : ""}`;
   panel.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => saveAction(b.dataset.save, runs, sc)));
+  panel.querySelectorAll("[data-video]").forEach((b) => b.addEventListener("change", () => {
+    videoOptions[b.dataset.video] = b.checked;
+    store.set(VIDEO_KEY, JSON.stringify(videoOptions));
+    renderSavePanel();
+  }));
 }
 async function saveAction(what, runs, sc) {
   if (what === "open") return chooseFilmFile();
@@ -262,13 +341,18 @@ async function saveAction(what, runs, sc) {
     return;
   }
   const indexes = what === "scene" ? [state.scene] : [...Array(Math.max(...runs.map((r) => r.sceneIds.length))).keys()];
+  const base = `ani-${slug(runs.map(storyTitle).join("-and-"))}`;
+  if (what === "vtt") {
+    setSaveStatus(await saveFile(new Blob([makeSubtitles(runs, indexes, videoOptions.titles)], { type: "text/vtt" }), `${base}.vtt`));
+    return;
+  }
   saving = new AbortController();
   const button = document.querySelector(`#save-panel [data-save="${what}"]`);
   const label = button.textContent;
   button.textContent = "Stop";
   try {
-    const { blob, ext } = await makeVideo(runs, indexes, (p) => setSaveStatus(`Making the video: ${Math.round(p * 100)}%`), saving.signal);
-    const name = `ani-${slug(runs.map(storyTitle).join("-and-"))}${what === "scene" ? "-" + slug(sc ? sc.title : "scene") : ""}${state.color ? "-color" : ""}.${ext}`;
+    const { blob, ext } = await makeVideo(runs, indexes, (p) => setSaveStatus(`Making the video: ${Math.round(p * 100)}%`), saving.signal, videoOptions);
+    const name = `${base}${what === "scene" ? "-" + slug(sc ? sc.title : "scene") : ""}${state.color ? "-color" : ""}.${ext}`;
     setSaveStatus(await saveFile(blob, name));
   } catch (e) {
     setSaveStatus(e.kind === "stopped" ? "Stopped." : `It didn't work: ${e.message || e}`);
