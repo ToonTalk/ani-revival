@@ -21,15 +21,29 @@
 //     film (frames, events and looks) and POSIT file are those in reports/ext/appear/.
 //     Director's collisions use the characters' sizes (dichar.103:348-358), so these
 //     differ from 1978's; reports/ext/appear/README.md says how and why.
-// Usage: node tools/check-ext.mjs [--extensions appear] [--quick] [--fps 24] [--save]
+// For KNOW (--extensions know, with MEND, which it requires), knowledge Ken could have
+// added (reports/chapter-x/PLAN.md, "Item 4, part 2"), it asserts:
+//   - pass 1: KEN;CP 30 is byte for byte reports/pass1-choices.txt, CP 29's 102 choices
+//     in place, and its choice points and their reasons are app/data/pass1.json's: KNOW
+//     adds no choice and moves none (test/know.test.js checks the rule that keeps it so);
+//     and no repair notes;
+//   - pass 2, scene by scene, each starting from where the 1978 film left the
+//     characters: No Longer Kept Apart's, the Meeting's and Justice's program, summary,
+//     printout and glass box are byte for byte reports/pass2's; the Introduction's and
+//     Kept Apart's, which KNOW changes, are those in reports/ext/know/from-1978/;
+//   - the whole film, chained, as for APPEAR: each scene's files are those in
+//     reports/ext/know/ (or its 24fps/), and reports/ext/know/README.md says how and why
+//     they differ from 1978's.
+// The goldens are in reports/ext/<the ids of the extensions that change Cinderella>.
+// Usage: node tools/check-ext.mjs [--extensions appear|know] [--quick] [--fps 24] [--save]
 //   --quick  skip the chained film (about three of its four minutes)
 //   --fps 24 film the chain at 24 frames a second, as the film page does by default,
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
 //            from 1978's positions doesn't depend on the frame rate and is left to the
 //            check at 4). About 15 minutes.
 //   --save   write the chained film's files to reports/ext/<ids>/ (or its 24fps/)
-//            instead of comparing them (and pass 1's KEN;CP 30 and appearances), after
-//            checking the rest
+//            instead of comparing them (and pass 1's KEN;CP 30 and appearances, or
+//            KNOW's pass 2 from 1978's positions), after checking the rest
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -41,7 +55,9 @@ const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1
 const chosen = extensionsFor((opt("--extensions") || "appear").split(",").filter(Boolean));
 const extensions = chosen.map((e) => e.id);
 if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.join(", ")} changes Ken's Cinderella: tools/check-1978.mjs --extensions ${extensions.join(",")} checks it`);
-if (!extensions.includes("appear")) throw new Error("so far tools/check-ext.mjs knows what APPEAR should make; give it --extensions with appear");
+// what this check knows each should make: APPEAR's or KNOW's, not both at once yet
+const kind = extensions.includes("appear") ? "appear" : extensions.includes("know") ? "know" : null;
+if (!kind || (extensions.includes("appear") && extensions.includes("know"))) throw new Error("so far tools/check-ext.mjs knows what APPEAR should make, and what KNOW should; give it --extensions with one of appear and know");
 const quick = args.includes("--quick");
 const save = args.includes("--save");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
@@ -49,7 +65,7 @@ if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
 if (fps === 24 && quick) throw new Error("--quick skips the chained film, so --fps 24 would check only pass 1");
 // as tools/check-1978.mjs films: a scene takes six times the frames at 24 that it takes at 4
 const frames = fps === 24 ? 6000 : 1000;
-const dir = `reports/ext/${extensions.join("+")}`;
+const dir = `reports/ext/${chosen.filter((e) => e.changes1978).map((e) => e.id).join("+")}`;
 const filmDir = fps === 24 ? `${dir}/24fps` : dir;
 
 const read = (path) => readFileSync(path, "utf8");
@@ -121,7 +137,19 @@ console.log(`Ani with the extensions ${extensions.join(", ")}, against 1978 and 
 const fs1 = makeProjectFileSystem();
 const p1 = run("pass 1", () => pass1(fs1, { extensions }));
 const cp = textIn(fs1, "KEN", "CP", "30");
-{
+if (kind === "know") {
+  const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
+  const theirs = choicesOfItsFile("original/7005017/cp.29");
+  const c = compareChoices(theirs, ours);
+  const a = [...theirs.keys()], b = [...ours.keys()];
+  const inPlace = a.filter((k, i) => b[i] === k).length;
+  check(`pass 1: ${c.same} of CP 29's ${theirs.size} choices, ${inPlace} in place`,
+    c.same === theirs.size && ours.size === theirs.size && inPlace === a.length ? null : `${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra`, p1.seconds);
+  check("pass 1: KEN;CP 30 as reports/pass1-choices.txt, as in 1978 mode", same(cp, read("reports/pass1-choices.txt")));
+  check("pass 1: the choice points and their reasons as app/data/pass1.json has them", same(JSON.stringify(p1.value.choicePoints), JSON.stringify(JSON.parse(read("app/data/pass1.json")).choicePoints)));
+  check("pass 1: no repair notes", (p1.value.repairs || []).length ? `${p1.value.repairs.length}, the first ${JSON.stringify(p1.value.repairs[0])}` : null);
+}
+if (kind === "appear") {
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
   const theirs = choicesOfItsFile("original/7005017/cp.29");
   const kens = new Map([...ours].filter(([k]) => !isAppearanceChoice(k)));
@@ -147,7 +175,7 @@ const characters = (p1.value.appearances?.characters || []).map((c) => c.charact
 // ---------------------------------------------------------------- pass 2, from 1978's positions
 // Each scene planned from where the 1978 film left the characters, so that its plan can
 // be set beside 1978's: with the looks taken off, the same files.
-if (fps === 4) {
+if (fps === 4 && kind === "appear") {
   const fs2 = makeProjectFileSystem();
   fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
   for (const f of readdirSync("reports/pass2")) {
@@ -175,6 +203,42 @@ if (fps === 4) {
   }
 }
 
+// For KNOW: the scenes it doesn't change, the same files as 1978's; the two it does,
+// those in reports/ext/know/from-1978/.
+const KNOW_CHANGES = ["introduction", "kept-apart"];
+if (fps === 4 && kind === "know") {
+  const fs2 = makeProjectFileSystem();
+  fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
+  for (const f of readdirSync("reports/pass2")) {
+    const m = /^ken1-([a-z0-9]+)\.posit$/.exec(f);
+    if (m) fs2.addFile("KEN1", m[1].toUpperCase(), "POSIT", { text: read(`reports/pass2/${f}`), origin: "reports/pass2" });
+  }
+  const from1978 = `${dir}/from-1978`;
+  if (save) mkdirSync(from1978, { recursive: true });
+  for (const scene of SCENES) {
+    const [fn1, fn2] = FILE_NAMES[scene].split(" ");
+    const lower = fn1.toLowerCase();
+    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
+    const files = [
+      [`KEN;${fn1} ${fn2}`, `ken-${lower}.${fn2.toLowerCase()}`, textIn(fs2, "KEN", fn1, fn2)],
+      [`KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs2, "KEN1", fn1, "MINI")],
+      [`KEN1;${fn1} PRINT`, `ken1-${lower}.print`, textIn(fs2, "KEN1", fn1, "PRINT")],
+      ["the glass box", `${scene}.glass.json`, JSON.stringify(p2.value.glass, null, 1)],
+    ];
+    if (!KNOW_CHANGES.includes(scene)) {
+      for (const [what, name, text] of files) check(`${scene}: ${what} as 1978's (reports/pass2)`, same(text, read(`reports/pass2/${name}`)));
+      console.log(`       (${p2.seconds.toFixed(1)}s)`);
+      continue;
+    }
+    for (const [what, name, text] of files) {
+      const path = `${from1978}/${name}`;
+      if (save) { writeFileSync(path, text); console.log(`saved  ${scene}: ${what} as ${path}`); continue; }
+      check(`${scene}: ${what} as ${path}`, existsSync(path) ? same(text, read(path)) : "there is no such file (make it with --save)");
+    }
+    check(`${scene}: the program is not 1978's`, files[0][2] === read(`reports/pass2/${files[0][1]}`) ? "KNOW should change it" : null, p2.seconds);
+  }
+}
+
 // ---------------------------------------------------------------- the chained film
 if (!quick) {
   const fs3 = makeProjectFileSystem();
@@ -190,7 +254,7 @@ if (!quick) {
     golden(`${scene}: the glass box`, `${scene}.glass.json`, JSON.stringify(p2.value.glass, null, 1));
     const f = run(`${scene}: filming, chained`, () => film(fs3, scene, { extensions, fps, frames }));
     const ours = f.value.film;
-    console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events, ${ours.looks.length} looks`);
+    console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events${ours.looks ? `, ${ours.looks.length} looks` : ""}`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));
     const movie = f.value.lisp.print(f.value.lisp.evalString(`(get '${scene} 'movie-name)`)).toLowerCase();
     golden(`${scene}: KEN1;${movie.toUpperCase()} POSIT`, `ken1-${movie}.posit`, textIn(fs3, "KEN1", movie.toUpperCase(), "POSIT"));
