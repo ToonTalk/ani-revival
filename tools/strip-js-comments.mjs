@@ -1,9 +1,11 @@
 // Comments taken out of a JavaScript module, for the claude.ai copy of the film page,
 // which claude.ai refuses over about 950 KB. A small tokenizer follows strings, template
 // literals (with their ${...} parts), regular expressions and comments; it removes // and
-// /* */ comments in code, and the lines that held only a comment, and leaves every
-// string, template and regular expression exactly as written. stringsOf() lists those
-// tokens, so a caller can check that taking the comments out changed none of them.
+// /* */ comments in code, and the lines that held only a comment, and the indentation and
+// blank lines of the code (a line's end stays, so nothing ends a statement differently),
+// and leaves every string, template and regular expression exactly as written.
+// stringsOf() lists those tokens, so a caller can check that taking the comments out
+// changed none of them.
 
 const REGEX_AFTER = new Set([..."(,=:[!&|?{};+-*%<>~^"]);
 const REGEX_KEYWORDS = new Set(["return", "typeof", "case", "do", "else", "in", "of", "new", "delete", "void", "throw", "yield", "await", "instanceof"]);
@@ -107,6 +109,8 @@ function scan(src, { keepComments }) {
       continue;
     }
     if (!/\s/.test(c)) lastWord = "";
+    // code's indentation and blank lines (never a template's text, which is read above)
+    if (!keepComments && /[ \t\n]/.test(c) && (out === "" || out.endsWith("\n"))) { i++; continue; }
     pushCode(c);
     i++;
   }

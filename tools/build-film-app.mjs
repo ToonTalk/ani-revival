@@ -234,7 +234,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
       content = content.replace(mark, () => value);
     }
     // claude.ai refuses a page over about 950 KB, so this copy's page script goes without
-    // its comments (tools/strip-js-comments.mjs); every string, template and regular
+    // its comments and indentation (tools/strip-js-comments.mjs); every string, template and regular
     // expression in it must come out exactly as written, or the build stops
     const open = '<script type="module">';
     const a = content.indexOf(open) + open.length;
@@ -270,5 +270,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments left out` : ""})`);
+  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments and indentation left out` : ""})`);
 }
