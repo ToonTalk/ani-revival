@@ -219,6 +219,30 @@
 (+after-load '|ken;scene >|
   '(revival-wrap 'process-task-description 'change 'process-task-description-with-changes))
 
+;; Who takes part in a task, when SCENE orders the tasks of an and: those with no one
+;; in common may run at once (order-parallel-tasks, scene.9:487-510). It does that when
+;; an establish task is done by conveying, and its convey tasks take its place in the
+;; scene's ordering (reorder-task-ordering, scene.9:469-470), and it finds a convey
+;; task's participants by asking each word of its description if it is a character
+;; (participants-of-task, scene.9:513-532: "for now kind a stupid and just makes a list
+;; of all the characters in the task"). A change of a relationship names (relationship-of
+;; a b), and the tags say CINDY defines relationship-of (her (define (relationship-of
+;; cinderella step-mother) relationship), an actor of two names), so asked, it is loaded
+;; for and stops pass 2: NO-SUCH-ACTOR, "RELATIONSHIP-OF is not an actor". A scene that
+;; establishes a relationship and changes one stopped so (a model's tortoise and hare,
+;; 13 October; test/stories/stress/change-and-relationship.lisp). Those who take part in
+;; (relationship-of a b) are a and b. Ken's tasks name characters, never a relationship,
+;; so they are found as before.
+(defun participants-of-task-1-through-relationships (part-of-task participants)
+  (funcall (revival-wrapped 'participants-of-task-1 'change)
+	   (cond ((and (not (atom part-of-task)) (eq (first part-of-task) 'relationship-of))
+		  (rest part-of-task))
+		 (t part-of-task))
+	   participants))
+
+(+after-load '|ken;scene >|
+  '(revival-wrap 'participants-of-task-1 'change 'participants-of-task-1-through-relationships))
+
 ;;; ------------------------------------------------- 3. the description changed
 
 ;; A change made to the description: the old words are forgotten, and what they told

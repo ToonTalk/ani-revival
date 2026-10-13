@@ -13,7 +13,8 @@
 //   --frames      the most frames a scene is filmed for: 1,000, as the page films at 4
 //                 frames a second (250 seconds, its CAP_SECONDS) and as Ken's own runs
 //                 stopped, (m 1000)
-//   --scenes      make only these scenes (pass 1 always runs)
+//   --scenes      make these scenes, and the scenes before them, since each starts where
+//                 the one before it ended (pass 1 always runs)
 //   --out         also write what happened as JSON
 //   --no-backtrace  a step that fails is not run again for its backtrace
 // A failed step is run again, on the same files, with Lisp's backtrace on (makeFilm runs
@@ -152,9 +153,24 @@ function repairNotes(repairs) {
 for (const r of renames) console.log(`renamed the ${r.kind} ${r.from} ${r.to}: Ani's files name something ${r.from}`);
 console.log(`${storyPath}: ${plan.scenes.length} scene${plan.scenes.length === 1 ? "" : "s"} (${plan.scenes.map((s) => s.id).join(", ")}), ${plan.cast.length} characters; extensions: ${extensions.length ? extensions.join(", ") : "none (Ani as in 1978)"}; ${fps} frames a second, at most ${frames} a scene`);
 
+// --scenes: a scene starts where the scene before it ended (the POSIT file filming that
+// scene writes, KEN1;KA POSIT and the rest for Ken's), may read an earlier scene's
+// decisions (its MINI file), and with CHANGE learns who the characters have become from
+// the BECOME files of the fresh looks before it; so every scene up to the last one asked
+// for is made.
+const sceneIds = plan.scenes.map((s) => s.id);
+const asked = only.map((id) => (renames.find((r) => r.kind === "scene" && r.from === id) || { to: id }).to);
+for (const id of asked) if (!sceneIds.includes(id)) { console.log(`no scene ${id}: the story's scenes are ${sceneIds.join(", ")}`); process.exit(2); }
+const last = Math.max(-1, ...asked.map((id) => sceneIds.indexOf(id)));
+const making = asked.length ? sceneIds.slice(0, last + 1) : null;
+if (making && making.length > asked.length) {
+  const before = making.filter((id) => !asked.includes(id));
+  console.log(`--scenes ${only.join(",")}: ${before.join(", ")} ${before.length === 1 ? "is" : "are"} made too, since a scene starts where the scene before it ended`);
+}
+
 const steps = makeFilmSteps(fs, {
   description, keepGoing: true, frames, fps, extensions,
-  scenes: only.length ? only : null,
+  scenes: making,
   progress: (step, what, scene) => {
     at = { step, scene: scene || null, t0: step === "film" ? at.t0 : Date.now() }; // a scene's time is its pass 2's and its filming's
   },

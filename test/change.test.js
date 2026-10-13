@@ -119,6 +119,23 @@ test("a relationship change changes both of its characters, and both note their 
   assert.equal(run("(length (changes-of-character 'cinderella 'making-up))"), "1");
 });
 
+test("who takes part in a relationship change, when SCENE orders tasks: its two characters, not relationship-of", () => {
+  // SCENE asks each word of a convey task's description if it is a character
+  // (scene.9:526-532); the tags have CINDY define relationship-of, so as in 1978 the ask stops
+  const change = "'(change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) is-polite-to))";
+  const ken = pass1Ready([], null);
+  assert.equal(ken.run("(exists? 'relationship-of)"), "|ken;cindy|");
+  assert.throws(() => ken.run(`(participants-of-task ${change})`), /NO-SUCH-ACTOR/);
+  const { run } = pass1Ready(["change"], null);
+  assert.equal(wraps(run, "participants-of-task-1"), "(change)");
+  assert.deepEqual(run(`(participants-of-task ${change})`).replace(/[()]/g, "").split(" ").sort(), ["cinderella", "step-mother"]);
+  assert.deepEqual(run(`(participants-of-task '(causes prince (change (relationship (relationship-of step-mother cinderella) hates) (relationship (relationship-of step-mother cinderella) loves))))`).replace(/[()]/g, "").split(" ").sort(), ["cinderella", "prince", "step-mother"]);
+  // Ken's tasks name characters, and are found as before
+  for (const t of ["(pushes step-mother cinderella)", "(wants cinderella (meets cinderella prince))"]) {
+    assert.equal(run(`(participants-of-task '${t})`), ken.run(`(participants-of-task '${t})`), t);
+  }
+});
+
 test("the ordering guard: the change is made before study-descriptor-use works out how each word is used", () => {
   // what study-descriptor-use (compar.69:127-136) sees of the stepmother, and the usage it
   // records: made after it (after DATEST's init), the usage would be the old words', and
