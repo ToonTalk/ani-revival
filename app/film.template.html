@@ -2185,6 +2185,35 @@ function centroid(seg) {
   const n = seg.length / 2;
   return [x / n, y / n];
 }
+// ANINIT filmed with the turtle cutting each line at the picture's edge (its (clip)). A
+// character partly off the picture has its segments whole (src/pipeline.js recorder), so
+// each copy color draws inside a shape is drawn whole and cut here, as the turtle cut each
+// line of Ken's MANY-POLYS: at the turtle's edges in picture dots (as
+// tools/check-whole-segments.mjs works them out), the end it moved put first and rounded
+// to a tenth of a dot as the recorder rounds, so that in black and white a cut line is
+// mostly drawn as it was recorded before. An end within that rounding of an edge counts
+// as on the picture, as the turtle had it. (A clip on the canvas would cut the lines too,
+// but Chrome then draws the rest of the character a shade differently.)
+const EDGE = { left: 0.334, right: 551.666, top: -0.499, bottom: 412.499 };
+const edgeCode = (x, y) => (x < EDGE.left - 0.05 ? 1 : x > EDGE.right + 0.05 ? 2 : 0) + (y > EDGE.bottom + 0.05 ? 4 : y < EDGE.top - 0.05 ? 8 : 0);
+const tenth = (v) => Math.round(v * 10) / 10;
+// a line cut at the edges as TVRTLE cuts it (Cohen and Sutherland's), or null if none of
+// it is on the picture
+function cutAtEdge(x0, y0, x1, y1) {
+  let a = edgeCode(x0, y0), b = edgeCode(x1, y1);
+  let m0 = false, m1 = false; // whether each end was moved
+  for (let guard = 0; a || b; guard++) {
+    if (a & b || guard > 8) return null;
+    if (!a) { [x0, y0, a, m0, x1, y1, b, m1] = [x1, y1, b, m1, x0, y0, a, m0]; }
+    if (a & 1) { y0 += ((y1 - y0) / (x1 - x0)) * (EDGE.left - x0); x0 = EDGE.left; }
+    if (a & 2) { y0 += ((y1 - y0) / (x1 - x0)) * (EDGE.right - x0); x0 = EDGE.right; }
+    if (a & 4) { x0 += ((x1 - x0) / (y1 - y0)) * (EDGE.bottom - y0); y0 = EDGE.bottom; }
+    if (a & 8) { x0 += ((x1 - x0) / (y1 - y0)) * (EDGE.top - y0); y0 = EDGE.top; }
+    m0 = true;
+    a = edgeCode(x0, y0);
+  }
+  return [m0 ? tenth(x0) : x0, m0 ? tenth(y0) : y0, m1 ? tenth(x1) : x1, m1 ? tenth(y1) : y1];
+}
 function drawScreen(r) {
   const { canvas, ctx } = FIGS[r];
   const sx = canvas.width / 551, sy = canvas.height / 413;
@@ -2228,8 +2257,10 @@ function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
     ctx.beginPath();
     for (const f of copies) {
       for (let k = 0; k < seg.length; k += 4) {
-        ctx.moveTo(cx + (seg[k] - cx) * f, cy + (seg[k + 1] - cy) * f);
-        ctx.lineTo(cx + (seg[k + 2] - cx) * f, cy + (seg[k + 3] - cy) * f);
+        const s = cutAtEdge(cx + (seg[k] - cx) * f, cy + (seg[k + 1] - cy) * f, cx + (seg[k + 2] - cx) * f, cy + (seg[k + 3] - cy) * f);
+        if (!s) continue;
+        ctx.moveTo(s[0], s[1]);
+        ctx.lineTo(s[2], s[3]);
       }
     }
     ctx.stroke();
