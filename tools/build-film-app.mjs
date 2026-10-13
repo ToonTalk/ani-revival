@@ -14,16 +14,19 @@
 // Everything is inlined, gzipped as base64, so the page works opened directly, served,
 // or published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/llm.js (telling Ani a new story),
-// app/film/save.js (saving films) and app/film/report.js (reporting errors, and stories
-// sent, to Ken, where tools/build-site.mjs gives the site's page a DSN) put in at
-// /*FILM-PARTS*/.
+// app/film/json.js (the JSON way of telling it), app/film/save.js (saving films) and
+// app/film/report.js (reporting errors, and stories sent, to Ken, where
+// tools/build-site.mjs gives the site's page a DSN) put in at /*FILM-PARTS*/.
 // Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
-import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { gzipSync } from "node:zlib";
+import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
@@ -225,7 +228,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["llm.js", "json.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
   for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
@@ -238,8 +241,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
       content = content.replace(mark, () => value);
     }
     // claude.ai refuses a page over about 950 KB, so this copy's page script goes without
-    // its comments and indentation (tools/strip-js-comments.mjs); every string, template and regular
-    // expression in it must come out exactly as written, or the build stops
+    // its comments, its indentation and the spaces and line ends no token needs
+    // (tools/strip-js-comments.mjs); every string, template and regular expression in it
+    // must come out exactly as written, or the build stops
     const open = '<script type="module">';
     const a = content.indexOf(open) + open.length;
     const b = content.indexOf("</script>", a);
@@ -247,6 +251,12 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const js = content.slice(a, b);
     const stripped = stripComments(js);
     if (JSON.stringify(stringsOf(js)) !== JSON.stringify(stringsOf(stripped))) throw new Error("taking the comments out of the claude.ai copy's script changed a string");
+    // and it must still read as JavaScript, lines joined and all (node --check)
+    const tmp = join(tmpdir(), `ani-claude-script-${process.pid}.mjs`);
+    writeFileSync(tmp, stripped);
+    const checked = spawnSync(process.execPath, ["--check", tmp], { encoding: "utf8" });
+    rmSync(tmp, { force: true });
+    if (checked.status !== 0) throw new Error(`the claude.ai copy's script doesn't read as JavaScript: ${(checked.stderr || "").split("\n").slice(0, 5).join(" ")}`);
     sizes.comments = js.length - stripped.length;
     content = content.slice(0, a) + stripped + content.slice(b);
   }
@@ -274,5 +284,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments and indentation left out` : ""})`);
+  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out` : ""})`);
 }

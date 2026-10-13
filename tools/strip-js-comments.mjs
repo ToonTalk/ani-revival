@@ -2,13 +2,19 @@
 // which claude.ai refuses over about 950 KB. A small tokenizer follows strings, template
 // literals (with their ${...} parts), regular expressions and comments; it removes // and
 // /* */ comments in code, and the lines that held only a comment, and the indentation and
-// blank lines of the code (a line's end stays, so nothing ends a statement differently),
-// and leaves every string, template and regular expression exactly as written.
+// blank lines of the code, the spaces in a line of code that no token needs (one stays
+// between two words, and between + and +, - and -, / and / or *, and a digit and a dot),
+// and a line's end only where no statement can end there (after { ( [ , or ;, or before
+// ) ] } . ? : or ,; elsewhere it stays, so nothing ends a statement differently), and
+// leaves every string, template and regular expression exactly as written.
 // stringsOf() lists those tokens, so a caller can check that taking the comments out
 // changed none of them.
 
 const REGEX_AFTER = new Set([..."(,=:[!&|?{};+-*%<>~^"]);
 const REGEX_KEYWORDS = new Set(["return", "typeof", "case", "do", "else", "in", "of", "new", "delete", "void", "throw", "yield", "await", "instanceof"]);
+// whether a space between p and q keeps two tokens apart (a b, a + +b, a / /re/, 1 .x, a < !--b)
+const WORDISH = /[\w$\\\u0080-￿]/;
+const needSpace = (p, q) => (WORDISH.test(p) && WORDISH.test(q)) || ((p === "+" || p === "-") && q === p) || (p === "/" && (q === "/" || q === "*")) || (/\d/.test(p) && q === ".") || (p === "<" && q === "!");
 
 function scan(src, { keepComments }) {
   let out = "";
@@ -111,6 +117,21 @@ function scan(src, { keepComments }) {
     if (!/\s/.test(c)) lastWord = "";
     // code's indentation and blank lines (never a template's text, which is read above)
     if (!keepComments && /[ \t\n]/.test(c) && (out === "" || out.endsWith("\n"))) { i++; continue; }
+    // a line's end where no statement can end (after { ( [ , or ;, or before ) ] } . ? : or ,)
+    if (!keepComments && c === "\n") {
+      let k = i + 1;
+      while (k < n && /\s/.test(src[k])) k++;
+      if ("{([,;".includes(out[out.length - 1] || "\n") || ")]}.?:,".includes(src[k] || "\n")) { i++; continue; }
+    }
+    // spaces within a line of code: one only where two tokens would otherwise run together
+    if (!keepComments && (c === " " || c === "\t")) {
+      let k = i;
+      while (k < n && (src[k] === " " || src[k] === "\t")) k++;
+      const q = src[k];
+      if (q !== undefined && q !== "\n" && q !== "\r" && needSpace(out[out.length - 1] || "", q)) out += " ";
+      i = k;
+      continue;
+    }
     pushCode(c);
     i++;
   }
