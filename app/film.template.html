@@ -2824,6 +2824,12 @@ function checkStory(text) {
   }
   story.missingPairs = [];
   if (story.error) return { story, problems, notes, stops };
+  // a form at the top level that defines nothing: one ")" too many closed the definition
+  // before it, whose last parts now stand alone, and Ani would run them as commands, and stop
+  for (const f of topForms(text).forms) {
+    const head = (text.slice(f.start + 1, f.end).match(/^\s*([^\s()]+)/) || [])[1];
+    if (head && !["define", "include", "defcomment", "declare", "compile-actors"].includes(head.toLowerCase())) problems.push(`<code>${esc(text.slice(f.start, Math.min(f.end, f.start + 70)))}</code> stands on its own: a ")" too many closed the definition before it, so Ani would run this as a command, and stop.`);
+  }
   const cast = Object.keys(story.characters);
   const kenCast = cast.length === CAST.length && CAST.every((c) => cast.includes(c));
   if (!cast.length) problems.push("It defines no characters.");
@@ -2861,6 +2867,8 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
     if (!Array.isArray(t)) return bad(t, "isn't a task.");
     if (t[0] === "and" || t[0] === "sequence:") return t.slice(1).forEach(visit);
     const [kind, d] = t;
+    // the scene's own settings, read as tasks: its description was left open
+    if (kind === "set") return bad(t, "is one of the scene's settings, read as a task: a \")\" is missing among the tasks before it, so the scene's (process initial description ...) runs on over its settings.");
     if ((kind !== "establish" && kind !== "convey") || !Array.isArray(d)) return bad(t, "a task is (establish ...) or (convey ...).");
     if (kind === "establish") {
       if (d[0] === "personality") return isChar(d[1]) || bad(t, "that character isn't defined.");
@@ -2881,6 +2889,9 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
       const from = d[2];
       if (!isChar(d[1]) || !Array.isArray(from) || from[0] !== "from-scene") return bad(t, "write (undoes x (from-scene earlier-scene THAT-SCENE'S-TASK)).");
       if (!earlier.includes(from[1])) return bad(t, `${esc(from[1])} isn't an earlier scene.`);
+      // Ani undoes a task by asking how it was shown there for a way to undo it
+      // (convey.64:130-160); an (establish ...) has none, and she stops
+      if (!Array.isArray(from[2]) || from[2][0] !== "convey") return bad(t, "Ani can undo only what someone did in that scene, a (convey ...) task; she undoes it by undoing how it was shown, and an (establish ...) has no way to be undone.");
       return tasksOf(story.scenes[from[1]].tasks).map(show).includes(show(from[2])) || bad(t, `that isn't one of ${esc(titleOf(story, from[1]))}'s tasks; copy it exactly.`);
     }
     if (verb === "meets") {

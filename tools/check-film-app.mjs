@@ -36,6 +36,12 @@
 // of Sentry's is loaded and no "Send this story to Ken" is offered, while with one (here,
 // pointing at this server) an uncaught error arrives with no key, story or user in it, and
 // a story is sent only when the visitor confirms (skipped if Sentry's SDK can't be loaded).
+// And the JSON way (app/film/json.js), the default: Ken's CINDY read into JSON and put
+// back has his forms; the schema keeps to OpenAI's strict rules in both modes and the
+// example keeps to it, and each provider gets its own copy; the JSON prompt has the Lisp
+// prompt's guidance; and, with the model's replies stood in for, a schema the provider
+// refuses is asked again without it, a problem is fixed in a JSON round, and Gemini Nano
+// gets the schema as Chrome's responseConstraint.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about twenty-five minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width.
@@ -93,7 +99,7 @@ const server = createServer(async (req, res) => {
   }
   if (at === "app/film.check.html") {
     const html = filmPage(), end = html.lastIndexOf("</script>");
-    res.writeHead(200, { "content-type": "text/html" }).end(html.slice(0, end) + "\nwindow.__check = { tidyStory, checkStory, whyStopped, stopBox, makeRun, using, drawVideoFrame, makeSubtitles, RUNS, DATA };\n" + html.slice(end));
+    res.writeHead(200, { "content-type": "text/html" }).end(html.slice(0, end) + "\nwindow.__check = { tidyStory, checkStory, whyStopped, stopBox, makeRun, using, drawVideoFrame, makeSubtitles, RUNS, DATA, storySchema, schemaFor, slotWords, lispFromJson, jsonFromLisp, cindyJson, cindyExample, sameForms, formsOf, storyPrompt, storyFromReply, printJson, lispOf };\n" + html.slice(end));
     return;
   }
   if (at === "app/film.report-check.html") {
@@ -392,6 +398,8 @@ try {
     document.getElementById("open-teller").click();
     await new Promise((r) => setTimeout(r, 200));
     const side = document.getElementById("side");
+    const json = side.querySelector('[data-format="json"]').getAttribute("aria-pressed") === "true";
+    side.querySelector('[data-format="lisp"]').click();
     side.querySelector('[data-provider="anthropic"]').click();
     await new Promise((r) => setTimeout(r, 100));
     side.querySelector('[data-story="0"]').click();
@@ -403,11 +411,186 @@ try {
     const result = side.querySelector("#tell-result").innerText;
     side.querySelector("#tell-edit").click();
     await new Promise((r) => setTimeout(r, 200));
-    return { asked: asked && asked.model, prompt: asked && asked.messages[0].content.length, result, editor: document.getElementById("ed-chars").innerText, make: !document.getElementById("ed-make").disabled };
+    return { json, asked: asked && asked.model, shaped: !!(asked && asked.output_config && asked.output_config.format), prompt: asked && asked.messages[0].content.length, result, editor: document.getElementById("ed-chars").innerText, make: !document.getElementById("ed-make").disabled };
   })()`);
-  check(drafted.asked === "claude-sonnet-5-5" && drafted.prompt > 5000, `the story goes to the model with Ani's vocabulary (${drafted.prompt} characters to ${drafted.asked})`);
+  check(drafted.json, "the model writes JSON by default (the JSON way), which the page puts into Ken's notation");
+  check(drafted.asked === "claude-sonnet-5-5" && drafted.prompt > 5000 && !drafted.shaped, `with "Ken's Lisp" chosen, the story goes to the model with Ani's vocabulary (${drafted.prompt} characters to ${drafted.asked}), with no schema`);
   check(/4 characters/.test(drafted.result) && /nothing wrong/.test(drafted.result), "the drafted description passes Ani's checks");
   check(/Red Riding Hood/.test(drafted.editor) && drafted.make, "the editor shows the new cast, ready to make the film");
+
+  // the JSON way (app/film/json.js): Ken's CINDY read into JSON and put back gives his
+  // forms; the schema keeps to OpenAI's strict rules and the example keeps to it; each
+  // provider's copy of it; the prompt in both modes; and a reply read leniently
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
+  const jsonWay = await js(`(async () => {
+    const t = window.__check;
+    const REVIVAL = ["mend", "know", "appear", "change"];
+    const back = t.lispFromJson(t.cindyJson());
+    // OpenAI's strict rules: every object closed, with every property required; no
+    // $ref, allOf, not or if; under ten levels; at most 1,000 enum values
+    const strict = (schema) => {
+      let depth = 0, enums = 0, ok = schema.type === "object" && !schema.anyOf;
+      const walk = (x, d) => {
+        if (Array.isArray(x)) return x.forEach((y) => walk(y, d));
+        if (!x || typeof x !== "object") return;
+        if (x.$ref || x.allOf || x.not || x.if || x.oneOf) ok = false;
+        if (x.type === "object" && (x.additionalProperties !== false || JSON.stringify(Object.keys(x.properties || {})) !== JSON.stringify(x.required))) ok = false;
+        if (x.enum) enums += x.enum.length;
+        const nd = x.type === "object" || x.type === "array" ? d + 1 : d;
+        depth = Math.max(depth, nd);
+        for (const [k, v] of Object.entries(x)) if (k !== "enum") walk(v, nd);
+      };
+      walk(schema, 0);
+      return { ok: ok && depth <= 10 && enums <= 1000, depth, enums };
+    };
+    // a value against a schema, as the providers read one
+    const valid = (v, s) => {
+      if (s.anyOf) return s.anyOf.some((x) => valid(v, x));
+      const types = [].concat(s.type || []);
+      const typeOf = v === null ? "null" : Array.isArray(v) ? "array" : typeof v;
+      if (types.length && !types.includes(typeOf)) return false;
+      if (s.enum && !s.enum.includes(v)) return false;
+      if (s.pattern && !new RegExp(s.pattern).test(v)) return false;
+      if (typeOf === "array") return v.length >= (s.minItems || 0) && v.length <= (s.maxItems ?? Infinity) && v.every((x) => valid(x, s.items));
+      if (typeOf === "object") return Object.keys(v).every((k) => s.properties[k]) && s.required.every((k) => k in v && valid(v[k], s.properties[k]));
+      return true;
+    };
+    const s1978 = t.storySchema([]), sRevival = t.storySchema(REVIVAL);
+    const kinds = (s) => JSON.stringify(s).match(/"kind":\\{"type":"string","enum":\\[[^\\]]*\\]/g).join(" ");
+    const anth = JSON.stringify(t.schemaFor("anthropic", sRevival)), nano = JSON.stringify(t.schemaFor("nano", sRevival)), gemini = JSON.stringify(t.schemaFor("gemini", sRevival));
+    const lisp1978 = t.storyPrompt("A story.", { extensions: [] }), json1978 = t.storyPrompt("A story.", { extensions: [], format: "json" }), jsonRevival = t.storyPrompt("A story.", { extensions: REVIVAL, format: "json" });
+    const physical = sRevival.properties.characters.items.properties.physical.items.enum;
+    const rrh = await (await fetch("/test/stories/red-riding-hood.lisp")).text();
+    const rrhJson = t.jsonFromLisp(rrh);
+    const odd = t.lispFromJson({ characters: [{ name: "Big Bad Wolf", physical: "huge" }], scenes: [{ steps: [{ kind: "chases", who: "big-bad-wolf", whom: "hunter" }] }] });
+    // the safety net, where the A/B (reports/llm-trials/2026-10-13 ...) found it wanting: a
+    // ")" too many in a scene's tasks comes out there, and one left in is a problem; and
+    // undoing an (establish ...) is a problem, which the schema can't even say
+    const cindy = t.cindyExample();
+    const slip = cindy.replace("(joy (negative high))))))\\n\\t(set your mood to joyous)", "(joy (negative high)))))))\\n\\t(set your mood to joyous)");
+    const mended = t.lispOf("\`\`\`lisp\\n" + slip + "\\n\`\`\`");
+    const misMended = slip.replace("\\t(set your length to medium))\\n", "\\t(set your length to medium)\\n");
+    const undoing = t.cindyJson();
+    undoing.scenes[2].steps[0][0].undone = undoing.scenes[1].steps[2][0];
+    return {
+      cindy: t.sameForms(t.cindyExample(), back) && !t.tidyStory(back).fixes.length && !t.checkStory(back).problems.length,
+      strict1978: strict(s1978), strictRevival: strict(sRevival),
+      example: valid(t.cindyJson(), sRevival) && valid(t.cindyJson(), s1978),
+      kinds1978: kinds(s1978), kindsRevival: kinds(sRevival),
+      words: JSON.stringify(physical) === JSON.stringify([...t.slotWords("physical", REVIVAL), "strong"]),
+      anthropic: !/"maxItems"/.test(anth) && !/"minItems":[2-9]/.test(anth) && /"pattern"/.test(anth),
+      portable: !/"pattern"|null|"type":\\[/.test(nano) && nano === gemini,
+      lisp1978: /Ani can't show \\(meets X Y\\) on its own/.test(lisp1978) && !/JSON/.test(lisp1978),
+      json1978: /written as JSON/.test(json1978) && /Ani can't show "meets" on its own/.test(json1978) && /everyone else leaves/.test(json1978) && /for EVERY ordered pair/.test(json1978) && !/change-|causedBy/.test(json1978) && /THE EXAMPLE \\(Ken's description of Cinderella, 1978, as JSON\\):\\n\`\`\`json\\n\\{/.test(json1978),
+      jsonRevival: /"kind": "change-personality"/.test(jsonRevival) && /"kind": "meets", "who": X, "whom": Y/.test(jsonRevival) && /leave the pair out/.test(jsonRevival),
+      lenient: !!t.storyFromReply("Here it is:\\n\`\`\`json\\n" + JSON.stringify(rrhJson) + "\\n\`\`\`") && !!t.storyFromReply("Sure. " + JSON.stringify(rrhJson)) && !t.storyFromReply("\`\`\`lisp\\n" + rrh + "\\n\`\`\`"),
+      // its forms, in CINDY's order (each relationship after its characters) and with the
+      // film's length aside (Ken's, two to five minutes, in the JSON way)
+      rrh: JSON.stringify(t.formsOf(rrh.replace("(minutes 1) (minutes 3)", "(minutes 2) (minutes 5)")).sort()) === JSON.stringify(t.formsOf(t.lispFromJson(rrhJson)).sort()),
+      net: slip !== cindy && misMended !== slip && mended.balanced === 1 && t.sameForms(mended.text, cindy) && t.checkStory(misMended).problems.some((p) => /stands on its own/.test(p))
+        && t.checkStory(t.lispFromJson(undoing)).problems.some((p) => /can undo only what someone did/.test(p)) && !valid(undoing, sRevival),
+      odd: /\\(physical huge\\)/.test(odd) && /\\(convey \\(chases big-bad-wolf hunter\\)\\)/.test(odd) && t.checkStory(odd).problems.some((p) => /isn't defined|two defined characters/.test(p)),
+      rrhJson: t.printJson(rrhJson),
+    };
+  })()`);
+  check(jsonWay.cindy, "Ken's CINDY read into JSON and put back into his notation has CINDY's forms, needs no tidying and passes Ani's checks");
+  check(jsonWay.strict1978.ok && jsonWay.strictRevival.ok && jsonWay.example, `the schema keeps to OpenAI's strict rules (${jsonWay.strictRevival.depth} levels, ${jsonWay.strictRevival.enums} enum values with the extensions), and the example, Ken's CINDY as JSON, keeps to it in both modes`);
+  check(!/meets|change-/.test(jsonWay.kinds1978) && /"meets"/.test(jsonWay.kindsRevival) && /"change-personality"/.test(jsonWay.kindsRevival) && /"change-relationship"/.test(jsonWay.kindsRevival) && jsonWay.words, "the schema's task forms follow the mode (meets and the changes only with the extensions), and its words are the page's vocabulary, with those Ken gave in CINDY");
+  check(jsonWay.anthropic && jsonWay.portable, "each provider gets the schema as it takes one: Anthropic's without maxItems, Gemini's and Gemini Nano's without patterns or null");
+  check(jsonWay.lisp1978 && jsonWay.json1978 && jsonWay.jsonRevival, "the JSON prompt has the Lisp prompt's guidance, with the task forms as JSON, in 1978 mode and with the extensions");
+  check(jsonWay.net, "a \")\" too many in a scene's tasks comes out where it closed the scene too soon, one left in is a problem, and so is undoing an (establish ...), which the schema can't say");
+  check(jsonWay.lenient && jsonWay.rrh && jsonWay.odd, "a reply's JSON is found in a fence or after a sentence, a Lisp reply is left to be read as Lisp, Red Riding Hood goes to JSON and back, and odd JSON comes out as Lisp the checks then question");
+
+  // the JSON way in the panel, with the model's replies stood in for: Anthropic first
+  // refuses the schema (as for "Schema is too complex"), so the page asks again without
+  // it; that reply names a character the story doesn't define, so the checks find a
+  // problem; "Ask Claude to fix these" asks for the whole description again as JSON, with
+  // the schema; and the fixed reply passes Ani's checks
+  await open();
+  const toldJson = await js(`(async () => {
+    const good = ${JSON.stringify(jsonWay.rrhJson)};
+    const bad = good.replace('"who": "wolf"', '"who": "hunter"');
+    if (bad === good) return { error: "the stand-in has no task of the wolf's" };
+    const real = window.fetch;
+    const bodies = [];
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      const body = JSON.parse(opts.body);
+      bodies.push(body);
+      if (bodies.length === 1) return new Response(JSON.stringify({ type: "error", error: { type: "invalid_request_error", message: "Schema is too complex for compilation." } }), { status: 400 });
+      return new Response(JSON.stringify({ content: [{ type: "text", text: bodies.length === 2 ? bad : good }] }), { status: 200 });
+    };
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-teller").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    side.querySelector('[data-format="json"]').click();
+    side.querySelector('[data-mode="revival"]').click();
+    side.querySelector('[data-provider="anthropic"]').click();
+    await wait(100);
+    side.querySelector('[data-story="0"]').click();
+    const key = side.querySelector("#tell-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input"));
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await wait(100);
+    const first = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-fix").click();
+    for (let k = 0; k < 50 && (bodies.length < 3 || !side.querySelector("#tell-edit")); k++) await wait(100);
+    await wait(200);
+    const fixed = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-result details").open = true;
+    const wrote = side.querySelector("#tell-result details pre").innerText;
+    side.querySelector("#tell-edit").click();
+    await wait(300);
+    const format = (b) => (b.output_config && b.output_config.format) || null;
+    return {
+      formats: bodies.map((b) => (format(b) ? format(b).type : "none")).join(" "),
+      maxItems: bodies.some((b) => /"maxItems"/.test(JSON.stringify(format(b) || {}))),
+      prompt: bodies[0].messages[0].content.slice(0, 400), again: bodies[1].messages[0].content === bodies[0].messages[0].content,
+      repair: bodies[2].messages[bodies[2].messages.length - 1].content, said: bodies[2].messages[1].content === bad,
+      first, fixed, wrote, lisp: document.getElementById("ed-lisp").value,
+    };
+  })()`);
+  check(toldJson.formats === "json_schema none json_schema" && !toldJson.maxItems && /written as JSON/.test(toldJson.prompt) && toldJson.again, `the request carries the schema (Anthropic's output_config.format), and one the provider refuses is asked again without it (${toldJson.formats})`);
+  check(/wrote it as JSON, which the page put into Ken's notation/.test(toldJson.first) && /hunter/.test(toldJson.first) && /isn't defined|two defined characters/.test(toldJson.first), "the draft says the model wrote JSON, and the checks find the character it didn't define");
+  check(/Reply with the whole corrected film description as JSON, in the same form/.test(toldJson.repair) && /hunter/.test(toldJson.repair) && toldJson.said, "asked to fix it, the model gets its JSON back and the problems, and is asked for JSON again");
+  check(/4 characters/.test(toldJson.fixed) && /nothing wrong/.test(toldJson.fixed) && /"characters": \[/.test(toldJson.wrote), "the fixed draft passes Ani's checks, with what the model wrote a click away");
+  check(/^;; -\*-lisp-\*-\n;; cast: red-riding-hood = Red Riding Hood \(she\)/.test(toldJson.lisp) && /\(define red-riding-hood character/.test(toldJson.lisp) && /\(compile-actors\)\s*$/.test(toldJson.lisp), "the editor gets the description in Ken's notation, cast line and all");
+
+  // Gemini Nano, stood in for by a LanguageModel in the page: the schema goes as Chrome's
+  // responseConstraint (and needn't take up its input), with the compact prompt
+  const nanoReply = JSON.stringify(JSON.parse(jsonWay.rrhJson));
+  const nanoScript = await send("Page.addScriptToEvaluateOnNewDocument", { source: `window.__nanoCalls = [];
+    window.LanguageModel = {
+      availability: async () => "available",
+      create: async (opts) => ({
+        inputQuota: 1e6, inputUsage: 0, measureInputUsage: async () => 1000, destroy() {},
+        promptStreaming(text, o) {
+          window.__nanoCalls.push({ text, constraint: o && o.responseConstraint ? JSON.stringify(o.responseConstraint) : null, omit: !!(o && o.omitResponseConstraintInput) });
+          return new ReadableStream({ start(c) { c.enqueue(${JSON.stringify(nanoReply)}); c.close(); } });
+        },
+      }),
+    };` });
+  await open();
+  const toldNano = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-teller").click();
+    await wait(300);
+    const side = document.getElementById("side");
+    side.querySelector('[data-format="json"]').click();
+    side.querySelector('[data-provider="nano"]').click();
+    await wait(100);
+    side.querySelector('[data-story="0"]').click();
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await wait(100);
+    const c = window.__nanoCalls[0] || {};
+    return { calls: window.__nanoCalls.length, constraint: c.constraint || "", omit: c.omit, compact: /\`\`\`json\\n\\{"characters":\\[\\{"name":"cinderella"/.test(c.text || ""), result: side.querySelector("#tell-result").innerText };
+  })()`);
+  await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: nanoScript.identifier });
+  check(toldNano.calls === 1 && /^\{"type":"object"/.test(toldNano.constraint) && !/"pattern"/.test(toldNano.constraint) && toldNano.omit && toldNano.compact, "Gemini Nano gets the schema as Chrome's responseConstraint, not counted in its input, with the compact prompt");
+  check(/Gemini Nano wrote it as JSON/.test(toldNano.result) && /4 characters/.test(toldNano.result) && /nothing wrong/.test(toldNano.result), "and its JSON reply becomes a draft that passes Ani's checks");
 
   // Ken's Beauty and the Beast as the model's reply: the draft says what the page tidied,
   // and so does the editor; missing relationships are filled in only in 1978 mode; then
@@ -424,6 +607,7 @@ try {
     document.getElementById("open-teller").click();
     await wait(200);
     const side = document.getElementById("side");
+    side.querySelector('[data-format="lisp"]').click();
     side.querySelector('[data-mode="1978"]').click();
     side.querySelector('[data-provider="anthropic"]').click();
     await wait(100);
@@ -487,6 +671,7 @@ try {
     document.getElementById("open-teller").click();
     await new Promise((r) => setTimeout(r, 200));
     const side = document.getElementById("side");
+    side.querySelector('[data-format="lisp"]').click();
     side.querySelector('[data-provider="anthropic"]').click();
     await new Promise((r) => setTimeout(r, 100));
     side.querySelector('[data-story="1"]').click();
@@ -709,6 +894,7 @@ try {
     document.getElementById("open-teller").click();
     await wait(200);
     const side = document.getElementById("side");
+    side.querySelector('[data-format="lisp"]').click();
     side.querySelector('[data-mode="revival"]').click();
     side.querySelector('[data-provider="anthropic"]').click();
     await wait(100);
