@@ -25,7 +25,7 @@
 
 ;;; ------------------------------------------------- helps-along
 
-;;why: helping is shown as Michotte's launching: the one helped sets off towards where it is going, slowly, on its own; the helper comes up to it and, with no pause (a pause would make it accompanying, and with none "observers perceived the first square as causing the other to move", AI-TR-540 pp. 158-159, L4168-4178), they go on together at the helper's pace, the one helped in front, as a pushee is moved with its pusher's dynamics (disply.311:303-315)
+;;why: helping is shown as Michotte's launching, which Ken's pushing is made of: the one helped sets off towards where it is going, slowly, on its own; the helper goes round behind it and comes up against it, as a pusher comes in contact (disply.311:277-288), and with no pause (with none "observers perceived the first square as causing the other to move", and a pause would make it accompanying, AI-TR-540 pp. 158-159, L4168-4178) they go on together to where it was going, the one helped in front and the helper behind, at the helper's pace, as a pushee is moved with its pusher's dynamics (disply.311:289-315)
 (define helps-along display-method
  (add prerequisite for (helps-along ? ?helped ?place) (can-move ,helped ,place)))
 
@@ -34,14 +34,15 @@
  (plus-time-to-bring-on
   helped helper subscene
   (add-to-estimates
-   .5 ;;the helper sets off half a second after the one it helps
+   (+$ .5 ;;the helper sets off half a second after the one it helps
+       (time-to-walk helper .075 (special-dynamics-of helper subscene) subscene)) ;;to contact
    (add-time-estimates
     (estimate-time-to-move-character helper
-				     (where-contact-is helped helper subscene)
+				     (where-behind-is helped place helper subscene)
 				     '(stop-when-there (quote ,subscene))
 				     (special-dynamics-of helper subscene)
 				     subscene
-				     .33) ;;a third of the screen if not placed yet
+				     .4) ;;a third of the screen and round, if not placed yet
     (estimate-time-to-move-character helped
 				     place
 				     '(stop-when-there (quote ,subscene))
@@ -58,7 +59,8 @@
        (helper-special-dynamics (divide-speed-by-factor helper factor subscene))
        (helped-special-dynamics (divide-speed-by-factor helped factor subscene))
        (tries-alone-plan (activity-name-of 'trying-alone))
-       (go-to-plan (activity-name-of 'goes-to-help))
+       (go-to-plan (activity-name-of 'goes-behind-to-help))
+       (contact-plan (activity-name-of 'comes-in-contact-to-help))
        (help-plan (activity-name-of 'helping-along)))
       (move-character tries-alone-plan
 		      helped
@@ -69,15 +71,26 @@
 		      (multiply-dynamics-by-factor helped-special-dynamics .5) ;;struggling
 		      'careful ;;of collisions
 		      subscene)
+      ;;to a small distance behind it, on the other side from where it is going
+      ;;(interf.149:395-402)
       (move-character go-to-plan
 		      helper
-		      '(contact-with ,helped by ,helper)
+		      '(a-small-distance-away-from (vicinity-of ,helped) ,place)
 		      'moving-target
 		      '(stop-when-there-then (quote ,subscene)
 					     (stop-plan (quote ,tries-alone-plan)))
 		      0.5 ;;start half a second after it begins
 		      helper-special-dynamics
 		      'careful ;;of collisions
+		      subscene)
+      (move-character contact-plan
+		      helper
+		      '(contact-with ,helped by ,helper)
+		      'moving-target
+		      '(stop-when-there (quote ,subscene))
+		      '(after (end-of ,go-to-plan) 0.0)
+		      helper-special-dynamics
+		      'regardless ;;of collisions, as a pusher comes in contact
 		      subscene)
       (move-characters help-plan
 		       helped ;;in front
@@ -88,15 +101,16 @@
 			 (stop-after-so-many-seconds
 			  ,(-$ (ask ,subscene recall your running-time) 1.0))
 			 (stop-when-there (quote ,subscene)))
-		       '(after (end-of ,go-to-plan) .05) ;;no pause, as pushing has none
+		       '(after (end-of ,contact-plan) .05) ;;no pause, as pushing has none
 		       (multiply-dynamics-by-factor helper-special-dynamics .8)
 		       'careful ;;of collisions but not themselves of course
 		       subscene)
       (cond (get-on-stage-plan
 	     (ask ,subscene add (sequence: ,get-on-stage-plan
-					   (and ,tries-alone-plan ,go-to-plan ,help-plan))
+					   (and ,tries-alone-plan ,go-to-plan
+						,contact-plan ,help-plan))
 		  to your list of movements))
-	    (t (ask ,subscene add (and ,tries-alone-plan ,go-to-plan ,help-plan)
+	    (t (ask ,subscene add (and ,tries-alone-plan ,go-to-plan ,contact-plan ,help-plan)
 		    to your list of movements))))
  (record-distance-estimates '(distance-between (vicinity-of ,helper) (vicinity-of ,helped))
 			    '(screen-fraction .05) ;;they end together
@@ -104,10 +118,10 @@
 
 ;;; ------------------------------------------------- moves-away-from
 
-;;why: avoiding shown as Michotte's viewers saw it: "as though B was afraid when A approached, and ran off" (AI-TR-540 p. 158, L4157): the other comes a small part of the way towards the one who avoids it, which, half a second later, goes off the other way, to Ken's away-from position (interf.149:374-388)
+;;why: avoiding shown as Michotte's viewers saw it: "as though B was afraid when A approached, and ran off" (AI-TR-540 p. 158, L4157): the other comes a small part of the way towards the one who avoids it, which, half a second later, runs off the other way, as far as Ken's chasee runs from its chaser, a quarter of the screen (convey.64:102-111), regardless of anyone in its way, as Ken's exit-by "just get[s] out of there" (disply.311:1022-1040)
 (define moves-away-from display-method
  (add prerequisite for (moves-away-from ?who ?other)
-		       (can-move ,who (away-from (vicinity-of ,who) (vicinity-of ,other)))))
+		       (can-move ,who (distance-away-from (vicinity-of ,who) (vicinity-of ,other) .25))))
 
 (define-receiver (estimate time for moves-away-from ?who ?other in ?subscene) moves-away-from
  (plus-time-to-bring-on
@@ -115,11 +129,10 @@
   (add-to-estimates
    .5 ;;it goes off half a second after the other comes towards it
    (estimate-time-to-move-character who
-				    '(away-from (vicinity-of ,who) (vicinity-of ,other))
+				    .25 ;;a quarter of the screen, whether placed or not
 				    '(stop-when-there (quote ,subscene))
 				    (special-dynamics-of who subscene)
-				    subscene
-				    .33)))) ;;as far as the other is, a third if not placed
+				    subscene))))
 
 (define-receiver (run moves-away-from ?who ?other in ?subscene stretched by ?factor)
 		 moves-away-from
@@ -140,12 +153,12 @@
 		      subscene)
       (move-character away-plan
 		      who
-		      '(away-from (vicinity-of ,who) (vicinity-of ,other))
+		      '(distance-away-from (vicinity-of ,who) (vicinity-of ,other) .25)
 		      'stationary-target
 		      '(stop-when-there (quote ,subscene))
 		      '(after (beginning-of ,approach-plan) .5)
 		      (divide-speed-by-factor who factor subscene)
-		      'careful ;;of collisions
+		      'regardless ;;just get out of there, as exit-by does
 		      subscene)
       (cond (get-on-stage-plan
 	     (ask ,subscene add (sequence: ,get-on-stage-plan (and ,approach-plan ,away-plan))
@@ -215,20 +228,21 @@
 			    '(screen-fraction .1) ;;close behind
 			    subscene))))
 
-;; Where a walk to contact with who by other goes, for an estimate. INTERF works out
-;; (contact-with who by other) from the distance between the two (interf.149:291-305),
-;; which, when one has a place in the subscene and the other none yet, is nil (with a
-;; warning, interf.149:744-748), and its min of the sizes and nil stops pass 2. That
-;; happens when the subscene runs its methods and REVIVE;MEND6 makes again an estimate
-;; that didn't count bringing someone on: Cinderella has a place from the hits before,
-;; the Prince none. So an estimate then takes a third of the screen, as Ken's estimates
-;; take when the characters are not placed (disply.311:120-124); when neither has a
-;; place, Ken's form gives that too.
-(defun where-contact-is (who other subscene)
-  (cond ((and (located? '(vicinity-of ,who) subscene)
-	      (located? '(vicinity-of ,other) subscene))
-	 '(contact-with ,who by ,other))
-	(t .33)))
+;; Where the helper's walk round behind the one it helps goes, for an estimate: a place
+;; only if both have one in the subscene. When one has a place and the other none yet,
+;; INTERF's distance between them is nil (with a warning, interf.149:744-748), and
+;; working out a place from it can stop pass 2: contact-with takes the min of the sizes
+;; and that nil (interf.149:291-305). That happens when the subscene runs its methods and
+;; REVIVE;MEND6 makes again an estimate that didn't count bringing someone on: in Ken's
+;; Introduction Cinderella has a place from the hits before, the Prince none. So an
+;; estimate then takes a distance, a third of the screen and a little more to go round,
+;; as Ken's estimates take a third when the characters are not placed
+;; (disply.311:120-124).
+(defun where-behind-is (helped place helper subscene)
+  (cond ((and (located? '(vicinity-of ,helped) subscene)
+	      (located? '(vicinity-of ,helper) subscene))
+	 '(a-small-distance-away-from (vicinity-of ,helped) ,place))
+	(t .4)))
 
 (defun initial-locations-for-helps-along (helper helped subscene)
   (place-medium-distance-apart 'helps-along
