@@ -280,6 +280,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .stop-box { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--rejected-soft); font-size: 0.92rem; }
 .stop-box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .stop-box .stopped { font-weight: 600; }
+.stop-box details.said { border-top: 0; padding-top: 2px; font-size: 0.86rem; }
+.stop-box details.said > summary { font-weight: 400; color: var(--muted); }
+.send-box { display: grid; gap: 8px; margin-top: 6px; }
+.send-box pre { max-height: 16em; overflow: auto; }
 .btn.revival { border-color: var(--ours); color: var(--ours); background: var(--ours-soft); font-weight: 600; height: auto; min-height: 34px; padding: 4px 12px; }
 .made-with { color: var(--ours); }
 
@@ -1232,6 +1236,8 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   // across by no one (what Lisp typed names the message Director couldn't run)
   if (/BAD-MESSAGE/i.test(m) && (x = said.match(/\(RUN MAKES-FENCE ([^\s)]+)/i))) return { text: `To keep two apart, Ani chose to have ${who(x[1].toLowerCase())} make a fence, a way Ken's DISPLY names but never gives a way to run.`, repair: "set the fence aside, so that Ani chooses another way, as she chose standing guard for Cinderella" };
   if (/BAD-MESSAGE/i.test(m) && /\(RUN NIL\b/i.test(said)) return { text: "Standing guard, Ken's code has someone else walk across meanwhile; there was no one else, and it planned that walk as nothing, which Director can't run.", repair: "leave out the walk that isn't there" };
+  // any other message an actor didn't understand: who, and which, in plain words
+  if (/BAD-MESSAGE/i.test(m) && (x = notUnderstood(typed))) return { text: notUnderstoodText(x), repair: null };
   // REVIVE;MEND13 and MEND15: two characters at one spot, or two goals that lead to each other
   if (/Maximum call stack size exceeded/i.test(m)) return { text: "Ani went round and round reckoning a place: two characters stood at the very same spot (a division by zero), or two characters' goals each depended on the other's.", repair: "reckon from a spot to itself as Ken's own turtle would, and take a character's own place when its goal leads back to it" };
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
@@ -1263,8 +1269,32 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if ((x = m.match(/\(\((?:[A-Z0-9]+ )?([A-Z0-9]+)\) ([A-Z0-9]+) ([A-Z0-9]+)\) \|does not exist\|/i))) return { text: "It starts from where the scene before it left everyone, and that scene wasn't filmed.", repair: null, knock: true };
   return { text: esc(stopText(m)), repair: null };
 }
+// Ken's warning before break BAD-MESSAGE, in what Lisp typed last: ";warning from BEAST:
+// (PROCESS EACH INITIAL DESCRIPTION (PHYSICAL UGLY PHYSICALLY-STRONG)) is not understood",
+// read as { actor, message }, each as Lisp, or null.
+function notUnderstood(typed) {
+  const said = (typed || []).join(" ").replace(/\s+/g, " ");
+  const x = said.match(/;warning from (.+?): (\(.*\)) is not understood/i);
+  if (!x) return null;
+  try { return { actor: parse(x[1].toLowerCase()), message: parse(x[2].toLowerCase()) }; } catch { return null; }
+}
+// "Ani couldn't read the beast's description: (physical ugly physically-strong) — two
+// words need (and ...) around them."; or, for any other message, who didn't understand it.
+function notUnderstoodText({ actor, message }) {
+  const whom = Array.isArray(actor) && actor[0] === "relationship-of" ? `the relationship of ${who(actor[1])} to ${who(actor[2])}`
+    : typeof actor === "string" ? who(actor) : plain(show(actor));
+  const each = Array.isArray(message) && show(message.slice(0, 4)) === "(process each initial description)" ? message[4] : null;
+  if (Array.isArray(each) && each.length > 2 && each.every((w) => typeof w === "string")) {
+    return `Ani couldn't read ${esc(whom)}'s description: ${esc(show(each))} — ${NUMBER_WORDS[each.length - 1] || each.length - 1} words need (and ...) around them.`;
+  }
+  if (Array.isArray(each) && each.length === 2 && Array.isArray(each[1]) && each[1][0] !== "and") {
+    return `Ani couldn't read ${esc(whom)}'s description: ${esc(show(each))} — a list of words needs “and” first: (${esc(each[0])} (and ${esc(each[1].map(show).join(" "))})).`;
+  }
+  if (Array.isArray(message) && message[0] === "run") return `Director was asked to run ${esc(plain(show(message[1])))}, a way of showing that no file of Ken's gives a way to run.`;
+  return `${esc(cap(whom))} didn't understand a message Ani sent: “${esc(plain(show(message)))}”.`;
+}
 // What stopped a run: pass 1, or each scene that stopped or never ended, with the scenes
-// stopped for the same reason together.
+// stopped for the same reason together, and what Lisp typed last as the first stopped.
 function stopsOf(run) {
   if (!run || !run.status) return [];
   const out = [];
@@ -1272,10 +1302,10 @@ function stopsOf(run) {
     const same = out.find((x) => x.text === why.text && x.repair === why.repair);
     if (same) same.where.push(where); else out.push({ where: [where], ...why });
   };
-  if (run.status.error) add("Pass 1", whyStopped(run, run.status.error, run.status.typed));
+  if (run.status.error) add("Pass 1", { ...whyStopped(run, run.status.error, run.status.typed), lisp: lispSaid(run.status.error, run.status.typed) });
   run.scenes.forEach((sc, i) => {
     const title = run.titles[run.sceneIds[i]];
-    if (sc && sc.error) add(title, whyStopped(run, sc.error, sc.typed, sc.id));
+    if (sc && sc.error) add(title, { ...whyStopped(run, sc.error, sc.typed, sc.id), lisp: lispSaid(sc.error, sc.typed) });
     else if (ready(sc) && sc.film.frames.length > CAP_SECONDS * fpsOf(sc)) add(title, { text: `It hadn't ended when Director stopped filming it, after ${CAP_WORDS}.`, repair: null });
     // Ani's fresh look after a change (REVIVE;CHANGE), if it stopped
     const ch = run.raw.changes && run.raw.changes[run.sceneIds[i]];
@@ -1283,6 +1313,8 @@ function stopsOf(run) {
   });
   return out;
 }
+// The error and what Lisp typed last, as Lisp said them.
+const lispSaid = (error, typed) => [...(typed || []).filter((l) => !/^--- type \(\?\) for help/.test(l)), String(error || "")].filter(Boolean).join("\n");
 // Would the revival's repairs go on where this run, by Ani as in 1978, stopped?
 const mendable = (run) => !!run && !runExtensions(run).length && SWITCHED.includes("mend") && !(run.status && run.status.running) && stopsOf(run).some((s) => s.repair);
 // Where a run stopped, and for a run by Ani as in 1978 that stopped where the revival's
@@ -1291,7 +1323,7 @@ function stopBox(run) {
   const list = stopsOf(run);
   if (!list.length) return "";
   const ours = runExtensions(run).length;
-  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}</li>`).join("");
+  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}${s.lisp ? `<details class="said"><summary>What Lisp said</summary><pre class="lisp">${esc(s.lisp)}</pre></details>` : ""}</li>`).join("");
   return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : "Where Ani as in 1978 stopped"}</p><ul>${items}</ul>
     ${mendable(run) ? `<div class="actions"><button type="button" class="btn revival" data-remake>Make it again with ${esc(REVIVAL)}</button></div>` : ""}</div>`;
 }
