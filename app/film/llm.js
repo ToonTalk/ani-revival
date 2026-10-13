@@ -94,28 +94,45 @@ function cindyExample() {
 // with the repairs (MEND), Ani can show a meeting on its own too; with CHANGE, a scene may
 // change a character, in the form of Ken's commented-out cinderella-beautified
 // (cindy.46:94-105). With none, the prompt is as it was.
+// With KNOW, the knowledge Ken could have added (REVIVE;KNOW: DATA.know), its words are in
+// the lists, and the prompt teaches its ways of showing relationships, its three tasks
+// (helps, avoids, follows) and its feelings, each feeling in one form, (fear (positive
+// high)): only Ken's joy is shown negative (REVIVE;KNOWEM; reports/ext/know/README.md).
 // format "json": the same guidance, for a description written as JSON (app/film/json.js),
 // each notation's own lines chosen by L(lisp, json); "lisp" (the default): Ken's notation.
 function storyPrompt(story, { compact = false, extensions = [], format = "lisp" } = {}) {
   const mend = extensions.includes("mend");
   const change = extensions.includes("change");
+  const know = extensions.includes("know") && !!DATA.know;
   const j = format === "json";
   const L = (lisp, json) => (j ? json : lisp);
-  const verbs = j ? pairVerbs(extensions).filter((v) => !["accompanys", "chases", "hurts", "pushes", "alone", "getting-it-on", "meets"].includes(v)) : [];
+  const knowVerbs_ = know ? pairVerbs(extensions).filter((v) => DATA.know.verbs[v]) : [];
+  const verbs = j ? pairVerbs(extensions).filter((v) => !["accompanys", "chases", "hurts", "pushes", "alone", "getting-it-on", "meets", ...knowVerbs_].includes(v)) : [];
+  // KNOW's three tasks, each with what it shows
+  const KNOW_TASK = { helps: "X helping Y along (Y sets off alone; X comes up behind and helps it on)", avoids: "X keeping away from Y (when Y comes near, X runs off)", follows: "X following Y wherever it goes" };
+  const knowTasks = knowVerbs_.map((v) => L(`  (convey (${v} X Y)) for ${KNOW_TASK[v] || v}`, `  {"kind": "${v}", "who": X, "whom": Y} for ${KNOW_TASK[v] || v}`)).join("\n");
+  // the ways of showing KNOW gives relationships (likes, is-obedient-to, ...), from its index
+  const shownBy = {};
+  if (know) for (const k of DATA.know.knowledge) if (k.element === "establish" && (vocabularyFor(extensions)[k.source] || {}).kind === "relationship") (shownBy[k.verb] ||= []).push(k.source);
+  for (const [w, x] of Object.entries(DATA.know ? DATA.know.words : {})) if (know && x.kind === "relationship" && x.borrows) for (const n of x.borrows) for (const v of Object.keys(shownBy)) if (shownBy[v].includes(n) && !shownBy[v].includes(w)) shownBy[v].push(w);
+  const KNOW_SHOW = { follows: "following the other", helps: "helping the other", avoids: "keeping away from the other", accompanys: "going along with the other" };
+  const relShown = Object.entries(shownBy).map(([v, ws]) => `${words(ws)} by ${KNOW_SHOW[v] || v}`);
+  const others = know ? feelingWords(extensions).filter((f) => f !== "joy") : [];
   return `Ani is a program Ken Kahn wrote at MIT in 1978. Given a film description in his Lisp notation, it plans and animates a short film in which each character is a simple shape (Cinderella was a star). Turn the story at the end into a film description Ani can run${L("", ", written as JSON: the page puts it into Ken's notation for Ani")}.
 
 Write it in exactly the form of the example (Ken's own description of Cinderella${L("", ", as JSON")}), using ONLY the words listed here; Ani stops on anything else.
 
 CHARACTERS
 - 2 to 5 characters (never more than 6). Names are lowercase words joined by hyphens, like red-riding-hood or wolf.
-- ${L("Each one: (define name character (process initial description (physical ...) (personality ...))). Each of physical and personality is one word or (and word word ...). The main character also gets (role-in-story most-important). A character may also get (movement graceful) or (movement clumsy).", `Each one: {"name", "called", "pronoun", "physical", "personality", "movement"}. called is what people call them, with "the" where English needs it ("the wolf"), and pronoun she, he or they. physical and personality are each a list of one word or more; movement is [], ["graceful"] or ["clumsy"]. "main" names the main character.`)}
+- ${L(`Each one: (define name character (process initial description (physical ...) (personality ...))). Each of physical and personality is one word or (and word word ...). The main character also gets (role-in-story most-important). ${know ? `A character may also get (movement W), W one of: ${slotWords("movement", extensions).join(" ")}.` : "A character may also get (movement graceful) or (movement clumsy)."}`, `Each one: {"name", "called", "pronoun", "physical", "personality", "movement"}. called is what people call them, with "the" where English needs it ("the wolf"), and pronoun she, he or they. physical and personality are each a list of one word or more; ${know ? `movement is [] or one of ${slotWords("movement", extensions).map((w) => `["${w}"]`).join(", ")}` : `movement is [], ["graceful"] or ["clumsy"]`}. "main" names the main character.`)}
 - physical: ${wordList("physical", extensions)}
 - personality: ${wordList("personality", extensions)}
 
 RELATIONSHIPS
 - ${L("Define (relationship-of a b)", `Give a relationship {"from": a, "to": b, "how": [...]}`)} ${mend ? `for each ordered pair who feel something about each other; a to b and b to a are two relationships.` : `for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.`}
 - ${L("Each is one word or (and word word ...)", "how is a list of one word or more")}: ${wordList("relationship", extensions)}
-${mend ? `- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.` : `- For characters who have little to do with each other, use is-polite-to: Ani has no neutral word, and is-polite-to is the mildest, with no suggestions of its own.`}
+${relShown.length ? `- Ani shows how one character feels about another by what they do: ${relShown.join("; ")} (as well as the ways she always had, such as loves by going along with the other).
+` : ""}${mend ? `- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.` : `- For characters who have little to do with each other, use is-polite-to: Ani has no neutral word, and is-polite-to is the mildest, with no suggestions of its own.`}
 - Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
 
 SCENES (2 to 5, in story order)
@@ -124,7 +141,7 @@ ${L(`- (define scene-name scene (process initial description TASKS) (set your mo
 - steps are Ken's (sequence: ...) of (and ...)s: the steps come in this order, and the tasks within a step Ani may order as she likes. So one step of several tasks lets Ani order them all, and one task alone is [[task]].`)}
 - A task is one of these, with X, Y, Z characters:
 ${j ? `  {"kind": "establish-personality", "who": X}
-  {"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]} with positive or negative, and low, medium or high; a feeling is one of: ${feelingWords(extensions).join(", ")}
+  {"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]} with positive or negative, and low, medium or high; a feeling is one of: ${feelingWords(extensions).join(", ")}${others.length ? `; only joy may be "negative" (unhappy): ${words(others)} are always "positive", and a negative one shows nothing` : ""}
   {"kind": "establish-relationship", "from": X, "to": Y} for a relationship you defined
   {"kind": "wants", "who": X, "meets": [X, Y]}
   {"kind": "prevents", "who": X, "meets": [Y, Z]}
@@ -134,11 +151,13 @@ ${j ? `  {"kind": "establish-personality", "who": X}
   {"kind": "getting-it-on", "who": X, "whom": Y} for two characters in love coming together
   {"kind": "aware", "who": X, "gettingItOn": [Y, Z]}${verbs.length ? `
   {"kind": "${verbs[0]}", "who": X, "whom": Y}${verbs.length > 1 ? `, and so too ${words(verbs.slice(1))}` : ""}` : ""}${change ? `
-  {"kind": "change-personality", "who": X, "from": OLD, "to": NEW, "causedBy": ""} for X changing: OLD is the words of X's personality that go and NEW the words that take their place; causedBy is Y when Y brings the change about. change-physical and change-movement work the same way, and so does how X feels about Y: {"kind": "change-relationship", "who": X, "whom": Y, "from": OLD, "to": NEW, "causedBy": ""}` : ""}${mend ? `
+  {"kind": "change-personality", "who": X, "from": OLD, "to": NEW, "causedBy": ""} for X changing: OLD is the words of X's personality that go and NEW the words that take their place; causedBy is Y when Y brings the change about. change-physical and change-movement work the same way, and so does how X feels about Y: {"kind": "change-relationship", "who": X, "whom": Y, "from": OLD, "to": NEW, "causedBy": ""}` : ""}${knowTasks ? `
+${knowTasks}` : ""}${mend ? `
   {"kind": "meets", "who": X, "whom": Y} for X going to meet Y
-  Nothing else: Ani can't show helps, gives, says, and so on.` : `
-  Nothing else: Ani can't show "meets" on its own, or helps, gives, says, and so on.`}` : `  (establish (personality X))
-  (establish (emotional-state X (joy (positive low)))) with positive or negative, and low, medium or high
+  Nothing else: Ani can't show ${knowTasks ? "" : "helps, "}gives, says, and so on.` : `
+  Nothing else: Ani can't show "meets" on its own, or ${knowTasks ? "" : "helps, "}gives, says, and so on.`}` : `  (establish (personality X))
+  (establish (emotional-state X (joy (positive low)))) with positive or negative, and low, medium or high${others.length ? `
+  a feeling may also be ${words(others).replace(/ and ([^ ]+)$/, " or $1")}, written as joy is but always positive, as (fear (positive high)); a negative one shows nothing, so for unhappiness use (joy (negative ...)); several feelings at once go in (and ...), as in the example` : ""}
   (establish (relationship (relationship-of X Y))) for a relationship you defined
   (convey (wants X (meets X Y)))
   (convey (prevents X (meets Y Z)))
@@ -150,21 +169,22 @@ ${j ? `  {"kind": "establish-personality", "who": X}
   (convey (alone X Y)) means everyone else leaves, so that X and Y are alone together (Ani shows it by the others leaving the stage); don't use it for X leaving Y alone
   (convey (getting-it-on X Y)) for two characters in love coming together
   (convey (aware X (getting-it-on Y Z)))${change ? `
-  (convey (change (personality X OLD) (personality X NEW))) for X changing: OLD is the words of X's personality that go and NEW the words that take their place, each one word or (and word word ...); write it (convey (causes Y (change ...))) when Y brings the change about. physical works the same way, and so does how X feels about Y: (change (relationship (relationship-of X Y) OLD) (relationship (relationship-of X Y) NEW))` : ""}${mend ? `
+  (convey (change (personality X OLD) (personality X NEW))) for X changing: OLD is the words of X's personality that go and NEW the words that take their place, each one word or (and word word ...); write it (convey (causes Y (change ...))) when Y brings the change about. physical works the same way, and so does how X feels about Y: (change (relationship (relationship-of X Y) OLD) (relationship (relationship-of X Y) NEW))` : ""}${knowTasks ? `
+${knowTasks}` : ""}${mend ? `
   (convey (meets X Y)) for X going to meet Y
-  Nothing else: Ani can't show helps, gives, says, and so on.` : `
-  Nothing else: Ani can't show (meets X Y) on its own, or helps, gives, says, and so on.`}`}
+  Nothing else: Ani can't show ${knowTasks ? "" : "helps, "}gives, says, and so on.` : `
+  Nothing else: Ani can't show (meets X Y) on its own, or ${knowTasks ? "" : "helps, "}gives, says, and so on.`}`}
 - M (mood): ${MOODS.join(", ")}
 - R (rhythm): ${RHYTHMS.join(", ")}
 - L (length): short, medium or long
 
 MAKING A GOOD FILM
-- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's shame (establish${L(" ", "-")}emotional-state), a rivalry becomes chases or pushes, a friendship accompanys.
+- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's ${know ? "unhappiness" : "shame"} (establish${L(" ", "-")}emotional-state), a rivalry becomes chases or pushes, a friendship accompanys${know ? ", a fright avoids, loyalty follows" : ""}.
 - Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
 - chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a ${L("sequence: with other tasks after them", "step with other steps after it")}; never make a scene of pushes alone.
 - Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
 - In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
-- Ani shows what a mean or evil character is like by having them pick on their victim: ${L("(establish (personality X))", "establish-personality of X")} has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: ${L("(establish (emotional-state X (pride (negative high))))", `{"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "pride", "sign": "negative", "amount": "high"}]}`)}.${change ? `
+- Ani shows what a mean or evil character is like by having them pick on their victim: ${L("(establish (personality X))", "establish-personality of X")} has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: ${know ? L("(establish (emotional-state X (joy (negative high))))", `{"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "joy", "sign": "negative", "amount": "high"}]}`) : L("(establish (emotional-state X (pride (negative high))))", `{"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "pride", "sign": "negative", "amount": "high"}]}`)}.${change ? `
 - A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with ${L("(establish (personality X))", "establish-personality of X")}.` : ""}
 
 THE FILM
@@ -189,10 +209,24 @@ THE STORY:
 ${story.trim()}`;
 }
 const unhtml = (s) => String(s).replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
-function repairPrompt(problems, format = "lisp") {
-  return format === "json"
-    ? `Ani's checker found these problems with that film description (in Ken's notation, as the page put your JSON):\n${problems.map((p) => "- " + unhtml(p)).join("\n")}\n\nReply with the whole corrected film description as JSON, in the same form, and nothing else.`
-    : `Ani's checker found these problems with that film description:\n${problems.map((p) => "- " + unhtml(p)).join("\n")}\n\nReply with the whole corrected film description in one \`\`\`lisp code block, and nothing else.`;
+// text: the description the problems are in; for a problem with an undoes, the prompt
+// names each scene and the tasks a later scene may undo, exactly as they must be copied.
+function repairPrompt(problems, format = "lisp", text = "") {
+  const json = format === "json";
+  let undo = "";
+  if (text && problems.some((p) => /undo|isn't an earlier scene|copy it exactly/i.test(unhtml(p)))) {
+    const story = readStory(text);
+    const ids = Object.keys(story.scenes);
+    const lines = ids.map((id) => {
+      const done = tasksOf(story.scenes[id].tasks).filter((t) => t[0] === "convey" && Array.isArray(t[1]) && t[1][0] !== "undoes");
+      const what = done.map((t) => (json ? flatJson(taskJson(t)) : show(t)));
+      return `- ${id}: ${what.length ? what.join(json ? ", " : " ") : "nothing a later scene can undo"}`;
+    });
+    undo = `\n\nAn undoes task undoes only what someone did in a scene before its own: a ${json ? "convey task (not an establish-...)" : "(convey ...) task"} of that scene, copied exactly${json ? ` as "undone", with that scene's name as "scene"` : ", inside (from-scene that-scene ...)"}. The scenes, in order, and what each one does that a later scene may undo:\n${lines.join("\n")}\nIf there is nothing earlier to undo, leave the undoes out.`;
+  }
+  return json
+    ? `Ani's checker found these problems with that film description (in Ken's notation, as the page put your JSON):\n${problems.map((p) => "- " + unhtml(p)).join("\n")}${undo}\n\nReply with the whole corrected film description as JSON, in the same form, and nothing else.`
+    : `Ani's checker found these problems with that film description:\n${problems.map((p) => "- " + unhtml(p)).join("\n")}${undo}\n\nReply with the whole corrected film description in one \`\`\`lisp code block, and nothing else.`;
 }
 // The Lisp in a reply: the fenced block (or, failing one, the reply from its first Lisp
 // line on), with the lines Ken's files always have written as he wrote them, and each
@@ -354,10 +388,15 @@ const CALLS = {
     if (!LM) throw new Error("This browser has no built-in Gemini Nano (it needs desktop Chrome).");
     // the conversation so far goes in as the session's opening prompts, as Agent Kit does
     const initialPrompts = turns.slice(0, -1).map((t) => ({ role: t.role, content: t.content }));
+    // Chrome fires downloadprogress even when the model is already there (loaded 1 at
+    // once), so the download is said only while one is really under way
+    const downloading = teller.nano !== "available";
     const session = await LM.create({
       ...NANO_OPTIONS, signal, ...(initialPrompts.length ? { initialPrompts } : {}),
-      monitor(m) { m.addEventListener("downloadprogress", (e) => setTellerStatus(`Chrome is downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`)); },
+      monitor(m) { m.addEventListener("downloadprogress", (e) => { if (downloading && e.loaded < 1) setTellerStatus(`Chrome is downloading Gemini Nano: ${Math.round(e.loaded * 100)}%`); }); },
     });
+    teller.nano = "available";
+    setTellerStatus("");
     try {
       const last = turns[turns.length - 1].content;
       if (typeof session.measureInputUsage === "function" && session.inputQuota) {
@@ -507,9 +546,12 @@ async function draftStory({ repair = null } = {}) {
     const format = repair ? repair.format || "lisp" : teller.format === "lisp" ? "lisp" : "json";
     const extensions = modeExtensions();
     const turns = repair
-      ? [...repair.turns, { role: "assistant", content: repair.reply }, { role: "user", content: repairPrompt(repair.problems, format) }]
+      ? [...repair.turns, { role: "assistant", content: repair.reply }, { role: "user", content: repairPrompt(repair.problems, format, repair.text) }]
       : [{ role: "user", content: storyPrompt(story, { compact: id === "nano", extensions, format }) }];
-    const reply = await CALLS[id](turns, { signal: ctl.signal, schema: format === "json" ? storySchema(extensions) : null, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = text.slice(-1500); } } });
+    // what has come so far, shown as it streams, without the runs of blank space a model
+    // held to a schema pads its JSON with (Gemini Nano does)
+    const streamed = (text) => (format === "json" ? text.replace(/\s+/g, " ") : text.replace(/[ \t]+$/gm, "").replace(/\n{2,}/g, "\n")).slice(-1500);
+    const reply = await CALLS[id](turns, { signal: ctl.signal, schema: format === "json" ? storySchema(extensions) : null, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = streamed(text); } } });
     if (!String(reply).trim()) throw new Error("The model sent back an empty answer.");
     // put into Ken's notation (a reply in Lisp anyway is read as Lisp), or balanced; then
     // tidied (tidyStory), each said in the draft
@@ -518,7 +560,9 @@ async function draftStory({ repair = null } = {}) {
     const tidy = tidyStory(balancedText);
     const text = tidy.text;
     const { problems } = checkStory(text);
-    const tidied = [...(repair && teller.draft ? teller.draft.tidied || [] : []), ...tidy.fixes];
+    // what the page tidied in this reply (a fixed one is written again whole, so what was
+    // tidied in the one before it no longer applies)
+    const tidied = tidy.fixes;
     teller.draft = { text, reply, turns, problems, balanced, tidied, format, json: fromJson && fromJson.json, story: repair && teller.draft ? teller.draft.story : story, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
     say(`${PROVIDERS[id].label} ${repair ? "fixed" : "wrote"} it${fromJson ? " as JSON" : ""} in ${clock(Date.now() - t0)}.`);
     showDraft();
@@ -562,7 +606,7 @@ function showDraft(failure = null) {
       ${d.json ? `<details><summary>What ${esc(PROVIDERS[d.provider].label)} wrote</summary><div class="body"><pre class="lisp">${esc(printJson(d.json))}</pre></div></details>` : ""}
       <details><summary>The film description, as Ani will read it</summary><div class="body"><pre class="lisp">${esc(formatLisp(d.text))}</pre></div></details>
     </div>`;
-  result.querySelector("#tell-fix")?.addEventListener("click", () => draftStory({ repair: { turns: d.turns, reply: d.reply, problems, format: d.format } }));
+  result.querySelector("#tell-fix")?.addEventListener("click", () => draftStory({ repair: { turns: d.turns, reply: d.reply, problems, format: d.format, text: d.text } }));
   result.querySelector("#tell-fill")?.addEventListener("click", () => { d.text = fillRelationships(d.text); showDraft(); });
   result.querySelector("#tell-edit").addEventListener("click", () => {
     // laid out to fit the editor; printed again only where not a word changes

@@ -12,13 +12,14 @@
 // page's check translates back to CINDY's forms. Where a provider refuses the schema, the
 // page asks again without it, and its checks catch what the schema would have.
 
-// The slots' words: the page's vocabulary (DATA.words, from DSCRP and RELATE; a word of
-// the revival's own counts only with its extension on), those with suggestions of their
-// own first. The prompt lists these; the schema also allows the words Ken himself gave in
-// each slot in CINDY (strong as the Prince's looks, is-protective-of), as the example has them.
+// The slots' words: the page's vocabulary (DATA.words, from DSCRP and RELATE; with the
+// revival's KNOW on, its words too, vocabularyFor), those of each kind first, then those
+// known only through another word. The prompt lists these; the schema also allows the
+// words Ken himself gave in each slot in CINDY (strong as the Prince's looks,
+// is-protective-of), as the example has them.
 function slotWords(kind, extensions = []) {
-  const w = DATA.words, on = (x) => !w[x].revival || extensions.includes("know");
-  return [...Object.keys(w).filter((x) => w[x].kind === kind && on(x)), ...Object.keys(w).filter((x) => !w[x].kind && w[x].kindByRelation === kind && on(x))];
+  const w = vocabularyFor(extensions);
+  return [...Object.keys(w).filter((x) => w[x].kind === kind), ...Object.keys(w).filter((x) => !w[x].kind && w[x].kindByRelation === kind)];
 }
 function schemaWords(kind, extensions) {
   const ken = readStory(DATA.cindy);
@@ -37,12 +38,15 @@ const SLOTS = ["physical", "personality", "movement"];
 // only with the repairs (as the prompt says) and any of the revival's KNOW the checks take.
 function feelingWords(extensions) {
   const know = extensions.includes("know") && DATA.know ? Object.keys(DATA.know.feelings || {}) : [];
-  return [...new Set(["joy", "pride", ...know])].filter((f) => emotionOk([f, ["positive", "low"]]));
+  return [...new Set(["joy", "pride", ...know])].filter((f) => emotionOk([f, ["positive", "low"]], extensions));
 }
+// with KNOW, a feeling of the revival's shows only a positive level (REVIVE;KNOWEM): only
+// Ken's joy is shown negative, as unhappy
+const signedFeelings = (extensions) => (extensions.includes("know") ? ["joy"] : feelingWords(extensions));
 function pairVerbs(extensions) {
   const base = ["accompanys", "chases", "hurts", "pushes", "alone", "getting-it-on", ...(extensions.includes("mend") ? ["meets"] : [])];
   const know = extensions.includes("know") && DATA.know ? Object.keys(DATA.know.verbs || {}) : [];
-  const takes = (v) => { const p = []; checkTasks({ characters: { a: {}, b: {} }, relationships: [], scenes: { s: { tasks: ["convey", [v, "a", "b"]] } }, titles: {}, names: {} }, "s", [], p, []); return !p.length; };
+  const takes = (v) => { const p = []; checkTasks({ characters: { a: {}, b: {} }, relationships: [], scenes: { s: { tasks: ["convey", [v, "a", "b"]] } }, titles: {}, names: {} }, "s", [], p, [], extensions); return !p.length; };
   return [...base, ...know.filter((v) => !base.includes(v) && takes(v))];
 }
 
@@ -58,9 +62,12 @@ function storySchema(extensions = []) {
   const name = { type: "string", pattern: "^[a-z][a-z0-9-]*$" };
   const pair = { ...list(name, 2), maxItems: 2 };
   const words = (kind, min = 1) => list(one(schemaWords(kind, extensions)), min);
+  // a feeling, signed as Ani shows it: with KNOW, only joy negative (signedFeelings)
+  const signed = signedFeelings(extensions), positive = feelingWords(extensions).filter((f) => !signed.includes(f));
+  const feeling = (fs, signs) => obj({ feeling: one(fs), sign: one(signs), amount: one(LEVELS) });
   const tasks = [
     obj({ kind: one(["establish-personality"]), who: name }),
-    obj({ kind: one(["establish-emotional-state"]), who: name, feelings: list(obj({ feeling: one(feelingWords(extensions)), sign: one(["positive", "negative"]), amount: one(LEVELS) })) }),
+    obj({ kind: one(["establish-emotional-state"]), who: name, feelings: list(positive.length ? { anyOf: [feeling(signed, ["positive", "negative"]), feeling(positive, ["positive"])] } : feeling(signed, ["positive", "negative"])) }),
     obj({ kind: one(["establish-relationship"]), from: name, to: name }),
     obj({ kind: one(pairVerbs(extensions)), who: name, whom: name }),
     obj({ kind: one(["wants", "prevents"]), who: name, meets: pair }),

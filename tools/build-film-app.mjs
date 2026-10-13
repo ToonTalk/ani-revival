@@ -11,24 +11,28 @@
 // the revival's extensions", an index of their code for the glass box's links, and how
 // Ken drew his cast in 1978 (src/pipeline.js KEN_LOOKS, with ANINIT's lines) for "How she
 // looks".
-// Everything is inlined, gzipped as base64, so the page works opened directly, served,
-// or published as a claude.ai artifact (which can fetch nothing).
+// Everything is inlined, gzipped and written as text (pack93: 13 bits to two printable
+// characters, denser than base64), so the page works opened directly, served, or
+// published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/llm.js (telling Ani a new story),
 // app/film/json.js (the JSON way of telling it), app/film/save.js (saving films) and
 // app/film/report.js (reporting errors, and stories sent, to Ken, where
-// tools/build-site.mjs gives the site's page a DSN) put in at /*FILM-PARTS*/.
+// tools/build-site.mjs gives the site's page a DSN) put in at /*FILM-PARTS*/, and
+// src/pipeline.js's own functions for renaming a story's names that clash with Ani's
+// (storyOutline, storyRenames, renameStoryNames) at /*STORY-NAMES*/, with the names
+// taken (aniNames) in its data.
 // Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
-import { gzipSync } from "node:zlib";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS } from "../src/pipeline.js";
+import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
@@ -182,6 +186,148 @@ function packFilm(film) {
   return { ...rest, packed: { segs, chars } };
 }
 
+// ---- the page's data, carried as text
+
+// Each of the page's three blocks of data (its film data, Ani's runtime and the files Ani
+// reads) is gzipped and written as text: the number of bytes, a space, and then the bytes
+// 13 bits at a time, each as two characters of TEXT93, the 93 printable ASCII characters
+// but the space and "<" (so that nothing in a block can end its <script> or begin a
+// comment there). That is 6.5 bits a character, where base64 carries 6, which keeps the
+// claude.ai copy under claude.ai's limit. The page's unpack() reads a block back, and so
+// does unpack93 here, which the build checks every block with.
+export const TEXT93 = [...Array(94)].map((_, k) => String.fromCharCode(33 + k)).filter((c) => c !== "<").join("");
+export function pack93(bytes) {
+  const out = [];
+  let acc = 0, bits = 0;
+  const put = (v) => out.push(TEXT93[v % 93], TEXT93[Math.floor(v / 93)]);
+  for (const b of bytes) {
+    acc |= b << bits;
+    bits += 8;
+    if (bits >= 13) { put(acc & 8191); acc >>>= 13; bits -= 13; }
+  }
+  if (bits > 0) put(acc & 8191);
+  return `${bytes.length} ${out.join("")}`;
+}
+export function unpack93(text) {
+  const s = text.trim(), sp = s.indexOf(" "), n = Number(s.slice(0, sp));
+  const bytes = new Uint8Array(n);
+  let acc = 0, bits = 0, o = 0;
+  for (let i = sp + 1; i + 1 < s.length && o < n; i += 2) {
+    acc |= (TEXT93.indexOf(s[i]) + 93 * TEXT93.indexOf(s[i + 1])) << bits;
+    bits += 13;
+    while (bits >= 8 && o < n) { bytes[o++] = acc & 255; acc >>>= 8; bits -= 8; }
+  }
+  if (o !== n) throw new Error(`a block of the page's data is short: ${o} bytes of ${n}`);
+  return bytes;
+}
+function packText(text) {
+  const gz = gzipSync(Buffer.from(text, "utf8"), { level: 9 });
+  const block = pack93(gz);
+  if (/[< ]/.test(block.slice(block.indexOf(" ") + 1))) throw new Error("a block of the page's data has a space or a <");
+  if (gunzipSync(unpack93(block)).toString("utf8") !== text) throw new Error("a block of the page's data doesn't read back as written");
+  return block;
+}
+
+// JavaScript without its comments, its indentation and the spaces and line ends no token
+// needs (tools/strip-js-comments.mjs), checked: every string, template and regular
+// expression in it must come out exactly as written, and it must still read as JavaScript,
+// lines joined and all (node --check, as a module for .mjs, a classic script for .cjs);
+// otherwise the build stops.
+function stripChecked(js, what, ext) {
+  const stripped = stripComments(js);
+  if (JSON.stringify(stringsOf(js)) !== JSON.stringify(stringsOf(stripped))) throw new Error(`taking the comments out of ${what} changed a string`);
+  const tmp = join(tmpdir(), `ani-stripped-${process.pid}${ext}`);
+  writeFileSync(tmp, stripped);
+  const checked = spawnSync(process.execPath, ["--check", tmp], { encoding: "utf8" });
+  rmSync(tmp, { force: true });
+  if (checked.status !== 0) throw new Error(`${what} doesn't read as JavaScript without its comments: ${(checked.stderr || "").split("\n").slice(0, 5).join(" ")}`);
+  return stripped;
+}
+
+// The differences that make b of a, two JSON values: [[path, value]], each value put at
+// its path (a list of keys); a list or object whose keys differ is put whole.
+export function jsonPatch(a, b, path = [], out = []) {
+  if (JSON.stringify(a) === JSON.stringify(b)) return out;
+  const both = a && b && typeof a === "object" && typeof b === "object" && Array.isArray(a) === Array.isArray(b);
+  if (!both || (Array.isArray(a) ? a.length !== b.length : JSON.stringify(Object.keys(a)) !== JSON.stringify(Object.keys(b)))) { out.push([path, b]); return out; }
+  for (const k of Object.keys(b)) jsonPatch(a[k], b[k], [...path, Array.isArray(b) ? Number(k) : k], out);
+  return out;
+}
+export function applyJsonPatch(a, patch) {
+  let out = JSON.parse(JSON.stringify(a));
+  for (const [path, v] of patch) {
+    if (!path.length) { out = v; continue; }
+    let o = out;
+    for (const k of path.slice(0, -1)) o = o[k];
+    o[path[path.length - 1]] = v;
+  }
+  return out;
+}
+
+// ---- a story's names that clash with Ani's
+
+// The names a story's scenes and characters may not have (src/pipeline.js aniNames: a
+// file that defines one would replace the story's scene or character when it loads), for
+// the page's tidy step: those of Ani as in 1978, and those each extension adds; and the
+// file each is loaded from (its tags entry, as load.33 fills them; none for an actor Ani
+// already has when she starts), for saying why. The page takes a run's names as Ken's
+// and each of its extensions' together, which is checked here against aniNames for all
+// of them at once.
+function storyNames(root) {
+  const fs = makeProjectFileSystem(root);
+  const base = aniNames(fs, { extensions: [] });
+  const byExtension = {};
+  for (const e of EXTENSIONS) byExtension[e.id] = [...aniNames(fs, { extensions: [e.id] })].filter((n) => !base.has(n)).sort();
+  const all = EXTENSIONS.map((e) => e.id);
+  const union = new Set([...base, ...all.flatMap((id) => byExtension[id])]);
+  const real = aniNames(fs, { extensions: all });
+  if (union.size !== real.size || [...real].some((n) => !union.has(n))) throw new Error("the names each extension takes don't add up to those all of them take together (aniNames)");
+  // where each is loaded from, in a Lisp booted as aniNames boots one
+  const L = boot(fs, { extensions: all });
+  L.evalString("(load '|ken;dscrp >|)");
+  L.evalString("(load '|ken;relate >|)");
+  const ACTOR_LOAD = L.obarray.find("ACTOR-LOAD");
+  const byFile = {}; // "KEN;EMOTE" -> the names it defines
+  for (const name of [...real].sort()) {
+    const sym = L.obarray.find(name.toUpperCase());
+    for (let p = sym && sym.plist; p && p !== L.NIL && p.cdr; p = p.cdr.cdr) {
+      if (p.car === ACTOR_LOAD) { (byFile[L.print(p.cdr.car).replace(/^\|(.*)\|$/, "$1")] ||= []).push(name); break; }
+    }
+  }
+  return { base: [...base].sort(), byExtension, byFile };
+}
+
+// The functions src/pipeline.js renames a story's clashing names with, as written there,
+// for the page's tidy step, so that the page and the pipeline use one helper: each a
+// top-level function, ending at a line that is only "}", or a const on one line. The
+// build checks that they rename a story as src/pipeline.js's own do.
+const STORY_NAME_FUNCTIONS = ["readForms", "storyOutline", "LASTING", "changesOfTasks", "changesIn", "storyRenames", "renameStoryNames"];
+function pipelineFunctions(root) {
+  const src = readFileSync(`${root}/src/pipeline.js`, "utf8").replace(/\r\n?/g, "\n");
+  const code = STORY_NAME_FUNCTIONS.map((name) => {
+    const m = new RegExp(`^(?:export )?(function\\*? ${name}\\(|const ${name} = )`, "m").exec(src);
+    if (!m) throw new Error(`src/pipeline.js has no top-level ${name}`);
+    const end = m[1].startsWith("const") ? src.indexOf(";\n", m.index) + 2 : src.indexOf("\n}\n", m.index) + 3;
+    if (end < m.index + 3) throw new Error(`src/pipeline.js's ${name} doesn't end as the build expects`);
+    return src.slice(m.index, end).replace(/^export /, "");
+  }).join("\n");
+  const page = new Function(`${code}\nreturn { storyOutline, storyRenames, renameStoryNames };`)();
+  const sample = `;; cast: alone = the alone one (she); goat = the goat (she)
+;; scenes: fear = Fear; screen = The Screen
+(define alone character (process initial description (personality (and kind alone))))
+(define goat character (process initial description (personality shy)))
+(define (relationship-of alone goat) relationship (process initial description loves))
+(define fear scene (process initial description (and (establish (emotional-state alone (fear high))) (convey (alone alone goat)))))
+(define screen scene (process initial description (convey (undoes goat (from-scene fear (convey (alone alone goat)))))))
+(define the-films-focus focus (set your parts-of-the-focus to (alone fear screen (relationship-of alone goat))))
+`;
+  const taken = new Set(["alone", "fear", "screen"]);
+  const ours = renameStoryNames(sample, storyRenames(storyOutline(sample), taken));
+  const theirs = page.renameStoryNames(sample, page.storyRenames(page.storyOutline(sample), taken));
+  if (ours !== theirs || ours === sample) throw new Error("the page's copy of src/pipeline.js's story-name functions renames a story differently");
+  return code;
+}
+
 const SCENES = [
   ["introduction", "The Introduction"],
   ["kept-apart", "Kept Apart"],
@@ -218,10 +364,21 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     // the revival's knowledge (REVIVE;KNOW): each piece with its file, line and why, for
     // the glass box's marks, and the words Ani knows with KNOW on (tools/know-index.mjs)
     know: knowIndex(root),
+    // the names a story's scenes and characters may not have, for the page's tidy step
+    names: storyNames(root),
   };
-  const packed = (text) => gzipSync(Buffer.from(text, "utf8"), { level: 9 }).toString("base64");
-  // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last
-  const runtime = bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js"], "AniRuntime", root);
+  // a 24-frame scene's glass box is its 4-frame one but for where the scenes before it left
+  // the characters: carried as the differences (jsonPatch), which the page applies
+  if (data.scenes24) for (const s of data.scenes24) {
+    const base = data.scenes.find((x) => x.id === s.id).glass;
+    const patch = jsonPatch(base, s.glass);
+    if (JSON.stringify(applyJsonPatch(base, patch)) !== JSON.stringify(s.glass)) throw new Error(`${s.id}'s 24-frame glass box doesn't come back from its differences`);
+    if (JSON.stringify(patch).length < JSON.stringify(s.glass).length) { s.glassPatch = patch; delete s.glass; }
+  }
+  const packed = packText;
+  // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last;
+  // without its comments, as the claude.ai copy's script goes (stripChecked)
+  const runtime = stripChecked(bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js"], "AniRuntime", root), "Ani's runtime", ".cjs");
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
   const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
@@ -230,7 +387,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
   const parts = ["llm.js", "json.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }
@@ -249,14 +406,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const b = content.indexOf("</script>", a);
     if (a < open.length || b < 0 || content.indexOf(open, a) >= 0) throw new Error("the page should have one module script");
     const js = content.slice(a, b);
-    const stripped = stripComments(js);
-    if (JSON.stringify(stringsOf(js)) !== JSON.stringify(stringsOf(stripped))) throw new Error("taking the comments out of the claude.ai copy's script changed a string");
-    // and it must still read as JavaScript, lines joined and all (node --check)
-    const tmp = join(tmpdir(), `ani-claude-script-${process.pid}.mjs`);
-    writeFileSync(tmp, stripped);
-    const checked = spawnSync(process.execPath, ["--check", tmp], { encoding: "utf8" });
-    rmSync(tmp, { force: true });
-    if (checked.status !== 0) throw new Error(`the claude.ai copy's script doesn't read as JavaScript: ${(checked.stderr || "").split("\n").slice(0, 5).join(" ")}`);
+    const stripped = stripChecked(js, "the claude.ai copy's script", ".mjs");
     sizes.comments = js.length - stripped.length;
     content = content.slice(0, a) + stripped + content.slice(b);
   }
