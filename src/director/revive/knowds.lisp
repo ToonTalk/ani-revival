@@ -20,12 +20,14 @@
 ;;;    takes them, reversed, through Ken's opposite links, as brazen takes shy's
 ;;;    (cosug.215:68-83). Some have a way of establishing themselves too (pass 2).
 ;;;
-;;; None of these is linked to a word CINDY uses that has suggestions of its own, and
-;;; none with suggestions of its own is linked to any word CINDY uses, so Ken's
-;;; Cinderella makes the same 102 choices in pass 1 (CP 29): DESCRIPTOR spreads a link
-;;; to the neighbors' neighbors and the opposites' opposites (char.2:111-131), so
-;;; wicked, a neighbor of evil, becomes an opposite of good and kind too, and timid an
-;;; opposite of brazen and forward; test/know.test.js checks the live links. Physical
+;;; The words linked to words CINDY uses (timid, wicked and cruel here, and KNOWRL's
+;;; dislikes) have no suggestions of their own, and none with suggestions of its own is
+;;; linked to any word CINDY uses, so Ken's Cinderella makes the same 102 choices in
+;;; pass 1 (CP 29): her words' neighbors and opposites suggest nothing new. DESCRIPTOR
+;;; spreads a link to the neighbors' neighbors and the opposites' opposites
+;;; (char.2:111-131), so wicked, a neighbor of evil, becomes an opposite of good and kind
+;;; too, and timid an opposite of brazen and forward; test/know.test.js checks the rule
+;;; on the live links. Physical
 ;;; words for how a character looks belong to REVIVE;APSUG, not here; old and young are
 ;;; here for how a character moves.
 
