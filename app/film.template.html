@@ -2783,8 +2783,8 @@ function checkStory(text) {
   const missing = story.missingPairs;
   const pairs = `${missing.slice(0, 5).map(([a, b]) => `how ${esc(nameOf(story, a))} feels about ${esc(nameOf(story, b))}`).join("; ")}${missing.length > 5 ? `; and ${missing.length - 5} more` : ""}`;
   if (missing.length) stops.push({
-    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair she hasn't been told about. Missing: ${pairs}. Fill them in, or make it with the revival's repairs, which take a missing one as unknown.`,
-    mended: `The story doesn't say ${pairs}; the revival's repairs take a missing relationship as unknown.`,
+    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair she hasn't been told about. Missing: ${pairs}. Fill them in (the page fills them with “is polite to”: Ani has no neutral word, and that is the mildest of hers, with no suggestions of its own), or make it with the revival's repairs, which take a missing one as unknown, which is neutral.`,
+    mended: `The story doesn't say ${pairs}; the revival's repairs take a missing relationship as unknown, which is neutral: asked whether one likes the other, Ani hears “don't know” (REVIVE;MEND4), so nothing needs filling in.`,
   });
   const sceneIds = Object.keys(story.scenes);
   if (!sceneIds.length) problems.push("It defines no scenes.");
@@ -2855,7 +2855,9 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
   };
   visit(story.scenes[sceneId].tasks);
 }
-// The relationships a story is missing, filled in with a word that suggests nothing.
+// The relationships a story is missing, filled in with a word that suggests nothing, for
+// Ani as in 1978, who asks about every pair (with the revival's extensions a missing one is
+// taken as unknown, which is neutral, REVIVE;MEND4, so nothing is filled in).
 function fillRelationships(text, word = "is-polite-to") {
   const { story } = checkStory(text);
   const missing = story.missingPairs || [];
@@ -3225,7 +3227,7 @@ function refreshEditor({ fromLisp = false } = {}) {
       return `<div class="ed-char"><b>${icon(c, 16, look)} ${esc(cap(nameOf(story, c)))}${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}</b>${rows}</div>`;
     }).join("");
     rels.innerHTML = story.relationships.filter((r) => story.characters[r.from] && story.characters[r.to]).map((r) => `<div class="ed-rel"><span>${icon(r.from, 13, look)} ${esc(cap(nameOf(story, r.from)))} → ${esc(nameOf(story, r.to))}</span>${chipsFor(r.how, { from: r.from, to: r.to }, true)}</div>`).join("") +
-      (story.missingPairs && story.missingPairs.length ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
+      (story.missingPairs && story.missingPairs.length && as1978 ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
     rels.querySelector("#ed-fill")?.addEventListener("click", () => setEditorText(fillRelationships(editor.text)));
   }
   const ta = side.querySelector("#ed-lisp");

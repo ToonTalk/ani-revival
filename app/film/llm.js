@@ -110,9 +110,9 @@ CHARACTERS
 - personality: ${wordList("personality")}
 
 RELATIONSHIPS
-- Define (relationship-of a b) for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.
+${mend ? `- Define (relationship-of a b) for each ordered pair who feel something about each other; a to b and b to a are two relationships.` : `- Define (relationship-of a b) for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.`}
 - Each is one word or (and word word ...): ${wordList("relationship")}
-- For characters who have little to do with each other, use is-polite-to.
+${mend ? `- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.` : `- For characters who have little to do with each other, use is-polite-to: Ani has no neutral word, and is-polite-to is the mildest, with no suggestions of its own.`}
 - Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
 
 SCENES (2 to 5, in story order)
@@ -501,7 +501,7 @@ function showDraft(failure = null) {
       ${notes.length || mended.length ? `<ul class="changes note">${[...mended, ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
       <div class="actions">
         ${problems.length ? `<button type="button" class="btn" id="tell-fix">Ask ${esc(PROVIDERS[d.provider].label)} to fix these</button>` : ""}
-        ${story.missingPairs && story.missingPairs.length ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships</button>` : ""}
+        ${story.missingPairs && story.missingPairs.length && as1978 ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships (as “is polite to”)</button>` : ""}
         <button type="button" class="btn primary" id="tell-edit">${problems.length ? "Open it in the editor" : "Look it over, then make the film"}</button>
       </div>
       <details><summary>The film description, as Ani will read it</summary><div class="body"><pre class="lisp">${esc(formatLisp(d.text))}</pre></div></details>
