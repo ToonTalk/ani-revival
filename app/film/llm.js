@@ -145,11 +145,13 @@ MAKING A GOOD FILM
 - Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
 - chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a sequence: with other tasks after them; never make a scene of pushes alone.
 - Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
-- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.${change ? `
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+- Ani shows what a mean or evil character is like by having them pick on their victim: (establish (personality X)) has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: (establish (emotional-state X (pride (negative high)))).${change ? `
 - A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with (establish (personality X)).` : ""}
 
 THE FILM
 - After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.
+- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies her choices, and originality whether she repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
 - Keep the example's first lines (the -*-lisp-*- line, (include |ai:ken;declar >|), (defcomment cindy)) and its last line, (compile-actors).
 
 Right after the first line, add two comment lines naming things for people:
