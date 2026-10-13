@@ -23,7 +23,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { makeFilmSteps, storyOutline, storyPlan, pass1, pass2, film, isAppearanceChoice, choosesLooks } from "../src/pipeline.js";
+import { makeFilmSteps, storyOutline, storyPlan, storyWithoutClashes, pass1, pass2, film, isAppearanceChoice, choosesLooks } from "../src/pipeline.js";
 import { Lisp } from "../src/maclisp/index.js";
 import { printString } from "../src/maclisp/printer.js";
 
@@ -43,10 +43,12 @@ const only = list(opt("--scenes", ""));
 const outPath = opt("--out", null);
 const backtraces = !args.includes("--no-backtrace");
 
-// the page's editor gives Ani lines ending in LF
-const description = readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n");
+// the page's editor gives Ani lines ending in LF; a scene or character named as
+// something of Ani's is renamed, as makeFilmSteps renames it (src/pipeline.js
+// storyWithoutClashes), so that a failed step run again here is the same step
 const root = fileURLToPath(new URL("..", import.meta.url));
 const fs = makeProjectFileSystem(root);
+const { text: description, renames } = storyWithoutClashes(fs, readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n"), { extensions });
 // as makeFilmSteps makes it, for running a failed step again
 const plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions), change: extensions.includes("change") });
 
@@ -60,7 +62,7 @@ const typed = () => (lisp ? lisp.ttyText.join("").replace(/\r/g, "").trim().spli
 
 const seconds = (t0) => Math.round((Date.now() - t0) / 100) / 10;
 const oneLine = (s, n = 220) => s.replace(/\s+/g, " ").slice(0, n);
-const result = { story: storyPath, extensions, fps, frames, pass1: null, scenes: [] };
+const result = { story: storyPath, extensions, fps, frames, ...(renames.length ? { renames } : {}), pass1: null, scenes: [] };
 let at = { step: null, scene: null, t0: Date.now() };
 
 // The forms on Lisp's stack when it stopped, innermost first: the first few, then the
@@ -147,6 +149,7 @@ function repairNotes(repairs) {
   return notes;
 }
 
+for (const r of renames) console.log(`renamed the ${r.kind} ${r.from} ${r.to}: Ani's files name something ${r.from}`);
 console.log(`${storyPath}: ${plan.scenes.length} scene${plan.scenes.length === 1 ? "" : "s"} (${plan.scenes.map((s) => s.id).join(", ")}), ${plan.cast.length} characters; extensions: ${extensions.length ? extensions.join(", ") : "none (Ani as in 1978)"}; ${fps} frames a second, at most ${frames} a scene`);
 
 const steps = makeFilmSteps(fs, {

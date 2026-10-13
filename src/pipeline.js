@@ -80,7 +80,7 @@ export const EXTENSIONS = [
     // its feelings are combined with joy by MEND7's repair of COSUG's combine
     requires: ["mend"],
     changes1978: true,
-    note: "Knowledge Ken could have added (thesis p. 19: words such as \"clever\", \"fears\" or \"helps\" \"could be added\"), each piece in the idiom of the file of his it extends and each with its evidence or the revival's reason: words for characters (gentle, rough, nervous, calm, cheerful, gloomy, clever, brave, cowardly, curious, playful, old, young, slow and quick, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears; ways of showing likes, is-obedient-to and is-helpful-towards); ways of showing helps, avoids and follows (helps-along, moves-away-from and follows-behind); feelings (pride, anticipation, loneliness, fear and anger); and a word with no way of showing itself borrowing its neighbors' (dscrp.17:183). Ken's Cinderella makes the same choices in pass 1; in pass 2 Cinderella helps the Prince and follows her stepmother in the Introduction, where Ani had no idea how in 1978, and the stepmother's pride shows in Kept Apart.",
+    note: "Knowledge Ken could have added (thesis p. 19: words such as \"clever\", \"fears\" or \"helps\" \"could be added\"), each piece in the idiom of the file of his it extends and each with its evidence or the revival's reason: words for characters (gentle, rough, nervous, calm, cheerful, gloomy, clever, brave, cowardly, curious, playful, old, young, slow and quick, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears; ways of showing likes, is-obedient-to, is-helpful-towards, and, by Ken's decision 10, is-protective-to, is-grateful-to and is-intolerant-of; is-protective-of a neighbor of is-protective-to); ways of showing helps, avoids and follows (helps-along, moves-away-from and follows-behind); feelings (pride, anticipation, loneliness, fear and anger); and a word with no way of showing itself borrowing its neighbors' (dscrp.17:183). Ken's Cinderella makes the same choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where Ani had no idea how in 1978, and the stepmother's pride makes her paths smoother in Kept Apart.",
   },
 ];
 
@@ -784,6 +784,159 @@ export function storyPlan(outline, { looks = false, change = false } = {}) {
   return { ken, kenCast, scenes, cast };
 }
 
+// ---------------------------------------------------------------- a story's names
+
+// A story's scene or character must not be named as something Ani's files define: when
+// the file loads, its definition replaces the story's, and the scene or character is
+// gone. A scene called friends stopped a model's Lion and the Mouse once PREREQ loaded
+// and made friends a dummy prerequisite (prereq.19:134); with KNOW, a scene called fear
+// is made an emotion when EMOTE loads, and one called alone becomes CONVEY's verb. So a
+// story's names are checked against those of a Lisp booted with the extensions: every
+// name the tags give a file to load it from (Ken's, load.33:60-65, and the extensions'
+// own), every actor there already, and the words DSCRP and RELATE make by linking (a
+// story's brazen would be made shy's opposite). CINDY's own names are the story's to
+// use: the story is the next version of KEN;CINDY. A name that clashes is renamed,
+// fear to fear-scene, alone to alone-character, wherever the story names it (its
+// definition, the tasks, (from-scene ...), the focus, and the ";; cast:" and ";; scenes:"
+// lines, whose titles stay), and nowhere else: the feeling in (fear high) is left alone.
+// The page's tidy step and the JSON translator use the same helper.
+
+// The names a story may not use, lower case, for a Lisp booted with these extensions;
+// made once for each set of extensions.
+const namesTaken = new Map();
+export function aniNames(fs, { extensions = [] } = {}) {
+  const key = extensionsFor(extensions).map((e) => e.id).join(",");
+  if (namesTaken.has(key)) return namesTaken.get(key);
+  const L = boot(fs, { extensions });
+  L.evalString("(load '|ken;dscrp >|)");
+  L.evalString("(load '|ken;relate >|)");
+  const indicator = (name) => L.obarray.find(name);
+  const ACTOR_LOAD = indicator("ACTOR-LOAD"), ACTOR = indicator("ACTOR");
+  const names = new Set();
+  for (const [name, sym] of L.obarray.table) {
+    for (let p = sym.plist; p && p !== L.NIL && p.cdr; p = p.cdr.cdr) {
+      if (p.car === ACTOR || (p.car === ACTOR_LOAD && L.print(p.cdr.car) !== "|KEN;CINDY|")) {
+        names.add(name.toLowerCase());
+        break;
+      }
+    }
+  }
+  namesTaken.set(key, names);
+  return names;
+}
+
+// The renames a story needs: [{ kind: "scene" | "character", from, to }].
+export function storyRenames(outline, taken) {
+  const used = new Set([...outline.scenes, ...outline.characters]);
+  const renames = [];
+  for (const [kind, names] of [["scene", outline.scenes], ["character", outline.characters]]) {
+    for (const from of names) {
+      if (!taken.has(from)) continue;
+      let to = `${from}-${kind}`;
+      for (let k = 2; taken.has(to) || used.has(to); k++) to = `${from}-${kind}-${k}`;
+      used.add(to);
+      renames.push({ kind, from, to });
+    }
+  }
+  return renames;
+}
+
+// The story with its scenes and characters renamed (renames as storyRenames gives them),
+// only where they are named: each scene's and character's definition; in a
+// relationship's definition, its two characters; in a scene's description, every word
+// that is not the first of its list (characters and from-scene's scene), but for the
+// words of a description in a change, (personality goat (and kind good)); the focus's
+// parts; and the cast and scenes lines.
+export function renameStoryNames(text, renames) {
+  if (!renames.length) return text;
+  const to = new Map(renames.map((r) => [r.from, r.to]));
+  const edits = []; // [start, end, replacement]
+  const n = text.length;
+  let i = 0;
+  const skip = () => {
+    for (;;) {
+      while (i < n && /\s/.test(text[i])) i++;
+      if (text[i] !== ";") return;
+      while (i < n && text[i] !== "\n") i++;
+    }
+  };
+  const read = () => {
+    skip();
+    const c = text[i];
+    if (c === "(") {
+      i++;
+      const items = [];
+      for (;;) {
+        skip();
+        if (i >= n) return { items };
+        if (text[i] === ")") { i++; return { items }; }
+        items.push(read());
+      }
+    }
+    if (c === ")") { i++; return { atom: ")" }; }
+    if (c === "'") { i++; return { quoted: read() }; }
+    if (c === "|" || c === '"') {
+      const j = text.indexOf(c, i + 1);
+      i = j < 0 ? n : j + 1;
+      return { atom: "" };
+    }
+    const start = i;
+    let tok = "";
+    while (i < n && !/[\s()';|"]/.test(text[i])) {
+      if (text[i] === "/") { tok += text[i + 1] || ""; i += 2; continue; }
+      tok += text[i++];
+    }
+    return { atom: tok.toLowerCase(), start, end: i };
+  };
+  const rename = (x) => { if (x && x.atom && to.has(x.atom)) edits.push([x.start, x.end, to.get(x.atom)]); };
+  const WORDS = ["physical", "personality", "movement", "role-in-story", "relationship"];
+  // a scene's tasks: every word but a list's first, and but a change's words
+  const inTasks = (x) => {
+    if (!x || !x.items) return;
+    const head = x.items[0] && x.items[0].atom;
+    x.items.forEach((y, k) => {
+      if (WORDS.includes(head) && k >= 2) return; // (personality goat (and ...)), the words
+      if (y.items) return inTasks(y);
+      if (y.quoted) return inTasks(y.quoted);
+      if (k === 0) return;
+      rename(y);
+    });
+  };
+  const everything = (x) => {
+    if (!x) return;
+    if (x.items) x.items.forEach(everything);
+    else if (x.quoted) everything(x.quoted);
+    else rename(x);
+  };
+  for (skip(); i < n; skip()) {
+    const f = read();
+    if (!f.items || !f.items[0] || f.items[0].atom !== "define") continue;
+    const [, name, type, ...body] = f.items;
+    if (name && name.items) { if (name.items[0] && name.items[0].atom === "relationship-of") name.items.slice(1).forEach(rename); continue; }
+    if (type && (type.atom === "scene" || type.atom === "character")) rename(name);
+    if (type && type.atom === "scene") {
+      for (const b of body) if (b.items && b.items[0] && b.items[0].atom === "process") b.items.slice(3).forEach((t) => (t.items ? inTasks(t) : rename(t)));
+    }
+    if (type && type.atom === "focus") {
+      for (const b of body) {
+        const at = b.items ? b.items.findIndex((y) => y.atom === "parts-of-the-focus") : -1;
+        if (at >= 0) everything(b.items[at + 2]);
+      }
+    }
+  }
+  let out = text;
+  for (const [start, end, rep] of edits.sort((a, b) => b[0] - a[0])) out = out.slice(0, start) + rep + out.slice(end);
+  // ";; cast: goat = the goat (she); troll = ..." and ";; scenes: on-the-bridge = On the Bridge; ..."
+  return out.replace(/^(;;\s*(?:cast|scenes):)(.*)$/gm, (line, label, list) =>
+    label + list.replace(/(^|;)(\s*)([a-z0-9+:-]+)(\s*=)/gi, (m, sep, sp, id, eq) => sep + sp + (to.get(id.toLowerCase()) || id) + eq));
+}
+
+// The story with any clashing names renamed, and the renames made.
+export function storyWithoutClashes(fs, text, { extensions = [] } = {}) {
+  const renames = storyRenames(storyOutline(text), aniNames(fs, { extensions }));
+  return { text: renameStoryNames(text, renames), renames };
+}
+
 // ---------------------------------------------------------------- the whole film
 
 // Pass 1, then each scene's pass 2 and filming, in order, on fs, whose KEN;CINDY is the
@@ -820,7 +973,10 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
   extensionsFor(extensions); // an unknown one stops the run before it starts
   const change = extensionsFor(extensions).some((e) => e.sceneSteps);
   let plan = null;
+  let renames = [];
   if (description !== null) {
+    // a scene or character named as something of Ani's is renamed (storyWithoutClashes)
+    ({ text: description, renames } = storyWithoutClashes(fs, description, { extensions }));
     const versions = fs.dirs.get("KEN")?.get("CINDY");
     const top = versions ? Math.max(0, ...[...versions.keys()].filter((k) => /^\d+$/.test(k)).map(Number)) : 0;
     fs.addFile("KEN", "CINDY", String(top + 1), { text: description, origin: "changed" });
@@ -832,11 +988,13 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     const outline = cindy ? storyOutline(fs.textOf(cindy)) : null;
     if (outline && Object.keys(outline.changes).length) plan = storyPlan(outline, { looks: choosesLooks(extensions), change });
   }
-  const order = scenes || (plan ? plan.scenes.map((s) => s.id) : SCENES);
+  const renamed = (id) => (renames.find((r) => r.kind === "scene" && r.from === id) || { to: id }).to;
+  const order = scenes ? scenes.map(renamed) : plan ? plan.scenes.map((s) => s.id) : SCENES;
   progress("pass1", choosesLooks(extensions) ? "Pass 1: choosing how each character moves and looks" : "Pass 1: choosing how each character moves");
   yield;
   const p1 = pass1(fs, { extensions });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
+  if (renames.length) out.renames = renames; // [{ kind, from, to }]: the scenes and characters renamed
   if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
   if (p1.repairs) out.repairs = p1.repairs; // pass 1's, as each scene's glass box has its own
   if (p1.appearances) out.appearances = p1.appearances; // how Ani chose each character's look
