@@ -1442,6 +1442,9 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   // REVIVE;MEND16 and MEND17
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
   if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few she takes, and Ken never wrote what she does then (explore-method-suggestions).", repair: "keep the strongest few" };
+  // an open item: a scene whose only task is a relationship Ani shows by one thing the
+  // characters do (scene.9:535-538)
+  if (/cdr of non-list: CONVEY-TASK/i.test(m)) return { text: "The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped (scene.9:535-538). Give the scene a second task, such as how someone feels.", repair: null };
   if (/NO-SUCH-ACTOR/i.test(m)) {
     const name = (said.match(/ASK: (.+?) is not an actor/) || [])[1];
     const actor = name ? parse(name.toLowerCase()) : null;
@@ -2274,8 +2277,11 @@ function setChoicePoints(run, cps) {
   run.cpSyn = null; // made again when asked for (cpNamed)
 }
 function addScene(run, s) {
-  const i = run.sceneIds.indexOf(s.id);
+  // a scene src/pipeline.js renamed (fear-scene for fear), should the page's tidy step not have
+  let i = run.sceneIds.indexOf(s.id);
+  if (i < 0) i = run.sceneIds.findIndex((id) => new RegExp(`^${id}-scene(-\\d+)?$`).test(s.id));
   if (i < 0) return;
+  if (s.id !== run.sceneIds[i]) s = { ...s, id: run.sceneIds[i] };
   run.raw.scenes[i] = s;
   if (s.film && s.film.cast) for (const c of s.film.cast) { run.slots[c.name] = c.shape; run.shapes[c.name] = c.shape; }
   run.scenes[i] = prepScene(s, run);
@@ -3512,6 +3518,16 @@ function clashWhy(name, extensions) {
   const [dir, fn] = file ? file[0].split(";") : [];
   return { what, owner: file ? `${dir === "REVIVE" ? "the revival's" : "Ken's"} ${fn}` : null };
 }
+// A rename ({ kind, from, to }) as the tidy step says it: { short, long, before, after }.
+function renameFix(r, extensions) {
+  const { what, owner } = clashWhy(r.from, extensions);
+  return {
+    short: `renamed the ${r.kind} “${r.from}” to ${r.to}, since ${r.from} is ${what}`,
+    long: owner ? `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, and the file that defines it, ${esc(owner)}, would replace your ${r.kind} when it loads.`
+      : `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, which Ani has from the start, and your ${r.kind} would replace it.`,
+    before: r.from, after: r.to,
+  };
+}
 function tidyStory(text, { extensions = modeExtensions() } = {}) {
   const { forms, error } = topForms(text);
   if (error) return { text, fixes: [] };
@@ -3723,13 +3739,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
   if (renames.length) {
     at = text.length;
     out = STORY_NAMES.renameStoryNames(out, renames);
-    for (const r of renames) {
-      const { what, owner } = clashWhy(r.from, extensions);
-      fix(`renamed the ${r.kind} “${r.from}” to ${r.to}, since ${r.from} is ${what}`,
-        owner ? `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, and the file that defines it, ${esc(owner)}, would replace your ${r.kind} when it loads.`
-          : `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, which Ani has from the start, and your ${r.kind} would replace it.`,
-        r.from, r.to);
-    }
+    for (const r of renames) fixes.push({ ...renameFix(r, extensions), at });
   }
   if (out === text) return { text, fixes: [] };
   return { text: out, fixes: fixes.sort((a, b) => a.at - b.at).map(({ at: _, ...f }) => f) };
@@ -3978,7 +3988,7 @@ self.onmessage = function (e) {
   function post(m) { m.t = Date.now() - t0; postMessage(m); }
   try {
     var fs = AniRuntime.makeBundleFileSystem(JSON.parse(e.data.bundle));
-    AniRuntime.makeFilm(fs, {
+    var made = AniRuntime.makeFilm(fs, {
       description: e.data.description,
       keepGoing: true,
       frames: e.data.frames,
@@ -3989,7 +3999,7 @@ self.onmessage = function (e) {
       onScene: function (s) { if (s.error) s.typed = typed(); post({ type: "scene", scene: s }); },
       onChange: function (scene, record) { post({ type: "change", scene: scene, record: record }); }
     });
-    post({ type: "done" });
+    post({ type: "done", renames: (made && made.renames) || null });
   } catch (err) {
     post({ type: "error", message: String((err && err.message) || err), typed: typed() });
   }
@@ -4101,7 +4111,7 @@ async function runInPage(run, description) {
     if (RUNS[1] !== run || !run.status.running) return;
     let r;
     try { r = steps.next(); } catch (e) { failed(e); return; }
-    if (r.done) { post({ type: "done" }); return; }
+    if (r.done) { post({ type: "done", renames: (r.value && r.value.renames) || null }); return; }
   }
 }
 function onWorker(run, m) {
@@ -4131,6 +4141,12 @@ function onWorker(run, m) {
     if (run.sceneIds[state.scene] === m.scene.id) { drawBands(); render(); }
     if (state.panel === "compare") comparePanel();
   } else if (m.type === "done") {
+    // what src/pipeline.js storyWithoutClashes renamed as Ani read the story: nothing, as
+    // the page's tidy step renamed it already, but said if anything was
+    for (const r of m.renames || []) {
+      const f = renameFix(r, runExtensions(run));
+      if (!run.tidied.some((x) => x.short === f.short)) run.tidied.push(f);
+    }
     finishRun(run, {});
   } else if (m.type === "error") {
     finishRun(run, { error: m.message, typed: m.typed });
