@@ -418,6 +418,17 @@ const CALLS = {
           // older Chrome sent the whole answer so far each time, newer sends only the new part
           text = text && chunk.startsWith(text) ? chunk : text + chunk;
           if (onText) onText(text);
+          // held to the form, Nano can pad its JSON with white space and never stop (the form
+          // allows white space between any two parts): the answer ends once its JSON is whole,
+          // and after a long run of white space, what is still open is closed
+          if (on) {
+            const { end, open, inString } = scanJson(text);
+            if (end >= 0) { reader.cancel().catch(() => {}); return text.slice(0, end); }
+            if (/\s{400}$/.test(text)) {
+              reader.cancel().catch(() => {});
+              return (text.trimEnd() + (inString ? '"' : "")).replace(/,$/, "") + open.reverse().map((b) => (b === "{" ? "}" : "]")).join("");
+            }
+          }
         }
         return text;
       };
@@ -426,6 +437,20 @@ const CALLS = {
   },
 };
 const NANO_OPTIONS = { expectedInputs: [{ type: "text", languages: ["en"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] };
+// JSON read so far: where its outermost value ends (-1 if it hasn't), the brackets still
+// open, and whether it stops inside a string.
+function scanJson(text) {
+  const open = [];
+  let inString = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inString) { if (c === "\\") i++; else if (c === '"') inString = false; continue; }
+    if (c === '"') inString = true;
+    else if (c === "{" || c === "[") open.push(c);
+    else if ((c === "}" || c === "]") && open.length) { open.pop(); if (!open.length) return { end: i + 1, open, inString }; }
+  }
+  return { end: -1, open, inString };
+}
 const nanoApi = () => (typeof window.LanguageModel !== "undefined" && window.LanguageModel && typeof window.LanguageModel.create === "function" ? window.LanguageModel : null);
 
 // ---- the panel
