@@ -10,6 +10,15 @@
 ;;; revival's, with a ";;why:" line above it that tools/know-index.mjs reads for the
 ;;; glass box.
 ;;;
+;;; Ken's decision 10 (13 October 2026, reports/chapter-x/PLAN.md, "Decisions"): ways of
+;;; showing for three more of his words, is-protective-to and is-grateful-to by
+;;; accompanying, weakly, and is-intolerant-of by avoiding, as dislikes; none for
+;;; is-polite-to, is-impolite-to and is-tolerant-of, which Ani could show only by
+;;; gestures she doesn't have, so nothing else would be the "obvious information that
+;;; was lacking" his rule allows (AI-TR-540 p. 189); and CINDY's is-protective-of, a
+;;; word RELATE doesn't know, a neighbor of RELATE's is-protective-to (the idea of SLIPS'
+;;; S4, here as knowledge), so that it borrows is-protective-to's way of showing.
+;;;
 ;;; None has suggestions for the relative dynamics, as loves and dominates have
 ;;; (relate.22:21-27, 58-63), so none can move a choice of pass 1. Each is a way of
 ;;; showing the relationship, which pass 2 asks for (sugest.123:69-85). Cinderella's
@@ -29,12 +38,13 @@
 			 value (avoids ,character ,other-character))
 	       strength 'high)))
 
-;;why: PREREQ already reads dislikes as the other side of likes (prereq.19:117-118); one who dislikes another keeps away from it, as one who hates it may (relate.22:42-45)
+;;why: PREREQ already reads dislikes as the other side of likes (prereq.19:117-118); one who dislikes another keeps away from it, as one who hates it may, best when it doesn't dominate the other (relate.22:42-45)
 (define dislikes affection-relationship-descriptor
  (process suggestions
 	  (for (establish (dislikes ?character ?other-character))
 	       '(method: type convey
-			 value (avoids ,character ,other-character))
+			 value (avoids ,character ,other-character)
+			 best-when ((not (dominates ,character ,other-character))))
 	       strength 'medium)))
 
 ;;why: in 1978 "Ani has no idea how to establish that Cinderella is obedient towards ... her stepmother" (AI-TR-540 p. 65, L1855-1857); one who obeys another goes where it goes, following it
@@ -51,9 +61,35 @@
 			       value (helps ,character ,other-character))
 		     strength 'medium))
 
+;;why: one who is protective of another stays with it; Ken's decision 10 (13 October 2026): accompanying, weakly, as liking is shown
+(uncompiled-ask is-protective-to process suggestions
+		(for (establish (is-protective-to ?character ?other-character))
+		     '(method: type convey
+			       value (accompanys ,character ,other-character))
+		     strength 'low))
+
+;;why: one who is grateful to another is drawn to it; Ken's decision 10 (13 October 2026): accompanying, weakly
+(uncompiled-ask is-grateful-to process suggestions
+		(for (establish (is-grateful-to ?character ?other-character))
+		     '(method: type convey
+			       value (accompanys ,character ,other-character))
+		     strength 'low))
+
+;;why: one who can't bear another keeps away from it, as one who dislikes it does, best when it doesn't dominate the other (relate.22:42-45); Ken's decision 10 (13 October 2026)
+(uncompiled-ask is-intolerant-of process suggestions
+		(for (establish (is-intolerant-of ?character ?other-character))
+		     '(method: type convey
+			       value (avoids ,character ,other-character)
+			       best-when ((not (dominates ,character ,other-character))))
+		     strength 'medium))
+
+;;why: CINDY's word for how the fairy godmother is to Cinderella (cindy.46:36-38) is not RELATE's is-protective-to (relate.22:100); as its neighbor it borrows is-protective-to's way of showing. Defined, as CHAR makes a relationship word it doesn't know (char.2:162-168), a relationship-descriptor of no type, so that CINDY's description of it is as in 1978. Ken's decision 10 (13 October 2026), the idea of SLIPS' S4
+(define is-protective-of relationship-descriptor)
+
 (progn
  ;;why: to dislike is to hate, less
- (uncompiled-ask hates add dislikes to your list of neighbors))))
+ (uncompiled-ask hates add dislikes to your list of neighbors)
+ (uncompiled-ask is-protective-to add is-protective-of to your list of neighbors))))
 
 (+after-load '|ken;relate >| '(revival-once 'know-relationships 'teach-the-revivals-relationships))
 
@@ -85,4 +121,4 @@
 ;; dislikes and fears are top-level actors of RELATE's once RELATE has loaded, so the
 ;; tags give them RELATE as their file, as load.33 fills them for Ken's.
 (mapc (function (lambda (word) (putprop word '|KEN;RELATE| 'actor-load)))
-      '(dislikes fears))
+      '(dislikes fears is-protective-of))

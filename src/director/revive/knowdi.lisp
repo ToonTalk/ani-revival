@@ -18,6 +18,20 @@
 ;;; enemies, strangers and difficult (prereq.19:122-138): a story's scene called friends,
 ;;; as a model's Lion and the Mouse has, is then no longer a scene, and its pass 2 stops.
 ;;;
+;;; Every walk that ends before the method does goes to a place fixed when it starts (a
+;;; stationary target), so that it leaves its walker at an xy position. A walk to a
+;;; moving target leaves the walker, for the subscenes after, at the place as written,
+;;; and INTERF can measure from a (small-way-from p1 p2) only to p1 or p2: from it to a
+;;; third place is (break small-way-from-cant-do-yet) (interf.149:336-342). So a
+;;; trying-alone or other-approaches to a small way from someone, as moving targets,
+;;; stopped any later subscene of the scene that measured from that character (the
+;;; reviewer's avoid-then-chase, where a chase follows the avoiding). Ken's own
+;;; move-small-part-towards ends so too (disply.311:707-719); his film measures from it
+;;; only to its two anchors (Kept Apart's guard, to the Prince), and that is left as it
+;;; is. Walks that end the method, to contact (as Ken's goes-to-to-hit and
+;;; goes-to-to-accompany do), may end at a moving target: INTERF's distance from those
+;;; is unknown (nil, with a warning), not a stop.
+;;;
 ;;; Each brings on the other character if it starts the subscene off the stage, with
 ;;; REVIVE;MEND6's bring-on, Ken's getting-on-stage step from goes-to-and-accompanys
 ;;; (disply.311:192-203), as MEND5's move-to does; and its estimate counts that walk
@@ -32,7 +46,7 @@
 
 ;;; ------------------------------------------------- helps-along
 
-;;why: helping is shown as Michotte's launching, which Ken's pushing is made of: the one helped sets off towards where it is going, slowly, on its own; the helper goes round behind it and comes up against it, as a pusher comes in contact (disply.311:277-288), and with no pause (with none "observers perceived the first square as causing the other to move", and a pause would make it accompanying, AI-TR-540 pp. 158-159, L4168-4178) they go on together to where it was going, the one helped in front and the helper behind, at the helper's pace, as a pushee is moved with its pusher's dynamics (disply.311:289-315)
+;;why: helping is shown as Michotte's launching, which Ken's pushing is made of: the one helped sets off towards where it is going, slowly, on its own, and for a second and a half no one helps it; then the helper goes round behind it and comes up against it, as a pusher comes in contact (disply.311:277-288), and with no pause (with none "observers perceived the first square as causing the other to move", and a pause would make it accompanying, AI-TR-540 pp. 158-159, L4168-4178) they go on together to where it was going, the one helped in front and the helper behind, at the helper's pace, as a pushee is moved with its pusher's dynamics (disply.311:289-315)
 (define helps-along display-method)
 
 (define-receiver (estimate time for helps-along ?helper ?helped ?place in ?subscene)
@@ -40,7 +54,7 @@
  (plus-time-to-bring-on
   helped helper subscene
   (add-to-estimates
-   (+$ .5 ;;the helper sets off half a second after the one it helps
+   (+$ 1.5 ;;the helper sets off a second and a half after the one it helps
        (time-to-walk helper .075 (special-dynamics-of helper subscene) subscene)) ;;to contact
    (add-time-estimates
     (estimate-time-to-move-character helper
@@ -68,11 +82,12 @@
        (go-to-plan (activity-name-of 'goes-behind-to-help))
        (contact-plan (activity-name-of 'comes-in-contact-to-help))
        (help-plan (activity-name-of 'helping-along)))
+      ;;a small part of the way towards where it is going, fixed as it sets off (above)
       (move-character tries-alone-plan
 		      helped
 		      '(small-way-from (vicinity-of ,helped) ,place)
-		      'moving-target
-		      '(move-only-original-distance (quote ,subscene))
+		      'stationary-target
+		      '(stop-when-there (quote ,subscene))
 		      0.0 ;;at the beginning of the subscene
 		      (multiply-dynamics-by-factor helped-special-dynamics .5) ;;struggling
 		      'careful ;;of collisions
@@ -85,7 +100,9 @@
 		      'moving-target
 		      '(stop-when-there-then (quote ,subscene)
 					     (stop-plan (quote ,tries-alone-plan)))
-		      0.5 ;;start half a second after it begins
+		      ;;the one helped is seen trying alone first: with the helper close by
+		      ;;and setting off at once, it was a push (L4174-4176)
+		      '(after (beginning-of ,tries-alone-plan) 1.5)
 		      helper-special-dynamics
 		      'careful ;;of collisions
 		      subscene)
@@ -146,11 +163,12 @@
 	     (bring-on other who factor subscene 'moves-away-from)))
        (approach-plan (activity-name-of 'other-approaches))
        (away-plan (activity-name-of 'moves-away)))
+      ;;a small part of the way towards it, fixed as it sets off (above)
       (move-character approach-plan
 		      other
 		      '(small-way-from (vicinity-of ,other) (vicinity-of ,who))
-		      'moving-target
-		      '(move-only-original-distance (quote ,subscene))
+		      'stationary-target
+		      '(stop-when-there (quote ,subscene))
 		      0.0 ;;at the beginning of the subscene
 		      (divide-speed-by-factor other factor subscene)
 		      'careful ;;of collisions
@@ -174,22 +192,23 @@
 
 ;;; ------------------------------------------------- follows-behind
 
-;;why: following shown as the leader going a good way off and the follower setting off after it half a second later, as a chaser after its chasee (disply.311:48-85), at a little less than its pace, as a pushee is moved with its pusher's dynamics (disply.311:303-315), so that it keeps behind, until the leader stops and it closes up to it, as goes-to-to-accompany walks to contact (disply.311:204-213)
+;;why: following shown as the leader going a good way off and the follower setting off after it half a second later, as a chaser after its chasee (disply.311:48-85), moving as it does itself, as Ken's chaser keeps its own dynamics (disply.311:91-96), but no faster than nine tenths of the leader's pace, so that it keeps behind, until the leader stops and it closes up to it, as goes-to-to-accompany walks to contact (disply.311:204-213)
 (define follows-behind display-method)
 
+;; The follower walks the leader's way and the gap between them, at its own pace held
+;; to nine tenths of the leader's, setting off half a second after it.
 (define-receiver (estimate time for follows-behind ?follower ?leader in ?subscene) follows-behind
- (let ((pace (multiply-speed-by-factor leader .9 subscene)))
-      (plus-time-to-bring-on
-       leader follower subscene
-       (add-to-estimates
-	(+$ .5 ;;the follower sets off half a second later
-	    (time-to-walk follower .15 pace subscene)) ;;and is a small way behind
-	(estimate-time-to-move-character follower
-					 '(good-distance-from (vicinity-of ,leader))
-					 '(stop-when-there (quote ,subscene))
-					 pace
-					 subscene
-					 .6))))) ;;good-distance-from is far (interf.149:595-626)
+ (plus-time-to-bring-on
+  leader follower subscene
+  (add-to-estimates
+   .5 ;;the follower sets off half a second later
+   (estimate-time-to-move-character follower
+				    (+$ (leaders-way leader subscene)
+					(gap-between follower leader subscene))
+				    '(stop-when-there (quote ,subscene))
+				    (following-pace (special-dynamics-of follower subscene)
+						    (special-dynamics-of leader subscene))
+				    subscene))))
 
 (define-receiver (run follows-behind ?follower ?leader in ?subscene stretched by ?factor)
 		 follows-behind
@@ -218,8 +237,9 @@
 			 ,(-$ (ask ,subscene recall your running-time) .5))
 			(stop-when-there (quote ,subscene)))
 		      '(after (beginning-of ,lead-plan) .5)
-		      ;;a little less than the leader's pace, so as to keep behind
-		      (multiply-dynamics-by-factor leader-special-dynamics .9)
+		      ;;its own, no faster than nine tenths of the leader's, to keep behind
+		      (following-pace (divide-speed-by-factor follower factor subscene)
+				      leader-special-dynamics)
 		      'careful ;;of collisions, the leader's too
 		      subscene)
       (cond (get-on-stage-plan
@@ -245,6 +265,41 @@
 	      (located? '(vicinity-of ,helper) subscene))
 	 '(a-small-distance-away-from (vicinity-of ,helped) ,place))
 	(t .4)))
+
+;; The follower's own dynamics, its speed held to nine tenths of the leader's: Ken's
+;; chaser moves with its own dynamics, made faster (disply.311:91-96); a follower, to
+;; keep behind, is made slower if need be. The speed is as INTERF's time-to-walk reads
+;; it (place.45:546-559).
+(defun following-pace (follower-dynamics leader-dynamics)
+  (let ((own (float (pace-of follower-dynamics)))
+	(most (*$ .9 (float (pace-of leader-dynamics)))))
+       (cond ((> own most) (multiply-dynamics-by-factor follower-dynamics (//$ most own)))
+	     (t follower-dynamics))))
+
+(defun pace-of (special-dynamics)
+  (do-as-if-you-were special-dynamics ,special-dynamics yield your speed value))
+
+;; The leader's way to a good distance from where it is, and the gap between the two,
+;; as screen fractions, for the estimate: a distance only if INTERF can measure it,
+;; else a good distance (interf.149:622-626) and a small one, as PLACE puts the two
+;; (initial-locations-for-follows-behind, below).
+(defun leaders-way (leader subscene)
+  (fraction-or (and (located? '(vicinity-of ,leader) subscene)
+		    (screen-fraction-between '(vicinity-of ,leader)
+					     '(good-distance-from (vicinity-of ,leader))
+					     subscene))
+	       .6))
+
+(defun gap-between (follower leader subscene)
+  (fraction-or (and (located? '(vicinity-of ,follower) subscene)
+		    (located? '(vicinity-of ,leader) subscene)
+		    (screen-fraction-between '(vicinity-of ,follower) '(vicinity-of ,leader)
+					     subscene))
+	       .15))
+
+(defun fraction-or (distance default)
+  (cond ((numberp distance) (float distance))
+	(t default)))
 
 (defun initial-locations-for-helps-along (helper helped subscene)
   (place-medium-distance-apart 'helps-along

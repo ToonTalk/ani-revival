@@ -150,6 +150,7 @@ const KINDS = {
   "physical-character-descriptor": "physical", "personality-character-descriptor": "personality",
   "movement-character-descriptor": "movement", "odds+ends-character-descriptor": "role",
   "affection-relationship-descriptor": "relationship", "domination-relationship-descriptor": "relationship",
+  "relationship-descriptor": "relationship",
 };
 const LINK = /\((?:uncompiled-)?ask ([a-z+-]+) add ([a-z+-]+) to your list of (opposites|neighbors)\)/g;
 

@@ -7,25 +7,33 @@
 ;;; sugest.123:33-49): Ken's Kept Apart makes the stepmother "happy and proud" (AI-TR-540
 ;;; p. 65, L1863-1866; cindy.46:70-72), and her pride was never shown. Five feelings are
 ;;; defined here as joy is, once EMOTE has loaded: pride, anticipation and loneliness,
-;;; which Ken's own scenes name (cindy.46:72, 121, 124), and fear and anger, the two the
-;;; thesis's sources describe most plainly. Each, as joy, suggests changes in how the
+;;; which Ken's own scenes name (cindy.46:72, 121, 124; the last two in his pre-meeting
+;;; scene, cindy.46:119-125, which is commented out and never ran), and fear and anger,
+;;; the two the thesis's sources describe most plainly. Each, as joy, suggests changes in how the
 ;;; character moves, with change: (and change-to:), which DISPLY's change methods run
 ;;; (disply.311:1042-1132). Each is the revival's, with a ";;why:" line that
 ;;; tools/know-index.mjs reads for the glass box.
 ;;;
-;;; A feeling's level is written as joy's, (positive low) and so on, or, as Ken wrote
-;;; his pre-meeting scene's (cindy.46:121-124), just low, medium or high: (anticipation
-;;; high). A (negative ...) level suggests nothing: a negative pride is shame, not pride
-;;; reversed, and is not here. Each change is as large as the feeling and made at the
+;;; A feeling's level is written as joy's: (pride (positive medium)). That is the one
+;;; form to teach (the film page's prompt does), since Ken's joy takes only a signed level:
+;;; (joy high) stops pass 2, joy's (second joy-level) being taken of an atom
+;;; (emote.9:13-17). These feelings take a plain level too, as Ken wrote his pre-meeting
+;;; scene, (anticipation high). A (negative ...) level suggests nothing: a negative pride
+;;; is shame, not pride reversed, and is not here; the task gets a note that the feeling
+;;; is not shown (below). Each change is as large as the feeling and made at the
 ;;; feeling's speed, as joy's are (emote.9:13-36).
 ;;;
 ;;; Two feelings at once, or a feeling with joy, may suggest changes to the same element
 ;;; of the same character. SUGEST has COSUG combine them (sugest.123:213-234), which
-;;; REVIVE;MEND7 repairs (Ken's COSUG reads them in an older format, cosug.215:449-477);
-;;; changes with different signs conflict, and CHOMET takes only suggestions, so neither
-;;; is made (chomet.123:463-472). The stepmother's (and (joy (positive medium)) (pride
-;;; (positive medium))) in Kept Apart is so: joy speeds her and pride slows her, and she
-;;; keeps the speed she had; pride's smoother path is made (reports/ext/know/README.md).
+;;; REVIVE;MEND7 repairs (Ken's COSUG reads them in an older format, cosug.215:449-477).
+;;; Changes with different signs conflict, and CHOMET makes neither: it takes only
+;;; suggestions, "hopefully all conflicting ones are so noted for now rather than
+;;; resolving them I'll reject" (chomet.123:463-472), a stopgap, where pass 1's
+;;; heuristics would have picked the stronger (AI-TR-540 pp. 108-109). So pride does not
+;;; change speed (Ken's decision 9, 13 October 2026, reports/chapter-x/PLAN.md,
+;;; "Decisions"): with it, the stepmother's (and (joy (positive medium)) (pride (positive
+;;; medium))) in Kept Apart (cindy.46:70-72) lost the speeding up her joy gave her in
+;;; 1978. Pride keeps her paths smoother and her movements more deliberate.
 
 ;; Whether a feeling's level is one these feelings take: (positive low), say, or low.
 (defun a-felt-level? (level)
@@ -41,15 +49,9 @@
 (defun teach-the-revivals-feelings ()
   (let ((:insert-methods-at-end nil))
 
-;;why: a proud character carries itself with dignity: it moves slowly, smoothly and deliberately, as an animator would have a proud character strut; Ken's Kept Apart makes the stepmother proud (cindy.46:72)
+;;why: a proud character carries itself with dignity: it moves smoothly and deliberately, as an animator would have a proud character strut; Ken's Kept Apart makes the stepmother proud (cindy.46:72). It doesn't change her speed (Ken's decision 9: a slower pride only cancelled her joy's speeding up, by CHOMET's stopgap for conflicts)
 (define pride emotion
  (process suggestions
-	  (for (establish (emotional-state ?character (pride {a-felt-level? ?level})))
-	       '(method: type display-value-change
-			 value (change: element (,character speed)
-					amount (negative ,(felt-level level))
-					speed ,(felt-level level)))
-	       strength 'medium)
 	  (for (establish (emotional-state ?character (pride {a-felt-level? ?level})))
 	       '(method: type display-value-change
 			 value (change: element (,character path-jaggedness)
@@ -159,3 +161,37 @@
 ;; EMOTE, which defines it.
 (mapc (function (lambda (feeling) (putprop feeling '|KEN;EMOTE| 'actor-load)))
       '(pride anticipation loneliness fear anger))
+
+;;; ------------------------------------------------- a feeling not shown
+
+;; A feeling of these five with a level they don't take, a (negative ...) one, say,
+;; suggests nothing, as Ken's SUGEST passes over a feeling it doesn't know
+;; (ask-if-exists, sugest.123:33-49); the task gets a note that says so, for the glass
+;; box:
+;;   (revival-repair: what feeling-not-shown was (pride (negative high)) now nothing
+;;		       because (a level the feeling does not take))
+;; establish-suggestions is given the task's package and the task, which an establish
+;; task passes as its scene (scene.9:378-381).
+(setq :know-feelings '(pride anticipation loneliness fear anger))
+
+(defun establish-suggestions-noting-feelings-not-shown (task scene)
+  (let ((result (funcall (revival-wrapped 'establish-suggestions 'knowem) task scene)))
+       (note-feelings-not-shown (get task 'description) scene)
+       result))
+
+(defun note-feelings-not-shown (description scene)
+  (and (not (atom description))
+       (eq (first description) 'emotional-state)
+       (mapc (function
+	      (lambda (feeling)
+		      (and (not (atom feeling))
+			   (memq (first feeling) :know-feelings)
+			   (not (a-felt-level? (second feeling)))
+			   (revival-note scene 'feeling-not-shown feeling 'nothing
+					 '(a level the feeling does not take)))))
+	     (let ((states (third description)))
+		  (cond ((and (not (atom states)) (eq (first states) 'and)) (rest states))
+			(t (list states)))))))
+
+(+after-load '|ken;sugest >|
+  '(revival-wrap 'establish-suggestions 'knowem 'establish-suggestions-noting-feelings-not-shown))

@@ -117,11 +117,19 @@ test("CP 29's rule: no word of KNOW's with suggestions for how a character moves
       const list = know.run(`(ask ${w} recall your ${rel})`);
       for (const x of list === "nil" ? [] : list.slice(1, -1).split(" ")) if (index.words[x]) linked.add(x);
     }
-    // KNOW gives CINDY's words no suggestions for how a character moves
-    assert.deepEqual(dynamicsSuggestions(know.run, w), dynamicsSuggestions(ken.run, w), w);
+    // KNOW gives CINDY's words no suggestions for how a character moves; one RELATE
+    // doesn't know (is-protective-of), which KNOW defines, has none
+    const before = ken.run(`(actor-of '${w} dont-autoload)`) === "nil" ? [] : dynamicsSuggestions(ken.run, w);
+    assert.deepEqual(dynamicsSuggestions(know.run, w), before, w);
   }
   // timid, wicked and cruel, and dislikes: linked, with none of their own
   assert.deepEqual([...linked].sort(), ["cruel", "dislikes", "timid", "wicked"]);
+  // CINDY's is-protective-of is KNOW's now, a relationship word of no type, as CHAR made
+  // it in 1978 (char.2:162-168), linked to RELATE's is-protective-to, which has no
+  // suggestions for how a character moves either
+  assert.equal(know.run("(ask is-protective-of recall your type)"), "unknown");
+  assert.equal(know.run("(ask is-protective-of recall your neighbors)"), "(is-protective-to)");
+  assert.deepEqual(dynamicsSuggestions(know.run, "is-protective-to"), []);
   for (const x of linked) assert.deepEqual(dynamicsSuggestions(know.run, x), [], x);
   // and every word of KNOW's with suggestions of its own is linked to none of CINDY's
   for (const [w, v] of Object.entries(index.words)) if (v.suggests) assert.ok(!linked.has(w), w);
@@ -153,7 +161,9 @@ test("the index: every piece of KNOW's knowledge has its file, line and why", ()
   for (const [w, v] of Object.entries(index.words)) assert.ok(v.why, `${w}: why`);
   for (const [v, x] of Object.entries(index.verbs)) assert.ok(x.why && x.method, `${v}`);
   for (const [m, x] of Object.entries(index.methods)) assert.ok(x.why && x.estimate && x.run && x.activities.length > 1, m);
-  for (const [e, x] of Object.entries(index.feelings)) assert.ok(x.why && x.changes.length === 3, e);
+  for (const [e, x] of Object.entries(index.feelings)) assert.ok(x.why && x.changes.length === (e === "pride" ? 2 : 3), e);
+  // Ken's decision 9: pride doesn't change speed
+  assert.deepEqual(index.feelings.pride.changes.map((c) => c.element), ["path-jaggedness", "deliberateness"]);
   assert.deepEqual(Object.keys(index.verbs).sort(), ["avoids", "follows", "helps"]);
   assert.deepEqual(index.verbs.follows.isNew, true);
   assert.deepEqual(Object.keys(index.feelings), ["pride", "anticipation", "loneliness", "fear", "anger"]);
@@ -161,6 +171,12 @@ test("the index: every piece of KNOW's knowledge has its file, line and why", ()
   assert.deepEqual(est("is-obedient-to"), ["follows"]);
   assert.deepEqual(est("is-helpful-towards"), ["helps"]);
   assert.deepEqual(est("likes"), ["accompanys"]);
+  // Ken's decision 10
+  assert.deepEqual(est("is-protective-to"), ["accompanys"]);
+  assert.deepEqual(est("is-grateful-to"), ["accompanys"]);
+  assert.deepEqual(est("is-intolerant-of"), ["avoids"]);
+  for (const w of ["is-polite-to", "is-impolite-to", "is-tolerant-of"]) assert.deepEqual(est(w), [], w);
+  assert.deepEqual(index.words["is-protective-of"].borrows, ["is-protective-to"]);
   assert.deepEqual(index.words.timid.borrows, ["shy"]);
   // the line given is the line of the (for ...) clause in the file
   const lines = readFileSync(`src/director/revive/knowds.lisp`, "utf8").split("\n");
@@ -201,7 +217,8 @@ test("the feelings: changes as joy's, at the feeling's level; a plain level as K
   // pride with no joy: asking it loads EMOTE, as ask-if-exists does (sugest.123:38)
   const ask = (feeling) => run(`(ask-if-exists ${feeling.split(" ")[0].slice(1)} collect items memorized matching (suggestion: element (establish (emotional-state stepmother ${feeling})) value ? strength ? source ?))`);
   const pride = ask("(pride (positive medium))");
-  assert.match(pride, /\(change: element \(stepmother speed\) amount \(negative medium\) speed medium\)\) strength medium source pride\)/);
+  // no speed change (Ken's decision 9)
+  assert.doesNotMatch(pride, /\(stepmother speed\)/);
   assert.match(pride, /\(change: element \(stepmother path-jaggedness\) amount \(negative medium\) speed medium\)\) strength medium source pride\)/);
   assert.match(pride, /\(change: element \(stepmother deliberateness\) amount \(positive medium\) speed medium\)\) strength low source pride\)/);
   assert.match(ask("(anticipation high)"), /\(change: element \(stepmother activity-level\) amount \(positive high\) speed high\)\) strength high source anticipation\)/);
@@ -219,10 +236,35 @@ test("the relationships: ways of showing for is-obedient-to, is-helpful-towards,
   assert.equal(shows("is-obedient-to"), "((suggestion: element (establish (is-obedient-to a b)) value (method: type convey value (follows a b)) strength medium source is-obedient-to))");
   assert.equal(shows("is-helpful-towards"), "((suggestion: element (establish (is-helpful-towards a b)) value (method: type convey value (helps a b)) strength medium source is-helpful-towards))");
   assert.equal(shows("likes"), "((suggestion: element (establish (likes a b)) value (method: type convey value (accompanys a b)) strength low source likes))");
-  assert.equal(shows("dislikes"), "((suggestion: element (establish (dislikes a b)) value (method: type convey value (avoids a b)) strength medium source dislikes))");
+  assert.equal(shows("dislikes"), "((suggestion: element (establish (dislikes a b)) value (method: type convey value (avoids a b) best-when ((not (dominates a b)))) strength medium source dislikes))");
+  // Ken's decision 10
+  assert.equal(shows("is-protective-to"), "((suggestion: element (establish (is-protective-to a b)) value (method: type convey value (accompanys a b)) strength low source is-protective-to))");
+  assert.equal(shows("is-grateful-to"), "((suggestion: element (establish (is-grateful-to a b)) value (method: type convey value (accompanys a b)) strength low source is-grateful-to))");
+  assert.equal(shows("is-intolerant-of"), "((suggestion: element (establish (is-intolerant-of a b)) value (method: type convey value (avoids a b) best-when ((not (dominates a b)))) strength medium source is-intolerant-of))");
+  for (const w of ["is-polite-to", "is-impolite-to", "is-tolerant-of"]) assert.equal(shows(w), "nil", w);
   assert.equal(shows("fears"), "((suggestion: element (establish (fears a b)) value (method: type convey value (avoids a b)) strength high source fears))");
   // Ken's words with ways of their own are as they were
   assert.match(shows("hates"), /\(avoids a b\) best-when \(\(not \(dominates a b\)\)\)\) strength medium source hates\)/);
   // likes is still PREREQ's prerequisite
   assert.notEqual(run("(ask likes are you a prerequisite)"), "nil");
+});
+
+test("is-protective-of, CINDY's word for the fairy godmother, borrows is-protective-to's way of showing (Ken's decision 10)", () => {
+  const { run } = lisp(["mend", "know"]);
+  for (const f of ["relate", "sugest"]) run(`(load '|ken;${f} >|)`);
+  assert.equal(run("(relationship-suggestions-borrowed '((description: type unknown descriptor is-protective-of source initial-description)) '(relationship-of fairy-godmother cinderella))"),
+    "((suggestion: element (establish (is-protective-of fairy-godmother cinderella)) value (method: type convey value (accompanys fairy-godmother cinderella)) strength low source (neighbor-of is-protective-of is-protective-to)))");
+});
+
+test("a feeling of KNOW's at a level it doesn't take shows nothing, and its task says so", () => {
+  const { run } = lisp(["mend", "know"]);
+  for (const f of ["emote", "sugest"]) run(`(load '|ken;${f} >|)`);
+  assert.equal(run("(mapcar 'car (get 'establish-suggestions 'revival-wraps))"), "(knowem)");
+  run("(define know-feeling-task something)");
+  run("(note-feelings-not-shown '(emotional-state goat (and (joy (negative high)) (pride (negative high)) (fear high))) 'know-feeling-task)");
+  assert.equal(run("(ask know-feeling-task collect items memorized matching (revival-repair: %))"),
+    "((revival-repair: what feeling-not-shown was (pride (negative high)) now nothing because (a level the feeling does not take)))");
+  run("(define know-feeling-task-2 something)");
+  run("(note-feelings-not-shown '(emotional-state goat (pride (positive low))) 'know-feeling-task-2)");
+  assert.equal(run("(ask know-feeling-task-2 collect items memorized matching (revival-repair: %))"), "nil");
 });

@@ -347,6 +347,11 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 
 - **A scene is filmed for up to 250 seconds**, the 1,000 frames of Ken's own runs at 4 frames a second, rather than 150, so a slow scene that ends on its own (his tortoise's Pushed Around, 799 frames) is filmed to its end. Found on the way, for SLIPS: Director multiplies a character's special-dynamics factors again each time the same dynamics are set (dichar.103:27-31), so a stretched push-around slows by a quarter each cycle.
 
+## Decisions (Ken, 13 October)
+
+9. **Pride doesn't change speed.** As first written, KNOW's pride slowed a character, and in Kept Apart the stepmother's pride (cindy.46:72) met her joy's speeding up: the two changes have different signs, and Ken's CHOMET makes neither, rejecting conflicting changes as a stopgap ("hopefully all conflicting ones are so noted for now rather than resolving them I'll reject", chomet.123:464), where pass 1's heuristics would have picked the stronger (AI-TR-540 pp. 108-109). So pride only cancelled her joy. Now pride makes a character's paths smoother and its movements more deliberate, and leaves its speed alone.
+10. **Ways of showing for three more of Ken's relationships, and is-protective-of as a neighbor.** is-protective-to and is-grateful-to are shown by accompanying, weakly; is-intolerant-of by avoiding, as dislikes is, best when the one avoiding doesn't dominate. is-polite-to, is-impolite-to and is-tolerant-of get none: Ani could show them only by gestures she doesn't have, and nothing else would be the "obvious information that was lacking" of p. 189. CINDY's is-protective-of, which RELATE doesn't know, becomes a neighbor of is-protective-to (SLIPS' S4 idea, as KNOW knowledge), so that it borrows its way of showing. Cinderella's pass 1 stays CP 29, and is-tolerant-of, her word for her stepmother, is unchanged.
+
 ## The questions as they were put
 
 

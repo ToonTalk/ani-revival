@@ -60,6 +60,15 @@
 ;; godmother's kind would borrow good's, and the Prince's stubborn has determined, which
 ;; has none; but no scene of CINDY establishes their personalities.)
 ;;
+;; This is narrower than pass 1's sharing, where every word's neighbors are a further
+;; source of suggestions, whether the word has its own or not: a word here borrows only
+;; if it has no way of its own. Ken's comment is about such a word, bad, which "should get
+;; most from its neighbor" (dscrp.17:183), having none; and a word that has its own
+;; already shows itself, so borrowing its neighbors' too would only put more convey tasks
+;; in competition for the few CHOMET keeps (chomet.123:474-490), changing what Ken's
+;; knowledge chose (in his Introduction, the stepmother's hates would gain dislikes'
+;; avoiding).
+;;
 ;; The borrowed suggestions come after the words' own, as pass 1 gathers neighbors'
 ;; after the words' own (film.17:47-49 orders the sources so; choose.198:134-150
 ;; gathers them). Ken's establish functions gather the words' own and hand them to
