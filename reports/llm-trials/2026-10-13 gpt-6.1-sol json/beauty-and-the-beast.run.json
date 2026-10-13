@@ -1,0 +1,575 @@
+{
+ "story": "C:\\Users\\toont\\ani-revival\\reports\\llm-trials\\2026-10-13 gpt-6.1-sol json\\beauty-and-the-beast.lisp",
+ "extensions": [
+  "mend",
+  "appear",
+  "change",
+  "know"
+ ],
+ "fps": 4,
+ "frames": 1000,
+ "pass1": {
+  "ok": true,
+  "seconds": 70.7,
+  "choices": 81,
+  "odd": [
+   {
+    "choicePoint": [
+     "choice-point-of",
+     "father",
+     "acceleration"
+    ],
+    "value": [
+     "not",
+     "low"
+    ]
+   }
+  ],
+  "unread": [],
+  "looks": [
+   {
+    "character": "belle",
+    "shape": "hexagon",
+    "angle": 60,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of belle size)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(relative-choice-point-of (belle beast) relative-size)",
+       "(flashiness level)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of belle shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "graceful",
+       "(dynamics-of belle path-jaggedness)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of belle shape-complexity)",
+      "value": "medium",
+      "strength": "low",
+      "sources": [
+       "(dynamics-of belle speed)",
+       "(variety level)"
+      ],
+      "drawn": "medium"
+     }
+    }
+   },
+   {
+    "character": "beast",
+    "shape": "triangle",
+    "angle": 120,
+    "centerOffset": "(right 30)",
+    "aniSize": 0.07,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of beast size)",
+      "value": "high",
+      "strength": "high",
+      "sources": [
+       "physically-strong",
+       "strong"
+      ],
+      "drawn": "high"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of beast shape-jaggedness)",
+      "value": "high",
+      "strength": "high",
+      "sources": [
+       "mean",
+       "(relative-choice-point-of (beast belle) relative-shape-jaggedness)",
+       "(relative-choice-point-of (beast father) relative-shape-jaggedness)"
+      ],
+      "drawn": "high"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of beast shape-complexity)",
+      "value": "low",
+      "strength": "high",
+      "sources": [
+       "(relative-choice-point-of (beast father) relative-shape-complexity)",
+       "(relative-choice-point-of (beast belle) relative-shape-complexity)"
+      ],
+      "drawn": "low"
+     }
+    }
+   },
+   {
+    "character": "father",
+    "shape": "ten-pointed-star",
+    "angle": 108,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of father size)",
+      "value": "low",
+      "strength": "high",
+      "sources": [
+       "(opposite-of physically-weak physically-strong)",
+       "(opposite-of weak strong)",
+       "(relative-choice-point-of (father belle) relative-size)",
+       "(relative-choice-point-of (father beast) relative-size)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of father shape-jaggedness)",
+      "value": "medium",
+      "strength": "high",
+      "sources": [
+       "(relative-choice-point-of (father belle) relative-shape-jaggedness)",
+       "(dynamics-of father path-jaggedness)"
+      ],
+      "drawn": "medium"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of father shape-complexity)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(relative-choice-point-of (father belle) relative-shape-complexity)",
+       "(dynamics-of father speed)",
+       "(variety level)"
+      ],
+      "drawn": "high"
+     }
+    }
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "introduction",
+   "ok": true,
+   "seconds": 37.7,
+   "frames": 71,
+   "capped": false,
+   "subscenes": 4,
+   "plan": [
+    {
+     "task": "convey-task-11",
+     "description": "(hurts beast belle)",
+     "choice": "((move-to-and-hits beast belle))"
+    },
+    {
+     "task": "convey-task-10",
+     "description": "(chases beast belle)",
+     "choice": "((chases-to beast belle (distance-away-from (vicinity-of belle) (vicinity-of beast) 0.25)))"
+    },
+    {
+     "task": "convey-task-9",
+     "description": "(pushes beast belle)",
+     "choice": "((pushes-around beast belle))"
+    },
+    {
+     "task": "establish-task-4",
+     "description": "(emotional-state belle (joy (negative medium)))",
+     "choice": "((change: element (belle acceleration) amount (negative medium) speed medium) (change: element (belle rhythmic-level) amount (negative medium) speed medium) (change: element (belle speed) amount (negative medium) speed medium) (change: element (belle activity-level) amount (negative medium) speed medium))"
+    },
+    {
+     "task": "establish-task-3",
+     "description": "(relationship (relationship-of beast belle))",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (pushes beast belle) best-when ((not (likes beast belle)))))"
+    },
+    {
+     "task": "establish-task-2",
+     "description": "(personality beast)",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (hurts beast belle)) (method: type convey value (chases beast belle)))"
+    },
+    {
+     "task": "establish-task-1",
+     "description": "(personality belle)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "repairs": [
+    "(choice-point-of father acceleration): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (1 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  },
+  {
+   "id": "kept-apart",
+   "ok": true,
+   "seconds": 88.6,
+   "frames": 80,
+   "capped": false,
+   "subscenes": 4,
+   "plan": [
+    {
+     "task": "convey-task-2",
+     "description": "(prevents beast (meets father belle))",
+     "choice": "((stands-guard beast father (away-from (vicinity-of father) (vicinity-of belle))))"
+    },
+    {
+     "task": "convey-task-1",
+     "description": "(wants father (meets father belle))",
+     "choice": "((move-small-part-towards father (vicinity-of belle)))"
+    },
+    {
+     "task": "establish-task-6",
+     "description": "(emotional-state father (joy (negative high)))",
+     "choice": "((change-to: element (father path-curvature) new-value low speed low) (change-to: element (father path-length) new-value long speed low) (change: element (father acceleration) amount (negative high) speed high) (change: element (father rhythmic-level) amount (negative high) speed high) (change: element (father speed) amount (negative high) speed high) (change: element (father activity-level) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-5",
+     "description": "(personality father)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "repairs": [
+    "convey-task-2: (revival-repair: what never-runs was (makes-fence beast (between (vicinity-of father) (vicinity-of belle))) now rejected because (no-run-receiver in disply))",
+    "(choice-point-of father acceleration): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (1 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  },
+  {
+   "id": "love-and-kindness",
+   "ok": true,
+   "seconds": 11.5,
+   "frames": 5,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-5",
+     "description": "(change (relationship (relationship-of belle beast) is-tolerant-of) (relationship (relationship-of belle beast) loves))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-4",
+     "description": "(causes belle (change (personality beast mean) (personality beast kind)))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-3",
+     "description": "(meets belle beast)",
+     "choice": "((move-to belle (vicinity-of beast)))"
+    },
+    {
+     "task": "establish-task-7",
+     "description": "(emotional-state belle (joy (positive medium)))",
+     "choice": "((change-to: element (belle path-curvature) new-value high speed high) (change-to: element (belle path-length) new-value long speed high) (change: element (belle acceleration) amount (positive medium) speed medium) (change: element (belle rhythmic-level) amount (positive medium) speed medium) (change: element (belle speed) amount (positive medium) speed medium) (change: element (belle activity-level) amount (positive medium) speed medium))"
+    }
+   ],
+   "repairs": [
+    "(subscene-of love-and-kindness 1): (revival-repair: what defined-display-method was not-defined now (move-to belle (vicinity-of beast)) because (named-in convey))",
+    "(choice-point-of father acceleration): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (1 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  },
+  {
+   "id": "the-beasts-love",
+   "ok": true,
+   "seconds": 470.9,
+   "frames": 169,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-7",
+     "description": "(undoes beast (from-scene kept-apart (convey (prevents beast (meets father belle)))))",
+     "choice": "((stands-guard beast beast (away-from (vicinity-of beast) (vicinity-of father))))"
+    },
+    {
+     "task": "convey-task-6",
+     "description": "(causes belle (change (relationship (relationship-of beast belle) (and dominates hates)) (relationship (relationship-of beast belle) loves)))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-9",
+     "description": "(emotional-state father (joy (positive high)))",
+     "choice": "((change-to: element (father path-curvature) new-value high speed high) (change-to: element (father path-length) new-value long speed high) (change: element (father acceleration) amount (positive high) speed high) (change: element (father rhythmic-level) amount (positive high) speed high) (change: element (father speed) amount (positive high) speed high) (change: element (father activity-level) amount (positive high) speed high))"
+    },
+    {
+     "task": "establish-task-8",
+     "description": "(personality beast)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "beast",
+     "scene": "love-and-kindness",
+     "described": [
+      {
+       "type": "personality",
+       "was": "mean",
+       "now": "kind"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "acceleration",
+       "was": "high",
+       "now": "medium"
+      },
+      {
+       "element": "attraction-towards-friends",
+       "was": "(positive low)",
+       "now": "(positive high)"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "was": "(negative high)",
+       "now": "(positive medium)"
+      },
+      {
+       "element": "attraction-towards-strangers",
+       "was": "(negative medium)",
+       "now": "(positive medium)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "belle",
+     "scene": "love-and-kindness",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "is-tolerant-of",
+       "now": "loves"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "convey-task-7: (revival-repair: what missing-relationship was (relationship-of beast father) now dont-know because no-such-relationship)",
+    "(choice-point-of father acceleration): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (1 high) (0 medium)) (middle-element ken1 reconstruction)))",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 2.7421944 seconds)) (while filming)",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 2.5956555 seconds)) (while filming)",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 2.3721668 seconds)) (while filming)",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 2.0301288 seconds)) (while filming)",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 1.8689318 seconds)) (while filming)",
+    "(subscene-of the-beasts-love 2): (revival-repair: what overdue-move was (beast going-to (small-way-from-plus-size (vicinity-of beast) (vicinity-of father) beast)) now stopped-as-if-there because (no-nearer-for-more-than 1.7039675 seconds)) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.007477285 -0.081294896) towards (xy-position 0.007477285 -0.081294896)) now (xy-position 0.007477285 -0.011294896) because (both at (xy-position 0.007477285 -0.081294896))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.0080553748 -0.11260221) towards (xy-position 0.0080553748 -0.11260221)) now (xy-position 0.0080553748 -0.042602212) because (both at (xy-position 0.0080553748 -0.11260221))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.0051072961 -0.14367077) towards (xy-position 0.0051072961 -0.14367077)) now (xy-position 0.0051072961 -0.073670766) because (both at (xy-position 0.0051072961 -0.14367077))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.000044213743 -0.090569452) towards (xy-position 0.000044213743 -0.090569452)) now (xy-position 0.000044213743 -0.020569452) because (both at (xy-position 0.000044213743 -0.090569452))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.00058856542 -0.1282998) towards (xy-position 0.00058856542 -0.1282998)) now (xy-position 0.00058856542 -0.058299797) because (both at (xy-position 0.00058856542 -0.1282998))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.011150997 -0.11023793) towards (xy-position 0.011150997 -0.11023793)) now (xy-position 0.011150997 -0.040237932) because (both at (xy-position 0.011150997 -0.11023793))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.0070778049 -0.15538585) towards (xy-position 0.0070778049 -0.15538585)) now (xy-position 0.0070778049 -0.08538585) because (both at (xy-position 0.0070778049 -0.15538585))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position -0.076212622 -0.082478423) towards (xy-position -0.076212622 -0.082478423)) now (xy-position -0.076212622 -0.012478423) because (both at (xy-position -0.076212622 -0.082478423))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position -0.020626793 -0.21904895) towards (xy-position -0.020626793 -0.21904895)) now (xy-position -0.020626793 -0.14904895) because (both at (xy-position -0.020626793 -0.21904895))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.073860643 -0.084707848) towards (xy-position 0.073860643 -0.084707848)) now (xy-position 0.073860643 -0.014707848) because (both at (xy-position 0.073860643 -0.084707848))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position 0.12521539 -0.25489462) towards (xy-position 0.12521539 -0.25489462)) now (xy-position 0.12521539 -0.18489462) because (both at (xy-position 0.12521539 -0.25489462))) (while filming)",
+    "film4: (revival-repair: what same-place was (from (xy-position -0.016619939 -0.16388036) towards (xy-position -0.016619939 -0.16388036)) now (xy-position -0.016619939 -0.093880362) because (both at (xy-position -0.016619939 -0.16388036))) (while filming)"
+   ]
+  },
+  {
+   "id": "happy-together",
+   "ok": true,
+   "seconds": 156.6,
+   "frames": 116,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "convey-task-8",
+     "description": "(getting-it-on belle beast)",
+     "choice": "((repeatedly-come-in-contact belle beast))"
+    },
+    {
+     "task": "establish-task-11",
+     "description": "(emotional-state beast (joy (positive high)))",
+     "choice": "((change-to: element (beast path-curvature) new-value high speed high) (change-to: element (beast path-length) new-value long speed high) (change: element (beast acceleration) amount (positive high) speed high) (change: element (beast rhythmic-level) amount (positive high) speed high) (change: element (beast speed) amount (positive high) speed high) (change: element (beast activity-level) amount (positive high) speed high))"
+    },
+    {
+     "task": "establish-task-10",
+     "description": "(emotional-state belle (joy (positive high)))",
+     "choice": "((change-to: element (belle path-curvature) new-value high speed high) (change-to: element (belle path-length) new-value long speed high) (change: element (belle acceleration) amount (positive high) speed high) (change: element (belle rhythmic-level) amount (positive high) speed high) (change: element (belle speed) amount (positive high) speed high) (change: element (belle activity-level) amount (positive high) speed high))"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "beast",
+     "scene": "love-and-kindness",
+     "described": [
+      {
+       "type": "personality",
+       "was": "mean",
+       "now": "kind"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "acceleration",
+       "was": "high",
+       "now": "medium"
+      },
+      {
+       "element": "attraction-towards-friends",
+       "was": "(positive low)",
+       "now": "(positive high)"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "was": "(negative high)",
+       "now": "(positive medium)"
+      },
+      {
+       "element": "attraction-towards-strangers",
+       "was": "(negative medium)",
+       "now": "(positive medium)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "belle",
+     "scene": "love-and-kindness",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "is-tolerant-of",
+       "now": "loves"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "beast",
+     "scene": "the-beasts-love",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "(and dominates hates)",
+       "now": "loves"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "belle",
+     "scene": "the-beasts-love",
+     "described": [],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "(choice-point-of father acceleration): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (1 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  }
+ ],
+ "changes": [
+  {
+   "scene": "love-and-kindness",
+   "ok": true,
+   "seconds": 41,
+   "characters": [
+    {
+     "character": "beast",
+     "changes": [
+      "(change (personality beast mean) (personality beast kind))",
+      "(change (relationship (relationship-of belle beast) is-tolerant-of) (relationship (relationship-of belle beast) loves))"
+     ],
+     "changed": [
+      {
+       "element": "acceleration",
+       "before": "high",
+       "after": "medium",
+       "use": "none"
+      },
+      {
+       "element": "attraction-towards-friends",
+       "before": [
+        "positive",
+        "low"
+       ],
+       "after": [
+        "positive",
+        "high"
+       ],
+       "use": "none"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "before": [
+        "negative",
+        "high"
+       ],
+       "after": [
+        "positive",
+        "medium"
+       ],
+       "use": "none"
+      },
+      {
+       "element": "attraction-towards-strangers",
+       "before": [
+        "negative",
+        "medium"
+       ],
+       "after": [
+        "positive",
+        "medium"
+       ],
+       "use": "none"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "belle",
+     "changes": [
+      "(change (relationship (relationship-of belle beast) is-tolerant-of) (relationship (relationship-of belle beast) loves))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  },
+  {
+   "scene": "the-beasts-love",
+   "ok": true,
+   "seconds": 41.3,
+   "characters": [
+    {
+     "character": "beast",
+     "changes": [
+      "(change (relationship (relationship-of beast belle) (and dominates hates)) (relationship (relationship-of beast belle) loves))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "belle",
+     "changes": [
+      "(change (relationship (relationship-of beast belle) (and dominates hates)) (relationship (relationship-of beast belle) loves))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  }
+ ]
+}

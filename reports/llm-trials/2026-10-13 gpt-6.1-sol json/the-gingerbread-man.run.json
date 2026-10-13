@@ -1,0 +1,330 @@
+{
+ "story": "C:\\Users\\toont\\ani-revival\\reports\\llm-trials\\2026-10-13 gpt-6.1-sol json\\the-gingerbread-man.lisp",
+ "extensions": [
+  "mend",
+  "appear",
+  "change",
+  "know"
+ ],
+ "fps": 4,
+ "frames": 1000,
+ "pass1": {
+  "ok": true,
+  "seconds": 42.2,
+  "choices": 81,
+  "odd": [],
+  "unread": [],
+  "looks": [
+   {
+    "character": "gingerbread-man",
+    "shape": "octagon",
+    "angle": 45,
+    "centerOffset": null,
+    "aniSize": 0.07,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of gingerbread-man size)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(flashiness level)",
+       "(variety level)",
+       "(opposite-of forward shy)",
+       "(opposite-of brazen shy)"
+      ],
+      "drawn": "high"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of gingerbread-man shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "graceful",
+       "(dynamics-of gingerbread-man path-jaggedness)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of gingerbread-man shape-complexity)",
+      "value": "high",
+      "strength": "low",
+      "sources": [
+       "(opposite-of brazen shy)",
+       "(opposite-of forward shy)",
+       "(dynamics-of gingerbread-man speed)",
+       "(variety level)"
+      ],
+      "drawn": "high"
+     }
+    }
+   },
+   {
+    "character": "pursuers",
+    "shape": "square",
+    "angle": 90,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of pursuers size)",
+      "value": "low",
+      "strength": "high",
+      "sources": [
+       "(flashiness level)",
+       "(variety level)",
+       "(relative-choice-point-of (pursuers gingerbread-man) relative-size)",
+       "(relative-choice-point-of (pursuers fox) relative-size)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of pursuers shape-jaggedness)",
+      "value": "medium",
+      "strength": "high",
+      "sources": [
+       "(relative-choice-point-of (pursuers fox) relative-shape-jaggedness)",
+       "(relative-choice-point-of (pursuers gingerbread-man) relative-shape-jaggedness)"
+      ],
+      "drawn": "medium"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of pursuers shape-complexity)",
+      "value": "low",
+      "strength": "high",
+      "sources": [
+       "(relative-choice-point-of (pursuers fox) relative-shape-complexity)",
+       "(relative-choice-point-of (pursuers gingerbread-man) relative-shape-complexity)"
+      ],
+      "drawn": "low"
+     }
+    }
+   },
+   {
+    "character": "fox",
+    "shape": "star",
+    "angle": 144,
+    "centerOffset": "(right 18)",
+    "aniSize": 0.05,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of fox size)",
+      "value": "medium",
+      "strength": "medium",
+      "sources": [
+       "(flashiness level)",
+       "(variety level)",
+       "(relative-choice-point-of (fox gingerbread-man) relative-size)"
+      ],
+      "drawn": "medium"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of fox shape-jaggedness)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(dynamics-of fox path-jaggedness)",
+       "(variety level)",
+       "(relative-choice-point-of (fox gingerbread-man) relative-shape-jaggedness)"
+      ],
+      "drawn": "high"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of fox shape-complexity)",
+      "value": "medium",
+      "strength": "medium",
+      "sources": [
+       "(variety level)",
+       "(relative-choice-point-of (fox gingerbread-man) relative-shape-complexity)"
+      ],
+      "drawn": "medium"
+     }
+    }
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "cheeky-gingerbread-man",
+   "ok": true,
+   "seconds": 11.7,
+   "frames": 17,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "establish-task-4",
+     "description": "(emotional-state gingerbread-man (pride (positive high)))",
+     "choice": "((change: element (gingerbread-man deliberateness) amount (positive high) speed high) (change: element (gingerbread-man path-jaggedness) amount (negative high) speed high) (change: element (gingerbread-man speed) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-3",
+     "description": "(relationship (relationship-of gingerbread-man pursuers))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-2",
+     "description": "(personality pursuers)",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-1",
+     "description": "(personality gingerbread-man)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ]
+  },
+  {
+   "id": "running-away",
+   "ok": true,
+   "seconds": 22.9,
+   "frames": 23,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "convey-task-1",
+     "description": "(chases pursuers gingerbread-man)",
+     "choice": "((chases-to pursuers gingerbread-man (distance-away-from (vicinity-of gingerbread-man) (vicinity-of pursuers) 0.25)))"
+    },
+    {
+     "task": "establish-task-6",
+     "description": "(emotional-state gingerbread-man (and (joy (positive high)) (pride (positive high))))",
+     "choice": "((change-to: element (gingerbread-man path-curvature) new-value high speed high) (change-to: element (gingerbread-man path-length) new-value long speed high) (change: element (gingerbread-man acceleration) amount (positive high) speed high) (change: element (gingerbread-man rhythmic-level) amount (positive high) speed high) (change: element (gingerbread-man activity-level) amount (positive high) speed high) (change: element (gingerbread-man deliberateness) amount (positive high) speed high) (change: element (gingerbread-man path-jaggedness) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-5",
+     "description": "(emotional-state pursuers (joy (negative medium)))",
+     "choice": "((change: element (pursuers acceleration) amount (negative medium) speed medium) (change: element (pursuers rhythmic-level) amount (negative medium) speed medium) (change: element (pursuers speed) amount (negative medium) speed medium) (change: element (pursuers activity-level) amount (negative medium) speed medium))"
+    }
+   ],
+   "repairs": [
+    "establish-task-6: (revival-repair: what combined-changes was stopped now ((conflict different-signs (gingerbread-man speed))) because (change under value not display))",
+    "(subscene-of running-away 1): (revival-repair: what same-place was (from (vicinity-of gingerbread-man) towards (vicinity-of pursuers)) now (xy-position 0.0 -0.25) because (both at (xy-position 0.0 0.0)))",
+    "film2: (revival-repair: what same-place was (from (xy-position 0.0 0.0) towards (xy-position 0.0 0.0)) now (xy-position 0.0 0.07) because (both at (xy-position 0.0 0.0))) (while filming)",
+    "film2: (revival-repair: what same-place was (from (vicinity-of gingerbread-man) towards (vicinity-of pursuers)) now (xy-position 0.0 -0.25) because (both at (xy-position 0.0 0.0))) (while filming)"
+   ]
+  },
+  {
+   "id": "false-friend",
+   "ok": true,
+   "seconds": 69.3,
+   "frames": 102,
+   "capped": false,
+   "subscenes": 4,
+   "plan": [
+    {
+     "task": "convey-task-4",
+     "description": "(causes fox (change (relationship (relationship-of gingerbread-man fox) is-polite-to) (relationship (relationship-of gingerbread-man fox) is-grateful-to)))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-3",
+     "description": "(accompanys fox gingerbread-man)",
+     "choice": "((goes-to-and-accompanys fox gingerbread-man (good-distance-from (vicinity-of fox))))"
+    },
+    {
+     "task": "convey-task-2",
+     "description": "(meets fox gingerbread-man)",
+     "choice": "((move-to fox (vicinity-of gingerbread-man)))"
+    },
+    {
+     "task": "establish-task-7",
+     "description": "(emotional-state gingerbread-man (and (joy (positive high)) (pride (positive medium))))",
+     "choice": "((change-to: element (gingerbread-man path-curvature) new-value high speed high) (change-to: element (gingerbread-man path-length) new-value long speed high) (change: element (gingerbread-man acceleration) amount (positive high) speed high) (change: element (gingerbread-man rhythmic-level) amount (positive high) speed high) (change: element (gingerbread-man activity-level) amount (positive high) speed high) (change: element (gingerbread-man deliberateness) amount (positive medium) speed medium) (change: element (gingerbread-man path-jaggedness) amount (negative medium) speed medium))"
+    }
+   ],
+   "repairs": [
+    "establish-task-7: (revival-repair: what combined-changes was stopped now ((conflict different-signs (gingerbread-man speed))) because (change under value not display))",
+    "(subscene-of false-friend 1): (revival-repair: what defined-display-method was not-defined now (move-to fox (vicinity-of gingerbread-man)) because (named-in convey))",
+    "(subscene-of false-friend 1): (revival-repair: what overdue-move was (fox going-to (contact-with gingerbread-man by fox)) now stopped-as-if-there because (waiting-for-more-than 1.5255309 seconds)) (while filming)"
+   ]
+  },
+  {
+   "id": "fox-catches-him",
+   "ok": true,
+   "seconds": 26.8,
+   "frames": 4,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-6",
+     "description": "(hurts fox gingerbread-man)",
+     "choice": "((move-to-and-hits fox gingerbread-man))"
+    },
+    {
+     "task": "convey-task-5",
+     "description": "(chases fox gingerbread-man)",
+     "choice": "((chases-to fox gingerbread-man (distance-away-from (vicinity-of gingerbread-man) (vicinity-of fox) 0.25)))"
+    },
+    {
+     "task": "establish-task-9",
+     "description": "(emotional-state gingerbread-man (and (joy (negative high)) (pride (negative high))))",
+     "choice": "((change-to: element (gingerbread-man path-curvature) new-value low speed low) (change-to: element (gingerbread-man path-length) new-value long speed low) (change: element (gingerbread-man acceleration) amount (negative high) speed high) (change: element (gingerbread-man rhythmic-level) amount (negative high) speed high) (change: element (gingerbread-man speed) amount (negative high) speed high) (change: element (gingerbread-man activity-level) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-8",
+     "description": "(emotional-state fox (and (joy (positive high)) (pride (positive high))))",
+     "choice": "((change-to: element (fox path-curvature) new-value high speed high) (change-to: element (fox path-length) new-value long speed high) (change: element (fox acceleration) amount (positive high) speed high) (change: element (fox rhythmic-level) amount (positive high) speed high) (change: element (fox activity-level) amount (positive high) speed high) (change: element (fox deliberateness) amount (positive high) speed high) (change: element (fox path-jaggedness) amount (negative high) speed high))"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "gingerbread-man",
+     "scene": "false-friend",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "is-polite-to",
+       "now": "is-grateful-to"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "fox",
+     "scene": "false-friend",
+     "described": [],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "establish-task-8: (revival-repair: what combined-changes was stopped now ((conflict different-signs (fox speed))) because (change under value not display))"
+   ]
+  }
+ ],
+ "changes": [
+  {
+   "scene": "false-friend",
+   "ok": true,
+   "seconds": 32.8,
+   "characters": [
+    {
+     "character": "gingerbread-man",
+     "changes": [
+      "(change (relationship (relationship-of gingerbread-man fox) is-polite-to) (relationship (relationship-of gingerbread-man fox) is-grateful-to))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "fox",
+     "changes": [
+      "(change (relationship (relationship-of gingerbread-man fox) is-polite-to) (relationship (relationship-of gingerbread-man fox) is-grateful-to))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  }
+ ]
+}

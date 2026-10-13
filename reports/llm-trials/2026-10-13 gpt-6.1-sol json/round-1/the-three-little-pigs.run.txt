@@ -1,0 +1,39 @@
+C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\the-three-little-pigs.lisp: 4 scenes (friends-and-wolf, the-chase, keeping-the-wolf-out, happy-together), 4 characters; extensions: mend, appear, change, know; 4 frames a second, at most 1000 a scene
+ok     pass 1 (227.5s): 132 choices
+         first-pig looks: hexagon, size 0.036 (size low from (opposite-of physically-weak physically-strong), (relative-choice-point-of (first-pig wolf) relative-size); shape-jaggedness low from friendly, (relative-choice-point-of (first-pig second-pig) relative-shape-jaggedness), (relative-choice-point-of (first-pig third-pig) relative-shape-jaggedness), (relative-choice-point-of (first-pig wolf) relative-shape-jaggedness); shape-complexity medium from (relative-choice-point-of (first-pig wolf) relative-shape-complexity), (relative-choice-point-of (first-pig second-pig) relative-shape-complexity), (relative-choice-point-of (first-pig third-pig) relative-shape-complexity))
+         second-pig looks: triangle, size 0.036 (size low from (opposite-of physically-weak physically-strong), (relative-choice-point-of (second-pig first-pig) relative-size), (relative-choice-point-of (second-pig third-pig) relative-size), (relative-choice-point-of (second-pig wolf) relative-size); shape-jaggedness low from friendly, (relative-choice-point-of (second-pig first-pig) relative-shape-jaggedness), (relative-choice-point-of (second-pig third-pig) relative-shape-jaggedness), (relative-choice-point-of (second-pig wolf) relative-shape-jaggedness), drawn high (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)); shape-complexity medium from (relative-choice-point-of (second-pig wolf) relative-shape-complexity), (relative-choice-point-of (second-pig first-pig) relative-shape-complexity), (relative-choice-point-of (second-pig third-pig) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)))
+         third-pig looks: square, size 0.036 (size low from (opposite-of physically-weak physically-strong), (relative-choice-point-of (third-pig first-pig) relative-size), (relative-choice-point-of (third-pig wolf) relative-size); shape-jaggedness low from friendly, (relative-choice-point-of (third-pig first-pig) relative-shape-jaggedness), (relative-choice-point-of (third-pig second-pig) relative-shape-jaggedness), (relative-choice-point-of (third-pig wolf) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn square because (drawn-alike-with first-pig)); shape-complexity medium from (relative-choice-point-of (third-pig wolf) relative-shape-complexity), (relative-choice-point-of (third-pig first-pig) relative-shape-complexity), (relative-choice-point-of (third-pig second-pig) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn square because (drawn-alike-with first-pig)))
+         wolf looks: pentagon, size 0.07 (size high from physically-strong, (neighbor-of powerful physically-strong); shape-jaggedness high from mean, (relative-choice-point-of (wolf first-pig) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)); shape-complexity low from (relative-choice-point-of (wolf first-pig) relative-shape-complexity), (dynamics-of wolf speed), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)))
+         telling apart: (alike-after-all: shape hexagon of-who (comparison-of second-pig third-pig))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of first-pig second-pig)) (alike-after-all: shape hexagon of-who (comparison-of first-pig second-pig))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of first-pig third-pig)) (alike-after-all: shape hexagon of-who (comparison-of first-pig third-pig))
+FAILED pass 2 friends-and-wolf (16.5s): break SMALL-WAY-FROM-CANT-DO-YET
+  Lisp typed, last:
+    ;warning from APPROVE-OR-REMAKE-TASK-CHOICES: can't do ESTABLISH-TASK-1 which is
+     (TASK: DESCRIPTION (PERSONALITY FIRST-PIG) FOR-WHO FIRST-PIG SOURCE INITIAL-DESCRIPTION)
+  innermost forms:
+    (BREAK SMALL-WAY-FROM-CANT-DO-YET)
+    (COND ((EQUAL PLACE1 PLACE3) (DISTANCE-FROM-POSITION-BETWEEN PLACE1 PLACE2 SUBSCENE 0.5 0.2 0.33 0.0)) ((EQUAL PLACE2 PLACE3) (DISTANCE-FROM-POSITION-BETWEEN PLACE1 PLACE2 SUBSCENE 0.5 0.8 0.67 0.0)) (T (BREAK SMALL-WAY-
+    ((LAMBDA (SUBSCENE PLACE3 PLACE2 PLACE1) (COND ((EQUAL PLACE1 PLACE3) (DISTANCE-FROM-POSITION-BETWEEN PLACE1 PLACE2 SUBSCENE 0.5 0.2 0.33 0.0)) ((EQUAL PLACE2 PLACE3) (DISTANCE-FROM-POSITION-BETWEEN PLACE1 PLACE2 SUBSCEN
+    (FUNCALL :METHOD-BEING-RUN)
+    (COND ((ATOM :METHOD-BEING-RUN) (FUNCALL :METHOD-BEING-RUN)) (T (EVAL :METHOD-BEING-RUN)))
+    (RUN-METHOD METHOD)
+  the sends that led there, innermost first:
+    (ASK1 (FIRST PLACE1) (CONS (QUOTE HOW) (CONS (QUOTE FAR) (CONS (QUOTE IS) (CONS PLACE1 (CONS (QUOTE FROM) (CONS PLACE2 (CONS (QUOTE IN) (CONS SUBSCENE NIL)))))))) NIL)
+    (ASK1 :SELF (CONS (QUOTE RUN) (CONS (QUOTE CHASES-TO) (CONS CHASER (CONS CHASEE (CONS DESTINATION (CONS (QUOTE IN) (CONS SUBSCENE (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL)))))))))) T)
+    (ASK1 (FIRST METHOD) (CONS (QUOTE RUN) (APPEND METHOD (CONS (QUOTE IN) (CONS :SELF (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL))))))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 SCENE (QUOTE (ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))
+FAILED pass 2 the-chase (12.2s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM1 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 keeping-the-wolf-out (12.8s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM2 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 happy-together (9.3s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM3 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+4 steps failed (296.7s)
+wrote C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\the-three-little-pigs.run.json

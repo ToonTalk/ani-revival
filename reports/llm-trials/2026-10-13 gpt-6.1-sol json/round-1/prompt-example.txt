@@ -1,0 +1,210 @@
+Ani is a program Ken Kahn wrote at MIT in 1978. Given a film description in his Lisp notation, it plans and animates a short film in which each character is a simple shape (Cinderella was a star). Turn the story at the end into a film description Ani can run, written as JSON: the page puts it into Ken's notation for Ani.
+
+Write it in exactly the form of the example (Ken's own description of Cinderella, as JSON), using ONLY the words listed here; Ani stops on anything else.
+
+CHARACTERS
+- 2 to 5 characters (never more than 6). Names are lowercase words joined by hyphens, like red-riding-hood or wolf.
+- Each one: {"name", "called", "pronoun", "physical", "personality", "movement"}. called is what people call them, with "the" where English needs it ("the wolf"), and pronoun she, he or they. physical and personality are each a list of one word or more; movement is [], ["graceful"] or ["clumsy"]. "main" names the main character.
+- physical: beautiful shabby physically-strong magical pretty ugly gorgeous elegant unkempt physically-weak powerful
+- personality: shy hard-working friendly good evil bad selfish kind strong determined stubborn mean brazen forward lazy industrious unfriendly stingy generous weak
+
+RELATIONSHIPS
+- Give a relationship {"from": a, "to": b, "how": [...]} for each ordered pair who feel something about each other; a to b and b to a are two relationships.
+- how is a list of one word or more: loves hates dominates is-obedient-to is-tolerant-of is-intolerant-of is-polite-to is-impolite-to is-grateful-to is-protective-to is-helpful-towards adores dispises rules is-generous-towards
+- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.
+- Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
+
+SCENES (2 to 5, in story order)
+- Each one: {"name", "title", "mood": M, "rhythm": R, "length": L, "steps": [[task, ...], ...]}; title is the scene's title for people.
+- steps are Ken's (sequence: ...) of (and ...)s: the steps come in this order, and the tasks within a step Ani may order as she likes. So one step of several tasks lets Ani order them all, and one task alone is [[task]].
+- A task is one of these, with X, Y, Z characters:
+  {"kind": "establish-personality", "who": X}
+  {"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]} with positive or negative, and low, medium or high; a feeling is one of: joy, pride
+  {"kind": "establish-relationship", "from": X, "to": Y} for a relationship you defined
+  {"kind": "wants", "who": X, "meets": [X, Y]}
+  {"kind": "prevents", "who": X, "meets": [Y, Z]}
+  {"kind": "undoes", "who": X, "scene": EARLIER-SCENE, "undone": THAT-SCENE'S-TASK}, the earlier scene's task copied exactly, as in the example
+  {"kind": "accompanys", "who": X, "whom": Y}, and so too chases, hurts and pushes
+  {"kind": "alone", "who": X, "whom": Y} means everyone else leaves, so that X and Y are alone together (Ani shows it by the others leaving the stage); don't use it for X leaving Y alone
+  {"kind": "getting-it-on", "who": X, "whom": Y} for two characters in love coming together
+  {"kind": "aware", "who": X, "gettingItOn": [Y, Z]}
+  {"kind": "change-personality", "who": X, "from": OLD, "to": NEW, "causedBy": ""} for X changing: OLD is the words of X's personality that go and NEW the words that take their place; causedBy is Y when Y brings the change about. change-physical and change-movement work the same way, and so does how X feels about Y: {"kind": "change-relationship", "who": X, "whom": Y, "from": OLD, "to": NEW, "causedBy": ""}
+  {"kind": "meets", "who": X, "whom": Y} for X going to meet Y
+  Nothing else: Ani can't show helps, gives, says, and so on.
+- M (mood): normal, hopeful, depressing, joyous, anticipatory, (very joyous), (changes hopeful depressing), (and joyous anticipatory)
+- R (rhythm): normal, fast, slow, (changes fast slow)
+- L (length): short, medium or long
+
+MAKING A GOOD FILM
+- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's shame (establish-emotional-state), a rivalry becomes chases or pushes, a friendship accompanys.
+- Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
+- chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a step with other steps after it; never make a scene of pushes alone.
+- Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+- Ani shows what a mean or evil character is like by having them pick on their victim: establish-personality of X has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: {"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "pride", "sign": "negative", "amount": "high"}]}.
+- A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with establish-personality of X.
+
+THE FILM
+- film: its name (after the story, ending in -film) and its levels. focus: the scenes that matter most and the main relationships (the main character comes first in the focus anyway).
+- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies her choices, and originality whether she repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
+
+Reply with the JSON object alone, and nothing else.
+
+THE EXAMPLE (Ken's description of Cinderella, 1978, as JSON):
+```json
+{
+  "characters": [
+    {
+      "name": "cinderella",
+      "called": "Cinderella",
+      "pronoun": "she",
+      "physical": ["beautiful", "shabby"],
+      "personality": ["good", "friendly", "hard-working", "shy"],
+      "movement": []
+    },
+    {
+      "name": "step-mother",
+      "called": "the stepmother",
+      "pronoun": "she",
+      "physical": ["ugly"],
+      "personality": ["mean", "selfish", "strong", "evil"],
+      "movement": []
+    },
+    {
+      "name": "fairy-godmother",
+      "called": "the fairy godmother",
+      "pronoun": "she",
+      "physical": ["pretty", "magical"],
+      "personality": ["good", "kind", "strong"],
+      "movement": []
+    },
+    {
+      "name": "prince",
+      "called": "the Prince",
+      "pronoun": "he",
+      "physical": ["beautiful", "strong"],
+      "personality": ["good", "stubborn", "determined"],
+      "movement": []
+    }
+  ],
+  "main": "cinderella",
+  "relationships": [
+    {"from": "step-mother", "to": "cinderella", "how": ["dominates", "hates"]},
+    {"from": "cinderella", "to": "step-mother", "how": ["is-obedient-to", "is-tolerant-of"]},
+    {"from": "cinderella", "to": "fairy-godmother", "how": ["is-polite-to", "is-grateful-to"]},
+    {"from": "fairy-godmother", "to": "cinderella", "how": ["is-protective-of", "is-generous-towards", "is-helpful-towards"]},
+    {"from": "cinderella", "to": "prince", "how": ["loves"]},
+    {"from": "prince", "to": "cinderella", "how": ["loves"]}
+  ],
+  "scenes": [
+    {
+      "name": "introduction",
+      "title": "The Introduction",
+      "mood": null,
+      "rhythm": "normal",
+      "length": "long",
+      "steps": [
+        [
+          {"kind": "establish-personality", "who": "cinderella"},
+          {"kind": "establish-emotional-state", "who": "cinderella", "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]},
+          {"kind": "establish-personality", "who": "step-mother"},
+          {"kind": "establish-emotional-state", "who": "step-mother", "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]},
+          {"kind": "establish-relationship", "from": "step-mother", "to": "cinderella"},
+          {"kind": "establish-relationship", "from": "cinderella", "to": "step-mother"}
+        ]
+      ]
+    },
+    {
+      "name": "kept-apart",
+      "title": "Kept Apart",
+      "mood": "(changes hopeful depressing)",
+      "rhythm": "(changes fast slow)",
+      "length": "long",
+      "steps": [
+        [{"kind": "wants", "who": "cinderella", "meets": ["cinderella", "prince"]}],
+        [{"kind": "prevents", "who": "step-mother", "meets": ["cinderella", "prince"]}],
+        [
+          {"kind": "establish-emotional-state", "who": "cinderella", "feelings": [{"feeling": "joy", "sign": "negative", "amount": "high"}]},
+          {
+            "kind": "establish-emotional-state",
+            "who": "step-mother",
+            "feelings": [{"feeling": "joy", "sign": "positive", "amount": "medium"}, {"feeling": "pride", "sign": "positive", "amount": "medium"}]
+          }
+        ]
+      ]
+    },
+    {
+      "name": "no-longer-kept-apart",
+      "title": "No Longer Kept Apart",
+      "mood": "(and joyous anticipatory)",
+      "rhythm": "fast",
+      "length": "short",
+      "steps": [
+        [
+          {
+            "kind": "undoes",
+            "who": "fairy-godmother",
+            "scene": "kept-apart",
+            "undone": {"kind": "prevents", "who": "step-mother", "meets": ["cinderella", "prince"]}
+          }
+        ]
+      ]
+    },
+    {
+      "name": "meeting",
+      "title": "The Meeting",
+      "mood": "(very joyous)",
+      "rhythm": "fast",
+      "length": "long",
+      "steps": [
+        [{"kind": "alone", "who": "cinderella", "whom": "prince"}],
+        [{"kind": "getting-it-on", "who": "cinderella", "whom": "prince"}],
+        [
+          {"kind": "establish-relationship", "from": "prince", "to": "cinderella"},
+          {"kind": "establish-relationship", "from": "cinderella", "to": "prince"}
+        ],
+        [
+          {"kind": "establish-emotional-state", "who": "prince", "feelings": [{"feeling": "joy", "sign": "positive", "amount": "high"}]},
+          {"kind": "establish-emotional-state", "who": "cinderella", "feelings": [{"feeling": "joy", "sign": "positive", "amount": "high"}]}
+        ]
+      ]
+    },
+    {
+      "name": "justice",
+      "title": "Justice",
+      "mood": "joyous",
+      "rhythm": null,
+      "length": "medium",
+      "steps": [
+        [
+          {"kind": "aware", "who": "step-mother", "gettingItOn": ["prince", "cinderella"]},
+          {"kind": "getting-it-on", "who": "prince", "whom": "cinderella"},
+          {
+            "kind": "establish-emotional-state",
+            "who": "step-mother",
+            "feelings": [{"feeling": "joy", "sign": "negative", "amount": "high"}]
+          }
+        ]
+      ]
+    }
+  ],
+  "film": {
+    "name": "cinderella-film",
+    "variety": "medium",
+    "complexity": "low",
+    "originality": "low",
+    "rhythm": "high",
+    "coherence": "high",
+    "obviousness": "high",
+    "flashiness": "low",
+    "energy": "high"
+  },
+  "focus": {
+    "scenes": ["no-longer-kept-apart", "kept-apart"],
+    "relationships": [{"from": "cinderella", "to": "step-mother"}, {"from": "step-mother", "to": "cinderella"}]
+  }
+}
+```
+
+THE STORY:
+<the story>

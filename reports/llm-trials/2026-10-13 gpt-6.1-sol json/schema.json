@@ -1,0 +1,961 @@
+{
+ "type": "object",
+ "properties": {
+  "characters": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+     },
+     "called": {
+      "type": "string"
+     },
+     "pronoun": {
+      "type": "string",
+      "enum": [
+       "she",
+       "he",
+       "they"
+      ]
+     },
+     "physical": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "string",
+       "enum": [
+        "beautiful",
+        "shabby",
+        "physically-strong",
+        "magical",
+        "pretty",
+        "ugly",
+        "gorgeous",
+        "elegant",
+        "unkempt",
+        "physically-weak",
+        "powerful",
+        "strong"
+       ]
+      }
+     },
+     "personality": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "string",
+       "enum": [
+        "shy",
+        "hard-working",
+        "friendly",
+        "good",
+        "evil",
+        "bad",
+        "selfish",
+        "kind",
+        "strong",
+        "determined",
+        "stubborn",
+        "mean",
+        "brazen",
+        "forward",
+        "lazy",
+        "industrious",
+        "unfriendly",
+        "stingy",
+        "generous",
+        "weak"
+       ]
+      }
+     },
+     "movement": {
+      "type": "array",
+      "items": {
+       "type": "string",
+       "enum": [
+        "graceful",
+        "clumsy",
+        "clody"
+       ]
+      }
+     }
+    },
+    "required": [
+     "name",
+     "called",
+     "pronoun",
+     "physical",
+     "personality",
+     "movement"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "main": {
+   "type": "string",
+   "pattern": "^[a-z][a-z0-9-]*$"
+  },
+  "relationships": {
+   "type": "array",
+   "items": {
+    "type": "object",
+    "properties": {
+     "from": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+     },
+     "to": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+     },
+     "how": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "string",
+       "enum": [
+        "loves",
+        "hates",
+        "dominates",
+        "is-obedient-to",
+        "is-tolerant-of",
+        "is-intolerant-of",
+        "is-polite-to",
+        "is-impolite-to",
+        "is-grateful-to",
+        "is-protective-to",
+        "is-helpful-towards",
+        "adores",
+        "dispises",
+        "rules",
+        "is-generous-towards",
+        "is-protective-of"
+       ]
+      }
+     }
+    },
+    "required": [
+     "from",
+     "to",
+     "how"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "scenes": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+     },
+     "title": {
+      "type": "string"
+     },
+     "mood": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "enum": [
+       "normal",
+       "hopeful",
+       "depressing",
+       "joyous",
+       "anticipatory",
+       "(very joyous)",
+       "(changes hopeful depressing)",
+       "(and joyous anticipatory)",
+       null
+      ]
+     },
+     "rhythm": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "enum": [
+       "normal",
+       "fast",
+       "slow",
+       "(changes fast slow)",
+       null
+      ]
+     },
+     "length": {
+      "type": [
+       "string",
+       "null"
+      ],
+      "enum": [
+       "short",
+       "medium",
+       "long",
+       null
+      ]
+     },
+     "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "array",
+       "minItems": 1,
+       "items": {
+        "anyOf": [
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "establish-personality"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           }
+          },
+          "required": [
+           "kind",
+           "who"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "establish-emotional-state"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "feelings": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "object",
+             "properties": {
+              "feeling": {
+               "type": "string",
+               "enum": [
+                "joy",
+                "pride"
+               ]
+              },
+              "sign": {
+               "type": "string",
+               "enum": [
+                "positive",
+                "negative"
+               ]
+              },
+              "amount": {
+               "type": "string",
+               "enum": [
+                "low",
+                "medium",
+                "high"
+               ]
+              }
+             },
+             "required": [
+              "feeling",
+              "sign",
+              "amount"
+             ],
+             "additionalProperties": false
+            }
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "feelings"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "establish-relationship"
+            ]
+           },
+           "from": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "to": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           }
+          },
+          "required": [
+           "kind",
+           "from",
+           "to"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "accompanys",
+             "chases",
+             "hurts",
+             "pushes",
+             "alone",
+             "getting-it-on",
+             "meets"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "whom": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "whom"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "wants",
+             "prevents"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "meets": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+             "type": "string",
+             "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "maxItems": 2
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "meets"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "aware"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "gettingItOn": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+             "type": "string",
+             "pattern": "^[a-z][a-z0-9-]*$"
+            },
+            "maxItems": 2
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "gettingItOn"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "undoes"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "scene": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "undone": {
+            "anyOf": [
+             {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "accompanys",
+                 "chases",
+                 "hurts",
+                 "pushes",
+                 "alone",
+                 "getting-it-on",
+                 "meets"
+                ]
+               },
+               "who": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+               },
+               "whom": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+               }
+              },
+              "required": [
+               "kind",
+               "who",
+               "whom"
+              ],
+              "additionalProperties": false
+             },
+             {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "wants",
+                 "prevents"
+                ]
+               },
+               "who": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+               },
+               "meets": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                 "type": "string",
+                 "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "maxItems": 2
+               }
+              },
+              "required": [
+               "kind",
+               "who",
+               "meets"
+              ],
+              "additionalProperties": false
+             },
+             {
+              "type": "object",
+              "properties": {
+               "kind": {
+                "type": "string",
+                "enum": [
+                 "aware"
+                ]
+               },
+               "who": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]*$"
+               },
+               "gettingItOn": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                 "type": "string",
+                 "pattern": "^[a-z][a-z0-9-]*$"
+                },
+                "maxItems": 2
+               }
+              },
+              "required": [
+               "kind",
+               "who",
+               "gettingItOn"
+              ],
+              "additionalProperties": false
+             }
+            ]
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "scene",
+           "undone"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "change-physical"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "from": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "beautiful",
+              "shabby",
+              "physically-strong",
+              "magical",
+              "pretty",
+              "ugly",
+              "gorgeous",
+              "elegant",
+              "unkempt",
+              "physically-weak",
+              "powerful",
+              "strong"
+             ]
+            }
+           },
+           "to": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "beautiful",
+              "shabby",
+              "physically-strong",
+              "magical",
+              "pretty",
+              "ugly",
+              "gorgeous",
+              "elegant",
+              "unkempt",
+              "physically-weak",
+              "powerful",
+              "strong"
+             ]
+            }
+           },
+           "causedBy": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "from",
+           "to",
+           "causedBy"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "change-personality"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "from": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "shy",
+              "hard-working",
+              "friendly",
+              "good",
+              "evil",
+              "bad",
+              "selfish",
+              "kind",
+              "strong",
+              "determined",
+              "stubborn",
+              "mean",
+              "brazen",
+              "forward",
+              "lazy",
+              "industrious",
+              "unfriendly",
+              "stingy",
+              "generous",
+              "weak"
+             ]
+            }
+           },
+           "to": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "shy",
+              "hard-working",
+              "friendly",
+              "good",
+              "evil",
+              "bad",
+              "selfish",
+              "kind",
+              "strong",
+              "determined",
+              "stubborn",
+              "mean",
+              "brazen",
+              "forward",
+              "lazy",
+              "industrious",
+              "unfriendly",
+              "stingy",
+              "generous",
+              "weak"
+             ]
+            }
+           },
+           "causedBy": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "from",
+           "to",
+           "causedBy"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "change-movement"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "from": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "graceful",
+              "clumsy",
+              "clody"
+             ]
+            }
+           },
+           "to": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "graceful",
+              "clumsy",
+              "clody"
+             ]
+            }
+           },
+           "causedBy": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "from",
+           "to",
+           "causedBy"
+          ],
+          "additionalProperties": false
+         },
+         {
+          "type": "object",
+          "properties": {
+           "kind": {
+            "type": "string",
+            "enum": [
+             "change-relationship"
+            ]
+           },
+           "who": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "whom": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+           },
+           "from": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "loves",
+              "hates",
+              "dominates",
+              "is-obedient-to",
+              "is-tolerant-of",
+              "is-intolerant-of",
+              "is-polite-to",
+              "is-impolite-to",
+              "is-grateful-to",
+              "is-protective-to",
+              "is-helpful-towards",
+              "adores",
+              "dispises",
+              "rules",
+              "is-generous-towards",
+              "is-protective-of"
+             ]
+            }
+           },
+           "to": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+             "type": "string",
+             "enum": [
+              "loves",
+              "hates",
+              "dominates",
+              "is-obedient-to",
+              "is-tolerant-of",
+              "is-intolerant-of",
+              "is-polite-to",
+              "is-impolite-to",
+              "is-grateful-to",
+              "is-protective-to",
+              "is-helpful-towards",
+              "adores",
+              "dispises",
+              "rules",
+              "is-generous-towards",
+              "is-protective-of"
+             ]
+            }
+           },
+           "causedBy": {
+            "type": "string"
+           }
+          },
+          "required": [
+           "kind",
+           "who",
+           "whom",
+           "from",
+           "to",
+           "causedBy"
+          ],
+          "additionalProperties": false
+         }
+        ]
+       }
+      }
+     }
+    },
+    "required": [
+     "name",
+     "title",
+     "mood",
+     "rhythm",
+     "length",
+     "steps"
+    ],
+    "additionalProperties": false
+   }
+  },
+  "film": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "variety": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "complexity": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "originality": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "rhythm": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "coherence": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "obviousness": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "flashiness": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    },
+    "energy": {
+     "type": "string",
+     "enum": [
+      "low",
+      "medium",
+      "high"
+     ]
+    }
+   },
+   "required": [
+    "name",
+    "variety",
+    "complexity",
+    "originality",
+    "rhythm",
+    "coherence",
+    "obviousness",
+    "flashiness",
+    "energy"
+   ],
+   "additionalProperties": false
+  },
+  "focus": {
+   "type": "object",
+   "properties": {
+    "scenes": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+     }
+    },
+    "relationships": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "from": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+       },
+       "to": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+       }
+      },
+      "required": [
+       "from",
+       "to"
+      ],
+      "additionalProperties": false
+     }
+    }
+   },
+   "required": [
+    "scenes",
+    "relationships"
+   ],
+   "additionalProperties": false
+  }
+ },
+ "required": [
+  "characters",
+  "main",
+  "relationships",
+  "scenes",
+  "film",
+  "focus"
+ ],
+ "additionalProperties": false
+}

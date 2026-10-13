@@ -1,0 +1,230 @@
+{
+ "story": "C:\\Users\\toont\\ani-revival\\reports\\llm-trials\\2026-10-13 gpt-6.1-sol json\\the-tortoise-and-the-hare-again.lisp",
+ "extensions": [
+  "mend",
+  "appear",
+  "change",
+  "know"
+ ],
+ "fps": 4,
+ "frames": 1000,
+ "pass1": {
+  "ok": true,
+  "seconds": 51.2,
+  "choices": 42,
+  "odd": [],
+  "unread": [],
+  "looks": [
+   {
+    "character": "tortoise",
+    "shape": "circle",
+    "angle": 5,
+    "centerOffset": null,
+    "aniSize": 0.07,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of tortoise size)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(variety level)",
+       "physically-strong"
+      ],
+      "drawn": "high"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of tortoise shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(dynamics-of tortoise path-jaggedness)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of tortoise shape-complexity)",
+      "value": "low",
+      "strength": "low",
+      "sources": [
+       "(dynamics-of tortoise speed)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     }
+    }
+   },
+   {
+    "character": "hare",
+    "shape": "octagon",
+    "angle": 45,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of hare size)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(flashiness level)",
+       "(variety level)",
+       "(relative-choice-point-of (hare tortoise) relative-size)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of hare shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(dynamics-of hare path-jaggedness)",
+       "graceful",
+       "(opposite-of elegant shabby)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of hare shape-complexity)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(opposite-of brazen shy)",
+       "(relative-choice-point-of (hare tortoise) relative-shape-complexity)",
+       "(dynamics-of hare speed)"
+      ],
+      "drawn": "high"
+     }
+    }
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "boasting",
+   "ok": true,
+   "seconds": 16.5,
+   "frames": 2,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "establish-task-4",
+     "description": "(emotional-state tortoise (joy (negative low)))",
+     "choice": "((change: element (tortoise acceleration) amount (negative low) speed low) (change: element (tortoise rhythmic-level) amount (negative low) speed low) (change: element (tortoise speed) amount (negative low) speed low) (change: element (tortoise activity-level) amount (negative low) speed low))"
+    },
+    {
+     "task": "establish-task-3",
+     "description": "(relationship (relationship-of hare tortoise))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-2",
+     "description": "(personality hare)",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-1",
+     "description": "(personality tortoise)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ]
+  },
+  {
+   "id": "race",
+   "ok": true,
+   "seconds": 18.7,
+   "frames": 4,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "convey-task-1",
+     "description": "(chases tortoise hare)",
+     "choice": "((chases-to tortoise hare (distance-away-from (vicinity-of hare) (vicinity-of tortoise) 0.25)))"
+    },
+    {
+     "task": "establish-task-6",
+     "description": "(emotional-state tortoise (joy (positive low)))",
+     "choice": "((change: element (tortoise acceleration) amount (positive low) speed low) (change: element (tortoise rhythmic-level) amount (positive low) speed low) (change: element (tortoise speed) amount (positive low) speed low) (change: element (tortoise activity-level) amount (positive low) speed low))"
+    },
+    {
+     "task": "establish-task-5",
+     "description": "(emotional-state hare (pride (positive high)))",
+     "choice": "((change: element (hare deliberateness) amount (positive high) speed high) (change: element (hare path-jaggedness) amount (negative high) speed high) (change: element (hare speed) amount (negative high) speed high))"
+    }
+   ],
+   "repairs": [
+    "(subscene-of race 1): (revival-repair: what same-place was (from (vicinity-of hare) towards (vicinity-of tortoise)) now (xy-position 0.0 -0.25) because (both at (xy-position 0.0 0.0)))",
+    "film2: (revival-repair: what same-place was (from (xy-position 0.0 0.0) towards (xy-position 0.0 0.0)) now (xy-position 0.0 0.036) because (both at (xy-position 0.0 0.0))) (while filming)",
+    "film2: (revival-repair: what same-place was (from (vicinity-of hare) towards (vicinity-of tortoise)) now (xy-position 0.0 -0.25) because (both at (xy-position 0.0 0.0))) (while filming)"
+   ]
+  },
+  {
+   "id": "rest-and-persistence",
+   "ok": true,
+   "seconds": 17,
+   "frames": 2,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-2",
+     "description": "(meets tortoise hare)",
+     "choice": "((move-to tortoise (vicinity-of hare)))"
+    },
+    {
+     "task": "establish-task-9",
+     "description": "(emotional-state tortoise (joy (positive medium)))",
+     "choice": "((change-to: element (tortoise path-curvature) new-value high speed high) (change-to: element (tortoise path-length) new-value long speed high) (change: element (tortoise acceleration) amount (positive medium) speed medium) (change: element (tortoise rhythmic-level) amount (positive medium) speed medium) (change: element (tortoise speed) amount (positive medium) speed medium) (change: element (tortoise activity-level) amount (positive medium) speed medium))"
+    },
+    {
+     "task": "establish-task-8",
+     "description": "(personality tortoise)",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-7",
+     "description": "(personality hare)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "repairs": [
+    "(subscene-of rest-and-persistence 2): (revival-repair: what defined-display-method was not-defined now (move-to tortoise (vicinity-of hare)) because (named-in convey))"
+   ]
+  },
+  {
+   "id": "victory",
+   "ok": true,
+   "seconds": 14.1,
+   "frames": 2,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "establish-task-12",
+     "description": "(emotional-state hare (and (joy (negative medium)) (pride (negative high))))",
+     "choice": "((change: element (hare acceleration) amount (negative medium) speed medium) (change: element (hare rhythmic-level) amount (negative medium) speed medium) (change: element (hare speed) amount (negative medium) speed medium) (change: element (hare activity-level) amount (negative medium) speed medium))"
+    },
+    {
+     "task": "establish-task-11",
+     "description": "(emotional-state tortoise (and (joy (positive high)) (pride (positive high))))",
+     "choice": "((change-to: element (tortoise path-curvature) new-value high speed high) (change-to: element (tortoise path-length) new-value long speed high) (change: element (tortoise acceleration) amount (positive high) speed high) (change: element (tortoise rhythmic-level) amount (positive high) speed high) (change: element (tortoise activity-level) amount (positive high) speed high) (change: element (tortoise deliberateness) amount (positive high) speed high) (change: element (tortoise path-jaggedness) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-10",
+     "description": "(relationship (relationship-of tortoise hare))",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "repairs": [
+    "establish-task-11: (revival-repair: what combined-changes was stopped now ((conflict different-signs (tortoise speed))) because (change under value not display))"
+   ]
+  }
+ ]
+}

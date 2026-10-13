@@ -1,0 +1,202 @@
+Ani is a program Ken Kahn wrote at MIT in 1978. Given a film description in his Lisp notation, it plans and animates a short film in which each character is a simple shape (Cinderella was a star). Turn the story at the end into a film description Ani can run.
+
+Write it in exactly the form of the example (Ken's own description of Cinderella), using ONLY the words listed here; Ani stops on anything else.
+
+CHARACTERS
+- 2 to 5 characters (never more than 6). Names are lowercase words joined by hyphens, like red-riding-hood or wolf.
+- Each one: (define name character (process initial description (physical ...) (personality ...))). Each of physical and personality is one word or (and word word ...). The main character also gets (role-in-story most-important). A character may also get (movement graceful) or (movement clumsy).
+- physical: beautiful shabby physically-strong magical pretty ugly gorgeous elegant unkempt physically-weak powerful
+- personality: shy hard-working friendly good evil bad selfish kind strong determined stubborn mean brazen forward lazy industrious unfriendly stingy generous weak
+
+RELATIONSHIPS
+- Define (relationship-of a b) for each ordered pair who feel something about each other; a to b and b to a are two relationships.
+- Each is one word or (and word word ...): loves hates dominates is-obedient-to is-tolerant-of is-intolerant-of is-polite-to is-impolite-to is-grateful-to is-protective-to is-helpful-towards adores dispises rules is-generous-towards
+- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.
+- Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
+
+SCENES (2 to 5, in story order)
+- (define scene-name scene (process initial description TASKS) (set your mood to M) (set your rhythm to R) (set your length to L))
+- TASKS is one task, or (and task task ...) for tasks Ani may order as it likes, or (sequence: task task ...) for tasks in this order; a sequence may contain an (and ...).
+- A task is one of these, with X, Y, Z characters:
+  (establish (personality X))
+  (establish (emotional-state X (joy (positive low)))) with positive or negative, and low, medium or high
+  (establish (relationship (relationship-of X Y))) for a relationship you defined
+  (convey (wants X (meets X Y)))
+  (convey (prevents X (meets Y Z)))
+  (convey (undoes X (from-scene earlier-scene-name THAT-SCENE'S-TASK))), the earlier scene's task copied exactly, as in the example; only what someone did there, a convey task, can be undone
+  (convey (accompanys X Y))
+  (convey (chases X Y))
+  (convey (hurts X Y))
+  (convey (pushes X Y))
+  (convey (alone X Y)) means everyone else leaves, so that X and Y are alone together (Ani shows it by the others leaving the stage); don't use it for X leaving Y alone
+  (convey (getting-it-on X Y)) for two characters in love coming together
+  (convey (aware X (getting-it-on Y Z)))
+  (convey (change (personality X OLD) (personality X NEW))) for X changing: OLD is the words of X's personality that go and NEW the words that take their place, each one word or (and word word ...); write it (convey (causes Y (change ...))) when Y brings the change about. physical works the same way, and so does how X feels about Y: (change (relationship (relationship-of X Y) OLD) (relationship (relationship-of X Y) NEW))
+  (convey (meets X Y)) for X going to meet Y
+  Nothing else: Ani can't show helps, gives, says, and so on.
+- M (mood): normal, hopeful, depressing, joyous, anticipatory, (very joyous), (changes hopeful depressing), (and joyous anticipatory)
+- R (rhythm): normal, fast, slow, (changes fast slow)
+- L (length): short, medium or long
+
+MAKING A GOOD FILM
+- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's shame (establish emotional-state), a rivalry becomes chases or pushes, a friendship accompanys.
+- Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
+- chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a sequence: with other tasks after them; never make a scene of pushes alone.
+- Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+- Ani shows what a mean or evil character is like by having them pick on their victim: (establish (personality X)) has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: (establish (emotional-state X (pride (negative high)))).
+- A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with (establish (personality X)).
+
+THE FILM
+- After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.
+- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies her choices, and originality whether she repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
+- Keep the example's first lines (the -*-lisp-*- line, (include |ai:ken;declar >|), (defcomment cindy)) and its last line, (compile-actors).
+
+Right after the first line, add two comment lines naming things for people:
+;; cast: red-riding-hood = Red Riding Hood (she); wolf = the wolf (he)
+;; scenes: into-the-woods = Into the Woods; the-wolf-waits = The Wolf Waits
+(use "the" where English needs it; pronouns she, he or they)
+
+Reply with the whole film description in one ```lisp code block, and nothing else.
+
+THE EXAMPLE (Ken's description of Cinderella, 1978):
+```lisp
+;; -*-lisp-*-
+
+(include |ai:ken;declar >|)
+
+(defcomment cindy) ;for tags
+
+(define cinderella character
+	(process initial description
+		 (physical (and beautiful shabby))
+		 (personality (and good friendly hard-working shy))
+		 (role-in-story most-important)))
+
+(define step-mother character
+	(process initial description
+		 (physical ugly)
+		 (personality (and mean selfish strong evil))))
+
+(define (relationship-of step-mother cinderella) relationship
+	(process initial description
+		 (and dominates hates)))
+
+(define (relationship-of cinderella step-mother) relationship
+	(process initial description
+		 (and is-obedient-to is-tolerant-of)))
+
+(define fairy-godmother character
+	(process initial description
+		 (physical (and pretty magical))
+		 (personality (and good kind strong))))
+
+(define (relationship-of cinderella fairy-godmother) relationship
+	(process initial description
+		 (and is-polite-to is-grateful-to)))
+
+(define (relationship-of fairy-godmother cinderella) relationship
+	(process initial description
+		 (and is-protective-of is-generous-towards is-helpful-towards)))
+
+(define prince character
+	(process initial description
+		 (physical (and beautiful strong)) 
+		 (personality (and good stubborn determined))))
+
+(define (relationship-of cinderella prince) relationship
+	(process initial description
+		 loves))
+
+(define (relationship-of prince cinderella) relationship
+	(process initial description
+		 loves))
+
+(define introduction scene
+	(process initial description
+		 (and (establish (personality cinderella))
+		      (establish (emotional-state cinderella (joy (positive low))))
+		      (establish (personality step-mother))
+		      (establish (emotional-state step-mother (joy (positive low))))
+		      (establish (relationship (relationship-of step-mother cinderella)))
+		      (establish (relationship (relationship-of cinderella step-mother)))))
+	(set your rhythm to normal);this is relative to the film's rhythm
+	(set your length to long))
+
+(define kept-apart scene
+	(process initial description
+		 (sequence: (convey (wants cinderella (meets cinderella prince)))
+			    (convey (prevents step-mother (meets cinderella prince)))
+			    (and (establish (emotional-state cinderella (joy (negative high))))
+				 (establish
+				  (emotional-state step-mother
+						   (and (joy (positive medium))
+							(pride (positive medium))))))))
+	(set your mood to (changes hopeful depressing))
+	(set your rhythm to (changes fast slow))
+	(set your length to long))
+
+(define no-longer-kept-apart scene
+	(process initial description
+		 (convey (undoes fairy-godmother
+				 (from-scene kept-apart
+					     (convey (prevents step-mother
+							       (meets cinderella prince)))))))
+	(set your mood to (and joyous anticipatory))
+	(set your rhythm to fast)
+	(set your length to short))
+
+(define meeting scene
+ (process initial description
+	  (sequence:
+	   (convey (alone cinderella prince))
+	   (convey (getting-it-on cinderella prince))
+	   (and (establish (relationship (relationship-of prince cinderella)))
+		(establish (relationship (relationship-of cinderella prince))))
+	   (and (establish (emotional-state prince (joy (positive high))))
+		(establish (emotional-state cinderella (joy (positive high)))))))
+ (set your mood to (very joyous))
+ (set your rhythm to fast)
+ (set your length to long))
+
+ 
+(define justice scene
+	(process initial description
+		 (and (convey (aware step-mother (getting-it-on prince cinderella)))
+		      (convey (getting-it-on prince cinderella))
+		      (establish (emotional-state step-mother (joy (negative high))))))
+	(set your mood to joyous)
+	(set your length to medium))
+
+(declare (coutput (read))) ;;dont want the side effects upon (... level) lost
+
+(define cinderella-film film
+	(set your level of variety to medium)
+	(set your level of complexity to low)
+	(set your level of originality to low)
+	(set your film-length to (interval (minutes 2) (minutes 5)))
+	(set your level of rhythm to high) ;; medium-fast was here but not supported so...
+	(set your mood to scene-dependent)
+	(set your level of coherence to high)
+	(set your level of obviousness to high)
+	(set your level of flashiness to low)
+	(set your level of energy to high)
+	(set your focus to the-films-focus))
+
+(define the-films-focus focus
+ (set your order-of-character+element-type+element to (characters element-types elements))
+ (set your parts-of-the-focus to
+      (cinderella no-longer-kept-apart kept-apart
+                 (relationship-of cinderella step-mother)
+                 (relationship-of step-mother cinderella))))
+						  
+(compile-actors)
+
+		 
+
+							
+
+```
+
+THE STORY:
+<the story>

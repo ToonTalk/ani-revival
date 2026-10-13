@@ -1,0 +1,609 @@
+{
+ "story": "C:\\Users\\toont\\ani-revival\\reports\\llm-trials\\2026-10-13 gpt-6.1-sol json\\the-lion-and-the-mouse.lisp",
+ "extensions": [
+  "mend",
+  "appear",
+  "change",
+  "know"
+ ],
+ "fps": 4,
+ "frames": 1000,
+ "pass1": {
+  "ok": true,
+  "seconds": 22.1,
+  "choices": 41,
+  "odd": [],
+  "unread": [],
+  "looks": [
+   {
+    "character": "lion",
+    "shape": "hexagon",
+    "angle": 60,
+    "centerOffset": null,
+    "aniSize": 0.07,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of lion size)",
+      "value": "high",
+      "strength": "high",
+      "sources": [
+       "physically-strong",
+       "(neighbor-of powerful physically-strong)",
+       "strong"
+      ],
+      "drawn": "high"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of lion shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(dynamics-of lion path-jaggedness)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of lion shape-complexity)",
+      "value": "medium",
+      "strength": "low",
+      "sources": [
+       "(dynamics-of lion speed)",
+       "(variety level)"
+      ],
+      "drawn": "medium"
+     }
+    }
+   },
+   {
+    "character": "mouse",
+    "shape": "square",
+    "angle": 90,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of mouse size)",
+      "value": "low",
+      "strength": "high",
+      "sources": [
+       "shy",
+       "(opposite-of weak strong)",
+       "(opposite-of physically-weak physically-strong)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of mouse shape-jaggedness)",
+      "value": "medium",
+      "strength": "high",
+      "sources": [
+       "(relative-choice-point-of (mouse lion) relative-shape-jaggedness)",
+       "(dynamics-of mouse path-jaggedness)"
+      ],
+      "drawn": "medium"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of mouse shape-complexity)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "shy",
+       "(relative-choice-point-of (mouse lion) relative-shape-complexity)"
+      ],
+      "drawn": "low"
+     }
+    }
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "the-capture",
+   "ok": true,
+   "seconds": 30.2,
+   "frames": 45,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-10",
+     "description": "(pushes lion mouse)",
+     "choice": "((pushes-around lion mouse))"
+    },
+    {
+     "task": "convey-task-1",
+     "description": "(chases lion mouse)",
+     "choice": "((chases-to lion mouse (distance-away-from (vicinity-of mouse) (vicinity-of lion) 0.25)))"
+    },
+    {
+     "task": "establish-task-3",
+     "description": "(relationship (relationship-of lion mouse))",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (pushes lion mouse) best-when ((not (likes lion mouse)))))"
+    },
+    {
+     "task": "establish-task-2",
+     "description": "(personality mouse)",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-1",
+     "description": "(personality lion)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ]
+  },
+  {
+   "id": "mercy",
+   "ok": true,
+   "seconds": 7.6,
+   "frames": 2,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "convey-task-3",
+     "description": "(change (relationship (relationship-of lion mouse) dominates) (relationship (relationship-of lion mouse) (and is-helpful-towards is-polite-to)))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-2",
+     "description": "(undoes lion (from-scene the-capture (convey (chases lion mouse))))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-5",
+     "description": "(emotional-state mouse (joy (positive medium)))",
+     "choice": "((change-to: element (mouse path-curvature) new-value high speed high) (change-to: element (mouse path-length) new-value long speed high) (change: element (mouse acceleration) amount (positive medium) speed medium) (change: element (mouse rhythmic-level) amount (positive medium) speed medium) (change: element (mouse speed) amount (positive medium) speed medium) (change: element (mouse activity-level) amount (positive medium) speed medium))"
+    },
+    {
+     "task": "establish-task-4",
+     "description": "(emotional-state lion (pride (positive high)))",
+     "choice": "((change: element (lion deliberateness) amount (positive high) speed high) (change: element (lion path-jaggedness) amount (negative high) speed high) (change: element (lion speed) amount (negative high) speed high))"
+    }
+   ]
+  },
+  {
+   "id": "the-lion-trapped",
+   "ok": true,
+   "seconds": 24.9,
+   "frames": 81,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-6",
+     "description": "(meets mouse lion)",
+     "choice": "((move-to mouse (vicinity-of lion)))"
+    },
+    {
+     "task": "convey-task-5",
+     "description": "(change (personality mouse (and shy weak)) (personality mouse (and determined strong)))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-4",
+     "description": "(change (physical lion (and physically-strong powerful)) (physical lion physically-weak))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "establish-task-6",
+     "description": "(emotional-state lion (and (joy (negative high)) (pride (negative medium))))",
+     "choice": "((change-to: element (lion path-curvature) new-value low speed low) (change-to: element (lion path-length) new-value long speed low) (change: element (lion acceleration) amount (negative high) speed high) (change: element (lion rhythmic-level) amount (negative high) speed high) (change: element (lion speed) amount (negative high) speed high) (change: element (lion activity-level) amount (negative high) speed high))"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "lion",
+     "scene": "mercy",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "dominates",
+       "now": "(and is-helpful-towards is-polite-to)"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "scene": "mercy",
+     "described": [],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "(subscene-of the-lion-trapped 2): (revival-repair: what defined-display-method was not-defined now (move-to mouse (vicinity-of lion)) because (named-in convey))"
+   ]
+  },
+  {
+   "id": "the-rescue",
+   "ok": true,
+   "seconds": 28.3,
+   "frames": 45,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-8",
+     "description": "(causes mouse (change (physical lion physically-weak) (physical lion (and physically-strong powerful))))",
+     "status": "cant-do",
+     "choice": "nil"
+    },
+    {
+     "task": "convey-task-7",
+     "description": "(accompanys mouse lion)",
+     "choice": "((goes-to-and-accompanys mouse lion (good-distance-from (vicinity-of mouse))))"
+    },
+    {
+     "task": "establish-task-8",
+     "description": "(emotional-state lion (joy (positive high)))",
+     "choice": "((change-to: element (lion path-curvature) new-value high speed high) (change-to: element (lion path-length) new-value long speed high) (change: element (lion acceleration) amount (positive high) speed high) (change: element (lion rhythmic-level) amount (positive high) speed high) (change: element (lion speed) amount (positive high) speed high) (change: element (lion activity-level) amount (positive high) speed high))"
+    },
+    {
+     "task": "establish-task-7",
+     "description": "(personality mouse)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "lion",
+     "scene": "mercy",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "dominates",
+       "now": "(and is-helpful-towards is-polite-to)"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "scene": "mercy",
+     "described": [],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "lion",
+     "scene": "the-lion-trapped",
+     "described": [
+      {
+       "type": "physical",
+       "was": "(and physically-strong powerful)",
+       "now": "physically-weak"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "path-jaggedness",
+       "was": "low",
+       "now": "(not low)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "scene": "the-lion-trapped",
+     "described": [
+      {
+       "type": "personality",
+       "was": "(and shy weak)",
+       "now": "(and determined strong)"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "path-jaggedness",
+       "was": "medium",
+       "now": "low"
+      },
+      {
+       "element": "path-length",
+       "was": "short",
+       "now": "long"
+      },
+      {
+       "element": "deliberateness",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "repetiveness",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "speed",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "was": "(negative medium)",
+       "now": "(positive low)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "(choice-point-of lion path-jaggedness): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (0 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  },
+  {
+   "id": "friends",
+   "ok": true,
+   "seconds": 54.5,
+   "frames": 87,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-10",
+     "description": "(helps lion mouse)",
+     "choice": "((helps-along lion mouse (good-distance-from (vicinity-of mouse))))"
+    },
+    {
+     "task": "convey-task-9",
+     "description": "(accompanys lion mouse)",
+     "choice": "((goes-to-and-accompanys lion mouse (good-distance-from (vicinity-of lion))))"
+    },
+    {
+     "task": "establish-task-11",
+     "description": "(emotional-state mouse (and (joy (positive high)) (pride (positive high))))",
+     "choice": "((change-to: element (mouse path-curvature) new-value high speed high) (change-to: element (mouse path-length) new-value long speed high) (change: element (mouse acceleration) amount (positive high) speed high) (change: element (mouse rhythmic-level) amount (positive high) speed high) (change: element (mouse activity-level) amount (positive high) speed high) (change: element (mouse deliberateness) amount (positive high) speed high) (change: element (mouse path-jaggedness) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-10",
+     "description": "(emotional-state lion (joy (positive high)))",
+     "choice": "((change-to: element (lion path-curvature) new-value high speed high) (change-to: element (lion path-length) new-value long speed high) (change: element (lion acceleration) amount (positive high) speed high) (change: element (lion rhythmic-level) amount (positive high) speed high) (change: element (lion speed) amount (positive high) speed high) (change: element (lion activity-level) amount (positive high) speed high))"
+    },
+    {
+     "task": "establish-task-9",
+     "description": "(relationship (relationship-of lion mouse))",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (helps lion mouse)))"
+    }
+   ],
+   "becomes": [
+    {
+     "character": "lion",
+     "scene": "mercy",
+     "described": [
+      {
+       "type": "relationship",
+       "was": "dominates",
+       "now": "(and is-helpful-towards is-polite-to)"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "scene": "mercy",
+     "described": [],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "lion",
+     "scene": "the-lion-trapped",
+     "described": [
+      {
+       "type": "physical",
+       "was": "(and physically-strong powerful)",
+       "now": "physically-weak"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "path-jaggedness",
+       "was": "low",
+       "now": "(not low)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "scene": "the-lion-trapped",
+     "described": [
+      {
+       "type": "personality",
+       "was": "(and shy weak)",
+       "now": "(and determined strong)"
+      }
+     ],
+     "madeSo": [
+      {
+       "element": "path-jaggedness",
+       "was": "medium",
+       "now": "low"
+      },
+      {
+       "element": "path-length",
+       "was": "short",
+       "now": "long"
+      },
+      {
+       "element": "deliberateness",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "repetiveness",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "speed",
+       "was": "low",
+       "now": "high"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "was": "(negative medium)",
+       "now": "(positive low)"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "lion",
+     "scene": "the-rescue",
+     "described": [
+      {
+       "type": "physical",
+       "was": "physically-weak",
+       "now": "(and physically-strong powerful)"
+      }
+     ],
+     "madeSo": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "repairs": [
+    "establish-task-11: (revival-repair: what combined-changes was stopped now ((conflict different-signs (mouse speed))) because (change under value not display))",
+    "(choice-point-of lion path-jaggedness): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (0 high) (0 medium)) (middle-element ken1 reconstruction)))"
+   ]
+  }
+ ],
+ "changes": [
+  {
+   "scene": "mercy",
+   "ok": true,
+   "seconds": 23.4,
+   "characters": [
+    {
+     "character": "lion",
+     "changes": [
+      "(change (relationship (relationship-of lion mouse) dominates) (relationship (relationship-of lion mouse) (and is-helpful-towards is-polite-to)))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "changes": [
+      "(change (relationship (relationship-of lion mouse) dominates) (relationship (relationship-of lion mouse) (and is-helpful-towards is-polite-to)))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  },
+  {
+   "scene": "the-lion-trapped",
+   "ok": true,
+   "seconds": 22.6,
+   "characters": [
+    {
+     "character": "lion",
+     "changes": [
+      "(change (physical lion (and physically-strong powerful)) (physical lion physically-weak))"
+     ],
+     "changed": [
+      {
+       "element": "path-jaggedness",
+       "before": "low",
+       "after": [
+        "not",
+        "low"
+       ],
+       "use": "director"
+      }
+     ],
+     "looks": "kept until stage 6"
+    },
+    {
+     "character": "mouse",
+     "changes": [
+      "(change (personality mouse (and shy weak)) (personality mouse (and determined strong)))"
+     ],
+     "changed": [
+      {
+       "element": "path-jaggedness",
+       "before": "medium",
+       "after": "low",
+       "use": "director"
+      },
+      {
+       "element": "path-length",
+       "before": "short",
+       "after": "long",
+       "use": "director"
+      },
+      {
+       "element": "deliberateness",
+       "before": "low",
+       "after": "high",
+       "use": "none"
+      },
+      {
+       "element": "repetiveness",
+       "before": "low",
+       "after": "high",
+       "use": "cycles"
+      },
+      {
+       "element": "speed",
+       "before": "low",
+       "after": "high",
+       "use": "director"
+      },
+      {
+       "element": "attraction-towards-enemies",
+       "before": [
+        "negative",
+        "medium"
+       ],
+       "after": [
+        "positive",
+        "low"
+       ],
+       "use": "none"
+      }
+     ],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  },
+  {
+   "scene": "the-rescue",
+   "ok": true,
+   "seconds": 21.1,
+   "characters": [
+    {
+     "character": "lion",
+     "changes": [
+      "(change (physical lion physically-weak) (physical lion (and physically-strong powerful)))"
+     ],
+     "changed": [],
+     "looks": "kept until stage 6"
+    }
+   ],
+   "held": [],
+   "knockOns": []
+  }
+ ]
+}

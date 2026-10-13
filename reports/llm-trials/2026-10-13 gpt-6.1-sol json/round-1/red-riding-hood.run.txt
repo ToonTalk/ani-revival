@@ -1,0 +1,43 @@
+C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\red-riding-hood.lisp: 4 scenes (introduction, blocked, rescue, reunion), 4 characters; extensions: mend, appear, change, know; 4 frames a second, at most 1000 a scene
+ok     pass 1 (117.7s): 132 choices
+         red-riding-hood looks: hexagon, size 0.036 (size low from (relative-choice-point-of (red-riding-hood woodcutter) relative-size), (flashiness level), (variety level); shape-jaggedness low from friendly, (dynamics-of red-riding-hood path-jaggedness), (variety level); shape-complexity medium from (dynamics-of red-riding-hood speed), (variety level))
+         grandmother looks: pentagon, size 0.036 (size low from (flashiness level), (variety level), (relative-choice-point-of (grandmother woodcutter) relative-size), (opposite-of physically-weak physically-strong); shape-jaggedness medium from (relative-choice-point-of (grandmother wolf) relative-shape-jaggedness), (relative-choice-point-of (grandmother red-riding-hood) relative-shape-jaggedness); shape-complexity medium from (dynamics-of grandmother speed), (variety level), (relative-choice-point-of (grandmother woodcutter) relative-shape-complexity))
+         wolf looks: eight-pointed-star, size 0.05 (size medium from (neighbor-of powerful physically-strong), (relative-choice-point-of (wolf red-riding-hood) relative-size), (relative-choice-point-of (wolf woodcutter) relative-size); shape-jaggedness high from mean, (relative-choice-point-of (wolf red-riding-hood) relative-shape-jaggedness); shape-complexity high from (relative-choice-point-of (wolf red-riding-hood) relative-shape-complexity), (dynamics-of wolf speed), (variety level))
+         woodcutter looks: circle, size 0.07 (size high from physically-strong, strong; shape-jaggedness low from (dynamics-of woodcutter path-jaggedness), (variety level), (relative-choice-point-of (woodcutter wolf) relative-shape-jaggedness); shape-complexity low from (relative-choice-point-of (woodcutter wolf) relative-shape-complexity), (relative-choice-point-of (woodcutter red-riding-hood) relative-shape-complexity))
+ok     introduction (175.4s): 174 frames (43.5 s), 7 subscenes
+         convey-task-11   (accompanys red-riding-hood grandmother): ((goes-to-and-accompanys red-riding-hood grandmother (good-distance-from (vicinity-of red-riding-hood))))
+         convey-task-10   (helps red-riding-hood grandmother): ((helps-along red-riding-hood grandmother (good-distance-from (vicinity-of grandmother))))
+         convey-task-9    (hurts wolf red-riding-hood): ((move-to-and-hits wolf red-riding-hood))
+         convey-task-8    (chases wolf red-riding-hood): ((chases-to wolf red-riding-hood (distance-away-from (vicinity-of red-riding-hood) (vicinity-of wolf) 0.25)))
+         convey-task-7    (wants red-riding-hood (getting-it-on red-riding-hood grandmother)): ((move-to-each-other red-riding-hood grandmother))
+         convey-task-6    (accompanys red-riding-hood grandmother): ((goes-to-and-accompanys red-riding-hood grandmother (good-distance-from (vicinity-of red-riding-hood))))
+         establish-task-4 (emotional-state red-riding-hood (joy (positive medium))): ((change-to: element (red-riding-hood path-curvature) new-value high speed high) (change-to: element (red-ridi
+         establish-task-3 (relationship (relationship-of red-riding-hood grandmother)): being-handled-by-convey-tasks
+         establish-task-2 (personality wolf): being-handled-by-convey-tasks
+         establish-task-1 (personality red-riding-hood): being-handled-by-convey-tasks
+         repair: establish-task-1: (revival-repair: what missing-relationship was (relationship-of red-riding-hood wolf) now dont-know because no-such-relationship)
+         repair: (subscene-of introduction 3): (revival-repair: what brought-on-stage was (grandmother at (medium-distance-from-and-offstage (vicinity-of red-riding-hood))) now (activity-of getting-on-stage 1) because (off-the-stage for helps-along))
+FAILED pass 2 blocked (17s): break CANT-HANDLE-YET-IN-CHASES-TO-INTIAL-LOCS
+  innermost forms:
+    (BREAK CANT-HANDLE-YET-IN-CHASES-TO-INTIAL-LOCS)
+    (COND ((AND CHASER-LOCATED? CHASEE-LOCATED? DESTINATION-LOCATED?)) ((NOT DESTINATION-LOCATED?) (PLACE-MEDIUM-DISTANCE-APART (QUOTE CHASES-TO) (CONS (QUOTE VICINITY-OF) (CONS CHASER NIL)) (CONS (QUOTE VICINITY-OF) (CONS C
+    (LET ((CHASER-LOCATED? (LOCATED? (CONS (QUOTE VICINITY-OF) (CONS CHASER NIL)) SUBSCENE)) (CHASEE-LOCATED? (LOCATED? (CONS (QUOTE VICINITY-OF) (CONS CHASEE NIL)) SUBSCENE)) (DESTINATION-LOCATED? (LOCATED? DESTINATION SUBS
+    (INITIAL-LOCATIONS-FOR-CHASES-TO CHASER CHASEE DESTINATION SUBSCENE)
+    ((LAMBDA (FACTOR SUBSCENE DESTINATION CHASEE CHASER) (INITIAL-LOCATIONS-FOR-CHASES-TO CHASER CHASEE DESTINATION SUBSCENE) (LET ((CHASEE-MODIFIED-DYNAMICS (MODIFY-DYNAMICS-OF-CHASEE CHASEE FACTOR SUBSCENE)) (CHASER-MODIFI
+    (FUNCALL :METHOD-BEING-RUN)
+  the sends that led there, innermost first:
+    (ASK1 :SELF (CONS (QUOTE RUN) (CONS (QUOTE CHASES-TO) (CONS CHASER (CONS CHASEE (CONS DESTINATION (CONS (QUOTE IN) (CONS SUBSCENE (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL)))))))))) T)
+    (ASK1 (FIRST METHOD) (CONS (QUOTE RUN) (APPEND METHOD (CONS (QUOTE IN) (CONS :SELF (CONS (QUOTE STRETCHED) (CONS (QUOTE BY) (CONS FACTOR NIL))))))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 SCENE (QUOTE (ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) ASK EACH OF YOUR SUBSCENES TO DO THE FOLLOWING: (RUN YOUR METHODS) (PLAN YOUR ACTIONS))
+FAILED pass 2 rescue (8.5s): shouldnt happen (FULL-FILE-NAME (|file| ((AR9 KEN1) STORY2 MINI) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 reunion (14.4s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM3 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+3 steps failed (349.8s)
+wrote C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\red-riding-hood.run.json

@@ -1,0 +1,70 @@
+C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\the-lion-and-the-mouse.lisp: 5 scenes (caught, mercy, trapped, rescue, friends), 2 characters; extensions: mend, appear, change, know; 4 frames a second, at most 1000 a scene
+ok     pass 1 (36.6s): 42 choices, 1 that pass 2 can't use as it is:
+         (choice-point-of mouse path-jaggedness) = (not low)
+         lion looks: hexagon, size 0.07 (size high from physically-strong, (neighbor-of powerful physically-strong), strong; shape-jaggedness low from (dynamics-of lion path-jaggedness), (variety level); shape-complexity medium from (dynamics-of lion speed), (variety level))
+         mouse looks: triangle, size 0.036 (size low from shy, (opposite-of physically-weak physically-strong), (relative-choice-point-of (mouse lion) relative-size); shape-jaggedness high from (relative-choice-point-of (mouse lion) relative-shape-jaggedness), (dynamics-of mouse path-jaggedness); shape-complexity low from shy, (relative-choice-point-of (mouse lion) relative-shape-complexity))
+ok     caught (59.5s): 67 frames (16.8 s), 3 subscenes
+         convey-task-9    (pushes lion mouse): ((pushes-around lion mouse))
+         establish-task-4 (emotional-state mouse (joy (negative high))): ((change-to: element (mouse path-curvature) new-value low speed low) (change-to: element (mouse path-length) n
+         establish-task-3 (relationship (relationship-of lion mouse)): being-handled-by-convey-tasks
+         establish-task-2 (personality mouse): cant-do
+         establish-task-1 (personality lion): cant-do
+         repair: (choice-point-of mouse path-jaggedness): (revival-repair: what narrowed was (not low) now medium because ((variety level) medium (counts (0 high) (0 medium)) (middle-element ken1 reconstruction)))
+ok     fresh look mercy: KEN1;STORY2 BECOME
+         lion: (change (relationship (relationship-of lion mouse) dominates) (relationship (relationship-of lion mouse) is-generous-towards))
+           nothing changes in how lion moves
+           looks: kept until stage 6
+         mouse: (change (relationship (relationship-of lion mouse) dominates) (relationship (relationship-of lion mouse) is-generous-towards))
+           nothing changes in how mouse moves
+           looks: kept until stage 6
+FAILED pass 2 mercy (9.7s): break NO-SUCH-ACTOR
+  Lisp typed, last:
+    ;warning from ASK: METHOD: is not an actor --- type (?) for help
+  innermost forms:
+    (BREAK NO-SUCH-ACTOR T)
+    (LET ((RETURNED (BREAK NO-SUCH-ACTOR T))) (COND ((EQ RETURNED (QUOTE RETRY)) ACTOR) (T RETURNED)))
+    (LET ((? (CONS ACTOR (CONS (QUOTE |is not defined as an actor --- if it is misspelled then type (return '<correct-spelling>) if you want to define|) (CONS ACTOR (QUOTE (|do so now and then type (return 'retry) otherwise 
+    (FUNCALL :ACTOR-NOT-DEFINED UNDEFINED-ACTOR)
+    (LET ((NEW-ACTOR-NAME (FUNCALL :ACTOR-NOT-DEFINED UNDEFINED-ACTOR))) (AND NEW-ACTOR-NAME (SETQ :SELF (ACTOR-OF NEW-ACTOR-NAME))))
+    (UNDEFINED-ACTOR ACTORS-NAME)
+  the sends that led there, innermost first:
+    (ASK1 (FIRST NEW-CLAUSE) (CONS (QUOTE YIELD) (SUBST NEW-CLAUSE FROM-SCENE-CLAUSE ANYTHING)) NIL)
+    (ASK1 (FIRST ACTIVITY) (CONS (QUOTE YIELD) (CONS (QUOTE UNDOING) (CONS (QUOTE SUGGESTIONS) (CONS (QUOTE FOR) (CONS TASK NIL))))) NIL)
+    (ASK1 (FIRST TASK) (CONS (QUOTE YIELD) (CONS (QUOTE SUGGESTIONS) (CONS (QUOTE FOR) (CONS (CONS (QUOTE CONVEY) (CONS TASK NIL)) NIL)))) NIL)
+    (ASK1 :SELF MESSAGE NIL)
+    (ASK :SELF DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :ASK-EACH-TARGET MESSAGE NIL)
+    (ASK-EACH (DIRECTOR-SYMBOL-FOR-EVAL (ASK :SELF RECALL YOUR (DIRECTOR-SYMBOL-FOR-EVAL VARIABLE))) DIRECTOR-SYMBOL-FOR-EVAL MESSAGE)
+    (ASK1 :SELF (QUOTE (ASK EACH OF YOUR CONVEY-TASKS TO COLLECT TASK SUGGESTIONS)) NIL)
+    (ASK :SELF ASK EACH OF YOUR CONVEY-TASKS TO COLLECT TASK SUGGESTIONS)
+    (DO-AS-IF-YOU-WERE CONVEY-TASK :SELF ASK EACH OF YOUR CONVEY-TASKS TO COLLECT TASK SUGGESTIONS)
+    (ASK1 :SELF (QUOTE (COLLECT CONVEY TASKS SUGGESTIONS)) NIL)
+    (ASK :SELF COLLECT CONVEY TASKS SUGGESTIONS)
+    (ASK1 SCENE (QUOTE (COLLECT SUBTASKS SUGGESTIONS)) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) COLLECT SUBTASKS SUGGESTIONS)
+ok     fresh look trapped: KEN1;STORY3 BECOME
+         mouse: (change (personality mouse shy) (personality mouse (and determined strong)))
+           path-jaggedness (not low) -> low
+           deliberateness low -> high (Director and pass 2 don't use it)
+           repetiveness low -> high (how often pass 2 repeats an activity)
+           speed low -> high
+           attraction-towards-enemies (negative medium) -> (positive low) (Director and pass 2 don't use it)
+           looks: kept until stage 6
+         held (choice-point-of lion path-jaggedness) at low (would have chosen (not low))
+         a full recompute would also change (choice-point-of lion path-jaggedness) low -> (not low)
+FAILED pass 2 trapped (10.5s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM2 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+ok     fresh look rescue: KEN1;STORY4 BECOME
+         lion: (change (relationship (relationship-of lion mouse) is-generous-towards) (relationship (relationship-of lion mouse) (and is-grateful-to is-helpful-towards))) (change (relationship (relationship-of mouse lion) is-grateful-to) (relationship (relationship-of mouse lion) is-helpful-towards))
+           path-jaggedness low -> (not low)
+           looks: kept until stage 6
+         mouse: (change (relationship (relationship-of lion mouse) is-generous-towards) (relationship (relationship-of lion mouse) (and is-grateful-to is-helpful-towards))) (change (relationship (relationship-of mouse lion) is-grateful-to) (relationship (relationship-of mouse lion) is-helpful-towards))
+           nothing changes in how mouse moves
+           looks: kept until stage 6
+FAILED pass 2 rescue (7.5s): shouldnt happen (FULL-FILE-NAME (|file| ((AR9 KEN1) STORY3 MINI) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 friends (14.1s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM4 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+4 steps failed (415.6s)
+wrote C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol json\the-lion-and-the-mouse.run.json

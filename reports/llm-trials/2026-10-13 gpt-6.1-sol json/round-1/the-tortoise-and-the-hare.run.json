@@ -1,0 +1,207 @@
+{
+ "story": "C:\\Users\\toont\\ani-revival\\reports\\llm-trials\\2026-10-13 gpt-6.1-sol json\\the-tortoise-and-the-hare.lisp",
+ "extensions": [
+  "mend",
+  "appear",
+  "change",
+  "know"
+ ],
+ "fps": 4,
+ "frames": 1000,
+ "pass1": {
+  "ok": true,
+  "seconds": 41.7,
+  "choices": 42,
+  "odd": [],
+  "unread": [],
+  "looks": [
+   {
+    "character": "tortoise",
+    "shape": "circle",
+    "angle": 5,
+    "centerOffset": null,
+    "aniSize": 0.036,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of tortoise size)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(variety level)",
+       "(flashiness level)",
+       "(opposite-of physically-weak physically-strong)"
+      ],
+      "drawn": "low"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of tortoise shape-jaggedness)",
+      "value": "low",
+      "strength": "medium",
+      "sources": [
+       "(dynamics-of tortoise path-jaggedness)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of tortoise shape-complexity)",
+      "value": "low",
+      "strength": "low",
+      "sources": [
+       "(dynamics-of tortoise speed)",
+       "(variety level)"
+      ],
+      "drawn": "low"
+     }
+    }
+   },
+   {
+    "character": "hare",
+    "shape": "eight-pointed-star",
+    "angle": 135,
+    "centerOffset": null,
+    "aniSize": 0.07,
+    "elements": {
+     "size": {
+      "choicePoint": "(choice-point-of hare size)",
+      "value": "high",
+      "strength": "high",
+      "sources": [
+       "physically-strong",
+       "(opposite-of brazen shy)",
+       "(relative-choice-point-of (hare tortoise) relative-size)"
+      ],
+      "drawn": "high"
+     },
+     "shape-jaggedness": {
+      "choicePoint": "(choice-point-of hare shape-jaggedness)",
+      "value": "high",
+      "strength": "high",
+      "sources": [
+       "mean",
+       "(relative-choice-point-of (hare tortoise) relative-shape-jaggedness)"
+      ],
+      "drawn": "high"
+     },
+     "shape-complexity": {
+      "choicePoint": "(choice-point-of hare shape-complexity)",
+      "value": "high",
+      "strength": "medium",
+      "sources": [
+       "(opposite-of brazen shy)",
+       "(relative-choice-point-of (hare tortoise) relative-shape-complexity)",
+       "(dynamics-of hare speed)"
+      ],
+      "drawn": "high"
+     }
+    }
+   }
+  ]
+ },
+ "scenes": [
+  {
+   "id": "boasting",
+   "ok": true,
+   "seconds": 104.1,
+   "frames": 156,
+   "capped": false,
+   "subscenes": 4,
+   "plan": [
+    {
+     "task": "convey-task-5",
+     "description": "(hurts hare tortoise)",
+     "choice": "((move-to-and-hits hare tortoise))"
+    },
+    {
+     "task": "convey-task-4",
+     "description": "(chases hare tortoise)",
+     "choice": "((chases-to hare tortoise (distance-away-from (vicinity-of tortoise) (vicinity-of hare) 0.25)))"
+    },
+    {
+     "task": "convey-task-3",
+     "description": "(pushes hare tortoise)",
+     "choice": "((pushes-around hare tortoise))"
+    },
+    {
+     "task": "establish-task-4",
+     "description": "(emotional-state hare (pride (positive high)))",
+     "choice": "((change: element (hare deliberateness) amount (positive high) speed high) (change: element (hare path-jaggedness) amount (negative high) speed high) (change: element (hare speed) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-3",
+     "description": "(relationship (relationship-of hare tortoise))",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (pushes hare tortoise) best-when ((dominates hare tortoise))))"
+    },
+    {
+     "task": "establish-task-2",
+     "description": "(personality hare)",
+     "status": "being-handled-by-convey-tasks",
+     "choice": "((method: type convey value (hurts hare tortoise)) (method: type convey value (chases hare tortoise)))"
+    },
+    {
+     "task": "establish-task-1",
+     "description": "(personality tortoise)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ]
+  },
+  {
+   "id": "pushed-around",
+   "ok": true,
+   "seconds": 61.3,
+   "frames": 102,
+   "capped": false,
+   "subscenes": 3,
+   "plan": [
+    {
+     "task": "convey-task-1",
+     "description": "(pushes hare tortoise)",
+     "choice": "((pushes-around hare tortoise))"
+    },
+    {
+     "task": "establish-task-6",
+     "description": "(emotional-state tortoise (joy (negative high)))",
+     "choice": "((change-to: element (tortoise path-curvature) new-value low speed low) (change-to: element (tortoise path-length) new-value long speed low) (change: element (tortoise acceleration) amount (negative high) speed high) (change: element (tortoise rhythmic-level) amount (negative high) speed high) (change: element (tortoise speed) amount (negative high) speed high) (change: element (tortoise activity-level) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-5",
+     "description": "(personality tortoise)",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ]
+  },
+  {
+   "id": "tortoise-triumph",
+   "ok": true,
+   "seconds": 24.2,
+   "frames": 36,
+   "capped": false,
+   "subscenes": 2,
+   "plan": [
+    {
+     "task": "convey-task-2",
+     "description": "(meets tortoise hare)",
+     "choice": "((move-to tortoise (vicinity-of hare)))"
+    },
+    {
+     "task": "establish-task-8",
+     "description": "(emotional-state tortoise (and (joy (positive high)) (pride (positive high))))",
+     "choice": "((change-to: element (tortoise path-curvature) new-value high speed high) (change-to: element (tortoise path-length) new-value long speed high) (change: element (tortoise acceleration) amount (positive high) speed high) (change: element (tortoise rhythmic-level) amount (positive high) speed high) (change: element (tortoise activity-level) amount (positive high) speed high) (change: element (tortoise deliberateness) amount (positive high) speed high) (change: element (tortoise path-jaggedness) amount (negative high) speed high))"
+    },
+    {
+     "task": "establish-task-7",
+     "description": "(emotional-state hare (pride (negative high)))",
+     "status": "cant-do",
+     "choice": "nil"
+    }
+   ],
+   "repairs": [
+    "establish-task-8: (revival-repair: what combined-changes was stopped now ((conflict different-signs (tortoise speed))) because (change under value not display))",
+    "(subscene-of tortoise-triumph 1): (revival-repair: what defined-display-method was not-defined now (move-to tortoise (vicinity-of hare)) because (named-in convey))"
+   ]
+  }
+ ]
+}

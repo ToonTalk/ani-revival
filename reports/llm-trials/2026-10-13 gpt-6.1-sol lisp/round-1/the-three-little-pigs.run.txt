@@ -1,0 +1,36 @@
+C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol lisp\the-three-little-pigs.lisp: 5 scenes (friends, the-chase, keeping-together, happy-together, proud-pigs), 4 characters; extensions: mend, appear, change, know; 4 frames a second, at most 1000 a scene
+ok     pass 1 (174.3s): 132 choices
+         first-pig looks: hexagon, size 0.036 (size low from (variety level), (flashiness level), (opposite-of physically-weak physically-strong); shape-jaggedness low from (dynamics-of first-pig path-jaggedness), (relative-choice-point-of (first-pig third-pig) relative-shape-jaggedness), (relative-choice-point-of (first-pig wolf) relative-shape-jaggedness), friendly; shape-complexity medium from (dynamics-of first-pig speed), (variety level), (relative-choice-point-of (first-pig third-pig) relative-shape-complexity), (relative-choice-point-of (first-pig wolf) relative-shape-complexity))
+         second-pig looks: triangle, size 0.036 (size low from (flashiness level), (variety level), (relative-choice-point-of (second-pig third-pig) relative-size), (relative-choice-point-of (second-pig wolf) relative-size), (opposite-of physically-weak physically-strong); shape-jaggedness low from (dynamics-of second-pig path-jaggedness), (relative-choice-point-of (second-pig third-pig) relative-shape-jaggedness), (relative-choice-point-of (second-pig wolf) relative-shape-jaggedness), friendly, drawn high (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)); shape-complexity medium from (dynamics-of second-pig speed), (variety level), (relative-choice-point-of (second-pig third-pig) relative-shape-complexity), (relative-choice-point-of (second-pig wolf) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn triangle because (drawn-alike-with first-pig)))
+         third-pig looks: square, size 0.036 (size low from (opposite-of physically-weak physically-strong), (relative-choice-point-of (third-pig first-pig) relative-size), (relative-choice-point-of (third-pig wolf) relative-size); shape-jaggedness low from friendly, (relative-choice-point-of (third-pig first-pig) relative-shape-jaggedness), (relative-choice-point-of (third-pig second-pig) relative-shape-jaggedness), (relative-choice-point-of (third-pig wolf) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn square because (drawn-alike-with first-pig)); shape-complexity medium from (relative-choice-point-of (third-pig wolf) relative-shape-complexity), (relative-choice-point-of (third-pig first-pig) relative-shape-complexity), (relative-choice-point-of (third-pig second-pig) relative-shape-complexity), drawn low (overridden-by: shape-experts drawn square because (drawn-alike-with first-pig)))
+         wolf looks: pentagon, size 0.07 (size high from physically-strong, (relative-choice-point-of (wolf first-pig) relative-size); shape-jaggedness high from mean, (relative-choice-point-of (wolf first-pig) relative-shape-jaggedness), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)); shape-complexity low from (relative-choice-point-of (wolf first-pig) relative-shape-complexity), (dynamics-of wolf speed), drawn medium (overridden-by: shape-experts drawn pentagon because (drawn-alike-with second-pig)))
+         telling apart: (alike-after-all: shape hexagon of-who (comparison-of second-pig third-pig))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of first-pig second-pig)) (alike-after-all: shape hexagon of-who (comparison-of first-pig second-pig))
+         telling apart: (look-alike: shape hexagon of-who (comparison-of first-pig third-pig)) (alike-after-all: shape hexagon of-who (comparison-of first-pig third-pig))
+FAILED pass 2 friends (9.8s): break BAD-MESSAGE
+  Lisp typed, last:
+    ;warning from FRIENDS: (COLLECT CONVEY TASKS SUGGESTIONS) is not understood
+    --- type (?) for help
+  innermost forms:
+    (BREAK BAD-MESSAGE T)
+    (LET ((RETURNED (BREAK BAD-MESSAGE T))) (COND ((EQ RETURNED (QUOTE RETRY)) (ASK1 :SELF MESSAGE :SKIP-CURRENT-METHOD?)) ((EXISTS? RETURNED) (ASK1 (ACTOR-OF RETURNED) MESSAGE :SKIP-CURRENT-METHOD?)) ((ATOM RETURNED) RETURN
+    (LET ((? (CONS (QUOTE SINCE) (CONS ACTOR (CONS (QUOTE |did not understand |) (CONS MESSAGE (CONS (QUOTE | you can either modify|) (CONS ACTOR (CONS (QUOTE |so that it can understand the message and then type (return 'ret
+    (RECOVERABLE-BAD-MESSAGE (NAME-OF :SELF) :MESSAGE (CONS :MESSAGE (QUOTE (|is not understood --- type (?) for help|))))
+    (FUNCALL :MESSAGE-NOT-UNDERSTOOD :SELF :MESSAGE)
+    (NOT-UNDERSTOOD-MESSAGE :SELF :MESSAGE)
+  the sends that led there, innermost first:
+    (ASK1 :SELF (QUOTE (COLLECT CONVEY TASKS SUGGESTIONS)) NIL)
+    (ASK :SELF COLLECT CONVEY TASKS SUGGESTIONS)
+    (ASK1 SCENE (QUOTE (COLLECT SUBTASKS SUGGESTIONS)) NIL)
+    (ASK (DIRECTOR-SYMBOL-FOR-EVAL SCENE) COLLECT SUBTASKS SUGGESTIONS)
+FAILED pass 2 the-chase (16.8s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM1 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 keeping-together (18.6s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM2 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 happy-together (12.9s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM3 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+FAILED pass 2 proud-pigs (11.2s): shouldnt happen (FULL-FILE-NAME (|file| ((KEN1) FILM4 POSIT) |does not exist|))
+  (an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written)
+
+5 steps failed (254.6s)
+wrote C:\Users\toont\ani-revival\reports\llm-trials\2026-10-13 gpt-6.1-sol lisp\the-three-little-pigs.run.json
