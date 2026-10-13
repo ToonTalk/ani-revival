@@ -32,6 +32,7 @@ import { bundleModules } from "./bundle-js.mjs";
 import { assembleBundle } from "./build-ani-bundle.mjs";
 import { fullPage } from "./page-shell.mjs";
 import { stripComments, stringsOf } from "./strip-js-comments.mjs";
+import { knowIndex } from "./know-index.mjs";
 
 // Where in Ani's code each method, kind of task and plan is, for links into the code
 // page (app/source.html#<file>-<line>).
@@ -211,6 +212,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     // the elements Ani chooses a look by (REVIVE;APPEAR), and how Ken drew his cast in 1978
     appearanceElements: APPEARANCE_ELEMENTS,
     kenLooks: kenLooks(root),
+    // the revival's knowledge (REVIVE;KNOW): each piece with its file, line and why, for
+    // the glass box's marks, and the words Ani knows with KNOW on (tools/know-index.mjs)
+    know: knowIndex(root),
   };
   const packed = (text) => gzipSync(Buffer.from(text, "utf8"), { level: 9 }).toString("base64");
   // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last
