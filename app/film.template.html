@@ -1490,11 +1490,56 @@ const FILM_WORDS = {
 };
 const filmWords = (s) => (FILM_WORDS[s.name] || {})[s.level] || `the film's ${plain(s.name)} is ${plain(s.level || "unknown")}`;
 const wordWords = (s) => `${plain(s.word)}${s.via ? ` (${s.via[0] === "opposite-of" ? "the opposite of" : "close to"} ${plain(s.via[1])})` : ""}`;
+// Why a character moves as a look's reason says, from that choice of how it moves: its
+// winning suggestion's words and film levels (the film's variety and originality, whose
+// suggestions aren't recorded, left out), and how it compares with the others there:
+// " (Ani made him fast because he is hard-working and determined and the film's energy is
+// high), though slower than the hare".
+const DYN_MADE = {
+  speed: { high: "made {her} fast", low: "made {her} slow", medium: "gave {her} a medium speed" },
+  "path-jaggedness": { high: "gave {her} jagged paths", medium: "gave {her} paths of medium jaggedness", low: "gave {her} smooth paths" },
+};
+const DYN_THAN = { speed: { "greater-than": "faster than", "less-than": "slower than" }, "path-jaggedness": { "greater-than": "with more jagged paths than", "less-than": "with smoother paths than" } };
+function dynamicsWhy(run, c, s) {
+  const k = meet(run.story, c);
+  const cp = cpNamed(run, ["choice-point-of", c, s.element]);
+  if (!cp) return "";
+  const v = lispValue(cp.currentChoice);
+  const won = (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), v));
+  const src = won ? kv(won, "source") : null;
+  const ws = [], levels = [];
+  for (const x of Array.isArray(src) && src[0] === "and" ? src.slice(1) : src ? [src] : []) {
+    if (typeof x === "string") ws.push(plain(x));
+    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") ws.push(wordWords({ word: x[1], via: [x[0], x[2]] }));
+    else if (x.length === 2 && x[1] === "level" && !["variety", "originality"].includes(x[0])) levels.push(filmWords({ name: x[0], level: run.story.levels[x[0]] }));
+  }
+  const reasons = [...(ws.length ? [`${k.she} ${agree(k, "is", "are")} ${words(ws)}`] : []), ...levels];
+  const made = ((DYN_MADE[s.element] || {})[v] || `chose {their} ${elementWords(s.element)} ${plain(show(v))}`).replace("{her}", k.her).replace("{their}", theirs(c));
+  // how it compares with each of the others in this element, where Ani chose more or less
+  const thans = new Map();
+  for (const o of run.cast) {
+    if (o === c) continue;
+    const r = cpNamed(run, ["relative-choice-point-of", [c, o], `relative-${s.element}`]);
+    if (!r) continue;
+    let rel = r.currentChoice;
+    if (r.name[1][0] !== c && FLIP[rel]) rel = FLIP[rel];
+    if (!FLIP[rel]) continue;
+    const w = (DYN_THAN[s.element] || {})[rel] || `with ${rel === "greater-than" ? "more" : "less"} ${elementWords(s.element)} than`;
+    // "though" where it goes against her own value: fast, though slower than the hare
+    const against = (RANK3[v] === 2 && rel === "less-than") || (RANK3[v] === 0 && rel === "greater-than");
+    const key = `${against ? "though" : "and"} ${w}`;
+    if (!thans.has(key)) thans.set(key, []);
+    thans.get(key).push(o);
+  }
+  const than = [...thans].map(([key, os]) => `, ${key} ${who(os)}`).join("");
+  return `${reasons.length ? ` (Ani ${made} because ${words(reasons)})` : ""}${than}`;
+}
 // The sources as one clause: "she is shy and the film isn't to be flashy". With only,
 // those whose own suggestion was the value chosen (agreesWith); the film's variety and
 // originality, which suggest a value for any element but whose suggestion isn't
-// recorded, are never given as reasons here.
-function reasonClause(run, c, el, sources, { only = true } = {}) {
+// recorded, are never given as reasons here. With why, a way of moving given as a reason
+// says why she moves so (dynamicsWhy).
+function reasonClause(run, c, el, sources, { only = true, why = false } = {}) {
   const k = meet(run.story, c);
   const chosen = lispValue(run.appearances.get(c).elements[el].value);
   const all = sources.map((src) => lookSource(run, c, el, src));
@@ -1503,7 +1548,7 @@ function reasonClause(run, c, el, sources, { only = true } = {}) {
   const preds = [];
   const ws = used.filter((s) => s.kind === "word").map(wordWords);
   if (ws.length) preds.push(`${is} ${words(ws)}`);
-  for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s));
+  for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s) + (why ? dynamicsWhy(run, c, s) : ""));
   const rels = new Map();
   for (const s of used.filter((x) => x.kind === "relative")) { const w = relWords(s); if (!rels.has(w)) rels.set(w, []); rels.get(w).push(s.other); }
   if (rels.size) preds.push(`${is} to be ${words([...rels].map(([w, others]) => `${w} ${who(others)}`))}`);
@@ -1528,7 +1573,7 @@ function lookSentence(run, c) {
     const sources = e.sources || [];
     // only the sources known to have argued for the value chosen; with none of them, the
     // suggestions were combined, and the aspect's box says which argued for what
-    const why = reasonClause(run, c, el, sources).text;
+    const why = reasonClause(run, c, el, sources, { why: true }).text;
     const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
     // the value the look has as drawn (appearances' drawn), where it isn't the one chosen:
     // a (not X) is drawn as one of the two values left; the experts may override a choice
