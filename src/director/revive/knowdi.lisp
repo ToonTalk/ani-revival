@@ -11,6 +11,13 @@
 ;;; subscene to stretch it (chomet.123:95-116, 448-460; scene.9:159-197). Each is the
 ;;; revival's, with a ";;why:" line that tools/know-index.mjs reads for the glass box.
 ;;;
+;;; None names a prerequisite, as goes-to-and-accompanys, chases-to and move-to-and-hits
+;;; name none (disply.311:27, 113, 169). The one some of Ken's methods name, can-move
+;;; (disply.311:694-696), has no status for CHOMET's prerequisite-score to read
+;;; (prereq.19:80, chomet.123:363-374), and asking it loads PREREQ, which defines friends,
+;;; enemies, strangers and difficult (prereq.19:122-138): a story's scene called friends,
+;;; as a model's Lion and the Mouse has, is then no longer a scene, and its pass 2 stops.
+;;;
 ;;; Each brings on the other character if it starts the subscene off the stage, with
 ;;; REVIVE;MEND6's bring-on, Ken's getting-on-stage step from goes-to-and-accompanys
 ;;; (disply.311:192-203), as MEND5's move-to does; and its estimate counts that walk
@@ -26,8 +33,7 @@
 ;;; ------------------------------------------------- helps-along
 
 ;;why: helping is shown as Michotte's launching, which Ken's pushing is made of: the one helped sets off towards where it is going, slowly, on its own; the helper goes round behind it and comes up against it, as a pusher comes in contact (disply.311:277-288), and with no pause (with none "observers perceived the first square as causing the other to move", and a pause would make it accompanying, AI-TR-540 pp. 158-159, L4168-4178) they go on together to where it was going, the one helped in front and the helper behind, at the helper's pace, as a pushee is moved with its pusher's dynamics (disply.311:289-315)
-(define helps-along display-method
- (add prerequisite for (helps-along ? ?helped ?place) (can-move ,helped ,place)))
+(define helps-along display-method)
 
 (define-receiver (estimate time for helps-along ?helper ?helped ?place in ?subscene)
 		 helps-along
@@ -119,9 +125,7 @@
 ;;; ------------------------------------------------- moves-away-from
 
 ;;why: avoiding shown as Michotte's viewers saw it: "as though B was afraid when A approached, and ran off" (AI-TR-540 p. 158, L4157): the other comes a small part of the way towards the one who avoids it, which, half a second later, runs off the other way, as far as Ken's chasee runs from its chaser, a quarter of the screen (convey.64:102-111), regardless of anyone in its way, as Ken's exit-by "just get[s] out of there" (disply.311:1022-1040)
-(define moves-away-from display-method
- (add prerequisite for (moves-away-from ?who ?other)
-		       (can-move ,who (distance-away-from (vicinity-of ,who) (vicinity-of ,other) .25))))
+(define moves-away-from display-method)
 
 (define-receiver (estimate time for moves-away-from ?who ?other in ?subscene) moves-away-from
  (plus-time-to-bring-on
@@ -171,9 +175,7 @@
 ;;; ------------------------------------------------- follows-behind
 
 ;;why: following shown as the leader going a good way off and the follower setting off after it half a second later, as a chaser after its chasee (disply.311:48-85), at a little less than its pace, as a pushee is moved with its pusher's dynamics (disply.311:303-315), so that it keeps behind, until the leader stops and it closes up to it, as goes-to-to-accompany walks to contact (disply.311:204-213)
-(define follows-behind display-method
- (add prerequisite for (follows-behind ?follower ?leader)
-		       (can-move ,follower (vicinity-of ,leader))))
+(define follows-behind display-method)
 
 (define-receiver (estimate time for follows-behind ?follower ?leader in ?subscene) follows-behind
  (let ((pace (multiply-speed-by-factor leader .9 subscene)))

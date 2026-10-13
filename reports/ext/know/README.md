@@ -113,6 +113,10 @@ The Introduction and Kept Apart are as above. At 24 frames a second the Introduc
 
 ![The Introduction with KNOW: following, the Prince coming on, Cinderella going round behind him and helping him along; and the pushing, in 1978 and now](frames.svg)
 
+## The model's stories
+
+[trials.md](trials.md): the fifteen stories GPT-6.1 Sol wrote on the film page, made with and without KNOW. Every scene ends both ways; KNOW changes the plan of 8 of the 61 scenes, mostly to show helping.
+
 ## For the page
 
 `tools/know-index.mjs` (`knowIndex(root)`, in the page's data as `DATA.know` once the page is built again) has every piece above with its `file`, `line` and `why`: `words` (KNOW's own, with their spread links and what they borrow), `knowledge` (each suggestion KNOW gives a word, its own or yours: `source`, `element`, `value`, `strength`; for a way of showing, `element: "establish"` and its `verb`), `verbs`, `methods` (with the names of the walks each plans), `feelings`, `sharing`, `links` (your words whose links KNOW changes) and `vocabulary` (every word Ani knows with KNOW on, in the shape of the page's `DATA.words`, its links as spread). A suggestion in a glass box comes from the revival's knowledge when its source is one of KNOW's words or feelings, a verb KNOW gives a way of showing (`source helps`), one of your words with an entry in `knowledge` for the same element and verb (`source is-obedient-to`, `(follows ...)`), or `(neighbor-of word neighbor)` on an establish suggestion (the sharing).
