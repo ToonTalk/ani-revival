@@ -13,8 +13,10 @@
 // looks".
 // Everything is inlined, gzipped as base64, so the page works opened directly, served,
 // or published as a claude.ai artifact (which can fetch nothing).
-// The page's script is the template's, with app/film/llm.js (telling Ani a new story)
-// and app/film/save.js (saving films) put in at /*FILM-PARTS*/.
+// The page's script is the template's, with app/film/llm.js (telling Ani a new story),
+// app/film/save.js (saving films) and app/film/report.js (reporting errors, and stories
+// sent, to Ken, where tools/build-site.mjs gives the site's page a DSN) put in at
+// /*FILM-PARTS*/.
 // Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
@@ -216,7 +218,10 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
   const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
-  const parts = ["llm.js", "save.js"].map((f) => readFileSync(`${root}/app/film/${f}`, "utf8")).join("\n");
+  // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
+  // two names, as they are with no DSN, and none of its code
+  const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
+  const parts = ["llm.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
   for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);

@@ -1,12 +1,22 @@
 // Build the web site for toontalk.github.io/ani/ (the ToonTalk/ani repository, served
 // by GitHub Pages from its main branch): the film page as index.html, the code and
 // choice-point pages beside it, and the claude.ai copy, its code links pointing here.
+// The site's film page, and only it, reports its errors to Ken's Sentry: it is given the
+// DSN in site/sentry.json (app/film.html and the claude.ai copies have none, and report
+// nothing; claude.ai's CSP would refuse Sentry anyway).
 // Usage: node tools/build-site.mjs <site folder>   (the folder of the ani repository)
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { buildFilmApp } from "./build-film-app.mjs";
 import { buildSourceApp } from "./build-source-app.mjs";
 
 export const SITE_URL = "https://toontalk.github.io/ani/";
+// The film page with Ken's Sentry DSN (public by design) in SENTRY_DSN (app/film/report.js).
+export function withSentry(html, root = ".") {
+  const { dsn } = JSON.parse(readFileSync(`${root}/site/sentry.json`, "utf8"));
+  const mark = '/*SENTRY-DSN*/""';
+  if (html.split(mark).length !== 2) throw new Error(`the film page should have one ${mark}`);
+  return html.replace(mark, () => JSON.stringify(dsn));
+}
 
 export function buildSite(out, root = ".") {
   mkdirSync(out, { recursive: true });
@@ -16,7 +26,7 @@ export function buildSite(out, root = ".") {
   buildSourceApp(root);
   // on the site the film page is index.html, so "Back to the film" goes to the folder
   const toIndex = (html) => html.replace(/href="film\.html"/g, 'href="./"');
-  writeFileSync(`${out}/index.html`, readFileSync(`${root}/app/film.html`, "utf8"));
+  writeFileSync(`${out}/index.html`, withSentry(readFileSync(`${root}/app/film.html`, "utf8"), root));
   for (const page of ["source.html", "pass1.html"]) writeFileSync(`${out}/${page}`, toIndex(readFileSync(`${root}/app/${page}`, "utf8")));
   buildFilmApp(root, { claudeArtifact: `${out}/ani-cinderella-claude-artifact.html`, site: SITE_URL });
   writeFileSync(`${out}/.nojekyll`, "");
