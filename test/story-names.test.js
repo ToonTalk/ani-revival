@@ -59,3 +59,25 @@ test("a story with no clash, or as in 1978 a scene called fear, is left as it is
   assert.deepEqual(withKnow.renames, [{ kind: "scene", from: "fear", to: "fear-scene" }]);
   assert.match(withKnow.text, /^;; scenes: fear-scene = Fear\n/);
 });
+
+test("a scene named as one of the story's characters is renamed where a scene is named, and the character keeps its name", () => {
+  // Gemini Nano's tortoise story: its last scene, "The Crowd", was the scene crowd, whose
+  // define replaced the character crowd's, so pass 1 had no choices for the crowd
+  const text = `;; cast: hare = the hare (he); crowd = the crowd (they)
+;; scenes: boast = The Boast; crowd = The Crowd
+(define hare character (process initial description (personality brazen)))
+(define crowd character (process initial description (personality cheerful)))
+(define (relationship-of crowd hare) relationship (process initial description is-polite-to))
+(define boast scene (process initial description (convey (chases hare crowd))))
+(define crowd scene (process initial description (and (establish (emotional-state crowd (joy (positive high)))) (convey (undoes crowd (from-scene boast (convey (chases hare crowd))))))))
+(define the-films-focus focus (set your parts-of-the-focus to (crowd boast (relationship-of crowd hare))))
+`;
+  const { text: renamed, renames } = storyWithoutClashes(fs, text, { extensions: ["mend", "appear", "change", "know"] });
+  assert.deepEqual(renames, [{ kind: "scene", from: "crowd", to: "crowd-scene", twin: true }]);
+  assert.equal(renamed, text
+    .replace(";; scenes: boast = The Boast; crowd = The Crowd", ";; scenes: boast = The Boast; crowd-scene = The Crowd")
+    .replace("(define crowd scene", "(define crowd-scene scene"));
+  const outline = storyOutline(renamed);
+  assert.deepEqual(outline.scenes, ["boast", "crowd-scene"]);
+  assert.deepEqual(outline.characters, ["hare", "crowd"]);
+});

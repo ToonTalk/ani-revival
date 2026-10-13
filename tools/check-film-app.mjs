@@ -266,6 +266,9 @@ try {
     const b = t.tidyStory(belfie);
     const variant = belfie.replace("(physical beautiful)", "(physical (and beautiful kind))").replace("(personality (and stubborn good strong kind))", "(personality (and stubborn good strong))");
     const v = t.tidyStory(variant);
+    // Gemini Nano's crowd story: a scene and a character both called crowd
+    const crowdText = await (await fetch("/test/untidy/nano-crowd.lisp")).text();
+    const crowd = t.tidyStory(crowdText, { extensions: ${JSON.stringify(REVIVAL)} });
     const run = t.makeRun({ label: "Your version", short: "Yours", cindy: belfie });
     run.status = { error: "break BAD-MESSAGE", typed: [";warning from BEAST: (PROCESS EACH INITIAL DESCRIPTION (PHYSICAL UGLY PHYSICALLY-STRONG)) is not understood", "--- type (?) for help"] };
     const box = document.createElement("div");
@@ -283,6 +286,7 @@ try {
     document.getElementById("side").innerHTML = box.innerHTML;
     document.querySelector("#side details.said").open = true;
     return { changed, renamed, leftOut, cindy: cindy.text === t.DATA.cindy && !cindy.fixes.length && cindyRevival.text === t.DATA.cindy && !cindyRevival.fixes.length, fixes: b.fixes.map((f) => f.short), text: b.text, again: t.tidyStory(b.text).fixes.length,
+      crowd: { fixes: crowd.fixes.map((f) => f.short), long: crowd.fixes.map((f) => f.long).join(" "), scene: crowd.text.includes("(define crowd-scene scene"), character: crowd.text.includes("(define crowd character"), line: crowd.text.includes("ashamed = Ashamed; crowd-scene = The Crowd"), cast: crowd.text.includes("; crowd = the crowd (they)"), problems: t.checkStory(crowd.text, { extensions: ${JSON.stringify(REVIVAL)} }).problems.length },
       variant: v.fixes.map((f) => f.short), moved: v.text.includes("(physical beautiful)") && v.text.includes("(personality (and stubborn good strong kind))"),
       box: box.innerText, said: box.querySelector("details.said pre") ? box.querySelector("details.said pre").innerText : "", generic, lit, vtt: vtt.slice(0, 400) };
   })()`);
@@ -292,6 +296,8 @@ try {
   const named = (s) => s.replace(/\b(?:the )?beast's/gi, "beast's").replace(/\bbelle's/gi, "belle's");
   check(named(tidy.fixes.join("; ")) === "put (and ...) around beast's looks; left out (prevents beast (meets belle)) in Kept Apart; left out (aware belle (getting-it-on beast)) in Justice; made (relationship-of belle beast) one part of the focus" && /\(physical \(and ugly physically-strong\)\)/.test(tidy.text) && /\(belle \(relationship-of belle beast\)/.test(tidy.text) && !/\(meets belle\)\)/.test(tidy.text) && !/\(getting-it-on beast\)/.test(tidy.text) && tidy.again === 0,
     `Ken's Beauty and the Beast is tidied, once: ${tidy.fixes.join("; ")}`);
+  check(tidy.crowd.fixes.join("; ") === "renamed the scene “crowd” to crowd-scene, since the story has a character called crowd too" && /the scene's would replace the character's, and the character would never be planned or drawn/.test(tidy.crowd.long) && tidy.crowd.scene && tidy.crowd.character && tidy.crowd.line && tidy.crowd.cast && !tidy.crowd.problems,
+    `a scene with one of the story's characters' names (Gemini Nano's "The Crowd") is renamed, the character keeps its name, and the page says why: ${tidy.crowd.fixes.join("; ")}`);
   check(named(tidy.variant[0] || "") === "moved “kind” from belle's looks to her character" && tidy.variant.length === 5 && tidy.moved, `a word in another kind's slot goes to its own: ${tidy.variant[0]}`);
   check(/Pass 1: Ani couldn't read beast's description: \(physical ugly physically-strong\) — two words need \(and \.\.\.\) around them\./.test(named(tidy.box)) && /^;warning from BEAST: \(PROCESS EACH INITIAL DESCRIPTION \(PHYSICAL UGLY PHYSICALLY-STRONG\)\) is not understood\nbreak BAD-MESSAGE$/.test(tidy.said), `where Ani stopped on it says why in plain words, with what Lisp said a click away: ${(tidy.box.match(/Pass 1:.*?them\./) || [tidy.box])[0]} | ${JSON.stringify(tidy.said)}`);
   check(tidy.generic === "Belle didn't understand a message Ani sent: “(frobnicate your widget)”.", `any other message not understood is said with who and which: ${tidy.generic}`);

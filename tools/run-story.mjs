@@ -150,7 +150,7 @@ function repairNotes(repairs) {
   return notes;
 }
 
-for (const r of renames) console.log(`renamed the ${r.kind} ${r.from} ${r.to}: Ani's files name something ${r.from}`);
+for (const r of renames) console.log(`renamed the ${r.kind} ${r.from} ${r.to}: ${r.twin ? `the story has a character called ${r.from} too` : `Ani's files name something ${r.from}`}`);
 console.log(`${storyPath}: ${plan.scenes.length} scene${plan.scenes.length === 1 ? "" : "s"} (${plan.scenes.map((s) => s.id).join(", ")}), ${plan.cast.length} characters; extensions: ${extensions.length ? extensions.join(", ") : "none (Ani as in 1978)"}; ${fps} frames a second, at most ${frames} a scene`);
 
 // --scenes: a scene starts where the scene before it ended (the POSIT file filming that

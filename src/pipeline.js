@@ -831,11 +831,15 @@ export function storyRenames(outline, taken) {
   const renames = [];
   for (const [kind, names] of [["scene", outline.scenes], ["character", outline.characters]]) {
     for (const from of names) {
-      if (!taken.has(from)) continue;
+      // a scene named as one of the story's own characters is renamed too: the later
+      // define replaces the earlier, and the character is never planned or drawn (Gemini
+      // Nano's tortoise story made "The Crowd" the scene crowd, and the crowd a scene)
+      const twin = kind === "scene" && !taken.has(from) && outline.characters.includes(from);
+      if (!taken.has(from) && !twin) continue;
       let to = `${from}-${kind}`;
       for (let k = 2; taken.has(to) || used.has(to); k++) to = `${from}-${kind}-${k}`;
       used.add(to);
-      renames.push({ kind, from, to });
+      renames.push(twin ? { kind, from, to, twin: true } : { kind, from, to });
     }
   }
   return renames;
@@ -849,7 +853,12 @@ export function storyRenames(outline, taken) {
 // parts; and the cast and scenes lines.
 export function renameStoryNames(text, renames) {
   if (!renames.length) return text;
-  const to = new Map(renames.map((r) => [r.from, r.to]));
+  // by kind, since a scene renamed for being one of the story's characters (twin) is
+  // renamed only where a scene is named; in the focus, which names either, it stays the
+  // character's
+  const toOf = Object.fromEntries(["scene", "character"].map((k) => [k, new Map(renames.filter((r) => r.kind === k).map((r) => [r.from, r.to]))]));
+  const twins = new Set(renames.filter((r) => r.twin).map((r) => r.from));
+  const toFor = (name, kind) => (kind ? toOf[kind].get(name) : toOf.character.get(name) || (twins.has(name) ? undefined : toOf.scene.get(name)));
   const edits = []; // [start, end, replacement]
   const n = text.length;
   let i = 0;
@@ -888,7 +897,7 @@ export function renameStoryNames(text, renames) {
     }
     return { atom: tok.toLowerCase(), start, end: i };
   };
-  const rename = (x) => { if (x && x.atom && to.has(x.atom)) edits.push([x.start, x.end, to.get(x.atom)]); };
+  const rename = (x, kind) => { const t = x && x.atom && toFor(x.atom, kind); if (t) edits.push([x.start, x.end, t]); };
   const WORDS = ["physical", "personality", "movement", "role-in-story", "relationship"];
   // a scene's tasks: every word but a list's first, and but a change's words
   const inTasks = (x) => {
@@ -899,7 +908,7 @@ export function renameStoryNames(text, renames) {
       if (y.items) return inTasks(y);
       if (y.quoted) return inTasks(y.quoted);
       if (k === 0) return;
-      rename(y);
+      rename(y, head === "from-scene" && k === 1 ? "scene" : "character");
     });
   };
   const everything = (x) => {
@@ -912,10 +921,10 @@ export function renameStoryNames(text, renames) {
     const f = read();
     if (!f.items || !f.items[0] || f.items[0].atom !== "define") continue;
     const [, name, type, ...body] = f.items;
-    if (name && name.items) { if (name.items[0] && name.items[0].atom === "relationship-of") name.items.slice(1).forEach(rename); continue; }
-    if (type && (type.atom === "scene" || type.atom === "character")) rename(name);
+    if (name && name.items) { if (name.items[0] && name.items[0].atom === "relationship-of") name.items.slice(1).forEach((x) => rename(x, "character")); continue; }
+    if (type && (type.atom === "scene" || type.atom === "character")) rename(name, type.atom);
     if (type && type.atom === "scene") {
-      for (const b of body) if (b.items && b.items[0] && b.items[0].atom === "process") b.items.slice(3).forEach((t) => (t.items ? inTasks(t) : rename(t)));
+      for (const b of body) if (b.items && b.items[0] && b.items[0].atom === "process") b.items.slice(3).forEach((t) => (t.items ? inTasks(t) : rename(t, "character")));
     }
     if (type && type.atom === "focus") {
       for (const b of body) {
@@ -927,8 +936,8 @@ export function renameStoryNames(text, renames) {
   let out = text;
   for (const [start, end, rep] of edits.sort((a, b) => b[0] - a[0])) out = out.slice(0, start) + rep + out.slice(end);
   // ";; cast: goat = the goat (she); troll = ..." and ";; scenes: on-the-bridge = On the Bridge; ..."
-  return out.replace(/^(;;\s*(?:cast|scenes):)(.*)$/gm, (line, label, list) =>
-    label + list.replace(/(^|;)(\s*)([a-z0-9+:-]+)(\s*=)/gi, (m, sep, sp, id, eq) => sep + sp + (to.get(id.toLowerCase()) || id) + eq));
+  return out.replace(/^(;;\s*(cast|scenes):)(.*)$/gm, (line, label, which, list) =>
+    label + list.replace(/(^|;)(\s*)([a-z0-9+:-]+)(\s*=)/gi, (m, sep, sp, id, eq) => sep + sp + (toFor(id.toLowerCase(), which.toLowerCase() === "cast" ? "character" : "scene") || id) + eq));
 }
 
 // The story with any clashing names renamed, and the renames made.

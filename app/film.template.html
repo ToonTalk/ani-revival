@@ -2295,7 +2295,8 @@ function lookOf(run, c) {
   const a = run.appearances && run.appearances.get(c);
   if (a && a.look && a.look.shape) return a.look;
   for (const s of run.raw.scenes) {
-    const l = s && s.film && (s.film.looks || []).find((x) => x[1] === c);
+    // a look with no shape (a character pass 1 never planned) isn't one
+    const l = s && s.film && (s.film.looks || []).find((x) => x[1] === c && x[2] && x[2].shape);
     if (l) return l[2];
   }
   return null;
@@ -3327,6 +3328,12 @@ function clashWhy(name, extensions) {
 }
 // A rename ({ kind, from, to }) as the tidy step says it: { short, long, before, after }.
 function renameFix(r, extensions) {
+  // a scene with one of the story's characters' names (storyRenames' twin)
+  if (r.twin) return {
+    short: `renamed the scene “${r.from}” to ${r.to}, since the story has a character called ${r.from} too`,
+    long: `Your scene “${esc(r.from)}” is called ${esc(r.to)} here: the story has a character called ${esc(r.from)} too, and Ani keeps one definition for a name, so the scene's would replace the character's, and the character would never be planned or drawn.`,
+    before: r.from, after: r.to,
+  };
   const { what, owner } = clashWhy(r.from, extensions);
   return {
     short: `renamed the ${r.kind} “${r.from}” to ${r.to}, since ${r.from} is ${what}`,
