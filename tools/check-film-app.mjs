@@ -42,7 +42,22 @@
 // prompt's guidance; and, with the model's replies stood in for, a schema the provider
 // refuses is asked again without it, a problem is fixed in a JSON round, and Gemini Nano
 // gets the schema as Chrome's responseConstraint.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about twenty-five minutes)
+// And the revival's knowledge (KNOW), which the switch turns on with the others: the panel
+// says in a sentence which extensions are on; Ken's Cinderella made with them has KNOW's
+// following, helping and pride, each marked in the glass box as the revival's knowledge;
+// the prompt (both ways) and the JSON schema teach KNOW's words, relationships, tasks and
+// feelings only with it on, the schema within OpenAI's documented limits for strict
+// Structured Outputs (at most 5,000 object properties, 10 levels of nesting, 1,000 enum
+// values, 15,000 characters of enum values for one enum of more than 250, and 120,000
+// characters of property names and enum values in all), and the prompt with it off is
+// as it was; a story whose scene is called fear (a feeling with KNOW) is renamed
+// fear-scene, says why, and films; the tidy step leaves out any task Ani can't plan,
+// and a scene left with none, so that Gemini Nano's Tortoise and the Hare, with an undoes
+// in the scene it undoes, can be made, without "downloading" said for a model already
+// there and with its streamed JSON shown without its padding; and the claude.ai copy
+// (artifact/ani-cinderella-claude-artifact.html, built first) is under 950,000 bytes,
+// starts, and gives a model the full page's prompt and schema word for word.
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width.
 //
@@ -55,23 +70,31 @@ import { readFile, mkdtemp, rm } from "node:fs/promises";
 import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
+import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { storyWithoutClashes } from "../src/pipeline.js";
 
+// the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3)
+const REVIVAL = ["mend", "know", "appear", "change"];
 // the kind stepmother's film, as tools/run-pass2.mjs and run-scene.mjs (or src/pipeline.js) make it in Node
 const EXPECTED_LAST_FRAMES = [78, 133, 40, 200, 94];
-// the tortoise and the hare with the revival's extensions (MEND and APPEAR): The Boast,
-// The Race and The Finish film in 187, 111 and 29 frames (node tools/run-story.mjs
-// test/stories/tortoise-and-hare.lisp --extensions mend,appear; with MEND alone, 187,
-// 108 and 29, test/stories/stress/expected.json: the hare's larger size changes the
-// race), so they end at frames 186, 110 and 28
+// the tortoise and the hare with the revival's extensions (MEND, KNOW, APPEAR and CHANGE):
+// The Boast, The Race and The Finish film in 187, 111 and 29 frames (node
+// tools/run-story.mjs test/stories/tortoise-and-hare.lisp --extensions
+// mend,know,appear,change, as with mend,appear; with MEND alone, 187, 108 and 29,
+// test/stories/stress/expected.json: the hare's larger size changes the race), so they
+// end at frames 186, 110 and 28
 const EXPECTED_MENDED_LAST_FRAMES = [186, 110, 28];
-// Ken's Cinderella with the revival's extensions: 193, 116, 19, 175 and 92 frames, as
-// reports/ext/appear/README.md has them (and run-story.mjs with --extensions mend,appear)
-const EXPECTED_LOOKS_LAST_FRAMES = [192, 115, 18, 174, 91];
-// the stepmother who repents, with the revival's extensions (MEND, APPEAR and CHANGE): At
-// Home, Change of Heart and Kind Again film in 108, 72 and 29 frames (node
-// tools/run-story.mjs test/stories/change-of-heart.lisp --extensions mend,appear,change
-// --frames 1000, and reports/ext/change/README.md), so they end at frames 107, 71 and 28
-const EXPECTED_CHANGE_LAST_FRAMES = [107, 71, 28];
+// Ken's Cinderella with the revival's extensions: 222, 116, 19, 175 and 92 frames (node
+// tools/build-ani-bundle.mjs --extensions mend,know,appear,change; with APPEAR alone, 193,
+// 116, 19, 175 and 92, reports/ext/appear/README.md: KNOW's following and helping make
+// the Introduction longer, reports/ext/know/README.md)
+const EXPECTED_LOOKS_LAST_FRAMES = [221, 115, 18, 174, 91];
+// the stepmother who repents, with the revival's extensions (MEND, KNOW, APPEAR and
+// CHANGE): At Home, Change of Heart and Kind Again film in 165, 72 and 29 frames (node
+// tools/run-story.mjs test/stories/change-of-heart.lisp --extensions
+// mend,know,appear,change; without KNOW, 108, 72 and 29, reports/ext/change/README.md),
+// so they end at frames 164, 71 and 28
+const EXPECTED_CHANGE_LAST_FRAMES = [164, 71, 28];
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
@@ -82,6 +105,38 @@ const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/ja
 // every story the tidy must leave as it is
 const storiesUnder = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? storiesUnder(`${dir}/${e.name}`) : e.name.endsWith(".lisp") ? [`${dir}/${e.name}`] : []));
 const WELL_FORMED = [...storiesUnder("test/stories"), ...storiesUnder("reports/llm-trials")];
+// each as src/pipeline.js storyWithoutClashes renames it, as in 1978 and with the switch's
+// extensions: the page's tidy step must rename it so too (one helper, in Node and on the page)
+const nodeFs = makeProjectFileSystem();
+const RENAMED = Object.fromEntries(WELL_FORMED.map((f) => {
+  const text = readFileSync(f, "utf8");
+  const renamed = (extensions) => { try { return storyWithoutClashes(nodeFs, text, { extensions }).text; } catch { return text; } };
+  return [f, { y1978: renamed([]), revival: renamed(REVIVAL) }];
+}));
+// the claude.ai copy, as tools/build-film-app.mjs --claude-artifact built it, and a story
+// to compare the prompts it and the full page give a model
+const ARTIFACT = "artifact/ani-cinderella-claude-artifact.html";
+const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases her; a brave kid helps her across the bridge, and she follows him home, proud and happy.";
+// Gemini Nano's Tortoise and the Hare, as it wrote it in Ken's Chrome with the extensions
+// on, but for the words: in its scene The Push, (undoes tortoise (from-scene push (convey
+// (pushes hare tortoise)))), an undoes in the scene it undoes, which "Ask Gemini Nano to
+// fix these" wrote again
+const NANO_TORTOISE = {
+  characters: [{ name: "hare", called: "the hare", pronoun: "he", physical: ["physically-strong"], personality: ["selfish", "lazy"], movement: [] },
+    { name: "tortoise", called: "the tortoise", pronoun: "he", physical: ["physically-weak"], personality: ["hard-working", "determined"], movement: ["slow"] }],
+  main: "tortoise",
+  relationships: [{ from: "hare", to: "tortoise", how: ["dominates", "hates"] }, { from: "tortoise", to: "hare", how: ["is-tolerant-of"] }],
+  scenes: [
+    { name: "boast", title: "The Boast", mood: "normal", rhythm: "fast", length: "short", steps: [[{ kind: "establish-personality", who: "hare" }, { kind: "establish-personality", who: "tortoise" }]] },
+    { name: "push", title: "The Push", mood: "depressing", rhythm: "normal", length: "medium", steps: [[{ kind: "pushes", who: "hare", whom: "tortoise" }], [{ kind: "undoes", who: "tortoise", scene: "push", undone: { kind: "pushes", who: "hare", whom: "tortoise" } }, { kind: "establish-emotional-state", who: "tortoise", feelings: [{ feeling: "joy", sign: "negative", amount: "medium" }] }]] },
+    { name: "finish", title: "The Finish", mood: "joyous", rhythm: "normal", length: "medium", steps: [[{ kind: "establish-emotional-state", who: "tortoise", feelings: [{ feeling: "pride", sign: "positive", amount: "high" }] }, { kind: "establish-emotional-state", who: "hare", feelings: [{ feeling: "joy", sign: "negative", amount: "high" }] }]] },
+  ],
+  film: { name: "tortoise-and-hare-film", variety: "medium", complexity: "low", originality: "low", rhythm: "medium", coherence: "high", obviousness: "high", flashiness: "low", energy: "medium" },
+  focus: { scenes: ["push"], relationships: [{ from: "hare", to: "tortoise" }] },
+};
+// a page with its functions on window.__check, as tools/render-film-video.mjs hands them
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel"];
+const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
 // Two pages made from app/film.html: film.check.html hands some of its functions to
 // window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
 // that sends Sentry's envelopes here, where they are kept.
@@ -98,8 +153,11 @@ const server = createServer(async (req, res) => {
     return;
   }
   if (at === "app/film.check.html") {
-    const html = filmPage(), end = html.lastIndexOf("</script>");
-    res.writeHead(200, { "content-type": "text/html" }).end(html.slice(0, end) + "\nwindow.__check = { tidyStory, checkStory, whyStopped, stopBox, makeRun, using, drawVideoFrame, makeSubtitles, RUNS, DATA, storySchema, schemaFor, slotWords, lispFromJson, jsonFromLisp, cindyJson, cindyExample, sameForms, formsOf, storyPrompt, storyFromReply, printJson, lispOf };\n" + html.slice(end));
+    res.writeHead(200, { "content-type": "text/html" }).end(hooked(filmPage()));
+    return;
+  }
+  if (at === "artifact/claude.check.html") {
+    res.writeHead(200, { "content-type": "text/html" }).end(hooked(readFileSync(join(process.cwd(), ARTIFACT), "utf8")));
     return;
   }
   if (at === "app/film.report-check.html") {
@@ -194,13 +252,23 @@ try {
   for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
   const tidy = await js(`(async () => {
     const t = window.__check;
-    const changed = [];
+    // as in 1978 and with the switch's extensions: a story comes out as src/pipeline.js's
+    // storyWithoutClashes renames it, or, where the tidy left out what Ani can't plan,
+    // only where Ani's checks found a problem, and then with none
+    const changed = [], renamed = [], leftOut = [];
+    const RENAMED = ${JSON.stringify(RENAMED)};
     for (const f of ${JSON.stringify(WELL_FORMED)}) {
       const text = await (await fetch("/" + f.split("/").map(encodeURIComponent).join("/"))).text();
-      const r = t.tidyStory(text);
-      if (r.text !== text || r.fixes.length) changed.push(f);
+      for (const [mode, extensions] of [["y1978", []], ["revival", ${JSON.stringify(REVIVAL)}]]) {
+        const r = t.tidyStory(text, { extensions });
+        const others = r.fixes.filter((x) => !/^renamed /.test(x.short));
+        if (!others.length) { if (r.text !== RENAMED[f][mode]) changed.push(mode + " " + f); else if (r.fixes.length) renamed.push(mode + " " + f); continue; }
+        const before = t.checkStory(text, { extensions }).problems.length, after = t.checkStory(r.text, { extensions }).problems.length;
+        if (!before || after) changed.push(mode + " " + f + " (" + others.map((x) => x.short).join("; ") + ")"); else leftOut.push(mode + " " + f);
+      }
     }
-    const cindy = t.tidyStory(t.DATA.cindy);
+    const cindy = t.tidyStory(t.DATA.cindy, { extensions: [] });
+    const cindyRevival = t.tidyStory(t.DATA.cindy, { extensions: ${JSON.stringify(REVIVAL)} });
     const belfie = await (await fetch("/test/untidy/belfie.lisp")).text();
     const b = t.tidyStory(belfie);
     const variant = belfie.replace("(physical beautiful)", "(physical (and beautiful kind))").replace("(personality (and stubborn good strong kind))", "(personality (and stubborn good strong))");
@@ -221,11 +289,12 @@ try {
     const vtt = t.makeSubtitles([t.RUNS[0]], [0], true);
     document.getElementById("side").innerHTML = box.innerHTML;
     document.querySelector("#side details.said").open = true;
-    return { changed, cindy: cindy.text === t.DATA.cindy && !cindy.fixes.length, fixes: b.fixes.map((f) => f.short), text: b.text, again: t.tidyStory(b.text).fixes.length,
+    return { changed, renamed, leftOut, cindy: cindy.text === t.DATA.cindy && !cindy.fixes.length && cindyRevival.text === t.DATA.cindy && !cindyRevival.fixes.length, fixes: b.fixes.map((f) => f.short), text: b.text, again: t.tidyStory(b.text).fixes.length,
       variant: v.fixes.map((f) => f.short), moved: v.text.includes("(physical beautiful)") && v.text.includes("(personality (and stubborn good strong kind))"),
       box: box.innerText, said: box.querySelector("details.said pre") ? box.querySelector("details.said pre").innerText : "", generic, lit, vtt: vtt.slice(0, 400) };
   })()`);
-  check(!tidy.changed.length && tidy.cindy, `the tidy leaves Ken's CINDY and all ${WELL_FORMED.length} stories in test/stories and reports/llm-trials as they are${tidy.changed.length ? ` (changed: ${tidy.changed.join(", ")})` : ""}`);
+  check(!tidy.changed.length && tidy.cindy && tidy.renamed.length >= 7 && tidy.renamed.some((x) => /^revival .*know-scene-named-fear/.test(x)) && !tidy.renamed.some((x) => /^y1978 .*know-scene-named-fear/.test(x)),
+    `the tidy leaves Ken's CINDY and all ${WELL_FORMED.length} stories in test/stories and reports/llm-trials as they are, as in 1978 and with the extensions, but for the names src/pipeline.js storyWithoutClashes renames (${tidy.renamed.length}, a scene called friends as in 1978, fear only with KNOW) and the tasks Ani can't plan (in ${tidy.leftOut.length}, each a story Ani's checks found a problem in, and none after)${tidy.changed.length ? ` (changed otherwise: ${tidy.changed.join(", ")})` : ""}`);
   // (a character is called as a story read before named it, "the Beast", or else by its Lisp name)
   const named = (s) => s.replace(/\b(?:the )?beast's/gi, "beast's").replace(/\bbelle's/gi, "belle's");
   check(named(tidy.fixes.join("; ")) === "put (and ...) around beast's looks; left out (prevents beast (meets belle)) in Kept Apart; left out (aware belle (getting-it-on beast)) in Justice; made (relationship-of belle beast) one part of the focus" && /\(physical \(and ugly physically-strong\)\)/.test(tidy.text) && /\(belle \(relationship-of belle beast\)/.test(tidy.text) && !/\(meets belle\)\)/.test(tidy.text) && !/\(getting-it-on beast\)/.test(tidy.text) && tidy.again === 0,
@@ -271,6 +340,8 @@ try {
   check(first === "1978" && kept === "revival" && back === "1978", `the switch opens on "Ani as in 1978" and is kept in this browser (${first}, after a reload ${kept}, then ${back})`);
   check(/^closed /.test(panel) && /MEND/.test(panel) && /APPEAR/.test(panel) && /SHAPES/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs and Ani choosing the looks");
   check(/Characters who change \(CHANGE\)\. A scene may change a character/.test(panel) && /fresh look/.test(panel) && /isn't shown yet/.test(panel), "and characters who change, in a plain sentence");
+  check(/The switch turns on four of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how her characters look \(APPEAR\) and characters who change \(CHANGE\)\./.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /Corrections of slips in Ken's files \(SLIPS\), and a few more of the thesis's details \(DETAIL\), will be switches of their own/.test(panel),
+    "the panel says in a sentence which extensions the switch turns on, KNOW among them with what each of its files does, and that SLIPS and DETAIL will be switches of their own");
 
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
@@ -278,22 +349,25 @@ try {
   await sleep(200);
   const changes = await js(`document.getElementById("ed-check").innerText`);
   check(/now pretty/.test(changes) && /now loves/.test(changes), "the editor applies \"A kind stepmother\"");
-  // a change inside (wants ...) isn't made (REVIVE;CHANGE changes-in): the story check says
-  // so plainly; then back to "A kind stepmother"
+  // a change inside (wants ...) isn't made (REVIVE;CHANGE changes-in): Ani can't plan it,
+  // so the tidy step leaves it out, and the editor says so plainly, and why; then back to
+  // "A kind stepmother"
   const leftAlone = await js(`(async () => {
     const lisp = await (await fetch("/test/stories/change-of-heart.lisp")).text();
     const ta = document.getElementById("ed-lisp");
     ta.value = lisp.replace("(convey (causes prince", "(convey (wants prince");
     ta.dispatchEvent(new Event("input"));
     await new Promise((r) => setTimeout(r, 700));
+    document.querySelectorAll("#ed-check details").forEach((d) => (d.open = true));
     const said = document.getElementById("ed-check").innerText;
     document.getElementById("ed-reset").click();
     await new Promise((r) => setTimeout(r, 200));
     document.querySelector('[data-preset="0"]').click();
     await new Promise((r) => setTimeout(r, 200));
-    return { said, again: document.getElementById("ed-check").innerText };
+    return { said, again: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled };
   })()`);
-  check(/a change is made only by a task of its own, \(convey \(change \.\.\.\)\), or inside \(causes x \(change \.\.\.\)\); inside \(wants \.\.\.\) Ani leaves it alone, and no one changes\./.test(leftAlone.said) && leftAlone.again === changes, "a change inside (wants ...) is said, plainly, to be left alone");
+  check(/left out (the scene change-of-heart|\(wants prince \(change)/.test(leftAlone.said) && /a change is made only by a task of its own, \(convey \(change \.\.\.\)\), or inside \(causes x \(change \.\.\.\)\); inside \(wants \.\.\.\) Ani leaves it alone, and no one changes\./.test(leftAlone.said) && leftAlone.again === changes,
+    "a change inside (wants ...), which Ani can't plan, is left out, and the editor says so, and why, plainly");
   await shot("2-editor.png");
 
   const t0 = Date.now();
@@ -425,24 +499,33 @@ try {
   for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
   const jsonWay = await js(`(async () => {
     const t = window.__check;
-    const REVIVAL = ["mend", "know", "appear", "change"];
+    const REVIVAL = ${JSON.stringify(REVIVAL)};
     const back = t.lispFromJson(t.cindyJson());
-    // OpenAI's strict rules: every object closed, with every property required; no
-    // $ref, allOf, not or if; under ten levels; at most 1,000 enum values
+    // OpenAI's strict rules for Structured Outputs: every object closed, with every
+    // property required; no $ref, allOf, not or if; and its documented limits: at most
+    // 5,000 object properties, 10 levels of nesting, 1,000 enum values in all, 15,000
+    // characters of enum values for one enum of more than 250 values, and 120,000
+    // characters of property names and enum values in all
     const strict = (schema) => {
-      let depth = 0, enums = 0, ok = schema.type === "object" && !schema.anyOf;
+      let depth = 0, enums = 0, props = 0, chars = 0, bigEnum = 0, ok = schema.type === "object" && !schema.anyOf;
       const walk = (x, d) => {
         if (Array.isArray(x)) return x.forEach((y) => walk(y, d));
         if (!x || typeof x !== "object") return;
         if (x.$ref || x.allOf || x.not || x.if || x.oneOf) ok = false;
         if (x.type === "object" && (x.additionalProperties !== false || JSON.stringify(Object.keys(x.properties || {})) !== JSON.stringify(x.required))) ok = false;
-        if (x.enum) enums += x.enum.length;
+        if (x.properties) { props += Object.keys(x.properties).length; chars += Object.keys(x.properties).join("").length; }
+        if (x.enum) {
+          enums += x.enum.length;
+          const n = x.enum.filter((v) => typeof v === "string").join("").length;
+          chars += n;
+          if (x.enum.length > 250) bigEnum = Math.max(bigEnum, n);
+        }
         const nd = x.type === "object" || x.type === "array" ? d + 1 : d;
         depth = Math.max(depth, nd);
         for (const [k, v] of Object.entries(x)) if (k !== "enum") walk(v, nd);
       };
       walk(schema, 0);
-      return { ok: ok && depth <= 10 && enums <= 1000, depth, enums };
+      return { ok: ok && depth <= 10 && enums <= 1000 && props <= 5000 && chars <= 120000 && bigEnum <= 15000, depth, enums, props, chars };
     };
     // a value against a schema, as the providers read one
     const valid = (v, s) => {
@@ -473,7 +556,35 @@ try {
     const misMended = slip.replace("\\t(set your length to medium))\\n", "\\t(set your length to medium)\\n");
     const undoing = t.cindyJson();
     undoing.scenes[2].steps[0][0].undone = undoing.scenes[1].steps[2][0];
+    // KNOW, only with it on: its words in the slots, its tasks, its feelings (only joy
+    // signed negative), and in the prompt, how its relationships are shown
+    const lispRevival = t.storyPrompt("A story.", { extensions: REVIVAL });
+    const kindsOf = (s) => JSON.stringify(s).match(/"kind":\\{"type":"string","enum":\\[[^\\]]*\\]/g).join(" ");
+    const feelingsOf = (s) => JSON.stringify(s.properties.scenes.items.properties.steps.items.items.anyOf[1].properties.feelings.items);
+    const personality = (s) => s.properties.characters.items.properties.personality.items.enum;
+    const knowSchema = /"helps"/.test(kindsOf(sRevival)) && /"avoids"/.test(kindsOf(sRevival)) && /"follows"/.test(kindsOf(sRevival)) && !/"helps"|"follows"/.test(kindsOf(s1978))
+      && personality(sRevival).includes("gentle") && personality(sRevival).includes("timid") && !personality(s1978).includes("gentle")
+      && sRevival.properties.relationships.items.properties.how.items.enum.includes("fears") && !s1978.properties.relationships.items.properties.how.items.enum.includes("fears")
+      && /"anyOf":\\[\\{"type":"object","properties":\\{"feeling":\\{"type":"string","enum":\\["joy"\\]\\},"sign":\\{"type":"string","enum":\\["positive","negative"\\]\\}/.test(feelingsOf(sRevival))
+      && /"enum":\\["pride","anticipation","loneliness","fear","anger"\\]\\},"sign":\\{"type":"string","enum":\\["positive"\\]\\}/.test(feelingsOf(sRevival)) && !/anticipation/.test(feelingsOf(s1978));
+    const knowPrompt = (p, j) => (j ? /\\{"kind": "follows", "who": X, "whom": Y\\} for X following Y/.test(p) && /only joy may be "negative"/.test(p) : /\\(convey \\(helps X Y\\)\\) for X helping Y along/.test(p) && /\\(convey \\(avoids X Y\\)\\)/.test(p) && /\\(convey \\(follows X Y\\)\\)/.test(p) && /a feeling may also be pride, anticipation, loneliness, fear or anger, written as joy is but always positive/.test(p))
+      && /is-obedient-to by following the other/.test(p) && /fears, dislikes and is-intolerant-of by keeping away from the other/.test(p) && /personality: [^\\n]*\\bgentle\\b/.test(p) && /Nothing else: Ani can't show gives, says/.test(p);
+    // asked to fix an undoes, a model is told each scene and what a later one may undo
+    const nanoLisp = t.lispFromJson(${JSON.stringify(NANO_TORTOISE)});
+    const undoProblem = t.checkStory(nanoLisp, { extensions: REVIVAL }).problems;
+    const fixJson = t.repairPrompt(undoProblem, "json", nanoLisp), fixLisp = t.repairPrompt(undoProblem, "lisp", nanoLisp);
+    const repairUndo = undoProblem.length === 1 && /push isn't an earlier scene/.test(undoProblem[0])
+      && /An undoes task undoes only what someone did in a scene before its own/.test(fixJson) && /\\n- boast: nothing a later scene can undo\\n- push: \\{"kind": "pushes", "who": "hare", "whom": "tortoise"\\}\\n- finish: nothing a later scene can undo\\n/.test(fixJson)
+      && /\\n- push: \\(convey \\(pushes hare tortoise\\)\\)\\n/.test(fixLisp) && /Reply with the whole corrected film description as JSON/.test(fixJson);
+    // what a model is given, in each mode and way, to compare with the claude.ai copy's
+    const given = {};
+    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL]]) {
+      for (const format of ["lisp", "json"]) for (const compact of [false, true]) given[mode + " " + format + (compact ? " compact" : "")] = t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions, format, compact });
+      given[mode + " schema"] = JSON.stringify(t.storySchema(extensions));
+    }
     return {
+      given, repairUndo,
+      knowSchema, knowPrompt: knowPrompt(lispRevival, false) && knowPrompt(jsonRevival, true) && ![lisp1978, json1978].some((p) => /personality: [^\\n]*\\bgentle\\b|helps X Y|"helps"|anticipation|is-obedient-to by/.test(p)),
       cindy: t.sameForms(t.cindyExample(), back) && !t.tidyStory(back).fixes.length && !t.checkStory(back).problems.length,
       strict1978: strict(s1978), strictRevival: strict(sRevival),
       example: valid(t.cindyJson(), sRevival) && valid(t.cindyJson(), s1978),
@@ -495,23 +606,50 @@ try {
     };
   })()`);
   check(jsonWay.cindy, "Ken's CINDY read into JSON and put back into his notation has CINDY's forms, needs no tidying and passes Ani's checks");
-  check(jsonWay.strict1978.ok && jsonWay.strictRevival.ok && jsonWay.example, `the schema keeps to OpenAI's strict rules (${jsonWay.strictRevival.depth} levels, ${jsonWay.strictRevival.enums} enum values with the extensions), and the example, Ken's CINDY as JSON, keeps to it in both modes`);
+  check(jsonWay.strict1978.ok && jsonWay.strictRevival.ok && jsonWay.example, `the schema keeps to OpenAI's strict rules and documented limits (with the extensions, KNOW's words and feelings among them: ${jsonWay.strictRevival.depth} levels of 10, ${jsonWay.strictRevival.enums} enum values of 1,000, ${jsonWay.strictRevival.props} properties of 5,000, ${jsonWay.strictRevival.chars} characters of names and values of 120,000; as in 1978, ${jsonWay.strict1978.depth} levels and ${jsonWay.strict1978.enums} enum values), and the example, Ken's CINDY as JSON, keeps to it in both modes`);
+  check(jsonWay.repairUndo, "asked to fix an undoes of what no earlier scene did, a model is told each scene's name and what a later scene may undo, exactly as it must be copied");
+  check(jsonWay.knowSchema, "with KNOW, the schema has its tasks (helps, avoids, follows), its words (gentle, timid; fears) and its feelings, only joy signed negative; as in 1978, none of them");
+  check(jsonWay.knowPrompt, "with KNOW, the prompt (Lisp and JSON) teaches its tasks, its feelings in one form, always positive, and how its relationships are shown, with its words in the lists; as in 1978 it has none of them");
   check(!/meets|change-/.test(jsonWay.kinds1978) && /"meets"/.test(jsonWay.kindsRevival) && /"change-personality"/.test(jsonWay.kindsRevival) && /"change-relationship"/.test(jsonWay.kindsRevival) && jsonWay.words, "the schema's task forms follow the mode (meets and the changes only with the extensions), and its words are the page's vocabulary, with those Ken gave in CINDY");
   check(jsonWay.anthropic && jsonWay.portable, "each provider gets the schema as it takes one: Anthropic's without maxItems, Gemini's and Gemini Nano's without patterns or null");
   check(jsonWay.lisp1978 && jsonWay.json1978 && jsonWay.jsonRevival, "the JSON prompt has the Lisp prompt's guidance, with the task forms as JSON, in 1978 mode and with the extensions");
   check(jsonWay.net, "a \")\" too many in a scene's tasks comes out where it closed the scene too soon, one left in is a problem, and so is undoing an (establish ...), which the schema can't say");
   check(jsonWay.lenient && jsonWay.rrh && jsonWay.odd, "a reply's JSON is found in a fence or after a sentence, a Lisp reply is left to be read as Lisp, Red Riding Hood goes to JSON and back, and odd JSON comes out as Lisp the checks then question");
 
+  // the claude.ai copy: under claude.ai's limit, it starts and draws Ken's film, and a
+  // model is given the full page's prompt and schema, word for word, in each mode and way
+  const artifactBytes = readFileSync(ARTIFACT).length;
+  check(artifactBytes < 950000, `the claude.ai copy is ${artifactBytes.toLocaleString("en-US")} bytes, under 950,000`);
+  const errorsBefore = errors.length;
+  await send("Page.navigate", { url: `${base}/artifact/claude.check.html` });
+  for (let k = 0; k < 75 && !(await js("!!window.__check && document.getElementById('caption-0').innerText.length > 0").catch(() => false)); k++) await sleep(200);
+  const copy = await js(`(async () => {
+    const t = window.__check, REVIVAL = ${JSON.stringify(REVIVAL)};
+    const given = {};
+    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL]]) {
+      for (const format of ["lisp", "json"]) for (const compact of [false, true]) given[mode + " " + format + (compact ? " compact" : "")] = t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions, format, compact });
+      given[mode + " schema"] = JSON.stringify(t.storySchema(extensions));
+    }
+    const c = document.querySelector("#fig-0 canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let lit = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 200) lit++;
+    return { given, caption: document.getElementById("caption-0").innerText, lit, providers: [...document.querySelectorAll("#tell-providers [data-provider]")].length };
+  })()`);
+  const differ = Object.keys(jsonWay.given).filter((k) => jsonWay.given[k] !== copy.given[k]);
+  check(!differ.length && Object.keys(copy.given).length === 10 && /The stepmother pushes Cinderella around/.test(copy.caption) && copy.lit > 100 && errors.length === errorsBefore,
+    `the claude.ai copy starts and draws Ken's film (${copy.lit} lit dots), and gives a model the full page's prompt and schema word for word, as in 1978 and with the extensions, in Lisp and JSON${differ.length ? ` (differ: ${differ.join(", ")})` : ""}`);
+
   // the JSON way in the panel, with the model's replies stood in for: Anthropic first
   // refuses the schema (as for "Schema is too complex"), so the page asks again without
-  // it; that reply names a character the story doesn't define, so the checks find a
-  // problem; "Ask Claude to fix these" asks for the whole description again as JSON, with
-  // the schema; and the fixed reply passes Ani's checks
+  // it; that reply names a character the story doesn't define in a task, which the page
+  // leaves out, and gives a relationship no words, which the checks find a problem in;
+  // "Ask Claude to fix these" asks for the whole description again as JSON, with the
+  // schema; and the fixed reply passes Ani's checks
   await open();
   const toldJson = await js(`(async () => {
     const good = ${JSON.stringify(jsonWay.rrhJson)};
-    const bad = good.replace('"who": "wolf"', '"who": "hunter"');
-    if (bad === good) return { error: "the stand-in has no task of the wolf's" };
+    const bad = good.replace('"who": "wolf"', '"who": "hunter"').replace(/"how": \\[[^\\]]*\\]/, '"how": []');
+    if (!/hunter/.test(bad) || !/"how": \\[\\]/.test(bad)) return { error: "the stand-in has no task of the wolf's, or no relationship" };
     const real = window.fetch;
     const bodies = [];
     window.fetch = async (url, opts) => {
@@ -540,8 +678,9 @@ try {
     for (let k = 0; k < 50 && (bodies.length < 3 || !side.querySelector("#tell-edit")); k++) await wait(100);
     await wait(200);
     const fixed = side.querySelector("#tell-result").innerText;
-    side.querySelector("#tell-result details").open = true;
-    const wrote = side.querySelector("#tell-result details pre").innerText;
+    const wroteBox = [...side.querySelectorAll("#tell-result details")].find((x) => /wrote/.test(x.querySelector("summary").innerText));
+    wroteBox.open = true;
+    const wrote = wroteBox.querySelector("pre").innerText;
     side.querySelector("#tell-edit").click();
     await wait(300);
     const format = (b) => (b.output_config && b.output_config.format) || null;
@@ -554,8 +693,8 @@ try {
     };
   })()`);
   check(toldJson.formats === "json_schema none json_schema" && !toldJson.maxItems && /written as JSON/.test(toldJson.prompt) && toldJson.again, `the request carries the schema (Anthropic's output_config.format), and one the provider refuses is asked again without it (${toldJson.formats})`);
-  check(/wrote it as JSON, which the page put into Ken's notation/.test(toldJson.first) && /hunter/.test(toldJson.first) && /isn't defined|two defined characters/.test(toldJson.first), "the draft says the model wrote JSON, and the checks find the character it didn't define");
-  check(/Reply with the whole corrected film description as JSON, in the same form/.test(toldJson.repair) && /hunter/.test(toldJson.repair) && toldJson.said, "asked to fix it, the model gets its JSON back and the problems, and is asked for JSON again");
+  check(/wrote it as JSON, which the page put into Ken's notation/.test(toldJson.first) && /left out [^;]*hunter/.test(toldJson.first) && /has no words for/.test(toldJson.first), "the draft says the model wrote JSON, that the page left out the task of a character the story doesn't define, and the checks find the relationship with no words");
+  check(/Reply with the whole corrected film description as JSON, in the same form/.test(toldJson.repair) && /has no words for/.test(toldJson.repair) && toldJson.said, "asked to fix it, the model gets its JSON back and the problems, and is asked for JSON again");
   check(/4 characters/.test(toldJson.fixed) && /nothing wrong/.test(toldJson.fixed) && /"characters": \[/.test(toldJson.wrote), "the fixed draft passes Ani's checks, with what the model wrote a click away");
   check(/^;; -\*-lisp-\*-\n;; cast: red-riding-hood = Red Riding Hood \(she\)/.test(toldJson.lisp) && /\(define red-riding-hood character/.test(toldJson.lisp) && /\(compile-actors\)\s*$/.test(toldJson.lisp), "the editor gets the description in Ken's notation, cast line and all");
 
@@ -591,6 +730,60 @@ try {
   await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: nanoScript.identifier });
   check(toldNano.calls === 1 && /^\{"type":"object"/.test(toldNano.constraint) && !/"pattern"/.test(toldNano.constraint) && toldNano.omit && toldNano.compact, "Gemini Nano gets the schema as Chrome's responseConstraint, not counted in its input, with the compact prompt");
   check(/Gemini Nano wrote it as JSON/.test(toldNano.result) && /4 characters/.test(toldNano.result) && /nothing wrong/.test(toldNano.result), "and its JSON reply becomes a draft that passes Ani's checks");
+
+  // Gemini Nano's Tortoise and the Hare (NANO_TORTOISE), with an undoes in the scene it
+  // undoes: the tidy step leaves it out, and the scene keeps its other tasks, so the film
+  // can be made, from the draft and the editor. Nano is already there ("available"), so
+  // though Chrome fires downloadprogress anyway, nothing says it is downloading; and its
+  // JSON, padded with blank lines as it streams, is shown without them.
+  // as Nano streams it: the JSON with runs of blank lines, the second half a moment later
+  const padded = JSON.stringify(NANO_TORTOISE, null, 1).replace(/\n/g, "\n\n\n\n   ");
+  const tortoiseScript = await send("Page.addScriptToEvaluateOnNewDocument", { source: `window.__nanoStatus = [];
+    window.LanguageModel = {
+      availability: async () => "available",
+      create: async (opts) => {
+        const progress = new EventTarget();
+        if (opts && opts.monitor) opts.monitor(progress);
+        const e = new Event("downloadprogress"); e.loaded = 1; progress.dispatchEvent(e);
+        return {
+          inputQuota: 1e6, inputUsage: 0, measureInputUsage: async () => 1000, destroy() {},
+          promptStreaming(text, o) {
+            const all = ${JSON.stringify(padded)};
+            return new ReadableStream({ async start(c) {
+              c.enqueue(all.slice(0, all.length >> 1));
+              for (let k = 0; k < 8; k++) { await new Promise((r) => setTimeout(r, 100)); const s = document.getElementById("tell-status"), p = document.getElementById("tell-stream"); window.__nanoStatus.push({ status: s ? s.textContent : "", stream: p ? p.textContent : "" }); }
+              c.enqueue(all.slice(all.length >> 1)); c.close();
+            } });
+          },
+        };
+      },
+    };` });
+  await open();
+  const nanoTortoise = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-teller").click();
+    await wait(300);
+    const side = document.getElementById("side");
+    side.querySelector('[data-format="json"]').click();
+    side.querySelector('[data-mode="revival"]').click();
+    side.querySelector('[data-provider="nano"]').click();
+    await wait(100);
+    side.querySelector('[data-story="1"]').click();
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 80 && !side.querySelector("#tell-edit"); k++) await wait(100);
+    const draft = side.querySelector("#tell-result").innerText, status = document.getElementById("tell-status").textContent;
+    const draftMake = !side.querySelector("#tell-fix");
+    side.querySelector("#tell-edit").click();
+    await wait(300);
+    return { draft, status, draftMake, seen: window.__nanoStatus, editor: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled };
+  })()`);
+  await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: tortoiseScript.identifier });
+  const leftOutUndo = /left out \(undoes tortoise \(from-scene push \(convey \(pushes hare tortoise\)\)\)\) in The Push/;
+  check(/Gemini Nano wrote it as JSON/.test(nanoTortoise.draft) && leftOutUndo.test(nanoTortoise.draft) && /nothing wrong/.test(nanoTortoise.draft) && nanoTortoise.draftMake && leftOutUndo.test(nanoTortoise.editor) && nanoTortoise.make,
+    "Gemini Nano's Tortoise and the Hare, with an undoes in the scene it undoes: the page leaves that task out, says so, and the film can be made, from the draft and the editor");
+  const nanoSeen = nanoTortoise.seen || [];
+  check(nanoSeen.length > 0 && !nanoSeen.some((x) => /download/i.test(x.status)) && !/download/i.test(nanoTortoise.status) && nanoSeen.some((x) => x.stream.length > 20) && !nanoSeen.some((x) => /\n\s*\n|\s{2,}/.test(x.stream)),
+    `with Nano already there, nothing says it is downloading; and its streamed JSON is shown without its padding (${(nanoSeen.find((x) => x.stream) || { stream: "" }).stream.slice(0, 60)}...)`);
 
   // Ken's Beauty and the Beast as the model's reply: the draft says what the page tidied,
   // and so does the editor; missing relationships are filled in only in 1978 mode; then
@@ -774,6 +967,48 @@ try {
   const tortoise = await clickOn("fig-1", "The tortoise", `() => { const d = document.querySelector("#side details.looks"); if (!d) return { found: true, text: "" }; d.open = true; return { found: true, text: d.innerText }; }`);
   check(/simple because he moves fast \(Ani made him fast because he is hard working and determined and the film's energy is high\), though slower than the hare\./.test(tortoise.text || ""), `the tortoise's "How he looks" says why he moves fast, and that he is slower than the hare: ${(tortoise.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
 
+  // a story whose scene is called fear (test/stories/stress/know-scene-named-fear.lisp, as
+  // the model's reply): with KNOW, fear is a feeling EMOTE defines, and would replace the
+  // scene, so the page renames it fear-scene, as src/pipeline.js storyWithoutClashes does,
+  // says why in the draft, the editor and the film's panel, and Ani films it
+  await open();
+  const clash = await js(`(async () => {
+    const lisp = await (await fetch("/test/stories/stress/know-scene-named-fear.lisp")).text();
+    const real = window.fetch;
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "\`\`\`lisp\\n" + lisp + "\\n\`\`\`" }] }), { status: 200 });
+    };
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-teller").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    side.querySelector('[data-format="lisp"]').click();
+    side.querySelector('[data-mode="revival"]').click();
+    side.querySelector('[data-provider="anthropic"]').click();
+    await wait(100);
+    side.querySelector('[data-story="0"]').click();
+    const key = side.querySelector("#tell-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input"));
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await wait(100);
+    const draft = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-edit").click();
+    await wait(300);
+    const editor = document.getElementById("ed-check").innerText, text = document.getElementById("ed-lisp").value;
+    document.getElementById("ed-make").click();
+    return { draft, editor, text };
+  })()`);
+  const clashMade = await finished();
+  const clashPanel = await js(`(() => { document.querySelectorAll("#side details").forEach((d) => (d.open = true)); return document.getElementById("side").innerText + " | " + [...document.querySelectorAll("#scenes button")].map((b) => b.innerText).join(" "); })()`);
+  const renamedNote = /renamed the scene “fear” fear-scene, since fear is one of Ani's feelings/;
+  check(renamedNote.test(clash.draft) && renamedNote.test(clash.editor) && /\(define fear-scene scene/.test(clash.text) && /;; scenes: fear-scene = Fear/.test(clash.text),
+    "a story's scene called fear is renamed fear-scene with KNOW on, its title kept, and the draft and the editor say so");
+  check(/with the revival's extensions: 1 of 1 scenes? filmed/.test(clashMade) && renamedNote.test(clashPanel) && /Your scene “fear” is called fear-scene here: fear is one of Ani's feelings, and the file that defines it, Ken's EMOTE, would replace your scene when it loads\./.test(clashPanel),
+    `and Ani films it (${clashMade.split("\n")[0]}), and the film's panel says why, in plain words`);
+  await shot("6b-renamed-scene.png");
+
   // Ken's Cinderella as it is, made with the extensions: with APPEAR, Ani draws his cast
   await open();
   await js(`document.getElementById("open-editor").click()`);
@@ -781,7 +1016,7 @@ try {
   await js(`document.getElementById("ed-reset").click()`);
   await sleep(200);
   const asIs = await js(`({ enabled: !document.getElementById("ed-make").disabled, note: document.getElementById("ed-check").innerText, mode: ([...document.querySelectorAll("#side [data-mode]")].find((b) => b.getAttribute("aria-pressed") === "true") || {}).dataset?.mode })`);
-  check(asIs.mode === "revival" && asIs.enabled && /This is Ken's story as it is\. With the revival's extensions Ani chooses each character's size and shape/.test(asIs.note), "with the extensions on, Ken's story as it is can be made again, and the editor says why");
+  check(asIs.mode === "revival" && asIs.enabled && /This is Ken's story as it is\. With the revival's extensions Ani knows words, relationships, ways of showing and feelings Ken could have added, and chooses each character's size and shape/.test(asIs.note), "with the extensions on, Ken's story as it is can be made again, and the editor says why");
   await js(`document.querySelector('#side [data-mode="1978"]').click()`);
   await sleep(100);
   const as1978 = await js(`!document.getElementById("ed-make").disabled`);
@@ -793,7 +1028,7 @@ try {
   const looked = await finished(400);
   check(/with the revival's extensions: 5 of 5 scenes filmed/.test(looked), `Ani makes Ken's Cinderella with the extensions (${Math.round((Date.now() - t2) / 1000)} s): ${looked}`);
   const looksLasts = await lastsOf(5);
-  check(JSON.stringify(looksLasts) === JSON.stringify(EXPECTED_LOOKS_LAST_FRAMES), `its scenes end at frames ${looksLasts.join(", ")} (reports/ext/appear: ${EXPECTED_LOOKS_LAST_FRAMES.join(", ")})`);
+  check(JSON.stringify(looksLasts) === JSON.stringify(EXPECTED_LOOKS_LAST_FRAMES), `its scenes end at frames ${looksLasts.join(", ")} (Node, with the same extensions: ${EXPECTED_LOOKS_LAST_FRAMES.join(", ")})`);
   // the legend and each icon from Ani's looks, beside Ken's: a path's points, or a circle
   const cast = () => js(`(() => {
     document.querySelector('#runbar [data-view="both"]').click();
@@ -841,6 +1076,42 @@ try {
   await shot("8b-how-the-stepmother-looks.png");
   const kens = await clickOn("fig-0", "Cinderella", `() => ({ found: true, looks: !!document.querySelector("#side details.looks") })`);
   check(kens.found && !kens.looks, "Ken's 1978 film's glass box has no \"How she looks\": he drew her himself");
+  // KNOW's part in it (reports/ext/know/README.md): Cinderella follows her stepmother and
+  // helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the
+  // stepmother is proud in Kept Apart; each is marked in the glass box as the revival's
+  // knowledge, with its reason. The film comes back in the page that hands its runs to
+  // the check, which finds the frame halfway through each activity.
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 100 && !(await js(`!!window.__check && /5 of 5 scenes filmed/.test(document.getElementById("run-status").innerText)`).catch(() => false)); k++) await sleep(200);
+  const knowAt = async (sceneIndex, activity, name) => {
+    await js(`(async () => {
+      document.querySelector('#runbar [data-view="1"]').click();
+      document.querySelectorAll("#scenes button")[${sceneIndex}].click();
+      await new Promise((r) => setTimeout(r, 50));
+      const sc = window.__check.RUNS[1].scenes[${sceneIndex}];
+      const a = sc.activities.find((x) => (${JSON.stringify(activity)} ? x.base === ${JSON.stringify(activity)} : x.chars.includes(${JSON.stringify(name === "The stepmother" ? "step-mother" : "")})) && x.begin !== null);
+      const s = document.getElementById("scrub");
+      s.value = a ? (a.begin + a.end) / 2 / ((sc.film && sc.film.fps) || 4) : 0;
+      s.dispatchEvent(new Event("input"));
+      await new Promise((r) => setTimeout(r, 100));
+    })()`);
+    return clickOn("fig-1", name, `() => {
+      document.querySelectorAll("#side details").forEach((d) => (d.open = true));
+      const k = document.querySelector("#side details.knowledge");
+      return { found: true, lead: (document.querySelector("#side .lead") || {}).innerText || "", why: ([...document.querySelectorAll("#side details")].map((d) => d.innerText).find((x) => /^Why/.test(x)) || ""), knowledge: k ? k.innerText : "" };
+    }`);
+  };
+  const following = await knowAt(0, "following", "Cinderella");
+  check(following.found && /^Cinderella is following the other\./.test(following.lead) && /To convey that Cinderella follows the stepmother, .*\(the revival's way of showing it\)/.test(following.why) && /To establish that Cinderella is obedient to and is tolerant of the stepmother .*\(shown as the revival's knowledge of “is obedient to” says\)/.test(following.why)
+    && /Cinderella follows the stepmother, shown by the revival's follows-behind: the leader goes on ahead, and the follower follows it, keeping behind\. the revival's: /.test(following.knowledge) && /Cinderella is obedient to and is tolerant of the stepmother, which Ani shows by following: the revival's knowledge gives “is obedient to” that way of showing it\. the revival's: in 1978 "Ani has no idea how/.test(following.knowledge),
+    `with KNOW, Cinderella follows her stepmother in the Introduction, and the glass box marks it as the revival's knowledge, with its reason: ${following.lead} | ${(following.knowledge.split("\n")[1] || "").slice(0, 120)}`);
+  const helping = await knowAt(0, "helping-along", "Cinderella");
+  check(helping.found && /^Cinderella is helping the other along, from behind \(with the Prince\)\./.test(helping.lead) && /Cinderella helps the Prince, shown by the revival's helps-along: the one helped sets off alone, slowly, and the helper goes round behind it and helps it along\. the revival's: "Ani had decided to have Cinderella help the Prince/.test(helping.knowledge),
+    `and helps the Prince along, where in 1978 Ani "canceled it": ${helping.lead}`);
+  const proud = await knowAt(1, null, "The stepmother");
+  check(proud.found && /The stepmother is proud, which the revival's pride shows: the stepmother's deliberateness rises and the stepmother's jaggedness of the path falls\. the revival's: a proud character/.test(proud.knowledge),
+    `and in Kept Apart the stepmother's pride smooths her paths, as the revival's knowledge: ${(proud.knowledge.match(/The stepmother is proud[^.]*\./) || [""])[0]}`);
+  await shot("8c-what-the-revivals-knowledge-did.png");
   // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
   await open();
   await sleep(1500);
@@ -875,7 +1146,7 @@ try {
   await sleep(300);
   const reopened = await cast();
   check(saved.saved && saved.version === 2 && none && castOk(reopened), `saved as a film file (${saved.name}, version ${saved.version}, ${saved.kb} KB) and opened again on a fresh page, it is drawn with Ani's looks`);
-  check(saved.fields === "format,version,about,title,lisp,extensions,date,gzip" && saved.about === "A film of Cinderella, made by Ani, Ken Kahn's 1978 animation program, revived; open it at https://toontalk.github.io/ani/ to watch it with all of Ani's reasons." && saved.title === "Cinderella" && saved.lisp && saved.extensions === "mend,appear,change" && /^\d{4}-\d\d-\d\dT/.test(saved.date || "") && saved.readable && saved.story === undefined,
+  check(saved.fields === "format,version,about,title,lisp,extensions,date,gzip" && saved.about === "A film of Cinderella, made by Ani, Ken Kahn's 1978 animation program, revived; open it at https://toontalk.github.io/ani/ to watch it with all of Ani's reasons." && saved.title === "Cinderella" && saved.lisp && saved.extensions === "mend,know,appear,change" && /^\d{4}-\d\d-\d\dT/.test(saved.date || "") && saved.readable && saved.story === undefined,
     `its top level is readable, with the film's title, its Lisp, the extensions and the date, and an "about" that names it (${saved.fields})`);
 
   // a story with a change: the stepmother repents (test/stories/change-of-heart.lisp, as
@@ -927,7 +1198,7 @@ try {
   await js(`document.getElementById("ed-make-mend").click()`);
   const seen = {};
   let freshMeter = null, freshShot = false;
-  for (let k = 0; k < 600; k++) {
+  for (let k = 0; k < 1200; k++) {
     await sleep(1000);
     const now = await js(`(() => { const p = document.getElementById("progress"); return { status: document.getElementById("run-status").innerText, meter: p ? p.querySelector("i").style.width : "" }; })()`);
     for (const [step, re] of [["fresh", /Pass 1 again: a fresh look at the stepmother, who changes in Change of Heart/], ["recompute", /Pass 1 again, to compare: everyone chosen afresh as of Change of Heart/], ["pass2", /Pass 2: planning Change of Heart/]]) if (re.test(now.status) && !seen[step]) seen[step] = Date.now();
@@ -1043,7 +1314,7 @@ try {
       title: outer.title, story: outer.story, model: outer.model, provider: outer.provider, about: outer.about, lisp: typeof outer.lisp === "string" && outer.lisp === d.cindy, extensions: (outer.extensions || []).join(), old };
   })()`);
   check(changeFile.saved && changeFile.version === 2 && changeFile.who === "step-mother" && changeFile.held === 1, `its film file (${changeFile.name}, version ${changeFile.version}) carries Ani's fresh look`);
-  check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,appear,change" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
+  check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,know,appear,change" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
     `and, readable at its top, the story as told in English, the model and provider that wrote it, and its Lisp (${changeFile.model}, ${changeFile.provider})`);
   check(/^Your version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^Your version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
 
@@ -1100,7 +1371,9 @@ try {
     check(/This is everything that will be sent to Ken/.test(offer.shown) && /"title": "Cinderella"/.test(offer.shown) && /"lisp": ";; -\*-lisp-\*-/.test(offer.shown) && /"extensions": \[/.test(offer.shown) && /"stopped": \[\]/.test(offer.shown) && /"provider": "\(none\)"/.test(offer.shown), "\"Send this story to Ken\" shows exactly what will be sent: the story, the Lisp, the model and provider, the extensions and where Ani stopped");
     check(declined && /A story sent to Ken: Cinderella/.test(story) && /\(define cinderella character/.test(story) && /story\.json/.test(story) && !story.includes(SECRET) && /^Sent\./.test(thanked), `nothing is sent until the visitor confirms; then the story arrives, with its Lisp, and no key (${story.length} bytes)`);
   }
-  check(errors.length === 0, `no uncaught errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
+  // (the deliberate error the reporting check throws may be heard after it is set aside)
+  const uncaught = errors.filter((e) => !/a deliberate check error/.test(e));
+  check(uncaught.length === 0, `no uncaught errors${uncaught.length ? ": " + uncaught.slice(0, 3).join(" | ") : ""}`);
 } catch (e) {
   check(false, e.message);
 } finally {
