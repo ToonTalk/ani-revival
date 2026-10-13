@@ -22,9 +22,23 @@
 // fresh look, her elements before and after, each opening the fresh look's choice point,
 // and the dynamics saying where each value came from; and it all comes back after a
 // reload, and in a film file.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about twenty minutes)
-// With --shots, the change story's fresh look and "How she has changed" are also taken
-// at a phone's width.
+// And the page's care for a model's slips and the reader's films: it tidies a description
+// before Ani reads it (Ken's Beauty and the Beast, test/untidy/belfie.lisp, as the model's
+// reply: (and ...) put around the beast's looks, the focus's relationship made one part,
+// two tasks with one character left out, each said in a note; then pass 1 runs), and
+// leaves Ken's CINDY and every story in test/stories and reports/llm-trials as they are;
+// a stop on a message an actor didn't understand is said in plain words, with what Lisp
+// said a click away; missing relationships are filled in only as in 1978; the prompt asks
+// for the story's own film levels and a beaten villain's feelings; "How he looks" says why
+// the tortoise moves fast, and that he is slower than the hare; the Save panel's title
+// cards and subtitles (burned in below the picture, and as a .vtt file, side by side too);
+// a film file's readable fields, and old film files still open; and, with no DSN, nothing
+// of Sentry's is loaded and no "Send this story to Ken" is offered, while with one (here,
+// pointing at this server) an uncaught error arrives with no key, story or user in it, and
+// a story is sent only when the visitor confirms (skipped if Sentry's SDK can't be loaded).
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about twenty-five minutes)
+// With --shots, the change story's fresh look and "How she has changed", the tidy note,
+// a stop sentence and the Save panel are also taken at a phone's width.
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -32,7 +46,7 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import { readFile, mkdtemp, rm } from "node:fs/promises";
-import { writeFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 
@@ -59,9 +73,34 @@ if (shots) mkdirSync(shots, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".mjs": "text/javascript", ".json": "application/json", ".css": "text/css", ".png": "image/png" };
+// every story the tidy must leave as it is
+const storiesUnder = (dir) => readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? storiesUnder(`${dir}/${e.name}`) : e.name.endsWith(".lisp") ? [`${dir}/${e.name}`] : []));
+const WELL_FORMED = [...storiesUnder("test/stories"), ...storiesUnder("reports/llm-trials")];
+// Two pages made from app/film.html: film.check.html hands some of its functions to
+// window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
+// that sends Sentry's envelopes here, where they are kept.
+const envelopes = [];
+const filmPage = () => readFileSync(join(process.cwd(), "app/film.html"), "utf8");
 const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^[/\\]+/, "");
+  const at = path.replace(/\\/g, "/");
   if (path.startsWith("..")) { res.writeHead(403).end(); return; }
+  if (req.method === "POST" && /^api\/1\/envelope\/?$/.test(at)) {
+    let body = "";
+    req.on("data", (c) => { body += c; });
+    req.on("end", () => { envelopes.push(body); res.writeHead(200, { "content-type": "application/json" }).end("{}"); });
+    return;
+  }
+  if (at === "app/film.check.html") {
+    const html = filmPage(), end = html.lastIndexOf("</script>");
+    res.writeHead(200, { "content-type": "text/html" }).end(html.slice(0, end) + "\nwindow.__check = { tidyStory, checkStory, whyStopped, stopBox, makeRun, using, drawVideoFrame, makeSubtitles, RUNS, DATA };\n" + html.slice(end));
+    return;
+  }
+  if (at === "app/film.report-check.html") {
+    const html = filmPage(), mark = '/*SENTRY-DSN*/""';
+    res.writeHead(html.includes(mark) ? 200 : 500, { "content-type": "text/html" }).end(html.replace(mark, () => JSON.stringify(`http://checkkey@127.0.0.1:${server.address().port}/1`)));
+    return;
+  }
   try {
     const body = await readFile(join(process.cwd(), path));
     res.writeHead(200, { "content-type": TYPES[extname(path)] || "application/octet-stream" }).end(body);
@@ -89,10 +128,13 @@ try {
   let id = 0;
   const pending = new Map();
   const errors = [];
+  const sentryAsked = []; // requests for anything of Sentry's while the page has no DSN
+  let reporting = false;
   ws.addEventListener("message", (e) => {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(m.error.message)) : p.resolve(m.result); }
     if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
+    if (m.method === "Network.requestWillBeSent" && !reporting && /sentry/i.test(m.params.request.url)) sentryAsked.push(m.params.request.url);
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => { const n = ++id; pending.set(n, { resolve, reject }); ws.send(JSON.stringify({ id: n, method, params })); });
   const js = async (expr) => {
@@ -108,7 +150,18 @@ try {
   };
   await send("Page.enable");
   await send("Runtime.enable");
+  await send("Network.enable");
   await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+  const phone = async (name, scrollTo) => {
+    if (!shots) return;
+    await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    await sleep(400);
+    await js(`(() => { const el = ${scrollTo}; if (el) el.scrollIntoView({ block: "start" }); })()`);
+    await sleep(200);
+    await shot(name);
+    await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(200);
+  };
 
   await open();
   check(/The stepmother pushes Cinderella around/.test(await js(`document.getElementById("caption-0").innerText`)), "the 1978 film starts, with its caption");
@@ -127,6 +180,57 @@ try {
   })()`);
   check(errors.length === 0 && /^0\.0 \//.test(played), "Play from the start of each scene, twenty times, without an error");
   await shot("1-film.png");
+
+  // tidying: Ken's CINDY and every well-formed story come out as they are; Ken's Beauty and
+  // the Beast is tidied; a word in another kind's slot moves; a stop on a message an actor
+  // didn't understand is said plainly; the subtitles are drawn below the picture
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
+  const tidy = await js(`(async () => {
+    const t = window.__check;
+    const changed = [];
+    for (const f of ${JSON.stringify(WELL_FORMED)}) {
+      const text = await (await fetch("/" + f.split("/").map(encodeURIComponent).join("/"))).text();
+      const r = t.tidyStory(text);
+      if (r.text !== text || r.fixes.length) changed.push(f);
+    }
+    const cindy = t.tidyStory(t.DATA.cindy);
+    const belfie = await (await fetch("/test/untidy/belfie.lisp")).text();
+    const b = t.tidyStory(belfie);
+    const variant = belfie.replace("(physical beautiful)", "(physical (and beautiful kind))").replace("(personality (and stubborn good strong kind))", "(personality (and stubborn good strong))");
+    const v = t.tidyStory(variant);
+    const run = t.makeRun({ label: "Your version", short: "Yours", cindy: belfie });
+    run.status = { error: "break BAD-MESSAGE", typed: [";warning from BEAST: (PROCESS EACH INITIAL DESCRIPTION (PHYSICAL UGLY PHYSICALLY-STRONG)) is not understood", "--- type (?) for help"] };
+    const box = document.createElement("div");
+    box.innerHTML = t.stopBox(run);
+    const generic = t.whyStopped(run, "break BAD-MESSAGE", [";warning from BELLE: (FROBNICATE YOUR WIDGET) is not understood"]).text;
+    // a picture of the video with subtitles: its strip below the picture has words in it
+    const canvas = document.createElement("canvas");
+    canvas.width = 551; canvas.height = 413 + 124;
+    const ctx = canvas.getContext("2d");
+    t.drawVideoFrame(ctx, [t.RUNS[0]], { i: 0, t: 2 }, 1, { subtitles: true, memo: Object.assign(new Map(), { both: false }) });
+    const strip = ctx.getImageData(0, 413, 551, 124).data;
+    let lit = 0;
+    for (let k = 0; k < strip.length; k += 4) if (strip[k] > 100) lit++;
+    const vtt = t.makeSubtitles([t.RUNS[0]], [0], true);
+    document.getElementById("side").innerHTML = box.innerHTML;
+    document.querySelector("#side details.said").open = true;
+    return { changed, cindy: cindy.text === t.DATA.cindy && !cindy.fixes.length, fixes: b.fixes.map((f) => f.short), text: b.text, again: t.tidyStory(b.text).fixes.length,
+      variant: v.fixes.map((f) => f.short), moved: v.text.includes("(physical beautiful)") && v.text.includes("(personality (and stubborn good strong kind))"),
+      box: box.innerText, said: box.querySelector("details.said pre") ? box.querySelector("details.said pre").innerText : "", generic, lit, vtt: vtt.slice(0, 400) };
+  })()`);
+  check(!tidy.changed.length && tidy.cindy, `the tidy leaves Ken's CINDY and all ${WELL_FORMED.length} stories in test/stories and reports/llm-trials as they are${tidy.changed.length ? ` (changed: ${tidy.changed.join(", ")})` : ""}`);
+  // (a character is called as a story read before named it, "the Beast", or else by its Lisp name)
+  const named = (s) => s.replace(/\b(?:the )?beast's/gi, "beast's").replace(/\bbelle's/gi, "belle's");
+  check(named(tidy.fixes.join("; ")) === "put (and ...) around beast's looks; left out (prevents beast (meets belle)) in Kept Apart; left out (aware belle (getting-it-on beast)) in Justice; made (relationship-of belle beast) one part of the focus" && /\(physical \(and ugly physically-strong\)\)/.test(tidy.text) && /\(belle \(relationship-of belle beast\)/.test(tidy.text) && !/\(meets belle\)\)/.test(tidy.text) && !/\(getting-it-on beast\)/.test(tidy.text) && tidy.again === 0,
+    `Ken's Beauty and the Beast is tidied, once: ${tidy.fixes.join("; ")}`);
+  check(named(tidy.variant[0] || "") === "moved “kind” from belle's looks to her character" && tidy.variant.length === 5 && tidy.moved, `a word in another kind's slot goes to its own: ${tidy.variant[0]}`);
+  check(/Pass 1: Ani couldn't read beast's description: \(physical ugly physically-strong\) — two words need \(and \.\.\.\) around them\./.test(named(tidy.box)) && /^;warning from BEAST: \(PROCESS EACH INITIAL DESCRIPTION \(PHYSICAL UGLY PHYSICALLY-STRONG\)\) is not understood\nbreak BAD-MESSAGE$/.test(tidy.said), `where Ani stopped on it says why in plain words, with what Lisp said a click away: ${(tidy.box.match(/Pass 1:.*?them\./) || [tidy.box])[0]} | ${JSON.stringify(tidy.said)}`);
+  check(tidy.generic === "Belle didn't understand a message Ani sent: “(frobnicate your widget)”.", `any other message not understood is said with who and which: ${tidy.generic}`);
+  check(tidy.lit > 400 && /^WEBVTT\n\n1\n00:00:00\.000 --> 00:00:01\.000\nThe Introduction\n\n2\n00:00:01\.000 --> /.test(tidy.vtt) && /\nScene 1 · The Introduction · part 1 of \d+\n/.test(tidy.vtt), `a video's subtitles are drawn below the picture (${tidy.lit} lit dots) and written as WebVTT, timed after the title card`);
+  await shot("1b-stop-sentence.png");
+  await phone("1c-stop-sentence-phone.png", `document.querySelector("#side .stop-box")`);
+  await open();
   // Ken's 1978 film, as shipped: each scene's length and the first caption, to compare at the end
   const film1978 = () => js(`(async () => {
     document.querySelector('#runbar [data-view="0"]').click();
@@ -210,6 +314,51 @@ try {
   })()`);
   check(JSON.stringify(lasts) === JSON.stringify(EXPECTED_LAST_FRAMES), `the new film's scenes end at frames ${lasts.join(", ")} (Node: ${EXPECTED_LAST_FRAMES.join(", ")})`);
 
+  // saving a video: title cards on and subtitles off at first; with subtitles on and title
+  // cards off, the .vtt file and the video of one scene of both films, side by side
+  const saveOptions = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const orig = HTMLAnchorElement.prototype.click;
+    const got = [];
+    HTMLAnchorElement.prototype.click = function () { if (this.download) got.push({ name: this.download, href: this.href }); else orig.call(this); };
+    try {
+      document.querySelector('#runbar [data-view="both"]').click();
+      document.querySelectorAll("#scenes button")[2].click();
+      if (document.getElementById("save-panel").hidden) document.getElementById("save").click();
+      const panel = document.getElementById("save-panel");
+      const box = (k) => panel.querySelector('[data-video="' + k + '"]');
+      const defaults = { titles: box("titles").checked, subtitles: box("subtitles").checked, vtt: !!panel.querySelector('[data-save="vtt"]') };
+      box("subtitles").click();
+      box("titles").click();
+      await wait(50);
+      const note = panel.querySelector(".note").innerText;
+      panel.querySelector('[data-save="vtt"]').click();
+      for (let k = 0; k < 100 && got.length < 1; k++) await wait(100);
+      const vtt = got[0] ? await (await fetch(got[0].href)).text() : "";
+      panel.querySelector('[data-save="scene"]').click();
+      for (let k = 0; k < 1200 && got.length < 2; k++) await wait(100);
+      let dims = null;
+      if (got[1]) {
+        const b = new Uint8Array(await (await fetch(got[1].href)).arrayBuffer());
+        const at = [...b.keys()].find((i) => b[i] === 0x56 && String.fromCharCode(...b.slice(i, i + 5)) === "V_VP8");
+        const num = (id) => { for (let i = at; i < at + 64; i++) if (b[i] === id && b[i + 1] === 0x82) return b[i + 2] * 256 + b[i + 3]; return null; };
+        dims = { width: num(0xb0), height: num(0xba), bytes: b.length };
+      }
+      ${shots ? "" : "box(\"subtitles\").click(); box(\"titles\").click();"}
+      return { defaults, note, vtt, files: got.map((g) => g.name), dims };
+    } finally { HTMLAnchorElement.prototype.click = orig; }
+  })()`);
+  check(saveOptions.defaults.titles && !saveOptions.defaults.subtitles && !saveOptions.defaults.vtt, "the Save panel has title cards on and subtitles off, at first");
+  check(/^WEBVTT\n\n1\n00:00:00\.000 --> /.test(saveOptions.vtt) && /\n1978 · Scene 1 · The Introduction · part 1 of \d+\nThe stepmother pushes Cinderella around/.test(saveOptions.vtt) && /\nYours · Scene 1 · The Introduction · part 1 of \d+\n/.test(saveOptions.vtt) && !/\nThe Introduction\n/.test(saveOptions.vtt) && !/<b>/.test(saveOptions.vtt),
+    `with subtitles on and no title cards, the .vtt file has each film's part and caption, side by side (${saveOptions.files[0]}: ${saveOptions.vtt.split("\n").slice(2, 6).join(" | ")})`);
+  check(saveOptions.dims && saveOptions.dims.width === (551 * 2 + 12) * 2 && saveOptions.dims.height === (413 + 124) * 2, `and the video of a scene of both films has the subtitles' strip below the pictures (${saveOptions.files[1]}: ${saveOptions.dims ? `${saveOptions.dims.width} by ${saveOptions.dims.height}, ${Math.round(saveOptions.dims.bytes / 1024)} KB` : "none"})`);
+  if (shots) {
+    await js(`document.getElementById("save-panel").scrollIntoView({ block: "start" })`);
+    await shot("3b-save-panel.png");
+    await phone("3c-save-panel-phone.png", `document.getElementById("save-panel")`);
+    await js(`(() => { const p = document.getElementById("save-panel"); p.querySelector('[data-video="subtitles"]').click(); p.querySelector('[data-video="titles"]').click(); })()`);
+  }
+
   await js(`(() => { document.querySelector("#scenes button").click(); const s = document.getElementById("scrub"); s.value = 30; s.dispatchEvent(new Event("input")); })()`);
   await sleep(200);
   const why = await js(`(() => {
@@ -260,6 +409,69 @@ try {
   check(/4 characters/.test(drafted.result) && /nothing wrong/.test(drafted.result), "the drafted description passes Ani's checks");
   check(/Red Riding Hood/.test(drafted.editor) && drafted.make, "the editor shows the new cast, ready to make the film");
 
+  // Ken's Beauty and the Beast as the model's reply: the draft says what the page tidied,
+  // and so does the editor; missing relationships are filled in only in 1978 mode; then
+  // Ani as in 1978 gets through pass 1 (and the run is stopped there)
+  await open();
+  const beauty = await js(`(async () => {
+    const lisp = await (await fetch("/test/untidy/belfie.lisp")).text();
+    const real = window.fetch;
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "\`\`\`lisp\\n" + lisp + "\\n\`\`\`" }] }), { status: 200 });
+    };
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-teller").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    side.querySelector('[data-mode="1978"]').click();
+    side.querySelector('[data-provider="anthropic"]').click();
+    await wait(100);
+    side.querySelector('[data-story="2"]').click();
+    const key = side.querySelector("#tell-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input"));
+    side.querySelector("#tell-go").click();
+    for (let k = 0; k < 50 && !side.querySelector("#tell-edit"); k++) await wait(100);
+    const draft = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-edit").click();
+    await wait(300);
+    const editor = document.getElementById("ed-check").innerText;
+    const box = document.getElementById("ed-lisp").value;
+    // the same story without the relationships Ken filled in himself
+    const ta = document.getElementById("ed-lisp");
+    const missing = box.replace(/;; how the others feel[\\s\\S]*?(?=\\(define introduction scene)/, "");
+    ta.value = missing;
+    ta.dispatchEvent(new Event("change"));
+    await wait(100);
+    const fill1978 = !!document.getElementById("ed-fill");
+    side.querySelector('[data-mode="revival"]').click();
+    await wait(100);
+    const fillRevival = !!document.getElementById("ed-fill"), said = document.getElementById("ed-check").innerText;
+    side.querySelector('[data-mode="1978"]').click();
+    ta.value = box;
+    ta.dispatchEvent(new Event("change"));
+    await wait(100);
+    return { draft, editor, said, fill1978, fillRevival, tidied: /\\(physical \\(and ugly physically-strong\\)\\)/.test(box) && !/\\(meets belle\\)\\)/.test(box), make: !document.getElementById("ed-make").disabled };
+  })()`);
+  const note = /The page tidied the description: put \(and \.\.\.\) around beast's looks; left out \(prevents beast \(meets belle\)\) in Kept Apart; left out \(aware belle \(getting-it-on beast\)\) in Justice; made \(relationship-of belle beast\) one part of the focus\./;
+  check(note.test(beauty.draft) && /nothing wrong/.test(beauty.draft), "the model's draft of Ken's Beauty and the Beast is tidied, and says so, and then passes Ani's checks");
+  check(note.test(beauty.editor) && beauty.tidied && beauty.make, "the editor has the tidied description, says what was tidied, and can make it");
+  check(beauty.fill1978 && !beauty.fillRevival && /take a missing relationship as unknown, which is neutral/.test(beauty.said), "missing relationships are filled in (as “is polite to”) only as in 1978; with the extensions a missing one is neutral, and the editor says so");
+  await js(`document.getElementById("ed-check").scrollIntoView({ block: "start" })`);
+  await shot("3d-tidy-note.png");
+  await phone("3e-tidy-note-phone.png", `document.getElementById("ed-check")`);
+  await js(`document.getElementById("ed-make").click()`);
+  let pass1 = "";
+  for (let k = 0; k < 60; k++) {
+    await sleep(1000);
+    pass1 = await js(`document.getElementById("run-status").innerText`);
+    if (!/Pass 1/.test(pass1)) break;
+  }
+  const madeNote = await js(`document.getElementById("side").innerText`);
+  await js(`document.getElementById("run-stop").hidden || document.getElementById("run-stop").click()`);
+  check(/Pass 2|scenes? filmed/.test(pass1) && !/stopped in pass 1/.test(pass1) && note.test(madeNote), `then Ani as in 1978 gets through pass 1 (${pass1.replace(/\s+/g, " ").slice(0, 80)}), and the film's panel says what was tidied`);
+
   // a new story Ani as in 1978 stops on: the model's reply is stood in for again
   // (test/stories/tortoise-and-hare.lisp), and Ani makes it in 1978 mode
   await open();
@@ -290,6 +502,23 @@ try {
   })()`);
   check(/everyone else leaves/.test(asked || "") && /Ani can't show \(meets X Y\) on its own/.test(asked || ""), "in 1978 mode the prompt says what (alone X Y) means, and that Ani can't show meeting on its own");
   check(!/\(change \(/.test(asked || "") && !/causes/.test(asked || ""), "in 1978 mode the prompt doesn't offer a change");
+  check(/For characters who have little to do with each other, use is-polite-to: Ani has no neutral word/.test(asked || "") && /The film's levels in the example are Cinderella's: set each to suit your story/.test(asked || "") && /establish their feelings there, not their personality/.test(asked || ""), "the prompt says why is-polite-to, asks for the story's own film levels, and for a beaten villain's feelings, not personality");
+  check(!/Send this story to Ken/.test(await js(`document.getElementById("side").innerText`)), "with no DSN, nothing offers to send a story to Ken");
+  // click each character on a screen until the glass box is the one named, then run then()
+  const clickOn = (fig, name, then) => js(`(async () => {
+    const c = document.querySelector("#${fig} canvas");
+    for (let y = 0; y < 413; y += 3) for (let x = 0; x < 551; x += 3) {
+      const r = c.getBoundingClientRect();
+      const at = { clientX: r.left + x / 551 * r.width, clientY: r.top + y / 413 * r.height, bubbles: true };
+      c.dispatchEvent(new MouseEvent("mousemove", at));
+      if (!c.classList.contains("over")) continue;
+      c.dispatchEvent(new MouseEvent("click", at));
+      await new Promise((r) => setTimeout(r, 20));
+      const h = document.querySelector("#side h2");
+      if (h && h.innerText === ${JSON.stringify(name)}) return (${then})();
+    }
+    return { found: false };
+  })()`);
   const finished = async (tries = 150) => {
     let status = "";
     for (let k = 0; k < tries; k++) {
@@ -304,7 +533,9 @@ try {
   check(/0 of 3 scenes filmed, 3 stopped/.test(stopped), `Ani as in 1978 stops on the tortoise and the hare: ${stopped}`);
   check(/gave up on the hare's activity level/.test(told) && /can't weigh a value of none/.test(told), "the page says why, in a plain sentence");
   check(/Make it again with the revival's extensions/.test(told), "and offers \"Make it again with the revival's extensions\"");
+  check(/What Lisp said/.test(told), "with what Lisp said a click away");
   await shot("4-stopped-in-1978.png");
+  await phone("4b-stopped-in-1978-phone.png", `document.querySelector("#side .stop-box")`);
 
   // made again with the revival's extensions (MEND and APPEAR)
   const t1 = Date.now();
@@ -355,6 +586,8 @@ try {
   // the tortoise a small square, the hare a large eight-pointed star)
   const fable = await js(`document.getElementById("legend").innerText`);
   check(/The hare: eight-pointed star/.test(fable) && /The tortoise: square/.test(fable), `the hare and the tortoise are drawn as Ani chose them (${fable.replace(/\n/g, "; ")})`);
+  const tortoise = await clickOn("fig-1", "The tortoise", `() => { const d = document.querySelector("#side details.looks"); if (!d) return { found: true, text: "" }; d.open = true; return { found: true, text: d.innerText }; }`);
+  check(/simple because he moves fast \(Ani made him fast because he is hard working and determined and the film's energy is high\), though slower than the hare\./.test(tortoise.text || ""), `the tortoise's "How he looks" says why he moves fast, and that he is slower than the hare: ${(tortoise.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
 
   // Ken's Cinderella as it is, made with the extensions: with APPEAR, Ani draws his cast
   await open();
@@ -393,20 +626,6 @@ try {
   await shot("7-cinderella-with-looks.png");
   // her glass box: "How she looks", closed, a sentence made from Ani's reasons, each aspect
   // opening its choice point with the evidence, and Ken's 1978 look at the end
-  const clickOn = (fig, name, then) => js(`(async () => {
-    const c = document.querySelector("#${fig} canvas");
-    for (let y = 0; y < 413; y += 3) for (let x = 0; x < 551; x += 3) {
-      const r = c.getBoundingClientRect();
-      const at = { clientX: r.left + x / 551 * r.width, clientY: r.top + y / 413 * r.height, bubbles: true };
-      c.dispatchEvent(new MouseEvent("mousemove", at));
-      if (!c.classList.contains("over")) continue;
-      c.dispatchEvent(new MouseEvent("click", at));
-      await new Promise((r) => setTimeout(r, 20));
-      const h = document.querySelector("#side h2");
-      if (h && h.innerText === ${JSON.stringify(name)}) return (${then})();
-    }
-    return { found: false };
-  })()`);
   const how = await clickOn("fig-1", "Cinderella", `async () => {
     const d = document.querySelector("#side details.looks");
     if (!d) return { found: true, text: "" };
@@ -455,7 +674,8 @@ try {
     const text = await (await fetch(got.href)).text();
     sessionStorage.setItem("ani-check-film", text);
     localStorage.removeItem("ani-cinderella:run:v1");
-    return { saved: true, name: got.name, version: JSON.parse(text).version, kb: Math.round(text.length / 1024) };
+    const o = JSON.parse(text);
+    return { saved: true, name: got.name, version: o.version, kb: Math.round(text.length / 1024), fields: Object.keys(o).join(), about: o.about, title: o.title, lisp: (o.lisp || "").startsWith(";; -*-lisp-*-") && (o.lisp || "").includes("(define cinderella character"), story: o.story, extensions: (o.extensions || []).join(), date: o.date, readable: text.split("\\n").length > 5 };
   })()`);
   await open();
   await sleep(500);
@@ -470,6 +690,8 @@ try {
   await sleep(300);
   const reopened = await cast();
   check(saved.saved && saved.version === 2 && none && castOk(reopened), `saved as a film file (${saved.name}, version ${saved.version}, ${saved.kb} KB) and opened again on a fresh page, it is drawn with Ani's looks`);
+  check(saved.fields === "format,version,about,title,lisp,extensions,date,gzip" && saved.about === "A film of Cinderella, made by Ani, Ken Kahn's 1978 animation program, revived; open it at https://toontalk.github.io/ani/ to watch it with all of Ani's reasons." && saved.title === "Cinderella" && saved.lisp && saved.extensions === "mend,appear,change" && /^\d{4}-\d\d-\d\dT/.test(saved.date || "") && saved.readable && saved.story === undefined,
+    `its top level is readable, with the film's title, its Lisp, the extensions and the date, and an "about" that names it (${saved.fields})`);
 
   // a story with a change: the stepmother repents (test/stories/change-of-heart.lisp, as
   // the model's reply), told with the extensions on, then looked at in 1978 mode
@@ -622,12 +844,76 @@ try {
     const bin = Uint8Array.from(atob(outer.gzip), (c) => c.charCodeAt(0));
     const d = JSON.parse(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
     const c = d.changes && d.changes["change-of-heart"];
-    return { saved: true, name: got.name, version: outer.version, who: c ? c.characters.map((x) => x.character).join() : "", held: c ? c.held.length : -1 };
+    // a film file as the page wrote them before (no readable fields), as version 2 and as 1
+    const old = [];
+    for (const version of [2, 1]) {
+      const dt = new DataTransfer();
+      dt.items.add(new File([JSON.stringify({ format: outer.format, version, about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: outer.gzip })], "old.json", { type: "application/json" }));
+      document.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+      await new Promise((r) => setTimeout(r, 1500));
+      old.push(document.getElementById("run-status").innerText);
+    }
+    return { saved: true, name: got.name, version: outer.version, who: c ? c.characters.map((x) => x.character).join() : "", held: c ? c.held.length : -1,
+      title: outer.title, story: outer.story, model: outer.model, provider: outer.provider, about: outer.about, lisp: typeof outer.lisp === "string" && outer.lisp === d.cindy, extensions: (outer.extensions || []).join(), old };
   })()`);
   check(changeFile.saved && changeFile.version === 2 && changeFile.who === "step-mother" && changeFile.held === 1, `its film file (${changeFile.name}, version ${changeFile.version}) carries Ani's fresh look`);
+  check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,appear,change" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
+    `and, readable at its top, the story as told in English, the model and provider that wrote it, and its Lisp (${changeFile.model}, ${changeFile.provider})`);
+  check(/^Your version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^Your version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
 
   check(await film1978() === shipped, "Ken's 1978 film is as it was shipped");
   await js(`document.querySelector('#runbar [data-view="both"]').click()`);
+  const quiet = await js(`({ sdk: typeof window.Sentry, script: !!document.querySelector('script[src*="sentry"]'), note: document.querySelector(".reporting").hidden, send: !!document.querySelector(".send-story") })`);
+  check(!sentryAsked.length && quiet.sdk === "undefined" && !quiet.script && quiet.note && !quiet.send, `with no DSN, nothing of Sentry's is loaded or asked for, the page doesn't say errors are reported, and offers no story to send${sentryAsked.length ? ` (asked for ${sentryAsked[0]})` : ""}`);
+
+  // with a DSN, as on the site (here it points at this server): an uncaught error arrives
+  // with no key, story text or user; a story goes only when the visitor confirms
+  reporting = true;
+  const SECRET = "sk-check-NOT-A-REAL-KEY-0123456789", TOLD = "Once upon a check, a tortoise raced a hare across the meadow and won.";
+  await js(`(() => { localStorage.setItem("ani-cinderella:keys:v1", JSON.stringify({ anthropic: ${JSON.stringify(SECRET)} })); localStorage.setItem("ani-cinderella:story:v1", ${JSON.stringify(TOLD)}); })()`);
+  await send("Page.navigate", { url: `${base}/app/film.report-check.html` });
+  let sdk = false;
+  for (let k = 0; k < 75 && !sdk; k++) { await sleep(200); sdk = await js(`typeof window.Sentry === "object" && !!window.Sentry.getClient && !!window.Sentry.getClient()`).catch(() => false); }
+  if (!sdk) console.log("skip  the reporting checks: Sentry's SDK couldn't be loaded here");
+  else {
+    const noted = await js(`!document.querySelector(".reporting").hidden`);
+    await js(`setTimeout(() => { throw new Error("a deliberate check error, with ${SECRET} and ${TOLD}"); }, 0)`);
+    for (let k = 0; k < 50 && !envelopes.length; k++) await sleep(200);
+    const error = envelopes.join("\n");
+    errors.splice(0, errors.length, ...errors.filter((e) => !/a deliberate check error/.test(e)));
+    check(noted && /a deliberate check error, with \[removed\] and \[removed\]/.test(error) && !error.includes(SECRET) && !error.includes(TOLD) && !/"user"/.test(error) && !/ip_address/.test(error) && /"infer_ip":"never"/.test(error) && !/"breadcrumbs":\[\{/.test(error),
+      `an uncaught error is reported, its key and story text removed, with no user, IP address or breadcrumbs (${envelopes.length} envelope${envelopes.length === 1 ? "" : "s"}, ${error.length} bytes)`);
+    const before = envelopes.length;
+    const offer = await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const dt = new DataTransfer();
+      dt.items.add(new File([sessionStorage.getItem("ani-check-film")], "film.json", { type: "application/json" }));
+      document.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+      // (the film opens a moment later, and showing it draws the Save panel again)
+      await wait(1500);
+      if (document.getElementById("save-panel").hidden) document.getElementById("save").click();
+      const panel = document.getElementById("save-panel");
+      panel.querySelector("[data-send-story]").click();
+      await wait(100);
+      const shown = panel.querySelector(".send-box").innerText;
+      panel.querySelector("[data-send-no]").click();
+      await wait(1500);
+      return { shown };
+    })()`);
+    const declined = envelopes.length === before;
+    await js(`(() => { const panel = document.getElementById("save-panel"); panel.querySelector("[data-send-story]").click(); })()`);
+    await sleep(100);
+    await js(`document.getElementById("save-panel").scrollIntoView({ block: "start" })`);
+    await shot("14-send-this-story.png");
+    await phone("14b-send-this-story-phone.png", `document.querySelector("#save-panel .send-box")`);
+    await js(`document.querySelector("#save-panel [data-send-yes]").click()`);
+    for (let k = 0; k < 50 && envelopes.length === before; k++) await sleep(200);
+    const story = envelopes.slice(before).join("\n");
+    let thanked = "";
+    for (let k = 0; k < 50 && !/^Sent\./.test(thanked); k++) { await sleep(200); thanked = await js(`document.querySelector("#save-panel .send-box").innerText`); }
+    check(/This is everything that will be sent to Ken/.test(offer.shown) && /"title": "Cinderella"/.test(offer.shown) && /"lisp": ";; -\*-lisp-\*-/.test(offer.shown) && /"extensions": \[/.test(offer.shown) && /"stopped": \[\]/.test(offer.shown) && /"provider": "\(none\)"/.test(offer.shown), "\"Send this story to Ken\" shows exactly what will be sent: the story, the Lisp, the model and provider, the extensions and where Ani stopped");
+    check(declined && /A story sent to Ken: Cinderella/.test(story) && /\(define cinderella character/.test(story) && /story\.json/.test(story) && !story.includes(SECRET) && /^Sent\./.test(thanked), `nothing is sent until the visitor confirms; then the story arrives, with its Lisp, and no key (${story.length} bytes)`);
+  }
   check(errors.length === 0, `no uncaught errors${errors.length ? ": " + errors.slice(0, 3).join(" | ") : ""}`);
 } catch (e) {
   check(false, e.message);

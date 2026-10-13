@@ -1,6 +1,7 @@
 // Try stories the way the film page's "Tell Ani a new story" does, but in a batch: for
 // each story, the page's own prompt (storyPrompt, built by the page's own code in headless
-// Chrome), a model's reply, the page's own clean-up and checks (lispOf, checkStory), one
+// Chrome), a model's reply, the page's own clean-up, tidy and checks (lispOf, tidyStory,
+// checkStory), one
 // "ask the model to fix these" round if the checks find problems (repairPrompt, as the
 // page's button sends it), and then Ani herself on the result (tools/run-story.mjs), with
 // the revival's extensions. Writes each step to reports/llm-trials/<date> <model>/.
@@ -37,7 +38,7 @@ mkdirSync(out, { recursive: true });
 const temp = await mkdtemp(join(tmpdir(), "ani-try-"));
 const html = readFileSync("app/film.html", "utf8");
 const end = html.lastIndexOf("</script>");
-writeFileSync(join(temp, "film.html"), html.slice(0, end) + "\nwindow.__ani = { storyPrompt, lispOf, repairPrompt, checkStory, EXAMPLE_STORIES };\n" + html.slice(end));
+writeFileSync(join(temp, "film.html"), html.slice(0, end) + "\nwindow.__ani = { storyPrompt, lispOf, tidyStory, repairPrompt, checkStory, EXAMPLE_STORIES };\n" + html.slice(end));
 const port = 9300 + Math.floor(Math.random() * 600);
 const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=${join(temp, "profile")}`, "--no-first-run", "--no-default-browser-check", "about:blank"], { stdio: "ignore" });
 let ws;
@@ -105,13 +106,15 @@ try {
     const prompt = await evaluate(`window.__ani.storyPrompt(${JSON.stringify(story)}, { extensions: ${JSON.stringify(extensions)} })`);
     const turns = [{ role: "user", content: prompt }];
     writeFileSync(`${base}.story.txt`, story + "\n");
-    let reply, text, check, fixed = false;
+    let reply, text, check, fixed = false, tidied = [];
+    // balanced and tidied, as the page does a draft
+    const cleaned = async (r) => { const t = await evaluate(`(() => { const t = window.__ani.tidyStory(window.__ani.lispOf(${JSON.stringify(r)}).text); return { text: t.text, fixes: t.fixes.map((f) => f.short) }; })()`); tidied.push(...t.fixes); return t.text; };
     try {
       let saved = null;
       if (reuse) { try { saved = readFileSync(`${base}.reply.md`, "utf8"); } catch { /* none */ } }
       reply = saved !== null ? { text: saved, seconds: 0, usage: null } : await ask(turns);
       writeFileSync(`${base}.reply.md`, reply.text);
-      text = (await evaluate(`window.__ani.lispOf(${JSON.stringify(reply.text)})`)).text;
+      text = await cleaned(reply.text);
       check = await evaluate(`(() => { const c = window.__ani.checkStory(${JSON.stringify(text)}); return { problems: c.problems, notes: c.notes, stops: (c.stops || []).map((s) => s.mended || s.as1978) }; })()`);
       if (check.problems.length) {
         const repair = await evaluate(`window.__ani.repairPrompt(${JSON.stringify(check.problems)})`);
@@ -119,7 +122,7 @@ try {
         if (reuse) { try { savedFix = readFileSync(`${base}.fix.md`, "utf8"); } catch { /* none */ } }
         const again = savedFix !== null ? { text: savedFix, seconds: 0 } : await ask([...turns, { role: "assistant", content: reply.text }, { role: "user", content: repair }]);
         writeFileSync(`${base}.fix.md`, again.text);
-        const text2 = (await evaluate(`window.__ani.lispOf(${JSON.stringify(again.text)})`)).text;
+        const text2 = await cleaned(again.text);
         const check2 = await evaluate(`(() => { const c = window.__ani.checkStory(${JSON.stringify(text2)}); return { problems: c.problems, notes: c.notes, stops: (c.stops || []).map((s) => s.mended || s.as1978) }; })()`);
         fixed = { problems: check.problems, seconds: again.seconds };
         text = text2;
@@ -131,8 +134,8 @@ try {
       continue;
     }
     writeFileSync(`${base}.lisp`, text);
-    console.log(`asked  ${name}: ${reply.seconds.toFixed(0)} s${fixed ? `, then fixed (${fixed.problems.length} problems)` : ""}; ${check.problems.length ? `still ${check.problems.length} problems` : "Ani's checks find nothing wrong"}`);
-    runs.push({ name, base, reply, check, fixed, ani: runAni(`${base}.lisp`) });
+    console.log(`asked  ${name}: ${reply.seconds.toFixed(0)} s${fixed ? `, then fixed (${fixed.problems.length} problems)` : ""}${tidied.length ? `; the page tidied it (${tidied.join("; ")})` : ""}; ${check.problems.length ? `still ${check.problems.length} problems` : "Ani's checks find nothing wrong"}`);
+    runs.push({ name, base, reply, check, fixed, tidied, ani: runAni(`${base}.lisp`) });
   }
   for (const r of runs) {
     const { code, result } = await r.ani;
@@ -140,7 +143,7 @@ try {
     const stopped = (s) => s.frames === undefined;
     const line = scenes.map((s) => `${s.id}: ${stopped(s) ? "STOPPED" : s.capped ? "NEVER ENDED" : `${s.frames} frames`}`).join("; ");
     console.log(`made   ${r.name}: ${code === 0 ? "every scene ended" : "not every scene ended"}${line ? ` (${line})` : ""}`);
-    summary.push({ name: r.name, seconds: r.reply.seconds, usage: r.reply.usage, fixed: r.fixed, problems: r.check.problems, exit: code, scenes: scenes.map((s) => ({ id: s.id, frames: s.frames ?? null, capped: !!s.capped, repairs: (s.repairs || []).length, stopped: stopped(s) })) });
+    summary.push({ name: r.name, seconds: r.reply.seconds, usage: r.reply.usage, fixed: r.fixed, ...(r.tidied.length ? { tidied: r.tidied } : {}), problems: r.check.problems, exit: code, scenes: scenes.map((s) => ({ id: s.id, frames: s.frames ?? null, capped: !!s.capped, repairs: (s.repairs || []).length, stopped: stopped(s) })) });
   }
 } finally {
   writeFileSync(join(out, "summary.json"), JSON.stringify({ model, extensions, summary }, null, 1) + "\n");

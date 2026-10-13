@@ -264,6 +264,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .save-panel { display: grid; gap: 8px; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
 .save-options { display: flex; flex-wrap: wrap; gap: 6px; }
 .save-options .btn { height: auto; min-height: 34px; padding: 4px 12px; text-align: left; }
+.save-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.tidy { display: grid; gap: 4px; border-left: 3px solid var(--accent); padding-left: 10px; }
+.tidy details { border-top: 0; padding-top: 0; }
+.tidy details > summary { font-weight: 400; font-size: 0.86rem; color: var(--muted); }
 
 /* the revival's extensions: the switch for the films made here, and its repairs */
 .make-settings { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
@@ -283,6 +287,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .stop-box { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--rejected-soft); font-size: 0.92rem; }
 .stop-box ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .stop-box .stopped { font-weight: 600; }
+.stop-box details.said { border-top: 0; padding-top: 2px; font-size: 0.86rem; }
+.stop-box details.said > summary { font-weight: 400; color: var(--muted); }
+.send-box { display: grid; gap: 8px; margin-top: 6px; }
+.send-box pre { max-height: 16em; overflow: auto; }
 .btn.revival { border-color: var(--ours); color: var(--ours); background: var(--ours-soft); font-weight: 600; height: auto; min-height: 34px; padding: 4px 12px; }
 .made-with { color: var(--ours); }
 
@@ -368,6 +376,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
     <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
+    <p class="reporting" hidden>When something on this page goes wrong, the error is reported to Ken so that he can fix it, without any story, key or personal data.</p>
   </footer>
 </div>
 
@@ -1235,6 +1244,8 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   // across by no one (what Lisp typed names the message Director couldn't run)
   if (/BAD-MESSAGE/i.test(m) && (x = said.match(/\(RUN MAKES-FENCE ([^\s)]+)/i))) return { text: `To keep two apart, Ani chose to have ${who(x[1].toLowerCase())} make a fence, a way Ken's DISPLY names but never gives a way to run.`, repair: "set the fence aside, so that Ani chooses another way, as she chose standing guard for Cinderella" };
   if (/BAD-MESSAGE/i.test(m) && /\(RUN NIL\b/i.test(said)) return { text: "Standing guard, Ken's code has someone else walk across meanwhile; there was no one else, and it planned that walk as nothing, which Director can't run.", repair: "leave out the walk that isn't there" };
+  // any other message an actor didn't understand: who, and which, in plain words
+  if (/BAD-MESSAGE/i.test(m) && (x = notUnderstood(typed))) return { text: notUnderstoodText(x), repair: null };
   // REVIVE;MEND13 and MEND15: two characters at one spot, or two goals that lead to each other
   if (/Maximum call stack size exceeded/i.test(m)) return { text: "Ani went round and round reckoning a place: two characters stood at the very same spot (a division by zero), or two characters' goals each depended on the other's.", repair: "reckon from a spot to itself as Ken's own turtle would, and take a character's own place when its goal leads back to it" };
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
@@ -1266,8 +1277,32 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if ((x = m.match(/\(\((?:[A-Z0-9]+ )?([A-Z0-9]+)\) ([A-Z0-9]+) ([A-Z0-9]+)\) \|does not exist\|/i))) return { text: "It starts from where the scene before it left everyone, and that scene wasn't filmed.", repair: null, knock: true };
   return { text: esc(stopText(m)), repair: null };
 }
+// Ken's warning before break BAD-MESSAGE, in what Lisp typed last: ";warning from BEAST:
+// (PROCESS EACH INITIAL DESCRIPTION (PHYSICAL UGLY PHYSICALLY-STRONG)) is not understood",
+// read as { actor, message }, each as Lisp, or null.
+function notUnderstood(typed) {
+  const said = (typed || []).join(" ").replace(/\s+/g, " ");
+  const x = said.match(/;warning from (.+?): (\(.*\)) is not understood/i);
+  if (!x) return null;
+  try { return { actor: parse(x[1].toLowerCase()), message: parse(x[2].toLowerCase()) }; } catch { return null; }
+}
+// "Ani couldn't read the beast's description: (physical ugly physically-strong) — two
+// words need (and ...) around them."; or, for any other message, who didn't understand it.
+function notUnderstoodText({ actor, message }) {
+  const whom = Array.isArray(actor) && actor[0] === "relationship-of" ? `the relationship of ${who(actor[1])} to ${who(actor[2])}`
+    : typeof actor === "string" ? who(actor) : plain(show(actor));
+  const each = Array.isArray(message) && show(message.slice(0, 4)) === "(process each initial description)" ? message[4] : null;
+  if (Array.isArray(each) && each.length > 2 && each.every((w) => typeof w === "string")) {
+    return `Ani couldn't read ${esc(whom)}'s description: ${esc(show(each))} — ${NUMBER_WORDS[each.length - 1] || each.length - 1} words need (and ...) around them.`;
+  }
+  if (Array.isArray(each) && each.length === 2 && Array.isArray(each[1]) && each[1][0] !== "and") {
+    return `Ani couldn't read ${esc(whom)}'s description: ${esc(show(each))} — a list of words needs “and” first: (${esc(each[0])} (and ${esc(each[1].map(show).join(" "))})).`;
+  }
+  if (Array.isArray(message) && message[0] === "run") return `Director was asked to run ${esc(plain(show(message[1])))}, a way of showing that no file of Ken's gives a way to run.`;
+  return `${esc(cap(whom))} didn't understand a message Ani sent: “${esc(plain(show(message)))}”.`;
+}
 // What stopped a run: pass 1, or each scene that stopped or never ended, with the scenes
-// stopped for the same reason together.
+// stopped for the same reason together, and what Lisp typed last as the first stopped.
 function stopsOf(run) {
   if (!run || !run.status) return [];
   const out = [];
@@ -1275,10 +1310,10 @@ function stopsOf(run) {
     const same = out.find((x) => x.text === why.text && x.repair === why.repair);
     if (same) same.where.push(where); else out.push({ where: [where], ...why });
   };
-  if (run.status.error) add("Pass 1", whyStopped(run, run.status.error, run.status.typed));
+  if (run.status.error) add("Pass 1", { ...whyStopped(run, run.status.error, run.status.typed), lisp: lispSaid(run.status.error, run.status.typed) });
   run.scenes.forEach((sc, i) => {
     const title = run.titles[run.sceneIds[i]];
-    if (sc && sc.error) add(title, whyStopped(run, sc.error, sc.typed, sc.id));
+    if (sc && sc.error) add(title, { ...whyStopped(run, sc.error, sc.typed, sc.id), lisp: lispSaid(sc.error, sc.typed) });
     else if (ready(sc) && sc.film.frames.length > CAP_SECONDS * fpsOf(sc)) add(title, { text: `It hadn't ended when Director stopped filming it, after ${CAP_WORDS}.`, repair: null });
     // Ani's fresh look after a change (REVIVE;CHANGE), if it stopped
     const ch = run.raw.changes && run.raw.changes[run.sceneIds[i]];
@@ -1286,6 +1321,8 @@ function stopsOf(run) {
   });
   return out;
 }
+// The error and what Lisp typed last, as Lisp said them.
+const lispSaid = (error, typed) => [...(typed || []).filter((l) => !/^--- type \(\?\) for help/.test(l)), String(error || "")].filter(Boolean).join("\n");
 // Would the revival's repairs go on where this run, by Ani as in 1978, stopped?
 const mendable = (run) => !!run && !runExtensions(run).length && SWITCHED.includes("mend") && !(run.status && run.status.running) && stopsOf(run).some((s) => s.repair);
 // Where a run stopped, and for a run by Ani as in 1978 that stopped where the revival's
@@ -1294,14 +1331,14 @@ function stopBox(run) {
   const list = stopsOf(run);
   if (!list.length) return "";
   const ours = runExtensions(run).length;
-  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}</li>`).join("");
+  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}${s.lisp ? `<details class="said"><summary>What Lisp said</summary><pre class="lisp">${esc(s.lisp)}</pre></details>` : ""}</li>`).join("");
   return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : "Where Ani as in 1978 stopped"}</p><ul>${items}</ul>
-    ${mendable(run) ? `<div class="actions"><button type="button" class="btn revival" data-remake>Make it again with ${esc(REVIVAL)}</button></div>` : ""}</div>`;
+    ${mendable(run) ? `<div class="actions"><button type="button" class="btn revival" data-remake>Make it again with ${esc(REVIVAL)}</button></div>` : ""}${sendStoryButton(run)}</div>`;
 }
 function remakeWithRepairs(run) {
   if (!run) return;
   setMode("revival");
-  startRun(run.cindy, run.fps || 4);
+  startRun(run.cindy, run.fps || 4, modeExtensions(), { tidied: run.tidied, told: run.told });
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-remake]");
@@ -1461,11 +1498,56 @@ const FILM_WORDS = {
 };
 const filmWords = (s) => (FILM_WORDS[s.name] || {})[s.level] || `the film's ${plain(s.name)} is ${plain(s.level || "unknown")}`;
 const wordWords = (s) => `${plain(s.word)}${s.via ? ` (${s.via[0] === "opposite-of" ? "the opposite of" : "close to"} ${plain(s.via[1])})` : ""}`;
+// Why a character moves as a look's reason says, from that choice of how it moves: its
+// winning suggestion's words and film levels (the film's variety and originality, whose
+// suggestions aren't recorded, left out), and how it compares with the others there:
+// " (Ani made him fast because he is hard-working and determined and the film's energy is
+// high), though slower than the hare".
+const DYN_MADE = {
+  speed: { high: "made {her} fast", low: "made {her} slow", medium: "gave {her} a medium speed" },
+  "path-jaggedness": { high: "gave {her} jagged paths", medium: "gave {her} paths of medium jaggedness", low: "gave {her} smooth paths" },
+};
+const DYN_THAN = { speed: { "greater-than": "faster than", "less-than": "slower than" }, "path-jaggedness": { "greater-than": "with more jagged paths than", "less-than": "with smoother paths than" } };
+function dynamicsWhy(run, c, s) {
+  const k = meet(run.story, c);
+  const cp = cpNamed(run, ["choice-point-of", c, s.element]);
+  if (!cp) return "";
+  const v = lispValue(cp.currentChoice);
+  const won = (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), v));
+  const src = won ? kv(won, "source") : null;
+  const ws = [], levels = [];
+  for (const x of Array.isArray(src) && src[0] === "and" ? src.slice(1) : src ? [src] : []) {
+    if (typeof x === "string") ws.push(plain(x));
+    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") ws.push(wordWords({ word: x[1], via: [x[0], x[2]] }));
+    else if (x.length === 2 && x[1] === "level" && !["variety", "originality"].includes(x[0])) levels.push(filmWords({ name: x[0], level: run.story.levels[x[0]] }));
+  }
+  const reasons = [...(ws.length ? [`${k.she} ${agree(k, "is", "are")} ${words(ws)}`] : []), ...levels];
+  const made = ((DYN_MADE[s.element] || {})[v] || `chose {their} ${elementWords(s.element)} ${plain(show(v))}`).replace("{her}", k.her).replace("{their}", theirs(c));
+  // how it compares with each of the others in this element, where Ani chose more or less
+  const thans = new Map();
+  for (const o of run.cast) {
+    if (o === c) continue;
+    const r = cpNamed(run, ["relative-choice-point-of", [c, o], `relative-${s.element}`]);
+    if (!r) continue;
+    let rel = r.currentChoice;
+    if (r.name[1][0] !== c && FLIP[rel]) rel = FLIP[rel];
+    if (!FLIP[rel]) continue;
+    const w = (DYN_THAN[s.element] || {})[rel] || `with ${rel === "greater-than" ? "more" : "less"} ${elementWords(s.element)} than`;
+    // "though" where it goes against her own value: fast, though slower than the hare
+    const against = (RANK3[v] === 2 && rel === "less-than") || (RANK3[v] === 0 && rel === "greater-than");
+    const key = `${against ? "though" : "and"} ${w}`;
+    if (!thans.has(key)) thans.set(key, []);
+    thans.get(key).push(o);
+  }
+  const than = [...thans].map(([key, os]) => `, ${key} ${who(os)}`).join("");
+  return `${reasons.length ? ` (Ani ${made} because ${words(reasons)})` : ""}${than}`;
+}
 // The sources as one clause: "she is shy and the film isn't to be flashy". With only,
 // those whose own suggestion was the value chosen (agreesWith); the film's variety and
 // originality, which suggest a value for any element but whose suggestion isn't
-// recorded, are never given as reasons here.
-function reasonClause(run, c, el, sources, { only = true } = {}) {
+// recorded, are never given as reasons here. With why, a way of moving given as a reason
+// says why she moves so (dynamicsWhy).
+function reasonClause(run, c, el, sources, { only = true, why = false } = {}) {
   const k = meet(run.story, c);
   const chosen = lispValue(run.appearances.get(c).elements[el].value);
   const all = sources.map((src) => lookSource(run, c, el, src));
@@ -1474,7 +1556,7 @@ function reasonClause(run, c, el, sources, { only = true } = {}) {
   const preds = [];
   const ws = used.filter((s) => s.kind === "word").map(wordWords);
   if (ws.length) preds.push(`${is} ${words(ws)}`);
-  for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s));
+  for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s) + (why ? dynamicsWhy(run, c, s) : ""));
   const rels = new Map();
   for (const s of used.filter((x) => x.kind === "relative")) { const w = relWords(s); if (!rels.has(w)) rels.set(w, []); rels.get(w).push(s.other); }
   if (rels.size) preds.push(`${is} to be ${words([...rels].map(([w, others]) => `${w} ${who(others)}`))}`);
@@ -1499,7 +1581,7 @@ function lookSentence(run, c) {
     const sources = e.sources || [];
     // only the sources known to have argued for the value chosen; with none of them, the
     // suggestions were combined, and the aspect's box says which argued for what
-    const why = reasonClause(run, c, el, sources).text;
+    const why = reasonClause(run, c, el, sources, { why: true }).text;
     const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
     // the value the look has as drawn (appearances' drawn), where it isn't the one chosen:
     // a (not X) is drawn as one of the two values left; the experts may override a choice
@@ -1971,13 +2053,16 @@ function prepScene(s, run) {
 // as, Ani's in a film made with her looks.
 // changes: with CHANGE, each changing scene's record (src/pipeline.js changeRecord);
 // run.changing: the changes each scene's tasks ask for, when CHANGE is on.
-function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null, appearances = null, changes = null }) {
+// tidied, what the page tidied in the description first (tidyStory); told, the story as
+// told in English and the model that put it into Ken's notation, when it came from "Tell
+// Ani a new story" ({ story, provider, model }).
+function makeRun({ label, short, cindy, choicePoints = [], scenes = [], extensions = [], repairs = null, appearances = null, changes = null, tidied = null, told = null }) {
   const story = readStory(cindy);
   const sceneIds = Object.keys(story.scenes);
   const cast = Object.keys(story.characters);
   const titles = Object.fromEntries(sceneIds.map((id) => [id, story.titles[id] || TITLES[id] || titleCase(id)]));
   const changing = extensions.includes("change") ? Object.fromEntries(sceneIds.map((id) => [id, changesIn(story.scenes[id].tasks)]).filter(([, c]) => c.length)) : {};
-  const run = { label, short, cindy, story, sceneIds, cast, titles, changing, shapes: shapesOf(cast), slots: shapesOf(cast), extensions, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}), ...(changes ? { changes } : {}) }, scenes: sceneIds.map(() => null), status: null };
+  const run = { label, short, cindy, story, sceneIds, cast, titles, changing, shapes: shapesOf(cast), slots: shapesOf(cast), extensions, tidied: tidied || [], told: told || null, raw: { choicePoints, scenes: [], ...(repairs && repairs.length ? { repairs } : {}), ...(changes ? { changes } : {}) }, scenes: sceneIds.map(() => null), status: null };
   for (const c of cast) meet(story, c);
   setChoicePoints(run, choicePoints);
   setAppearances(run, appearances);
@@ -2305,11 +2390,19 @@ function caption(r) {
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
     return;
   }
-  using(run, () => {
-    const f = frameIn(sc);
+  const c = captionAt(run, state.scene, frameIn(sc));
+  const colors = sc.film.looks && state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "";
+  el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+}
+// What a caption says at frame f of scene i of a run, as html: the part ("Scene 1 · The
+// Introduction · part 1 of 4"), what is shown and why, and more (meanwhile, a change, a
+// look); for the screen's caption and a video's subtitles.
+function captionAt(run, i, f) {
+  return atScene(i, () => using(run, () => {
+    const sc = run.scenes[i];
     const subs = subsceneAt(f);
     const main = subs.find((x) => !x.parasite) || subs[0];
-    if (!main) { el.innerHTML = `<span class="part">${tag}${esc(sc.title)}</span>The screen is cleared before the scene begins.`; return; }
+    if (!main) return { part: esc(sc.title), text: "The screen is cleared before the scene begins.", more: [] };
     const parts = sc.subscenes.length;
     const alongside = subs.filter((x) => x !== main).map((x) => x.n);
     const shows = [], changes = [];
@@ -2324,23 +2417,25 @@ function caption(r) {
       }
     }
     const feel = changes.map((t) => about(t.description));
-    const meanwhile = feel.length ? `<span class="part">${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.</span>` : "";
+    const more = [];
+    if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.`);
     // a change of who someone is (REVIVE;CHANGE), which Ani has no way to show yet
     const cant = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do").flatMap((t) => changesIn(t.description));
-    const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[state.scene + 1];
-    const changing = cant.length ? `<span class="part">Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}</span>` : "";
-    const capped = sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last ? `<span class="part">Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.</span>` : "";
-    el.innerHTML = `<span class="part">${tag}Scene ${state.scene + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}</span>${shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part.")}${meanwhile}${changing}${capped}${lookCaption(sc, f)}`;
-  });
+    const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
+    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
+    if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
+    // a look that changes here, for a second after it changes (looks change during a
+    // scene in APPEAR's next stage)
+    const looked = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
+    if (looked.length) more.push(`Here Ani changes how they look: ${esc(words(looked))}.`);
+    return { part: `Scene ${i + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}`, text: shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part."), more };
+  }));
 }
-// What a caption says of a film made with Ani's looks: a look that changes here (for a
-// second after it changes; looks change during a scene in APPEAR's next stage), and, in
-// color, whose colors they are.
-function lookCaption(sc, f) {
-  if (!sc.film.looks) return "";
-  const changed = sc.film.looks.filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
-  return (changed.length ? `<span class="part">Here Ani changes how they look: ${esc(words(changed))}.</span>` : "")
-    + (state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "");
+// The scene shown, for a while: the readings above read the scene state.scene names.
+function atScene(i, f) {
+  const keep = state.scene;
+  state.scene = i;
+  try { return f(); } finally { state.scene = keep; }
 }
 
 // ---------------------------------------------------------------- the side: the story
@@ -2372,7 +2467,7 @@ function storyPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
     <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
-    ${mine ? stopBox(run) : ""}
+    ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button></div>
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
@@ -2751,8 +2846,8 @@ function checkStory(text) {
   const missing = story.missingPairs;
   const pairs = `${missing.slice(0, 5).map(([a, b]) => `how ${esc(nameOf(story, a))} feels about ${esc(nameOf(story, b))}`).join("; ")}${missing.length > 5 ? `; and ${missing.length - 5} more` : ""}`;
   if (missing.length) stops.push({
-    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair she hasn't been told about. Missing: ${pairs}. Fill them in, or make it with the revival's repairs, which take a missing one as unknown.`,
-    mended: `The story doesn't say ${pairs}; the revival's repairs take a missing relationship as unknown.`,
+    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair she hasn't been told about. Missing: ${pairs}. Fill them in (the page fills them with “is polite to”: Ani has no neutral word, and that is the mildest of hers, with no suggestions of its own), or make it with the revival's repairs, which take a missing one as unknown, which is neutral.`,
+    mended: `The story doesn't say ${pairs}; the revival's repairs take a missing relationship as unknown, which is neutral: asked whether one likes the other, Ani hears “don't know” (REVIVE;MEND4), so nothing needs filling in.`,
   });
   const sceneIds = Object.keys(story.scenes);
   if (!sceneIds.length) problems.push("It defines no scenes.");
@@ -2787,8 +2882,8 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
     if (verb !== "change" && verb !== "causes" && changesIn(d).length) return bad(t, `a change is made only by a task of its own, (convey (change ...)), or inside (causes x (change ...)); inside (${esc(plain(verb))} ...) Ani leaves it alone, and no one changes.`);
     if (["accompanys", "chases", "hurts", "pushes", "getting-it-on"].includes(verb)) return (isChar(d[1]) && isChar(d[2]) && d.length === 3) || bad(t, `write (${verb} x y) with two defined characters.`);
     if (verb === "alone") return (d.length > 2 && d.slice(1).every(isChar)) || bad(t, "write (alone x y) with defined characters.");
-    if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
-    if (verb === "aware") return (isChar(d[1]) && Array.isArray(d[2])) || bad(t, "write (aware x (getting-it-on y z)).");
+    if (verb === "wants" || verb === "prevents") return (isChar(d[1]) && Array.isArray(d[2]) && d[2].length > 1 && d[2].slice(1).every(isChar) && !wrongCount(d)) || bad(t, `write (${verb} x (meets y z)) with defined characters.`);
+    if (verb === "aware") return (isChar(d[1]) && Array.isArray(d[2]) && !wrongCount(d)) || bad(t, "write (aware x (getting-it-on y z)).");
     if (verb === "undoes") {
       const from = d[2];
       if (!isChar(d[1]) || !Array.isArray(from) || from[0] !== "from-scene") return bad(t, "write (undoes x (from-scene earlier-scene THAT-SCENE'S-TASK)).");
@@ -2823,7 +2918,9 @@ function checkTasks(story, sceneId, earlier, problems, stops = []) {
   };
   visit(story.scenes[sceneId].tasks);
 }
-// The relationships a story is missing, filled in with a word that suggests nothing.
+// The relationships a story is missing, filled in with a word that suggests nothing, for
+// Ani as in 1978, who asks about every pair (with the revival's extensions a missing one is
+// taken as unknown, which is neutral, REVIVE;MEND4, so nothing is filled in).
 function fillRelationships(text, word = "is-polite-to") {
   const { story } = checkStory(text);
   const missing = story.missingPairs || [];
@@ -2832,6 +2929,207 @@ function fillRelationships(text, word = "is-polite-to") {
   const after = spans.sort((a, b) => b.end - a.end)[0];
   const added = "\n\n;; how the others feel about each other (filled in: Ani asks about every pair)\n\n" + missing.map(([a, b]) => relationshipForm(a, b, [word])).join("\n\n");
   return after ? text.slice(0, after.end) + added + text.slice(after.end) : text + added;
+}
+
+// ---- tidying a description
+
+// A language model's slips that Ani as in 1978 would stop on, or quietly lose, put right
+// before Ani reads the description, each said in a note (never silently), in both modes:
+// several words in a slot without (and ...) (Ken's Beauty and the Beast stopped pass 1 on
+// (physical ugly physically-strong), char.2:21-22 reading a slot as (type descriptor)); a
+// word given in another kind's slot (a scene that shows what someone is like reads only
+// their personality words, sugest.123:15-25), unless Ken gave it there himself (strong as
+// the Prince's looks, CINDY 46); a relationship in the focus written as three parts; a
+// feeling written (joy positive high); and a task with the wrong number of characters,
+// left out if its scene keeps another. Only these change: a description without them,
+// Ken's CINDY and every story in test/stories and reports/llm-trials, comes out as it was.
+// Each fix is { short, long (html), before, after } (after "" when left out).
+const TWO_PARTS = ["meets", "getting-it-on", "accompanys", "chases", "hurts", "pushes"];
+// A (convey ...) task's description with the wrong number of characters for its verb,
+// whoever they are: (meets belle), (prevents beast (meets belle)), (aware a (getting-it-on b)).
+function wrongCount(d) {
+  if (!Array.isArray(d) || typeof d[0] !== "string") return false;
+  const names = (x) => x.slice(1).every((y) => typeof y === "string");
+  if (TWO_PARTS.includes(d[0])) return names(d) && d.length !== 3;
+  if (d[0] === "alone") return names(d) && d.length < 3;
+  if (["wants", "prevents", "aware"].includes(d[0])) {
+    if (d.length < 3) return d.length === 2 && typeof d[1] === "string";
+    const inner = d[2];
+    return d.length === 3 && Array.isArray(inner) && TWO_PARTS.includes(inner[0]) && names(inner) && inner.length !== 3;
+  }
+  return false;
+}
+// Read a form keeping where each part is: { items, start, end } for a list, { atom,
+// start, end } for anything else, as MacLisp's reader would (; starts a comment, |...|
+// and "..." are one token, / escapes the next character).
+function spanAt(text, at) {
+  let i = at;
+  const skip = () => { for (;;) { while (i < text.length && /\s/.test(text[i])) i++; if (text[i] !== ";") return; while (i < text.length && text[i] !== "\n") i++; } };
+  const read = () => {
+    skip();
+    const start = i;
+    if (text[i] === "(") {
+      i++;
+      const items = [];
+      for (;;) { skip(); if (i >= text.length) return { items, start, end: i }; if (text[i] === ")") { i++; return { items, start, end: i }; } items.push(read()); }
+    }
+    if (text[i] === "|" || text[i] === '"') { const j = text.indexOf(text[i], i + 1); i = j < 0 ? text.length : j + 1; return { atom: text.slice(start, i), start, end: i }; }
+    while (i < text.length && !/[\s()";|]/.test(text[i])) i += text[i] === "/" ? 2 : 1;
+    if (i === start) i++; // a stray ) or ', taken as it is
+    return { atom: text.slice(start, i), start, end: i };
+  };
+  return read();
+}
+const lispOfSpan = (n) => (n.items ? `(${n.items.map(lispOfSpan).join(" ")})` : n.atom);
+const headIs = (n, ...ws) => !!n && !!n.items && ws.every((w, k) => n.items[k] && n.items[k].atom === w);
+// the words Ken gave in each slot himself (CINDY 46), which stay where he put them
+let KEN_SLOTS = null;
+const kenGave = (slot, w) => {
+  KEN_SLOTS ||= Object.values(readStory(DATA.cindy).characters).reduce((m, c) => { for (const [s, ws] of c.slots) for (const x of ws) m.add(`${s} ${x}`); return m; }, new Set());
+  return KEN_SLOTS.has(`${slot} ${w}`);
+};
+const KIND_WORDS = { physical: "looks", personality: "character", movement: "movement" };
+const NUMBER_WORDS = ["no", "one", "two", "three", "four", "five", "six"];
+function tidyStory(text) {
+  const { forms, error } = topForms(text);
+  if (error) return { text, fixes: [] };
+  const story = readStory(text);
+  const edits = [], fixes = [];
+  const fix = (short, long, before, after) => fixes.push({ short, long, before, after });
+  const replace = (start, end, by) => edits.push({ start, end, by });
+  const nodes = forms.map((f) => spanAt(text, f.start)).filter((n) => headIs(n, "define") && n.items.length > 2);
+  const isChar = (x) => typeof x === "string" && !!story.characters[x];
+  for (const n of nodes) {
+    const name = n.items[1], kind = n.items[2].atom;
+    if (kind === "character" && name.atom) {
+      const c = name.atom;
+      const proc = n.items.find((x) => headIs(x, "process", "initial", "description"));
+      const slots = proc ? proc.items.slice(3).filter((x) => x.items && x.items.length > 1 && x.items[0].atom) : [];
+      meet(story, c);
+      const whose = `${nameOf(story, c)}'s`;
+      // each slot's words (null: not words the page can read), and the slots a fix touched
+      const words_ = new Map(), touched = new Set();
+      for (const s of slots) {
+        const slot = s.items[0].atom, rest = s.items.slice(1);
+        const label = KIND_WORDS[slot] || plain(slot);
+        const atoms = (xs) => xs.every((x) => x.atom);
+        if (rest.length > 1 && atoms(rest)) {
+          words_.set(s, rest.map((x) => x.atom));
+          touched.add(s);
+          fix(`put (and ...) around ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as ${NUMBER_WORDS[rest.length] || rest.length} words in a row; Ani reads a slot as one word, or (and word word ...), and without the and Ani as in 1978 doesn't understand it and stops (break BAD-MESSAGE, char.2:21-22).`, lispOfSpan(s), `(${slot} (and ${rest.map((x) => x.atom).join(" ")}))`);
+        } else if (rest.length === 1 && rest[0].items && rest[0].items.length > 1 && atoms(rest[0].items) && rest[0].items[0].atom !== "and") {
+          words_.set(s, rest[0].items.map((x) => x.atom));
+          touched.add(s);
+          fix(`put “and” into ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as a list without “and”; Ani reads a list of words only as (and word word ...), and would warn that she doesn't understand it and leave the words out (char.2:80-89).`, lispOfSpan(s), `(${slot} (and ${rest[0].items.map((x) => x.atom).join(" ")}))`);
+        } else if (rest.length === 1 && rest[0].atom) words_.set(s, [rest[0].atom]);
+        else if (rest.length === 1 && headIs(rest[0], "and") && atoms(rest[0].items.slice(1))) words_.set(s, rest[0].items.slice(1).map((x) => x.atom));
+        else words_.set(s, null);
+      }
+      // a word in another kind's slot goes to its own, unless Ken gave it there himself
+      const bySlot = new Map(slots.map((s) => [s.items[0].atom, s]));
+      const added = new Map(); // a slot the character doesn't have yet -> its words
+      for (const s of slots) {
+        const slot = s.items[0].atom, ws = words_.get(s);
+        if (!ws || !SLOT_KIND[slot]) continue;
+        for (const w of [...ws]) {
+          const to = kindOf(w);
+          if (!to || !SLOT_KIND[to] || to === slot || kenGave(slot, w)) continue;
+          const target = bySlot.get(to);
+          if (target && !words_.get(target)) continue; // a slot the page can't read: left alone
+          ws.splice(ws.indexOf(w), 1);
+          touched.add(s);
+          if (target) { if (!words_.get(target).includes(w)) words_.get(target).push(w); touched.add(target); }
+          else { if (!added.has(to)) added.set(to, []); added.get(to).push(w); }
+          fix(`moved “${plain(w)}” from ${whose} ${KIND_WORDS[slot]} to ${theirs(c)} ${KIND_WORDS[to]}`, `“${esc(plain(w))}” is one of Ani's words for ${esc(KIND_WORDS[to])} (${esc(WORDS[w].file || "dscrp.17")}), given as ${esc(whose)} ${esc(KIND_WORDS[slot])}; Ani reads each kind of word from its own slot (a scene that shows what someone is like reads only their character words, sugest.123:15-25), so it now goes with ${esc(theirs(c))} ${esc(KIND_WORDS[to])}.`, `(${slot} … ${w} …)`, `(${to} … ${w})`);
+        }
+      }
+      // the slots a fix touched, as text again (one left with no words goes); a new slot
+      // goes after the last of physical, personality and movement before it, on a line of its own
+      for (const s of touched) {
+        const ws = words_.get(s);
+        if (ws.length) { replace(s.start, s.end, `(${s.items[0].atom} ${valueText(ws)})`); continue; }
+        let a = s.start;
+        while (a > 0 && /\s/.test(text[a - 1])) a--;
+        replace(a, s.end, "");
+      }
+      const order = ["physical", "personality", "movement"];
+      const rank = (s) => { const r = order.indexOf(s.items[0].atom); return r < 0 ? order.length : r; };
+      for (const [to, ws] of added) {
+        const after = [...slots].reverse().find((s) => rank(s) < order.indexOf(to));
+        const ref = after || slots[0];
+        const lead = ref ? text.slice(text.lastIndexOf("\n", ref.start) + 1, ref.start) : "";
+        const indent = lead && /^\s*$/.test(lead) ? lead : "\t\t ";
+        const form = `(${to} ${valueText(ws)})`;
+        if (after) replace(after.end, after.end, `\n${indent}${form}`);
+        else if (ref) replace(ref.start, ref.start, `${form}\n${indent}`);
+        else if (proc) replace(proc.items[2].end, proc.items[2].end, `\n${indent}${form}`);
+      }
+    } else if (kind === "focus") {
+      // (relationship-of a b) written as three parts of the focus
+      for (const set of n.items.filter((x) => headIs(x, "set", "your", "parts-of-the-focus", "to") && x.items[4] && x.items[4].items)) {
+        const parts = set.items[4].items;
+        for (let k = 0; k + 2 < parts.length; k++) {
+          if (parts[k].atom !== "relationship-of" || !isChar(parts[k + 1].atom) || !isChar(parts[k + 2].atom)) continue;
+          const now = `(relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom})`;
+          replace(parts[k].start, parts[k + 2].end, now);
+          fix(`made ${now} one part of the focus`, `The film's focus listed relationship-of, ${esc(parts[k + 1].atom)} and ${esc(parts[k + 2].atom)} as three parts; a relationship is one part, ${esc(now)}, as in Ken's focus (CINDY 46), and Ani looks for it there when she weighs what the film is about.`, `relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom}`, now);
+          k += 2;
+        }
+      }
+    } else if (kind === "scene" && name.atom) {
+      const proc = n.items.find((x) => headIs(x, "process", "initial", "description"));
+      const top = proc && proc.items[3];
+      if (!top) continue;
+      const title = titleOf(story, name.atom);
+      // tasks Ani can't plan for the number of characters they name, each with the list it is in
+      const wrong = [], all = [];
+      const visit = (t, parent, k) => {
+        if (!t.items) return;
+        if (headIs(t, "and") || headIs(t, "sequence:")) { t.items.slice(1).forEach((x, j) => visit(x, t, j + 1)); return; }
+        all.push(t);
+        // a feeling written (joy positive high): (joy (positive high))
+        const establish = headIs(t, "establish") && t.items[1] && headIs(t.items[1], "emotional-state") ? t.items[1].items[2] : null;
+        const feel = (f) => {
+          if (!f || !f.items) return;
+          if (headIs(f, "and")) return f.items.slice(1).forEach(feel);
+          const [h, sign, amount] = f.items;
+          if (f.items.length === 3 && h.atom && ["positive", "negative"].includes(sign.atom) && ["low", "medium", "high"].includes(amount.atom)) {
+            const now = `(${h.atom} (${sign.atom} ${amount.atom}))`;
+            replace(f.start, f.end, now);
+            fix(`wrote ${lispOfSpan(f)} as ${now}`, `Ani reads a feeling as ${esc(now)}, its sign and amount in a list of their own (emote.9); written ${esc(lispOfSpan(f))} she would find no feeling to show.`, lispOfSpan(f), now);
+          }
+        };
+        feel(establish);
+        if (headIs(t, "convey") && t.items[1] && t.items[1].items && wrongCount(parse(lispOfSpan(t.items[1])))) wrong.push({ t, parent, k });
+      };
+      visit(top, null, 0);
+      // left out only if the scene keeps another task, and no later scene undoes it
+      const undone = new Set(Object.values(story.scenes).flatMap((st) => tasksOf(st.tasks)).filter((x) => x[0] === "convey" && Array.isArray(x[1]) && x[1][0] === "undoes" && Array.isArray(x[1][2])).map((x) => show(x[1][2][2])));
+      const out = wrong.filter((w) => w.parent && !undone.has(show(parse(lispOfSpan(w.t)))));
+      if (out.length >= all.length) continue;
+      for (const { t, parent, k } of out) {
+        const prev = parent.items[k - 1];
+        replace(prev.end, t.end, "");
+        const d = parse(lispOfSpan(t.items[1]));
+        const inner = Array.isArray(d[2]) ? d[2] : d;
+        const n_ = inner.length - 1;
+        const verbWord = { meets: "meeting", "getting-it-on": "getting it on", accompanys: "accompanying", chases: "a chase", hurts: "hurting", pushes: "pushing around", alone: "being alone" }[inner[0]] || plain(inner[0]);
+        fix(`left out ${lispOfSpan(t.items[1])} in ${title}`, `${esc(lispOfSpan(t.items[1]))} names ${n_ === 0 ? "no one" : n_ === 1 ? "one character" : `${n_} characters`} for ${esc(verbWord)}, which takes ${inner[0] === "alone" ? "two or more" : "two"}, so Ani can't plan it (convey.64); it is left out of ${esc(title)}, which keeps its other tasks.`, lispOfSpan(t), "");
+      }
+    }
+  }
+  if (!edits.length) return { text, fixes: [] };
+  // applied from the end, so each edit's place is as read; edits never overlap
+  edits.sort((a, b) => b.start - a.start || b.end - a.end);
+  let out = text;
+  for (const e of edits) out = out.slice(0, e.start) + e.by + out.slice(e.end);
+  return { text: out, fixes };
+}
+// "The page tidied the description: ...", each fix one click away with what it was and is.
+function tidyNote(fixes, lead = "The page tidied the description") {
+  if (!fixes || !fixes.length) return "";
+  return `<div class="tidy"><p class="note made-tidy">${esc(lead)}: ${esc(fixes.map((f) => f.short).join("; "))}.</p>
+    <details><summary>What it changed, and why</summary><div class="body"><ul class="changes">${fixes.map((f) => `<li>${f.long}<pre class="lisp">${esc(f.before)}\n→ ${esc(f.after || "(left out)")}</pre></li>`).join("")}</ul></div></details></div>`;
 }
 // How one description differs from another, in plain English.
 function storyChanges(a, b, textA, textB) {
@@ -2874,17 +3172,34 @@ const PRESETS = [
   { label: "A lazy Cinderella", changes: [[{ char: "cinderella", slot: "personality" }, ["good", "friendly", "lazy", "shy"]]] },
 ];
 const DRAFT_KEY = "ani-cinderella:draft:v1";
+const TOLD_KEY = "ani-cinderella:told:v1";
 const RUN_KEY = "ani-cinderella:run:v1";
 const FPS_KEY = "ani-cinderella:run-fps:v1";
-const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4 };
+// tidied: what the page has tidied in the text so far (tidyStory); told: the story as told,
+// when the text came from "Tell Ani a new story"
+const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4, tidied: [], told: (() => { try { return JSON.parse(store.get(TOLD_KEY) || "null"); } catch { return null; } })() };
 function openEditor() {
   editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
   select(null, { panel: "edit" });
 }
-function setEditorText(text, { fromLisp = false } = {}) {
+// A text from anywhere but the reader's typing is tidied at once; what they type is
+// tidied when they leave the box, or make the film. fresh: another story, not this one changed.
+function setEditorText(text, { fromLisp = false, fresh = false } = {}) {
+  if (fresh) { editor.tidied = []; setTold(null); }
+  if (!fromLisp) { const t = tidyStory(text); text = t.text; editor.tidied = [...editor.tidied, ...t.fixes]; }
   editor.text = text;
   store.set(DRAFT_KEY, text);
   refreshEditor({ fromLisp });
+}
+function setTold(told) {
+  editor.told = told;
+  if (told) store.set(TOLD_KEY, JSON.stringify(told)); else try { localStorage.removeItem(TOLD_KEY); } catch { /* nothing kept */ }
+}
+// Make the film of the editor's text, tidied first.
+function makeFromEditor() {
+  setEditorText(editor.text);
+  if (checkStory(editor.text).problems.length) return;
+  startRun(editor.text, editor.fps, modeExtensions(), { tidied: editor.tidied, told: editor.told });
 }
 function editorPanel() {
   const side = document.getElementById("side");
@@ -2910,9 +3225,9 @@ function editorPanel() {
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
     const base = readStory(editor.text).characters.cinderella ? editor.text : DATA.cindy;
-    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base));
+    setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
-  side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy));
+  side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
   const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (some ten minutes on a laptop)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (about three minutes on a laptop). Choose 24 for the film's own rate."; };
   side.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => {
     editor.fps = Number(b.dataset.fps);
@@ -2921,20 +3236,18 @@ function editorPanel() {
     fpsNote();
   }));
   fpsNote();
-  side.querySelector("#ed-make").addEventListener("click", () => {
-    const { problems } = checkStory(editor.text);
-    if (!problems.length) startRun(editor.text);
-  });
+  side.querySelector("#ed-make").addEventListener("click", makeFromEditor);
   side.querySelector("#ed-make-mend").addEventListener("click", () => {
-    const { problems } = checkStory(editor.text);
-    if (problems.length) return;
+    if (checkStory(tidyStory(editor.text).text).problems.length) return;
     setMode("revival");
-    startRun(editor.text);
+    makeFromEditor();
   });
   const ta = side.querySelector("#ed-lisp");
   const wrap = side.querySelector("#ed-lisp-wrap");
   let timer = null;
   ta.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(() => setEditorText(ta.value, { fromLisp: true }), 250); });
+  // leaving the box tidies what was typed
+  ta.addEventListener("change", () => { clearTimeout(timer); setEditorText(ta.value); });
   // on a phone the keyboard covers the lower screen, so the Lisp moves to the top while edited
   ta.addEventListener("focus", () => { if (window.matchMedia("(max-width: 700px)").matches) wrap.classList.add("pinned"); });
   ta.addEventListener("blur", () => setTimeout(() => wrap.classList.remove("pinned"), 300));
@@ -2957,8 +3270,12 @@ function chipsFor(ws, target, forRelationship) {
 function refreshEditor({ fromLisp = false } = {}) {
   const side = document.getElementById("side");
   if (state.panel !== "edit" || !side.querySelector("#ed-chars")) return;
-  const { story, problems, notes, stops } = checkStory(editor.text);
+  // checked as it will be made: tidied (what is typed is tidied when the box is left)
+  const pending = tidyStory(editor.text);
+  const text = pending.text;
+  const { story, problems, notes, stops } = checkStory(text);
   const chars = side.querySelector("#ed-chars"), rels = side.querySelector("#ed-rels");
+  const as1978 = MODE === "1978";
   if (story.error) {
     chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read; fix it in “Ani's version” below.</p>`;
     rels.innerHTML = "";
@@ -2973,7 +3290,7 @@ function refreshEditor({ fromLisp = false } = {}) {
       return `<div class="ed-char"><b>${icon(c, 16, look)} ${esc(cap(nameOf(story, c)))}${k.role ? ` <span class="note">(${esc(plain(k.role))})</span>` : ""}</b>${rows}</div>`;
     }).join("");
     rels.innerHTML = story.relationships.filter((r) => story.characters[r.from] && story.characters[r.to]).map((r) => `<div class="ed-rel"><span>${icon(r.from, 13, look)} ${esc(cap(nameOf(story, r.from)))} → ${esc(nameOf(story, r.to))}</span>${chipsFor(r.how, { from: r.from, to: r.to }, true)}</div>`).join("") +
-      (story.missingPairs && story.missingPairs.length ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
+      (story.missingPairs && story.missingPairs.length && as1978 ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
     rels.querySelector("#ed-fill")?.addEventListener("click", () => setEditorText(fillRelationships(editor.text)));
   }
   const ta = side.querySelector("#ed-lisp");
@@ -2982,11 +3299,10 @@ function refreshEditor({ fromLisp = false } = {}) {
   const fresh = !story.error && !(castNow.length === CAST.length && CAST.every((c) => castNow.includes(c)));
   const changes = story.error ? [] : fresh
     ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.${storyInWords(story)}`]
-    : storyChanges(RUNS[0].story, story, DATA.cindy, editor.text);
-  const same = RUNS[1] && editor.text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
+    : storyChanges(RUNS[0].story, story, DATA.cindy, text);
+  const same = RUNS[1] && text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
   // where Ani as in 1978 stops: a warning in 1978 mode, a note of what the repairs do in theirs
-  const as1978 = MODE === "1978";
-  side.querySelector("#ed-check").innerHTML =
+  side.querySelector("#ed-check").innerHTML = tidyNote([...editor.tidied, ...pending.fixes]) +
     (problems.length || (stops.length && as1978) ? `<ul class="problems">${[...problems, ...(as1978 ? stops.map((x) => x.as1978) : [])].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
     (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
       : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(REVIVAL)} Ani ${esc(words(SWITCHED.filter((id) => EXTENSIONS.find((e) => e.id === id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
@@ -3102,9 +3418,11 @@ const stopText = (msg) => {
 
 // extensions: the revival's extensions to load (src/pipeline.js EXTENSIONS), as the
 // switch says; none is Ani as in 1978.
-async function startRun(description, fps = editor.fps, extensions = modeExtensions()) {
+async function startRun(description, fps = editor.fps, extensions = modeExtensions(), { tidied = [], told = null } = {}) {
   stopRun({ quiet: true });
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions });
+  const tidy = tidyStory(description);
+  description = tidy.text;
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions, tidied: [...(tidied || []), ...tidy.fixes], told });
   run.fps = fps;
   run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: "pass1", what: "Getting Ani ready", scene: null };
   RUNS[1] = run;
@@ -3232,10 +3550,13 @@ function stopRun({ quiet = false } = {}) {
 // scene that changes someone (changes). Each scene keeps its own looks, in its glass box
 // and its film, and what it made so of the changes before it (glass.becomes).
 const runVersion = (run) => (runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
+// what the page tidied first, and the story as told, in either version (a reader that
+// doesn't know them leaves them be)
+const madeFrom = (run) => ({ ...(run.tidied && run.tidied.length ? { tidied: run.tidied } : {}), ...(run.told ? { told: run.told } : {}) });
 const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
 async function saveRun(run) {
   try {
-    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run) });
+    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run), ...madeFrom(run) });
     run.status.kept = store.set(RUN_KEY, await deflate(json));
   } catch { run.status.kept = false; }
   updateRunbar();
@@ -3247,7 +3568,7 @@ async function restoreRun() {
     const d = JSON.parse(await inflate(b64));
     if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) return;
     const extensions = d.v === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null, changes: d.v === 2 ? d.changes : null });
+    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null, changes: d.v === 2 ? d.changes : null, tidied: d.tidied, told: d.told });
     run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
     RUNS[1] = run;
     updateRunbar();
@@ -3358,7 +3679,7 @@ function comparePanel() {
     <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
     ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.running ? "" : stopBox(b)}
-    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
+    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
     <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
@@ -3708,9 +4029,9 @@ CHARACTERS
 - personality: ${wordList("personality")}
 
 RELATIONSHIPS
-- Define (relationship-of a b) for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.
+${mend ? `- Define (relationship-of a b) for each ordered pair who feel something about each other; a to b and b to a are two relationships.` : `- Define (relationship-of a b) for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.`}
 - Each is one word or (and word word ...): ${wordList("relationship")}
-- For characters who have little to do with each other, use is-polite-to.
+${mend ? `- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.` : `- For characters who have little to do with each other, use is-polite-to: Ani has no neutral word, and is-polite-to is the mildest, with no suggestions of its own.`}
 - Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
 
 SCENES (2 to 5, in story order)
@@ -3743,11 +4064,13 @@ MAKING A GOOD FILM
 - Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
 - chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a sequence: with other tasks after them; never make a scene of pushes alone.
 - Let feelings change from scene to scene as the story goes, and end each scene, and the film, on the feelings the story has there.
-- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.${change ? `
+- In the first scene, establish the personality of the main characters and the main relationship, so the film starts by showing who they are.
+- Ani shows what a mean or evil character is like by having them pick on their victim: (establish (personality X)) has X chase or hurt someone. So in a scene where such a character should be beaten, ashamed or out of the action (the hero's triumph), establish their feelings there, not their personality: (establish (emotional-state X (pride (negative high)))).${change ? `
 - A change is shown from the next scene on, for now: after the scene Ani takes a fresh look at X, as if X were brand new, and in the later scenes X is described and moves as X has become. The moment of change itself isn't animated yet (a later stage will). So give the changing scene other tasks too, and show who X has become in a later scene, with (establish (personality X)).` : ""}
 
 THE FILM
 - After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.
+- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies her choices, and originality whether she repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
 - Keep the example's first lines (the -*-lisp-*- line, (include |ai:ken;declar >|), (defcomment cindy)) and its last line, (compile-actors).
 
 Right after the first line, add two comment lines naming things for people:
@@ -4057,9 +4380,13 @@ async function draftStory({ repair = null } = {}) {
       : [{ role: "user", content: storyPrompt(story, { compact: id === "nano", extensions: modeExtensions() }) }];
     const reply = await CALLS[id](turns, { signal: ctl.signal, onText: (text) => { const pre = document.getElementById("tell-stream"); if (pre) { pre.hidden = false; pre.textContent = text.slice(-1500); } } });
     if (!String(reply).trim()) throw new Error("The model sent back an empty answer.");
-    const { text, balanced } = lispOf(reply);
+    // balanced, then tidied (tidyStory), each said in the draft
+    const { text: balancedText, balanced } = lispOf(reply);
+    const tidy = tidyStory(balancedText);
+    const text = tidy.text;
     const { problems } = checkStory(text);
-    teller.draft = { text, reply, turns, problems, balanced, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
+    const tidied = [...(repair && teller.draft ? teller.draft.tidied || [] : []), ...tidy.fixes];
+    teller.draft = { text, reply, turns, problems, balanced, tidied, story: repair && teller.draft ? teller.draft.story : story, provider: id, model: modelFor(id), seconds: (Date.now() - t0) / 1000 };
     say(`${PROVIDERS[id].label} ${repair ? "fixed" : "wrote"} it in ${clock(Date.now() - t0)}.`);
     showDraft();
   } catch (e) {
@@ -4090,11 +4417,12 @@ function showDraft(failure = null) {
       ${story.error ? `<p><b>Ani can't read this film description yet.</b></p>`
         : `<p><b>${esc(cast.length)} character${cast.length === 1 ? "" : "s"}</b> and <b>${esc(scenes.length)} scene${scenes.length === 1 ? "" : "s"}</b>, in plain words:</p>${storyInWords(story)}`}
       ${d.balanced ? `<p class="note">The model left the parentheses of ${d.balanced} form${d.balanced === 1 ? "" : "s"} unbalanced; the page balanced them, closing each form at its last line.</p>` : ""}
+      ${tidyNote(d.tidied)}
       ${problems.length ? `<ul class="problems">${problems.map((p) => `<li>${p}</li>`).join("")}</ul>` : `<p class="note">Ani's checks find nothing wrong.</p>`}
       ${notes.length || mended.length ? `<ul class="changes note">${[...mended, ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : ""}
       <div class="actions">
         ${problems.length ? `<button type="button" class="btn" id="tell-fix">Ask ${esc(PROVIDERS[d.provider].label)} to fix these</button>` : ""}
-        ${story.missingPairs && story.missingPairs.length ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships</button>` : ""}
+        ${story.missingPairs && story.missingPairs.length && as1978 ? `<button type="button" class="btn" id="tell-fill">Fill in the missing relationships (as “is polite to”)</button>` : ""}
         <button type="button" class="btn primary" id="tell-edit">${problems.length ? "Open it in the editor" : "Look it over, then make the film"}</button>
       </div>
       <details><summary>The film description, as Ani will read it</summary><div class="body"><pre class="lisp">${esc(formatLisp(d.text))}</pre></div></details>
@@ -4105,6 +4433,9 @@ function showDraft(failure = null) {
     // laid out to fit the editor; printed again only where not a word changes
     editor.text = formatLisp(d.text);
     store.set(DRAFT_KEY, editor.text);
+    // what the page tidied, and the story as told, go with it to the film
+    editor.tidied = [...(d.tidied || [])];
+    setTold({ story: d.story, provider: PROVIDERS[d.provider].org ? `${PROVIDERS[d.provider].label} (${PROVIDERS[d.provider].org})` : PROVIDERS[d.provider].label, model: d.model || (d.provider === "nano" ? "Gemini Nano" : "the usual model") });
     select(null, { panel: "edit" });
   });
 }
@@ -4112,8 +4443,9 @@ function showDraft(failure = null) {
 // ---------------------------------------------------------------- saving films
 
 // A film can be saved as a video (WebM at the film's own rate, a title card before each
-// scene), or as a film file (.json) that this page opens again with all of
-// Ani's reasons. Inside claude.ai a save goes through the page's downloads capability,
+// scene unless turned off, and, if asked for, subtitles from the story and Ani's thinking
+// below the picture, also as a .vtt file), or as a film file (.json) that this page opens
+// again with all of Ani's reasons. Inside claude.ai a save goes through the page's downloads capability,
 // which asks the viewer first; elsewhere it is an ordinary download.
 
 // The smallest WebM that browsers and players accept: an EBML header, one segment with
@@ -4173,22 +4505,67 @@ function webm(frames, width, height, durationMs) {
   return new Blob([head, concatBytes([Uint8Array.from(EBML.segment), ebmlSize(body.length)]), body], { type: "video/webm" });
 }
 
-// The pictures of a video: for each scene shown, a one-second title card, then each frame,
-// drawn as the screen draws it (two films side by side when both are shown).
+// The video's options, kept in this browser: a title card before each scene (on unless
+// turned off), and subtitles (off unless turned on).
+const VIDEO_KEY = "ani-cinderella:video:v1";
+const videoOptions = { titles: true, subtitles: false };
+try { Object.assign(videoOptions, JSON.parse(store.get(VIDEO_KEY) || "{}")); } catch { /* as they are */ }
+
+// The pictures of a video: for each scene shown, a one-second title card (unless turned
+// off), then each frame, drawn as the screen draws it (two films side by side when both
+// are shown).
 function videoRate(runs, sceneIndexes) {
   return Math.max(4, ...sceneIndexes.flatMap((i) => runs.map((r) => r.scenes[i]).filter(ready).map(fpsOf)));
 }
-function videoPlan(runs, sceneIndexes, rate) {
+function videoPlan(runs, sceneIndexes, rate, titles = true) {
   const plan = [];
   for (const i of sceneIndexes) {
     const scenes = runs.map((r) => r.scenes[i]);
     const longest = Math.max(0, ...scenes.map((sc) => (ready(sc) ? sc.last / fpsOf(sc) : 0)));
-    for (let k = 0; k < rate; k++) plan.push({ i, title: true });
+    if (titles) for (let k = 0; k < rate; k++) plan.push({ i, title: true });
     for (let n = 0; n <= Math.round(longest * rate); n++) plan.push({ i, t: n / rate });
   }
   return plan;
 }
-function drawVideoFrame(ctx, runs, item, scale) {
+// The subtitles at one of a video's pictures, for one film: the scene and part, and what
+// the page's caption says there (what is shown, to show what), as plain text. The same
+// subscenes, looks and ending give the same words, so they are worked out once (memo).
+function subtitleAt(run, k, item, memo) {
+  const sc = run.scenes[item.i];
+  const tag = memo.both ? `${run.short} · ` : "";
+  if (item.title) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: "" };
+  if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
+  const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
+  const looks = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map((x) => x[0]).join();
+  const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${f === sc.last}`;
+  if (!memo.has(key)) {
+    const c = captionAt(run, item.i, f);
+    memo.set(key, { part: `${tag}${unmark(c.part)}`, text: unmark([c.text, ...c.more].filter(Boolean).join(" ")) });
+  }
+  return memo.get(key);
+}
+// Below each picture, a strip with its subtitles: the part in grey, then what the caption
+// says, wrapped, in at most five lines.
+const SUB_BAND = 124;
+function drawSubtitle(ctx, sub) {
+  ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.font = `600 13px "Public Sans", system-ui, sans-serif`;
+  ctx.fillStyle = "#a9b5af";
+  ctx.fillText(sub.part, 12, 20, 527);
+  ctx.font = `400 15px "Public Sans", system-ui, sans-serif`;
+  ctx.fillStyle = "#e5ece8";
+  const lines = [];
+  let cur = "";
+  for (const w of sub.text.split(/\s+/).filter(Boolean)) {
+    const next = cur ? `${cur} ${w}` : w;
+    if (ctx.measureText(next).width > 527 && cur) { lines.push(cur); cur = w; } else cur = next;
+  }
+  if (cur) lines.push(cur);
+  if (lines.length > 5) { lines.length = 5; lines[4] = lines[4].replace(/\s*\S*$/, " …"); }
+  lines.forEach((l, n) => ctx.fillText(l, 12, 42 + n * 19, 527));
+}
+function drawVideoFrame(ctx, runs, item, scale, { subtitles = false, memo = null } = {}) {
   const w = 551 * scale, h = 413 * scale, gap = runs.length > 1 ? 12 * scale : 0;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = "#000";
@@ -4202,18 +4579,39 @@ function drawVideoFrame(ctx, runs, item, scale) {
       screenMessage(ctx, lines);
     } else if (!ready(sc)) screenMessage(ctx, [sc ? "Ani stopped while making this scene." : "No such scene in this version."]);
     else drawFrame(ctx, run, sc, Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6)), { color: state.color });
+    if (subtitles && !item.title) {
+      ctx.setTransform(scale, 0, 0, scale, k * (w + gap), h);
+      drawSubtitle(ctx, subtitleAt(run, k, item, memo));
+    }
   });
 }
-async function makeVideo(runs, sceneIndexes, onProgress, signal) {
+// The same subtitles as a WebVTT file, timed to the video with these options: a cue for
+// each title card and each stretch of the same words.
+const vttTime = (sec) => { const ms = Math.round(sec * 1000); const p = (n, d = 2) => String(n).padStart(d, "0"); return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)}.${p(ms % 1000, 3)}`; };
+function makeSubtitles(runs, sceneIndexes, titles) {
+  const rate = videoRate(runs, sceneIndexes);
+  const memo = Object.assign(new Map(), { both: runs.length > 1 });
+  const cues = [];
+  videoPlan(runs, sceneIndexes, rate, titles).forEach((item, n) => {
+    const text = runs.map((run, k) => { const s = subtitleAt(run, k, item, memo); return s.text ? `${s.part}\n${s.text}` : s.part; }).join("\n");
+    const last = cues[cues.length - 1];
+    if (last && last.text === text) last.end = (n + 1) / rate;
+    else cues.push({ start: n / rate, end: (n + 1) / rate, text });
+  });
+  const clean = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return `WEBVTT\n\n${cues.map((c, k) => `${k + 1}\n${vttTime(c.start)} --> ${vttTime(c.end)}\n${clean(c.text)}\n`).join("\n")}`;
+}
+async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true, subtitles = false } = {}) {
   const scale = 2;
-  const width = (551 * runs.length + (runs.length - 1) * 12) * scale, height = 413 * scale;
+  const width = (551 * runs.length + (runs.length - 1) * 12) * scale, height = (413 + (subtitles ? SUB_BAND : 0)) * scale;
   const even = (n) => n + (n % 2);
   const canvas = document.createElement("canvas");
   canvas.width = even(width);
   canvas.height = even(height);
   const ctx = canvas.getContext("2d");
   const rate = videoRate(runs, sceneIndexes);
-  const plan = videoPlan(runs, sceneIndexes, rate);
+  const plan = videoPlan(runs, sceneIndexes, rate, titles);
+  const draw = { subtitles, memo: Object.assign(new Map(), { both: runs.length > 1 }) };
   const frameUs = Math.round(1e6 / rate);
   const config = { codec: "vp8", width: canvas.width, height: canvas.height, bitrate: rate > 4 ? 4000000 : 2500000, framerate: rate };
   const webCodecs = typeof VideoEncoder !== "undefined" && typeof VideoFrame !== "undefined" && (await VideoEncoder.isConfigSupported(config).catch(() => ({}))).supported;
@@ -4228,7 +4626,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
     for (let n = 0; n < plan.length; n++) {
       if (signal && signal.aborted) { encoder.close(); throw Object.assign(new Error("Stopped."), { kind: "stopped" }); }
       if (failure) throw failure;
-      drawVideoFrame(ctx, runs, plan[n], scale);
+      drawVideoFrame(ctx, runs, plan[n], scale, draw);
       const frame = new VideoFrame(canvas, { timestamp: n * frameUs, duration: frameUs });
       encoder.encode(frame, { keyFrame: n % (rate * 4) === 0 });
       frame.close();
@@ -4252,7 +4650,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
   recorder.start();
   for (let n = 0; n < plan.length; n++) {
     if (signal && signal.aborted) { recorder.stop(); throw Object.assign(new Error("Stopped."), { kind: "stopped" }); }
-    drawVideoFrame(ctx, runs, plan[n], scale);
+    drawVideoFrame(ctx, runs, plan[n], scale, draw);
     if (track.requestFrame) track.requestFrame();
     onProgress(n / plan.length);
     await new Promise((r) => setTimeout(r, 1000 / rate));
@@ -4272,11 +4670,30 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal) {
 // so the film is drawn with them when it is opened again), and, with CHANGE, Ani's fresh
 // look after each scene that changes someone (changes; each later scene's glass box has
 // what it made so), so the film opens again with "How she has changed". Both are read;
-// version 1 means Ani as in 1978.
+// version 1 means Ani as in 1978. Either may also keep what the page tidied in the
+// description first, and the story as told (madeFrom).
+// Outside the gzip, for a person or a program reading the file: what film it is, the story
+// as told in English and the model that put it into Ken's notation (when it came from
+// "Tell Ani a new story"), the description Ani read, the extensions and the date; the page
+// reads only the gzip.
 const FILM_FORMAT = "ani-film";
+const FILM_HOME = "https://toontalk.github.io/ani/";
 async function filmFile(run) {
-  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: (run.status && run.status.made) || new Date().toISOString(), seconds: run.status && run.status.seconds, ...version2(run) });
-  return new Blob([JSON.stringify({ format: FILM_FORMAT, version: runVersion(run), about: "A film made by Ani, Ken Kahn's 1978 animation program, revived. Open it in the page Ani's Cinderella to watch it with all of Ani's reasons.", gzip: await deflate(inner) })], { type: "application/json" });
+  const made = (run.status && run.status.made) || new Date().toISOString();
+  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
+  const title = storyTitle(run), told = run.told || {};
+  const outer = {
+    format: FILM_FORMAT, version: runVersion(run),
+    about: `A film of ${title}, made by Ani, Ken Kahn's 1978 animation program, revived; open it at ${FILM_HOME} to watch it with all of Ani's reasons.`,
+    title,
+    ...(told.story ? { story: told.story } : {}),
+    lisp: run.cindy,
+    ...(told.provider ? { model: told.model, provider: told.provider } : {}),
+    extensions: runExtensions(run),
+    date: made,
+    gzip: await deflate(inner),
+  };
+  return new Blob([JSON.stringify(outer, null, 2)], { type: "application/json" });
 }
 async function readFilmFile(text) {
   let outer;
@@ -4292,7 +4709,7 @@ async function readFilmFile(text) {
 async function openFilm(d, name) {
   stopRun({ quiet: true });
   const extensions = d.extensions || [];
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null });
+  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null, tidied: d.tidied, told: d.told });
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
   RUNS[1] = run;
   saveRun(run);
@@ -4351,6 +4768,7 @@ function renderSavePanel() {
   const both = runs.length > 1;
   const mine = RUNS[1];
   const sc = runs[0].scenes[state.scene];
+  const { titles, subtitles } = videoOptions;
   panel.innerHTML = `
     <p class="label">Save</p>
     <div class="save-options">
@@ -4359,9 +4777,20 @@ function renderSavePanel() {
       ${mine ? `<button type="button" class="btn" data-save="file">Your version, as a film file</button>` : ""}
       <button type="button" class="btn" data-save="open">Open a saved film…</button>
     </div>
-    <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, with a title before each scene. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
-    <p class="note" id="save-status" aria-live="polite"></p>`;
+    <div class="save-settings">
+      <label class="check"><input type="checkbox" data-video="titles"${titles ? " checked" : ""}> A title card before each scene</label>
+      <label class="check"><input type="checkbox" data-video="subtitles"${subtitles ? " checked" : ""}> Subtitles: what each part shows, and why</label>
+      ${subtitles ? `<button type="button" class="linkish" data-save="vtt">The subtitles alone, as a .vtt file</button>` : ""}
+    </div>
+    <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, ${titles ? "with a title before each scene" : "with no titles"}${subtitles ? `, and with subtitles under ${both ? "each film" : "the picture"}: the scene, the part, and what Ani shows and why, as the caption says it. The .vtt file has them timed to the whole ${both ? "films" : "film"}, for a video player` : ""}. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
+    <p class="note" id="save-status" aria-live="polite"></p>
+    ${mine ? sendStoryButton(mine) : ""}`;
   panel.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => saveAction(b.dataset.save, runs, sc)));
+  panel.querySelectorAll("[data-video]").forEach((b) => b.addEventListener("change", () => {
+    videoOptions[b.dataset.video] = b.checked;
+    store.set(VIDEO_KEY, JSON.stringify(videoOptions));
+    renderSavePanel();
+  }));
 }
 async function saveAction(what, runs, sc) {
   if (what === "open") return chooseFilmFile();
@@ -4373,13 +4802,18 @@ async function saveAction(what, runs, sc) {
     return;
   }
   const indexes = what === "scene" ? [state.scene] : [...Array(Math.max(...runs.map((r) => r.sceneIds.length))).keys()];
+  const base = `ani-${slug(runs.map(storyTitle).join("-and-"))}`;
+  if (what === "vtt") {
+    setSaveStatus(await saveFile(new Blob([makeSubtitles(runs, indexes, videoOptions.titles)], { type: "text/vtt" }), `${base}.vtt`));
+    return;
+  }
   saving = new AbortController();
   const button = document.querySelector(`#save-panel [data-save="${what}"]`);
   const label = button.textContent;
   button.textContent = "Stop";
   try {
-    const { blob, ext } = await makeVideo(runs, indexes, (p) => setSaveStatus(`Making the video: ${Math.round(p * 100)}%`), saving.signal);
-    const name = `ani-${slug(runs.map(storyTitle).join("-and-"))}${what === "scene" ? "-" + slug(sc ? sc.title : "scene") : ""}${state.color ? "-color" : ""}.${ext}`;
+    const { blob, ext } = await makeVideo(runs, indexes, (p) => setSaveStatus(`Making the video: ${Math.round(p * 100)}%`), saving.signal, videoOptions);
+    const name = `${base}${what === "scene" ? "-" + slug(sc ? sc.title : "scene") : ""}${state.color ? "-color" : ""}.${ext}`;
     setSaveStatus(await saveFile(blob, name));
   } catch (e) {
     setSaveStatus(e.kind === "stopped" ? "Stopped." : `It didn't work: ${e.message || e}`);
@@ -4388,6 +4822,129 @@ async function saveAction(what, runs, sc) {
     button.textContent = label;
   }
 }
+
+// ---------------------------------------------------------------- telling Ken what went wrong
+
+// On the site (toontalk.github.io/ani, whose page tools/build-site.mjs gives Ken's Sentry
+// DSN), an error the page doesn't catch, or a promise it leaves rejected, is reported to
+// Ken's Sentry, and nothing else: no IP address or other personal data (sendDefaultPii
+// false), no breadcrumbs (so no requests or their bodies), no sessions, and, taken out of
+// whatever is sent, everything this browser keeps for the page (the API keys among it) and
+// any story text. A visitor may also send Ken a story with "Send this story to Ken", which
+// shows exactly what will be sent and sends it, as one Sentry message, only when they
+// confirm. With no DSN (app/film.html, and the claude.ai copies, whose CSP refuses Sentry)
+// nothing is loaded and nothing is sent: every part of this is a no-op.
+const SENTRY_DSN = /*SENTRY-DSN*/"";
+// Sentry's own browser bundle (errors only), at a version months old, checked against its hash
+const SENTRY_SDK = { src: "https://browser.sentry-cdn.com/10.50.0/bundle.min.js", integrity: "sha384-9cVKNfUSoIRWDL3QQHe0fgJboGyb51IyiAv8x+KeuylA5GArkSaqyGFFm14hqajd" };
+const report = { on: !!SENTRY_DSN, sdk: null, consent: new Set() };
+if (report.on) {
+  report.sdk = new Promise((resolve) => {
+    const s = document.createElement("script");
+    Object.assign(s, { src: SENTRY_SDK.src, integrity: SENTRY_SDK.integrity, crossOrigin: "anonymous" });
+    s.onload = () => {
+      const S = window.Sentry;
+      try {
+        S.init({
+          dsn: SENTRY_DSN, sendDefaultPii: false, defaultIntegrations: false, sendClientReports: false, maxBreadcrumbs: 0,
+          integrations: [S.globalHandlersIntegration({ onerror: true, onunhandledrejection: true }), S.linkedErrorsIntegration(), S.dedupeIntegration(), S.httpContextIntegration()],
+          beforeBreadcrumb: () => null,
+          beforeSend: scrubbed,
+        });
+        resolve(S);
+      } catch { resolve(null); }
+    };
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+  document.querySelectorAll(".reporting").forEach((p) => { p.hidden = false; });
+}
+// What must never leave in an error report: the API keys, typed or kept; each value this
+// browser keeps for the page (and each string inside one kept as JSON); and every story
+// here, whole and line by line; longest first. A story a visitor chose to send keeps
+// everything but the keys.
+function secrets({ stories = true } = {}) {
+  const out = new Set();
+  const add = (v, least = 16) => { if (typeof v === "string" && v.trim().length >= least) out.add(v.trim()); };
+  const leaves = (x) => { if (typeof x === "string") add(x); else if (x && typeof x === "object") Object.values(x).forEach(leaves); };
+  leaves(teller.keys);
+  try { leaves(JSON.parse(store.get(KEYS_KEY) || "null")); } catch { /* none kept */ }
+  if (stories) {
+    try {
+      for (let k = 0; k < localStorage.length; k++) {
+        const v = localStorage.getItem(localStorage.key(k));
+        add(v);
+        try { leaves(JSON.parse(v)); } catch { /* not JSON */ }
+      }
+    } catch { /* no storage */ }
+    const texts = [teller.story, editor.text, teller.draft && teller.draft.text, teller.draft && teller.draft.reply, ...RUNS.slice(1).flatMap((r) => (r ? [r.cindy, r.told && r.told.story] : []))];
+    for (const t of texts.filter(Boolean)) { add(t, 1); for (const piece of String(t).split(/\n|(?<=[.!?;])\s+/)) add(piece, 12); }
+  }
+  return [...out].sort((a, b) => b.length - a.length);
+}
+function scrubOut(x, hide) {
+  if (typeof x === "string") return hide.reduce((s, h) => s.split(h).join("[removed]"), x);
+  if (Array.isArray(x)) return x.map((y) => scrubOut(y, hide));
+  if (x && typeof x === "object") { for (const k of Object.keys(x)) x[k] = scrubOut(x[k], hide); return x; }
+  return x;
+}
+// Sentry's beforeSend: an error report, with no user, no referrer, and no secret or story
+// text anywhere in it; a story a visitor confirmed sending (its consent noted when they
+// pressed Send) keeps its story, but never a key.
+function scrubbed(event) {
+  delete event.user;
+  delete event.breadcrumbs;
+  if (event.request && event.request.headers) delete event.request.headers.Referer;
+  const consented = event.tags && event.tags.kind === "story-sent-to-ken" && event.extra && report.consent.delete(event.extra.consent);
+  if (event.extra) delete event.extra.consent;
+  return scrubOut(event, secrets({ stories: !consented }));
+}
+
+// ---- "Send this story to Ken"
+
+// Exactly what is sent: the story as told (if it was), the description Ani read, the
+// model and provider that wrote it, the extensions, and where Ani stopped.
+function storyReport(run) {
+  const told = run.told || {};
+  return {
+    title: storyTitle(run),
+    story: told.story || "(not told in English: written or changed in the editor)",
+    lisp: run.cindy,
+    model: told.model || "(none)", provider: told.provider || "(none)",
+    extensions: runExtensions(run).length ? runExtensions(run) : "(none: Ani as in 1978)",
+    stopped: stopsOf(run).map((s) => `${words(s.where)}: ${unmark(s.text)}`),
+  };
+}
+// The button, where reporting is on and there is a story of the reader's own.
+const sendStoryButton = (run) => (report.on && run && run !== RUNS[0] ? `<div class="send-story"><button type="button" class="linkish" data-send-story>Send this story to Ken</button><div class="send-box" hidden></div></div>` : "");
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest && e.target.closest("[data-send-story], [data-send-yes], [data-send-no]");
+  if (!b || !report.on || !RUNS[1]) return;
+  const box = b.closest(".send-story").querySelector(".send-box");
+  if (b.dataset.sendNo !== undefined) { box.hidden = true; return; }
+  if (b.dataset.sendStory !== undefined) {
+    box.dataset.report = JSON.stringify(storyReport(RUNS[1]), null, 2);
+    box.innerHTML = `<p class="note">This is everything that will be sent to Ken, as a message to his error reports (Sentry), and nothing about you:</p><pre class="lisp">${esc(box.dataset.report)}</pre>
+      <div class="actions"><button type="button" class="btn primary" data-send-yes>Send it</button><button type="button" class="linkish" data-send-no>Don't send</button></div>`;
+    box.hidden = false;
+    return;
+  }
+  const S = await report.sdk;
+  const payload = JSON.parse(box.dataset.report);
+  let sent = false;
+  if (S) {
+    const consent = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    report.consent.add(consent);
+    S.withScope((scope) => {
+      scope.setTag("kind", "story-sent-to-ken");
+      scope.setExtras({ ...payload, consent });
+      scope.addAttachment({ filename: "story.json", data: JSON.stringify(payload, null, 2), contentType: "application/json" });
+      S.captureMessage(`A story sent to Ken: ${payload.title}`, "info");
+    });
+    sent = await S.flush(5000).catch(() => false);
+  }
+  box.innerHTML = `<p class="note">${sent ? "Sent. Thank you: Ken will see it with Ani's other reports." : "It couldn't be sent from here just now."}</p>`;
+});
 
 
 layout();
