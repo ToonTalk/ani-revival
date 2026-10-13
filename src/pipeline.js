@@ -437,8 +437,9 @@ export function repairNotes(L, glass = null) {
 
 // Hooks that record each frame as Ken's camera took it: ANINIT's after-new-frame-made
 // calls (click) once the frame is on the screen. For each frame: the line segments
-// each character was drawn with (TV dots from the picture's top left) and each
-// character's state; and every event the movie noted, by frame. onClick, if given, is
+// each character was drawn with (TV dots from the picture's top left; whole, for a
+// character partly off the picture, see below) and each character's state; and every
+// event the movie noted, by frame. onClick, if given, is
 // called at each click too (to save a picture, say). With looks (an extension that
 // chooses how the characters look, REVIVE;APPEAR and LOOKS), film.looks records who
 // looks how from which frame, changes only: [frame, character, { shape, angle,
@@ -450,6 +451,7 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
   const lastLook = {};
   let drawing = null;
   let segs = {};
+  let all = {}; // each character's segments, those off the picture too (below)
   const seen = new Set();
   L.defsubr("REVIVE-DRAWING", (...a) => {
     if (a.length) drawing = a[0] === L.NIL ? null : L.print(a[0]).toLowerCase();
@@ -478,6 +480,7 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
     });
     film.frames.push({ segs, chars });
     segs = {};
+    all = {};
     if (looks) recordLooks(film.frames.length - 1);
     if (onClick) onClick(film.frames.length - 1);
     return L.T;
@@ -510,21 +513,52 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
        (revive-event (ask ,(ask movie recall your current-movie) recall your frame-count) event)
        (ask-old :self note that ,event happened)))`);
   // the segments drawn since the screen was last wiped (the frame handler wipes and
-  // redraws before each click)
+  // redraws before each click). ANINIT films with the turtle cutting lines at the
+  // picture's edge (its asd's (clip)), so a character partly off the picture is drawn
+  // cut; its segments are kept whole, in picture dots beyond the picture too, as
+  // Director drew them before the cut, so that a page can draw the copies color nests
+  // inside each shape whole and cut them at the edge, as the color turtle did. A
+  // character none of whose lines reach the picture has no segments, as on the screen,
+  // and each character comes in the order its first line reached the picture.
   const tv = L.tv;
   const area = pictureArea(tv, 0);
   film.picture = { width: area.width, height: area.height };
+  const r = (v) => Math.round(v * 10) / 10;
+  const dots = (a, b, c, d) => [r(a / UNIT_BIT - area.x), r(b / UNIT_BIT - area.y), r(c / UNIT_BIT - area.x), r(d / UNIT_BIT - area.y)];
+  const keep = (seg, onPicture) => {
+    (all[drawing] ||= []).push(...seg);
+    if (onPicture && !segs[drawing]) segs[drawing] = all[drawing];
+  };
+  let cutting = false; // within the turtle's clip
+  let reached = false; // ... and some of the line was drawn
   const vector = tv.boundedVectorFix.bind(tv);
   tv.boundedVectorFix = (a, b, c, d) => {
     if (drawing) {
-      const r = (v) => Math.round(v * 10) / 10;
-      (segs[drawing] ||= []).push(r(a / UNIT_BIT - area.x), r(b / UNIT_BIT - area.y), r(c / UNIT_BIT - area.x), r(d / UNIT_BIT - area.y));
+      if (cutting) reached = true;
+      else keep(dots(a, b, c, d), true);
     }
     return vector(a, b, c, d);
+  };
+  // the line as the turtle's bounded-vector would draw it uncut (its rounding: TV dots
+  // and a half)
+  const half = UNIT_BIT / 2;
+  const clip = tv.clipVector.bind(tv);
+  tv.clipVector = (fromX, fromY, toX, toY) => {
+    if (!drawing) return clip(fromX, fromY, toX, toY);
+    const seg = dots(tv.tvFixX(fromX) + half, tv.tvFixY(fromY) + half, tv.tvFixX(toX) + half, tv.tvFixY(toY) + half);
+    cutting = true;
+    reached = false;
+    try {
+      return clip(fromX, fromY, toX, toY);
+    } finally {
+      cutting = false;
+      keep(seg, reached);
+    }
   };
   const wipe = tv.wipe.bind(tv);
   tv.wipe = (wipeArgs) => {
     segs = {};
+    all = {};
     return wipe(wipeArgs);
   };
   return film;
