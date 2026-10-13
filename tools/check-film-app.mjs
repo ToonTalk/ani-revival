@@ -1002,7 +1002,7 @@ try {
   })()`);
   const clashMade = await finished();
   const clashPanel = await js(`(() => { document.querySelectorAll("#side details").forEach((d) => (d.open = true)); return document.getElementById("side").innerText + " | " + [...document.querySelectorAll("#scenes button")].map((b) => b.innerText).join(" "); })()`);
-  const renamedNote = /renamed the scene “fear” fear-scene, since fear is one of Ani's feelings/;
+  const renamedNote = /renamed the scene “fear” to fear-scene, since fear is one of Ani's feelings/;
   check(renamedNote.test(clash.draft) && renamedNote.test(clash.editor) && /\(define fear-scene scene/.test(clash.text) && /;; scenes: fear-scene = Fear/.test(clash.text),
     "a story's scene called fear is renamed fear-scene with KNOW on, its title kept, and the draft and the editor say so");
   check(/with the revival's extensions: 1 of 1 scenes? filmed/.test(clashMade) && renamedNote.test(clashPanel) && /Your scene “fear” is called fear-scene here: fear is one of Ani's feelings, and the file that defines it, Ken's EMOTE, would replace your scene when it loads\./.test(clashPanel),

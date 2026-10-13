@@ -3532,7 +3532,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
     out = STORY_NAMES.renameStoryNames(out, renames);
     for (const r of renames) {
       const { what, owner } = clashWhy(r.from, extensions);
-      fix(`renamed the ${r.kind} “${r.from}” ${r.to}, since ${r.from} is ${what}`,
+      fix(`renamed the ${r.kind} “${r.from}” to ${r.to}, since ${r.from} is ${what}`,
         owner ? `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, and the file that defines it, ${esc(owner)}, would replace your ${r.kind} when it loads.`
           : `Your ${r.kind} “${esc(r.from)}” is called ${esc(r.to)} here: ${esc(r.from)} is ${esc(what)}, which Ani has from the start, and your ${r.kind} would replace it.`,
         r.from, r.to);
