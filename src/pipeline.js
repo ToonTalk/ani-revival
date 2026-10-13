@@ -72,6 +72,16 @@ export const EXTENSIONS = [
     sceneSteps: true,
     note: "A scene may change a character, as Ken wrote one in his cinderella-beautified scene: (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani takes a fresh look at whoever changes (thesis p. 168): pass 1 again, with the new words, every choice of everyone else held as it was, so that only the changed character is chosen again; and from the next scene on she is described and moves as she has become. A full recompute, with everyone chosen afresh, is kept for comparison. Showing the change itself comes later.",
   },
+  {
+    id: "know",
+    label: "Knowledge Ken could have added",
+    files: ["wrap", "know", "knowds", "knowrl", "knowcv", "knowdi", "knowem"],
+    // its display methods bring on a character off the stage with MEND6's bring-on, and
+    // its feelings are combined with joy by MEND7's repair of COSUG's combine
+    requires: ["mend"],
+    changes1978: true,
+    note: "Knowledge Ken could have added (thesis p. 19: words such as \"clever\", \"fears\" or \"helps\" \"could be added\"), each piece in the idiom of the file of his it extends and each with its evidence or the revival's reason: words for characters (gentle, rough, nervous, calm, cheerful, gloomy, clever, brave, cowardly, curious, playful, old, young, slow and quick, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears; ways of showing likes, is-obedient-to and is-helpful-towards); ways of showing helps, avoids and follows (helps-along, moves-away-from and follows-behind); feelings (pride, anticipation, loneliness, fear and anger); and a word with no way of showing itself borrowing its neighbors' (dscrp.17:183). Ken's Cinderella makes the same choices in pass 1; in pass 2 Cinderella helps the Prince and follows her stepmother in the Introduction, where Ani had no idea how in 1978, and the stepmother's pride shows in Kept Apart.",
+  },
 ];
 
 // The appearance elements REVIVE;APPEAR defines, and their relative elements: a
