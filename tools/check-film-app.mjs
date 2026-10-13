@@ -118,22 +118,15 @@ const RENAMED = Object.fromEntries(WELL_FORMED.map((f) => {
 const ARTIFACT = "artifact/ani-cinderella-claude-artifact.html";
 const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases her; a brave kid helps her across the bridge, and she follows him home, proud and happy.";
 // Gemini Nano's Tortoise and the Hare, as it wrote it in Ken's Chrome with the extensions
-// on, but for the words: in its scene The Push, (undoes tortoise (from-scene push (convey
-// (pushes hare tortoise)))), an undoes in the scene it undoes, which "Ask Gemini Nano to
-// fix these" wrote again
-const NANO_TORTOISE = {
-  characters: [{ name: "hare", called: "the hare", pronoun: "he", physical: ["physically-strong"], personality: ["selfish", "lazy"], movement: [] },
-    { name: "tortoise", called: "the tortoise", pronoun: "he", physical: ["physically-weak"], personality: ["hard-working", "determined"], movement: ["slow"] }],
-  main: "tortoise",
-  relationships: [{ from: "hare", to: "tortoise", how: ["dominates", "hates"] }, { from: "tortoise", to: "hare", how: ["is-tolerant-of"] }],
-  scenes: [
-    { name: "boast", title: "The Boast", mood: "normal", rhythm: "fast", length: "short", steps: [[{ kind: "establish-personality", who: "hare" }, { kind: "establish-personality", who: "tortoise" }]] },
-    { name: "push", title: "The Push", mood: "depressing", rhythm: "normal", length: "medium", steps: [[{ kind: "pushes", who: "hare", whom: "tortoise" }], [{ kind: "undoes", who: "tortoise", scene: "push", undone: { kind: "pushes", who: "hare", whom: "tortoise" } }, { kind: "establish-emotional-state", who: "tortoise", feelings: [{ feeling: "joy", sign: "negative", amount: "medium" }] }]] },
-    { name: "finish", title: "The Finish", mood: "joyous", rhythm: "normal", length: "medium", steps: [[{ kind: "establish-emotional-state", who: "tortoise", feelings: [{ feeling: "pride", sign: "positive", amount: "high" }] }, { kind: "establish-emotional-state", who: "hare", feelings: [{ feeling: "joy", sign: "negative", amount: "high" }] }]] },
-  ],
-  film: { name: "tortoise-and-hare-film", variety: "medium", complexity: "low", originality: "low", rhythm: "medium", coherence: "high", obviousness: "high", flashiness: "low", energy: "medium" },
-  focus: { scenes: ["push"], relationships: [{ from: "hare", to: "tortoise" }] },
-};
+// on (test/untidy/nano-tortoise.lisp; Nano wrote it as JSON): in its scene The Push,
+// (undoes tortoise (from-scene push (convey (pushes hare tortoise)))), an undoes in the
+// scene it undoes, which "Ask Gemini Nano to fix these" wrote again. With that task left
+// out, all six scenes film, in 139, 49, 6, 17, 17 and 2 frames with the switch's
+// extensions (node tools/run-story.mjs on the tidied story --extensions
+// mend,know,appear,change; its last scene establishes a relationship and changes it,
+// which stage 3's fix of 13 October films), so they end at these frames
+const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
+const EXPECTED_NANO_LAST_FRAMES = [138, 48, 5, 16, 16, 1];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
 const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel"];
 const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
@@ -570,12 +563,12 @@ try {
     const knowPrompt = (p, j) => (j ? /\\{"kind": "follows", "who": X, "whom": Y\\} for X following Y/.test(p) && /only joy may be "negative"/.test(p) : /\\(convey \\(helps X Y\\)\\) for X helping Y along/.test(p) && /\\(convey \\(avoids X Y\\)\\)/.test(p) && /\\(convey \\(follows X Y\\)\\)/.test(p) && /a feeling may also be pride, anticipation, loneliness, fear or anger, written as joy is but always positive/.test(p))
       && /is-obedient-to by following the other/.test(p) && /fears, dislikes and is-intolerant-of by keeping away from the other/.test(p) && /personality: [^\\n]*\\bgentle\\b/.test(p) && /Nothing else: Ani can't show gives, says/.test(p);
     // asked to fix an undoes, a model is told each scene and what a later one may undo
-    const nanoLisp = t.lispFromJson(${JSON.stringify(NANO_TORTOISE)});
+    const nanoJson = t.jsonFromLisp(${JSON.stringify(NANO_TORTOISE)}), nanoLisp = t.lispFromJson(nanoJson);
     const undoProblem = t.checkStory(nanoLisp, { extensions: REVIVAL }).problems;
     const fixJson = t.repairPrompt(undoProblem, "json", nanoLisp), fixLisp = t.repairPrompt(undoProblem, "lisp", nanoLisp);
     const repairUndo = undoProblem.length === 1 && /push isn't an earlier scene/.test(undoProblem[0])
-      && /An undoes task undoes only what someone did in a scene before its own/.test(fixJson) && /\\n- boast: nothing a later scene can undo\\n- push: \\{"kind": "pushes", "who": "hare", "whom": "tortoise"\\}\\n- finish: nothing a later scene can undo\\n/.test(fixJson)
-      && /\\n- push: \\(convey \\(pushes hare tortoise\\)\\)\\n/.test(fixLisp) && /Reply with the whole corrected film description as JSON/.test(fixJson);
+      && /An undoes task undoes only what someone did in a scene before its own/.test(fixJson) && /\\n- boast: nothing a later scene can undo\\n- push: nothing a later scene can undo\\n- determination: \\{"kind": "change-personality", "who": "tortoise"/.test(fixJson)
+      && /\\n- determination: \\(convey \\(causes hare \\(change \\(personality tortoise/.test(fixLisp) && /Reply with the whole corrected film description as JSON/.test(fixJson);
     // what a model is given, in each mode and way, to compare with the claude.ai copy's
     const given = {};
     for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL]]) {
@@ -583,7 +576,7 @@ try {
       given[mode + " schema"] = JSON.stringify(t.storySchema(extensions));
     }
     return {
-      given, repairUndo,
+      given, repairUndo, nanoJson: JSON.stringify(nanoJson),
       knowSchema, knowPrompt: knowPrompt(lispRevival, false) && knowPrompt(jsonRevival, true) && ![lisp1978, json1978].some((p) => /personality: [^\\n]*\\bgentle\\b|helps X Y|"helps"|anticipation|is-obedient-to by/.test(p)),
       cindy: t.sameForms(t.cindyExample(), back) && !t.tidyStory(back).fixes.length && !t.checkStory(back).problems.length,
       strict1978: strict(s1978), strictRevival: strict(sRevival),
@@ -731,13 +724,14 @@ try {
   check(toldNano.calls === 1 && /^\{"type":"object"/.test(toldNano.constraint) && !/"pattern"/.test(toldNano.constraint) && toldNano.omit && toldNano.compact, "Gemini Nano gets the schema as Chrome's responseConstraint, not counted in its input, with the compact prompt");
   check(/Gemini Nano wrote it as JSON/.test(toldNano.result) && /4 characters/.test(toldNano.result) && /nothing wrong/.test(toldNano.result), "and its JSON reply becomes a draft that passes Ani's checks");
 
-  // Gemini Nano's Tortoise and the Hare (NANO_TORTOISE), with an undoes in the scene it
-  // undoes: the tidy step leaves it out, and the scene keeps its other tasks, so the film
-  // can be made, from the draft and the editor. Nano is already there ("available"), so
-  // though Chrome fires downloadprogress anyway, nothing says it is downloading; and its
-  // JSON, padded with blank lines as it streams, is shown without them.
+  // Gemini Nano's Tortoise and the Hare (NANO_TORTOISE, as the JSON it wrote), with an
+  // undoes in the scene it undoes: the tidy step leaves it out, and the scene keeps its
+  // other tasks, so the film can be made, from the draft and the editor, and all six
+  // scenes film. Nano is already there ("available"), so though Chrome fires
+  // downloadprogress anyway, nothing says it is downloading; and its JSON, padded with
+  // blank lines as it streams, is shown without them.
   // as Nano streams it: the JSON with runs of blank lines, the second half a moment later
-  const padded = JSON.stringify(NANO_TORTOISE, null, 1).replace(/\n/g, "\n\n\n\n   ");
+  const padded = JSON.stringify(JSON.parse(jsonWay.nanoJson), null, 1).replace(/\n/g, "\n\n\n\n   ");
   const tortoiseScript = await send("Page.addScriptToEvaluateOnNewDocument", { source: `window.__nanoStatus = [];
     window.LanguageModel = {
       availability: async () => "available",
@@ -775,12 +769,32 @@ try {
     const draftMake = !side.querySelector("#tell-fix");
     side.querySelector("#tell-edit").click();
     await wait(300);
-    return { draft, status, draftMake, seen: window.__nanoStatus, editor: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled };
+    const out = { draft, status, draftMake, seen: window.__nanoStatus, editor: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled };
+    document.getElementById("ed-make").click();
+    return out;
   })()`);
   await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: tortoiseScript.identifier });
+  let nanoMade = "";
+  for (let k = 0; k < 300; k++) {
+    await sleep(2000);
+    nanoMade = await js(`document.getElementById("run-status").innerText`);
+    if (!/·/.test(nanoMade)) break;
+  }
+  const nanoLasts = await js(`(async () => {
+    document.querySelector('#runbar [data-view="1"]').click();
+    const out = [];
+    for (const b of document.querySelectorAll("#scenes button")) {
+      b.click();
+      await new Promise((r) => setTimeout(r, 30));
+      out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
+    }
+    return out;
+  })()`);
   const leftOutUndo = /left out \(undoes tortoise \(from-scene push \(convey \(pushes hare tortoise\)\)\)\) in The Push/;
   check(/Gemini Nano wrote it as JSON/.test(nanoTortoise.draft) && leftOutUndo.test(nanoTortoise.draft) && /nothing wrong/.test(nanoTortoise.draft) && nanoTortoise.draftMake && leftOutUndo.test(nanoTortoise.editor) && nanoTortoise.make,
     "Gemini Nano's Tortoise and the Hare, with an undoes in the scene it undoes: the page leaves that task out, says so, and the film can be made, from the draft and the editor");
+  check(/with the revival's extensions: 6 of 6 scenes filmed/.test(nanoMade) && JSON.stringify(nanoLasts) === JSON.stringify(EXPECTED_NANO_LAST_FRAMES),
+    `and all six of its scenes film (${nanoMade.split("\n")[0]}), ending at frames ${nanoLasts.join(", ")} (Node: ${EXPECTED_NANO_LAST_FRAMES.join(", ")})`);
   const nanoSeen = nanoTortoise.seen || [];
   check(nanoSeen.length > 0 && !nanoSeen.some((x) => /download/i.test(x.status)) && !/download/i.test(nanoTortoise.status) && nanoSeen.some((x) => x.stream.length > 20) && !nanoSeen.some((x) => /\n\s*\n|\s{2,}/.test(x.stream)),
     `with Nano already there, nothing says it is downloading; and its streamed JSON is shown without its padding (${(nanoSeen.find((x) => x.stream) || { stream: "" }).stream.slice(0, 60)}...)`);
