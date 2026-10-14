@@ -1,5 +1,6 @@
-// Check REVIVE;CHANGE, characters who change (reports/chapter-x/PLAN.md, item 3, stage
-// 3), against its goldens in reports/ext/change/ (its README explains each). That CHANGE
+// Check REVIVE;CHANGE and REVIVE;CHSHOW, characters who change (reports/chapter-x/PLAN.md,
+// item 3, stages 3 and 6), against their goldens in reports/ext/change/ (its README
+// explains each). That CHANGE
 // leaves Ken's Cinderella byte for byte as in 1978 is tools/check-1978.mjs's
 // (--extensions change); test/change.test.js checks the pieces quickly. This asserts:
 //   - held, nothing changed: Ani's own pass 1 with every choice held but one
@@ -28,18 +29,32 @@
 //                    chosen again): nothing changes in how either moves;
 //     and, for each, everyone else's choices after the fresh look are the story's
 //     CP's, all of them;
-//   - the two stories end to end, at 4 frames a second, with MEND, APPEAR and CHANGE,
-//     as the film page makes them: every scene films and ends; each scene's program,
+//   - the three stories end to end, as the film page makes them: change-of-heart and
+//     socializing with MEND, APPEAR and CHANGE, and Ken's Cinderella with his
+//     cinderella-beautified uncommented (beautified-film) with the four extensions the
+//     page's switch turns on: every scene films and ends; each scene's program,
 //     summary, glass box, film and POSIT file, each BECOME file, and the run's record
-//     of each change, against reports/ext/change/<story>/; and the scene after the
-//     change planned and filmed again without learning who she has become (from the
-//     same positions), so that moves-differently.json shows which of her elements the
-//     program carries differently and what Director then did differently.
-// Usage: node tools/check-change.mjs [--quick] [--save] [--only repents,...]
+//     of each change, against reports/ext/change/<story>/ (or its 24fps/); how the
+//     changing scene shows its change (stage 6: its way of showing, the cause's walk,
+//     the bridges and her wander, glass.changesShown, and the film's events for each
+//     plan); and, at 4 frames a second, the scene after the change planned and filmed
+//     again without learning who she has become (from the same positions), so that
+//     moves-differently.json shows which of her elements the program carries
+//     differently and what Director then did differently (for the beautified film, her
+//     look: the take-look form);
+//   - the bridge's timing (stage 6): Change of Heart planned again with the
+//     stepmother's path-curvature to become high, a factor of 4 from low, and filmed at
+//     4 frames a second and at 24: the factor of her scene's dynamics reaches 4 as many
+//     seconds after the Prince's walk to her ends as Ani planned (her estimate, ten
+//     seconds an e-fold, times the subscene's stretch), within a frame, and the
+//     bridges' plan ends then.
+// Usage: node tools/check-change.mjs [--quick] [--save] [--fps 24] [--only repents,...]
 //   --quick  only the fresh looks and the held control (about four minutes, not twelve)
 //   --save   write the goldens instead of comparing them, after the facts are checked
+//   --fps 24 the stories and the bridge's timing at 24 frames a second, against each
+//            story's 24fps/ (the fresh looks and moves-differently are checked at 4)
 //   --only   these cases only (held, repents, socializes, beautified, made-beautiful,
-//            makes-up, change-of-heart, socializing)
+//            makes-up, change-of-heart, socializing, beautified-film, timing)
 // Prints each check with ok or FAIL; exits non-zero if any fails.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
@@ -51,6 +66,8 @@ const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1
 const quick = args.includes("--quick");
 const save = args.includes("--save");
 const only = opt("--only") ? opt("--only").split(",") : null;
+const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
+if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
 const wanted = (name) => !only || only.includes(name);
 const DIR = "reports/ext/change";
 const read = (path) => readFileSync(path, "utf8");
@@ -113,10 +130,10 @@ function withCindy(text) {
   return fs;
 }
 
-console.log(`REVIVE;CHANGE against ${DIR}${quick ? ", without the films" : ""}${save ? " (saving the goldens)" : ""}\n`);
+console.log(`REVIVE;CHANGE against ${DIR}${quick ? ", without the films" : ""}${fps !== 4 ? `, the films at ${fps} frames a second` : ""}${save ? " (saving the goldens)" : ""}\n`);
 
 // ---------------------------------------------------------------- held, nothing changed
-if (wanted("held")) {
+if (wanted("held") && fps === 4) {
   const cp29 = choicesOfItsFile("original/7005017/cp.29");
   for (const character of ["cinderella", "step-mother", "prince", "fairy-godmother"]) {
     const r = timed(() => {
@@ -188,7 +205,7 @@ const CASES = [
 const cp29 = choicesOfItsFile("original/7005017/cp.29");
 const freshLooks = {};
 for (const k of CASES) {
-  if (!wanted(k.name)) continue;
+  if (!wanted(k.name) || fps !== 4) continue;
   const r = lookAt(k.text(), k.scene, ["change"]);
   const ours = choicesOfText(textIn(r.fs, "KEN", "CP", "30"));
   const c = compareChoices(cp29, ours);
@@ -217,10 +234,16 @@ for (const k of CASES) {
 }
 
 // ---------------------------------------------------------------- the stories end to end
-const EXTENSIONS = ["mend", "appear", "change"];
+const STORY_EXTENSIONS = ["mend", "appear", "change"];
+// beautified-film: Ken's CINDY 46 with his cinderella-beautified uncommented, as the film
+// page makes it with the extensions its switch turns on (Ken's decision 3)
 const STORIES = [
-  { name: "change-of-heart", look: "repents", after: "kind-again", who: "step-mother" },
-  { name: "socializing", look: "socializes", after: "the-dance", who: "cinderella" },
+  { name: "change-of-heart", text: () => storyText("change-of-heart"), extensions: STORY_EXTENSIONS, look: "repents", after: "kind-again", who: "step-mother",
+    shows: { scene: "change-of-heart", shownBy: "(goes-to-and-transforms prince step-mother)", rate: "gradual", bridges: ["path-jaggedness", "path-curvature", "path-length"] } },
+  { name: "socializing", text: () => storyText("socializing"), extensions: STORY_EXTENSIONS, look: "socializes", after: "the-dance", who: "cinderella",
+    shows: { scene: "learning", shownBy: "(changes-while-wandering cinderella)", rate: "gradual", bridges: ["speed"] } },
+  { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
+    shows: { scene: "cinderella-beautified", shownBy: "(goes-to-and-transforms fairy-godmother cinderella)", rate: "instantaneous", bridges: ["color-saturation"] } },
 ];
 // The root special dynamics of a character in each subscene of a program, as pass 2
 // saved them (run.65:113-117): { "<subscene>": { element: value } }.
@@ -234,6 +257,8 @@ function dynamicsIn(program, character) {
   }
   return out;
 }
+// The take-look form of a character in a program (REVIVE;APPEAR), as written.
+const takeLookIn = (program, character) => (program.match(new RegExp(`^\\(ASK ${character.toUpperCase()} TAKE LOOK .*$`, "m")) || [""])[0].trim();
 // How far a character went on the picture, in TV dots, frame to frame while visible.
 function distanceIn(f, character) {
   let d = 0, last = null;
@@ -257,19 +282,39 @@ function turningIn(f, character) {
   }
   return Math.round(t);
 }
+// The frame a film's events say something happened on, or null.
+const eventFrame = (f, event) => { const e = f.events.find(([, what]) => what === event); return e ? e[0] : null; };
+// How the changing scene shows its change: the way of showing, the rate and the
+// elements bridged, as the glass box has them, and each plan's beginning and end in the
+// film; problem or null.
+function showsAsPlanned(shown, f, want) {
+  if (!shown) return "the glass box has no changesShown";
+  const problems = [];
+  if (shown.shownBy !== want.shownBy) problems.push(`shown by ${shown.shownBy}, not ${want.shownBy}`);
+  if (shown.rate !== want.rate) problems.push(`rate ${shown.rate}, not ${want.rate}`);
+  const bridged = [...new Set(shown.bridges.map((b) => b.element))].sort();
+  if (JSON.stringify(bridged) !== JSON.stringify([...want.bridges].sort())) problems.push(`bridges ${bridged.join(", ")}, not ${want.bridges.join(", ")}`);
+  const plans = [shown.goesTo && shown.goesTo.plan, shown.bridging && shown.bridging.plan, ...(shown.wanders ? shown.wanders.plans : [])].filter(Boolean);
+  for (const p of plans) if (eventFrame(f, `(beginning-of ${p})`) === null || eventFrame(f, `(end-of ${p})`) === null) problems.push(`${p} never began or ended in the film`);
+  if (shown.goesTo && shown.bridging && eventFrame(f, `(beginning-of ${shown.bridging.plan})`) !== eventFrame(f, `(end-of ${shown.goesTo.plan})`) + 1) problems.push("the bridges didn't begin the frame after the walk to her ended");
+  return problems.length ? problems.join("; ") : null;
+}
 const WEIGHT = { low: 0.5, short: 0.5, medium: 1, high: 2, long: 2 }; // INTERF's weightify (interf.149:899-904)
+const storyDir = (name) => `${DIR}/${name}${fps === 24 ? "/24fps" : ""}`;
+const storyRuns = {};
 if (!quick) {
   for (const st of STORIES) {
     if (!wanted(st.name)) continue;
-    const text = storyText(st.name);
+    const text = st.text();
     // as the film page makes a film of a story: its text the next version of KEN;CINDY
     const fs = makeProjectFileSystem();
     const plan = storyPlan(storyOutline(text), { looks: true, change: true });
-    const r = timed(() => makeFilm(fs, { description: text, extensions: EXTENSIONS, frames: 1000, fps: 4 }));
+    const r = timed(() => makeFilm(fs, { description: text, extensions: st.extensions, frames: fps === 24 ? 6000 : 1000, fps }));
     const run = r.value;
-    check(`${st.name}: made with ${EXTENSIONS.join(", ")}: ${run.scenes.map((s) => `${s.id} ${s.film ? s.film.frames.length : "failed"}`).join(", ")} frames`,
-      run.scenes.every((s) => s.film && s.film.frames.length <= 1000) ? null : "a scene failed or never ended", r.seconds);
-    const dir = `${DIR}/${st.name}`;
+    storyRuns[st.name] = { fs, run, plan, text };
+    check(`${st.name}: made with ${st.extensions.join(", ")} at ${fps} frames a second: ${run.scenes.map((s) => `${s.id} ${s.film ? s.film.frames.length : "failed"}`).join(", ")} frames`,
+      run.scenes.every((s) => s.film && s.film.frames.length < (fps === 24 ? 6000 : 1000)) ? null : "a scene failed or never ended", r.seconds);
+    const dir = storyDir(st.name);
     for (const s of plan.scenes) {
       const done = run.scenes.find((x) => x.id === s.id);
       if (!done || !done.film) continue;
@@ -285,7 +330,13 @@ if (!quick) {
     golden(`${st.name}: the run's record of each change`, `${dir}/changes.json`, JSON.stringify(changes, null, 1) + "\n");
     // the fresh look made in the film is the one made with CHANGE alone
     const inFilm = Object.values(changes)[0];
-    if (freshLooks[st.look]) check(`${st.name}: the fresh look in the film chose as with CHANGE alone (${st.look})`, sameObject(inFilm.characters.map((c) => c.values), freshLooks[st.look].characters.map((c) => c.values)));
+    if (st.look && freshLooks[st.look]) check(`${st.name}: the fresh look in the film chose as with CHANGE alone (${st.look})`, sameObject(inFilm.characters.map((c) => c.values.filter((v) => v.use !== "looks")), freshLooks[st.look].characters.map((c) => c.values)));
+    // how the changing scene shows its change (stage 6)
+    const showing = run.scenes.find((x) => x.id === st.shows.scene);
+    const shown = showing && showing.glass && showing.glass.changesShown && showing.glass.changesShown[0];
+    check(`${st.name}: ${st.shows.scene} shows the change by ${st.shows.shownBy}, ${st.shows.rate}, bridging ${st.shows.bridges.join(", ")}, each plan in the film`,
+      showing && showing.film ? showsAsPlanned(shown, showing.film, st.shows) : "the scene failed");
+    if (fps !== 4) continue;
     // the scene after the change, planned and filmed again from the same positions
     // without learning who she has become
     const after = plan.scenes.find((x) => x.id === st.after);
@@ -293,8 +344,11 @@ if (!quick) {
     const fs2 = withCindy(text);
     fs2.addFile("KEN", "CP", "30", { text: textIn(fs, "KEN", "CP", "30"), origin: "the film's pass 1" });
     fs2.addFile("KEN1", before.movie.toUpperCase(), "POSIT", { text: textIn(fs, "KEN1", before.movie.toUpperCase(), "POSIT"), origin: "the film" });
-    const p2 = pass2(fs2, after.id, { plan, extensions: EXTENSIONS, becomes: [] });
-    const f2 = film(fs2, after.id, { plan, extensions: EXTENSIONS, frames: 1000, fps: 4 }).film;
+    // the MINI files of the scenes it refers to, which RUN loads (KEPT MINI for
+    // no-longer-kept-apart, run.65:46-47)
+    for (const s of plan.scenes) if (fs.find({ dir: "KEN1", fn1: s.file[0].toUpperCase(), fn2: "MINI" })) fs2.addFile("KEN1", s.file[0].toUpperCase(), "MINI", { text: textIn(fs, "KEN1", s.file[0].toUpperCase(), "MINI"), origin: "the film" });
+    const p2 = pass2(fs2, after.id, { plan, extensions: st.extensions, becomes: [] });
+    const f2 = film(fs2, after.id, { plan, extensions: st.extensions, frames: 1000, fps: 4 }).film;
     const withBecome = { program: textIn(fs, "KEN", after.file[0].toUpperCase(), after.file[1].toUpperCase()), film: run.scenes.find((x) => x.id === after.id).film, glass: run.scenes.find((x) => x.id === after.id).glass };
     const without = { program: textIn(fs2, "KEN", after.file[0].toUpperCase(), after.file[1].toUpperCase()), film: f2, glass: p2.glass };
     const dWith = dynamicsIn(withBecome.program, st.who), dWithout = dynamicsIn(without.program, st.who);
@@ -314,15 +368,68 @@ if (!quick) {
       // the moves REVIVE;MEND12 stopped while the scene was filmed, those that never end
       repairs: { with: (withBecome.film.repairs || []).map((r) => r.note), without: (without.film.repairs || []).map((r) => r.note) },
       specialDynamics: elements,
+      ...(st.looks ? { looks: { with: takeLookIn(withBecome.program, st.who), without: takeLookIn(without.program, st.who) } } : {}),
       plan: { with: taskPlan(withBecome.glass), without: taskPlan(without.glass) },
     };
-    // the elements Director draws that her fresh look changed (ELEMENT_USE)
-    const expected = Object.entries(changedOf(inFilm, st.who)).filter(([e]) => ["speed", "path-curvature", "path-length", "path-jaggedness"].includes(e));
-    const first = Object.values(elements)[0] || {};
-    check(`${st.name}: in ${after.id} the program moves ${st.who} as she has become: ${expected.map(([e, [a, b]]) => `${e} ${b}, not ${a}`).join("; ")}`,
-      expected.length && expected.every(([e, [a, b]]) => first[e] && first[e].with === b && first[e].without === a) ? null : `the special dynamics differ in ${JSON.stringify(elements)}`);
-    golden(`${st.name}: how ${st.who} moves in ${after.id}, with and without who she has become`, `${dir}/moves-differently.json`, JSON.stringify(moves, null, 1) + "\n");
+    if (st.looks) {
+      // she is drawn as she has become: the take-look form of her new look
+      const after = inFilm.characters.find((c) => c.character === st.who).looks.after;
+      check(`${st.name}: in ${st.after} the program draws ${st.who} as she has become, saturation ${after.color[1]}, not ${inFilm.characters.find((c) => c.character === st.who).looks.before.color[1]}`,
+        moves.looks.with !== moves.looks.without && moves.looks.with.includes(` ${after.color[1].toFixed(1)} `) ? null : `with ${moves.looks.with}; without ${moves.looks.without}`);
+    } else {
+      // the elements Director draws that her fresh look changed (ELEMENT_USE)
+      const expected = Object.entries(changedOf(inFilm, st.who)).filter(([e]) => ["speed", "path-curvature", "path-length", "path-jaggedness"].includes(e));
+      const first = Object.values(elements)[0] || {};
+      check(`${st.name}: in ${after.id} the program moves ${st.who} as she has become: ${expected.map(([e, [a, b]]) => `${e} ${b}, not ${a}`).join("; ")}`,
+        expected.length && expected.every(([e, [a, b]]) => first[e] && first[e].with === b && first[e].without === a) ? null : `the special dynamics differ in ${JSON.stringify(elements)}`);
+    }
+    golden(`${st.name}: how ${st.who} moves in ${after.id}, with and without who she has become`, `${DIR}/${st.name}/moves-differently.json`, JSON.stringify(moves, null, 1) + "\n");
   }
+}
+
+// ---------------------------------------------------------------- the bridge's timing
+// Change of Heart planned again from the change-of-heart film's pass 1 and At Home's
+// positions, with the stepmother's path-curvature to become high (a factor of 4 from
+// low, where her fresh look has medium), and filmed with a probe of the factor of her
+// scene's dynamics (DICHAR's special-dynamics-for-current-scene, dichar.103:22-26), which
+// the bridge's first repeat grows.
+if (!quick && wanted("timing")) {
+  const st = STORIES[0];
+  const text = st.text();
+  const plan = storyPlan(storyOutline(text), { looks: true, change: true });
+  // pass 1 and At Home, unless the story was made above
+  let made = storyRuns[st.name];
+  if (!made) {
+    const fs = makeProjectFileSystem();
+    const sub = plan.scenes.slice(0, 2).map((s) => s.id);
+    const run = makeFilm(fs, { description: text, extensions: st.extensions, frames: fps === 24 ? 6000 : 1000, fps, scenes: sub });
+    made = { fs, run };
+  }
+  const become = textIn(made.fs, "KEN1", "STORY2", "BECOME");
+  const edited = become.replace(/(\(SET YOUR NEW-VALUES TO \(.*?\(PATH-CURVATURE )MEDIUM\)/, "$1HIGH)");
+  const fs2 = withCindy(text);
+  fs2.addFile("KEN", "CP", "30", { text: textIn(made.fs, "KEN", "CP", "30"), origin: "the film's pass 1" });
+  fs2.addFile("KEN1", "FILM1", "POSIT", { text: textIn(made.fs, "KEN1", "FILM1", "POSIT"), origin: "the film" });
+  fs2.addFile("KEN1", "STORY2", "BECOME", { text: edited, origin: "path-curvature high" });
+  const p2 = pass2(fs2, "change-of-heart", { plan, extensions: st.extensions, becomes: [] });
+  const shown = (p2.glass.changesShown || [])[0];
+  const curvature = shown && shown.bridges.find((b) => b.element === "path-curvature");
+  check(`timing: the edited fresh look's bridge of path-curvature is low to high, by a factor of 4`, edited !== become && curvature && curvature.was === "low" && curvature.now === "high" && /by 4\.0 factor/.test(curvature.form) ? null : JSON.stringify(curvature));
+  const ideal = 5.0 / WEIGHT.low * Math.log(4);
+  check(`timing: Ani planned the bridges for ten seconds an e-fold, ${ideal.toFixed(2)} seconds, times the subscene's stretch, ${shown ? shown.stretchedBy.toFixed(3) : "?"}`,
+    shown && Math.abs(shown.bridging.ideal - ideal) < 1e-3 && Math.abs(shown.bridging.seconds - ideal * shown.stretchedBy) < 1e-3 ? null : JSON.stringify(shown && shown.bridging));
+  const probe = [];
+  // read without recalling it, whose demon would set it (dichar.103:22-26)
+  const onClick = (frame, L) => probe.push(L.num.val(L.evalString("(let ((sd (cdr (assoc 'special-dynamics-for-current-scene (ask step-mother internal-recall-your-normal-variable))))) (or (and sd (ask ,sd recall your (path-curvature factor))) 1.0))")));
+  const f = film(fs2, "change-of-heart", { plan, extensions: st.extensions, frames: fps === 24 ? 6000 : 1000, fps, onClick }).film;
+  const contact = eventFrame(f, `(end-of ${shown.goesTo.plan})`);
+  const reached = probe.findIndex((x) => x >= 4.0 - 1e-4);
+  const planned = contact + shown.bridging.seconds * fps;
+  const ended = eventFrame(f, `(end-of ${shown.bridging.plan})`);
+  check(`timing at ${fps} frames a second: the Prince touches her at frame ${contact}; her path-curvature factor reaches 4 at frame ${reached}, ${((reached - contact) / fps).toFixed(2)} seconds later, as planned (${shown.bridging.seconds.toFixed(2)} seconds, frame ${planned.toFixed(1)}), and the bridges end at frame ${ended}`,
+    reached >= 0 && Math.abs(reached - planned) <= 1 && ended !== null && Math.abs(ended - planned) <= 1.5 && Math.abs(probe[reached] - 4.0) < 1e-3 ? null : `probe ${probe.slice(contact, contact + 3).map((x) => x.toFixed(3))} ... ${probe.slice(-3).map((x) => x.toFixed(3))}`);
+  golden(`timing at ${fps} frames a second: the factor frame by frame`, `${DIR}/timing${fps === 24 ? "-24fps" : ""}.json`,
+    JSON.stringify({ scene: "change-of-heart", character: "step-mother", element: "path-curvature", from: "low", to: "high", factor: 4, fps, contact, bridging: { plan: shown.bridging.plan, ideal: shown.bridging.ideal, stretchedBy: shown.stretchedBy, seconds: shown.bridging.seconds, began: eventFrame(f, `(beginning-of ${shown.bridging.plan})`), ended }, reached, factorByFrame: probe.map((x) => Math.round(x * 10000) / 10000) }, null, 1) + "\n");
 }
 
 const total = ((Date.now() - t0) / 1000).toFixed(0);

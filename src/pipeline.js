@@ -8,8 +8,9 @@
 //            (KEN1;KA POSIT, ...), which the next scene's pass 2 starts from
 //   and, with the revival's CHANGE, before the pass 2 of a scene that changes someone:
 //   pass 1 again  DATEST: Ani's fresh look at whoever changes, everyone else held, saved
-//            as KEN1;<fn1> BECOME, which the later scenes' pass 2 loads; and once more
-//            with everyone chosen afresh, for comparison
+//            as KEN1;<fn1> BECOME, which the later scenes' pass 2 loads and the scene's own
+//            pass 2 shows the change by (REVIVE;CHSHOW); and once more with everyone
+//            chosen afresh, for comparison
 //
 // Each step boots a fresh Lisp, as each was a separate job on ITS; they pass files.
 // Any of the revival's extensions asked for (EXTENSIONS) are loaded into each of them.
@@ -400,7 +401,15 @@ export function glassBox(L, scene) {
   // how the scene shows a change made in it (REVIVE;CHSHOW), only if it shows one, for
   // the same reason
   const changesShown = collectChangesShown(L, scene);
-  if (changesShown.length) glass.changesShown = changesShown;
+  if (changesShown.length) {
+    // the task each is shown by, the one whose methods have its way of showing it
+    for (const c of changesShown) {
+      const way = c.shownBy === "alone" ? `(bridge-to: element (${c.character} ` : c.shownBy;
+      const t = way && glass.tasks.find((x) => (x.variables["current-choice"] || "").includes(way));
+      c.task = t ? t.name : null;
+    }
+    glass.changesShown = changesShown;
+  }
   // the ways of showing a word borrowed from its neighbor (REVIVE;KNOW's sharing), only
   // if any were, for the same reason
   const borrowed = collectBorrowed(L, glass.tasks);
@@ -543,10 +552,11 @@ function lookChange(L) {
 
 // How the scene shows each change made in it (REVIVE;CHSHOW), from the change-of actors
 // its pass 2 loaded to show (changes-shown-in): for each, in film order, { actor,
-// character, changes, causes, rate, rateBecause, shownBy, subscene, stretchedBy,
-// seconds, ideal, goesTo, bridging, bridges, wanders, notBridged, looks? }:
-//   rate          "gradual" or "instantaneous"; rateBecause, the reason as Lisp, with
-//                 "(the revival's)" for the magical rule
+// character, changes, causes, rate, rateBecause, rateRule?, shownBy, subscene,
+// stretchedBy, seconds, ideal, goesTo, bridging, bridges, wanders, notBridged, looks?,
+// task } (task, the glass box's name of the task whose methods show it, glassBox adds):
+//   rate          "gradual" or "instantaneous"; rateBecause, the reason as Lisp;
+//                 rateRule "(of the revival)" for the magical rule, the revival's
 //   shownBy       the way of showing it, "(goes-to-and-transforms prince step-mother)",
 //                 "(changes-while-wandering cinderella)", or "alone" (its bridges run with
 //                 no way of showing beside them); subscene, stretchedBy as run

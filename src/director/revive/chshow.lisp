@@ -21,10 +21,10 @@
 ;;;  1. The verbs. CONVEY has no change and no causes: Ken named causes in EVIL's and
 ;;;     DOMINATES' suggestions (dscrp.17:161-167, relate.22:72-78) and wrote change in his
 ;;;     cinderella-beautified (cindy.46:94-105), and defined neither. Here each is an
-;;;     action of CONVEY's, as hurts and pushes are (convey.64:83-98), whose suggestions
+;;;     action of CONVEY's, as hurts and pushes are (convey.64:82-98), whose suggestions
 ;;;     show the change: one display method and a bridge for each element to bridge.
 ;;;  2. One display method. A task gets one display method; CHOMET chooses one, and adds
-;;;     every value change suggested beside it (choose-a-display-method, chomet.123:213-
+;;;     every value change suggested beside it (choose-a-display-method, chomet.123:216-
 ;;;     240; reject-bad-value-changes, chomet.123:463-472). So the cause and the change
 ;;;     are one method, as Ken's move-to-and-hits is a going to and a hitting
 ;;;     (disply.311:113-153):
@@ -73,7 +73,7 @@
 ;;; ------------------------------------------------- 1. the task being shown
 
 ;; CONVEY's receivers are asked for a convey task's suggestions with only its
-;; description, (convey (change ...)) (gather-convey-suggestions, sugcon.26:62-63); the
+;; description, (convey (change ...)) (gather-convey-suggestions, sugcon.26:57-58); the
 ;; change's are made in the task's own scene, where Ani's fresh look at whoever changes
 ;; is (change-of cinderella in cinderella-beautified). SUGCON's convey-suggestions is
 ;; given the task (sugcon.26:15-18), and while it collects its suggestions the task is

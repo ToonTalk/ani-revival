@@ -43,14 +43,18 @@
 ;;;     her choices again, in her own order, and every choice that isn't the changed
 ;;;     character's is held as it was, so that only she is chosen again (Ken's decision
 ;;;     of 9 October: "Ani rederives only the changed character, with everyone else held
-;;;     as they were"). Her new values are written to KEN1;<scene> BECOME, as
-;;;     save-answers writes KEN;CP.
+;;;     as they were"). With APPEAR, how she looks is chosen again too, as pass 1
+;;;     chooses it after (z) ("rederive the dynamics (and appearance)", L4400-4401). Her
+;;;     new values, and the look she was drawn with and is drawn with now, are written
+;;;     to KEN1;<scene> BECOME, as save-answers writes KEN;CP.
 ;;;  3. Who they have become. In pass 2 of every later scene, RUN's to-do-before-running
 ;;;     (run.65:48) loads the BECOME files of the earlier scenes and makes them so: the
 ;;;     descriptions change and the choice points take her new values, so the scene's
 ;;;     establish tasks read the new words and its special dynamics carry the new
-;;;     values. REVIVE;MEND, if loaded, then narrows any (not X) and reads any none as
-;;;     medium, as it does the CP's.
+;;;     values; with APPEAR, she is drawn as the fresh look drew her. REVIVE;MEND then
+;;;     narrows any (not X) and reads any none as medium, as it does the CP's.
+;;;  4. In the scene of the change itself, pass 2 loads the scene's own BECOME file
+;;;     without making it so, and REVIVE;CHSHOW shows the change.
 ;;; And, for the glass box only, a full recompute: pass 1 again with every choice made
 ;;; afresh, whose knock-on changes in the others are shown, not used.
 ;;;
