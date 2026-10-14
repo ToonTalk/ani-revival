@@ -44,10 +44,10 @@
 //     look: the take-look form);
 //   - the bridge's timing (stage 6): Change of Heart planned again with the
 //     stepmother's path-curvature to become high, a factor of 4 from low, and filmed at
-//     4 frames a second and at 24: the factor of her scene's dynamics reaches 4 as many
-//     seconds after the Prince's walk to her ends as Ani planned (her estimate, ten
-//     seconds an e-fold, times the subscene's stretch), within a frame, and the
-//     bridges' plan ends then.
+//     4 frames a second and at 24: the bridges begin the tick after the Prince's walk to
+//     her ends, and the factor of her scene's dynamics reaches 4 as many seconds after
+//     as Ani planned (her estimate, ten seconds an e-fold, times the subscene's
+//     stretch), within a frame, and the bridges' plan ends then.
 // Usage: node tools/check-change.mjs [--quick] [--save] [--fps 24] [--only repents,...]
 //   --quick  only the fresh looks and the held control (about four minutes, not twelve)
 //   --save   write the goldens instead of comparing them, after the facts are checked
@@ -241,7 +241,7 @@ const STORIES = [
   { name: "change-of-heart", text: () => storyText("change-of-heart"), extensions: STORY_EXTENSIONS, look: "repents", after: "kind-again", who: "step-mother",
     shows: { scene: "change-of-heart", shownBy: "(goes-to-and-transforms prince step-mother)", rate: "gradual", bridges: ["path-jaggedness", "path-curvature", "path-length"] } },
   { name: "socializing", text: () => storyText("socializing"), extensions: STORY_EXTENSIONS, look: "socializes", after: "the-dance", who: "cinderella",
-    shows: { scene: "learning", shownBy: "(changes-while-wandering cinderella)", rate: "gradual", bridges: ["speed"] } },
+    shows: { scene: "learning", shownBy: "(changes-while-wandering cinderella)", rate: "gradual", bridges: ["speed", "size", "shape-complexity"] } },
   { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
     shows: { scene: "cinderella-beautified", shownBy: "(goes-to-and-transforms fairy-godmother cinderella)", rate: "instantaneous", bridges: ["color-saturation"] } },
 ];
@@ -422,12 +422,15 @@ if (!quick && wanted("timing")) {
   // read without recalling it, whose demon would set it (dichar.103:22-26)
   const onClick = (frame, L) => probe.push(L.num.val(L.evalString("(let ((sd (cdr (assoc 'special-dynamics-for-current-scene (ask step-mother internal-recall-your-normal-variable))))) (or (and sd (ask ,sd recall your (path-curvature factor))) 1.0))")));
   const f = film(fs2, "change-of-heart", { plan, extensions: st.extensions, frames: fps === 24 ? 6000 : 1000, fps, onClick }).film;
+  // the bridges begin the tick after the touch (a sequence: runs the next on the next
+  // tick, action.152:115-120), and take the ticks their seconds make
   const contact = eventFrame(f, `(end-of ${shown.goesTo.plan})`);
+  const began = eventFrame(f, `(beginning-of ${shown.bridging.plan})`);
   const reached = probe.findIndex((x) => x >= 4.0 - 1e-4);
-  const planned = contact + shown.bridging.seconds * fps;
+  const planned = contact + 1 + shown.bridging.seconds * fps;
   const ended = eventFrame(f, `(end-of ${shown.bridging.plan})`);
-  check(`timing at ${fps} frames a second: the Prince touches her at frame ${contact}; her path-curvature factor reaches 4 at frame ${reached}, ${((reached - contact) / fps).toFixed(2)} seconds later, as planned (${shown.bridging.seconds.toFixed(2)} seconds, frame ${planned.toFixed(1)}), and the bridges end at frame ${ended}`,
-    reached >= 0 && Math.abs(reached - planned) <= 1 && ended !== null && Math.abs(ended - planned) <= 1.5 && Math.abs(probe[reached] - 4.0) < 1e-3 ? null : `probe ${probe.slice(contact, contact + 3).map((x) => x.toFixed(3))} ... ${probe.slice(-3).map((x) => x.toFixed(3))}`);
+  check(`timing at ${fps} frames a second: the Prince touches her at frame ${contact}, the bridges begin at frame ${began}; her path-curvature factor reaches 4 at frame ${reached}, ${((reached - began) / fps).toFixed(2)} seconds after they began, as planned (${shown.bridging.seconds.toFixed(2)} seconds, frame ${planned.toFixed(1)}), and the bridges end at frame ${ended}`,
+    reached >= 0 && began === contact + 1 && Math.abs(reached - planned) <= 1 && ended !== null && Math.abs(ended - planned) <= 1 && Math.abs(probe[reached] - 4.0) < 1e-3 ? null : `probe ${probe.slice(contact, contact + 3).map((x) => x.toFixed(3))} ... ${probe.slice(-3).map((x) => x.toFixed(3))}`);
   golden(`timing at ${fps} frames a second: the factor frame by frame`, `${DIR}/timing${fps === 24 ? "-24fps" : ""}.json`,
     JSON.stringify({ scene: "change-of-heart", character: "step-mother", element: "path-curvature", from: "low", to: "high", factor: 4, fps, contact, bridging: { plan: shown.bridging.plan, ideal: shown.bridging.ideal, stretchedBy: shown.stretchedBy, seconds: shown.bridging.seconds, began: eventFrame(f, `(beginning-of ${shown.bridging.plan})`), ended }, reached, factorByFrame: probe.map((x) => Math.round(x * 10000) / 10000) }, null, 1) + "\n");
 }
