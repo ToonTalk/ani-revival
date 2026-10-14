@@ -87,8 +87,9 @@ function videoPlan(runs, sceneIndexes, rate, titles = true) {
 }
 // The subtitles at one of a video's pictures, for one film: the scene and part, and what
 // the page's caption says there (what is shown, to show what), as plain text. The same
-// subscenes, changes of shape or size and ending give the same words (a color's steps
-// are said by the part's look changes), so they are worked out once (memo).
+// subscenes, changes of shape or size, steps of a change of who someone is (the cause's
+// walk, the bridges, her wander, REVIVE;CHSHOW) and ending give the same words (a color's
+// steps are said by the part's look changes), so they are worked out once (memo).
 function subtitleAt(run, k, item, memo) {
   const sc = run.scenes[item.i];
   const tag = memo.both ? `${run.short} · ` : "";
@@ -96,7 +97,8 @@ function subtitleAt(run, k, item, memo) {
   if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
   const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
   const looks = shapeChanges(sc, f).map((x) => x[0]).join();
-  const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${f === sc.last}`;
+  const showing = (sc.glass.changesShown || []).length ? sc.activities.filter((a) => CHANGE_ACTIVITIES.includes(a.base) && a.begin !== null && f >= a.begin && f <= a.end).map((a) => a.base).sort().join() : "";
+  const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${showing} ${f === sc.last}`;
   if (!memo.has(key)) {
     const c = captionAt(run, item.i, f);
     memo.set(key, { part: `${tag}${unmark(c.part)}`, text: unmark([c.text, ...c.more].filter(Boolean).join(" ")) });

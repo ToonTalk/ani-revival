@@ -929,6 +929,11 @@ function methodText(m, bare = false) {
     case "helps-along": return `${who(a)} helps ${who(b)} along`;
     case "moves-away-from": return `${who(a)} runs off when ${who(b)} comes near`;
     case "follows-behind": return `${who(a)} follows ${who(b)}`;
+    // the revival's (REVIVE;CHSHOW): a change shown in its scene, by the cause going to the
+    // one it changes, or by her wandering as she changes; and each element bridged
+    case "goes-to-and-transforms": return `${who(a)} goes to ${who(b)} and transforms ${CHARS[b] ? CHARS[b].her : "them"}`;
+    case "changes-while-wandering": { const k = CHARS[a] || { she: "they" }; return `${who(a)} ${agree(k, "wanders", "wander")} about as ${k.she} ${agree(k, "changes", "change")}`; }
+    case "bridge-to:": { const el = kv(m, "element") || [], v = kv(m, "new-value"); return `${who(el[0])}'s ${elementName(el[1])} goes ${kv(m, "speed") === "instantaneous" ? "at once" : "gradually"} to ${esc(isAppearance(el[1]) ? lookValue(el[1], v) : plain(show(v)))}`; }
     case "change:": { const el = kv(m, "element"); const [sg, am] = kv(m, "amount") || []; return `${who(el[0])}'s ${elementName(el[1])} ${sg === "negative" ? "falls" : "rises"} ${am === "high" ? "a lot" : am === "low" ? "a little" : ""}`.trim(); }
     case "change-to:": { const el = kv(m, "element"); return `${who(el[0])}'s ${elementName(el[1])} changes to ${kv(m, "new-value")}`; }
     // the revival's (REVIVE;ALTER): a change of how a character looks
@@ -974,6 +979,10 @@ const ACTIVITY = {
   "moves-away": "running off, away from the other",
   leading: "going on ahead, to be followed",
   following: "following the other",
+  // the revival's (REVIVE;CHSHOW)
+  "goes-to-to-transform": "going to the other, to transform them",
+  "bridging-the-gap": "changing, from how they were to who they have become",
+  "wandering-while-changing": "wandering about while the change is shown",
 };
 // Which display method made which activities (DISPLY 311's plans), and the revival's
 // move-to (REVIVE;MEND5) and KNOW's three (REVIVE;KNOWDI).
@@ -993,15 +1002,28 @@ const FAMILY = {
   "helps-along": ["trying-alone", "goes-behind-to-help", "comes-in-contact-to-help", "helping-along"],
   "moves-away-from": ["other-approaches", "moves-away"],
   "follows-behind": ["leading", "following"],
+  // REVIVE;CHSHOW's: the cause's walk; the bridges and her wander are the way of
+  // showing that the change's record names (changeOfActivity)
+  "goes-to-and-transforms": ["goes-to-to-transform"],
 };
 const familyOf = (activityBase) => Object.keys(FAMILY).find((m) => FAMILY[m].includes(activityBase));
 // The display method whose plan made an activity. getting-on-stage is goes-to-and-
 // accompanys' step (disply.311:192-203), unless the revival's repairs planned it, to
 // bring someone on for another method (REVIVE;MEND6's bring-on), as their note on the
-// subscene says.
+// subscene says. A change's plans are the way of showing its record names: goes-to-and-
+// transforms, changes-while-wandering, or bridge-to: alone (REVIVE;CHSHOW).
 function familyOfActivity(act) {
   const note = act.base === "getting-on-stage" ? broughtOnBy(act.name) : null;
-  return note ? note.method : familyOf(act.base);
+  if (note) return note.method;
+  const x = changeOfActivity(act);
+  if (x) return x.shownBy === "alone" || !x.shownBy ? "bridge-to:" : parse(x.shownBy)[0];
+  return familyOf(act.base);
+}
+// The change (glass.changesShown) one of whose plans an activity is: the cause's walk,
+// the bridges or a walk of her wander; or null.
+function changeOfActivity(act) {
+  if (!CHANGE_ACTIVITIES.includes(act.base)) return null;
+  return (scene().glass.changesShown || []).find((x) => (x.goesTo && x.goesTo.plan === act.name) || (x.bridging && x.bridging.plan === act.name) || (x.wanders && x.wanders.plans.includes(act.name))) || null;
 }
 // The note on the subscene, if the revival's repairs planned this getting-on-stage:
 // (revival-repair: what brought-on-stage was (goat at ...) now (activity-of getting-on-stage
@@ -1098,7 +1120,7 @@ const madeWith = (run) => (runExtensions(run).length ? `with ${extensionsName(ru
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
 // whether the switch changes what Ken's own story makes (APPEAR does: Ani draws his cast)
 const switchChanges1978 = () => MODE === "revival" && SWITCHED.some((id) => EXTENSIONS.find((e) => e.id === id).changes1978);
-const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "takes a fresh look at a character a story changes" };
+const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "shows a change a story makes in a character, and takes a fresh look at who they have become" };
 // clauses with an "and" of their own, set apart with commas: "A, B, and C"
 const clauseList = (clauses) => (clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : clauses[0] || "");
 function modeNote() {
@@ -1129,7 +1151,7 @@ document.addEventListener("click", (e) => {
 const EXTENSION_TEXT = {
   mend: "Where Ani as in 1978 stops on a story Ken never gave her, each repair lets her go on the way her own code already goes on elsewhere, and notes where it acted. Ken's Cinderella comes out exactly as in 1978.",
   appear: "Ani chooses each character's size, shape and colors as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit, and the hue is one of six on a painter's wheel. During a scene, joy brightens a character's colors and sadness dims them (p. 166), beside Ani's changes of how it moves; color mode shows them. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
-  change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were. From the next scene on she is described and moves as she has become. The change itself isn't shown yet; a later stage will animate it. Ken's Cinderella has no change, so it comes out exactly as in 1978.",
+  change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were; with APPEAR, how she looks too. In the scene itself Ani shows the change (p. 169): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes, while Ani bridges the gap between how she moved and looked and how she will, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. Ken's Cinderella has no change, so it comes out exactly as in 1978; his own cinderella-beautified scene, put back as he wrote it, now plays (“Change the story” has it).",
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
 };
 const REVIVE_TEXT = {
@@ -1138,9 +1160,10 @@ const REVIVE_TEXT = {
   apsug: "Where the suggestions for a look come from: eleven words, each with its evidence (evil's dark colors are Ken's, “bad guys wear black”); one character dominating another; characters who stand out; how the character moves; and the film's flashiness, complexity and obviousness.",
   shapes: "The shape experts, for polygons, stars and a circle, who find a shape that fits the choices, and set aside the least justified choice when none does.",
   colors: "A small semantic net of six hues on a painter's wheel (thesis p. 240): two hues a step apart conflict, two steps apart are compromised as Ken's COSUG compromises two speeds (equally strong, they meet at the hue between), opposite hues are complements; where nothing else decides between hues, the film's variety takes them in the revival's order, round Itten's wheel from yellow, chosen so as not to give back Ken's 1978 hues and open for his decision; and the color each character is drawn in, from its hue, clarity and brightness.",
-  looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER).",
-  alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed, and only beside a change of how it moves by the same amount at the same speed.",
-  change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was), saved for the later scenes; and, in each of them, who they have become.",
+  looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER), at a speed or, for a change of who someone is, over a time in seconds.",
+  alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed, and only beside a change of how it moves by the same amount at the same speed; and, for a change of who someone is, what Director is to do with each aspect of her look that changed: a size, brightness or clarity by a factor, a hue or a shape to the new one.",
+  change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was, and with APPEAR how she looks), saved for the later scenes; and, in each of them, who they have become, how she moves and how she is drawn.",
+  chshow: "Showing a change in its scene (thesis p. 169): change and causes as ways of conveying; the cause going to the one it changes and transforming her (goes-to-and-transforms), or, with no cause, her wandering about as she changes (changes-while-wandering); and bridging the gap in each element Director reads, and with APPEAR in her look, all together, over the time the largest change needs: gradually, at ten seconds an e-fold, or at once if the cause is magical (the revival's rule). What else Ani chose again is noted as not bridged, since Director doesn't read it: acceleration and deliberateness, which Director doesn't use, as in 1978; the likings, which only pass 1 reads; and the rhythm, activity and repetitiveness, which pass 2 reads from the next scene on.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
   mend3: "A personality word Ani doesn't know is left out, and named.",
@@ -1265,9 +1288,9 @@ function repairSentence({ actor, what, notes }, sc) {
     case "brought-on-stage": {
       const c = Array.isArray(was) ? was[0] : was;
       const method = Array.isArray(because) ? because[because.length - 1] : null;
-      const doing = { "chases-to": "the chase", "move-to-and-hits": "the hitting", "pushes-around": "the pushing around", "move-to": "the meeting", "helps-along": "the helping", "moves-away-from": "the keeping away", "follows-behind": "the following" }[method] || "what follows";
-      // the revival's own ways of showing (MEND5's move-to, KNOW's), which Ani as in 1978 doesn't have
-      const ours = method === "move-to" || !!(DATA.know && DATA.know.methods[method]);
+      const doing = { "chases-to": "the chase", "move-to-and-hits": "the hitting", "pushes-around": "the pushing around", "move-to": "the meeting", "helps-along": "the helping", "moves-away-from": "the keeping away", "follows-behind": "the following", "goes-to-and-transforms": "the transformation", "changes-while-wandering": "the change" }[method] || "what follows";
+      // the revival's own ways of showing (MEND5's move-to, KNOW's, CHSHOW's), which Ani as in 1978 doesn't have
+      const ours = method === "move-to" || CHANGE_METHODS.includes(method) || !!(DATA.know && DATA.know.methods[method]);
       return `${cap(who(c))} started off the stage, so the revival's repairs first bring ${CHARS[c] ? CHARS[c].her : "them"} on for ${doing}, with Ken's own getting-on-stage step${ours ? "" : `; with Ani as in 1978, ${doing} happens out of sight`}.`;
     }
     case "measured-small-way-from": {
@@ -1569,6 +1592,8 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if (/BAD-MESSAGE/i.test(m) && (x = notUnderstood(typed))) return { text: notUnderstoodText(x), repair: null };
   // REVIVE;MEND13 and MEND15: two characters at one spot, or two goals that lead to each other
   if (/Maximum call stack size exceeded/i.test(m)) return { text: "Ani went round and round reckoning a place: two characters stood at the very same spot (a division by zero), or two characters' goals each depended on the other's.", repair: "reckon from a spot to itself as Ken's own turtle would, and take a character's own place when its goal leads back to it" };
+  // REVIVE;CHANGE: a change of someone the story never defines (check-who-a-change-names)
+  if ((x = m.match(/\(CHANGE \((.+?) IS NOT A CHARACTER OF THE STORY/i))) return { text: `A change in the story is of ${esc(plain(x[1].toLowerCase()))}, who isn't one of its characters, and Ani stopped there: a change is of a character the story defines, or of how one feels about another.`, repair: null };
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
   // REVIVE;MEND16 and MEND17
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
@@ -2375,12 +2400,25 @@ function looksBody(run, c, boxId, sc = null) {
   const experts = entry ? expertsText(run, c) : "";
   const notes = entry ? lookNotes(run, c) : [];
   const changes = lookChangeLines(run, sc, c);
-  return `<p class="look-line">${sentence}</p>${colored ? `<p class="look-line">${colored}</p>` : ""}${lift ? `<p class="note">${lift}</p>` : ""}<div class="look-box" id="${esc(boxId)}"></div>
+  const became = becameLookNote(run, c, sc);
+  return `<p class="look-line">${sentence}</p>${colored ? `<p class="look-line">${colored}</p>` : ""}${became ? `<p class="fix-line">${became}</p>` : ""}${lift ? `<p class="note">${lift}</p>` : ""}<div class="look-box" id="${esc(boxId)}"></div>
     ${known ? `<div class="note"><p>Where the reasons for ${theirs(c)} colors come from ${fileLink("apsug")}:</p><ul class="look-know">${known}</ul></div>` : ""}
     ${changes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     ${experts ? `<p class="note">${experts} ${fileLink("shapes")}</p>` : ""}
     ${notes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     <p class="ken-1978">${ken1978Note(run, c)}</p>`;
+}
+// After a change that chose her look again (REVIVE;CHANGE with APPEAR), how she is drawn:
+// in a later scene, as pass 2 made her so (glass.becomes, lookMadeSo); in the scene of the
+// change, as Ani bridges it there (glass.changesShown).
+function becameLookNote(run, c, sc) {
+  if (!sc || !sc.glass) return "";
+  const kk = meet(run.story, c), how = `“How ${kk.she} ${agree(kk, "has", "have")} changed” says why`;
+  const b = (sc.glass.becomes || []).filter((x) => x.character === c && x.looks && x.looks.after && x.looks.changed.length).pop();
+  if (b) return `Since ${esc(sceneTitle(b.scene))}, ${kk.she} ${agree(kk, "is", "are")} drawn ${esc(lookChangeWords(b.looks))}: Ani's fresh look after that scene chose ${kk.her} look again (${how}).`;
+  const x = ready(sc) ? shownChange(sc, c) : null;
+  if (x && x.looks && x.looks.after && x.looks.changed.length) return `In this scene ${kk.she} ${agree(kk, "changes", "change")}, and from then on ${kk.she} ${agree(kk, "is", "are")} drawn ${esc(lookChangeWords(x.looks))} (${how}).`;
+  return "";
 }
 // A look's choice point: the suggestion that won, each of its sources with what it
 // suggests and its evidence (the thesis or Ken's code quoted; the revival's own
@@ -2477,15 +2515,18 @@ function lookChoiceBox(run, char, el) {
 
 // ---------------------------------------------------------------- how she has changed
 
-// With CHANGE (REVIVE;CHANGE), a scene may change a character, as Ken wrote one in his
-// commented-out cinderella-beautified (cindy.46:94-105): (change (TYPE WHO OLD) (TYPE WHO
-// NEW)), alone or inside (causes CAUSER ...). Before the scene's pass 2, Ani takes a fresh
-// look at whoever it changes, as if brand new (thesis p. 168): pass 1 again with the new
-// words, every other choice held as it was; from the next scene on they are described and
-// move as they have become. The run keeps each scene's record (src/pipeline.js
-// changeRecord) as run.raw.changes[scene], and each later scene's glass box has what pass
-// 2 made so (glass.becomes). Ani has no change or causes verb yet, so the change task is
-// "cant-do" until stage 6 (reports/chapter-x/PLAN.md). Every sentence is made from these.
+// With CHANGE (REVIVE;CHANGE and REVIVE;CHSHOW), a scene may change a character, as Ken
+// wrote one in his commented-out cinderella-beautified (cindy.46:94-105): (change (TYPE
+// WHO OLD) (TYPE WHO NEW)), alone or inside (causes CAUSER ...). Before the scene's pass
+// 2, Ani takes a fresh look at whoever it changes, as if brand new (thesis p. 168): pass 1
+// again with the new words, every other choice held as it was, and, with APPEAR, how she
+// looks too. In the scene itself Ani shows the change (p. 169): the cause goes to the one
+// it changes and transforms her, or, with no cause, she wanders about as she changes,
+// while Ani bridges the gap between how she moved and looked and how she will; from the
+// next scene on they are described, move and look as they have become. The run keeps each
+// scene's record (src/pipeline.js changeRecord) as run.raw.changes[scene]; the changing
+// scene's glass box has how it was shown (glass.changesShown, collectChangesShown), and
+// each later scene's what pass 2 made so (glass.becomes). Every sentence is made from these.
 const isChange = (x) => Array.isArray(x) && x[0] === "change" && x.length === 3 && [x[1], x[2]].every((p) => Array.isArray(p) && p.length === 3);
 const wordsOf = (d) => (Array.isArray(d) && d[0] === "and" ? d.slice(1) : [d]);
 // The changes in a task, or a scene's tasks, as src/pipeline.js storyOutline finds them:
@@ -2503,68 +2544,298 @@ function changeText(c, past = false) {
   if (rel) return `${c.cause ? `${who(c.cause)} ${past ? "changed" : "changes"} how` : "how"} ${who(c.who[1])} feels about ${who(c.who[2])}${c.cause ? "" : past ? " changed" : " changes"}, from “${ws(c.from)}” to “${ws(c.to)}”`;
   return `${c.cause ? `${who(c.cause)} ${past ? "made" : "makes"} ${who(c.who)}` : `${who(c.who)} ${past ? "became" : "becomes"}`} ${ws(c.to)}, no longer ${ws(c.from)}`;
 }
-// Director's elements first (src/pipeline.js ELEMENT_USE), then pass 2's, then the rest.
-const CHANGE_ORDER = ["speed", "path-curvature", "path-length", "path-jaggedness", "activity-level", "rhythmic-level", "repetiveness", "acceleration", "deliberateness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
-const USE_WORDS = { director: "Director moves her by these", cycles: "Pass 2 repeats an activity as often as these say", none: "Chosen again; Director doesn't use these, as in 1978 (thesis pp. 185-186)" };
+// The same, said after a way of showing it that has named them both: "she makes her
+// elegant, no longer shabby"; a relationship's, which names two more, in full.
+function changeSaid(c) {
+  if (c.type === "relationship") return changeText(c);
+  const k = meet(R.story, c.who), ws = (l) => words(l.map(plain));
+  if (!c.cause) return `${k.she} ${agree(k, "becomes", "become")} ${ws(c.to)}, no longer ${ws(c.from)}`;
+  const kc = meet(R.story, c.cause);
+  return `${kc.she} ${agree(kc, "makes", "make")} ${k.her} ${ws(c.to)}, no longer ${ws(c.from)}`;
+}
+
+// ---- the change shown in its scene (REVIVE;CHSHOW)
+
+// A task gets one way of showing (chomet.123:216-240), so a change and its cause are one:
+// goes-to-and-transforms, the cause going to the one it changes and transforming her, as
+// Ken's move-to-and-hits goes and hits; or, with no cause, changes-while-wandering, her
+// wandering about as she changes; with neither (the way set aside), the bridges run alone
+// from the part's start. Their plans: the cause's walk, the bridges, the walks of her
+// wander. Each element is bridged from what it was to what the fresh look chose, all
+// together over the time the largest change needs: gradually, at Ken's slowest speed, ten
+// seconds an e-fold (disply.311:1098-1111), since an abrupt change "could easily be
+// misinterpreted" (thesis p. 169); or at once if the cause is magical (the revival's rule).
+const CHANGE_METHODS = ["goes-to-and-transforms", "changes-while-wandering"];
+const CHANGE_ACTIVITIES = ["goes-to-to-transform", "bridging-the-gap", "wandering-while-changing"];
+// Who reads each element Ani chose again (src/pipeline.js ELEMENT_USE): Director moves a
+// character by speed and the path's curvature, length and jaggedness (dichar.103:164-169)
+// and draws her look; pass 2 repeats an activity as often as the rhythmic level, activity
+// level and repetitiveness say (place.45:411-420), from the next scene on; acceleration and
+// deliberateness no one uses, as in 1978 (thesis pp. 185-186); the likings only pass 1.
+const READ_BY = { speed: "director", "path-curvature": "director", "path-length": "director", "path-jaggedness": "director", "rhythmic-level": "cycles", "activity-level": "cycles", repetiveness: "cycles", acceleration: "nobody", deliberateness: "nobody", "attraction-towards-friends": "pass1", "attraction-towards-enemies": "pass1", "attraction-towards-strangers": "pass1" };
+// how c's change is shown in a scene (glass.changesShown), or null
+const shownChange = (sc, c) => (ready(sc) && (sc.glass.changesShown || []).find((x) => x.character === c)) || null;
+// the frames one of a scene's plans ran, { begin, end } (its first run), or null
+function planFrames(sc, plan) {
+  const a = plan ? sc.activities.find((x) => x.name === plan && x.begin !== null) : null;
+  return a ? { begin: a.begin, end: a.end } : null;
+}
+// the frames of a change's showing: the cause's walk to her (it ends as they touch), the
+// bridges, and her wander, each { begin, end }, or null
+function changeFrames(sc, x) {
+  const walks = ((x.wanders && x.wanders.plans) || []).map((p) => planFrames(sc, p)).filter(Boolean);
+  return {
+    walk: x.goesTo ? planFrames(sc, x.goesTo.plan) : null,
+    bridge: x.bridging ? planFrames(sc, x.bridging.plan) : null,
+    wander: walks.length ? { begin: Math.min(...walks.map((w) => w.begin)), end: Math.max(...walks.map((w) => w.end)) } : null,
+  };
+}
+const secondsWords = (n) => { const r = Math.round(Number(n) * 10) / 10; return `${r} second${r === 1 ? "" : "s"}`; };
+const framesWords = (p) => (!p ? "" : p.end > p.begin ? ` (frames ${p.begin} to ${p.end})` : ` (frame ${p.begin})`);
+// whether a bridge raises its element (a dynamics value by its rank, a look's number)
+const rises = (b) => (RANK[b.now] !== undefined && RANK[b.was] !== undefined ? RANK[b.now] > RANK[b.was] : Number(b.now) > Number(b.was));
+// What a change's bridges do, in one clause: "she grows, turns from a hexagon into an
+// octagon and moves faster"; "her path grows smoother and curves more, and her curves
+// grow longer"; at once, "her colors become clear". Her look first, then how she moves;
+// a shape's two elements give one morph, said once.
+function bridgeWords(c, bridges, instant) {
+  const k = meet(R.story, c), her = theirs(c), s = (one, many) => agree(k, one, many);
+  const at = (el) => bridges.filter((b) => b.element === el);
+  const she = [], colors = [], path = [], longer = [], morphs = new Set();
+  for (const b of at("size")) she.push(instant ? `${s("becomes", "become")} ${rises(b) ? "larger" : "smaller"}` : rises(b) ? s("grows", "grow") : s("shrinks", "shrink"));
+  for (const b of bridges.filter((y) => /^shape-/.test(y.element))) {
+    if (b.was === b.now || morphs.has(`${b.was} ${b.now}`)) continue;
+    morphs.add(`${b.was} ${b.now}`);
+    she.push(`${s("turns", "turn")} from ${article(shapeName(b.was))} ${shapeName(b.was)} into ${article(shapeName(b.now))} ${shapeName(b.now)}`);
+  }
+  for (const b of at("speed")) she.push(`${s("moves", "move")} ${rises(b) ? "faster" : "more slowly"}`);
+  const extreme = (v, lo, hi, [low, high]) => (Number(v) >= hi ? high : Number(v) <= lo ? low : null);
+  for (const b of at("color-hue")) colors.push(`turn ${plain(b.now)}`);
+  for (const b of at("color-saturation")) colors.push(instant ? `become ${extreme(b.now, 0.35, 1, ["dull", "clear"]) || (rises(b) ? "clearer" : "duller")}` : `grow ${rises(b) ? "clearer" : "duller"}`);
+  for (const b of at("color-intensity")) colors.push(instant ? `become ${extreme(b.now, 0.45, 0.85, ["dark", "bright"]) || (rises(b) ? "brighter" : "darker")}` : rises(b) ? "brighten" : "dim");
+  for (const b of at("path-jaggedness")) path.push(`${instant ? "becomes" : "grows"} ${rises(b) ? "more jagged" : "smoother"}`);
+  for (const b of at("path-curvature")) path.push(`curves ${rises(b) ? "more" : "less"}`);
+  for (const b of at("path-length")) longer.push(`${her} curves ${instant ? "become" : "grow"} ${rises(b) ? "longer" : "shorter"}`);
+  const parts = [...(she.length ? [`${k.she} ${words(she)}`] : []), ...(colors.length ? [`${her} colors ${words(colors)}`] : []), ...(path.length ? [`${her} path ${words(path)}`] : []), ...longer];
+  return parts.some((p) => / and /.test(p)) ? clauseList(parts) : words(parts);
+}
+// the magical cause that makes a change instantaneous, (rate: is instantaneous because
+// (magical fairy-godmother) rule (of the revival)), or null
+function magicalCause(x) {
+  const b = parse(x.rateBecause || "nil");
+  return Array.isArray(b) && b[0] === "magical" ? b[1] : null;
+}
+const isMagical = (c) => { const k = meet(R.story, c); return `${who(c)} ${agree(k, "is", "are")} magical`; };
+// Why nothing of a changed character is bridged: a relationship changed, and how one
+// feels about another doesn't reach how either moves; what Ani chose again Director
+// doesn't read; or the fresh look chose everything as it was (a change of looks that Ani
+// doesn't choose, Ken's footnote's "meaningless until Ani is extended to handle
+// appearances").
+function nothingBridged(x) {
+  const c = x.character, k = meet(R.story, c);
+  const chs = (x.changes || []).flatMap((d) => changesIn(parse(d)));
+  const why = chs.some((y) => y.type === "relationship") ? "how one feels about another doesn't reach how either moves"
+    : x.notBridged.length ? "what Ani chose again is what Director doesn't read"
+      : `Ani's fresh look chose everything as it was${chs.some((y) => y.type === "physical") && !runExtensions(R).includes("appear") ? `, as Ken's footnote foresaw: a scene like this is “meaningless until Ani is extended to handle appearances” (thesis p. 166)` : ""}`;
+  return `nothing changes in how ${who(c)} ${agree(k, "moves", "move")} or ${agree(k, "looks", "look")}: ${why}`;
+}
+// "the jaggedness of her shape", "her size"
+const herElement = (c, el) => { const w = elementWords(el); return / of the /.test(w) ? `the ${w.replace(" of the ", ` of ${theirs(c)} `)}` : `${theirs(c)} ${w}`; };
+// The elements chosen again and not bridged, by who reads them, in one sentence (each
+// noted (not-bridged: element E was X now Y because (director does not read it)) on her
+// change-of actor, REVIVE;CHSHOW).
+function notBridgedWords(c, list) {
+  const her = theirs(c), by = {};
+  for (const n of list || []) (by[/cannot weigh/.test(n.because || "") ? "weigh" : READ_BY[n.element] || "nobody"] ||= []).push(n.element);
+  const out = [];
+  if (by.nobody) out.push(`${words(by.nobody.map((e) => herElement(c, e)))}, which Director doesn't use, as in 1978 (thesis pp. 185-186)`);
+  if (by.pass1) out.push(`${her} liking${by.pass1.length > 1 ? "s" : ""} for ${words(by.pass1.map((e) => e.replace(/^attraction-towards-/, "")))}, which only pass 1 reads`);
+  if (by.cycles) out.push(`${words(by.cycles.map((e) => herElement(c, e)))}, which pass 2 reads from the next scene on, for how often an activity repeats`);
+  if (by.weigh) out.push(`${words(by.weigh.map((e) => herElement(c, e)))}, which pass 2 can't weigh as Ani chose ${by.weigh.length > 1 ? "them" : "it"}`);
+  for (const k of ["director", "looks"]) if (by[k]) out.push(words(by[k].map((e) => herElement(c, e))));
+  return out.length ? `Chosen again but not bridged: ${out.join("; ")}.` : "";
+}
+// The caption's line for a change task shown in a part: "The fairy godmother goes to
+// Cinderella and transforms her, to convey that she makes her elegant, no longer shabby:
+// she is magical, so it happens at once (the revival's rule)." m is its way of showing,
+// or one of its bridges (bridge-to:) when they run alone.
+function changeShowLine(sc, t, m) {
+  const x = (sc.glass.changesShown || []).find((y) => y.task === t.name) || null;
+  const ch = changesIn(t.description)[0];
+  const way = m[0] === "bridge-to:" ? `${cap(who((kv(m, "element") || [])[0]))} changes` : cap(methodText(m));
+  const by = x && x.rate === "instantaneous" ? magicalCause(x) : null;
+  const rate = !x || !x.bridges.length ? ""
+    : x.rate === "instantaneous" ? (by ? `: ${meet(R.story, by).she} ${agree(meet(R.story, by), "is", "are")} magical, so it happens at once (the revival's rule)` : ": at once")
+      : ": gradually, since an abrupt change could be misread (thesis p. 169)";
+  return `<b>${way}</b>, to convey that ${ch ? changeSaid(ch) : about(t.description)}${rate}.`;
+}
+// What a change's showing is doing at frame f, in a sentence: the cause on its way to
+// her, the moment they touch, her changing as she wanders, or her wander after it.
+function changePhaseLine(sc, x, f) {
+  const c = x.character, k = meet(R.story, c), fr = changeFrames(sc, x), s = (one, many) => agree(k, one, many);
+  const instant = x.rate === "instantaneous", her = who(c);
+  const note = !state.color && x.bridges.some((b) => /^color-/.test(b.element)) ? " (colors show only in color mode)" : "";
+  const inBridge = !!fr.bridge && f >= fr.bridge.begin && f <= fr.bridge.end;
+  if (fr.walk && !inBridge && f <= fr.walk.end && (!fr.bridge || f < fr.bridge.begin)) {
+    const then = !x.bridges.length ? `${k.she} ${s("wanders", "wander")} about` : instant ? `${k.she} ${s("changes", "change")} at once` : `${k.she} ${s("begins", "begin")} to change`;
+    return `First ${who(x.goesTo.by)} goes to ${her}; once they touch, ${then}.`;
+  }
+  if (inBridge && x.bridges.length) {
+    const what = bridgeWords(c, x.bridges, instant);
+    if (instant) return `${fr.walk ? "They touch, and at once" : "At once"} ${what}${note}.`;
+    const over = x.bridging && x.bridging.seconds ? secondsWords(x.bridging.seconds) : "";
+    // her wander as she changes is the way of showing it, said already: what changes, and how long
+    if (!x.goesTo && x.wanders) return `${over ? `Over ${over}, ` : ""}${over ? what : cap(what)}${note}.`;
+    return `${cap(her)} ${x.goesTo ? `${s("changes", "change")} as ${k.she} ${s("wanders", "wander")}` : s("changes", "change")}: ${what}${over ? `, over ${over}` : ""}${note}.`;
+  }
+  if (fr.wander && f >= fr.wander.begin && f <= fr.wander.end) {
+    if (!x.bridges.length) return `${cap(nothingBridged(x))}; ${k.she} ${s("wanders", "wander")} about, so that the change is seen.`;
+    return `${cap(her)} ${s("wanders", "wander")} about as ${k.she} ${s("has", "have")} become, so that the change is seen.`;
+  }
+  return "";
+}
+// Whether c's look is being bridged at frame f of a scene (a shape's change is then said
+// by the change's own line, not as a change of how they look).
+const bridgingAt = (sc, c, f) => { const x = shownChange(sc, c), fr = x && changeFrames(sc, x); return !!fr && !!fr.bridge && f >= fr.bridge.begin && f <= fr.bridge.end; };
+// How Ani shows c's change in the scene of it, with the bridge: what changed, over how
+// long, from which frame, and what she chose again and didn't bridge. x: { id, i, rec }.
+function bridgeSentence(run, x, c) {
+  const sc = run.scenes[x.i], title = esc(run.titles[x.id]), k = meet(run.story, c), s = (one, many) => agree(k, one, many);
+  if (!ready(sc)) return "";
+  const shown = shownChange(sc, c);
+  if (!shown || !shown.shownBy) {
+    // the second character of a relationship change has no way of showing of her own
+    const first = (sc.glass.changesShown || []).find((y) => y !== shown && y.shownBy && (y.changes || []).some((d) => changesIn(parse(d)).some((ch) => ch.characters.includes(c))));
+    return first ? `Ani shows the change in ${title} by ${who(first.character)}, whose relationship it is; ${who(c)} ${s("is", "are")} chosen again too. ${fileLink("chshow")}` : "";
+  }
+  const fr = changeFrames(sc, shown), instant = shown.rate === "instantaneous";
+  const walk = !shown.goesTo ? "" : `${who(shown.goesTo.by)} goes to ${k.her}${!fr.walk ? "" : fr.walk.end > fr.walk.begin ? ` (frames ${fr.walk.begin} to ${fr.walk.end})` : ` (they touch as the part begins, at frame ${fr.walk.end})`}`;
+  const what = shown.bridges.length ? bridgeWords(c, shown.bridges, instant) : "";
+  const wander = `${k.she} ${s("wanders", "wander")} about for ${secondsWords(shown.seconds)}${framesWords(fr.wander)}, so that the change is seen`;
+  let body;
+  if (!shown.bridges.length) body = `${walk ? `${walk}, and once they touch ` : ""}${wander}; ${nothingBridged(shown)}`;
+  else if (instant) {
+    const by = magicalCause(shown);
+    body = `${walk ? `${walk}, and when they touch${fr.bridge ? `, at frame ${fr.bridge.begin},` : ""} ` : fr.bridge ? `at frame ${fr.bridge.begin} ` : ""}${what} at once${by ? `, since ${isMagical(by)} (the revival's rule)` : ""}; then ${wander}`;
+  } else {
+    const how = walk ? `${walk}, and once they touch ${k.she} ${s("changes", "change")} as ${k.she} ${s("wanders", "wander")}` : shown.wanders ? `${k.she} ${s("wanders", "wander")} as ${k.she} ${s("changes", "change")}` : `${k.she} ${s("changes", "change")}`;
+    body = `${how}, gradually, over ${secondsWords(shown.bridging.seconds)}${framesWords(fr.bridge)}: ${what}; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” (thesis p. 169)`;
+  }
+  const morph = shown.bridges.some((b) => /^(shape-|color-hue)/.test(b.element));
+  const estimate = !instant && shown.bridging && shown.bridging.ideal && shown.stretchedBy && Math.abs(shown.stretchedBy - 1) > 0.005
+    ? ` Ani's own estimate was ${secondsWords(shown.bridging.ideal)} (ten seconds an e-fold of the largest change, at Ken's slowest speed${morph ? "; a change of shape or hue counts as one e-fold" : ""}), stretched by ${Math.round(shown.stretchedBy * 100) / 100} as the part was fitted to the scene.` : "";
+  const notBridged = notBridgedWords(c, shown.notBridged);
+  return `Ani shows it in ${title}: ${body}.${estimate}${notBridged ? ` ${notBridged}` : ""} ${fileLink("chshow")}`;
+}
+
+// ---- how she has changed, in the glass box
+
+// Director's elements first (src/pipeline.js ELEMENT_USE), then her look, then pass 2's,
+// then the rest.
+const CHANGE_ORDER = ["speed", "path-curvature", "path-length", "path-jaggedness", "size", "shape-jaggedness", "shape-complexity", "color-hue", "color-saturation", "color-intensity", "activity-level", "rhythmic-level", "repetiveness", "acceleration", "deliberateness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
+const USE_ORDER = ["director", "looks", "cycles", "none"];
+const USE_WORDS = { director: "Director moves her by these", looks: "Director draws her by these", cycles: "Pass 2 repeats an activity as often as these say", none: "Chosen again; Director doesn't use these, as in 1978 (thesis pp. 185-186)" };
 // a value in words: (negative high), a liking, is "strong dislike"
 const valueWords = (v) => { const x = lispValue(v); return Array.isArray(x) && x.length === 2 && ["positive", "negative"].includes(x[0]) ? `${({ low: "slight", medium: "moderate", high: "strong" })[x[1]] || x[1]} ${x[0] === "negative" ? "dislike" : "liking"}` : plain(show(x)); };
+// an element's value in words: a look's as its looks say ("dull", "small"), the rest as above
+const elementValue = (el, v) => (isAppearance(el) ? lookValue(el, v) : valueWords(v));
 const RANK = { low: 0, short: 0, medium: 1, high: 2, long: 2 };
 // how a changed value shows: "she moves faster", "her path curves less"
 function movesText(c, v) {
   const k = meet(R.story, c), [a, b] = [RANK[show(v.after)], RANK[show(v.before)]];
   const t = { speed: [`${k.she} ${agree(k, "moves", "move")} faster`, `${k.she} ${agree(k, "moves", "move")} more slowly`], "path-curvature": ["path curves more", "path curves less"], "path-length": ["curves are longer", "curves are shorter"], "path-jaggedness": ["path is more jagged", "path is smoother"] }[v.element];
-  if (!t || a === undefined || b === undefined) return `${theirs(c)} ${elementWords(v.element)} goes from ${plain(show(v.before))} to ${plain(show(v.after))}`;
+  // a value pass 2 can't weigh as it is, (not medium), which MEND1 narrows, is said "not medium"
+  const said = (x) => (Array.isArray(x) && x[0] === "not" ? `“not ${x.slice(1).join(" or ")}”` : plain(show(x)));
+  if (!t || a === undefined || b === undefined) return `${theirs(c)} ${elementWords(v.element)} goes from ${said(v.before)} to ${said(v.after)}`;
   return v.element === "speed" ? t[a > b ? 0 : 1] : `${theirs(c)} ${t[a > b ? 0 : 1]}`;
 }
+// How her look changed, as drawn (src/pipeline.js looksOf: { before, after, changed }):
+// "in a clear purple, no longer a dull purple"; "as an octagon, no longer a small hexagon".
+function lookChangeWords({ before, after, changed }) {
+  const shape = changed.includes("shape") || changed.includes("size");
+  const color = ["hue", "clarity", "brightness"].some((a) => changed.includes(a)) && before.color && after.color;
+  const now = [shape ? `as ${aShape(after)}` : "", color ? inColor(after) : ""].filter(Boolean).join(" ");
+  const was = [shape ? aShape(before) : "", color ? (shape ? inColor(before) : colorShort(before)) : ""].filter(Boolean).join(" ");
+  return `${now}, no longer ${was}`;
+}
+// Each element of a look and the aspect of it as drawn that it decides (looksOf's).
+const LOOK_ASPECT = { size: "size", "color-intensity": "brightness", "color-saturation": "clarity", "color-hue": "hue", "shape-jaggedness": "shape", "shape-complexity": "shape" };
+// the elements of her look the fresh look chose differently that are drawn as before (the
+// repentant stepmother's shape-jaggedness, "not low" where it was high: a triangle either way)
+const drawnAsBefore = (ch) => (ch.looks && ch.looks.after ? ch.values.filter((v) => v.use === "looks" && v.changed && !ch.looks.changed.includes(LOOK_ASPECT[v.element])) : []);
 // The changes that made c who they are in scene k of a run, each { id, i, rec }; a fresh
 // look that failed is { scene, error }, and the story says whom it was for.
 const changesOf = (run, c, k) => run.sceneIds.slice(0, k + 1).map((id, i) => ({ id, i, rec: run.raw.changes && run.raw.changes[id] }))
   .filter((x) => x.rec && (x.rec.error ? (run.changing[x.id] || []).some((ch) => ch.characters.includes(c)) : x.rec.characters.some((y) => y.character === c)));
 // "In Change of Heart the Prince made the stepmother good and kind, no longer evil and
-// mean; from Kind Again on her path curves more, ..." (in the scene itself, how it is now)
+// mean; from Kind Again on her path curves more, ..." (in the scene itself, "makes", and
+// how it will be); how she is drawn from then on, with APPEAR.
 function changedSentence(run, x, c, k) {
-  const kk = meet(run.story, c), next = run.sceneIds[x.i + 1], past = k > x.i;
+  const kk = meet(run.story, c), next = run.sceneIds[x.i + 1], past = k > x.i, s = (one, many) => agree(kk, one, many);
   const said = `In ${esc(run.titles[x.id])} ${words((x.rec.changes || run.changing[x.id] || []).filter((ch) => ch.characters.includes(c)).map((ch) => changeText(ch, past)))}`;
   if (x.rec.error) return `${said}, but Ani's fresh look at ${kk.her} stopped (${esc(stopText(x.rec.error))}), so the later scenes were planned with ${kk.her} as before.`;
-  const values = x.rec.characters.find((y) => y.character === c).values;
-  const seen = values.filter((v) => v.changed && v.use !== "none").sort((a, b) => CHANGE_ORDER.indexOf(a.element) - CHANGE_ORDER.indexOf(b.element));
-  const moves = seen.length ? words(seen.map((v) => movesText(c, v))) : `${kk.she} ${agree(kk, "moves", "move")} as before: ${values.some((v) => v.changed) ? "the fresh look changed only what Director doesn't use" : "Ani's fresh look chose every element as it was"}`;
-  const then = next ? `from ${esc(run.titles[next])} on ${moves}` : `the film ends there, so it never shows who ${kk.she} ${agree(kk, "has", "have")} become`;
-  return past ? `${said}; ${then}.` : `${said}. Ani doesn't animate the change itself yet; a later stage will. So here ${kk.she} ${agree(kk, "moves", "move")} as before, and ${then}.`;
+  const ch = x.rec.characters.find((y) => y.character === c);
+  const seen = ch.values.filter((v) => v.changed && (v.use === "director" || v.use === "cycles")).sort((a, b) => CHANGE_ORDER.indexOf(a.element) - CHANGE_ORDER.indexOf(b.element));
+  const looks = ch.looks && ch.looks.after && ch.looks.changed.length ? ch.looks : null;
+  const moves = seen.length ? words(seen.map((v) => movesText(c, v))) : "";
+  const drawn = looks ? `${kk.she} ${s("is", "are")} drawn ${esc(lookChangeWords(looks))}` : "";
+  const now = moves && drawn ? `${moves}, and ${drawn}`
+    : moves || (drawn ? `${kk.she} ${s("moves", "move")} as before, but ${drawn}`
+      : `${kk.she} ${s("moves", "move")}${ch.looks ? ` and ${s("looks", "look")}` : ""} as before: ${ch.values.some((v) => v.changed) ? "the fresh look changed nothing Director moves or draws by" : "Ani's fresh look chose every element as it was"}`);
+  const then = next ? `from ${esc(run.titles[next])} on ${now}` : `no scene after it shows who ${kk.she} ${s("has", "have")} become`;
+  return past ? `${said}; ${then}.` : `${said}. ${cap(then)}.`;
 }
-// What becomes of her looks after a change (LOOKS_KEPT: the fresh look chooses only how
-// she moves): kept as pass 1 chose them, her colors too.
-function keptLook(run, c) {
-  const kk = meet(run.story, c), look = lookOf(run, c);
-  const as = look && look.color ? `, ${aShape(look)} ${inColor(look)}` : "";
-  return `Ani keeps how ${kk.she} ${agree(kk, "looks", "look")} as pass 1 chose it${as}; choosing ${kk.her} ${look && look.color ? "shape, size and colors" : "looks"} again after a change comes in a later stage.`;
+// How she looks after the change, with APPEAR: the fresh look chose it again, as pass 1
+// chooses looks after how the characters move (REVIVE;APPEAR), everyone else's held; and a
+// choice of hers that changed but is drawn the same.
+function lookAgainNote(run, c, ch) {
+  const kk = meet(run.story, c), L = ch.looks, s = (one, many) => agree(kk, one, many);
+  if (!L || !L.after) return "";
+  const as = `${aShape(L.after)}${L.after.color ? ` ${inColor(L.after)}` : ""}`;
+  const same = drawnAsBefore(ch).map((v) => `${herElement(c, v.element)} is chosen “${esc(lookValue(v.element, v.after))}” where it was ${esc(lookValue(v.element, v.before))}`);
+  const lead = `Ani chose how ${kk.she} ${s("looks", "look")} again too, as pass 1 chooses looks after how the characters move, with everyone else's held as they were`;
+  if (L.changed.length) return `${lead}: from then on ${kk.she} ${s("is", "are")} drawn as ${esc(as)}${same.length ? `; ${words(same)}, which ${s("is", "are")} drawn the same` : ""}. ${fileLink("appear")}`;
+  return `${lead}, and ${kk.she} ${s("is", "are")} drawn as before, as ${esc(as)}${same.length ? `: ${words(same)}, and ${kk.she} ${s("is", "are")} drawn the same either way` : ""}. ${fileLink("appear")}`;
 }
 // clauses with commas of their own, listed: "a, not b, and c, not d"; "x; y; and z"
 const clauses = (xs) => (xs.length < 3 ? xs.join(", and ") : `${xs.slice(0, -1).join("; ")}; and ${xs[xs.length - 1]}`);
-// The body of "How she has changed": the sentence; her elements before and after, each
-// opening the fresh look's choice point; and, a click away, what was held and the full
-// recompute (Ken's decision of 9 October 2026).
+// The body of "How she has changed": the sentence; how Ani showed the change, with the
+// bridge; how she looks; her elements before and after, by who reads them, each opening
+// the fresh look's choice point; and, a click away, what was held and the full recompute
+// (Ken's decision of 9 October 2026).
 function changedBody(run, c, k) {
   const kk = meet(run.story, c);
-  const val = (v) => esc(valueWords(v));
   const said = (n) => (n[0] === "choice-point-of" ? `${who(n[1])}'s ${elementWords(n[2])}` : `how ${who(n[1][0])} compares with ${who(n[1][1])} in ${elementWords(String(n[2]).replace(/^relative-/, ""))}`);
+  const val = (n, v) => esc(elementValue(Array.isArray(n) ? String(n[2]).replace(/^relative-/, "") : n, v));
   return changesOf(run, c, k).map((x) => {
-    const sentence = `<p class="look-line">${changedSentence(run, x, c, k)}</p>`
-      + (x.rec.error || !(x.rec.characters.find((y) => y.character === c) || {}).looks ? ""
-        : `<p class="note">${keptLook(run, c)}</p>`);
+    const sentence = `<p class="look-line">${changedSentence(run, x, c, k)}</p>`;
     if (x.rec.error) return sentence;
     const ch = x.rec.characters.find((y) => y.character === c);
-    const order = (v) => ["director", "cycles", "none"].indexOf(v.use) * 20 + CHANGE_ORDER.indexOf(v.element);
-    // grouped by who reads them, each group under a line that says so
-    const rows = [...ch.values].sort((a, b) => order(a) - order(b)).map((v, n, all) => `${n && all[n - 1].use === v.use ? "" : `<tr class="grp"><td colspan="3">${(USE_WORDS[v.use] || "").replace(" her ", ` ${kk.her} `)}</td></tr>`}<tr${v.changed ? "" : ` class="same"`}><td>${esc(cap(elementName(v.element)))}</td><td>${val(v.before)}</td><td class="v">${val(v.after)} <button type="button" class="linkish" data-cp="${esc(c)}|${esc(v.element)}|${esc(x.id)}">why?</button></td></tr>`).join("");
-    const held = x.rec.held.map((h) => `${said(h.choicePoint)} would have been ${val(h.wouldHaveChosen)}, not ${val(h.heldAt)}`);
+    const bridge = bridgeSentence(run, x, c);
+    const look = lookAgainNote(run, c, ch);
+    const shown = shownChange(run.scenes[x.i], c);
+    const where = esc(run.titles[x.id]);
+    const rate = !shown ? "" : shown.rate === "instantaneous" ? "at once" : `gradually${shown.bridging && shown.bridging.seconds ? `, over ${secondsWords(shown.bridging.seconds)}` : ""}`;
+    const bridged = (look_) => !!shown && shown.bridges.some((b) => isAppearance(b.element) === look_);
+    // each group under a line that says who reads them, and how those that changed are shown
+    const line = (use) => {
+      const w = (USE_WORDS[use] || "").replace(" her ", ` ${kk.her} `);
+      if (use === "director") return bridged(false) ? `${w}; those that changed are bridged in ${where}, ${rate}` : w;
+      if (use === "looks") return bridged(true) ? `${w}; ${theirs(c)} look's change is bridged in ${where}, ${rate}` : ch.looks && ch.looks.after && !ch.looks.changed.length ? `${w}; ${kk.she} ${agree(kk, "is", "are")} drawn as before` : w;
+      if (use === "cycles") return ch.values.some((v) => v.use === "cycles" && v.changed) ? `${w}, from the next scene on; not bridged` : w;
+      return w;
+    };
+    const same = new Set(drawnAsBefore(ch).map((v) => v.element));
+    const order = (v) => (USE_ORDER.includes(v.use) ? USE_ORDER.indexOf(v.use) : USE_ORDER.length) * 20 + CHANGE_ORDER.indexOf(v.element);
+    const rows = [...ch.values].sort((a, b) => order(a) - order(b)).map((v, n, all) => `${n && all[n - 1].use === v.use ? "" : `<tr class="grp"><td colspan="3">${line(v.use)}</td></tr>`}<tr${v.changed ? "" : ` class="same"`}><td>${esc(cap(elementName(v.element)))}</td><td>${val(v.element, v.before)}</td><td class="v">${val(v.element, v.after)}${same.has(v.element) ? ` <span class="note">(drawn as before)</span>` : ""} <button type="button" class="linkish" data-cp="${esc(c)}|${esc(v.element)}|${esc(x.id)}">why?</button></td></tr>`).join("");
+    const held = x.rec.held.map((h) => `${said(h.choicePoint)} would have been ${val(h.choicePoint, h.wouldHaveChosen)}, not ${val(h.choicePoint, h.heldAt)}`);
     const after = (e) => (ch.values.find((v) => v.element === e) || {}).after;
     const own = x.rec.recompute.differences.filter((d) => d.choicePoint[0] === "choice-point-of" && d.choicePoint[1] === c && show(after(d.choicePoint[2])) !== show(d.after));
-    const would = [...x.rec.recompute.knockOns.map((d) => `${said(d.choicePoint)} would be ${val(d.after)}, not ${val(d.before)}`), ...own.map((d) => `${theirs(c)} ${elementWords(d.choicePoint[2])} would be ${val(d.after)}, not ${val(after(d.choicePoint[2]))}`)];
-    return `${sentence}<div class="table-wrap"><table class="dyn chg"><thead><tr><th>Element</th><th>Before</th><th>After</th></tr></thead><tbody>${rows}</tbody></table></div><div class="look-box" id="chg-box"></div>
+    const would = [...x.rec.recompute.knockOns.map((d) => `${said(d.choicePoint)} would be ${val(d.choicePoint, d.after)}, not ${val(d.choicePoint, d.before)}`), ...own.map((d) => `${theirs(c)} ${elementWords(d.choicePoint[2])} would be ${val(d.choicePoint, d.after)}, not ${val(d.choicePoint, after(d.choicePoint[2]))}`)];
+    return `${sentence}${bridge ? `<p class="look-line bridge">${bridge}</p>` : ""}${look ? `<p class="note">${look}</p>` : ""}<div class="table-wrap"><table class="dyn chg"><thead><tr><th>Element</th><th>Before</th><th>After</th></tr></thead><tbody>${rows}</tbody></table></div><div class="look-box" id="chg-box"></div>
       <details><summary>What Ani held, and the full recompute</summary><div class="body">
         <p>To choose only ${kk.her} again, Ani held every other choice as it was. ${held.length ? `Without holding them, ${clauses(held)}.` : "None of them would have come out differently."}</p>
-        <p>For comparison, with everyone chosen afresh as of ${esc(run.titles[x.id])}, ${would.length ? clauses(would) : `no choice would come out otherwise than in the fresh look`}.</p>
+        <p>For comparison, with everyone chosen afresh as of ${where}, ${would.length ? clauses(would) : `no choice would come out otherwise than in the fresh look`}.</p>
         <p class="note">Ken's decision of 9 October 2026: after a change Ani chooses again only the one who changed; the full recompute is shown only to compare. ${fileLink("change")}</p></div></details>`;
   }).join("");
 }
@@ -2734,6 +3005,8 @@ function prepScene(s, run) {
     for (const m of code.matchAll(/cause \(([^()]*)\) to/g)) m[1].split(/\s+/).forEach((c) => c && chars.add(c));
     for (const m of code.matchAll(/\(ask ([a-z-]+) set your special-dynamics/g)) chars.add(m[1]);
     const base = parse(p.name)[1];
+    // the bridges of a change (REVIVE;CHSHOW) change her: (ask cinderella gradually change ...)
+    if (base === "bridging-the-gap") for (const m of code.matchAll(/\(ask ([a-z0-9+-]+) gradually change\b/g)) chars.add(m[1]);
     for (const span of spans.get(p.name) || []) activities.push({ name: p.name, base, chars: [...chars], begin: span.begin, end: span.end === null ? last : span.end, subscene: v(p.name, "subscene") });
   }
   return { ...s, title, actors, v, subscenes, activities, last };
@@ -3105,6 +3378,9 @@ function taskByName(name) {
 }
 // the task whose chosen method made an activity
 function taskOfActivity(act) {
+  // a change's plans are its task's (REVIVE;CHSHOW's record names it)
+  const x = changeOfActivity(act);
+  if (x && x.task && taskByName(x.task)) return taskByName(x.task);
   const fam = familyOfActivity(act);
   const subName = act.subscene ? show(act.subscene) : null;
   const tasks = scene().glass.tasks.map(taskInfo).filter((t) => !subName || t.actor.variables.subscene === subName);
@@ -3174,19 +3450,28 @@ function captionAt(run, i, f) {
     if (!main) return { part: esc(sc.title), text: "The screen is cleared before the scene begins.", more: [] };
     const parts = sc.subscenes.length;
     const alongside = subs.filter((x) => x !== main).map((x) => x.n);
-    const shows = [], changes = [];
+    const shows = [], changes = [], transforms = [];
     for (const sub of subs) {
       for (const t of tasksIn(sub.name)) {
         const m = t.choice[0];
         if (!Array.isArray(m)) continue;
         if (m[0] === "change:" || m[0] === "change-to:") { changes.push(t); continue; }
         if (m[0] === "method:") continue;
+        // a change of who someone is, shown here (REVIVE;CHSHOW)
+        if (CHANGE_METHODS.includes(m[0]) || m[0] === "bridge-to:") {
+          shows.push(changeShowLine(sc, t, m));
+          const x = (sc.glass.changesShown || []).find((y) => y.task === t.name);
+          if (x) transforms.push(x);
+          continue;
+        }
         const top = purpose(t);
         shows.push(`<b>${cap(methodText(m))}</b>, ${top === t ? taskText(t.kind, t.description) : taskText(top.kind, top.description).replace(/^to establish /, "to show ")}.`);
       }
     }
     const feel = changes.map((t) => about(t.description));
     const more = [];
+    // what the change's showing is doing now: the cause on its way, the touch, her changing
+    for (const x of transforms) { const line = changePhaseLine(sc, x, f); if (line) more.push(line); }
     if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.`);
     // how they look, changed beside how they move (REVIVE;ALTER: joy brightens, sadness
     // dims), which only color shows; and a change that shows nothing here
@@ -3197,14 +3482,16 @@ function captionAt(run, i, f) {
     const idle = lookChanges.filter((x) => !x.shows).map((x) => x.does);
     if (shown.length) more.push(`${cap(words(shown))}${feel.length ? " too" : ""}${state.color || !lookChanges.some((x) => /colors/.test(x.does)) ? "" : " (colors show only in color mode)"}.`);
     if (idle.length) more.push(`${cap(words(idle))}.`);
-    // a change of who someone is (REVIVE;CHANGE), which Ani has no way to show yet
+    // a change of who someone is (REVIVE;CHANGE) that Ani has no way to show here: a
+    // change whose fresh look wasn't made is "cant-do", as before REVIVE;CHSHOW
     const cant = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do").flatMap((t) => changesIn(t.description));
     const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
-    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
+    const rec = run.raw.changes && run.raw.changes[run.sceneIds[i]];
+    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}; Ani has no way to show it${rec && rec.error ? `, since her fresh look at ${who(cs)} stopped` : ""}.${next && !(rec && rec.error) ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
     if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
     // a shape or size that changes here, for a second after it changes (a color's steps
     // are said above, by the look change that makes them)
-    const looked = shapeChanges(sc, f).map(([, c, look]) => (look.morph && look.morph.to ? `${who(c)} begins to turn into ${article(shapeName(look.morph.to))} ${shapeName(look.morph.to)}` : `${who(c)} becomes ${aShape(look)}`));
+    const looked = shapeChanges(sc, f).filter(([, c]) => !bridgingAt(sc, c, f)).map(([, c, look]) => (look.morph && look.morph.to ? `${who(c)} begins to turn into ${article(shapeName(look.morph.to))} ${shapeName(look.morph.to)}` : `${who(c)} becomes ${aShape(look)}`));
     if (looked.length) more.push(`Here Ani changes how they look: ${esc(words(looked))}.`);
     return { part: `Scene ${i + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}`, text: shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part."), more };
   }));
@@ -3346,7 +3633,8 @@ function sourceText(c, s, from = null) {
       if (a !== c && FLIP[r]) r = FLIP[r];
       const key = `${theirs(c)} ${elementWords(String(x[2]).replace(/^relative-/, ""))} is to be ${REL_TO[r] || "compared with"}`;
       rels.set(key, [...(rels.get(key) || []), `${who(a === c ? b : a)}'s`]);
-    } else if (x[0] === "uniqueness-summary:") stand.add(kv(x, "of-who"));
+    } else if (x[0] === "dynamics-of") out.add(`how ${k.she} ${agree(k, "moves", "move")}: ${theirs(c)} ${esc(elementWords(x[2]))}${(() => { const d = (from && from.cp(["choice-point-of", x[1], x[2]])) || cpNamed(R, ["choice-point-of", x[1], x[2]]); return d ? ` is ${esc(plain(show(d.currentChoice)))}` : ""; })()}`);
+    else if (x[0] === "uniqueness-summary:") stand.add(kv(x, "of-who"));
     else if (x[0] === "comparison-summary:") out.add(`${who((kv(x, "of-who") || []).slice(1))} are ${(kv(x, "similarity-level") || [])[0] === "negative" ? "unlike" : "like"} each other`);
     else out.add(esc(plain(show(x))));
   }
@@ -3357,18 +3645,20 @@ function sourceText(c, s, from = null) {
 // One of pass 1's choices of how a character moves, or, with from (freshSource), the
 // choice Ani made again in a fresh look after a change.
 function choicePointBox(char, el, from = null) {
-  if (isAppearance(el)) return lookChoiceBox(R, char, el);
+  // a look's, as pass 1 chose it; chosen again in a fresh look, in the same box as the rest
+  if (isAppearance(el) && !from) return lookChoiceBox(R, char, el);
   const cp = from ? from.cp(["choice-point-of", char, el]) : choicePoint(char, el);
   if (!cp) return "";
+  const value = (v) => (isAppearance(el) ? lookValue(el, v) : plain(show(v)));
   // a suggestion from one of the revival's words (REVIVE;KNOWDS) is marked so
-  const sug = (s) => `${esc(plain(show(kv(s, "value"))))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}`;
+  const sug = (s) => `${esc(value(kv(s, "value")))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}`;
   const kept = (cp.memory || []).filter((m) => m[0] === "suggestion:").map((m) => `<li>${sug(m)}</li>`).join("");
   const rejected = (cp.rejectedSuggestions || []).map((r) => `<li>${sug(kv(r, "suggestion"))}: set aside, ${esc(rejectText(kv(r, "reason")))}</li>`).join("");
   const conflicts = (cp.conflictsResolved || []).length;
   const slug = `${char}-${el}`;
-  const more = from ? `<span class="note">${from.note}</span>` : R !== RUNS[0] ? `<span class="note">Made in your version's pass 1.</span>` : CODE_SITE === "none" ? "" : `<a href="${CODE_SITE}pass1.html#${esc(slug)}">See every step of this choice</a>`;
+  const more = from ? `<span class="note">${from.note}${isAppearance(el) ? ` How ${who(char)} looks is chosen after how ${meet(R.story, char).she} ${agree(meet(R.story, char), "moves", "move")}, as pass 1 chooses looks (REVIVE;APPEAR) ${fileLink("appear")}.` : ""}</span>` : R !== RUNS[0] ? `<span class="note">Made in your version's pass 1.</span>` : CODE_SITE === "none" ? "" : `<a href="${CODE_SITE}pass1.html#${esc(slug)}">See every step of this choice</a>`;
   const fix = !from && R !== RUNS[0] ? choiceRepair(R, char, el) : null;
-  return `<div class="cp">${from ? `<span class="made-with">${esc(from.label)}</span>` : ""}<b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(show(cp.currentChoice))}</b>
+  return `<div class="cp">${from ? `<span class="made-with">${esc(from.label)}</span>` : ""}<b>${esc(cap(who(char)))}'s ${esc(elementName(el))}: ${esc(isAppearance(el) ? lookValue(el, cp.currentChoice) : show(cp.currentChoice))}</b>
     ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${fix ? `<p class="fix-line">${fix.html} ${repairCode(fix.what)}</p>` : ""}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
@@ -3459,7 +3749,11 @@ function whyPanel(char) {
     const fam = familyOfActivity(act);
     const with_ = act.chars.filter((c) => c !== char);
     const method = t && (t.choice.find((m) => Array.isArray(m) && (m[0] === fam || m[0] === "goes-to-and-accompanies")) || t.choice[0]);
-    lead = (between
+    // the cause of a change, once it has reached her, stands while she changes (REVIVE;CHSHOW)
+    const reached = between && !between.next && between.prev && between.prev.base === "goes-to-to-transform" ? changeOfActivity(between.prev) : null;
+    lead = (reached
+      ? `<p class="lead">${esc(cap(k.the))} went to ${esc(who(reached.character))} until they touched (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}), and ${agree(k, "stands", "stand")} by while ${esc(meet(R.story, reached.character).she)} ${reached.rate === "instantaneous" ? `${agree(meet(R.story, reached.character), "wanders", "wander")} about as ${esc(meet(R.story, reached.character).she)} ${agree(meet(R.story, reached.character), "has", "have")} become` : agree(meet(R.story, reached.character), "changes", "change")}.</p>`
+      : between
       ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at frame ${between.next.begin}` : ""}.</p>`
       : `<p class="lead">${esc(cap(k.the))} is ${para(label(act) + (with_.length ? ` (with ${esc(who(with_))})` : ""), act.name)}.</p>`) +
       (method ? `<p>This is part of Ani's plan for ${main ? `part ${main.n}` : "this part"}: ${para(cap(methodText(method)), method)}. ${methodCode(method, "run")}</p>` : "");
@@ -3472,6 +3766,7 @@ function whyPanel(char) {
     // who wrote the plan: DISPLY's method, or the revival's (MEND5's move-to; MEND6's bring-on)
     const brought = act.base === "getting-on-stage" && broughtOnBy(act.name);
     const writer = brought ? `Written by the revival's repairs, which bring ${esc(k.her)} on first with this step of Ken's goes-to-and-accompanys ${repairCode("brought-on-stage")}`
+      : (CHANGE_METHODS.includes(fam) || fam === "bridge-to:") && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, the revival's way of showing a change (REVIVE;CHSHOW), made from DISPLY's and MEND's parts ${methodCode([fam], "run")}`
       : !CODE.display.methods[fam] && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, which the revival made from DISPLY's parts ${methodCode([fam], "run")}`
       : `Written by the method's code in DISPLY ${methodCode([fam], "run")}`;
     if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
@@ -3764,11 +4059,19 @@ function taskVerdict(story, sceneId, earlier, t, extensions = modeExtensions(), 
     const ids = Object.keys(story.scenes), next = ids[ids.indexOf(sceneId) + 1];
     for (const c of found.flatMap((x) => [x.cause, ...x.characters])) if (c) meet(story, c);
     const cs = [...new Set(found.flatMap((c) => c.characters))], k = cs.length > 1 ? { she: "they" } : meet(story, cs[0]);
-    const after = next ? `${k.she} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become from ${esc(titleOf(story, next))} on` : `this is the last scene, so the film won't show who ${k.she} ${agree(k, "has", "have")} become`;
+    const looks = SWITCHED.includes("appear") && (extensions.includes("appear") || !extensions.length);
+    const after = next ? `${k.she} ${agree(k, "moves", "move")}${looks ? ` and ${agree(k, "looks", "look")}` : ""} as ${k.she} ${agree(k, "has", "have")} become from ${esc(titleOf(story, next))} on` : `this is the last scene, so no scene after it shows who ${k.she} ${agree(k, "has", "have")} become`;
+    // how REVIVE;CHSHOW will show it: the cause goes to her and transforms her, at once if
+    // the cause is magical (the revival's rule); with no cause, she wanders as she changes
+    const one = found[0], first = one.characters[0], kf = meet(story, first);
+    const magical = (c) => !!story.characters[c] && ["physical", "personality", "movement"].some((slot) => story.characters[c][slot].includes("magical"));
+    const how = one.cause && one.cause !== first
+      ? `${who(one.cause)} goes to ${who(first)} and transforms ${kf.her}, ${one.type === "relationship" ? `and ${kf.she} ${agree(kf, "wanders", "wander")} about` : magical(one.cause) ? `at once, since ${who(one.cause)} ${agree(meet(story, one.cause), "is", "are")} magical (the revival's rule)` : "gradually"}`
+      : `${who(first)} ${agree(kf, "wanders", "wander")} about as ${kf.she} ${agree(kf, "changes", "change")}${one.type === "relationship" ? "" : ", gradually"}`;
     return { stop: {
       change: true,
-      as1978: `${said()}: Ani as in 1978 can't change a character during a story (Ken wrote one such scene, his cinderella-beautified, and left it commented out), so it isn't made as in 1978. Make it with the revival's extensions: Ani then takes a fresh look at ${who(cs)} after this scene, and ${after}.`,
-      mended: `${said()}: Ani takes a fresh look at ${who(cs)} after this scene, and ${after}; the change itself isn't shown yet.`,
+      as1978: `${said()}: Ani as in 1978 can't change a character during a story (Ken wrote one such scene, his cinderella-beautified, and left it commented out), so it isn't made as in 1978. Make it with the revival's extensions: Ani then shows the change in this scene, takes a fresh look at ${who(cs)} after it, and ${after}.`,
+      mended: `${said()}: Ani shows the change in this scene, where ${how}; after it Ani takes a fresh look at ${who(cs)}, and ${after}.`,
     } };
   }
   return bad(`Ani doesn't know how to convey “${esc(plain(verb))}”.`);
@@ -4142,16 +4445,36 @@ function storyChanges(a, b, textA, textB) {
     if (!added.length && !removed.length) continue;
     out.push(`${esc(cap(who(r.from)))} → ${esc(who(r.to))}: ${added.length ? `now ${esc(words(added.map(verb)))}` : ""}${added.length && removed.length ? " " : ""}${removed.length ? `<span class="was">(no longer ${esc(words(removed.map(verb)))})</span>` : ""}.`);
   }
-  // anything else: compare the texts with the characters' and relationships' definitions taken out
+  // scenes added or taken away: Ken's own beautified scene, put back, by name
+  const added = Object.keys(b.scenes).filter((id) => !a.scenes[id]), gone = Object.keys(a.scenes).filter((id) => !b.scenes[id]);
+  const kenBeautified = textB !== undefined && textB === beautifiedCindy();
+  const scene = (story, id) => { const s = story.scenes[id]; return s ? words(tasksOf(s.tasks).map((x) => taskText(x[0], x[1]).replace(/^to /, ""))) : ""; };
+  for (const id of added) out.push(kenBeautified && id === "cinderella-beautified"
+    ? `Ken's own scene ${esc(titleOf(b, id))}, which he wrote and left commented out (cindy.46:94-105), put back as he wrote it: ${scene(b, id)}.`
+    : `A new scene, ${esc(titleOf(b, id))}: ${scene(b, id)}.`);
+  for (const id of gone) out.push(`${esc(titleOf(a, id))} is left out.`);
+  // anything else: compare the texts with the characters', relationships' and the scenes
+  // added or taken away's definitions taken out
   const rest = (text, story) => {
-    const spans = [...Object.values(story.characters).map((c) => c.span), ...story.relationships.map((r) => r.span)].sort((p, q) => q.start - p.start);
+    const spans = [...Object.values(story.characters).map((c) => c.span), ...story.relationships.map((r) => r.span), ...[...added, ...gone].filter((id) => story.scenes[id]).map((id) => story.scenes[id].span)].sort((p, q) => q.start - p.start);
     for (const sp of spans) text = text.slice(0, sp.start) + text.slice(sp.end);
     return text.replace(/;[^\n]*/g, "").replace(/\s+/g, " ").trim();
   };
   if (textA !== undefined && rest(textA, a) !== rest(textB, b)) out.push("Other changes in Ani's version (scenes, settings or comments).");
   return out;
 }
-// Ready-made changes to try, each a few words for Ani.
+// Ken's own scene, which he wrote and left commented out (cindy.46:94-105): his CINDY 46
+// with cinderella-beautified uncommented as he wrote it, every other line as it is, as
+// tools/check-change.mjs beautifiedCindy makes it; with the revival's extensions it plays
+// (REVIVE;CHSHOW), and Ani as in 1978 can't make it (null if CINDY hasn't the scene).
+function beautifiedCindy(cindy = DATA.cindy) {
+  const start = cindy.indexOf(";;(define cinderella-beautified"), end = cindy.indexOf("(define no-longer-kept-apart");
+  if (start < 0 || end < start) return null;
+  return cindy.slice(0, start) + cindy.slice(start, end).split("\n").map((l) => l.replace(/^;;/, "")).join("\n") + cindy.slice(end);
+}
+// Ready-made changes to try, each a few words for Ani; and Ken's own beautified scene, put
+// back, made with the revival's extensions (text: the whole description; revival: the switch
+// is turned to them).
 const PRESETS = [
   { label: "A kind stepmother", changes: [
     [{ char: "step-mother", slot: "physical" }, ["pretty"]],
@@ -4160,6 +4483,7 @@ const PRESETS = [
   ] },
   { label: "A shy Prince", changes: [[{ char: "prince", slot: "personality" }, ["good", "shy"]]] },
   { label: "A lazy Cinderella", changes: [[{ char: "cinderella", slot: "personality" }, ["good", "friendly", "lazy", "shy"]]] },
+  { label: "Cinderella beautified", title: "Cinderella beautified: Ken's own scene, which he wrote and left commented out (cindy.46:94-105), put back as he wrote it; made with the revival's extensions, which show the fairy godmother transforming Cinderella", text: beautifiedCindy, revival: true, available: () => SWITCHED.includes("change") && !!beautifiedCindy() },
 ];
 const DRAFT_KEY = "ani-cinderella:draft:v1";
 const TOLD_KEY = "ani-cinderella:told:v1";
@@ -4196,7 +4520,7 @@ function editorPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
     <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes about three minutes on a laptop; each scene plays as soon as it is filmed, beside the 1978 one.</p>
-    <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => `<button type="button" data-preset="${i}">${esc(p.label)}</button>`).join("")}<button type="button" data-tell>A story of your own…</button></div>
+    <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
     <p class="note">Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it.${SWITCHED.includes("know") ? " With the revival's extensions, words outlined in purple are the revival's knowledge, and Ani knows them too." : ""} Hover over a word for more.</p>
@@ -4214,6 +4538,9 @@ function editorPanel() {
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
+    // Ken's beautified scene is made with the revival's extensions, which show the change
+    if (p.revival && MODE !== "revival") setMode("revival");
+    if (p.text) { setEditorText(p.text(), { fresh: true }); return; }
     const base = readStory(editor.text).characters.cinderella ? editor.text : DATA.cindy;
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
@@ -4378,7 +4705,7 @@ self.onmessage = function (e) {
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
 // How long each step took for Ken's story, in seconds: the progress bar's estimate; and,
 // with CHANGE, Ani's fresh look and the full recompute before a scene that changes someone.
-const STEP_SECONDS = { pass1: 18, "fresh-look": 34, recompute: 33, introduction: [5, 20], "kept-apart": [4, 46], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
+const STEP_SECONDS = { pass1: 18, "fresh-look": 34, recompute: 33, introduction: [5, 20], "kept-apart": [4, 46], "cinderella-beautified": [5, 40], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
 const stepSeconds = ([step, id], fps = 4) => (step === "pass2" ? (STEP_SECONDS[id] || [5, 25])[0] : step === "film" ? (STEP_SECONDS[id] || [5, 25])[1] * fps / 4 : STEP_SECONDS[step] || 20);
 // A scene is filmed for at most this long: Ken's runs stopped at 1,000 frames, 250 seconds
 // at 4 frames a second ((m 1000)); some of Ani's scenes end on their own only after 200.
@@ -4624,7 +4951,10 @@ function comparePanel() {
   if (!b) { state.panel = "story"; renderSide(); return; }
   const st = b.status || {};
   const other = !sameStory(a, b);
-  const changes = other
+  // Ken's cast, and his scenes with others added (his beautified scene put back): it can't
+  // be shown beside his, scene by scene, but it is his story changed
+  const kenPlus = other && [...a.cast].sort().join() === [...b.cast].sort().join() && a.sceneIds.every((id) => b.sceneIds.includes(id));
+  const changes = other && !kenPlus
     ? [`A new story: ${esc(words(b.cast.map((c) => meet(b.story, c).the)))}, in ${b.sceneIds.length} scene${b.sceneIds.length === 1 ? "" : "s"} (${esc(words(b.sceneIds.map((id) => b.titles[id])))}).`]
     : storyChanges(a.story, b.story, a.cindy, b.cindy);
   // pass 1: the choices that differ (of how they move: the looks Ani chose with APPEAR
@@ -4675,7 +5005,7 @@ function comparePanel() {
     <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
     ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${st.running ? "" : stopBox(b)}
-    <div><p class="label">${other ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
+    <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
     <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
@@ -4715,7 +5045,10 @@ function drawnList(run) {
     const look = lookOf(run, c);
     if (!look) return "";
     const ken = KEN_DREW && KEN_DREW.characters[c];
-    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` ${esc(inColor(look))}` : ""}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
+    // a change that redrew her (REVIVE;CHANGE with APPEAR): the last
+    const redrawn = run.sceneIds.map((id) => ({ id, rec: run.raw.changes && run.raw.changes[id] })).map(({ id, rec }) => ({ id, ch: rec && !rec.error && rec.characters.find((y) => y.character === c) })).filter((x) => x.ch && x.ch.looks && x.ch.looks.after && x.ch.looks.changed.length).pop();
+    const now = redrawn ? ` <span class="made-with">(after ${esc(run.titles[redrawn.id])}, ${esc(aShape(redrawn.ch.looks.after))}${redrawn.ch.looks.after.color ? ` ${esc(inColor(redrawn.ch.looks.after))}` : ""})</span>` : "";
+    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` ${esc(inColor(look))}` : ""}${now}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
   }).join("");
   return `<div><p class="label">How Ani drew them</p><ul class="cast-looks">${rows}</ul><div id="cmp-look"></div></div>`;
 }
