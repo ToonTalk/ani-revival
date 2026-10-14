@@ -66,11 +66,14 @@ export const EXTENSIONS = [
   {
     id: "change",
     label: "Characters who change",
-    files: ["wrap", "change"],
-    requires: [],
+    files: ["wrap", "change", "chshow"],
+    // a change is shown by her wandering, as MEND9's wander-around wanders, and the one
+    // it changes is brought on by MEND6's bring-on; a change story is a new story, which
+    // needs MEND's repairs anyway
+    requires: ["mend"],
     changes1978: false,
     sceneSteps: true,
-    note: "A scene may change a character, as Ken wrote one in his cinderella-beautified scene: (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani takes a fresh look at whoever changes (thesis p. 168): pass 1 again, with the new words, every choice of everyone else held as it was, so that only the changed character is chosen again; and from the next scene on she is described and moves as she has become. A full recompute, with everyone chosen afresh, is kept for comparison. Showing the change itself comes later.",
+    note: "A scene may change a character, as Ken wrote one in his cinderella-beautified scene: (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani takes a fresh look at whoever changes (thesis p. 168): pass 1 again, with the new words, every choice of everyone else held as it was, so that only the changed character is chosen again, and with APPEAR how she looks too. In the scene of the change she shows it (p. 169): the cause goes to the one it changes, and once they touch she changes as she wanders about, or she wanders as she changes if nothing causes it; Ani bridges the gap between how she moved and looked and how she will, over a time she decides, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. A full recompute, with everyone chosen afresh, is kept for comparison.",
   },
   {
     id: "know",
@@ -190,14 +193,28 @@ export const ELEMENT_USE = {
   "rhythmic-level": "cycles", "activity-level": "cycles", repetiveness: "cycles",
   acceleration: "none", deliberateness: "none",
   "attraction-towards-friends": "none", "attraction-towards-enemies": "none", "attraction-towards-strangers": "none",
+  // with APPEAR, how she looks, which Director draws (REVIVE;LOOKS)
+  size: "looks", "shape-jaggedness": "looks", "shape-complexity": "looks", "color-intensity": "looks", "color-saturation": "looks", "color-hue": "looks",
 };
 
 const becomeFiles = (fn1s) => `'(${fn1s.map((fn1) => `((ken1) ${fn1} become)`).join(" ")})`;
 // The extensions a job of CHANGE's own boots with: those asked for, and CHANGE.
 const withChange = (extensions) => (extensions.includes("change") ? extensions : [...extensions, "change"]);
-// What becomes of a changed character's looks while the fresh look rederives only how
-// she moves (REVIVE;APPEAR on): kept as pass 1 chose them; stage 6 links the two.
-export const LOOKS_KEPT = "kept until stage 6";
+// What pass 1 does after (z) with these extensions (EXTENSIONS' afterPass1), for the
+// fresh look and the recompute to do it too: with APPEAR, Ani chooses how they look.
+const afterZ = (extensions) => `'(${extensionsFor(extensions).filter((e) => e.afterPass1).map((e) => e.afterPass1).join(" ")})`;
+// A look as REVIVE;CHANGE keeps it, ((shape hexagon) (angle 60) ... (look-color (270.0 0.35
+// 0.65))), as { shape, angle, centerOffset, aniSize, hue, color }, or null.
+function lookOf(L, x) {
+  if (!(x instanceof Cons)) return null;
+  const parts = Object.fromEntries(L.toArray(x).map((p) => { const [k, v] = L.toArray(p); return [L.print(k).toLowerCase(), v]; }));
+  const lisp = (v) => (v === undefined || v === L.NIL ? null : L.print(v).toLowerCase());
+  const num = (v) => (v === undefined || v === L.NIL ? null : L.num.val(v));
+  return {
+    shape: lisp(parts.shape), angle: num(parts.angle), centerOffset: lisp(parts["center-offset"]), aniSize: num(parts["ani-size"]), hue: lisp(parts.hue),
+    color: parts["look-color"] instanceof Cons ? L.toArray(parts["look-color"]).map((v) => L.num.val(v)) : null,
+  };
+}
 // The characters a choice point is of: (choice-point-of c e) and
 // (relative-choice-point-of (a b) e), as toJSON gives them.
 const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(name[1]) ? name[1] : [name[1]]) : []);
@@ -216,16 +233,17 @@ const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(na
 // relativeValues: { choicePoint, value }; choicePoints: the fresh look's choice points
 // of the character, absolute and relative, as pass 1's glass box has them
 // (collectChoicePoints); notDescribed: the old words of her changes her description
-// didn't have, so that the change took nothing away for them; looks: LOOKS_KEPT when
-// Ani chooses the looks (REVIVE;APPEAR), which the fresh look leaves as they were;
-// held: each other choice the fresh look held that would have come out differently,
-// { choicePoint, heldAt, wouldHaveChosen }.
+// didn't have, so that the change took nothing away for them; looks, when Ani chooses
+// the looks (REVIVE;APPEAR), how she was drawn before and how the fresh look draws her,
+// { before, after, changed }, each as lookOf gives it (values then has the elements of a
+// look too, use "looks"); held: each other choice the fresh look held that would have
+// come out differently, { choicePoint, heldAt, wouldHaveChosen }.
 export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
   const L = boot(fs, { backtrace, extensions: withChange(extensions) });
   const lisp = (x) => L.print(x).toLowerCase();
   L.evalString("(load '|ken;datest >|)");
-  const definitions = L.toArray(L.evalString(`(take-a-fresh-look '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} '((ken1) ${s.become} become))`));
+  const definitions = L.toArray(L.evalString(`(take-a-fresh-look '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} '((ken1) ${s.become} become) ${afterZ(extensions)})`));
   const changed = definitions.map((d) => lisp(L.toArray(L.toArray(d)[1])[1]));
   const choicePoints = collectChoicePoints(L, (name) => choicePointCharacters(name).some((c) => changed.includes(c)));
   const characters = definitions.map((d) => {
@@ -247,7 +265,7 @@ export function freshLook(fs, scene, { plan, extensions = [], becomes = null, ba
       relativeValues: pairs(set["relative-values"]).map(([choicePoint, value]) => ({ choicePoint, value })),
       choicePoints: choicePoints.filter((c) => choicePointCharacters(c.name).includes(character)),
       notDescribed: L.toArray(set["not-described"]).map(lisp),
-      ...(choosesLooks(extensions) ? { looks: LOOKS_KEPT } : {}),
+      ...(set["new-look"] ? { looks: looksOf(L, set["old-look"], set["new-look"]) } : {}),
     };
   });
   const held = L.toArray(L.evalString(":change-held-against")).reverse().map((x) => {
@@ -261,11 +279,21 @@ export function freshLook(fs, scene, { plan, extensions = [], becomes = null, ba
 // (REVIVE;CHANGE recompute-everyone-as-of), as a full recompute would make them.
 // Returns each choice that differs from the choices as they were (the story's KEN;CP
 // and the earlier BECOME files): { choicePoint, characters, before, after }.
+// How she was drawn and how she is drawn now, from a BECOME file's old-look and
+// new-look: { before, after, changed: [aspect, ...] }, the aspects size, brightness,
+// clarity, hue and shape.
+function looksOf(L, oldLook, newLook) {
+  const before = lookOf(L, oldLook), after = lookOf(L, newLook);
+  const aspects = { size: (x) => x.aniSize, brightness: (x) => x.color && x.color[2], clarity: (x) => x.color && x.color[1], hue: (x) => x.hue, shape: (x) => x.shape };
+  const changed = before && after ? Object.keys(aspects).filter((k) => aspects[k](before) !== aspects[k](after)) : [];
+  return { before, after, changed };
+}
+
 export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
   const L = boot(fs, { backtrace, extensions: withChange(extensions) });
   L.evalString("(load '|ken;datest >|)");
-  const differences = L.toArray(L.evalString(`(recompute-everyone-as-of '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])})`)).map((x) => {
+  const differences = L.toArray(L.evalString(`(recompute-everyone-as-of '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} ${afterZ(extensions)})`)).map((x) => {
     const [choicePoint, before, after] = L.toArray(x).map((y) => toJSON(L, y));
     return { choicePoint, characters: choicePointCharacters(choicePoint), before, after };
   });
@@ -315,6 +343,9 @@ export function pass2(fs, scene, { backtrace = false, setup = null, plan = null,
   // scene planned on its own, say, after a fresh look that wasn't made)
   const learned = (becomes || (s && s.becomes) || []).filter((fn1) => fs.find({ dir: "KEN1", fn1: fn1.toUpperCase(), fn2: "BECOME" }));
   if (learned.length) before.push(`(learn-who-they-have-become '(${learned.map((fn1) => `((ken1) ${fn1} become)`).join(" ")}))`);
+  // and the scene's own change, if its fresh look was made, which REVIVE;CHSHOW shows
+  // in the scene (not made so: the scene's tasks read the description as it was)
+  if (s && s.become && fs.find({ dir: "KEN1", fn1: s.become.toUpperCase(), fn2: "BECOME" })) before.push(`(learn-what-changes-in '${scene} '((ken1) ${s.become} become))`);
   if (setup) setup(L);
   L.evalString(`(run '${scene}${before.length ? ` nil '(progn ${before.join(" ")})` : ""})`);
   L.evalString(`(save '${scene} t)`);
@@ -366,6 +397,10 @@ export function glassBox(L, scene) {
   // made them so (REVIVE;CHANGE), only if any were, for the same reason
   const becomes = collectBecomes(L);
   if (becomes.length) glass.becomes = becomes;
+  // how the scene shows a change made in it (REVIVE;CHSHOW), only if it shows one, for
+  // the same reason
+  const changesShown = collectChangesShown(L, scene);
+  if (changesShown.length) glass.changesShown = changesShown;
   // the ways of showing a word borrowed from its neighbor (REVIVE;KNOW's sharing), only
   // if any were, for the same reason
   const borrowed = collectBorrowed(L, glass.tasks);
@@ -463,15 +498,15 @@ function feelingOf(L, description, amount, element) {
 // value printed as Lisp (a cause nil if there was none). described: the descriptions
 // it changed (by the character each change describes; for a relationship, the
 // first); madeSo: the values the fresh look chose differently, made so; notDescribed:
-// the old words her description didn't have; looks: LOOKS_KEPT when Ani chooses the
-// looks (REVIVE;APPEAR). Looked up without interning anything unless REVIVE;CHANGE is
-// loaded, so that a Lisp running as in 1978 is left as it was.
+// the old words her description didn't have; looks, when the fresh look chose how she
+// looks (REVIVE;APPEAR), { before, after, changed } as freshLook gives them, and
+// lookMadeSo, whether pass 2 drew her so (her look as the CP or an earlier scene had it
+// differed). Looked up without interning anything unless REVIVE;CHANGE is loaded, so
+// that a Lisp running as in 1978 is left as it was.
 export function collectBecomes(L) {
   if (!L.obarray.find("CHANGES-OF-EARLIER-SCENES") || L.evalString("(get 'changes-of-earlier-scenes 'expr)") === L.NIL) return [];
   const lisp = (x) => L.print(x).toLowerCase();
   const out = [];
-  // REVIVE;APPEAR loaded: its take-look-forms defined
-  const looks = Boolean(L.obarray.find("TAKE-LOOK-FORMS")) && L.evalString("(get 'take-look-forms 'expr)") !== L.NIL;
   for (const actor of L.toArray(L.evalString("(changes-of-earlier-scenes)"))) {
     if (actor === L.NIL) continue;
     L.intern("*GB-ACTOR*").value = actor;
@@ -491,7 +526,79 @@ export function collectBecomes(L) {
       described: described.reverse(), // memorized newest first
       madeSo: madeSo.reverse(),
       notDescribed: L.toArray(L.evalString("(ask ,*gb-actor* recall your not-described)")).map(lisp),
-      ...(looks ? { looks: LOOKS_KEPT } : {}),
+      ...(lookChange(L)),
+    });
+  }
+  return out;
+}
+
+// The looks of the change-of actor in *gb-actor*, if it has them: { looks, lookMadeSo }.
+function lookChange(L) {
+  const newLook = L.evalString("(ask ,*gb-actor* recall your new-look)");
+  if (newLook === L.NIL) return {};
+  const looks = looksOf(L, L.evalString("(ask ,*gb-actor* recall your old-look)"), newLook);
+  const madeSo = L.evalString("(ask ,*gb-actor* recall if any items match (looked-anew: %))") !== L.NIL;
+  return { looks, lookMadeSo: madeSo };
+}
+
+// How the scene shows each change made in it (REVIVE;CHSHOW), from the change-of actors
+// its pass 2 loaded to show (changes-shown-in): for each, in film order, { actor,
+// character, changes, causes, rate, rateBecause, shownBy, subscene, stretchedBy,
+// seconds, ideal, goesTo, bridging, bridges, wanders, notBridged, looks? }:
+//   rate          "gradual" or "instantaneous"; rateBecause, the reason as Lisp, with
+//                 "(the revival's)" for the magical rule
+//   shownBy       the way of showing it, "(goes-to-and-transforms prince step-mother)",
+//                 "(changes-while-wandering cinderella)", or "alone" (its bridges run with
+//                 no way of showing beside them); subscene, stretchedBy as run
+//   seconds, ideal  how long the change is shown (the wander), as run and as estimated
+//   goesTo        { plan, by }: the cause's walk to her (goes-to-and-transforms)
+//   bridging      { plan, seconds, ideal }: the bridges' plan, null if nothing to bridge
+//   bridges       [{ element, character, was, now, form }]: each element bridged, from
+//                 what to what, and what Director is to do (a form shared by the shape's
+//                 two elements is given with each)
+//   wanders       { plans, seconds }: her walks while she changes
+//   notBridged    [{ element, was, now, because }]: the elements chosen again that
+//                 Director doesn't read, or pass 2 can't weigh
+//   looks         { before, after, changed }, with APPEAR
+// The film's events give each plan's beginning and end frames. Looked up without
+// interning anything unless REVIVE;CHSHOW is loaded.
+export function collectChangesShown(L, scene) {
+  if (!L.obarray.find("CHANGES-SHOWN-IN") || L.evalString("(get 'changes-shown-in 'expr)") === L.NIL) return [];
+  const lisp = (x) => (x === undefined || x === L.NIL ? null : L.print(x).toLowerCase());
+  const items = (pattern) => L.toArray(L.evalString(`(ask ,*gb-actor* collect items memorized matching ${pattern})`)).filter((x) => x !== L.NIL).reverse();
+  const get = (item, key) => plistGet(L, item, key);
+  const out = [];
+  for (const actor of L.toArray(L.evalString(`(changes-shown-in '${scene})`))) {
+    if (actor === L.NIL) continue;
+    L.intern("*GB-ACTOR*").value = actor;
+    const [, character] = L.toArray(actor).map(lisp);
+    const rate = items("(rate: %)")[0];
+    const shown = items("(shown-by: %)")[0];
+    const goesTo = items("(goes-to: %)")[0];
+    const bridging = items("(bridges: %)")[0];
+    const wanders = items("(wanders: %)")[0];
+    const num = (v) => (v === undefined || v === L.NIL ? null : L.num.val(v));
+    out.push({
+      actor: lisp(actor), character,
+      changes: L.toArray(L.evalString("(ask ,*gb-actor* recall your changes)")).map(lisp),
+      causes: L.toArray(L.evalString("(ask ,*gb-actor* recall your causes)")).map(lisp),
+      rate: rate ? lisp(get(rate, "is")) : null,
+      rateBecause: rate ? lisp(get(rate, "because")) : null,
+      ...(rate && get(rate, "rule") !== L.NIL && get(rate, "rule") !== undefined ? { rateRule: lisp(get(rate, "rule")) } : {}),
+      shownBy: shown ? lisp(get(shown, "method")) : null,
+      subscene: shown ? lisp(get(shown, "in")) : null,
+      stretchedBy: shown ? num(get(shown, "stretched-by")) : null,
+      seconds: shown ? num(get(shown, "seconds")) : null,
+      ideal: shown ? num(get(shown, "ideal")) : null,
+      goesTo: goesTo ? { plan: lisp(get(goesTo, "plan")), by: lisp(get(goesTo, "by")) } : null,
+      bridging: bridging ? { plan: lisp(get(bridging, "plan")), seconds: num(get(bridging, "seconds")), ideal: num(get(bridging, "ideal")) } : null,
+      bridges: items("(bridged: %)").map((b) => {
+        const element = L.toArray(get(b, "element")).map(lisp);
+        return { element: element[1], character: element[0], was: lisp(get(b, "was")), now: lisp(get(b, "now")), form: lisp(get(b, "by")) };
+      }),
+      wanders: wanders ? { plans: L.toArray(get(wanders, "plans")).map(lisp), seconds: num(get(wanders, "seconds")) } : null,
+      notBridged: items("(not-bridged: %)").map((n) => ({ element: lisp(get(n, "element")), was: lisp(get(n, "was")), now: lisp(get(n, "now")), because: lisp(get(n, "because")) })),
+      ...(lookChange(L).looks ? { looks: lookChange(L).looks } : {}),
     });
   }
   return out;
@@ -530,7 +637,7 @@ export function repairNotes(L, glass = null) {
 // each character was drawn with (TV dots from the picture's top left; whole, for a
 // character partly off the picture, see below) and each character's state; and every
 // event the movie noted, by frame. onClick, if given, is
-// called at each click too (to save a picture, say). With looks (an extension that
+// called at each click too, with the frame and the Lisp (to save a picture, say). With looks (an extension that
 // chooses how the characters look, REVIVE;APPEAR and LOOKS), film.looks records who
 // looks how from which frame, changes only: [frame, character, { shape, angle,
 // centerOffset, aniSize, color?, morph? }], frame counted from 0 as frames are; color,
@@ -576,7 +683,7 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
     segs = {};
     all = {};
     if (looks) recordLooks(film.frames.length - 1);
-    if (onClick) onClick(film.frames.length - 1);
+    if (onClick) onClick(film.frames.length - 1, L); // the Lisp too, for a probe of Director's state (tools/check-change.mjs)
     return L.T;
   });
   // each character's look as Director now draws it, kept when it changes

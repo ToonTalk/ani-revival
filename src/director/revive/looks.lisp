@@ -149,10 +149,12 @@
        (define-receiver (gradually change look by ?factor factor for ?element
 				   at ?speed speed %followup)
 			director-character
-	(let ((ticks (max 1 (look-change-ticks factor speed))))
-	     (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
-		  doing (grow ,element ,(exp (//$ (log (float factor)) (float ticks))))
-		  !,followup)))
+	(grow-look :self factor element (max 1 (look-change-ticks factor speed)) followup))
+       ;; the same over seconds, as REVIVE;CHSHOW bridges a look (REVIVE;ALTER)
+       (define-receiver (gradually change look by ?factor factor for ?element
+				   in ?seconds seconds %followup)
+			director-character
+	(grow-look :self factor element (look-ticks-in-seconds seconds) followup))
        ;; one step of a change of look, as its carrier has the character take it
        (define-receiver (change your look step ?step of ?ticks doing ?what) director-character
 	(cond ((eq (first what) 'grow)
@@ -171,6 +173,20 @@
 
 (+after-load '|ken;dichar >| '(revival-once 'looks-changes 'define-look-changes))
 
+;; A look growing by a factor over ticks, carried as above.
+(defun grow-look (character factor element ticks followup)
+  (ask ,(look-change-carrier character) look step 0 of ,ticks for ,character
+       doing (grow ,element ,(exp (//$ (log (float factor)) (float ticks))))
+       !,followup))
+
+;; The ticks in seconds, at least one, at the movie's frames a second and ticks a frame
+;; (movie.153:11, 32), as DICHAR counts them (dichar.103:105-109): a change Ani gives a
+;; duration ends when she planned at any frame rate; one of no seconds, instantaneous,
+;; is made in a tick ("in one frame the character has one appearance and in the next
+;; frame a different appearance", p. 166).
+(defun look-ticks-in-seconds (seconds)
+  (max 1 (round (*$ (float seconds) (float :frames-per-second) (float :ticks-per-frame)))))
+
 ;; A look-color with its saturation or value multiplied by rate: a saturation no more
 ;; than 1.0, a value no more than 1.0 and no less than REVIVE;COLORS's :darkest-look,
 ;; so that a dimming character is never lost on the black screen.
@@ -187,25 +203,11 @@
   (let ((:insert-methods-at-end nil))
        (define-receiver (gradually change look to ?look at ?speed speed %followup)
 			director-character
-	(let ((ticks (max 1 (look-change-ticks :e speed))))
-	     (cond ((get look 'hue)
-		    (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
-			 doing (hue ,(hue-with-angle (first (ask :self recall your look-color)))
-				    ,(get look 'hue))
-			 !,followup))
-		   (t (let ((morph (look-morph (ask :self recall your angle) (get look 'angle))))
-			   (cond ((or (null morph) (= ticks 1))
-				  (ask :self take shape of ,look) ;;at once
-				  (and (eq (first followup) 'then) (ask :self !,(rest followup))))
-				 (t (ask :self set your look-morph to ,morph)
-				    (ask :self set your look-target to ,look)
-				    (ask :self set your look-turns to
-					 (,(offset-turn (ask :self recall your center-offset))
-					  ,(offset-turn (get look 'center-offset))))
-				    (ask :self set your draw-procedure to draw-look)
-				    (ask :self set your drawing-args to (size look-morph look-amount))
-				    (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
-					 doing (morph) !,followup))))))))
+	(change-look-to :self look (max 1 (look-change-ticks :e speed)) followup))
+       ;; the same over seconds, as REVIVE;CHSHOW bridges a look (REVIVE;ALTER)
+       (define-receiver (gradually change look to ?look in ?seconds seconds %followup)
+			director-character
+	(change-look-to :self look (look-ticks-in-seconds seconds) followup))
        ;; the shape of a look, drawn by draw-poly again (as poly.29:16 has it)
        (define-receiver (take shape of ?look) director-character
 	(ask :self set your draw-procedure to draw-poly)
@@ -220,6 +222,28 @@
 	look)))
 
 (+after-load '|ken;dichar >| '(revival-once 'looks-shape-changes 'define-shape-changes))
+
+;; A look changing to another hue, round the wheel, or to another shape, in-betweened,
+;; over ticks; a shape at once if there is no in-between or only a tick.
+(defun change-look-to (character look ticks followup)
+  (cond ((get look 'hue)
+	 (ask ,(look-change-carrier character) look step 0 of ,ticks for ,character
+	      doing (hue ,(hue-with-angle (first (ask ,character recall your look-color)))
+			 ,(get look 'hue))
+	      !,followup))
+	(t (let ((morph (look-morph (ask ,character recall your angle) (get look 'angle))))
+		(cond ((or (null morph) (= ticks 1))
+		       (ask ,character take shape of ,look) ;;at once
+		       (and (eq (first followup) 'then) (ask ,character !,(rest followup))))
+		      (t (ask ,character set your look-morph to ,morph)
+			 (ask ,character set your look-target to ,look)
+			 (ask ,character set your look-turns to
+			      (,(offset-turn (ask ,character recall your center-offset))
+			       ,(offset-turn (get look 'center-offset))))
+			 (ask ,character set your draw-procedure to draw-look)
+			 (ask ,character set your drawing-args to (size look-morph look-amount))
+			 (ask ,(look-change-carrier character) look step 0 of ,ticks for ,character
+			      doing (morph) !,followup)))))))
 
 ;; A step of an in-between: drawn as far as it has come, its turn as far as it has
 ;; turned; the last, the new shape.

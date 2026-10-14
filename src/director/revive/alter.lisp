@@ -226,6 +226,64 @@
 (+after-load '|ken;chomet >|
   '(revival-wrap 'reject-bad-value-changes 'alter 'reject-bad-value-changes-looks-last))
 
+;;; ------------------------------------------------- a look's change in seconds, for CHANGE
+
+;; With CHANGE (REVIVE;CHSHOW), a character who changes in a scene has her looks bridged
+;; as her dynamics are, over the time Ani gives the change: "Ani could be given the
+;; ability to compare the dynamics and appearance of a character before and after a
+;; change and then slowly bridge the gap between them" (p. 169, L4411-4413). CHSHOW asks
+;; each element's type for what Director is to do, and appearance-element answers here
+;; for the elements of a look: from her look as pass 2 has it, (appearance-of cinderella),
+;; to the look her fresh look drew (the new-look a (change-of cinderella in scene) actor
+;; keeps, REVIVE;CHANGE), over seconds:
+;;   (gradually change look by 2.857 factor for color-saturation in 0.0 seconds)
+;;   (gradually change look to (look: hue blue) in 16.6 seconds)
+;;   (gradually change look to (look: shape star angle 144 center-offset (right 18)) in 16.6 seconds)
+;; a size, brightness or clarity by the ratio of its numbers, as a look-change-to: by a
+;; number goes (look-change-to-factor, above); a hue or a shape to the new one, as a
+;; look-change-to: of a hue or shape goes (look-after, above), its in-between by
+;; REVIVE;LOOKS. nil if the look shows the element as it was.
+(defun define-look-bridge ()
+  (let ((:insert-methods-at-end nil))
+       (define-receiver (yield gradual change of ?element to ? for ?change-of in ?seconds seconds
+			       in ?)
+			appearance-element
+	(look-change-in-seconds (first element) (second element)
+				(ask ,change-of recall your new-look) seconds))))
+
+(+after-load '|ken;elemnt >| '(revival-once 'alter-look-bridge 'define-look-bridge))
+
+(defun look-change-in-seconds (character element-name new-look seconds)
+  (let ((appearance (list 'appearance-of character)))
+       (and new-look
+	    (exists? appearance)
+	    (cond ((get element-name 'appearance-numbers)
+		   (let ((now (look-number-now character element-name))
+			 (then (look-number-in element-name new-look)))
+			(and now then
+			     (not (= (float now) (float then)))
+			     '(gradually change look by ,(//$ (float then) (float now)) factor
+					 for ,element-name in ,seconds seconds))))
+		  ((eq element-name 'color-hue)
+		   (let ((hue (second (assq 'hue new-look))))
+			(and hue
+			     (not (eq hue (ask ,appearance recall your hue)))
+			     '(gradually change look to (look: hue ,hue) in ,seconds seconds))))
+		  (t (let ((shape (second (assq 'shape new-look))))
+			  (and shape
+			       (not (eq shape (ask ,appearance recall your shape)))
+			       '(gradually change look to
+					   (look: shape ,shape
+						  angle ,(second (assq 'angle new-look))
+						  center-offset ,(second (assq 'center-offset new-look)))
+					   in ,seconds seconds))))))))
+
+;; A look's number for an element, as look-number-now reads a character's.
+(defun look-number-in (element-name look)
+  (cond ((eq element-name 'size) (second (assq 'ani-size look)))
+	((eq element-name 'color-saturation) (second (second (assq 'look-color look))))
+	((eq element-name 'color-intensity) (third (second (assq 'look-color look))))))
+
 ;;; ------------------------------------------------- joy brightens
 
 (defun teach-joy-to-brighten ()

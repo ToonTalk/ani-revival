@@ -2,12 +2,12 @@
 ;;; REVIVE;CHANGE: characters who change, and who they have become.
 ;;;
 ;;; This file is ours, not Ken's. It is CHANGE (src/pipeline.js, EXTENSIONS), item 3 of
-;;; reports/chapter-x/PLAN.md, "characters who change", as far as its stage 3: who takes
-;;; part in a change, Ani's fresh look at the one who changed, and who they have become
-;;; from the next scene on. Portraying the change itself (bridging the gap, the cause
-;;; going to the one it changes, wandering) is stage 6. A film description with no
-;;; change in it, Ken's Cinderella among them, runs exactly as in 1978
-;;; (node tools/check-1978.mjs --extensions change).
+;;; reports/chapter-x/PLAN.md, "characters who change": who takes part in a change, Ani's
+;;; fresh look at the one who changed (with APPEAR, at how she looks too), and who they
+;;; have become from the next scene on. Portraying the change itself in its scene
+;;; (bridging the gap, the cause going to the one it changes, wandering) is REVIVE;CHSHOW
+;;; (stage 6). A film description with no change in it, Ken's Cinderella among them, runs
+;;; exactly as in 1978 (node tools/check-1978.mjs --extensions change).
 ;;;
 ;;; The thesis: "Shy characters learn to socialize, evil characters repent and learn to
 ;;; lead a "good" life ... The personality, the role in the story, and the movement
@@ -469,14 +469,19 @@
 ;; The fresh look after a scene that changes someone: the film description as of the
 ;; scene; the earlier scenes' BECOME files, for who they had become; every choice but
 ;; the changed characters' held; Ani's choices made again by DATEST's (z)
-;; (datest.56:26-30); and the changed characters' new values written to become-file.
-;; Returns what it wrote.
-(defun take-a-fresh-look (scene answers-file become-files become-file)
+;; (datest.56:26-30), then whatever the extensions do after (z) in pass 1 (after: the
+;; forms of src/pipeline.js EXTENSIONS' afterPass1, REVIVE;APPEAR's (choose-appearances)
+;; with APPEAR on: "rederive the dynamics (and appearance) of the character with the new
+;; personality as if the character were brand new", p. 168, L4400-4402); and the changed
+;; characters' new values written to become-file. Returns what it wrote.
+(defun take-a-fresh-look (scene answers-file become-files become-file after)
   (init-as-of scene)
   (learn-earlier-becomes become-files)
   (hold-everyone-but (characters-changed-in scene) answers-file)
   (z)
-  (let ((definitions (mapcar (function (lambda (character) (change-of-definition character scene)))
+  (mapc 'eval after)
+  (let ((definitions (mapcar (function
+			      (lambda (character) (change-of-definition character scene answers-file)))
 			     (characters-changed-in scene))))
        (setq :change-held nil) ;;so that nothing more is held
        (let ((file (open become-file 'out)))
@@ -501,16 +506,68 @@
 ;; old-values are as they were, new-values as Ani chose them again, for every element
 ;; (her absolute choice points, which pass 2 reads: scene.9:265-275, prereq.19:31-38);
 ;; relative-values her relative choice points, which a later fresh look holds;
-;; not-described the old words her description didn't have.
-(defun change-of-definition (character scene)
-  (let ((changes (changes-of-character character scene)))
-       '(define (change-of ,character in ,scene) description-change
-		(set your changes to ,(mapcar 'first changes))
-		(set your causes to ,(mapcar 'second changes))
-		(set your old-values to ,(values-as-they-were character))
-		(set your new-values to ,(values-now character))
-		(set your relative-values to ,(relative-values-now character))
-		(set your not-described to ,(old-words-not-described character changes)))))
+;; not-described the old words her description didn't have. With APPEAR, the elements
+;; include those of how she looks, and two more say how she was drawn and how she is
+;; drawn now, each as REVIVE;APPEAR's (appearance-of cinderella) has it (shape, angle,
+;; center-offset, ani-size, hue and look-color):
+;;	     (set your old-look to ((shape hexagon) (angle 60) ... (look-color (270.0 .35 .65))))
+;;	     (set your new-look to ((shape hexagon) (angle 60) ... (look-color (270.0 1.0 .65))))
+;; which REVIVE;CHSHOW bridges in the scene, and later scenes draw her as.
+(defun change-of-definition (character scene answers-file)
+  (let ((changes (changes-of-character character scene))
+	(new-look (look-of-appearance (list 'appearance-of character))))
+       (append
+	'(define (change-of ,character in ,scene) description-change
+		 (set your changes to ,(mapcar 'first changes))
+		 (set your causes to ,(mapcar 'second changes))
+		 (set your old-values to ,(values-as-they-were character))
+		 (set your new-values to ,(values-now character))
+		 (set your relative-values to ,(relative-values-now character))
+		 (set your not-described to ,(old-words-not-described character changes)))
+	(and new-look
+	     '((set your old-look to ,(look-as-it-was character answers-file))
+	       (set your new-look to ,new-look))))))
+
+;; How REVIVE;APPEAR draws a character, (appearance-of cinderella) (REVIVE;SHAPES,
+;; REVIVE;COLORS), as (part value) lists, or nil if it doesn't (APPEAR off).
+(defun look-of-appearance (appearance)
+  (and (exists? appearance)
+       (ask ,appearance recall your shape)
+       (mapcar (function (lambda (part) (list part (ask ,appearance recall your ,part))))
+	       '(shape angle center-offset ani-size hue look-color))))
+
+;; How she was drawn before the scene: as an earlier scene's change drew her, else as
+;; the story's pass 1 did, in the answers file (REVIVE;APPEAR's save-answers writes each
+;; character's look there, (define (appearance-of cinderella) appearance (set your shape
+;; to hexagon) ...)).
+(defun look-as-it-was (character answers-file)
+  (or (do ((c (reverse (changes-of-earlier-scenes)) (rest c)))
+	  ((null c) nil)
+	  (and (eq (second (first c)) character)
+	       (ask ,(first c) recall your new-look)
+	       (return (ask ,(first c) recall your new-look))))
+      (look-in-answers-file character answers-file)))
+
+(defun look-in-answers-file (character file-name)
+  (let ((file (open file-name 'in))
+	(end (list 'end-of-file))
+	(appearance (list 'appearance-of character)))
+       (do ((form (read file end) (read file end))
+	    (look nil))
+	   ((eq form end) (close file) look)
+	   (and (not (atom form))
+		(eq (first form) 'define)
+		(equal (second form) appearance)
+		(setq look (mapcar (function
+				    (lambda (part)
+					    (list part
+						  (do ((s (rest (rest (rest form))) (rest s)))
+						      ((null s) nil)
+						      (and (eq (third (first s)) part)
+							   (return (last-of (first s))))))))
+				   '(shape angle center-offset ani-size hue look-color)))))))
+
+(defun last-of (form) (first (last form)))
 
 ;; The old words of the character's changes that her description didn't have (the
 ;; change took nothing away for them), as init-as-of found them; for a relationship's
@@ -531,13 +588,18 @@
 	  (changes-in-scene scene)))
 
 ;; Every element a character's dynamics is chosen for: NODES' element types and their
-;; elements (nodes.38:100-102), as CHAR lists a type's elements (char.2:58-68). The
-;; lists are put together with append: recall gives each type's own offspring list,
-;; and mapcan's nconc would splice the next type's elements into it.
+;; elements (nodes.38:100-102), as CHAR lists a type's elements (char.2:58-68); and, if
+;; REVIVE;APPEAR has chosen how the characters look, the elements of a look
+;; (appearance-element's, REVIVE;APPEAR, 1). The lists are put together with append:
+;; recall gives each type's own offspring list, and mapcan's nconc would splice the next
+;; type's elements into it.
 (defun elements-chosen ()
-  (apply 'append
-	 (mapcar (function (lambda (type) (ask ,type recall your offspring)))
-		 (ask element-types recall your types))))
+  (append (apply 'append
+		 (mapcar (function (lambda (type) (ask ,type recall your offspring)))
+			 (ask element-types recall your types)))
+	  (and (actor-of 'appearance-element dont-autoload)
+	       (actor-of 'appearances-node dont-autoload) ;;looks chosen (choose-appearances)
+	       (reverse (ask appearance-element recall your offspring)))))
 
 (defun values-now (character)
   (mapcar (function
@@ -572,11 +634,12 @@
 ;; look holds back: "The personality, the role in the story, and the movement
 ;; descriptors of the characters are assumed to be permanent" (L4394-4396), and theirs
 ;; did not change.
-(defun recompute-everyone-as-of (scene answers-file become-files)
+(defun recompute-everyone-as-of (scene answers-file become-files after)
   (init-as-of scene)
   (learn-earlier-becomes become-files)
   (setq :change-as-they-were (choices-as-they-were answers-file))
   (z)
+  (mapc 'eval after)
   (mapcan (function
 	   (lambda (choice-point)
 		   (and (not (atom choice-point)) ;;not a kind of choice point with no instances
@@ -617,10 +680,27 @@
 	(changes-of-earlier-scenes))
   (mend-what-pass-2-cant-use))
 
-;; The (change-of c in scene) actors loaded, in the order they were defined.
+;; Pass 2 of the scene that changes someone, after who they had become: its own BECOME
+;; file, whose change-of actors REVIVE;CHSHOW shows the change by, not made so (the
+;; scene's tasks read the description as it was when the scene began, and she moves as
+;; she did until the change is shown). Each memorizes (shown-in: scene).
+(defun learn-what-changes-in (scene become-file)
+  (director-load become-file '(to learn what changes in the scene))
+  (mapc (function
+	 (lambda (change-of)
+		 (and (eq (fourth change-of) scene)
+		      (ask ,change-of memorize (shown-in: ,scene)))))
+	(ask description-change recall your offspring)))
+
+;; The (change-of c in scene) actors loaded, in the order they were defined, but those
+;; to be shown in this scene (learn-what-changes-in).
 (defun changes-of-earlier-scenes ()
   (and (actor-of 'description-change dont-autoload)
-       (reverse (ask description-change recall your offspring))))
+       (mapcan (function
+		(lambda (change-of)
+			(and (not (ask ,change-of recall if any items match (shown-in: %)))
+			     (list change-of))))
+	       (reverse (ask description-change recall your offspring)))))
 
 ;; Making a change so: the character's descriptions change (by the change-of actor of
 ;; the character each change describes, once for a relationship's two), and each of
@@ -632,7 +712,28 @@
 ;;   (described-anew: type personality was (and evil mean) now (and good kind))
 ;;   (made-so: element path-curvature was low now medium)
 ;;   (changed-in: change-of-heart was low by (change-of step-mother in change-of-heart))
+;; With APPEAR, a value of how she looks is made so as the others are, and if the fresh
+;; look drew her otherwise, (appearance-of cinderella) takes her new look, which the
+;; scene's program then has Director draw (REVIVE;APPEAR's take-look-forms):
+;;   (looked-anew: was ((shape hexagon) ...) now ((shape hexagon) ...))
 (defun make-change-so (change-of)
+  (make-change-so-1 change-of)
+  (make-look-so change-of))
+
+(defun make-look-so (change-of)
+  (let ((appearance (list 'appearance-of (second change-of)))
+	(new-look (ask ,change-of recall your new-look)))
+       (and new-look
+	    (exists? appearance)
+	    (let ((was (look-of-appearance appearance)))
+		 (cond ((not (equal was new-look))
+			(mapc (function
+			       (lambda (part)
+				       (ask ,appearance set your ,(first part) to ,(second part))))
+			      new-look)
+			(ask ,change-of memorize (looked-anew: was ,was now ,new-look))))))))
+
+(defun make-change-so-1 (change-of)
   (let ((character (second change-of))
 	(scene (fourth change-of))
 	(old-values (ask ,change-of recall your old-values)))

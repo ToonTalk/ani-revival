@@ -1,4 +1,4 @@
-// REVIVE;CHANGE: characters who change (reports/chapter-x/PLAN.md, item 3; stage 3).
+// REVIVE;CHANGE: characters who change (reports/chapter-x/PLAN.md, item 3; stages 3 and 6).
 // That Ken's Cinderella comes out byte for byte with CHANGE on is tools/check-1978.mjs's
 // (node tools/check-1978.mjs --extensions change, minutes); the fresh looks and the two
 // stories end to end against their goldens are tools/check-change.mjs's (npm run
@@ -6,7 +6,9 @@
 // part in a change; the description changed, and changed before study-descriptor-use
 // (the ordering guard); holding the others' choices while Ani chooses again; what a
 // BECOME file says; and making it so in a later scene's pass 2, with MEND narrowing a
-// value pass 2 can't use.
+// value pass 2 can't use. And stage 6, REVIVE;CHSHOW: the change and causes verbs' ways
+// of showing a change and its bridges, the rate, the element types' Director forms, and
+// Director's bridge over seconds; with APPEAR, a look's bridge and a look made so.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -34,12 +36,14 @@ function pass1Ready(extensions, cindy) {
 const wraps = (run, f) => run(`(mapcar 'car (get '${f} 'revival-wraps))`);
 const tasksOf = (run, scene) => run(`(mapcar (function (lambda (x) (ask ,x recall your task))) (ask ${scene} recall your tasks))`);
 
-test("the registry: CHANGE leaves Ken's Cinderella alone and has steps of its own for a scene", () => {
+test("the registry: CHANGE leaves Ken's Cinderella alone and has steps of its own for a scene; it needs MEND", () => {
   const e = EXTENSIONS.find((x) => x.id === "change");
-  assert.deepEqual(e.files, ["wrap", "change"]);
+  assert.deepEqual(e.files, ["wrap", "change", "chshow"]);
   assert.equal(e.changes1978, false);
   assert.equal(e.sceneSteps, true);
-  assert.deepEqual(extensionsFor(["change"]).map((x) => x.id), ["change"]);
+  // a change is shown by MEND9's wander and MEND6's bring-on (REVIVE;CHSHOW)
+  assert.deepEqual(e.requires, ["mend"]);
+  assert.deepEqual(extensionsFor(["change"]).map((x) => x.id), ["mend", "change"]);
 });
 
 test("the outline finds each change, its cause and whom it changes; the plan names the BECOME files", () => {
@@ -74,6 +78,17 @@ test("each hook is installed once, though REVIVE;CHANGE is loaded again; in 1978
   assert.equal(wraps(plain.run, "process-task-description"), "nil");
   assert.equal(wraps(plain.run, "record-choice"), "nil");
   assert.equal(plain.run("(exists? 'description-change)"), "nil");
+  // stage 6's: CONVEY's verbs, DISPLY's ways of showing, SUGCON's task, once each
+  run("(load '|ken;sugcon >|)");
+  run("(load '|ken;convey >|)");
+  run("(load '|ken;disply >|)");
+  run("(load '|revive;chshow >|)");
+  assert.equal(wraps(run, "convey-suggestions"), "(chshow)");
+  assert.equal(wraps(run, "mover-and-other-of"), "(chshow)");
+  for (const a of ["change", "causes", "bridge-to:", "goes-to-and-transforms", "changes-while-wandering"]) assert.notEqual(run(`(actor-of '${a} dont-autoload)`), "nil", a);
+  for (const f of ["sugcon", "convey", "disply"]) plain.run(`(load '|ken;${f} >|)`);
+  assert.equal(wraps(plain.run, "convey-suggestions"), "nil");
+  for (const a of ["change", "causes", "bridge-to:", "goes-to-and-transforms", "changes-while-wandering"]) assert.equal(plain.run(`(exists? '${a})`), "nil", a);
 });
 
 test("Ken's Cinderella: every task and every part in a scene as without CHANGE", () => {
@@ -331,4 +346,213 @@ test("the glass box has no becomes unless CHANGE is loaded and made something so
   const ours = lisp(["change"], null);
   ours.run("(load '|ken;char >|)");
   assert.deepEqual(collectBecomes(ours.L), []);
+});
+
+// ---------------------------------------------------------------- stage 6: REVIVE;CHSHOW
+
+// A pass 2 as RUN starts one (run.65:42-48), CINDY and the CP loaded, with a change-of
+// actor to show in the scene: the BECOME text given, learnt as pass 2 learns its own
+// scene's (learn-what-changes-in).
+function pass2With(extensions, story, become, scene, cp = null) {
+  const x = lisp(extensions, story);
+  x.fs.addFile("KEN1", "SHOWN", "BECOME", { text: become, origin: "test" });
+  x.fs.addFile("KEN", "CP", "30", { text: cp || readFileSync("original/7005017/cp.29", "latin1"), origin: "test" });
+  x.run("(load '|ken;run >|)");
+  x.run(`(director-load 'cindy '(to reset ${scene}))`);
+  x.run("(director-load 'cp)");
+  x.run("(setq :choice-points-loaded t)");
+  x.run(`(learn-what-changes-in '${scene} '((ken1) shown become))`);
+  for (const f of ["sugcon", "convey", "disply", "chomet", "elemnt"]) x.run(`(load '|ken;${f} >|)`);
+  return x;
+}
+// The repentant stepmother's BECOME file (reports/ext/change/fresh-look/repents.become),
+// with a cause given.
+const REPENTS = (cause) => `(DEFINE (CHANGE-OF STEP-MOTHER IN CHANGE-OF-HEART) DESCRIPTION-CHANGE
+ (SET YOUR CHANGES TO ((CHANGE (PERSONALITY STEP-MOTHER (AND EVIL MEAN)) (PERSONALITY STEP-MOTHER (AND GOOD KIND)))))
+ (SET YOUR CAUSES TO (${cause}))
+ (SET YOUR OLD-VALUES TO ((PATH-JAGGEDNESS MEDIUM) (PATH-CURVATURE LOW) (PATH-LENGTH MEDIUM) (DELIBERATENESS HIGH) (REPETIVENESS MEDIUM) (ACCELERATION HIGH) (RHYTHMIC-LEVEL MEDIUM) (ACTIVITY-LEVEL HIGH) (SPEED HIGH) (ATTRACTION-TOWARDS-FRIENDS (NEGATIVE HIGH)) (ATTRACTION-TOWARDS-ENEMIES (NEGATIVE HIGH)) (ATTRACTION-TOWARDS-STRANGERS (NEGATIVE MEDIUM))))
+ (SET YOUR NEW-VALUES TO ((PATH-JAGGEDNESS LOW) (PATH-CURVATURE MEDIUM) (PATH-LENGTH LONG) (DELIBERATENESS HIGH) (REPETIVENESS MEDIUM) (ACCELERATION MEDIUM) (RHYTHMIC-LEVEL MEDIUM) (ACTIVITY-LEVEL HIGH) (SPEED HIGH) (ATTRACTION-TOWARDS-FRIENDS (POSITIVE HIGH)) (ATTRACTION-TOWARDS-ENEMIES (POSITIVE HIGH)) (ATTRACTION-TOWARDS-STRANGERS (POSITIVE MEDIUM))))
+ (SET YOUR RELATIVE-VALUES TO NIL)
+ (SET YOUR NOT-DESCRIBED TO NIL))
+`;
+// The suggestions SUGCON collects for a scene's convey task, by its place in the scene.
+const suggestionsOf = (run, scene, which = 0) => {
+  run(`(setq test-task (nth ${which} (reverse (ask ${scene} recall your convey-tasks))))`);
+  run("(convey-suggestions (ask ,test-task recall your task) test-task)");
+  return run("(ask ,test-task collect items memorized matching (suggestion: %))");
+};
+
+test("causes shows a change it causes: the cause goes to the one it changes, and the elements Director reads are bridged, gradually", () => {
+  const { run } = pass2With(["change"], story("change-of-heart"), REPENTS("PRINCE"), "change-of-heart");
+  // the scene's own change is to be shown, not made so: her description is as it was
+  assert.match(run("(ask step-mother collect items memorized matching (description: type personality %))"), /descriptor evil /);
+  assert.equal(run("(changes-shown-in 'change-of-heart)"), "((change-of step-mother in change-of-heart))");
+  assert.equal(run("(changes-of-earlier-scenes)"), "nil");
+  // (causes prince (change ...)), after (accompanys prince step-mother)
+  const s = suggestionsOf(run, "change-of-heart", 1);
+  assert.match(s, /value \(method: type display value \(goes-to-and-transforms prince step-mother\)\) strength high source causes/);
+  const bridges = [...s.matchAll(/\(bridge-to: element \(step-mother ([a-z-]+)\) new-value ([a-z]+) speed ([a-z]+) for \(change-of step-mother in change-of-heart\)\)/g)].map((m) => m.slice(1).join(" "));
+  assert.deepEqual(bridges.sort(), ["path-curvature medium low", "path-jaggedness low low", "path-length long low"]);
+  // the others are chosen again, and said not to be bridged: Director doesn't read them
+  const notBridged = run("(ask (change-of step-mother in change-of-heart) collect items memorized matching (not-bridged: %))");
+  for (const e of ["acceleration", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"]) {
+    assert.match(notBridged, new RegExp(`element ${e} was .* because \\(director does not read it\\)`), e);
+  }
+  assert.doesNotMatch(notBridged, /deliberateness|speed/); // not changed
+  assert.match(run("(ask (change-of step-mother in change-of-heart) collect items memorized matching (rate: %))"),
+    /\(rate: is gradual speed low because \(an abrupt change could easily be misinterpreted thesis 169\)\)/);
+  // the accompanying task is suggested as in 1978
+  assert.doesNotMatch(suggestionsOf(run, "change-of-heart", 0), /bridge-to:|transforms/);
+});
+
+test("a magical cause changes her at once, the revival's rule; a change with no cause is shown as she wanders; a causes of no change, as in 1978, has no suggestions", () => {
+  const magic = pass2With(["change"], story("change-of-heart"), REPENTS("FAIRY-GODMOTHER"), "change-of-heart");
+  assert.match(suggestionsOf(magic.run, "change-of-heart", 1), /speed instantaneous for/);
+  assert.match(magic.run("(ask (change-of step-mother in change-of-heart) collect items memorized matching (rate: %))"),
+    /\(rate: is instantaneous because \(magical fairy-godmother\) rule \(of the revival\)\)/);
+  // Cinderella from shy to brazen, on her own: changes-while-wandering, her speed bridged
+  const SOCIAL = `(DEFINE (CHANGE-OF CINDERELLA IN LEARNING) DESCRIPTION-CHANGE (SET YOUR CHANGES TO ((CHANGE (PERSONALITY CINDERELLA SHY) (PERSONALITY CINDERELLA BRAZEN)))) (SET YOUR CAUSES TO (NIL))
+ (SET YOUR OLD-VALUES TO ((SPEED LOW))) (SET YOUR NEW-VALUES TO ((SPEED MEDIUM))) (SET YOUR RELATIVE-VALUES TO NIL) (SET YOUR NOT-DESCRIBED TO NIL))`;
+  const social = pass2With(["change"], story("socializing"), SOCIAL, "learning");
+  const t = suggestionsOf(social.run, "learning");
+  assert.match(t, /value \(method: type display value \(changes-while-wandering cinderella\)\) strength high source change/);
+  assert.match(t, /\(bridge-to: element \(cinderella speed\) new-value medium speed low for \(change-of cinderella in learning\)\)/);
+  // a change whose fresh look wasn't made: no suggestions, "cant-do" as in stage 3
+  const none = lisp(["change"], story("socializing"));
+  none.fs.addFile("KEN", "CP", "30", { text: readFileSync("original/7005017/cp.29", "latin1"), origin: "test" });
+  none.run("(load '|ken;run >|)");
+  none.run("(director-load 'cindy '(to reset learning))");
+  for (const f of ["sugcon", "convey", "disply"]) none.run(`(load '|ken;${f} >|)`);
+  assert.equal(suggestionsOf(none.run, "learning"), "nil");
+  // causes of something not a change, as EVIL's and DOMINATES' would make: none
+  none.run("(setq :change-convey-task (first (ask learning recall your convey-tasks)))");
+  assert.equal(none.run("(ask causes yield suggestions for (convey (causes step-mother (does cinderella cleaning))))"), "nil");
+});
+
+// Director as filming has it, at a frame rate, with Cinderella standing with the
+// scene's dynamics.
+function directorAt(fps, extensions = ["change"]) {
+  const L = boot(makeProjectFileSystem(), { extensions });
+  const run = (src) => L.print(L.evalString(src)).toLowerCase();
+  run("(cs)");
+  run("(load '|ken;aninit >|)");
+  run("(tvsize 550 413)");
+  run(`(setq :frames-per-second ${fps})`);
+  run("(define (special-dynamics-of cinderella in t-subscene) special-dynamics (set your path-curvature to low))");
+  run("(ask cinderella set your special-dynamics to (special-dynamics-of cinderella in t-subscene))");
+  run("(ask cinderella set your position to (0.0 0.0))");
+  run("(ask cinderella show)");
+  const tick = () => run("(ask default-universe tick)");
+  return { L, run, tick };
+}
+
+test("Director bridges an element over the seconds Ani planned, reaching its factor at 4 frames a second and at 24", () => {
+  for (const fps of [4, 24]) {
+    const { run, tick } = directorAt(fps);
+    // walking, with dynamics of her own under the scene's (as a walk's are, place.45:452-461)
+    run("(define |(special-dynamics-of cinderella in t-subscene)-1| (special-dynamics-of cinderella in t-subscene))");
+    run("(ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in t-subscene)-1|)");
+    run("(ask cinderella gradually change by 4.0 factor for path-curvature in 2.5 seconds then set your bridged to done)");
+    const ticks = Math.round(2.5 * fps);
+    const value = () => Number(run("(ask cinderella ask your special-dynamics to yield your path-curvature value)"));
+    // the first step at once, the rest one a tick: low (.5) times 4 after ticks - 1 ticks
+    for (let k = 1; k < ticks; k++) tick();
+    assert.ok(Math.abs(value() - 2.0) < 1e-4, `${fps} fps: ${value()} after ${ticks - 1} ticks`);
+    assert.equal(run("(ask (special-dynamics-of cinderella in t-subscene) recall your bridged)"), "nil");
+    tick(); // the followup, on the tick the bridge ends: 2.5 seconds after it began
+    assert.equal(run("(ask (special-dynamics-of cinderella in t-subscene) recall your bridged)"), "done");
+    tick();
+    assert.ok(Math.abs(value() - 2.0) < 1e-4, "and stops");
+  }
+});
+
+test("Director's bridge grows a factor once a tick, where Ken's two repeats grow one a walk has from the scene's twice at first, and one she stands with twice a tick", () => {
+  // standing, her special dynamics the scene's (dichar.103:22-26)
+  const { run, tick } = directorAt(4);
+  const factor = (r) => Number(r("(ask (special-dynamics-of cinderella in t-subscene) recall your (path-curvature factor))"));
+  run("(ask cinderella gradually change by 4.0 factor for path-curvature in 2.0 seconds)");
+  for (let k = 1; k < 8; k++) tick();
+  assert.ok(Math.abs(factor(run) - 4.0) < 1e-4, `the bridge: ${factor(run)}`);
+  // Ken's, at medium speed: round(5 x 1 x 4 x ln 4) = 28 ticks, and 27 steps of 2.718^(1/20)
+  // each (dichar.103:102-121; his e is 2.718, dichar.103:100), taken twice a tick:
+  // 2.718^(27/10), not 2.718^(27/20)
+  const ken = directorAt(4);
+  ken.run("(ask cinderella gradually change by 4.0 factor for path-curvature at medium speed)");
+  for (let k = 0; k < 30; k++) ken.tick();
+  assert.ok(Math.abs(factor(ken.run) - 2.718 ** (27 / 10)) < 1e-3, `Ken's: ${factor(ken.run)}`);
+  // and walking with dynamics that have the factor from the scene's: a step ahead, from
+  // the first tick on
+  const walking = directorAt(4);
+  walking.run("(define |(special-dynamics-of cinderella in t-subscene)-1| (special-dynamics-of cinderella in t-subscene))");
+  walking.run("(ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in t-subscene)-1|)");
+  walking.run("(ask cinderella gradually change by 4.0 factor for path-curvature at medium speed)");
+  for (let k = 0; k < 30; k++) walking.tick();
+  const own = Number(walking.run("(ask cinderella ask your special-dynamics to yield your path-curvature value)"));
+  assert.ok(Math.abs(own - 0.5 * 2.718 ** (28 / 20)) < 1e-3, `Ken's, walking: ${own}`);
+});
+
+test("an instantaneous bridge is a tick", () => {
+  const { run, tick } = directorAt(24);
+  run("(define |(special-dynamics-of cinderella in t-subscene)-1| (special-dynamics-of cinderella in t-subscene))");
+  run("(ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in t-subscene)-1|)");
+  run("(ask cinderella gradually change by 2.0 factor for path-curvature in 0.0 seconds then set your bridged to done)");
+  assert.equal(Number(run("(ask cinderella ask your special-dynamics to yield your path-curvature value)")), 1);
+  tick();
+  assert.equal(run("(ask (special-dynamics-of cinderella in t-subscene) recall your bridged)"), "done");
+});
+
+// Cinderella's look as pass 1 drew her with APPEAR, and a look she might become.
+const OLD_LOOK = "((shape hexagon) (angle 60) (center-offset nil) (ani-size 0.036) (hue purple) (look-color (270.0 0.35 0.65)))";
+const NEW_LOOK = "((shape star) (angle 144) (center-offset (right 18)) (ani-size 0.05) (hue blue) (look-color (240.0 1.0 0.65)))";
+const APPEARANCE_OF = "(define (appearance-of cinderella) appearance (set your shape to hexagon) (set your angle to 60) (set your center-offset to nil) (set your ani-size to 0.036) (set your hue to purple) (set your look-color to (270.0 0.35 0.65)))";
+
+test("with APPEAR, a look's bridge: appearance-element gives Director a look change in seconds, from her look to the fresh look's", () => {
+  const { run } = lisp(["mend", "appear", "change"], null);
+  for (const f of ["cpoint", "elemnt", "char"]) run(`(load '|ken;${f} >|)`);
+  run(APPEARANCE_OF);
+  run(`(define (change-of cinderella in s) description-change (set your new-look to ${NEW_LOOK}))`);
+  const form = (e) => run(`(ask appearance-element yield gradual change of (cinderella ${e}) to high for (change-of cinderella in s) in 6.0 seconds in nil)`);
+  assert.match(form("size"), /^\(gradually change look by 1\.38\d* factor for size in 6\.0 seconds\)$/);
+  assert.match(form("color-saturation"), /^\(gradually change look by 2\.857\d* factor for color-saturation in 6\.0 seconds\)$/);
+  assert.equal(form("color-intensity"), "nil"); // as it was
+  assert.equal(form("color-hue"), "(gradually change look to (look: hue blue) in 6.0 seconds)");
+  assert.equal(form("shape-jaggedness"), "(gradually change look to (look: shape star angle 144 center-offset (right 18)) in 6.0 seconds)");
+  // the elements CHSHOW bridges: those the look shows differently, the shape by a shape
+  // element chosen differently
+  run("(ask (change-of cinderella in s) set your new-values to ((size medium) (shape-jaggedness high) (shape-complexity medium) (color-saturation high) (color-intensity medium) (color-hue blue)))");
+  run("(ask (change-of cinderella in s) set your old-values to ((size low) (shape-jaggedness low) (shape-complexity medium) (color-saturation low) (color-intensity medium) (color-hue purple)))");
+  assert.equal(run("(look-elements-to-bridge '(change-of cinderella in s))"), "((size medium) (color-saturation high) (color-hue blue) (shape-jaggedness high))");
+});
+
+test("with APPEAR, Director changes a look over seconds: by a factor, to a hue, to a shape at once in a tick", () => {
+  for (const fps of [4, 24]) {
+    const { run, tick } = directorAt(fps, ["mend", "appear", "change"]);
+    run("(ask cinderella take look (look: shape square angle 90 center-offset nil ani-size 0.05 look-color (60.0 0.35 0.65)))");
+    run("(ask cinderella gradually change look by 2.0 factor for color-saturation in 2.0 seconds)");
+    run("(ask cinderella gradually change look to (look: hue blue) in 2.0 seconds)");
+    for (let k = 0; k < 2 * fps + 1; k++) tick();
+    assert.equal(run("(ask cinderella recall your look-color)"), "(240.0 0.7 0.65)", `${fps} fps`);
+    run("(ask cinderella gradually change look to (look: shape star angle 144 center-offset (right 18)) in 0.0 seconds)");
+    assert.equal(run("(ask cinderella recall your shape)"), "star");
+  }
+});
+
+test("with APPEAR, a later scene draws her as she has become: her look made so, and the program's take-look form", () => {
+  const BECOME_LOOK = `(DEFINE (CHANGE-OF CINDERELLA IN MADE-OVER) DESCRIPTION-CHANGE (SET YOUR CHANGES TO ((CHANGE (PHYSICAL CINDERELLA SHABBY) (PHYSICAL CINDERELLA ELEGANT)))) (SET YOUR CAUSES TO (FAIRY-GODMOTHER))
+ (SET YOUR OLD-VALUES TO ((SPEED LOW))) (SET YOUR NEW-VALUES TO ((SPEED LOW))) (SET YOUR RELATIVE-VALUES TO NIL) (SET YOUR NOT-DESCRIBED TO NIL)
+ (SET YOUR OLD-LOOK TO ${OLD_LOOK.toUpperCase()}) (SET YOUR NEW-LOOK TO ${NEW_LOOK.toUpperCase()}))`;
+  const { run, L, fs } = lisp(["mend", "appear", "change"], null);
+  fs.addFile("KEN1", "MADE", "BECOME", { text: BECOME_LOOK, origin: "test" });
+  fs.addFile("KEN", "CP", "30", { text: `${readFileSync("original/7005017/cp.29", "latin1")}\n${APPEARANCE_OF.toUpperCase()}\n`, origin: "test" });
+  run("(load '|ken;run >|)");
+  run("(director-load 'cindy '(to reset meeting))");
+  run("(director-load 'cp)");
+  run("(learn-who-they-have-become '(((ken1) made become)))");
+  assert.equal(run("(ask (appearance-of cinderella) recall your shape)"), "star");
+  assert.equal(run("(ask (appearance-of cinderella) recall your look-color)"), "(240.0 1.0 0.65)");
+  assert.match(run("(ask (change-of cinderella in made-over) collect items memorized matching (looked-anew: %))"), /was \(\(shape hexagon\).*now \(\(shape star\)/);
+  assert.match(run("(take-look-forms 'meeting)"), /\(ask cinderella take look \(look: shape star angle 144 center-offset \(right 18\) ani-size 0\.05 look-color \(240\.0 1\.0 0\.65\)\)\)/);
+  const [b] = collectBecomes(L);
+  assert.deepEqual(b.looks.changed, ["size", "clarity", "hue", "shape"]);
+  assert.equal(b.lookMadeSo, true);
 });
