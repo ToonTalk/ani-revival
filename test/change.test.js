@@ -353,7 +353,7 @@ test("the glass box has no becomes unless CHANGE is loaded and made something so
 // A pass 2 as RUN starts one (run.65:42-48), CINDY and the CP loaded, with a change-of
 // actor to show in the scene: the BECOME text given, learnt as pass 2 learns its own
 // scene's (learn-what-changes-in).
-function pass2With(extensions, story, become, scene, cp = null) {
+function pass2With(extensions, story, become, scene, cp = null, { elemnt = true } = {}) {
   const x = lisp(extensions, story);
   x.fs.addFile("KEN1", "SHOWN", "BECOME", { text: become, origin: "test" });
   x.fs.addFile("KEN", "CP", "30", { text: cp || readFileSync("original/7005017/cp.29", "latin1"), origin: "test" });
@@ -362,7 +362,7 @@ function pass2With(extensions, story, become, scene, cp = null) {
   x.run("(director-load 'cp)");
   x.run("(setq :choice-points-loaded t)");
   x.run(`(learn-what-changes-in '${scene} '((ken1) shown become))`);
-  for (const f of ["sugcon", "convey", "disply", "chomet", "elemnt"]) x.run(`(load '|ken;${f} >|)`);
+  for (const f of ["sugcon", "convey", "disply", "chomet", ...(elemnt ? ["elemnt"] : [])]) x.run(`(load '|ken;${f} >|)`);
   return x;
 }
 // The repentant stepmother's BECOME file (reports/ext/change/fresh-look/repents.become),
@@ -400,7 +400,7 @@ test("causes shows a change it causes: the cause goes to the one it changes, and
   }
   assert.doesNotMatch(notBridged, /deliberateness|speed/); // not changed
   assert.match(run("(ask (change-of step-mother in change-of-heart) collect items memorized matching (rate: %))"),
-    /\(rate: is gradual speed low because \(an abrupt change could easily be misinterpreted thesis 169\)\)/);
+    /\(rate: is gradual because \(an abrupt change could easily be misinterpreted thesis 169\) speed low rule \(of the revival\)\)/);
   // the accompanying task is suggested as in 1978
   assert.doesNotMatch(suggestionsOf(run, "change-of-heart", 0), /bridge-to:|transforms/);
 });
@@ -555,4 +555,59 @@ test("with APPEAR, a later scene draws her as she has become: her look made so, 
   const [b] = collectBecomes(L);
   assert.deepEqual(b.looks.changed, ["size", "clarity", "hue", "shape"]);
   assert.equal(b.lookMadeSo, true);
+});
+
+// ---------------------------------------------------------------- the review of stage 6
+
+test("a change of how she looks alone is timed before ELEMNT has loaded: a look's element asks appearance-element, which loads it (B1 of the review of stage 6)", () => {
+  // Cinderella's clothes become clear, and nothing in how she moves changes: the bridges
+  // are her look's alone, and CHOMET asks for their time before pass 2 has loaded ELEMNT,
+  // where APPEAR defines the elements of a look
+  const LOOKS_ONLY = `(DEFINE (CHANGE-OF CINDERELLA IN LEARNING) DESCRIPTION-CHANGE (SET YOUR CHANGES TO ((CHANGE (PHYSICAL CINDERELLA SHABBY) (PHYSICAL CINDERELLA ELEGANT)))) (SET YOUR CAUSES TO (NIL))
+ (SET YOUR OLD-VALUES TO ((SPEED LOW) (COLOR-SATURATION LOW))) (SET YOUR NEW-VALUES TO ((SPEED LOW) (COLOR-SATURATION HIGH))) (SET YOUR RELATIVE-VALUES TO NIL) (SET YOUR NOT-DESCRIBED TO NIL)
+ (SET YOUR OLD-LOOK TO ${OLD_LOOK.toUpperCase()}) (SET YOUR NEW-LOOK TO ${OLD_LOOK.toUpperCase().replace("0.35 0.65", "1.0 0.65")}))`;
+  const cp = `${readFileSync("original/7005017/cp.29", "latin1")}\n${APPEARANCE_OF.toUpperCase()}\n`;
+  const { run } = pass2With(["mend", "appear", "change"], story("socializing"), LOOKS_ONLY, "learning", cp, { elemnt: false });
+  assert.equal(run("(and (actor-of 'normal-movement-element dont-autoload) t)"), "nil"); // ELEMNT not loaded yet
+  // one bridge, her clarity, timed at ten seconds an e-fold of 1/.35
+  assert.match(run("(time-to-bridge '(change-of cinderella in learning) nil)"), /^\(time-estimates: ideal 10\.49\d* /);
+  assert.match(run("(bridge-forms '(change-of cinderella in learning) 0.0 nil)"), /^\(\(gradually change look by 2\.857\d* factor for color-saturation in 0\.0 seconds\)\)$/);
+  // and the suggestions: her way of showing, and the one bridge
+  const s = suggestionsOf(run, "learning");
+  assert.match(s, /\(changes-while-wandering cinderella\)/);
+  assert.match(s, /\(bridge-to: element \(cinderella color-saturation\) new-value high speed low for \(change-of cinderella in learning\)\)/);
+});
+
+test("a character's changes in a scene are shown once: by the task whose cause goes to her, else the first that changes her; another shows nothing of hers (M1 of the review of stage 6)", () => {
+  // the stepmother becomes beautiful on her own, and the fairy godmother makes her good,
+  // in one scene: her fresh look takes both, one bridge from how she was to who she is
+  const scene = withScenes([["made-over", "(and (convey (change (physical step-mother ugly) (physical step-mother beautiful))) (convey (causes fairy-godmother (change (personality step-mother evil) (personality step-mother good)))))"]]);
+  const { run } = pass2With(["change"], scene, REPENTS("NIL FAIRY-GODMOTHER").replace("IN CHANGE-OF-HEART", "IN MADE-OVER"), "made-over");
+  const tasks = run("(reverse (ask made-over recall your convey-tasks))");
+  const [first, second] = tasks.slice(1, -1).split(" ");
+  assert.equal(run("(showing-task-of 'step-mother 'made-over)"), second); // the one whose cause goes to her
+  // the first task changes her too, and shows nothing: no way of showing, no bridges
+  assert.equal(suggestionsOf(run, "made-over", 0), "nil");
+  const s = suggestionsOf(run, "made-over", 1);
+  assert.match(s, /value \(method: type display value \(goes-to-and-transforms fairy-godmother step-mother\)\)/);
+  const bridges = [...s.matchAll(/\(bridge-to: element \(step-mother ([a-z-]+)\)/g)].map((m) => m[1]).sort();
+  assert.deepEqual(bridges, ["path-curvature", "path-jaggedness", "path-length"]); // each once
+  // with no cause going to her, the first task that changes her shows it
+  const alone = withScenes([["made-over", "(and (convey (change (physical step-mother ugly) (physical step-mother beautiful))) (convey (change (personality step-mother evil) (personality step-mother good))))"]]);
+  const b = pass2With(["change"], alone, REPENTS("NIL NIL").replace("IN CHANGE-OF-HEART", "IN MADE-OVER"), "made-over");
+  assert.match(suggestionsOf(b.run, "made-over", 0), /\(changes-while-wandering step-mother\)/);
+  assert.equal(suggestionsOf(b.run, "made-over", 1), "nil");
+});
+
+test("the cause walks to her regardless of anyone in the way, as Ken's goes-to-to-hit does (M4 of the review of stage 6); the bridges' time is the ticks of WRAP's ticks-in-seconds", () => {
+  const src = readFileSync("src/director/revive/chshow.lisp", "utf8");
+  const walk = src.slice(src.indexOf("(defun plans-to-transform"), src.indexOf("(defun mover-and-other-of-ways-to-show-a-change"));
+  assert.match(walk, /'regardless ;;of collisions, as goes-to-to-hit/);
+  assert.doesNotMatch(walk, /'careful/);
+  // one helper for the ticks in seconds, which LOOKS and CHSHOW both count by
+  assert.doesNotMatch(readFileSync("src/director/revive/looks.lisp", "utf8"), /\(defun (look-)?ticks-in-seconds/);
+  assert.doesNotMatch(src, /\(defun ticks-in-seconds/);
+  const { run } = lisp(["change"]);
+  run("(setq :frames-per-second 24 :ticks-per-frame 1)");
+  assert.equal(run("(list (ticks-in-seconds 2.5) (ticks-in-seconds 0.0))"), "(60 1)");
 });

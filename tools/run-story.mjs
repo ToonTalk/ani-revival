@@ -219,7 +219,7 @@ const steps = makeFilmSteps(fs, {
       for (const v of x.changed) console.log(`           ${v.element} ${show(v.before)} -> ${show(v.after)}${v.use === "none" ? " (Director and pass 2 don't use it)" : v.use === "cycles" ? " (how often pass 2 repeats an activity)" : ""}`);
       if (!x.changed.length) console.log(`           nothing changes in how ${x.character} moves`);
       if (x.notDescribed) console.log(`           not described as ${x.notDescribed.join(" or ")}, so the change took nothing away for ${x.notDescribed.length > 1 ? "those words" : "that word"}`);
-      if (x.looks) console.log(`           looks: ${x.looks}`);
+      if (x.looks) console.log(`           looks: ${lookWords(x.looks)}`);
     }
     for (const h of r.held) console.log(`         held ${show(h.choicePoint)} at ${show(h.heldAt)} (would have chosen ${show(h.wouldHaveChosen)})`);
     for (const k of r.knockOns) console.log(`         a full recompute would also change ${show(k.choicePoint)} ${show(k.before)} -> ${show(k.after)}`);
@@ -264,7 +264,18 @@ const steps = makeFilmSteps(fs, {
     for (const b of (s.glass && s.glass.becomes) || []) {
       r.becomes = (r.becomes || []).concat([{ character: b.character, scene: b.scene, described: b.described, madeSo: b.madeSo, ...(b.looks ? { looks: b.looks } : {}) }]);
       const made = [...(b.described || []).map((d) => `${d.type} ${d.was} -> ${d.now}`), ...b.madeSo.map((m) => `${m.element} ${show(m.was)} -> ${show(m.now)}`)];
-      console.log(`         as ${b.character} became in ${b.scene}: ${made.join(", ") || "nothing to make so"}${b.looks ? `; looks ${b.looks}` : ""}`);
+      console.log(`         as ${b.character} became in ${b.scene}: ${made.join(", ") || "nothing to make so"}${b.looks ? `; looks ${lookWords(b.looks)}` : ""}`);
+    }
+    // how the scene showed a change made in it (REVIVE;CHSHOW): its way, the task, the
+    // rate, the bridges, the cause's walk, the bridges' and the wander's frames
+    for (const x of (s.glass && s.glass.changesShown) || []) {
+      const at = (plan) => {
+        const frame = (e) => { const f = s.film && s.film.events.find(([, what]) => what === `(${e} ${plan})`); return f ? f[0] : "-"; };
+        return plan ? `${frame("beginning-of")}-${frame("end-of")}` : "";
+      };
+      r.changesShown = (r.changesShown || []).concat([{ character: x.character, shownBy: x.shownBy, task: x.task, rate: x.rate, bridges: x.bridges.map((b) => b.element) }]);
+      const walks = x.wanders ? (x.wanders.carriedBy ? `carried by ${x.wanders.carriedBy}` : `wanders ${x.wanders.plans.map(at).join(" ")}`) : "";
+      console.log(`         change of ${x.character} shown by ${x.shownBy || "(the first character's way)"}${x.task ? ` (${x.task})` : ""}, ${x.rate}: ${x.bridges.map((b) => `${b.element} ${b.was} -> ${b.now}${b.atOnce ? " at once" : ""}`).join(", ") || "nothing bridged"}${x.goesTo ? `; walk ${at(x.goesTo.plan)}` : ""}${x.bridging ? `; bridges ${at(x.bridging.plan)}` : ""}${walks ? `; ${walks}` : ""}`);
     }
     // pass 2's notes, in the glass box, then those left while the scene was filmed
     const notes = [...repairNotes(s.glass && s.glass.repairs), ...repairNotes(s.film && s.film.repairs).map((n) => `${n} (while filming)`)];
@@ -275,6 +286,13 @@ const steps = makeFilmSteps(fs, {
     result.scenes.push(r);
   },
 });
+
+// A look before and after a change ({ before, after, changed }), in a line.
+function lookWords(looks) {
+  if (!looks || typeof looks !== "object") return String(looks);
+  const one = (l) => (l ? `${l.shape} ${l.aniSize}${l.color ? ` (${l.color.join(" ")})` : ""}` : "none");
+  return looks.changed && looks.changed.length ? `${one(looks.before)} -> ${one(looks.after)} (${looks.changed.join(", ")})` : `as before, ${one(looks.after)}`;
+}
 
 const t0 = Date.now();
 try {

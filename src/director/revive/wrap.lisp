@@ -96,3 +96,12 @@
   (or (member note-actor :revival-noted)
       (setq :revival-noted (cons note-actor :revival-noted)))
   note-actor)
+
+;;; A helper two extensions share: APPEAR's REVIVE;LOOKS changes a look, and CHANGE's
+;;; REVIVE;CHSHOW bridges how a character moves, over a time Ani gave in seconds, each a
+;;; step a tick. The ticks in seconds, at least one: :frames-per-second and
+;;; :ticks-per-frame are the movie's (movie.153:11, 32), as DICHAR counts them
+;;; (dichar.103:105-109), so a change ends when Ani planned at 4 frames a second and at
+;;; 24, and one of no seconds is a tick.
+(defun ticks-in-seconds (seconds)
+  (max 1 (round (*$ (float seconds) (float :frames-per-second) (float :ticks-per-frame)))))

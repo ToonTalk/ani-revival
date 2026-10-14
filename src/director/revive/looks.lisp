@@ -159,7 +159,7 @@
        (define-receiver (gradually change look by ?factor factor for ?element
 				   in ?seconds seconds %followup)
 			director-character
-	(grow-look :self factor element (look-ticks-in-seconds seconds) followup))
+	(grow-look :self factor element (ticks-in-seconds seconds) followup))
        ;; one step of a change of look, as its carrier has the character take it
        (define-receiver (change your look step ?step of ?ticks doing ?what) director-character
 	(cond ((eq (first what) 'grow)
@@ -184,13 +184,11 @@
        doing (grow ,element ,(exp (//$ (log (float factor)) (float ticks))))
        !,followup))
 
-;; The ticks in seconds, at least one, at the movie's frames a second and ticks a frame
-;; (movie.153:11, 32), as DICHAR counts them (dichar.103:105-109): a change Ani gives a
-;; duration ends when she planned at any frame rate; one of no seconds, instantaneous,
-;; is made in a tick ("in one frame the character has one appearance and in the next
-;; frame a different appearance", p. 166).
-(defun look-ticks-in-seconds (seconds)
-  (max 1 (round (*$ (float seconds) (float :frames-per-second) (float :ticks-per-frame)))))
+;; A change Ani gives a duration takes the ticks in its seconds at the film's frame rate
+;; (REVIVE;WRAP's ticks-in-seconds, which REVIVE;CHSHOW's bridge counts by too), so it
+;; ends when she planned at any frame rate; one of no seconds, instantaneous, is made in
+;; a tick ("in one frame the character has one appearance and in the next frame a
+;; different appearance", p. 166).
 
 ;; A look-color with its saturation or value multiplied by rate: a saturation no more
 ;; than 1.0, a value no more than 1.0 and no less than REVIVE;COLORS's :darkest-look,
@@ -212,7 +210,7 @@
        ;; the same over seconds, as REVIVE;CHSHOW bridges a look (REVIVE;ALTER)
        (define-receiver (gradually change look to ?look in ?seconds seconds %followup)
 			director-character
-	(change-look-to :self look (look-ticks-in-seconds seconds) followup))
+	(change-look-to :self look (ticks-in-seconds seconds) followup))
        ;; the shape of a look, drawn by draw-poly again (as poly.29:16 has it)
        (define-receiver (take shape of ?look) director-character
 	(ask :self set your draw-procedure to draw-poly)

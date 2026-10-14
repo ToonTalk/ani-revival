@@ -404,8 +404,11 @@ export function glassBox(L, scene) {
   if (changesShown.length) {
     // the task each is shown by, the one whose methods have its way of showing it
     for (const c of changesShown) {
-      const way = c.shownBy === "alone" ? `(bridge-to: element (${c.character} ` : c.shownBy;
-      const t = way && glass.tasks.find((x) => (x.variables["current-choice"] || "").includes(way));
+      // her bridges are all one task's (REVIVE;CHSHOW's showing-task-of), each "for" her
+      // change-of actor; with none, the task whose way of showing it is
+      const bridged = `for ${c.actor})`;
+      const t = glass.tasks.find((x) => (x.variables["current-choice"] || "").includes(bridged))
+        || (c.shownBy && c.shownBy !== "alone" && glass.tasks.find((x) => (x.variables["current-choice"] || "").includes(c.shownBy)));
       c.task = t ? t.name : null;
     }
     glass.changesShown = changesShown;
@@ -541,6 +544,11 @@ export function collectBecomes(L) {
   return out;
 }
 
+// The looks of the change-of actor in *gb-actor*, if it has them: { looks }.
+function looksOfChange(L) {
+  const { looks } = lookChange(L);
+  return looks ? { looks } : {};
+}
 // The looks of the change-of actor in *gb-actor*, if it has them: { looks, lookMadeSo }.
 function lookChange(L) {
   const newLook = L.evalString("(ask ,*gb-actor* recall your new-look)");
@@ -556,17 +564,20 @@ function lookChange(L) {
 // stretchedBy, seconds, ideal, goesTo, bridging, bridges, wanders, notBridged, looks?,
 // task } (task, the glass box's name of the task whose methods show it, glassBox adds):
 //   rate          "gradual" or "instantaneous"; rateBecause, the reason as Lisp;
-//                 rateRule "(of the revival)" for the magical rule, the revival's
+//                 rateRule "(of the revival)": the magical rule, or, for a gradual
+//                 change, its speed, Ken's slowest (both the revival's)
 //   shownBy       the way of showing it, "(goes-to-and-transforms prince step-mother)",
 //                 "(changes-while-wandering cinderella)", or "alone" (its bridges run with
 //                 no way of showing beside them); subscene, stretchedBy as run
 //   seconds, ideal  how long the change is shown (the wander), as run and as estimated
 //   goesTo        { plan, by }: the cause's walk to her (goes-to-and-transforms)
 //   bridging      { plan, seconds, ideal }: the bridges' plan, null if nothing to bridge
-//   bridges       [{ element, character, was, now, form }]: each element bridged, from
-//                 what to what, and what Director is to do (a form shared by the shape's
-//                 two elements is given with each)
-//   wanders       { plans, seconds }: her walks while she changes
+//   bridges       [{ element, character, was, now, form, atOnce? }]: each element
+//                 bridged, from what to what, and what Director is to do (a form shared
+//                 by the shape's two elements is given with each); atOnce, a shape
+//                 Director has no in-between for, changed in a tick
+//   wanders       { plans, seconds, carriedBy? }: her walks while she changes; none, and
+//                 carriedBy, when another way of showing of the part moves her
 //   notBridged    [{ element, was, now, because }]: the elements chosen again that
 //                 Director doesn't read, or pass 2 can't weigh
 //   looks         { before, after, changed }, with APPEAR
@@ -604,11 +615,12 @@ export function collectChangesShown(L, scene) {
       bridging: bridging ? { plan: lisp(get(bridging, "plan")), seconds: num(get(bridging, "seconds")), ideal: num(get(bridging, "ideal")) } : null,
       bridges: items("(bridged: %)").map((b) => {
         const element = L.toArray(get(b, "element")).map(lisp);
-        return { element: element[1], character: element[0], was: lisp(get(b, "was")), now: lisp(get(b, "now")), form: lisp(get(b, "by")) };
+        const atOnce = get(b, "at-once");
+        return { element: element[1], character: element[0], was: lisp(get(b, "was")), now: lisp(get(b, "now")), form: lisp(get(b, "by")), ...(atOnce !== undefined && atOnce !== L.NIL ? { atOnce: true } : {}) };
       }),
-      wanders: wanders ? { plans: L.toArray(get(wanders, "plans")).map(lisp), seconds: num(get(wanders, "seconds")) } : null,
+      wanders: wanders ? { plans: L.toArray(get(wanders, "plans")).map(lisp), seconds: num(get(wanders, "seconds")), ...(get(wanders, "carried-by") !== undefined && get(wanders, "carried-by") !== L.NIL ? { carriedBy: lisp(get(wanders, "carried-by")) } : {}) } : null,
       notBridged: items("(not-bridged: %)").map((n) => ({ element: lisp(get(n, "element")), was: lisp(get(n, "was")), now: lisp(get(n, "now")), because: lisp(get(n, "because")) })),
-      ...(lookChange(L).looks ? { looks: lookChange(L).looks } : {}),
+      ...looksOfChange(L),
     });
   }
   return out;

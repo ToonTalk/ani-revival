@@ -286,10 +286,27 @@ function turningIn(f, character) {
 const eventFrame = (f, event) => { const e = f.events.find(([, what]) => what === event); return e ? e[0] : null; };
 // How the changing scene shows its change: the way of showing, the rate and the
 // elements bridged, as the glass box has them, and each plan's beginning and end in the
-// film; problem or null.
-function showsAsPlanned(shown, f, want) {
+// film; and, since the review of stage 6: the cause walked to her regardless of
+// collisions and reached her (no REVIVE;MEND12 note stopping the walk, M4), her wander
+// lasted as long as the bridges (m2), and she has one bridges' plan in the scene (M1);
+// problem or null.
+function showsAsPlanned(shown, f, want, glass) {
   if (!shown) return "the glass box has no changesShown";
   const problems = [];
+  const planOf = (name) => (glass.plans || []).find((p) => p.name === name);
+  if (shown.goesTo) {
+    const walk = planOf(shown.goesTo.plan);
+    if (!walk || !/ regardless of collisions /.test(walk.variables.plans || "")) problems.push(`${shown.goesTo.plan} doesn't walk regardless of collisions`);
+    const stopped = (f.repairs || []).find((r) => /overdue-move/.test(r.note) && r.note.includes(`(${shown.goesTo.by} going-to (contact-with ${shown.character} by ${shown.goesTo.by}))`));
+    if (stopped) problems.push(`the revival's repairs stopped the walk to her: ${stopped.note}`);
+  }
+  const bridgesOf = (glass.plans || []).filter((p) => /^\(activity-of bridging-the-gap /.test(p.name) && (p.variables.plans || "").includes(`(ask ${shown.character} gradually`));
+  if (bridgesOf.length > 1) problems.push(`${shown.character} has ${bridgesOf.length} bridges' plans: ${bridgesOf.map((p) => p.name).join(", ")}`);
+  if (shown.bridging && shown.wanders && shown.wanders.plans.length) {
+    const bridgesEnd = eventFrame(f, `(end-of ${shown.bridging.plan})`);
+    const wanderEnd = Math.max(...shown.wanders.plans.map((p) => eventFrame(f, `(end-of ${p})`) ?? -1));
+    if (bridgesEnd !== null && wanderEnd < bridgesEnd) problems.push(`her wander ended at frame ${wanderEnd}, before the bridges did (${bridgesEnd})`);
+  }
   if (shown.shownBy !== want.shownBy) problems.push(`shown by ${shown.shownBy}, not ${want.shownBy}`);
   if (shown.rate !== want.rate) problems.push(`rate ${shown.rate}, not ${want.rate}`);
   const bridged = [...new Set(shown.bridges.map((b) => b.element))].sort();
@@ -334,8 +351,8 @@ if (!quick) {
     // how the changing scene shows its change (stage 6)
     const showing = run.scenes.find((x) => x.id === st.shows.scene);
     const shown = showing && showing.glass && showing.glass.changesShown && showing.glass.changesShown[0];
-    check(`${st.name}: ${st.shows.scene} shows the change by ${st.shows.shownBy}, ${st.shows.rate}, bridging ${st.shows.bridges.join(", ")}, each plan in the film`,
-      showing && showing.film ? showsAsPlanned(shown, showing.film, st.shows) : "the scene failed");
+    check(`${st.name}: ${st.shows.scene} shows the change by ${st.shows.shownBy}, ${st.shows.rate}, bridging ${st.shows.bridges.join(", ")}, each plan in the film, the cause's walk regardless and reaching her, her wander as long as the bridges, one bridges' plan`,
+      showing && showing.film ? showsAsPlanned(shown, showing.film, st.shows, showing.glass) : "the scene failed");
     if (fps !== 4) continue;
     // the scene after the change, planned and filmed again from the same positions
     // without learning who she has become
