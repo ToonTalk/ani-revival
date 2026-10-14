@@ -97,7 +97,7 @@ function subtitleAt(run, k, item, memo) {
   if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
   const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
   const looks = shapeChanges(sc, f).map((x) => x[0]).join();
-  const showing = (sc.glass.changesShown || []).length ? sc.activities.filter((a) => CHANGE_ACTIVITIES.includes(a.base) && a.begin !== null && f >= a.begin && f <= a.end).map((a) => a.base).sort().join() : "";
+  const showing = (sc.glass.changesShown || []).map((x) => changePhase(sc, x, f)).join();
   const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${showing} ${f === sc.last}`;
   if (!memo.has(key)) {
     const c = captionAt(run, item.i, f);

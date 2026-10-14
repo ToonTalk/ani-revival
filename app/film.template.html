@@ -2669,18 +2669,28 @@ function changeShowLine(sc, t, m) {
       : ": gradually, since an abrupt change could be misread (thesis p. 169)";
   return `<b>${way}</b>, to convey that ${ch ? changeSaid(ch) : about(t.description)}${rate}.`;
 }
+// Where a change's showing is at frame f: the cause's walk to her ("walk"), the bridges
+// ("bridge"), her wander after them or with nothing to bridge ("wander"), or neither (""). A
+// change at once is a tick, and Director draws it the frame after: the touch is both.
+function changePhase(sc, x, f) {
+  const fr = changeFrames(sc, x), instant = x.rate === "instantaneous";
+  const inBridge = !!fr.bridge && x.bridges.length > 0 && f >= fr.bridge.begin && f <= fr.bridge.end + (instant ? 1 : 0);
+  if (fr.walk && !inBridge && f <= fr.walk.end && (!fr.bridge || f < fr.bridge.begin)) return "walk";
+  if (inBridge) return "bridge";
+  if (fr.wander && f >= fr.wander.begin && f <= fr.wander.end) return "wander";
+  return "";
+}
 // What a change's showing is doing at frame f, in a sentence: the cause on its way to
 // her, the moment they touch, her changing as she wanders, or her wander after it.
 function changePhaseLine(sc, x, f) {
   const c = x.character, k = meet(R.story, c), fr = changeFrames(sc, x), s = (one, many) => agree(k, one, many);
-  const instant = x.rate === "instantaneous", her = who(c);
+  const instant = x.rate === "instantaneous", her = who(c), phase = changePhase(sc, x, f);
   const note = !state.color && x.bridges.some((b) => /^color-/.test(b.element)) ? " (colors show only in color mode)" : "";
-  const inBridge = !!fr.bridge && f >= fr.bridge.begin && f <= fr.bridge.end;
-  if (fr.walk && !inBridge && f <= fr.walk.end && (!fr.bridge || f < fr.bridge.begin)) {
+  if (phase === "walk") {
     const then = !x.bridges.length ? `${k.she} ${s("wanders", "wander")} about` : instant ? `${k.she} ${s("changes", "change")} at once` : `${k.she} ${s("begins", "begin")} to change`;
     return `First ${who(x.goesTo.by)} goes to ${her}; once they touch, ${then}.`;
   }
-  if (inBridge && x.bridges.length) {
+  if (phase === "bridge") {
     const what = bridgeWords(c, x.bridges, instant);
     if (instant) return `${fr.walk ? "They touch, and at once" : "At once"} ${what}${note}.`;
     const over = x.bridging && x.bridging.seconds ? secondsWords(x.bridging.seconds) : "";
@@ -2688,7 +2698,7 @@ function changePhaseLine(sc, x, f) {
     if (!x.goesTo && x.wanders) return `${over ? `Over ${over}, ` : ""}${over ? what : cap(what)}${note}.`;
     return `${cap(her)} ${x.goesTo ? `${s("changes", "change")} as ${k.she} ${s("wanders", "wander")}` : s("changes", "change")}: ${what}${over ? `, over ${over}` : ""}${note}.`;
   }
-  if (fr.wander && f >= fr.wander.begin && f <= fr.wander.end) {
+  if (phase === "wander") {
     if (!x.bridges.length) return `${cap(nothingBridged(x))}; ${k.she} ${s("wanders", "wander")} about, so that the change is seen.`;
     return `${cap(her)} ${s("wanders", "wander")} about as ${k.she} ${s("has", "have")} become, so that the change is seen.`;
   }
