@@ -9,7 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { boot, extensionsFor } from "../src/pipeline.js";
+import { boot, extensionsFor, collectBorrowed } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
 import { knowIndex } from "../tools/know-index.mjs";
 
@@ -254,6 +254,27 @@ test("is-protective-of, CINDY's word for the fairy godmother, borrows is-protect
   for (const f of ["relate", "sugest"]) run(`(load '|ken;${f} >|)`);
   assert.equal(run("(relationship-suggestions-borrowed '((description: type unknown descriptor is-protective-of source initial-description)) '(relationship-of fairy-godmother cinderella))"),
     "((suggestion: element (establish (is-protective-of fairy-godmother cinderella)) value (method: type convey value (accompanys fairy-godmother cinderella)) strength low source (neighbor-of is-protective-of is-protective-to)))");
+});
+
+test("the glass box records what a word borrowed from its neighbor, and whether Ani chose it; nothing without KNOW", () => {
+  const { L, run } = lisp(["mend", "know"]);
+  for (const f of ["relate", "sugest"]) run(`(load '|ken;${f} >|)`);
+  // as establish-relationship-suggestions works it out and distill-suggestions records it
+  // on the task (sugest.123:69-92, 192-210): is-protective-of's accompanying, borrowed
+  run("(define know-test-task-3 something)");
+  run("(setq :know-borrowed (relationship-suggestions-borrowed '((description: type unknown descriptor is-protective-of source initial-description)) '(relationship-of fairy-godmother cinderella)))");
+  run("(distill-suggestions nil 'know-test-task-3)");
+  const task = { name: "know-test-task-3", variables: { parent: "establish-task" } };
+  const borrowed = { task: "know-test-task-3", word: "is-protective-of", neighbor: "is-protective-to", way: "(accompanys fairy-godmother cinderella)", strength: "low" };
+  assert.deepEqual(collectBorrowed(L, [task]), [{ ...borrowed, chosen: false }]);
+  run("(ask know-test-task-3 set your current-choice to ((method: type convey value (accompanys fairy-godmother cinderella))))");
+  assert.deepEqual(collectBorrowed(L, [task]), [{ ...borrowed, chosen: true }]);
+  // only establish tasks; a convey task's suggestions are its verb's
+  assert.deepEqual(collectBorrowed(L, [{ ...task, variables: { parent: "convey-task" } }]), []);
+  // as in 1978, and with MEND alone: nothing, and nothing interned
+  const ken = lisp(["mend"]);
+  assert.deepEqual(collectBorrowed(ken.L, [task]), []);
+  assert.ok(!ken.L.obarray.find("DISTILL-SUGGESTIONS-WITH-BORROWED"));
 });
 
 test("a feeling of KNOW's at a level it doesn't take shows nothing, and its task says so", () => {

@@ -48,10 +48,10 @@ export const EXTENSIONS = [
   {
     id: "mend",
     label: "Repairs for new stories",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19"],
     requires: [],
     changes1978: false,
-    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, and more than a few ways to convey what a task establishes. Each leaves a (revival-repair: ...) note where it acted.",
+    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, more than a few ways to convey what a task establishes, a scene that is one task shown by one, and a place far off and off the stage that PLACE asks for and never defines. Each leaves a (revival-repair: ...) note where it acted.",
   },
   {
     id: "appear",
@@ -363,7 +363,44 @@ export function glassBox(L, scene) {
   // made them so (REVIVE;CHANGE), only if any were, for the same reason
   const becomes = collectBecomes(L);
   if (becomes.length) glass.becomes = becomes;
+  // the ways of showing a word borrowed from its neighbor (REVIVE;KNOW's sharing), only
+  // if any were, for the same reason
+  const borrowed = collectBorrowed(L, glass.tasks);
+  if (borrowed.length) glass.borrowed = borrowed;
   return glass;
+}
+
+// The suggestions of the scene's establish tasks that a word borrowed from a neighbor
+// (REVIVE;KNOW: a word with no way of showing itself borrows each neighbor's, with the
+// source (neighbor-of word neighbor), dscrp.17:183), as SUGEST's find-related-suggestions
+// memorized them on the task (related-suggestions: main-suggestion s ... others (s ...)),
+// sugest.123:98-139, 204-210): for each, { task, word, neighbor, way, strength, chosen },
+// way the convey task it suggests, (helps troll kid), printed as Lisp, and chosen whether
+// the task's current choice has it. tasks: the glass box's tasks. Looked up without
+// interning anything unless REVIVE;KNOW is loaded, so that a Lisp running as in 1978 is
+// left as it was.
+export function collectBorrowed(L, tasks) {
+  const wrapper = L.obarray.find("DISTILL-SUGGESTIONS-WITH-BORROWED");
+  if (!wrapper || L.evalString("(get 'distill-suggestions-with-borrowed 'expr)") === L.NIL) return [];
+  const lisp = (x) => L.print(x).toLowerCase();
+  const out = [];
+  for (const t of tasks) {
+    if (t.variables.parent !== "establish-task") continue;
+    L.intern("*GB-ACTOR*").value = L.intern(t.name.toUpperCase());
+    const found = L.evalString(`(mapcan (function (lambda (s)
+        (let ((source (get s 'source)))
+             (and (not (atom source)) (eq (first source) 'neighbor-of)
+                  (list (list (second source) (third source) (get (get s 'value) 'value) (get s 'strength)
+                              (and (member (get s 'value) (ask ,*gb-actor* recall your current-choice)) t)))))))
+      (mapcan (function (lambda (r) (cons (get r 'main-suggestion) (append (get r 'others) nil))))
+              (ask ,*gb-actor* collect items memorized matching (related-suggestions: main-suggestion ? relationship ? others ?))))`);
+    for (const x of L.toArray(found)) {
+      if (x === L.NIL) continue;
+      const [word, neighbor, way, strength, chosen] = L.toArray(x);
+      out.push({ task: t.name, word: lisp(word), neighbor: lisp(neighbor), way: lisp(way), strength: lisp(strength), chosen: chosen !== L.NIL });
+    }
+  }
+  return out;
 }
 
 // What pass 2 made so of the earlier scenes' changes (REVIVE;CHANGE
