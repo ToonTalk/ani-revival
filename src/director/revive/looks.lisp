@@ -45,10 +45,12 @@
 ;;;    ends on the same tick, and its scene is no longer. Ken's repeat does the change
 ;;;    one tick fewer times than it counts (some.666:444-450: the last tick only runs
 ;;;    the followup), so his dynamics never quite reach their factor; a look does, by
-;;;    taking its last step on that tick. A size grows through OBJECT's set your size
-;;;    each tick, so that each frame draws it as large as it then is. A change too
-;;;    quick for a tick is made at once: "Occasionally the transition should be
-;;;    instantaneous" (p. 166).
+;;;    taking its last step on that tick. It is carried from tick to tick by the
+;;;    character's special dynamics, as Ken's change is (look-change-carrier, below),
+;;;    so that it changes nothing about when or where the characters move. A size
+;;;    grows through OBJECT's set your size each tick, so that each frame draws it as
+;;;    large as it then is. A change too quick for a tick is made at once:
+;;;    "Occasionally the transition should be instantaneous" (p. 166).
 ;;;  - (gradually change look to (look: shape star angle 144 center-offset (right 18))
 ;;;    at medium speed) in-betweens the shape with KEN1;INTER's interpolate-two-calls,
 ;;;    from (draw-poly 100.0 90) to (draw-poly 100.0 144), each turning through its own
@@ -87,7 +89,7 @@
 
 (+after-load '|ken;dichar >| '(revival-once 'looks-take-look 'define-take-look))
 
-;;; ------------------------------------------------- a look changing by a factor
+;;; ------------------------------------------------- whose ticks a change takes
 
 (setq :look-morph-moves 400)
 
@@ -100,22 +102,64 @@
 		 (float :ticks-per-frame))
 	     (abs (log (float factor))))))
 
+;; Who carries a look change from tick to tick: the character's special dynamics in the
+;; scene, which carries Ken's gradually change ... for each element of its dynamics
+;; (dichar.103:112-117), or, for a character with no special dynamics, the character.
+;; Not the character, as Ken's change also has the character repeat a message
+;; (dichar.103:118-121): each tick Director's universe ticks its actors in the order
+;; they first planned something the tick before (REVIVE;BRIDGE), and a character asked
+;; to change its look before its dynamics (the look change comes first among its
+;; changes, REVIVE;ALTER) would plan before its special dynamics and so move before
+;; their factors grow, every tick of the change, and go elsewhere: the hare of the
+;; tortoise and the hare, very happy in its first scene, ran it in 497 frames, not 586.
+;; Carried by the special dynamics, the change plans where Ken's first change would
+;; have, and the order is his.
+(defun look-change-carrier (character)
+  (cond ((ask ,character recall your special-dynamics)
+	 (ask ,character recall your special-dynamics-for-current-scene))
+	(t character)))
+
+;; A step of a look change, carried: the character takes it, and the next is planned
+;; for the next tick, or, after the last, the followup is done, on the tick Ken's
+;; repeat does its own (some.666:444-450). The first step is taken at once, as Ken's
+;; repeat does its message at once.
+(defun look-step (carrier step ticks character what followup)
+  (ask ,character change your look step ,step of ,ticks doing ,what)
+  (cond ((< step (1- ticks))
+	 (ask ,carrier plan next look step ,(1+ step) of ,ticks for ,character doing ,what
+	      !,followup))
+	((eq (first followup) 'then) (ask ,carrier !,(rest followup)))))
+
+(defun define-look-steps-for-special-dynamics ()
+  (let ((:insert-methods-at-end nil))
+       (define-receiver (look step ?step of ?ticks for ?character doing ?what %followup)
+			special-dynamics
+	(look-step :self step ticks character what followup))))
+
+(+after-load '|ken;interf >|
+  '(revival-once 'looks-steps-special-dynamics 'define-look-steps-for-special-dynamics))
+
+;;; ------------------------------------------------- a look changing by a factor
+
 (defun define-look-changes ()
   (let ((:insert-methods-at-end nil))
+       (define-receiver (look step ?step of ?ticks for ?character doing ?what %followup)
+			director-character
+	(look-step :self step ticks character what followup))
        (define-receiver (gradually change look by ?factor factor for ?element
 				   at ?speed speed %followup)
 			director-character
 	(let ((ticks (max 1 (look-change-ticks factor speed))))
-	     (ask :self grow your look ,element
-		  by ,(exp (//$ (log (float factor)) (float ticks)))
-		  ,ticks more times !,followup)))
-       (define-receiver (grow your look ?element by ?rate ?times more times %followup)
-			director-character
-	(ask :self grow your look ,element by ,rate)
-	(cond ((> times 1)
-	       (ask :self plan next grow your look ,element by ,rate ,(1- times) more times
-		    !,followup))
-	      ((eq (first followup) 'then) (ask :self !,(rest followup)))))
+	     (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
+		  doing (grow ,element ,(exp (//$ (log (float factor)) (float ticks))))
+		  !,followup)))
+       ;; one step of a change of look, as its carrier has the character take it
+       (define-receiver (change your look step ?step of ?ticks doing ?what) director-character
+	(cond ((eq (first what) 'grow)
+	       (ask :self grow your look ,(second what) by ,(third what)))
+	      ((eq (first what) 'morph) (morph-look-step :self step ticks))
+	      ((eq (first what) 'hue) (hue-look-step :self (second what) (third what) step ticks))
+	      (t (shouldnt-happen 'change-your-look '(,what is not a change of look)))))
        (define-receiver (grow your look ?element by ?rate) director-character
 	(cond ((eq element 'size)
 	       (ask :self set your ani-size to ,(*$ (float (ask :self recall your ani-size)) rate))
@@ -137,7 +181,7 @@
 	     (t (list hue saturation
 		      (max :darkest-look (min 1.0 (*$ (float value) rate))))))))
 
-;;; ------------------------------------------------- a look changing to another shape
+;;; ------------------------------------------------- a look changing to another shape or hue
 
 (defun define-shape-changes ()
   (let ((:insert-methods-at-end nil))
@@ -145,8 +189,10 @@
 			director-character
 	(let ((ticks (max 1 (look-change-ticks :e speed))))
 	     (cond ((get look 'hue)
-		    (ask :self hue your look from ,(hue-with-angle (first (ask :self recall your look-color)))
-			 to ,(get look 'hue) step ,(cond ((= ticks 1) 1) (t 0)) of ,ticks !,followup))
+		    (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
+			 doing (hue ,(hue-with-angle (first (ask :self recall your look-color)))
+				    ,(get look 'hue))
+			 !,followup))
 		   (t (let ((morph (look-morph (ask :self recall your angle) (get look 'angle))))
 			   (cond ((or (null morph) (= ticks 1))
 				  (ask :self take shape of ,look) ;;at once
@@ -158,29 +204,8 @@
 					  ,(offset-turn (get look 'center-offset))))
 				    (ask :self set your draw-procedure to draw-look)
 				    (ask :self set your drawing-args to (size look-morph look-amount))
-				    (ask :self morph your look step 0 of ,ticks !,followup))))))))
-       ;; a hue round the wheel, the step's way along from one hue to the other
-       (define-receiver (hue your look from ?from to ?to step ?step of ?ticks %followup)
-			director-character
-	(ask :self set your look-color to
-	     ,(cons (hue-angle-along from to (cond ((= ticks 1) 1.0)
-						   (t (//$ (float step) (float (1- ticks))))))
-		    (rest (ask :self recall your look-color))))
-	(cond ((< step (1- ticks))
-	       (ask :self plan next hue your look from ,from to ,to step ,(1+ step) of ,ticks
-		    !,followup))
-	      ((eq (first followup) 'then) (ask :self !,(rest followup)))))
-       (define-receiver (morph your look step ?step of ?ticks %followup) director-character
-	(cond ((< step (1- ticks))
-	       (let ((amount (//$ (float step) (float (1- ticks))))
-		     ((from-turn to-turn) (ask :self recall your look-turns)))
-		    (ask :self set your look-amount to ,amount)
-		    (ask :self set your center-offset to
-			 (right ,(+$ (float from-turn) (*$ amount (-$ (float to-turn) (float from-turn))))))
-		    (ask :self set your how-to-draw to nil)) ;;drawn as far as it has come
-	       (ask :self plan next morph your look step ,(1+ step) of ,ticks !,followup))
-	      (t (ask :self take shape of ,(ask :self recall your look-target))
-		 (and (eq (first followup) 'then) (ask :self !,(rest followup))))))
+				    (ask ,(look-change-carrier :self) look step 0 of ,ticks for ,:self
+					 doing (morph) !,followup))))))))
        ;; the shape of a look, drawn by draw-poly again (as poly.29:16 has it)
        (define-receiver (take shape of ?look) director-character
 	(ask :self set your draw-procedure to draw-poly)
@@ -195,6 +220,25 @@
 	look)))
 
 (+after-load '|ken;dichar >| '(revival-once 'looks-shape-changes 'define-shape-changes))
+
+;; A step of an in-between: drawn as far as it has come, its turn as far as it has
+;; turned; the last, the new shape.
+(defun morph-look-step (character step ticks)
+  (cond ((< step (1- ticks))
+	 (let ((amount (//$ (float step) (float (1- ticks))))
+	       ((from-turn to-turn) (ask ,character recall your look-turns)))
+	      (ask ,character set your look-amount to ,amount)
+	      (ask ,character set your center-offset to
+		   (right ,(+$ (float from-turn) (*$ amount (-$ (float to-turn) (float from-turn))))))
+	      (ask ,character set your how-to-draw to nil))) ;;drawn as far as it has come
+	(t (ask ,character take shape of ,(ask ,character recall your look-target)))))
+
+;; A step round the wheel from one hue to another.
+(defun hue-look-step (character from to step ticks)
+  (ask ,character set your look-color to
+       ,(cons (hue-angle-along from to (cond ((= ticks 1) 1.0)
+					     (t (//$ (float step) (float (1- ticks))))))
+	      (rest (ask ,character recall your look-color)))))
 
 ;; The hue (REVIVE;COLORS) whose angle is nearest an angle.
 (defun hue-with-angle (angle)

@@ -108,11 +108,13 @@ The approach follows thesis p. 163: appearance is handled "in much the same way 
 - The wheel is an alist on hue-net. It is not stored on the color atoms, which already carry the TV's properties.
 - There are six hues on a painter's wheel. Complements are red/green, orange/blue and yellow/purple, and each hue maps to an HSV angle for drawing.
 - Hues two steps apart compromise to the hue between them. One step apart, the stronger wins.
+- *As built (14 October, stage 5):* `REVIVE;COLORS`. Two hues a step apart are a conflict of type `adjacent-hues`, which CHOOSE resolves as any other, so the stronger wins with its record in the glass box; opposite hues are a `complementary` conflict. Two steps apart is near-enough, and the compromise is COSUG's own rule with "the hue between" for its medium: equally strong, they meet between; otherwise the film's originality decides (low, Cinderella's, takes the stronger). Each hue is drawn at the hue angle of the TV's color of that name. The list of hues is read round Itten's wheel from yellow, not from red: where nothing suggests a hue, the film's variety picks by the list's order, and read from red it gave back Ken's green, red and yellow (decision 4; see `reports/ext/appear/README.md`).
 
 **Values.**
 - Appearance values never reach weightify. APPEAR has its own tables, with size at .036, .05 and .07 taken from ANINIT.
 - (not X) and none take the middle value, with a note. None adds no shape constraint.
 - Color brightness has a floor of 0.45 on the black screen, so a "dark" character reads as darker, never invisible.
+- *As built (14 October, stage 5):* intensity .45, .65 and .85 (high short of the TV's full 1.0, so that joy can brighten a bright character), saturation .35, .65 and 1.0. Evil's dark colors are Ken's (p. 161, "bad guys wear black"), and so is "color is many and bright is flashier" (`glosug.41:40`); beautiful's, pretty's and shabby's saturations and magical's purple are the revival's.
 
 **Shape experts (p. 164).**
 - Polygon, star and blob experts cover the nine cells of jaggedness by complexity. Director draws them all with `draw-poly`.
@@ -129,6 +131,7 @@ The approach follows thesis p. 163: appearance is handled "in much the same way 
   - The program carries a speed, never a number of ticks. Director converts the speed with `:frames-per-second`, as `dichar.103:105-117` does, so 4 fps and 24 fps agree.
   - A change method's estimate does feed the task's running time (`chomet.123:95-129`), so a look change's estimate must equal that of the dynamics change paired with it.
   - Every look change is either paired with a dynamics change in the same task (joy's are) or runs inside the cause's activity (item 3).
+- *As built (14 October, stage 5):* `REVIVE;ALTER`. A task's look changes come after its other methods (a wrapper on CHOMET's `reject-bad-value-changes`), so the program is written as Ken's code writes it, with the look change added. They set no value of the next subscene's, since nothing reads a look's current value there. Joy's look change is made by the joy's amount at its speed, for every level of joy, and a sad character dims (the thesis gives it for a very happy one).
 - Thesis p. 166 gives three sources, and each is used:
   - Emotion: joy raises color-intensity.
   - Contact: shape pulses are planned inside DISPLY's repeatedly-come-in-contact and move-to-each-other, on the contact their stop condition already detects. They are not Director demons.
@@ -138,6 +141,7 @@ The approach follows thesis p. 163: appearance is handled "in much the same way 
 - It is a DICHAR hook. It also fires in pass 2's job, so it must be harmless there.
 - Growth goes through OBJECT's `set your size` each tick, because setting `ani-size` alone redraws nothing (`object.401:141-189`). `how-to-draw` is reset after every morph step.
 - Shape morphs use KEN1;INTER on calls that include the orientation, for example `(progn (right 18) (draw-poly 100.0 144))`. The number of moves is capped, with an instant change as the fallback.
+  - *As built (14 October, stage 5):* INTER cannot pair a call that begins with a turn with one that begins with a move ("the moves can not be paired"), so the morph is of the plain draw-poly calls and the center-offset turn is in-betweened beside it, through OBJECT's own center-offset; it ends exactly on Ken's. The cap is 400 moves. A change takes the ticks of Ken's change by the same factor at the same speed (shapes and hues one e-fold), and is carried from tick to tick by the character's special dynamics, as Ken's own change is: carried by the character, a look change first among its changes made it tick before its special dynamics and move elsewhere (the tortoise and the hare's Introduction ran 497 frames, not 586).
 - Colors are kept as an HSV look-color and never sent to `pencolor`.
 - Director's own color filming (`run-scene --color`) is declared unsupported while APPEAR is on.
 

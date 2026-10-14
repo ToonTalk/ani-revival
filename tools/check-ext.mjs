@@ -24,7 +24,11 @@
 //     left the characters, makes the same frames and events, and its joy subscene (the
 //     third, a parasite on the second, whose changes run beside its movements,
 //     action.152:41) ends on the same frame; at 4 frames a second against 1978's
-//     positions, and at the rate given against the chained film's;
+//     positions, and at the rate given against the chained film's; and, at 4 frames
+//     a second, the first scene of test/stories/stress/pushed-around.lisp, the
+//     tortoise and the hare, whose hare is very happy and moves alone at first, where
+//     a look change that ticked on the character would have moved it elsewhere
+//     (REVIVE;LOOKS look-change-carrier);
 //   - the whole film, chained, at 4 frames a second (pass 1, then each scene's pass 2
 //     and filming, each starting from where the last filming left the characters, as
 //     the film page makes it): each scene's program, summary, printout, glass box,
@@ -57,7 +61,7 @@
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film } from "../src/pipeline.js";
+import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film, storyPlan, storyOutline } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
@@ -168,6 +172,23 @@ export function withoutLookChanges(text) {
     i = end;
   }
 }
+// The same for a printout (KEN1;<fn1> PRINT, as save-it-all prints each actor): a line
+// about a look change, a variable of its own ("My (TIME-ESTIMATES-FOR (LOOK-CHANGE:
+// ...)) is ...") or an item memorized, a suggestion of one, goes, an item with the
+// empty line before it that sets it apart; from any other line, the look changes it
+// lists go.
+export function printWithoutLookChanges(text) {
+  const out = [];
+  for (const line of text.split("\n")) {
+    if (aboutLookChange(line) && /^My \(TIME-ESTIMATES-FOR \(LOOK-CHANGE/i.test(line)) continue;
+    if (aboutLookChange(line) && /^\(SUGGESTION: /i.test(line)) {
+      if (out.length && out[out.length - 1] === "") out.pop();
+      continue;
+    }
+    out.push(withoutLookChanges(line));
+  }
+  return out.join("\n");
+}
 // The same for a glass box: an item or a variable about a look change goes, its looks
 // and lookChanges go, and a look change goes from any value that lists it with others.
 const aboutLookChange = (s) => LOOK_CHANGE_HEADS.some((h) => s.toLowerCase().includes(h.trim()));
@@ -276,12 +297,43 @@ if (fps === 4 && kind === "appear") {
     check(`${scene}: what follows 1978's program is exactly the ${forms.length} take-look forms`, same(looksOf(program), expected));
     check(`${scene}: a look for each of the ${characters.length} characters`, missing.length || !characters.length ? `none for ${missing.join(", ") || "anyone"}` : null);
     check(`${scene}: KEN1;${fn1} MINI, without its look changes, as 1978's`, same(withoutLookChanges(textIn(fs2, "KEN1", fn1, "MINI")), read(`reports/pass2/ken1-${lower}.mini`)));
-    check(`${scene}: KEN1;${fn1} PRINT, without its look changes, as 1978's`, same(withoutLookChanges(textIn(fs2, "KEN1", fn1, "PRINT")), read(`reports/pass2/ken1-${lower}.print`)));
+    check(`${scene}: KEN1;${fn1} PRINT, without its look changes, as 1978's`, same(printWithoutLookChanges(textIn(fs2, "KEN1", fn1, "PRINT")), read(`reports/pass2/ken1-${lower}.print`)));
     check(`${scene}: the glass box, without its looks and look changes, as 1978's`, same(JSON.stringify(glassWithoutLookChanges(withoutLooksKey(p2.value.glass)), null, 1), read(`reports/pass2/${scene}.glass.json`)));
     const planned = p2.value.glass.lookChanges || [];
     console.log(`       look changes: ${planned.length ? planned.map((c) => `${c.character} ${c.element} by ${c.amount} at ${c.speed} speed, for ${c.feeling || c.task}, in ${c.subscene}`).join("; ") : "none"}`);
     if (scene === "kept-apart") durationGuard(fs2, null, "from 1978's positions");
   }
+  storyGuard("test/stories/stress/pushed-around.lisp");
+}
+
+// The duration guard on a story's first scene, made with MEND as well: filmed as its
+// program has it, and with its look changes taken out, the same frames and events.
+function storyGuard(file) {
+  const text = read(file);
+  // the story needs MEND's repairs (its (not X) and none values, M1 and M2), as the page makes it
+  const extensions = [...new Set(["mend", ...chosen.map((e) => e.id)])];
+  const plan = storyPlan(storyOutline(text), { looks: true });
+  const s = plan.scenes[0];
+  const [fn1, fn2] = s.file.map((x) => x.toUpperCase());
+  const fs5 = makeProjectFileSystem();
+  fs5.addFile("KEN", "CINDY", "47", { text, origin: file });
+  const r = run(`${file}: pass 1 and ${s.id}'s pass 2`, () => {
+    pass1(fs5, { extensions });
+    return pass2(fs5, s.id, { plan, extensions }).glass;
+  });
+  const program = textIn(fs5, "KEN", fn1, fn2);
+  const filmOf = (text2) => {
+    const f = makeProjectFileSystem();
+    f.addFile("KEN", "CINDY", "47", { text, origin: file });
+    f.addFile("KEN", "CP", "30", { text: textIn(fs5, "KEN", "CP", "30"), origin: "the story's pass 1" });
+    f.addFile("KEN", fn1, fn2, { text: text2, origin: "the story's pass 2" });
+    return film(f, s.id, { plan, extensions, frames: 1000, fps: 4 }).film;
+  };
+  const a = run(`${s.id}: filming with its look changes`, () => filmOf(program));
+  const b = run(`${s.id}: filming without them`, () => filmOf(withoutLookChanges(program)));
+  const changes = (r.value.lookChanges || []).length;
+  check(`${file}, ${s.id}: ${changes} look change${changes === 1 ? "" : "s"}; the same ${a.value.frames.length} frames and ${a.value.events.length} events with and without them`,
+    !changes ? "there are none to take out" : same(JSON.stringify({ frames: a.value.frames, events: a.value.events }), JSON.stringify({ frames: b.value.frames, events: b.value.events })), r.seconds + a.seconds + b.seconds);
 }
 
 // For KNOW: the scenes it doesn't change, the same files as 1978's; the two it does,

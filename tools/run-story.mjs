@@ -191,7 +191,8 @@ const steps = makeFilmSteps(fs, {
       // that value and the experts' (overridden-by: ...)
       const drawnAs = (x) => (x.drawn && x.drawn !== show(x.value) ? `, drawn ${x.drawn}${x.overriddenBy ? ` ${x.overriddenBy.join(" ")}` : ""}` : "");
       for (const c of p.appearances.characters) {
-        console.log(`         ${c.character} looks: ${c.look.shape}, size ${c.look.aniSize} (${Object.entries(c.elements).map(([e, x]) => `${e} ${show(x.value)} from ${x.sources.join(", ")}${drawnAs(x)}`).join("; ")})`);
+        const color = c.look.color ? `${c.look.hue || "no hue"} (${c.look.color.join(" ")}), ` : "";
+        console.log(`         ${c.character} looks: ${color}${c.look.shape}, size ${c.look.aniSize} (${Object.entries(c.elements).map(([e, x]) => `${e} ${show(x.value)} from ${x.sources.join(", ")}${drawnAs(x)}`).join("; ")})`);
       }
       for (const f of p.appearances.findings) console.log(`         telling apart: ${f.items.join(" ")}`);
     }
@@ -251,6 +252,12 @@ const steps = makeFilmSteps(fs, {
       for (const t of r.plan) {
         const what = t.status ? t.status : t.choice;
         console.log(`         ${t.task.padEnd(16)} ${oneLine(t.description, 70)}: ${oneLine(String(what), 110)}`);
+      }
+      // the changes of look Ani planned (REVIVE;ALTER), and how often the filming
+      // recorded a look changing
+      if (s.glass.lookChanges) {
+        r.lookChanges = s.glass.lookChanges.map((c) => c.change);
+        for (const c of s.glass.lookChanges) console.log(`         look change: ${c.character} ${c.element} ${c.amount || c.newValue} at ${c.speed} speed${c.feeling ? `, for ${c.feeling}` : ""}: ${c.change}`);
       }
     }
     // who the characters changed in earlier scenes have become, as pass 2 made them so

@@ -225,6 +225,20 @@ test("Director grows a look tick by tick, through OBJECT's set your size, and it
   assert.equal(Number(run("(ask cinderella recall your ani-size)")).toFixed(4), "0.0750");
 });
 
+test("a look change is carried by the character's special dynamics, as Ken's change is, so the character plans nothing more", () => {
+  const { run, tick } = director();
+  run("(define (special-dynamics-of cinderella in t-subscene) special-dynamics)");
+  run("(ask cinderella set your special-dynamics to (special-dynamics-of cinderella in t-subscene))");
+  run("(ask cinderella take look (look: shape square angle 90 center-offset nil ani-size 0.05 look-color (60.0 1.0 0.65)))");
+  run("(ask cinderella gradually change look by 1.5 factor for color-intensity at high speed)");
+  // Ken's round(5 x 2 x 4 x ln 1.5) = 16 ticks; the first step taken at once
+  assert.equal(run("(ask cinderella recall your things-to-do-next)"), "NIL");
+  assert.match(run("(ask (special-dynamics-of cinderella in t-subscene) recall your things-to-do-next)"), /^\(\(LOOK STEP 1 OF 16 FOR CINDERELLA DOING \(GROW COLOR-INTENSITY /);
+  for (let k = 0; k < 20; k++) tick();
+  assert.equal(run("(ask cinderella recall your look-color)"), "(60.0 1.0 0.975)");
+  assert.equal(run("(ask (special-dynamics-of cinderella in t-subscene) recall your things-to-do-next)"), "NIL");
+});
+
 test("Director dims and brightens a color without drawing it, never darker than .45, and moves a hue round the wheel", () => {
   const { run, tick, L } = director();
   run("(ask cinderella take look (look: shape square angle 90 center-offset nil ani-size 0.05 look-color (60.0 1.0 0.65)))");

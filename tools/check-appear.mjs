@@ -24,14 +24,15 @@
 //      Prince's triangle is as jagged as Cinderella's star) is listed.
 //   3. combinations: where two of the revival's pieces together give a character Ken's
 //      shape (one its jaggedness, the other its complexity), they are flagged.
-//   4. Ani's result: each look of hers that is Ken's (a shape, a size), with the
-//      knowledge among the sources of the suggestion that won it (followed into the
-//      relative choice points among them).
+//   4. Ani's result: each look of hers that is Ken's (a shape, a size, a hue), with
+//      the knowledge among the sources of the suggestion that won it (followed into
+//      the relative choice points among them).
 //   5. ablation: pass 1 is run again, with all of the knowledge, with only the
 //      revival's (Ken's own left out), and without each piece of the revival's that
 //      reaches anyone; each run's looks are set beside Ken's. Here a look of Ken's is
-//      one that set the character apart: any of his four shapes, the stepmother's large
-//      size (his medium, three characters' size, is shown but set aside: one piece
+//      one that set the character apart: any of his four shapes, any of his four
+//      colors' hues, the stepmother's large size (his medium, three characters' size,
+//      is shown but set aside: one piece
 //      changing the order of the choices can move it, as graceful's smooth moves the
 //      fairy godmother's). A piece without which a look of Ken's in Ani's result goes
 //      away brings that look about: it reproduces his looks. A look of Ken's that only
@@ -281,7 +282,7 @@ export function checkResult(world, appearances, choicePoints) {
   const found = [];
   for (const a of appearances.characters) {
     for (const what of kensIn(a)) {
-      const elements = what === "shape" ? ["shape-jaggedness", "shape-complexity"] : ["size"];
+      const elements = elementsOf(what);
       const behind = elements.flatMap((e) => (a.elements[e]?.sources || []).flatMap((s) => knowledgeOf(s, e)));
       for (const k of [...new Set(behind)]) found.push({ character: a.character, what, knowledge: k, revivals: isTheRevivals(k.evidence) });
       if (!behind.length) found.push({ character: a.character, what, knowledge: null, revivals: false });
@@ -290,18 +291,22 @@ export function checkResult(world, appearances, choicePoints) {
   return found;
 }
 
-// Which of a look's aspects are Ken's: "shape", "size".
+// Which of a look's aspects are Ken's: "shape", "size", "color" (its hue: his colors
+// were the TV's, each at its full intensity and saturation, so only his hues set his
+// characters apart, REVIVE;COLORS).
 function kensIn(a) {
   const k = KEN_LOOKS[a.character];
   if (!k) return [];
-  return [...(a.look.shape === k.shape ? ["shape"] : []), ...(a.look.aniSize === k.aniSize ? ["size"] : [])];
+  return [...(a.look.shape === k.shape ? ["shape"] : []), ...(a.look.aniSize === k.aniSize ? ["size"] : []), ...(a.look.hue && a.look.hue === k.color ? ["color"] : [])];
 }
+// The elements an aspect of a look is made of.
+const elementsOf = (what) => (what === "shape" ? ["shape-jaggedness", "shape-complexity"] : what === "color" ? ["color-hue"] : ["size"]);
 
 // Whether an aspect of Ken's look set the character apart in his drawing: each of his
-// four shapes is his alone, and of the sizes only the stepmother's large one is (his
-// medium, .05, is three characters' size).
+// four shapes and four colors is his alone, and of the sizes only the stepmother's
+// large one is (his medium, .05, is three characters' size).
 function setApart(character, what) {
-  const key = what === "shape" ? "shape" : "aniSize";
+  const key = what === "shape" ? "shape" : what === "color" ? "color" : "aniSize";
   return Object.entries(KEN_LOOKS).every(([c, look]) => c === character || look[key] !== KEN_LOOKS[character][key]);
 }
 
@@ -363,7 +368,7 @@ function looksWithout(rows) {
 }
 
 const lookWords = (a) => {
-  const size = { 0.036: "small", 0.05: "medium", 0.07: "large" }[a.look.aniSize] || String(a.look.aniSize);
+  const size = `${{ 0.036: "small", 0.05: "medium", 0.07: "large" }[a.look.aniSize] || String(a.look.aniSize)}${a.look.hue ? ` ${a.look.hue}` : ""}`;
   const ken = kensIn(a).map((w) => (setApart(a.character, w) ? w : `${w}, which sets no one apart`));
   return `${size} ${a.look.shape}${ken.length ? ` (Ken's ${ken.join(" and ")})` : ""}`;
 };
@@ -410,7 +415,7 @@ function lookTable(appearances) {
   for (const a of appearances.characters) {
     const k = KEN_LOOKS[a.character];
     const size = (n) => (n === 0.036 ? "small" : n === 0.07 ? "large" : n === 0.05 ? "medium" : String(n));
-    lines.push(`${a.character.padEnd(16)} Ken 1978: ${k ? `${size(k.aniSize)} ${k.color} ${k.shape}` : "-"}`.padEnd(52) + `Ani: ${size(a.look.aniSize)} ${a.look.shape}`);
+    lines.push(`${a.character.padEnd(16)} Ken 1978: ${k ? `${size(k.aniSize)} ${k.color} ${k.shape}` : "-"}`.padEnd(52) + `Ani: ${size(a.look.aniSize)} ${a.look.hue ? `${a.look.hue} ` : ""}${a.look.shape}`);
     for (const [e, x] of Object.entries(a.elements)) lines.push(`${"".padEnd(18)}${e} ${x.value}${x.drawn && x.drawn !== x.value ? `, drawn ${x.drawn}` : ""}, from ${x.sources.join(", ")}`);
   }
   return lines.join("\n");
@@ -503,7 +508,7 @@ async function main() {
     for (const k of only.ken) {
       const [character, what] = k.split(" ");
       const a = only.looks.find((x) => x.character === character);
-      const elements = what === "shape" ? ["shape-jaggedness", "shape-complexity"] : ["size"];
+      const elements = elementsOf(what);
       flag({ type: "only", character, what }, `with only the revival's knowledge, ${character}'s ${what} is Ken's (${lookWords(a)}): ${elements.map((e) => `${e} ${a.elements[e].value} from ${a.elements[e].sources.join(", ")}`).join("; ")}`);
     }
     if (!runs.some((r) => r.without && r.lost.length) && !only.ken.length) console.log("ok     no piece of the revival's brings about a look of Ken's, and only the revival's gives back none");
