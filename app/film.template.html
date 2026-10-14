@@ -1480,7 +1480,7 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
     const actor = name ? parse(name.toLowerCase()) : null;
     const personality = (w) => !!run && Object.values(run.story.characters).some((c) => c.personality.includes(w));
     if (actor === "move-to") return { text: "Ani shows a meeting with move-to, which Ken's CONVEY names but no file of his defines.", repair: "make move-to from DISPLY's own parts" };
-    if (actor === "wander-around") return { text: "A character's only part at the start of the scene is a change of feeling, so Ani planned for them to wander around, which no file of Ken's defines.", repair: null };
+    if (actor === "wander-around") return { text: "A character's only part at the start of the scene is a change of feeling, so Ani planned for them to wander around, which no file of Ken's defines.", repair: "make wander-around from DISACT's walks" };
     // REVIVE;MEND19: far off and off the stage, which PLACE asks for and never defines
     if (actor === "large-distance-and-offstage") return { text: "A character with no place yet was to come on from off the stage, far from another, before they moved; Ken's PLACE asks for that place (large-distance-and-offstage) but defines only its small and medium distances.", repair: "define it as Ken's medium-distance-and-offstage is" };
     // a way of showing of the revival's knowledge (REVIVE;KNOWCV), which Ani as in 1978 doesn't have
