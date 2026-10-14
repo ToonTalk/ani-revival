@@ -253,8 +253,8 @@ const steps = makeFilmSteps(fs, {
         const what = t.status ? t.status : t.choice;
         console.log(`         ${t.task.padEnd(16)} ${oneLine(t.description, 70)}: ${oneLine(String(what), 110)}`);
       }
-      // the changes of look Ani planned (REVIVE;ALTER), and how often the filming
-      // recorded a look changing
+      // the changes of look Ani planned (REVIVE;ALTER), each with the feeling it shows
+      // and what Director is to do (the film's looks say what it did)
       if (s.glass.lookChanges) {
         r.lookChanges = s.glass.lookChanges.map((c) => c.change);
         for (const c of s.glass.lookChanges) console.log(`         look change: ${c.character} ${c.element} ${c.amount || c.newValue} at ${c.speed} speed${c.feeling ? `, for ${c.feeling}` : ""}: ${c.change}`);

@@ -47,21 +47,92 @@ test("hue-net: six hues on a painter's wheel, each opposite its complement; how 
   assert.equal(run("(mapcar 'hue-angle '(red orange yellow green blue purple))"), "(0.0 30.0 60.0 120.0 240.0 270.0)");
 });
 
-test("hue-net's combine: the same hue merged; two steps apart, the hue between, or by the film's originality; a step apart or opposite, a conflict", () => {
+test("hue-net's combine: the same hue merged; two steps apart, compromised as COSUG compromises, with Ani's record; a step apart or opposite, a conflict", () => {
   const { run } = setUp();
   const combine = (...s) => run(`(ask hue-net combine suggestions ${s.join(" ")})`);
+  const film = "(example-of (ask film recall your current-film) something)";
   assert.equal(combine(suggestion("red", "medium", "a"), suggestion("red", "high", "b")), "(SUGGESTION: ELEMENT COLOR-HUE VALUE RED STRENGTH HIGH SOURCE (AND B A))");
-  // equally strong, two steps apart: they meet in the hue between
-  assert.equal(combine(suggestion("red", "medium", "a"), suggestion("yellow", "medium", "b")), "(SUGGESTION: ELEMENT COLOR-HUE VALUE ORANGE STRENGTH MEDIUM SOURCE (AND B A))");
+  // equally strong, two steps apart, in Cinderella's film, which is to be obvious: the
+  // first is kept, as Ken's pick-non-medium keeps the value that isn't medium
+  // (compromise-three-values-different, cosug.215:836-839), the hue between being a
+  // hue's medium
+  assert.equal(run("(film-level-of 'obviousness)"), "HIGH");
+  assert.equal(combine(suggestion("red", "medium", "a"), suggestion("yellow", "medium", "b")),
+    "(SUGGESTION: ELEMENT COLOR-HUE VALUE RED STRENGTH MEDIUM SOURCE (AND B A) COMPROMISES ((COMPROMISED: HUES (RED YELLOW) SOURCES (A B) TO RED BECAUSE (EQUALLY-STRONG (OBVIOUSNESS LEVEL) HIGH))))");
+  // in a film that isn't to be obvious, they meet in the hue between
+  run(`(ask ,${film} set your (obviousness level) to medium)`);
+  try {
+    assert.equal(combine(suggestion("red", "medium", "a"), suggestion("yellow", "medium", "b")),
+      "(SUGGESTION: ELEMENT COLOR-HUE VALUE ORANGE STRENGTH MEDIUM SOURCE (AND B A) COMPROMISES ((COMPROMISED: HUES (RED YELLOW) SOURCES (A B) TO ORANGE BECAUSE (EQUALLY-STRONG))))");
+  } finally {
+    run(`(ask ,${film} set your (obviousness level) to high)`);
+  }
   // not equally: Cinderella's film's originality is low, which takes the stronger
-  // (compromise-three-values-different, cosug.215:851-863)
+  // (compromise-three-values-different, cosug.215:851-863), as for the fairy godmother,
+  // magical's purple against the film's variety's orange
   assert.equal(run("(film-level-of 'originality)"), "LOW");
-  assert.match(combine(suggestion("purple", "medium", "magical"), suggestion("green", "low", "(variety level)")), /VALUE PURPLE /);
+  assert.equal(combine(suggestion("purple", "medium", "magical"), suggestion("orange", "low", "(variety level)")),
+    "(SUGGESTION: ELEMENT COLOR-HUE VALUE PURPLE STRENGTH MEDIUM SOURCE (AND (VARIETY LEVEL) MAGICAL) COMPROMISES ((COMPROMISED: HUES (PURPLE ORANGE) SOURCES (MAGICAL (VARIETY LEVEL)) TO PURPLE BECAUSE ((ORIGINALITY LEVEL) LOW))))");
   assert.equal(combine(suggestion("red", "medium", "a"), suggestion("green", "high", "b")),
     `(CONFLICT: TYPE COMPLEMENTARY ELEMENTS-INVOLVED COLOR-HUE OFFENDERS (${suggestion("red", "medium", "a").toUpperCase()} ${suggestion("green", "high", "b").toUpperCase()}))`);
   assert.match(combine(suggestion("red", "medium", "a"), suggestion("orange", "high", "b")), /^\(CONFLICT: TYPE ADJACENT-HUES /);
-  // three: COSUG combines them two at a time, conflicts first (cosug.215:678-762)
-  assert.match(combine(suggestion("red", "medium", "a"), suggestion("yellow", "medium", "b"), suggestion("red", "low", "c")), /^\(SUGGESTION: ELEMENT COLOR-HUE VALUE (RED|ORANGE) /);
+  // three: COSUG combines them two at a time (cosug.215:678-762), here the two reds
+  // first, merged as two sources, and then that with the yellow, which, more strongly
+  // suggested, is red again, with the record of that compromise
+  assert.equal(combine(suggestion("red", "medium", "a"), suggestion("yellow", "medium", "b"), suggestion("red", "low", "c")),
+    "(SUGGESTION: ELEMENT COLOR-HUE VALUE RED STRENGTH MEDIUM SOURCE (AND B A C) COMPROMISES ((COMPROMISED: HUES (RED YELLOW) SOURCES ((AND A C) B) TO RED BECAUSE ((ORIGINALITY LEVEL) LOW))))");
+  // the opposite of an atom only, as value-description's (cosug.215:115), and Ken's
+  // shouldnt-happen for an atom that is no hue, not a Lisp arithmetic error
+  assert.throws(() => run("(ask hue-net yield opposite of (not purple))"), /BAD-MESSAGE/);
+  assert.throws(() => run("(hue-opposite 'none)"), /NONE IS NOT A HUE ON THE WHEEL/);
+  assert.throws(() => run("(hue-between 'none 'red)"), /NONE IS NOT A HUE ON THE WHEEL/);
+});
+
+test("the film's variety's hue says what it picked from, the counts in the list's order", () => {
+  const { run } = setUp();
+  run("(ask appearance-choice-point if new make (choice-point-of cinderella color-hue))");
+  run("(ask appearance-choice-point if new make (choice-point-of cinderella color-saturation))");
+  // no hue chosen yet: the middle of the revival's list, as for Cinderella in her film
+  assert.equal(run("(ask (variety level) yield suggestions for (choice-point-of cinderella color-hue))"),
+    "(SUGGESTION: ELEMENT COLOR-HUE VALUE PURPLE STRENGTH LOW SOURCE (VARIETY LEVEL) COUNTS ((0 YELLOW) (0 ORANGE) (0 RED) (0 PURPLE) (0 BLUE) (0 GREEN)))");
+  // the other elements' suggestions are as Ken's code makes them
+  assert.equal(run("(ask (variety level) yield suggestions for (choice-point-of cinderella color-saturation))"),
+    "(SUGGESTION: ELEMENT COLOR-SATURATION VALUE MEDIUM STRENGTH LOW SOURCE (VARIETY LEVEL))");
+  assert.equal(run("(get 'colors-variety-counts 'revival-done)"), "T");
+});
+
+test("a hue conflict CHOOSE can't settle on strengths alone: the stronger by a little, the first if equal, or the one a third suggestion agrees with", () => {
+  const { run } = setUp();
+  const chosen = (name, ...list) => {
+    run(`(define ${name} something)`);
+    const cp = `(choice-point-of ${name} color-hue)`;
+    run(`(ask appearance-choice-point if new make ${cp})`);
+    run(`(ask ${cp} set your suggestion-sources to nil)`);
+    run(`(record-combined-suggestion (ask hue-net combine suggestions ${list.join(" ")}) '${cp})`);
+    run(`(choose-value '${cp})`);
+    return { value: run(`(ask ${cp} recall your current-choice)`), rejected: run(`(ask ${cp} recall your rejected-suggestions)`), conflicts: run(`(ask ${cp} recall your conflicts-resolved)`) };
+  };
+  // two words, a step apart, one a little more strongly (pick-strongest-suggestion,
+  // choose.198:391-403)
+  const close = chosen("t-close", suggestion("purple", "medium", "magical"), suggestion("red", "low", "evil"));
+  assert.equal(close.value, "PURPLE");
+  assert.match(close.rejected, /REASON LESS-STRONGLY-SUGGESTED SUGGESTION \(SUGGESTION: ELEMENT COLOR-HUE VALUE RED /);
+  assert.match(close.conflicts, /HOW-RESOLVED LESS-STRONGLY-SUGGESTED TYPE ADJACENT-HUES /);
+  // equally strongly: "first is as good as second"
+  const equal = chosen("t-equal", suggestion("purple", "medium", "magical"), suggestion("red", "medium", "evil"));
+  assert.equal(equal.value, "PURPLE");
+  assert.match(equal.rejected, /REASON NO-REASON-AT-ALL SUGGESTION \(SUGGESTION: ELEMENT COLOR-HUE VALUE RED /);
+  // with a third, the film's variety's yellow, opposite purple: CHOOSE settles that
+  // conflict first, yellow much less strongly suggested than magical's purple, which
+  // it keeps as a suggestion; then, for red against purple, equally strong, it asks
+  // hue-net how that suggestion is related to each (use-suggestions-to-resolve-
+  // conflict, choose.198:454-520, through hue-net's yield relationship ... in ...):
+  // the same as purple and a step from red, so red is not compatible with the others
+  const third = chosen("t-third", suggestion("purple", "medium", "magical"), suggestion("red", "medium", "evil"), suggestion("yellow", "low", "(variety level)"));
+  assert.equal(third.value, "PURPLE");
+  assert.match(third.conflicts, /HOW-RESOLVED NOT-COMPATIBLE-WITH-OTHERS TYPE ADJACENT-HUES /);
+  assert.match(third.rejected, /REASON NOT-COMPATIBLE-WITH-OTHERS SUGGESTION \(SUGGESTION: ELEMENT COLOR-HUE VALUE RED /);
+  assert.match(third.conflicts, /HOW-RESOLVED MUCH-LESS-STRONGLY-SUGGESTED TYPE COMPLEMENTARY /);
 });
 
 test("a hue conflict is resolved by CHOOSE as any other: the stronger wins, the weaker is rejected", () => {
@@ -86,7 +157,11 @@ test("the knowledge of colors: evil's black is Ken's (p. 161), the rest the revi
   assert.deepEqual(of(/^\(DESCRIPTOR EVIL COLOR-/), ["(DESCRIPTOR EVIL COLOR-INTENSITY LOW HIGH (THESIS 161 |bad guys wear black|))"]);
   assert.match(of(/^\(DESCRIPTOR MAGICAL COLOR-HUE/)[0], /PURPLE MEDIUM \(WHY /);
   assert.match(of(/^\(DESCRIPTOR SHABBY COLOR-SATURATION/)[0], /LOW HIGH \(WHY .*p\. 225/);
-  assert.equal(of(/COLOR-HUE/).length, 1); // magical's purple, the only hue (no evil red: decision 4)
+  // magical's purple, the only hue a word suggests (no evil red: decision 4), and the
+  // order the film's variety takes the hues in, the revival's, with its reason
+  assert.equal(of(/COLOR-HUE/).length, 2);
+  assert.match(of(/^\(ORDER \(VARIETY LEVEL\) COLOR-HUE /)[0], /^\(ORDER \(VARIETY LEVEL\) COLOR-HUE \(YELLOW ORANGE RED PURPLE BLUE GREEN\) LOW \(WHY \|where nothing else decides between hues.*decision 4.*for Ken to decide\|\)\)$/);
+  assert.equal(run("(equal (fourth (first :hue-order-knowledge)) (ask color-hue recall your possible-values))"), "T");
   assert.deepEqual(of(/^\(FILM \(FLASHINESS LEVEL\) COLOR-/).map((r) => r.split(" ")[3]), ["COLOR-INTENSITY", "COLOR-SATURATION"]);
   assert.match(of(/^\(LOOK-CHANGE JOY/)[0], /COLOR-INTENSITY AMOUNT MEDIUM \(AND \(THESIS 166 /);
   assert.match(of(/^\(COMPARISON \(UNIQUENESS-SUMMARY: PHYSICAL\)/)[0], /RELATIVE-COLOR-INTENSITY/);
@@ -115,7 +190,8 @@ test("each character's color: its hue's angle, its saturation and intensity as A
   assert.equal(run("(ask (appearance-of t-colored) collect items memorized matching (colored: %))"), "((COLORED: HUE BLUE ANGLE 240.0 SATURATION 0.35 VALUE 0.45))");
   assert.equal(run("(list (drawn-value 't-colored 'color-hue) (drawn-value 't-colored 'color-saturation) (drawn-value 't-colored 'color-intensity))"), "(BLUE LOW LOW)");
   assert.equal(run("(get 'color-intensity 'appearance-numbers)"), "((LOW 0.45) (MEDIUM 0.65) (HIGH 0.85))");
-  // a hue given up on: grey, with a note
+  // a hue given up on: grey, with a note; and a (not X), which no element of today's
+  // makes for a hue, grey with a note of its own
   run("(define t-grey something)");
   run("(ask appearance if new make (appearance-of t-grey))");
   choose("t-grey", "color-hue", "none");
@@ -123,7 +199,14 @@ test("each character's color: its hue's angle, its saturation and intensity as A
   choose("t-grey", "color-intensity", "high");
   run("(color-character 't-grey)");
   assert.equal(run("(ask (appearance-of t-grey) recall your look-color)"), "(0.0 0.0 0.85)");
-  assert.match(run("(ask (choice-point-of t-grey color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS NONE NOW GREY/);
+  assert.match(run("(ask (choice-point-of t-grey color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS NONE NOW GREY BECAUSE \(GIVEN UP SO NO HUE\)/);
+  run("(define t-not something)");
+  run("(ask appearance if new make (appearance-of t-not))");
+  choose("t-not", "color-hue", "(not purple)");
+  choose("t-not", "color-saturation", "high");
+  choose("t-not", "color-intensity", "high");
+  run("(color-character 't-not)");
+  assert.match(run("(ask (choice-point-of t-not color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS \(NOT PURPLE\) NOW GREY BECAUSE \(NOT ONE HUE\)/);
 });
 
 test("look changes are display methods, children of change-method, whose estimates are Ken's for the same change", () => {
@@ -168,6 +251,36 @@ test("joy brightens: each joy also suggests a change of its character's color in
   run("(define t-task something)");
   run("(reject-bad-value-changes '((suggestion: element x value (method: type display-value-change value (look-change: element (t-a color-intensity) amount (positive low) speed low))) (suggestion: element x value (method: type display-value-change value (change: element (t-a speed) amount (positive low) speed low)))) 't-task)");
   assert.match(run("(ask t-task recall your current-choice)"), /^\(\(CHANGE: .*\) \(LOOK-CHANGE: .*\)\)$/);
+  // and only beside a change of how its character moves by the same amount at the same
+  // speed, whose estimate it equals: one left alone is left out, with a note
+  run("(define t-alone something)");
+  run("(reject-bad-value-changes '((suggestion: element x value (method: type display-value-change value (look-change: element (t-a color-intensity) amount (positive high) speed high))) (suggestion: element x value (method: type display-value-change value (change: element (t-a speed) amount (positive low) speed low))) (suggestion: element x value (method: type display-value-change value (change: element (t-b speed) amount (positive high) speed high)))) 't-alone)");
+  assert.equal(run("(ask t-alone recall your current-choice)"), "((CHANGE: ELEMENT (T-A SPEED) AMOUNT (POSITIVE LOW) SPEED LOW) (CHANGE: ELEMENT (T-B SPEED) AMOUNT (POSITIVE HIGH) SPEED HIGH))");
+  assert.equal(run("(ask t-alone collect items memorized matching (revival-repair: %))"),
+    "((REVIVAL-REPAIR: WHAT LOOK-CHANGE-ALONE WAS (LOOK-CHANGE: ELEMENT (T-A COLOR-INTENSITY) AMOUNT (POSITIVE HIGH) SPEED HIGH) NOW LEFT-OUT BECAUSE (NO CHANGE OF HOW IT MOVES BY THE SAME AMOUNT AT THE SAME SPEED)))");
+});
+
+test("ALTER's and LOOKS' hooks fire once, though their files are loaded again", () => {
+  const { run } = setUp();
+  run("(load '|ken;dichar >|)");
+  run("(ask appearance-choice-point if new make (choice-point-of cinderella color-hue))");
+  const ids = ["alter-methods", "alter-joy", "looks-steps-special-dynamics", "looks-take-look", "looks-changes", "looks-shape-changes", "colors-hue-net", "colors-variety-counts"];
+  // each hook defines receivers, which an actor keeps in its list of them: defined twice,
+  // the list would grow
+  const state = () => ({
+    done: ids.map((id) => run(`(get '${id} 'revival-done)`)),
+    receivers: ["look-change:", "look-change-to:", "special-dynamics", "hue-net"].map((a) => run(`(length (get '${a} 'actor))`)),
+    joy: (run("(ask joy collect items memorized matching (suggestion: element (establish (emotional-state t-glad (joy (positive low)))) value ? strength ? source ?))").match(/LOOK-CHANGE:/g) || []).length,
+    // the variety's hue says its counts once (extended twice, it would say them twice)
+    variety: run("(ask (variety level) yield suggestions for (choice-point-of cinderella color-hue))"),
+    wraps: run("(mapcar 'car (get 'reject-bad-value-changes 'revival-wraps))"),
+  });
+  const first = state();
+  assert.deepEqual(first.done, ids.map(() => "T"));
+  assert.equal(first.joy, 1);
+  assert.equal(first.variety.split("COUNTS").length, 2);
+  for (const f of ["colors", "looks", "alter"]) run(`(load '|revive;${f} >|)`);
+  assert.deepEqual(state(), first);
 });
 
 // A Lisp with Director as filming has it, and a character's segments, as one display draws them.

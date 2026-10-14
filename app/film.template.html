@@ -298,6 +298,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .look-know { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .ours-tag { color: var(--ours); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
 .ken-1978 { border-left: 3px solid var(--rule); padding-left: 10px; font-size: 0.9rem; }
+/* Ani's colors in an icon, toned for the theme as Ken's are (icon(), inkStyle) */
+.ani-ink { --ani-ink: var(--ani-light); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ani-ink { --ani-ink: var(--ani-dark); } }
+:root[data-theme="dark"] .ani-ink { --ani-ink: var(--ani-dark); }
 .cast-looks { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.9rem; }
 .cast-looks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: start; }
 .cast-looks li svg { margin-top: 3px; }
@@ -643,12 +647,59 @@ function colorOf(run, c) {
   return SHAPE_LOOK[slot] || SHAPE_LOOK.circle;
 }
 // Ani's colors (REVIVE;COLORS): a look's color is [hue angle, saturation, value], as
-// Director keeps it, painted with HSV's usual formula.
-function hsvColor([h, s, v]) {
+// Director keeps it, made RGB with HSV's usual formula.
+function hsvRgb([h, s, v]) {
   v = Math.max(0, Math.min(1, v));
   const f = (n) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); };
-  return `rgb(${f(5)},${f(3)},${f(1)})`;
+  return [f(5), f(3), f(1)];
 }
+const rgbText = ([r, g, b]) => `rgb(${r},${g},${b})`;
+// How much one color stands out from another, as WCAG measures it: the ratio of their
+// relative luminances, each plus .05, from 1:1 to 21:1.
+const linear = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+const luminance = ([r, g, b]) => 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+const contrast = (a, b) => { const x = luminance(a), y = luminance(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function rgbHsl([r, g, b]) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  if (!d) return [0, 0, l];
+  const h = max === r ? ((g - b) / d + 6) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, Math.min(1, d / (1 - Math.abs(2 * l - 1))), l];
+}
+function hslRgb([h, s, l]) {
+  const a = s * Math.min(l, 1 - l);
+  const f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+  return [f(0), f(8), f(4)];
+}
+// A color made lighter (on a dark ground) or darker (on a light one) in its lightness,
+// keeping its hue, until it stands out from the ground by at least floor; as it is if it
+// already does.
+function toned(rgb, ground, floor) {
+  if (contrast(rgb, ground) >= floor) return rgb;
+  const [h, s, l] = rgbHsl(rgb);
+  let ok = luminance(ground) < 0.18 ? 1 : 0, under = l; // white, or black, always stands out
+  for (let k = 0; k < 20; k++) { const mid = (ok + under) / 2; if (contrast(hslRgb([h, s, mid]), ground) >= floor) ok = mid; else under = mid; }
+  return hslRgb([h, s, ok]);
+}
+// The least a character stands out from the black screen: 3:1, WCAG's least for the
+// parts of a picture one has to see (its non-text contrast), at Ani's darkest, .45, and a
+// little more the brighter she made it (3.4:1 at .65, 3.8:1 at .85), so that a dark
+// character stays darker than a medium one of its hue, and one dimming still dims. A dark
+// blue, purple or red falls short (a dark, clear blue is 1.25:1) and is drawn lighter, in
+// the same hue; Cinderella's four, from 3.5:1 to 4.8:1, are drawn as Ani chose them.
+const SCREEN = [0, 0, 0];
+const screenFloor = (v) => 3 + 2 * (Math.max(0.45, Math.min(1, v)) - 0.45);
+const screenRgb = (color) => toned(hsvRgb(color), SCREEN, screenFloor(color[2]));
+// whether the page draws one of Ani's colors lighter on the screen than she chose it
+const lifted = (color) => !!color && contrast(hsvRgb(color), SCREEN) < screenFloor(color[2]);
+// one of Ani's colors as the screen, and a video, draw it
+const hsvColor = (color) => rgbText(screenRgb(color));
+// and as an icon on the page draws it: on the dark theme's sheet as on the screen; on the
+// light theme's white, darkened to 3:1 where it is lighter, as Ken's colors have tones of
+// their own for it (--prince, #a68200, and the rest); the class .ani-ink picks the one for
+// the theme
+const DARK_SHEET = [20, 26, 24], LIGHT_SHEET = [255, 255, 255];
+const inkStyle = (color) => `--ani-dark:${rgbText(toned(hsvRgb(color), DARK_SHEET, screenFloor(color[2])))};--ani-light:${rgbText(toned(hsvRgb(color), LIGHT_SHEET, 3))}`;
 // What a character is painted in at frame f of a scene: in a film made with Ani's
 // colors, hers as Director had it then (a look change steps it frame by frame); else
 // its 1978 color.
@@ -681,6 +732,9 @@ function who(x) {
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const words = (list) => (list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0] || "");
 const plain = (w) => String(w).replace(/-/g, " ");
+// A list-valued field of one of Ani's records, as the page reads it: a printed nil is
+// the string "nil", the empty list.
+const lispList = (v) => (Array.isArray(v) ? v : []);
 // A character's icon: its shape (Ani's, in a film made with her looks), in its color
 // (Ani's, as pass 1 chose it, in a film made with her colors).
 function icon(c, size = 16, run = R) {
@@ -688,15 +742,16 @@ function icon(c, size = 16, run = R) {
   const drawn = DRAWN[shape];
   if (!drawn) return "";
   const own = run && run.cast && lookOf(run, c);
-  const stroke = own && own.color ? hsvColor(own.color) : `var(${colorOf(run, c).tone})`;
+  const stroke = own && own.color ? "var(--ani-ink)" : `var(${colorOf(run, c).tone})`;
+  const ink = own && own.color ? ` class="ani-ink" style="${inkStyle(own.color)}"` : "";
   const r = size / 2 - 1.5, cx = size / 2, cy = size / 2;
-  if (shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="1.6"/></svg>`;
+  if (shape === "circle") return `<svg${ink} width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="1.6"/></svg>`;
   const gcd = (a, b) => (b ? gcd(b, a % b) : a);
   const pts = [];
   let a = shape === "square" ? -45 : shape === "octagon" ? -67.5 : -90;
   for (let n = 0; n < 360 / gcd(drawn.turn, 360); n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += drawn.turn; }
   const d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join("L") + "Z";
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+  return `<svg${ink} width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
 
 // ---------------------------------------------------------------- runs of Ani
@@ -1082,9 +1137,9 @@ const REVIVE_TEXT = {
   appear: "Choice points for each character's size, the jaggedness and complexity of its shape, and the brightness, clarity and hue of its colors, made with Ken's own machinery after his 102 choices; and two characters who would be drawn alike told apart by choosing again.",
   apsug: "Where the suggestions for a look come from: eleven words, each with its evidence (evil's dark colors are Ken's, “bad guys wear black”); one character dominating another; characters who stand out; how the character moves; and the film's flashiness, complexity and obviousness.",
   shapes: "The shape experts, for polygons, stars and a circle, who find a shape that fits the choices, and set aside the least justified choice when none does.",
-  colors: "A small semantic net of six hues on a painter's wheel (thesis p. 240): two hues a step apart conflict, two steps apart meet at the hue between, opposite hues are complements; and the color each character is drawn in, from its hue, clarity and brightness.",
+  colors: "A small semantic net of six hues on a painter's wheel (thesis p. 240): two hues a step apart conflict, two steps apart are compromised as Ken's COSUG compromises two speeds (equally strong, they meet at the hue between), opposite hues are complements; where nothing else decides between hues, the film's variety takes them in the revival's order, round Itten's wheel from yellow, chosen so as not to give back Ken's 1978 hues and open for his decision; and the color each character is drawn in, from its hue, clarity and brightness.",
   looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER).",
-  alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed.",
+  alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed, and only beside a change of how it moves by the same amount at the same speed.",
   change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was), saved for the later scenes; and, in each of them, who they have become.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
@@ -1334,8 +1389,19 @@ function repairSentence({ actor, what, notes }, sc) {
         ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and her table of ${({ "color-intensity": "brightnesses", "color-saturation": "clarities" })[el] || "sizes"} has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
         : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${names.medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
     }
-    // REVIVE;COLORS' color-character: a hue Ani gave up on, drawn grey
-    case "read-as-color": return `Ani gave up on ${cp}, so there was no hue to draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} in; the revival's repairs draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} grey, a color with no hue, at the brightness Ani chose.`;
+    // REVIVE;COLORS' color-character: a hue Ani gave up on, or one that is no one hue,
+    // drawn grey
+    case "read-as-color": return `${was === "none" ? `Ani gave up on ${cp}` : `Ani chose ${cp} ${quoted(was)}, which is no one hue`}, so there was no hue to draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} in; the revival's repairs draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} grey, a color with no hue, at the brightness Ani chose.`;
+    // REVIVE;ALTER: a look change left with none of the changes of how its character moves
+    // that it was to go with, left out
+    case "look-change-alone": {
+      const el = Array.isArray(was) ? kv(was, "element") : null;
+      const c = Array.isArray(el) ? el[0] : subject;
+      const amount = Array.isArray(was) ? kv(was, "amount") : null;
+      const g = Array.isArray(el) && LOOK_GROW[el[1]], v = g && g[Array.isArray(amount) && amount[0] === "negative" ? 1 : 0];
+      const look = !g ? "change how it looks" : el[1] === "size" ? `${v === "grow" ? "grow" : "shrink"} ${c ? who(c) : "a character"}` : `${v} ${c ? `${who(c)}'s` : "a character's"} colors`;
+      return `Ani was to ${look} beside ${c ? `${theirs(c)} changes of how ${CHARS[c] ? CHARS[c].she : "they"} ${CHARS[c] && CHARS[c].she !== "they" ? "moves" : "move"}` : "changes of how it moves"} by the same amount at the same speed, but those changes were all set aside (Ken's CHOMET makes neither of two changes of different signs); alone, the look change would decide how long the part runs, where it is only to go along with them, so the revival leaves it out.`;
+    }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
       const [c, assumed] = Array.isArray(was) ? was : [];
@@ -1761,6 +1827,18 @@ const FILM_WORDS = {
 };
 const filmWords = (s) => (FILM_WORDS[s.name] || {})[s.level] || `the film's ${plain(s.name)} is ${plain(s.level || "unknown")}`;
 const wordWords = (s) => `${plain(s.word)}${s.via ? ` (${s.via[0] === "opposite-of" ? "the opposite of" : "close to"} ${plain(s.via[1])})` : ""}`;
+// Words as reasons, those reached the same way said together: "good and kind (both
+// opposites of evil)", "stubborn (close to determined)", "graceful".
+function wordsByWay(list) {
+  const groups = [];
+  for (const s of list) {
+    const key = s.via ? `${s.via[0]} ${s.via[1]}` : null;
+    const g = key && groups.find((x) => x.key === key);
+    if (g) { if (!g.words.includes(s.word)) g.words.push(s.word); } else groups.push({ key, via: s.via, words: [s.word] });
+  }
+  return groups.map((g) => (!g.via || g.words.length === 1 ? wordWords({ word: g.words[0], via: g.via })
+    : `${words(g.words.map(plain))} (${g.words.length === 2 ? "both" : "all"} ${g.via[0] === "opposite-of" ? "opposites of" : "close to"} ${plain(g.via[1])})`));
+}
 // Why a character moves as a look's reason says, from that choice of how it moves: its
 // winning suggestion's words and film levels (the film's variety and originality, whose
 // suggestions aren't recorded, left out), and how it compares with the others there:
@@ -1778,12 +1856,13 @@ function dynamicsWhy(run, c, s) {
   const v = lispValue(cp.currentChoice);
   const won = (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), v));
   const src = won ? kv(won, "source") : null;
-  const ws = [], levels = [];
+  const found = [], levels = [];
   for (const x of Array.isArray(src) && src[0] === "and" ? src.slice(1) : src ? [src] : []) {
-    if (typeof x === "string") ws.push(plain(x));
-    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") ws.push(wordWords({ word: x[1], via: [x[0], x[2]] }));
+    if (typeof x === "string") found.push({ word: x });
+    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") found.push({ word: x[1], via: [x[0], x[2]] });
     else if (x.length === 2 && x[1] === "level" && !["variety", "originality"].includes(x[0])) levels.push(filmWords({ name: x[0], level: run.story.levels[x[0]] }));
   }
+  const ws = wordsByWay(found);
   const reasons = [...(ws.length ? [`${k.she} ${agree(k, "is", "are")} ${words(ws)}`] : []), ...levels];
   const made = ((DYN_MADE[s.element] || {})[v] || `chose {their} ${elementWords(s.element)} ${plain(show(v))}`).replace("{her}", k.her).replace("{their}", theirs(c));
   // how it compares with each of the others in this element, where Ani chose more or less
@@ -1817,7 +1896,7 @@ function reasonClause(run, c, el, sources, { only = true, why = false } = {}) {
   const used = all.filter((s) => !only || agreesWith(s, chosen));
   const is = agree(k, "is", "are");
   const preds = [];
-  const ws = used.filter((s) => s.kind === "word").map(wordWords);
+  const ws = wordsByWay(used.filter((s) => s.kind === "word"));
   if (ws.length) preds.push(`${is} ${words(ws)}`);
   for (const s of used.filter((x) => x.kind === "dynamics")) preds.push(dynamicsPred(k, s) + (why ? dynamicsWhy(run, c, s) : ""));
   const rels = new Map();
@@ -1869,6 +1948,10 @@ function colorName(look, short = false) {
   const tail = short ? [] : [iv, sv].map((x, n) => (x === "medium" ? LOOK_VALUE[COLOR_ELEMENTS[n]].medium : "")).filter(Boolean);
   return `${article(adj[0] || hue)} ${adj.length ? `${adj.join(", ")} ` : ""}${hue}${tail.length ? `, ${tail.join(", ")}` : ""}`;
 }
+// "a dull purple", or, with nothing to say of its brightness or clarity, "purple"; and
+// "in a dull purple", "in purple"
+const colorShort = (look) => { const n = colorName(look, true); return /^an? [a-z]+$/.test(n) ? n.replace(/^an? /, "") : n; };
+const inColor = (look) => `in ${colorShort(look)}`;
 // What a source of a suggestion is, as a noun: “shabby”, the film's flashiness, how he
 // compares with the fairy godmother.
 function sourceNoun(run, c, src) {
@@ -1884,10 +1967,12 @@ function sourceNoun(run, c, src) {
   }));
 }
 // One aspect of a character's color with Ani's reasons: the sources whose own suggestion
-// it was; or, where she compromised (a brightness between bright and dark, or the hue
-// between two hues two steps apart on the wheel), the two she met between; or, for a hue
-// nothing suggests, the film's variety; and what she set aside, and why (a hue a step
-// from another, or opposite it, is a conflict, which CHOOSE resolves as any other).
+// it was; where she compromised (a brightness between bright and dark), the two she met
+// between, each with its reason; for a hue, Ani's own record of a compromise between two
+// hues two steps apart on the wheel (REVIVE;COLORS' compromised:), and, for a hue only the
+// film's variety suggests, what it picked from (its counts) and by what order (the
+// revival's); and what she set aside, and why (a hue a step from another, or opposite it,
+// is a conflict, which CHOOSE resolves as any other).
 function colorPart(run, c, el) {
   const k = meet(run.story, c);
   const e = run.appearances.get(c).elements[el];
@@ -1897,45 +1982,127 @@ function colorPart(run, c, el) {
   const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
   const list = (src) => (Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src]).map(show);
   const because = (src) => reasonClause(run, c, el, list(src), { only: false }).text;
+  // one side of a compromise, with its reason ("clear, because she is pretty"); the film's
+  // variety and originality, which reasonClause leaves out, by name ("clear, for the
+  // film's variety"; "dull, because the film isn't to be flashy (and for the film's
+  // variety)")
+  const side = (value, src) => {
+    const w = because(src);
+    const film = list(src).map(lispValue).filter((x) => Array.isArray(x) && x[1] === "level" && ["variety", "originality"].includes(x[0])).map((x) => `the film's ${x[0]}`);
+    return `${esc(lookValue(el, value))}${w ? `, because ${w}${film.length ? ` (and for ${words(film)})` : ""}` : film.length ? `, for ${words(film)}` : ""}`;
+  };
   const why = reasonClause(run, c, el, e.sources || []).text;
   const comp = ((cp && cp.conflictsResolved) || []).filter((x) => kv(x, "how-resolved") === "compromised").pop();
-  // the hues the sources suggest, where Ani's knowledge says (magical's purple)
-  const known = (e.sources || []).map((src) => ({ src, hue: lookSource(run, c, el, src).suggests })).filter((x) => HUES.includes(x.hue));
-  const at = (h) => HUES.indexOf(h), steps = (a, b) => Math.min(Math.abs(at(a) - at(b)), 6 - Math.abs(at(a) - at(b)));
-  const near = el === "color-hue" && !why && known.find((x) => steps(x.hue, chosen) === 1);
+  // the suggestion that won, as Ani memorized it (choose.198:596-603), with her record of
+  // a hue compromise merged into it
+  const won = cp && (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), chosen));
+  const record = el === "color-hue" && won ? lispList(kv(won, "compromises")).filter(Array.isArray).pop() : null;
   let text;
-  if (why) text = `${word} because ${why}`;
+  if (record) text = hueCompromiseText(run, c, word, why, record, side);
+  else if (why) text = `${word} because ${why}`;
   else if (comp) {
-    const [a, b] = (kv(comp, "offenders") || []).map((sg) => { const w = because(kv(sg, "source")); return `${lookValue(el, kv(sg, "value"))}${w ? `, because ${w}` : ""}`; });
-    text = `${word}, ${el === "color-hue" ? "the hue between" : "a compromise between"} ${a}, and ${b}`;
-  } else if (near) {
-    const other = HUES[(2 * at(chosen) - at(near.hue) + 12) % 6];
-    const w = because(near.src);
-    text = `${word}, the hue between ${near.hue}${w ? `, because ${w}` : ""}, and ${other}, which the film's variety suggested (two hues two steps apart on the wheel meet between) ${fileLink("colors")}`;
+    const [a, b] = lispList(kv(comp, "offenders")).map((sg) => side(kv(sg, "value"), kv(sg, "source")));
+    text = `${word}, a compromise between ${a}, and ${b}`;
   } else if (el === "color-hue" && (e.sources || []).length && (e.sources || []).every((src) => src === "(variety level)")) {
-    text = `${word}, since nothing suggests a hue for ${k.her}: the film's variety picks one, by how often each was used so far ${codeLink("glosug.41", 61)}`;
+    text = `${word}, since nothing suggests a hue for ${k.her}${varietyHueText(run, won)}`;
   } else text = (e.sources || []).length ? `${word}, from suggestions Ani combined` : `${word} (nothing suggested a value)`;
   // a (not X) is drawn as one of the two values left (REVIVE;APPEAR appearance-number)
   if (e.drawn && !sameValue(e.drawn, e.value)) text += `, drawn ${esc(lookValue(el, e.drawn))}`;
-  // what was set aside: "clear, for “beautiful”, set aside as not compatible with the others"
-  const aside = ((cp && cp.rejectedSuggestions) || []).map((r) => {
-    const sg = kv(r, "suggestion"), v = kv(sg, "value");
-    const fight = ((cp && cp.conflictsResolved) || []).find((x) => ["adjacent-hues", "complementary"].includes(kv(x, "type")) && (kv(x, "offenders") || []).some((o) => sameValue(kv(o, "value"), v)));
-    const wheel = fight ? ` (${esc(plain(show(v)))} is ${kv(fight, "type") === "complementary" ? "opposite" : "a step from"} ${esc(show(chosen))} on the wheel, so the two conflict)` : "";
-    return { what: `${esc(lookValue(el, v))}, for ${sourceNoun(run, c, kv(sg, "source"))}${wheel}`, why: rejectText(kv(r, "reason")) };
-  });
-  const reasons = [...new Set(aside.map((x) => x.why))].map((why) => `${words(aside.filter((x) => x.why === why).map((x) => x.what))}, set aside as ${why}`);
+  // what was set aside, by value, each with its sources: "clear, for “beautiful”, set aside
+  // as not compatible with the others"; a value from a comparison as what it rules out
+  // ("not dark, to be different in brightness from the owl"); the winner named
+  const fights = (cp && cp.conflictsResolved) || [];
+  const groups = new Map();
+  for (const r of (cp && cp.rejectedSuggestions) || []) {
+    const sg = kv(r, "suggestion"), v = kv(sg, "value"), src = kv(sg, "source");
+    const fight = fights.find((x) => lispList(kv(x, "offenders")).some((o) => show(o) === show(sg)));
+    const winner = fight && lispList(kv(fight, "offenders")).find((o) => show(o) !== show(sg));
+    let reason = rejectText(kv(r, "reason"));
+    if (winner && / than another$/.test(reason)) reason = reason.replace(/ than another$/, ` than ${esc(lookValue(el, kv(winner, "value")))}`);
+    const wheel = fight && ["adjacent-hues", "complementary"].includes(kv(fight, "type")) ? ` (${esc(plain(show(v)))} is ${kv(fight, "type") === "complementary" ? "opposite" : "a step from"} ${esc(plain(show(winner ? kv(winner, "value") : chosen)))} on the wheel, so the two conflict)` : "";
+    const rel = relativeAside(c, el, v, src);
+    const key = `${rel || show(v)}|${reason}|${wheel}`;
+    if (!groups.has(key)) groups.set(key, { value: v, rel, reason, wheel, sources: [] });
+    if (!rel) groups.get(key).sources.push(sourceNoun(run, c, src));
+  }
+  const byReason = new Map();
+  for (const g of groups.values()) {
+    const what = g.rel || `${esc(lookValue(el, g.value))}, for ${words(g.sources)}${g.wheel}`;
+    if (!byReason.has(g.reason)) byReason.set(g.reason, []);
+    byReason.get(g.reason).push(what);
+  }
+  const several = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}` : xs[0]);
+  const reasons = [...byReason].map(([why_, ws]) => `${several(ws)}, set aside as ${why_}`);
   return `${text}${reasons.length ? ` (${reasons.join("; ")})` : ""}`;
 }
-// "Ani colored her a dull purple, neither bright nor dark: ...", each aspect a button.
+// A compromise between two hues two steps apart, from Ani's record of it (REVIVE;COLORS
+// hue-compromise): (compromised: hues (h1 h2) sources (s1 s2) to h because b), b
+// (equally-strong), (equally-strong (obviousness level) high) or ((originality level) x).
+function hueCompromiseText(run, c, word, why, rec, side) {
+  const [h1, h2] = lispList(kv(rec, "hues")), [s1, s2] = lispList(kv(rec, "sources"));
+  const to = kv(rec, "to"), b = lispList(kv(rec, "because"));
+  const kept = to === h1 ? [h2, s2] : to === h2 ? [h1, s1] : null; // the hue that gave way
+  const code = fileLink("colors");
+  const originality = Array.isArray(b[0]) && b[0][0] === "originality" ? b[1] : null;
+  if (!kept) return `${word}, the hue between ${side(h1, s1)}, and ${side(h2, s2)}: ${originality ? `the film's originality is medium, so Ani weighs them by how strongly each was suggested` : "equally strongly suggested, two hues two steps apart on the wheel meet between"} ${code}`;
+  const how = originality === "low" ? "the film's originality is low, so Ani takes the more strongly suggested"
+    : originality === "high" ? "the film's originality is high, so Ani takes the less strongly suggested"
+    : originality === "medium" ? "the film's originality is medium, so Ani weighs the two by how strongly each was suggested"
+    : "they were as strongly suggested, and the film is to be obvious, so Ani keeps a hue suggested rather than meet between";
+  return `${word}${why ? ` because ${why}` : ""} (${esc(plain(kept[0]))}, for ${sourceNoun(run, c, kept[1])}, two steps away on the wheel, gave way: ${how} ${code})`;
+}
+// How the film's variety picked a hue, from what its suggestion says it picked from
+// (REVIVE;COLORS: its counts, how often each hue had been chosen, in the list's order):
+// Ken's pick-value-with-variety (glosug.41:61-72) sorts the hues by those counts, most
+// first, keeping the list's order among hues chosen as often, and at medium variety takes
+// the middle one, at high or low the first (of the sort with most first, or least).
+// The list's order is the revival's (":hue-order-knowledge", "Where the reasons for her
+// colors come from").
+function varietyHueText(run, won) {
+  const counts = lispList(won ? kv(won, "counts") : null).filter(Array.isArray);
+  const level = run.story.levels.variety || "medium";
+  const link = codeLink("glosug.41", 61);
+  const which = level === "medium" ? "the middle one" : "the first";
+  if (!counts.length) return `: the film's variety picks one, by how often each hue has been used so far, and among those used as often, by the revival's list of hues ${link}`;
+  const n = counts.map((x) => Number(x[0]));
+  if (n.every((m) => m === n[0])) return ` and ${n[0] ? "every hue had been used as often" : "no one had a hue yet"}: the film's ${esc(level)} variety takes ${which} of the revival's list of hues ${link}`;
+  const times = (m) => (m === 1 ? "once" : m === 2 ? "twice" : `${NUMBER_WORDS[m] || m} times`);
+  const used = counts.filter((x) => Number(x[0]) > 0).sort((x, y) => Number(y[0]) - Number(x[0])).map((x) => `${esc(plain(x[1]))} ${times(Number(x[0]))}`);
+  return `: the film's ${esc(level)} variety takes ${which} of the hues ordered by how often each had been used so far, ${level === "low" ? "least" : "most"} first (${words(used)}, the others not yet), hues used as often in the order of the revival's list ${link}`;
+}
+// A suggestion from a comparison, set aside, as what it rules out and why: (different-from
+// low) from how she compares with the owl, "not dark, to be different in brightness from
+// the owl"; null for any other.
+function relativeAside(c, el, v, src) {
+  const x = lispValue(v), from = lispValue(src);
+  if (!Array.isArray(x) || !Array.isArray(from) || from[0] !== "relative-choice-point-of" || !Array.isArray(from[1])) return null;
+  const w = LOOK_VALUE[el] || {};
+  const left = x[0] === "different-from" ? `not ${w[x[1]] || plain(x[1])}`
+    : x[0] === "greater-than" ? (x[1] === "low" ? `not ${w.low}` : x[1] === "medium" ? w.high : null)
+    : x[0] === "less-than" ? (x[1] === "high" ? `not ${w.high}` : x[1] === "medium" ? w.low : null) : null;
+  if (!left) return null;
+  const other = from[1][0] === c ? from[1][1] : from[1][0];
+  const rel = (REL_WORDS[`relative-${el}`] || {})[x[0]] || `${plain(x[0])}`;
+  return `${esc(left)}, to be ${rel} ${who(other)}`;
+}
+// "Ani colored her a dull purple: ...", each aspect a button.
 function colorSentence(run, c) {
   const entry = run.appearances.get(c);
   const parts = COLOR_ELEMENTS.map((el) => colorPart(run, c, el)).filter(Boolean);
-  return `Ani colored ${meet(run.story, c).her} ${colorName(entry.look)}: ${parts.join("; ")}.`;
+  return `Ani colored ${meet(run.story, c).her} ${colorShort(entry.look)}: ${parts.join("; ")}.`;
+}
+// Where the screen draws a character lighter than Ani colored it (M2's floor, lifted):
+// said, with Ani's choice kept as she made it.
+function liftedNote(run, c, look) {
+  if (!look || !look.color || !lifted(look.color)) return "";
+  const k = meet(run.story, c);
+  const ratio = (x) => String(Math.round(x * 100) / 100);
+  return `On the black screen ${colorName(look, true)} would be hard to see (${ratio(contrast(hsvRgb(look.color), SCREEN))}:1 against black), so the page draws ${k.her} lighter, in the same hue, at ${ratio(screenFloor(look.color[2]))}:1. It draws every color at least 3:1 against black, the least WCAG asks of the parts of a picture one has to see, and a little more the brighter Ani made it (3.4:1 at medium, 3.8:1 at bright), so that dark stays darker than medium. Ani's numbers are as she chose them.`;
 }
 // The knowledge a character's colors came from, each piece Ken's (his words quoted) or
 // the revival's (marked, with its reason): every source of a suggestion that won, was
-// combined, compromised between or set aside.
+// combined, compromised between or set aside, and, where the film's variety gave a hue,
+// the revival's order of the hues.
 function colorKnowledge(run, c) {
   const entry = run.appearances.get(c), rows = [];
   const add = (el, src) => {
@@ -1943,7 +2110,11 @@ function colorKnowledge(run, c) {
     for (const x of Array.isArray(x0) && x0[0] === "and" ? x0.slice(1) : [x0]) {
       const via = Array.isArray(x) && (x[0] === "opposite-of" || x[0] === "neighbor-of") ? x : null;
       const word = typeof x === "string" ? x : via ? x[2] : null;
-      const row = word ? knowFor(run, "descriptor", word, el) : Array.isArray(x) && x[1] === "level" ? knowFor(run, "film", show(x), el) : null;
+      // a word's knowledge; a film level's; and, for the film's variety's hue, the order it
+      // takes the hues in, the revival's (REVIVE;COLORS :hue-order-knowledge)
+      const row = word ? knowFor(run, "descriptor", word, el)
+        : Array.isArray(x) && x[1] === "level" ? knowFor(run, "film", show(x), el) || (x[0] === "variety" && knowFor(run, "order", show(x), el)) || null
+        : null;
       if (!row) continue;
       // one piece of knowledge, said once: the film's flashiness reaches brightness and clarity
       const same = rows.find((r) => r.row.kind === row.kind && r.row.source === row.source && JSON.stringify(r.row.evidence) === JSON.stringify(row.evidence));
@@ -1961,26 +2132,48 @@ function colorKnowledge(run, c) {
   }
   return rows.map(({ els, rows: rs, row, vias }) => {
     const opp = ["opposite-of", "neighbor-of"].map((how) => vias.filter((v) => v[0] === how).map((v) => `“${esc(plain(v[1]))}”`)).map((ws, n) => (ws.length ? `its ${n ? "neighbor" : "opposite"}${ws.length > 1 ? "s" : ""} ${words(ws)} ${esc(lookValue(els[0], n ? row.value : opposite3(row.value)))}` : "")).filter(Boolean);
-    const what = row.kind === "film" ? `The film's ${esc(plain(lispValue(row.source)[0]))} reaches ${esc(words(els.map(elementName)))}` : `“${esc(plain(row.source))}” suggests ${esc(words(rs.map((x, n) => lookValue(els[n], x.value))))}${opp.length ? `, and so ${words(opp)}` : ""}`;
-    const ev = evidenceText(row.evidence);
-    return `<li>${what}: ${row.evidence && row.evidence.why ? ev : `Ken's, ${ev}`}</li>`;
+    const what = row.kind === "film" ? `The film's ${esc(plain(lispValue(row.source)[0]))} reaches ${esc(words(els.map(elementName)))}`
+      : row.kind === "order" ? `The order of the hues: ${esc(words(lispList(lispValue(row.value)).map(plain)))}`
+      : `“${esc(plain(row.source))}” suggests ${esc(words(rs.map((x, n) => lookValue(els[n], x.value))))}${opp.length ? `, and so ${words(opp)}` : ""}`;
+    return `<li>${what}. ${row.evidence && row.evidence.why ? evidenceText(row.evidence) : kensEvidence(row.evidence)}</li>`;
   }).join("");
 }
 // What Ani changes of a character's look in a scene (glass.lookChanges, REVIVE;ALTER),
-// each in a sentence with its reason and evidence; or that it shows nothing there.
+// each in a sentence with its reason and evidence: "In part 3, to show that Cinderella is
+// very unhappy, Ani dims her colors, from a brightness of .65 to .45 ..."; or that it
+// shows nothing there; or that the scene ends before it is done (the Meeting at 4 frames
+// a second ends before the Prince and Cinderella are as bright as Ani planned).
+const LOOK_DOES = { "color-intensity": ["brightens {their} colors", "dims {their} colors", "brighten {their} colors", "dim {their} colors"], "color-saturation": ["makes {their} colors clearer", "makes {their} colors duller", "make {their} colors clearer", "make {their} colors duller"], size: ["makes {her} larger", "makes {her} smaller", "make {her} larger", "make {her} smaller"] };
 function lookChangeLines(run, sc, c) {
   return ((sc && sc.glass && sc.glass.lookChanges) || []).filter((x) => x.character === c).map((x) => {
     const sub = sc.subscenes.find((y) => y.name === x.subscene) || { n: "?", begin: 0, end: sc.last };
     const t = lookChangeText(sc, sub, x);
     const v0 = lookAt(sc, c, Math.max(0, sub.begin - 1)), v1 = lookAt(sc, c, sub.end);
-    const num = (l) => (l && l.color ? String(Math.round(l.color[2] * 1000) / 1000).replace(/^0\./, ".") : "?");
+    const num = (n) => String(Math.round(n * 1000) / 1000).replace(/^0\./, ".");
+    const at = (l) => (l && l.color ? num(l.color[2]) : "?");
     const task = sc.glass.tasks.find((y) => y.name === x.task);
     const d = task ? taskInfo(task).description : null;
     const f = parse(x.feeling || "nil");
     const row = knowledgeOf(run).find((r) => r.kind === "look-change" && Array.isArray(f) && r.source === f[0] && r.element === x.element);
     const ev = row ? (Array.isArray(row.evidence) ? row.evidence : [row.evidence]).map((y) => (y.why ? evidenceText(y) : `Ken's, ${evidenceText(y)}`)).join("; ") : "";
     const k = meet(run.story, c);
-    return `In part ${sub.n}, ${t.does}${t.shows && x.element === "color-intensity" ? `, from a brightness of ${num(v0)} to ${num(v1)} (1 is the screen's brightest)` : ""}${d ? `, as Ani shows that ${about(d)}` : ""}: a look change ${methodCode(["look-change:"], "run")}, made beside ${theirs(c)} changes of how ${k.she} ${agree(k, "moves", "move")}, by the same amount at the same speed${t.shows ? "; only color mode shows it" : ""}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
+    const amount = parse(x.amount || "nil"), up = !(Array.isArray(amount) && amount[0] === "negative");
+    const ways = LOOK_DOES[x.element];
+    const say = (n) => ways[n].replace("{their}", theirs(c)).replace("{her}", k.her);
+    const what = !ways ? t.does : t.shows ? `Ani ${say(up ? 0 : 1)}` : `Ani would ${say(up ? 2 : 3)}, but ${t.why}`;
+    let range = "";
+    if (t.shows && x.element === "color-intensity" && v0 && v0.color) {
+      // as bright as Ani planned it, Director's change by the factor (REVIVE;LOOKS), no
+      // brighter than the screen's brightest nor darker than Ani's darkest; and whether the
+      // film got there
+      const factor = Number((String(x.change).match(/ by ([0-9.eE+-]+) factor /) || [])[1]);
+      const planned = Number.isFinite(factor) ? Math.min(1, Math.max(0.45, v0.color[2] * factor)) : null;
+      const reached = planned === null || (sc.film.looks || []).some(([fr, who_, l]) => who_ === c && fr >= sub.begin && l.color && Math.abs(l.color[2] - planned) < 0.005);
+      range = `, from a brightness of ${at(v0)} to ${at(v1)} (1 is the screen's brightest)`;
+      if (!reached) range += `, and the scene ends before ${k.she} ${agree(k, "is", "are")} as ${up ? "bright" : "dark"} as Ani planned (${num(planned)})`;
+      if (v1 && v1.color && lifted(v1.color) && !lifted(v0.color)) range += `; on the black screen the page draws ${k.her} a little lighter than ${at(v1)}, so that ${k.she} can still be seen`;
+    }
+    return `In part ${sub.n}, ${d ? `to show that ${about(d)}, ` : ""}${what}${range}: a look change ${methodCode(["look-change:"], "run")}, made beside ${theirs(c)} changes of how ${k.she} ${agree(k, "moves", "move")}, by the same amount at the same speed${t.shows ? "; only color mode shows it" : ""}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
   });
 }
 
@@ -1995,8 +2188,10 @@ function expertsText(run, c) {
     const x = parse(item);
     if (!Array.isArray(x)) continue;
     if (x[0] === "considered:") {
-      const cons = (kv(x, "constraints") || []).filter(Array.isArray).map(([el, v]) => lookValue(el, v));
-      const offered = (kv(x, "offered") || []).filter(Array.isArray);
+      // each list as Ani printed it: nil, where telling a character apart relaxed every
+      // constraint, is the empty list (lispList)
+      const cons = lispList(kv(x, "constraints")).filter(Array.isArray).map(([el, v]) => lookValue(el, v));
+      const offered = lispList(kv(x, "offered")).filter(Array.isArray);
       const by = new Map();
       for (const [expert, shape] of offered) { if (!by.has(expert)) by.set(expert, []); by.get(expert).push(`${article(shapeName(shape))} ${shapeName(shape)}`); }
       out.push(`Ani asked the shape experts for a shape that is ${cons.length ? words(cons) : "anything at all"}; ${by.size ? words([...by].map(([e, s]) => `the ${plain(e)} offered ${words(s)}`)) : "none had one"}.`);
@@ -2007,8 +2202,8 @@ function expertsText(run, c) {
       if (alike && apart++ > 0) out.push(`Every shape left was like ${who(alike)}'s on one of the two elements, which tells two characters apart hardly better than the same shape, so Ani set aside the next least justified too, that ${k.she} be ${value} (thesis p. 164: the remedies “can be applied iteratively”).`);
       else out.push(`${alike ? `The only shape that fit is the one ${who(alike)} is drawn as` : "No shape fits all of these"}, so Ani set aside the least justified, that ${k.she} be ${value} (thesis p. 164: “a constraint can be eliminated”).`);
     } else if (x[0] === "chosen:") {
-      const from = kv(x, "from") || [];
-      if (Array.isArray(from) && from.length > 1) out.push(`Of these, Ani took the ${shapeName(kv(x, "shape"))}, as the film's variety, complexity and originality choose among shapes offered.`);
+      const from = lispList(kv(x, "from"));
+      if (from.length > 1) out.push(`Of these, Ani took the ${shapeName(kv(x, "shape"))}, as the film's variety, complexity and originality choose among shapes offered.`);
     }
   }
   return out.join(" ");
@@ -2089,11 +2284,12 @@ function looksBody(run, c, boxId, sc = null) {
   const sentence = entry ? lookSentence(run, c) : `${cap(k.the)} ${agree(k, "is", "are")} drawn as ${aShape(look)}, as Ani chose in pass 1.`;
   // her colors (REVIVE;COLORS), with whose knowledge each reason is
   const colored = entry && entry.look.color ? colorSentence(run, c) : look.color ? `${cap(k.the)} ${agree(k, "is", "are")} colored ${colorName(look)}.` : "";
+  const lift = liftedNote(run, c, look);
   const known = entry && entry.look.color ? colorKnowledge(run, c) : "";
   const experts = entry ? expertsText(run, c) : "";
   const notes = entry ? lookNotes(run, c) : [];
   const changes = lookChangeLines(run, sc, c);
-  return `<p class="look-line">${sentence}</p>${colored ? `<p class="look-line">${colored}</p>` : ""}<div class="look-box" id="${esc(boxId)}"></div>
+  return `<p class="look-line">${sentence}</p>${colored ? `<p class="look-line">${colored}</p>` : ""}${lift ? `<p class="note">${lift}</p>` : ""}<div class="look-box" id="${esc(boxId)}"></div>
     ${known ? `<div class="note"><p>Where the reasons for ${theirs(c)} colors come from ${fileLink("apsug")}:</p><ul class="look-know">${known}</ul></div>` : ""}
     ${changes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     ${experts ? `<p class="note">${experts} ${fileLink("shapes")}</p>` : ""}
@@ -2103,6 +2299,12 @@ function looksBody(run, c, boxId, sc = null) {
 // A look's choice point: the suggestion that won, each of its sources with what it
 // suggests and its evidence (the thesis or Ken's code quoted; the revival's own
 // knowledge marked, with its reason), what was set aside, and what happened to it.
+// Ken's evidence, said as his: "Ken's: “bad guys wear black” (thesis, p. 161)", "Ken's
+// code: “color is many and bright is flashier” (glosug.41:40)".
+function kensEvidence(ev) {
+  if (ev && ev.code) { const [file, line] = String(ev.code).split(":"); return `Ken's code: <q>${esc(ev.text)}</q> (${esc(ev.code)}) ${codeLink(file, Number(line))}`; }
+  return `Ken's: ${evidenceText(ev)}`;
+}
 function evidenceText(ev) {
   if (!ev) return "";
   if (Array.isArray(ev)) return ev.map(evidenceText).filter(Boolean).join("; ");
@@ -2248,7 +2450,7 @@ function changedSentence(run, x, c, k) {
 // she moves): kept as pass 1 chose them, her colors too.
 function keptLook(run, c) {
   const kk = meet(run.story, c), look = lookOf(run, c);
-  const as = look && look.color ? `, ${aShape(look)} in ${colorName(look, true)}` : "";
+  const as = look && look.color ? `, ${aShape(look)} ${inColor(look)}` : "";
   return `Ani keeps how ${kk.she} ${agree(kk, "looks", "look")} as pass 1 chose it${as}; choosing ${kk.her} ${look && look.color ? "shape, size and colors" : "looks"} again after a change comes in a later stage.`;
 }
 // clauses with commas of their own, listed: "a, not b, and c, not d"; "x; y; and z"
@@ -2873,7 +3075,7 @@ function lookChangeText(sc, sub, x) {
   if (!grow || !before || !after || JSON.stringify(before) !== JSON.stringify(after)) return { c, key, does, shows: true };
   const k = meet(R.story, c), v = before.color ? before.color[2] : null;
   const why = x.element === "color-intensity" && v !== null && (up ? v >= 1 : v <= 0.45) ? `${k.she} ${agree(k, "is", "are")} as ${up ? "bright as the screen shows" : "dark as Ani draws anyone"} already` : "the film ends before it shows";
-  return { does: `${x.element === "size" ? who(c) : `${who(c)}'s colors`} would ${grow}, but ${why}`, shows: false };
+  return { does: `${x.element === "size" ? who(c) : `${who(c)}'s colors`} would ${grow}, but ${why}`, why, shows: false };
 }
 // What a caption says at frame f of scene i of a run, as html: the part ("Scene 1 · The
 // Introduction · part 1 of 4"), what is shown and why, and more (meanwhile, a change, a
@@ -4427,7 +4629,7 @@ function drawnList(run) {
     const look = lookOf(run, c);
     if (!look) return "";
     const ken = KEN_DREW && KEN_DREW.characters[c];
-    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` in ${esc(colorName(look, true))}` : ""}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
+    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` ${esc(inColor(look))}` : ""}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
   }).join("");
   return `<div><p class="label">How Ani drew them</p><ul class="cast-looks">${rows}</ul><div id="cmp-look"></div></div>`;
 }

@@ -412,8 +412,9 @@ export function collectBorrowed(L, tasks) {
 // task chose it, (look-change: element (cinderella color-intensity) amount (negative
 // high) speed high), change what Director is to do, (gradually change look by
 // .66666667 factor for color-intensity at high speed), each printed as Lisp, kind
-// look-change: or look-change-to:, and feeling the feeling of an emotional-state task
-// whose level is the amount ("(joy (negative high))"), if the task is one. Looked up
+// look-change: or look-change-to:, and feeling, for a look-change:, the feeling of an
+// emotional-state task that changes that look, at the level of the amount ("(joy
+// (negative high))", feelingOf), if the task is one. Looked up
 // without interning anything unless REVIVE;ALTER is loaded, so that a Lisp running as
 // in 1978 is left as it was.
 export function collectLookChanges(L, scene) {
@@ -428,7 +429,7 @@ export function collectLookChanges(L, scene) {
     const kind = lisp(method.car);
     L.intern("*GB-ACTOR*").value = task;
     const description = L.evalString("(get (ask ,*gb-actor* recall your task) 'description)");
-    const feeling = feelingOf(L, description, kind === "look-change:" ? lisp(get("amount")) : null);
+    const feeling = kind === "look-change:" ? feelingOf(L, description, lisp(get("amount")), element[1]) : null;
     out.push({
       task: lisp(task), subscene: lisp(subscene), method: lisp(method), change: lisp(change),
       character: element[0], element: element[1], kind,
@@ -440,15 +441,18 @@ export function collectLookChanges(L, scene) {
 }
 
 // The feeling of an emotional-state task's description, (emotional-state cinderella
-// (joy (negative high))), whose level is the amount a look change was made by, "(joy
-// (negative high))"; null if there is none.
-function feelingOf(L, description, amount) {
+// (joy (negative high))), that made a look change by an amount: one REVIVE;ALTER's
+// :look-change-knowledge says changes the element (joy, for color-intensity), at the
+// level the look change was made by, "(joy (negative high))"; null if there is none.
+// By the feeling, not the level alone: two feelings of a task may share a level.
+function feelingOf(L, description, amount, element) {
   if (!(description instanceof Cons)) return null;
   const lisp = (x) => L.print(x).toLowerCase();
   const parts = L.toArray(description);
   if (lisp(parts[0]) !== "emotional-state") return null;
+  const feelings = L.toArray(L.evalString(`(and (boundp ':look-change-knowledge) (mapcan (function (lambda (k) (and (eq (second k) '${element}) (list (first k))))) :look-change-knowledge))`)).filter((x) => x !== L.NIL).map(lisp);
   const states = parts[2] instanceof Cons && lisp(parts[2].car) === "and" ? L.toArray(parts[2]).slice(1) : [parts[2]];
-  const found = states.find((s) => s instanceof Cons && (!amount || lisp(L.toArray(s)[1]) === amount));
+  const found = states.find((s) => s instanceof Cons && feelings.includes(lisp(s.car)) && lisp(L.toArray(s)[1]) === amount);
   return found ? lisp(found) : null;
 }
 

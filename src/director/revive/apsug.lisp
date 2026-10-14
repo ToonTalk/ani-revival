@@ -70,7 +70,8 @@
 ;; is "typically an unfriendly shape" (p. 238), which unfriendly gets from friendly's
 ;; opposite. Magical's purple is the only hue here; no other word of Ken's has one the
 ;; revival could give it without guessing, and the film's variety (glosug.41:43-55)
-;; gives every character a hue.
+;; gives every character a hue, taking the hues in the revival's order where nothing
+;; else decides between them (REVIVE;COLORS, :hue-order-knowledge).
 (setq :appearance-knowledge
       '((strong size high medium
 	 (thesis 238 |The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally|))
@@ -380,8 +381,9 @@
 ;;; ------------------------------------------------- all of it, for the glass box
 
 ;; Every piece of knowledge above as (kind source element value strength evidence),
-;; kind descriptor, relationship, comparison, dynamics or film, and look-change, when
-;; a feeling changes a look (REVIVE;ALTER) (src/glassbox-pass1.js collectAppearances;
+;; kind descriptor, relationship, comparison, dynamics or film; look-change, when a
+;; feeling changes a look (REVIVE;ALTER); and order, the order the film's variety takes
+;; the hues in (REVIVE;COLORS) (src/glassbox-pass1.js collectAppearances;
 ;; tools/check-appear.mjs).
 (defun appearance-knowledge ()
   (append
@@ -428,7 +430,11 @@
 		 (lambda (entry)
 			 (let (((feeling element evidence) entry))
 			      (list 'look-change feeling element 'amount 'medium evidence))))
-		:look-change-knowledge))))
+		:look-change-knowledge))
+   ;; and the order of the hues (REVIVE;COLORS): (order (variety level) color-hue
+   ;; (yellow ...) low evidence)
+   (and (boundp ':hue-order-knowledge)
+	(append :hue-order-knowledge nil))))
 
 ;; The appearance elements, in the order REVIVE;APPEAR's tables list them.
 (setq :appearance-elements

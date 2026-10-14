@@ -70,7 +70,17 @@
 // Kept Apart; the caption says so, with its note only in TV mode, and says where a look
 // change shows nothing (Justice); "Ani changes how they look" is said only for a change
 // of shape or size; a shape changing into another is cut at the picture's edges; and a
-// video paints the colors, its subtitles to match.
+// video paints the colors, its subtitles to match. And the review of stage 5: the hue's
+// sentence says what decided it (no one had a hue yet, so the revival's list of hues; or
+// how often each had been used), the order of the hues is in "Where the reasons for her
+// colors come from" as the revival's, the fairy godmother's purple is said from Ani's
+// record of its compromise with the film's variety's orange, the glass box says where a
+// change was cut short by the scene's end (the Meeting at 4 frames a second) and where the
+// screen draws a color lighter than Ani chose it (a dark one under 3:1 against black,
+// lifted in the same hue, dark kept darker than medium; Cinderella's four as she chose
+// them), the icons are toned for the light theme, and the reviewer's story of six
+// (test/stories/six-colors.lisp), whose Prince the shape experts drew after relaxing
+// every constraint, has "How he looks" for everyone.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty-five minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width.
@@ -85,7 +95,7 @@ import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { storyWithoutClashes, makeFilm } from "../src/pipeline.js";
+import { storyWithoutClashes, makeFilm, pass1 } from "../src/pipeline.js";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3)
 const REVIVAL = ["mend", "know", "appear", "change"];
@@ -133,6 +143,17 @@ const RENAMED = Object.fromEntries(WELL_FORMED.map((f) => {
 // far-and-offstage.lisp, with MEND; and is-protective-of borrowing is-protective-to's
 // accompanying in know-protective.lisp (REVIVE;KNOW's sharing, Ken's decision 10), with
 // the switch's extensions
+// The reviewer's story of six (test/stories/six-colors.lisp, the review of stage 5, M4):
+// telling the Prince apart from the hunter, the shape experts relaxed both of his shape
+// constraints, and Ani's record, (considered: constraints nil ...), once made "How he
+// looks" throw. Its pass 1, as the page's worker makes it, with the switch's extensions.
+const SIX = (() => {
+  const text = storyWithoutClashes(nodeFs, readFileSync("test/stories/six-colors.lisp", "utf8").replace(/\r\n/g, "\n"), { extensions: REVIVAL }).text;
+  const fs = makeProjectFileSystem();
+  fs.addFile("KEN", "CINDY", "47", { text, origin: "test/stories/six-colors.lisp" });
+  const p = pass1(fs, { extensions: REVIVAL });
+  return { cindy: text, choicePoints: p.choicePoints, appearances: p.appearances };
+})();
 const NEWER = Object.fromEntries([["only-relationship", ["mend"]], ["far-and-offstage", ["mend"]], ["know-protective", REVIVAL]].map(([name, extensions]) => {
   const story = readFileSync(`test/stories/stress/${name}.lisp`, "utf8").replace(/\r\n/g, "\n");
   const made = makeFilm(makeProjectFileSystem(), { description: story, keepGoing: true, extensions, frames: 1000, fps: 4 });
@@ -153,7 +174,7 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [138, 48, 5, 16, 16, 1];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted"];
 const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
 // Two pages made from app/film.html: film.check.html hands some of its functions to
 // window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
@@ -1134,12 +1155,13 @@ try {
   }`);
   check(how.found && how.closed && /^How she looks\s+Ani made her a small hexagon: small because she is shy and the film isn't to be flashy; smooth because she is friendly and graceful; moderately complex, from suggestions Ani combined\./.test(how.text), `her glass box has "How she looks", closed, with a sentence from Ani's reasons: ${(how.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
   const howText = how.text || "", howBox = how.box || "";
-  check(/\nAni colored her a dull purple, neither bright nor dark: neither bright nor dark, a compromise between bright, because she is good \(the opposite of evil\), and dark, because the film isn't to be flashy; dull because she is shabby and the film isn't to be flashy \(clear, for “beautiful”, set aside as not compatible with the others\); purple, since nothing suggests a hue for her: the film's variety picks one, by how often each was used so far/.test(howText),
-    `and a sentence for her colors, with Ani's reasons, her compromise and what she set aside: ${(howText.match(/Ani colored her[^\n]*/) || [""])[0]}`);
-  check(/“evil” suggests dark, and so its opposite “good” bright: Ken's, .?bad guys wear black.? \(thesis, p\. 161\)/.test(howText) && /The film's flashiness reaches brightness and clarity: Ken's, .?color is many and bright is flashier.? \(Ken's code, glosug\.41:40\)/.test(howText) && /“shabby” suggests dull: the revival's: a shabby character's clothes are faded/.test(howText) && /“beautiful” suggests clear: the revival's: /.test(howText),
-    "where each reason for her colors comes from, Ken's knowledge quoted and the revival's marked as the revival's");
-  check(/In part \d+, Cinderella's colors brighten, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\), as Ani shows that Cinderella is a little happy: a look change.*by the same amount at the same speed; only color mode shows it\.\s*Ken's, .?a suggestion for how to establish that a character is very happy is that the intensity of the colors of the character be increased.? \(thesis, p\. 166\); the revival's: a less happy character brightens less/.test(howText),
-    `and, in the Introduction, her look change, with Ken's evidence and the revival's reason: ${(howText.match(/In part \d+, Cinderella's colors[^\n]*/) || [""])[0].slice(0, 160)}`);
+  check(/\nAni colored her a dull purple: neither bright nor dark, a compromise between bright, because she is good \(the opposite of evil\), and dark, because the film isn't to be flashy; dull because she is shabby and the film isn't to be flashy \(clear, for “beautiful”, set aside as not compatible with the others\); purple, since nothing suggests a hue for her and no one had a hue yet: the film's medium variety takes the middle one of the revival's list of hues/.test(howText),
+    `and a sentence for her colors, with Ani's reasons, her compromise, what she set aside, and what decided her hue: ${(howText.match(/Ani colored her[^\n]*/) || [""])[0]}`);
+  check(/“evil” suggests dark, and so its opposite “good” bright\. Ken's: .?bad guys wear black.? \(thesis, p\. 161\)/.test(howText) && /The film's flashiness reaches brightness and clarity\. Ken's code: .?color is many and bright is flashier.? \(glosug\.41:40\)/.test(howText) && /“shabby” suggests dull\. the revival's: a shabby character's clothes are faded/.test(howText) && /“beautiful” suggests clear\. the revival's: /.test(howText)
+    && /The order of the hues: yellow, orange, red, purple, blue and green\. the revival's: where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top\. Read from red, .*decision 4.*Which order, or another source of hues, is for Ken to decide/.test(howText),
+    "where each reason for her colors comes from, Ken's knowledge quoted and the revival's marked as the revival's, the order of the hues among it");
+  check(/In part 1, to show that Cinderella is a little happy, Ani brightens her colors, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\): a look change.*by the same amount at the same speed; only color mode shows it\.\s*Ken's, .?a suggestion for how to establish that a character is very happy is that the intensity of the colors of the character be increased.? \(thesis, p\. 166\); the revival's: a less happy character brightens less/.test(howText),
+    `and, in the Introduction, her look change, with Ken's evidence and the revival's reason: ${(howText.match(/In part \d+, to show[^\n]*/) || [""])[0].slice(0, 160)}`);
   check(/In 1978 Ken drew her himself as a green star: the star in initialize-characters/.test(howText) && /the green in running-color/.test(howText) && /In 1978 Ken drew her/.test(howText.split("\n").filter(Boolean).pop() || ""), "it ends with how Ken drew her in 1978, and where he said so");
   check(/She is shy, which suggests small\.\s*the revival's: a shy character keeps small and takes up little room/.test(howBox) && /size is also bigger is flashier.{0,3}\s*\(Ken's code, glosug\.41:39\)/.test(howBox), "\"small\" opens her size's choice point, with Ken's code quoted and the revival's knowledge marked as the revival's");
   await shot("8-how-she-looks.png");
@@ -1154,7 +1176,7 @@ try {
     d.scrollIntoView({ block: "start" });
     return { found: true, text: d.innerText, box: d.querySelector("#look-box").innerText };
   }`);
-  check(/\nAni colored her a dark, dull orange: dark because she is evil and is to be different in brightness from Cinderella and the fairy godmother; dull because she is ugly \(the opposite of beautiful\) and the film isn't to be flashy; orange, since nothing suggests a hue for her/.test(step.text || ""), `the stepmother's colors, with Ani's reasons: ${((step.text || "").match(/Ani colored her[^\n]*/) || [""])[0]}`);
+  check(/\nAni colored her a dark, dull orange: dark because she is evil and is to be different in brightness from Cinderella and the fairy godmother; dull because she is ugly \(the opposite of beautiful\) and the film isn't to be flashy; orange, since nothing suggests a hue for her: the film's medium variety takes the middle one of the hues ordered by how often each had been used so far, most first \(purple twice and red once, the others not yet\), hues used as often in the order of the revival's list/.test(step.text || ""), `the stepmother's colors, with Ani's reasons, and what the film's variety picked her hue from: ${((step.text || "").match(/Ani colored her[^\n]*/) || [""])[0]}`);
   check(step.found && /^How she looks\s+Ani made her a large triangle: large because she is strong and is to be larger than Cinderella/.test(step.text || "") && /strong friendly ally.{0,3}\s*\(thesis, p\. 238\)/.test(step.box || "") && /In 1978 Ken drew her himself as a large red square/.test(step.text || ""), `the stepmother's "How she looks": ${(step.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
   await shot("8b-how-the-stepmother-looks.png");
   const kens = await clickOn("fig-0", "Cinderella", `() => ({ found: true, looks: !!document.querySelector("#side details.looks") })`);
@@ -1299,21 +1321,72 @@ try {
   check(colors.inside > 50 && colors.below === 0, `a shape in the middle of becoming another, partly off the picture, has every copy cut at the picture's edge (${colors.inside} dots on the picture, ${colors.below} below it)`);
   check(colors.purple > 10 && colors.vtt.color && colors.vtt.tv, `a video in color paints Ani's colors (${colors.purple} dots of Cinderella's purple in its first picture), and its subtitles say her colors dim, with the note only in black and white`);
   await shot("8d-color-mode.png");
+  // the glass box's colors, the review of stage 5: the fairy godmother's purple from Ani's
+  // record of its compromise with the film's variety's orange; Cinderella's sadness in Kept
+  // Apart, which dims her to .45, which the screen draws a little lighter; her joy in the
+  // Meeting, cut short at 4 frames a second by the scene's end; the stepmother in Justice
+  const glassColors = await js(`(() => {
+    const t = window.__check, run = t.RUNS[1];
+    const body = (c, i) => { const d = document.createElement("div"); d.innerHTML = t.atScene(i, () => t.using(run, () => t.looksBody(run, c, "x", run.scenes[i]))); return d.innerText.replace(/\\s+/g, " "); };
+    return { fairy: body("fairy-godmother", 0), kept: body("cinderella", 1), meeting: body("cinderella", 3), justice: body("step-mother", 4) };
+  })()`);
+  check(/Ani colored her a bright purple: bright because she is good and kind \(both opposites of evil\) and is to be different in brightness from Cinderella; neither clear nor dull, a compromise between dull, because the film isn't to be flashy \(and for the film's variety\), and clear, because she is pretty; purple because she is magical \(orange, for the film's variety, two steps away on the wheel, gave way: the film's originality is low, so Ani takes the more strongly suggested/.test(glassColors.fairy),
+    `the fairy godmother's purple, said from Ani's record of its compromise with the film's variety's orange: ${(glassColors.fairy.match(/Ani colored her[^.]*\.[^.]*\./) || [""])[0]}`);
+  check(/In part 3, to show that Cinderella is very unhappy, Ani dims her colors, from a brightness of \.65 to \.45 \(1 is the screen's brightest\); on the black screen the page draws her a little lighter than \.45, so that she can still be seen: a look change/.test(glassColors.kept)
+    && /In part 7, to show that Cinderella is very happy, Ani brightens her colors, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\), and the scene ends before she is as bright as Ani planned \(\.975\): a look change/.test(glassColors.meeting)
+    && /In part 1, to show that the stepmother is very unhappy, Ani would dim her colors, but she is as dark as Ani draws anyone already: a look change/.test(glassColors.justice) && !/On the black screen/.test(glassColors.kept),
+    `the glass box says where a look change is cut short and where the screen draws a color lighter: ${(glassColors.meeting.match(/In part 7, to show[^:]*/) || [""])[0]} | ${(glassColors.kept.match(/In part 3, to show[^:]*/) || [""])[0]}`);
+  // Ani's colors as drawn: on the black screen, at least 3:1 at her darkest and a little
+  // more the brighter she made it, so a dark blue, a medium one and a bright one are lifted
+  // and stay in that order; Cinderella's four as she chose them; on the light theme's
+  // white, an icon in a bright yellow toned to 3:1
+  const drawnColors = await js(`(() => {
+    const t = window.__check;
+    const light = (style) => (style.match(/--ani-light:rgb\\((\\d+),(\\d+),(\\d+)\\)/) || []).slice(1).map(Number);
+    return { blues: [0.45, 0.65, 0.85].map((v) => t.screenRgb([240, 1, v])), lifted: [[240, 1, 0.45], [270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.lifted(c)),
+      cinderella: [[270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.screenRgb(c)), yellow: light(t.inkStyle([60, 1, 0.85])) };
+  })()`);
+  const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+  const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
+  const hsv = ([h, s, v]) => [5, 3, 1].map((n) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); });
+  const onBlack = drawnColors.blues.map((c) => ratio(c, [0, 0, 0]));
+  check(onBlack[0] >= 3 && onBlack[1] >= 3.4 && onBlack[2] >= 3.8 && onBlack[0] < onBlack[1] && onBlack[1] < onBlack[2] && drawnColors.lifted.join() === "true,false,false,false,false"
+    && drawnColors.cinderella.every((c, k) => c.join() === hsv([[270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]][k]).join()) && ratio(drawnColors.yellow, [255, 255, 255]) >= 3,
+    `a dark, a medium and a bright clear blue are drawn at ${onBlack.map((x) => x.toFixed(2)).join(", ")} to 1 against the black screen, in that order; Cinderella's four are drawn as Ani chose them; a bright yellow icon is ${ratio(drawnColors.yellow, [255, 255, 255]).toFixed(2)} to 1 on the light theme's white`);
+  // the reviewer's story of six: "How he looks" for each, the Prince's too, whose shape the
+  // experts found after relaxing every constraint, and "How Ani drew them"
+  const six = await js(`(() => {
+    const t = window.__check, r = JSON.parse(${JSON.stringify(JSON.stringify(SIX))});
+    const run = t.makeRun({ label: "Yours", short: "Yours", cindy: r.cindy, choicePoints: r.choicePoints, appearances: r.appearances, extensions: ${JSON.stringify(REVIVAL)} });
+    const text = (html) => { const d = document.createElement("div"); d.innerHTML = html; return d.innerText.replace(/\\s+/g, " "); };
+    const out = {};
+    for (const c of run.cast) { try { out[c] = text(t.using(run, () => t.looksBody(run, c, "x", null))); } catch (e) { out[c] = "THREW " + e.message; } }
+    let drawn;
+    try { drawn = text(t.using(run, () => t.drawnList(run))); } catch (e) { drawn = "THREW " + e.message; }
+    return { out, drawn };
+  })()`);
+  check(Object.keys(six.out).length === 6 && Object.values(six.out).every((x) => !/^THREW/.test(x) && /^Ani made /.test(x)) && /Ani asked the shape experts for a shape that is anything at all; /.test(six.out.prince || "") && /The Prince: a small pentagon/.test(six.drawn),
+    `the reviewer's story of six: "How she looks" for each of the six, the Prince's too, whose shape the experts found after relaxing every constraint (${(Object.entries(six.out).find(([, x]) => /^THREW/.test(x)) || ["", "none threw"])[1].slice(0, 120)})`);
   // COLORS' and APPEAR's notes on a color, each in a sentence with its code: a hue Ani
   // gave up on is drawn grey (read-as-color), a brightness chosen as (not X) narrowed to
   // one of the two left (read-as-number)
   const colorNotes = await js(`(() => {
     const t = window.__check;
     const repairs = [{ actor: "(choice-point-of cinderella color-hue)", note: "(revival-repair: what read-as-color was none now grey because (given up so no hue))" },
-      { actor: "(choice-point-of cinderella color-intensity)", note: "(revival-repair: what read-as-number was (not high) now 0.65 because (narrowed-to medium (variety level) medium (counts (0 low) (0 medium)) (middle-element ken1 reconstruction)))" }];
+      { actor: "(choice-point-of cinderella color-intensity)", note: "(revival-repair: what read-as-number was (not high) now 0.65 because (narrowed-to medium (variety level) medium (counts (0 low) (0 medium)) (middle-element ken1 reconstruction)))" },
+      { actor: "(choice-point-of prince color-hue)", note: "(revival-repair: what read-as-color was (not purple) now grey because (not one hue))" },
+      { actor: "establish-task-7", note: "(revival-repair: what look-change-alone was (look-change: element (cinderella color-intensity) amount (negative high) speed high) now left-out because (no change of how it moves by the same amount at the same speed))" }];
     const run = t.makeRun({ label: "Yours", short: "Yours", cindy: t.DATA.cindy, extensions: ["appear"], repairs });
     const code = (what) => { const a = document.createElement("div"); a.innerHTML = t.repairCode(what); const l = a.querySelector("a"); return l ? l.getAttribute("href") : ""; };
-    return { said: t.repairsIn(run, null).map((r) => r.html.replace(/<[^>]+>/g, "")), codes: [code("read-as-color"), code("read-as-number")] };
+    return { said: t.repairsIn(run, null).map((r) => r.html.replace(/<[^>]+>/g, "")), codes: [code("read-as-color"), code("read-as-number"), code("look-change-alone")] };
   })()`);
   check(colorNotes.said[0] === "Ani gave up on Cinderella's hue, so there was no hue to draw her in; the revival's repairs draw her grey, a color with no hue, at the brightness Ani chose."
     && /^Ani chose Cinderella's brightness “not bright”, and her table of brightnesses has a number only for dark, neither bright nor dark and bright; the revival's repairs narrowed it to neither bright nor dark \(0\.65\), the one of the two left that the film's medium variety picks/.test(colorNotes.said[1] || "")
-    && /source\.html#revive-colors-\d+$/.test(colorNotes.codes[0]) && /source\.html#revive-appear-\d+$/.test(colorNotes.codes[1]),
-    `a hue given up on and a brightness narrowed, each in a sentence with its code (${colorNotes.codes.join(", ")}): ${colorNotes.said.join(" | ")}`);
+    && colorNotes.said[2] === "Ani chose the Prince's hue “not purple”, which is no one hue, so there was no hue to draw him in; the revival's repairs draw him grey, a color with no hue, at the brightness Ani chose."
+    && /^Ani was to dim Cinderella's colors beside her changes of how she moves by the same amount at the same speed, but those changes were all set aside \(Ken's CHOMET makes neither of two changes of different signs\); alone, the look change would decide how long the part runs, where it is only to go along with them, so the revival leaves it out\.$/.test(colorNotes.said[3] || "")
+    && /source\.html#revive-colors-\d+$/.test(colorNotes.codes[0]) && /source\.html#revive-appear-\d+$/.test(colorNotes.codes[1]) && /source\.html#revive-alter-\d+$/.test(colorNotes.codes[2]),
+    `a hue given up on, a brightness narrowed, a hue that is no one hue and a look change left alone, each in a sentence with its code (${colorNotes.codes.join(", ")}): ${colorNotes.said.join(" | ")}`);
   // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
   await open();
   await sleep(1500);

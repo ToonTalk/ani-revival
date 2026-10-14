@@ -70,8 +70,9 @@
 ;; relative element; color-hue one of six hues, whose value description is the
 ;; revival's semantic net of hues, hue-net (REVIVE;COLORS; "a 'semantic net of
 ;; colors'", p. 240), listed round the painter's wheel as Itten drew it, yellow at
-;; the top. Where nothing else suggests a hue, the film's variety picks one by that
-;; order (REVIVE;COLORS says why it is Itten's).
+;; the top. Where nothing else decides between hues, the film's variety takes them in
+;; that order: the revival's, chosen so as not to give back Ken's 1978 hues (his
+;; decision 4), and open for his decision (REVIVE;COLORS says why).
 (defun define-appearance-elements ()
   (let ((:insert-methods-at-end nil))
        (define appearance-element element

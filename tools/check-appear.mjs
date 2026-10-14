@@ -26,7 +26,11 @@
 //      shape (one its jaggedness, the other its complexity), they are flagged.
 //   4. Ani's result: each look of hers that is Ken's (a shape, a size, a hue), with
 //      the knowledge among the sources of the suggestion that won it (followed into
-//      the relative choice points among them).
+//      the relative choice points among them). The film's variety, where it gave a
+//      hue, is followed to the order it takes the hues in, which is the revival's
+//      (REVIVE;COLORS :hue-order-knowledge, kind order): a hue of Ken's that set his
+//      character apart, given by the variety, is the revival's order's doing, and is
+//      flagged under decision 4, as a piece of the revival's knowledge is.
 //   5. ablation: pass 1 is run again, with all of the knowledge, with only the
 //      revival's (Ken's own left out), and without each piece of the revival's that
 //      reaches anyone; each run's looks are set beside Ken's. Here a look of Ken's is
@@ -36,7 +40,10 @@
 //      changing the order of the choices can move it, as graceful's smooth moves the
 //      fairy godmother's). A piece without which a look of Ken's in Ani's result goes
 //      away brings that look about: it reproduces his looks. A look of Ken's that only
-//      the revival's knowledge gives is flagged.
+//      the revival's knowledge gives is flagged. The order of the hues can't be left
+//      out (the film's variety needs one); instead pass 1 is run with the hues read
+//      from red, as a wheel usually is, and the hues of Ken's that reading gives back
+//      are shown: the reason the revival reads them from yellow.
 // What fails: a piece of the revival's knowledge (its evidence (why ...)) that
 // reproduces Ken's looks (1, or 5), which decision 4 drops; and anything flagged (2, 3,
 // 5) that has not been reviewed: REVIEWED below gives the decision for each, and why,
@@ -165,7 +172,9 @@ export function reach(entry, world, cp29) {
     const value = entry.value === "same" ? level : entry.value === "medium-unless-high" ? (level === "high" ? null : "medium") : null;
     if (value) for (const c of world.characters) out.push({ character: c, element: entry.element, value, through: `${entry.source} ${level}` });
   }
-  // comparisons suggest only different-from, which says the characters differ, not how
+  // comparisons suggest only different-from, which says the characters differ, not how;
+  // the order of the hues says which the film's variety takes where nothing else
+  // decides, which depends on the choices made before (4 and 5 judge it)
   return out;
 }
 
@@ -263,7 +272,8 @@ export function checkResult(world, appearances, choicePoints) {
     if (typeof src === "string") return world.knowledge.filter((k) => k.kind === "descriptor" && k.source === src && k.element === element);
     if (src[0] === "neighbor-of" || src[0] === "opposite-of") return world.knowledge.filter((k) => k.kind === "descriptor" && k.source === src[2] && k.element === element);
     if (src[0] === "dynamics-of") return world.knowledge.filter((k) => k.kind === "dynamics" && k.source === src[2] && k.element === element);
-    if (src[1] === "level") return world.knowledge.filter((k) => k.kind === "film" && k.source === `(${src.join(" ")})` && k.element === element);
+    // the film's levels; and the film's variety's hue, from the revival's order of hues
+    if (src[1] === "level") return world.knowledge.filter((k) => (k.kind === "film" || (k.kind === "order" && src[0] === "variety")) && k.source === `(${src.join(" ")})` && k.element === element);
     if (src[0] === "relative-choice-point-of") {
       const cp = byName.get(JSON.stringify(src)) || byName.get(JSON.stringify([src[0], [...src[1]].reverse(), src[2]]));
       const w = cp && winning(cp);
@@ -355,11 +365,22 @@ export function leaveOut(L, rows) {
   }
 }
 
+// The film's variety's order of the hues read another way: color-hue's possible values,
+// set once ELEMNT has defined it (REVIVE;APPEAR's hook, which comes first). The wheel,
+// and so which hues are neighbors and complements, is as it was.
+export function readHuesAs(L, order) {
+  L.evalString(`(+after-load '|ken;elemnt >| '(ask color-hue set your possible-values to (${order.join(" ")})))`);
+}
+// The hues read from red, as a wheel usually is (and as the revival's own angles, 0 to
+// 270 degrees, run): the reading decision 4 dropped.
+export const HUES_FROM_RED = ["red", "orange", "yellow", "green", "blue", "purple"];
+
 // Ani's looks with the rows left out: pass 1 in a process of its own (this file, with
-// --looks-without), as [{ character, look, elements }].
-function looksWithout(rows) {
+// --looks-without), as [{ character, look, elements }]; with hues, the hues read in that
+// order.
+function looksWithout(rows, hues = null) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), "--looks-without", JSON.stringify(rows.map(({ kind, source, element }) => ({ kind, source, element })))], { cwd: fileURLToPath(new URL("..", import.meta.url)), stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), "--looks-without", JSON.stringify(rows.map(({ kind, source, element }) => ({ kind, source, element }))), ...(hues ? ["--hues", hues.join(",")] : [])], { cwd: fileURLToPath(new URL("..", import.meta.url)), stdio: ["ignore", "pipe", "pipe"] });
     let out = "", err = "";
     child.stdout.on("data", (d) => { out += d; });
     child.stderr.on("data", (d) => { err += d; });
@@ -375,16 +396,19 @@ const lookWords = (a) => {
 
 // The runs: all of the knowledge, only the revival's, and without each piece of the
 // revival's that reaches one of Ken's characters (one that reaches none can change
-// nothing). Each run's looks, and what the comparison with all of it found.
+// nothing); and all of it with the hues read from red. Each run's looks, and what the
+// comparison with all of it found.
 export async function ablate(world, cp29, jobs) {
   const revivals = world.knowledge.filter((k) => isTheRevivals(k.evidence));
   const kens = world.knowledge.filter((k) => !isTheRevivals(k.evidence));
   const reaching = revivals.filter((k) => reach(k, world, cp29).length);
+  const order = revivals.find((k) => k.kind === "order");
   const runs = [{ name: "all of it", leave: [] }, { name: "only the revival's", leave: kens, onlyRevivals: true },
-    ...reaching.map((k) => ({ name: `without ${shortName(k)}`, leave: [k], without: k }))];
+    ...reaching.map((k) => ({ name: `without ${shortName(k)}`, leave: [k], without: k })),
+    ...(order ? [{ name: `with the hues read from red (${HUES_FROM_RED.join(" ")}), not in the revival's order`, leave: [], hues: HUES_FROM_RED, order }] : [])];
   const queue = [...runs];
   const worker = async () => {
-    for (let r = queue.shift(); r; r = queue.shift()) r.looks = await looksWithout(r.leave);
+    for (let r = queue.shift(); r; r = queue.shift()) r.looks = await looksWithout(r.leave, r.hues);
   };
   await Promise.all(Array.from({ length: Math.min(jobs, runs.length) }, worker));
   const all = runs[0].looks;
@@ -397,7 +421,7 @@ export async function ablate(world, cp29, jobs) {
     r.gained = [...now].filter((x) => !base.has(x)); // Ken's looks the piece keeps away
     r.ken = [...now];
   }
-  return { runs, skipped: revivals.filter((k) => !reaching.includes(k)) };
+  return { runs, skipped: revivals.filter((k) => !reaching.includes(k) && k.kind !== "order") };
 }
 
 // ---------------------------------------------------------------- the flags
@@ -406,6 +430,7 @@ export async function ablate(world, cp29, jobs) {
 export function flagKey(f) {
   if (f.type === "pair") return `pair: ${shortName(f.knowledge)}, ${f.character}${f.other ? ` than ${f.other}` : ""} ${f.value}`;
   if (f.type === "combination") return `combination: ${f.parts.map((p) => shortName(p.knowledge)).join(" + ")}, ${f.character} ${f.shape}`;
+  if (f.type === "result") return `result: ${shortName(f.knowledge)}, ${f.character} ${f.what}`;
   return `only the revival's: ${f.character} ${f.what}`;
 }
 
@@ -477,7 +502,11 @@ async function main() {
     console.log(`\n4. Ani's looks, against Ken's 1978 looks\n${lookTable(result.appearances)}\n`);
     for (const f of checkResult(world, result.appearances, result.choicePoints)) {
       resultFound.push(f);
-      console.log(`${f.revivals ? "theirs" : "Ken's "} ${f.character}'s ${f.what} is Ken's${setApart(f.character, f.what) ? "" : " (his medium, which sets no one apart)"}${f.knowledge ? `, from ${label(f.knowledge)}` : ", from no piece of knowledge (the film's variety, a compromise)"}`);
+      const line = `${f.character}'s ${f.what} is Ken's${setApart(f.character, f.what) ? "" : " (his medium, which sets no one apart)"}${f.knowledge ? `, from ${label(f.knowledge)}` : ", from no piece of knowledge (a compromise)"}`;
+      // a look of Ken's that set his character apart, from the revival's knowledge (the
+      // order of the hues among it), is judged under decision 4
+      if (f.revivals && setApart(f.character, f.what)) flag({ type: "result", character: f.character, what: f.what, knowledge: f.knowledge }, `in Ani's result, ${line}`);
+      else console.log(`${f.revivals ? "theirs" : "Ken's "} ${line}`);
     }
     if (!resultFound.length) console.log("ok     no look of Ani's is Ken's");
   } else console.log("\n4. Ani's result: there is no reports/ext/appear/pass1.json (tools/run-pass1.mjs --extensions appear --glass-box --save); or give --run");
@@ -489,6 +518,11 @@ async function main() {
     const { runs, skipped } = await ablate(world, cp29, jobs);
     for (const r of runs) {
       console.log(`       ${r.name}: ${r.looks.map((a) => `${a.character} ${lookWords(a)}`).join("; ")}`);
+    }
+    // the hues read from red: which of Ken's it gives back, the reason for the revival's order
+    for (const r of runs.filter((x) => x.hues)) {
+      const back = r.looks.filter((a) => kensIn(a).includes("color")).map((a) => `${a.character}'s ${a.look.hue}`);
+      console.log(`       (${back.length ? `read from red, the film's variety gives back Ken's ${back.join(", ")}: the reason the revival's order reads the hues from yellow (decision 4)` : "read from red, the film's variety gives back none of Ken's hues now: the reason for reading them from yellow no longer holds; say so to Ken"})`);
     }
     if (skipped.length) console.log(`       (not left out, since they reach none of Ken's characters: ${skipped.map(shortName).join(", ")})`);
     if (result && result.appearances) {
@@ -521,15 +555,17 @@ async function main() {
   process.exit(failures ? 1 : 0);
 }
 
-// The child of looksWithout: pass 1 with the rows left out, its looks as JSON.
-function looksWithoutChild(rowsJSON) {
+// The child of looksWithout: pass 1 with the rows left out (and the hues read in
+// another order, if given), its looks as JSON.
+function looksWithoutChild(rowsJSON, hues) {
   const rows = JSON.parse(rowsJSON);
-  const p = pass1(makeProjectFileSystem(), { extensions: ["appear"], setup: (L) => leaveOut(L, rows) });
+  const p = pass1(makeProjectFileSystem(), { extensions: ["appear"], setup: (L) => { leaveOut(L, rows); if (hues) readHuesAs(L, hues.split(",")); } });
   process.stdout.write(JSON.stringify(p.appearances.characters.map((a) => ({ character: a.character, look: a.look, elements: a.elements }))));
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const i = process.argv.indexOf("--looks-without");
-  if (i >= 0) looksWithoutChild(process.argv[i + 1]);
+  const h = process.argv.indexOf("--hues");
+  if (i >= 0) looksWithoutChild(process.argv[i + 1], h >= 0 ? process.argv[h + 1] : null);
   else await main();
 }

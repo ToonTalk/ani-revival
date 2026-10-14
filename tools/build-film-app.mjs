@@ -26,6 +26,9 @@
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
+//     To keep under claude.ai's limit, its page script goes without comments and
+//     indentation, and the revival's own Lisp in its bundle without comments, every
+//     line kept (stripReviveComments); Ken's files go as they are.
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { spawnSync } from "node:child_process";
@@ -39,6 +42,7 @@ import { bundleModules } from "./bundle-js.mjs";
 import { assembleBundle } from "./build-ani-bundle.mjs";
 import { fullPage } from "./page-shell.mjs";
 import { stripComments, stringsOf } from "./strip-js-comments.mjs";
+import { stripLispComments, differentForms } from "./strip-lisp-comments.mjs";
 import { knowIndex } from "./know-index.mjs";
 
 // Where in Ani's code each method, kind of task and plan is, for links into the code
@@ -244,6 +248,25 @@ function stripChecked(js, what, ext) {
   return stripped;
 }
 
+// The claude.ai copy's bundle: the revival's own Lisp files (REVIVE;*) without their
+// comments (tools/strip-lisp-comments.mjs), every line kept, so that every line number
+// stays as it is; each must read back as the same forms on the same lines, or the build
+// stops. Ken's files go as they are. The glass box's lines into the revival's code are
+// worked out here, from the repository's files (reviveIndex, knowIndex's ;;why: lines),
+// not from the bundle, and this copy has no code pages. Returns the characters taken out.
+function stripReviveComments(bundle) {
+  let saved = 0;
+  for (const f of bundle.files) {
+    if (f.dir !== "REVIVE") continue;
+    const stripped = stripLispComments(f.text);
+    const why = differentForms(f.text, stripped);
+    if (why) throw new Error(`REVIVE;${f.fn1} ${f.fn2} without its comments ${why}`);
+    saved += f.text.length - stripped.length;
+    f.text = stripped;
+  }
+  return saved;
+}
+
 // The differences that make b of a, two JSON values: [[path, value]], each value put at
 // its path (a list of keys); a list or object whose keys differ is put whole.
 export function jsonPatch(a, b, path = [], out = []) {
@@ -380,6 +403,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // without its comments, as the claude.ai copy's script goes (stripChecked)
   const runtime = stripChecked(bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js"], "AniRuntime", root), "Ani's runtime", ".cjs");
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
+  sizes.lispComments = claudeArtifact ? stripReviveComments(bundle) : 0;
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
   const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
@@ -434,5 +458,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out` : ""})`);
+  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
 }

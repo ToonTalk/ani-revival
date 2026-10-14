@@ -29,12 +29,17 @@
 ;;; (disply.311:1098-1111), and an estimate does count in its task's running time:
 ;;; CHOMET takes the longest of the task's methods, change methods among them
 ;;; (ideal-time-for-task and time-bounds-for-task, chomet.123:95-129). So a look
-;;; change is planned only beside a dynamics change of the same task, by the same
-;;; factor at the same speed, whose estimate it equals, as joy's is (below), or, from
-;;; the script, inside the activity that shows its cause (Phase 9 stage 6): it never
-;;; makes a task or a subscene longer, and never stands alone, where SCENE would make
-;;; the character wander around to have something to do (plan-something-if-only-
-;;; changes, scene.9:211-221). Running one adds what Director is to do to the
+;;; change by an amount is planned only beside a dynamics change of the same task, by
+;;; the same factor at the same speed, whose estimate it equals, as joy's is (below),
+;;; and a look change to a new value, from the script, inside the activity that shows
+;;; its cause (Phase 9 stage 6): it never makes a task or a subscene longer, and never
+;;; stands alone, where SCENE would make the character wander around to have something
+;;; to do (plan-something-if-only-changes, scene.9:211-221). The first is a rule here,
+;;; not only how joy is taught: a look-change: that CHOMET leaves with no change: of
+;;; its task's for the same character by the same amount at the same speed (two
+;;; feelings' changes of different signs cancel each other, chomet.123:463-472) is
+;;; left out, with a note (reject-bad-value-changes-looks-last, below). Running one
+;;; adds what Director is to do to the
 ;;; subscene's (changes-for cinderella), beside Ken's (gradually change by ...):
 ;;;   (gradually change look by .66666667 factor for color-intensity at high speed)
 ;;;   (gradually change look to (look: shape star angle 144 center-offset (right 18))
@@ -174,19 +179,49 @@
 ;; (disply.311:1087-1095). Coming last, the look change leaves the program as Ken's
 ;; code writes it, with its own (gradually change look ...) added to the character's
 ;; changes, at the front, where add puts the newest (as the last of Ken's own changes
-;; run is the first written).
+;; run is the first written). And a look-change: is kept only beside a change: of the
+;; task's own for the same character, by the same amount at the same speed, whose
+;; estimate it equals (see the top of this file); one left alone, its changes all set
+;; aside by CHOMET, is left out, with a note on the task:
+;;   (revival-repair: what look-change-alone
+;;		     was (look-change: element (cinderella color-intensity) amount (positive high)
+;;				 speed high)
+;;		     now left-out
+;;		     because (no change of how it moves by the same amount at the same speed))
 (defun reject-bad-value-changes-looks-last (suggestions task)
   (funcall (revival-wrapped 'reject-bad-value-changes 'alter) suggestions task)
   (let ((choices (ask ,task recall your current-choice)))
-       (let ((looks (mapcan (function (lambda (m) (and (look-change-method? m) (list m)))) choices)))
+       (let ((looks (mapcan (function (lambda (m) (and (look-change-method? m) (list m)))) choices))
+	     (others (mapcan (function (lambda (m) (and (not (look-change-method? m)) (list m))))
+			     choices)))
 	    (and looks
 		 (ask ,task set your current-choice to
-		      ,(append (mapcan (function (lambda (m) (and (not (look-change-method? m)) (list m))))
-				       choices)
-			       looks))))))
+		      ,(append others
+			       (mapcan (function
+					(lambda (look)
+						(cond ((look-change-paired? look others) (list look))
+						      (t (revival-note task 'look-change-alone look 'left-out
+								       '(no change of how it moves by the same amount at the same speed))
+							 nil))))
+				       looks)))))))
 
 (defun look-change-method? (method)
   (and (not (atom method)) (memq (first method) '(look-change: look-change-to:))))
+
+;; Whether a look change has a change: of the task's beside it for the same character,
+;; by the same amount at the same speed. A look-change-to: is paired otherwise, with
+;; the activity that shows its cause (Phase 9 stage 6), and is kept.
+(defun look-change-paired? (look methods)
+  (or (not (eq (first look) 'look-change:))
+      (do ((m methods (rest m)))
+	  ((null m) nil)
+	  (let ((method (first m)))
+	       (and (not (atom method))
+		    (eq (first method) 'change:)
+		    (eq (first (get method 'element)) (first (get look 'element)))
+		    (equal (get method 'amount) (get look 'amount))
+		    (eq (get method 'speed) (get look 'speed))
+		    (return t))))))
 
 (+after-load '|ken;chomet >|
   '(revival-wrap 'reject-bad-value-changes 'alter 'reject-bad-value-changes-looks-last))
@@ -222,8 +257,7 @@
 		   (let ((subscene (ask ,task recall your subscene)))
 			(mapcan (function
 				 (lambda (method)
-					 (and (not (atom method))
-					      (memq (first method) '(look-change: look-change-to:))
+					 (and (look-change-method? method)
 					      (list (list task subscene method
 							  (look-change-made subscene method))))))
 				(append (ask ,task recall your current-choice) nil)))))
