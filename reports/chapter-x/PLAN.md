@@ -194,6 +194,14 @@ A change is a scene task in the form of your `cindy.46:94-105`: `(change (TYPE W
    - The rate is gradual by default (p. 169: an abrupt change "could easily be misinterpreted"). A magical cause makes the change instantaneous. That rule is ours and is labeled as such.
    - There is no on-stage fallback. `on-stage` has no demon, and adding one would change 1978's scoring of `meets`.
    - With APPEAR on, `bridge-to:` asks each element's type for its Director form. Shabby to elegant then finally shows something; today it changes none of the 102 choices, as your footnote predicts.
+   - *As built (14 October, stage 6):* `REVIVE;CHSHOW`, with additions to `REVIVE;CHANGE`, `ALTER` and `LOOKS` (`reports/ext/change/README.md`, "Showing the change"):
+     - `change` and `causes` are actions of CONVEY's. A `causes` of something not a change has no suggestions, as in 1978, so EVIL's and DOMINATES' causes stay as they were; so has a change whose fresh look wasn't made.
+     - `bridge-to:` is suggested as a value change (`display-value-change`), so that CHOMET takes every one beside the task's one display method, and is a child of display-method, so that SCENE counts and stretches it. Beside goes-to-and-transforms or changes-while-wandering it estimates no time and runs nothing; they run it, once the change begins. With neither, it runs from the part's start, as your run-change-to runs a change.
+     - The change follows the cause's walk in a `sequence:`, as move-to-and-hits' hitting follows its walk. A plan begun `(after (end-of walk) 0.0)` stopped Director when the walk ended at once (the Prince already touching the stepmother): it is told the walk ended before it is run.
+     - She wanders while the change is shown, as MEND9's wander-around does, but with walks counted on half a walk across the stage, so that the wander fills its time: one that ended early ended the part, and the beautified scene's joy, which extends it, never ran. With nothing to bridge, or an instantaneous change, the change is shown for one walk of hers across the stage (MEND9's estimate). No plan receiver was added: MEND9's is the one SCENE asks for, and a change task has a way of showing of its own. CHANGE now requires MEND (MEND9's wander, MEND6's bring-on, MEND5's walk to meet).
+     - Director's bridge, `(gradually change by F factor for E in N seconds)`, reaches F after the ticks N seconds make at the film's frame rate. Its second repeat skips dynamics that have the factor from the scene's: your two repeats grow such dynamics a step ahead at once, and grow the scene's own twice a tick when she stands (a finding for SLIPS, `test/change.test.js`).
+     - With APPEAR, the fresh look runs `(choose-appearances)` after (z) as pass 1 does, everyone else held; the BECOME file has `old-look` and `new-look`; the bridges include each look drawn differently (ALTER answers for appearance-element; LOOKS takes a look change in seconds); later scenes draw her as she has become.
+     - Gradual is your slowest speed, ten seconds an e-fold; instantaneous, for a magical cause, the revival's rule, is a tick.
 4. **The participation wrapper comes first.** The wrapper on `process-task-description` ships in CHANGE's first stage. Without it, a change task that stands alone crashes when CINDY loads (`scene.9:461-465`).
 
 **Glass box.**
@@ -201,6 +209,7 @@ A change is a scene task in the form of your `cindy.46:94-105`: `(change (TYPE W
 - choicePointBox gains a source argument, so these read "Ani's fresh look after Change of Heart".
 - dynamicsTable gets provenance before any BECOME values ship.
 - Captions describe the transformation. An empty bridge is explained with your footnote.
+- *As built (14 October, stage 6), what the page has to work with:* the changing scene's glass box has `changesShown` (the way of showing it and its task, the rate and why, the cause's walk, the bridges with each element from what to what and Director's form, her wander, the elements chosen again that Director doesn't read, the looks before and after, seconds, ideal and stretch); the film's events give each plan's beginning and end; `film.looks` the color's steps and the shape's morph; the run's record `characters[].looks` and each later glass box's `becomes[].looks`. The page itself is the next step (`reports/ext/change/README.md`, "For the page (stage 6)").
 
 **Tests.**
 - `test/change.test.js`.
@@ -209,6 +218,7 @@ A change is a scene task in the form of your `cindy.46:94-105`: `(change (TYPE W
 - An ordering guard that fails if the change moves after `study-descriptor-use`.
 - Bridge timing on path-curvature (factor 4), measured from the contact frame at 4 and 24 fps.
 - End to end: `change-of-heart.lisp`, `socializing.lisp`, and your beautified scene uncommented at run time.
+- *As built (14 October, stage 6):* `tools/check-change.mjs` (`npm run test:change`, and `test:change24` at 24 frames a second) makes the three end to end, the beautified scene in your whole Cinderella with the page's four extensions, against goldens at 4 and 24 frames a second; the bridge's timing is Change of Heart planned again with the stepmother's path-curvature to become high (her fresh look has medium), so that it changes by 4. `test/change.test.js` has the verbs, the rate, Director's bridge at 4 and 24, your two repeats' double step, and APPEAR's look bridges and looks made so; `test/stories/stress/` has change-alone, change-magical, change-won-over and change-last-scene.
 - The page refuses change tasks while the switch is off.
 
 ## Item 4, part 2: KNOW, SLIPS and DETAIL

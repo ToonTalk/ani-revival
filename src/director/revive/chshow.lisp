@@ -48,7 +48,7 @@
 ;;;     its own (theirs counts it) and runs nothing (they run it, once the change begins).
 ;;;     Only what Director reads is bridged: speed and the path's curvature, length and
 ;;;     jaggedness (dichar.103:164-169), and, with APPEAR, how she looks. The other
-;;;     elements are chosen again and noted, "Director does not use it", as in 1978
+;;;     elements are chosen again and noted, "director does not read it", as in 1978
 ;;;     (thesis X.B.3 (f), p. 186, L4853-4856, deliberateness; (d), p. 185, L4830-4836,
 ;;;     acceleration; the attractions only pass 1 reads; the rhythmic and activity levels
 ;;;     and repetiveness only pass 2, for how often an activity repeats, from the next
@@ -62,7 +62,7 @@
 ;;;     (p. 166, L4350-4352). That a magical cause makes a change instantaneous is the
 ;;;     revival's rule: the thesis says only that a transition is occasionally
 ;;;     instantaneous; magic is what changes in an instant in the stories Ani tells.
-;;;  5. Director. A bridge runs as a new message, (gradually change by 2.0 factor for
+;;;  5. Director. A bridge runs as a new message, (gradually change by 4.0 factor for
 ;;;     path-curvature in 13.86 seconds), DICHAR's gradually change (dichar.103:102-121)
 ;;;     with a duration in place of a speed, so that it ends when Ani planned at any
 ;;;     frame rate; and, with APPEAR, a change of look in seconds (REVIVE;LOOKS). Each
