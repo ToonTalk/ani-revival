@@ -1,0 +1,515 @@
+{
+ "scene": {
+  "name": "justice",
+  "variables": {
+   "parent": "scene",
+   "name": "justice",
+   "convey-tasks": "(convey-task-8 convey-task-7)",
+   "establish-tasks": "(establish-task-15)",
+   "task-ordering": "(and convey-task-7 convey-task-8 establish-task-15)",
+   "mood": "joyous",
+   "length": "medium",
+   "subscenes": "((subscene-of justice 1))",
+   "length-bounds": "(16.0 40.0)",
+   "running-time": "30.48"
+  },
+  "items": []
+ },
+ "tasks": [
+  {
+   "name": "convey-task-8",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-8",
+    "task": "(task: description (getting-it-on prince cinderella) for-who prince source initial-description)",
+    "scene": "justice",
+    "share": "1.0",
+    "subscene": "(subscene-of justice 1)",
+    "special-dynamics-packages": "nil",
+    "allocated-time": "(16.0 40.0)",
+    "scores": "((scores: suggestion (suggestion: element (convey (getting-it-on prince cinderella)) value (method: type display value (alternately-turn prince cinderella)) strength medium source getting-it-on) strength 25 prerequisite 50 best-when 50 time-fit 25 originality 50 variety 50) (scores: suggestion (suggestion: element (convey (getting-it-on prince cinderella)) value (method: type display value (repeatedly-come-in-contact prince cinderella)) strength high source getting-it-on) strength 75 prerequisite 50 best-when 50 time-fit 75 originality 50 variety 50))",
+    "current-choice": "((repeatedly-come-in-contact prince cinderella))",
+    "running-time": "30.48"
+   },
+   "items": [
+    "(suggestion: element (convey (getting-it-on prince cinderella)) value (method: type display value (repeatedly-come-in-contact prince cinderella)) strength high source getting-it-on)",
+    "(suggestion: element (convey (getting-it-on prince cinderella)) value (method: type display value (alternately-turn prince cinderella)) strength medium source getting-it-on)"
+   ]
+  },
+  {
+   "name": "convey-task-7",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-7",
+    "task": "(task: description (aware step-mother (getting-it-on prince cinderella)) for-who step-mother source initial-description)",
+    "scene": "justice",
+    "share": "1.0",
+    "subscene": "(subscene-of justice 1)",
+    "special-dynamics-packages": "((special-dynamics-package: who step-mother speed low deliberateness high))",
+    "allocated-time": "(16.0 40.0)",
+    "scores": "((scores: suggestion (suggestion: element (convey (aware step-mother (getting-it-on prince cinderella))) value (method: type display value (move-near-and-turn step-mother (prince cinderella)) special-dynamics-packages ((special-dynamics-package: who step-mother speed low deliberateness high)) strength high source aware)) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
+    "current-choice": "((move-near-and-turn step-mother (prince cinderella)))",
+    "running-time": "6.61"
+   },
+   "items": [
+    "(suggestion: element (convey (aware step-mother (getting-it-on prince cinderella))) value (method: type display value (move-near-and-turn step-mother (prince cinderella)) special-dynamics-packages ((special-dynamics-package: who step-mother speed low deliberateness high)) strength high source aware))"
+   ]
+  },
+  {
+   "name": "establish-task-15",
+   "variables": {
+    "parent": "establish-task",
+    "name": "establish-task-15",
+    "task": "(task: description (emotional-state step-mother (joy (negative high))) for-who step-mother source initial-description)",
+    "scene": "justice",
+    "share": "1.0",
+    "subscene": "(subscene-of justice 1)",
+    "current-choice": "((change-to: element (step-mother path-curvature) new-value low speed low) (change-to: element (step-mother path-length) new-value long speed low) (change: element (step-mother acceleration) amount (negative high) speed high) (change: element (step-mother rhythmic-level) amount (negative high) speed high) (change: element (step-mother speed) amount (negative high) speed high) (change: element (step-mother activity-level) amount (negative high) speed high) (look-change: element (step-mother color-intensity) amount (negative high) speed high))",
+    "running-time": "6.9314718"
+   },
+   "items": [
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (look-change: element (step-mother color-intensity) amount (negative high) speed high)) strength medium source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change-to: element (step-mother path-curvature) new-value low speed low)) strength low source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change-to: element (step-mother path-length) new-value long speed low)) strength low source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change: element (step-mother acceleration) amount (negative high) speed high)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change: element (step-mother rhythmic-level) amount (negative high) speed high)) strength medium source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change: element (step-mother speed) amount (negative high) speed high)) strength high source joy)",
+    "(suggestion: element (establish (emotional-state step-mother (joy (negative high)))) value (method: type display-value-change value (change: element (step-mother activity-level) amount (negative high) speed high)) strength high source joy)"
+   ]
+  }
+ ],
+ "subscenes": [
+  {
+   "name": "(subscene-of justice 1)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of justice 1)",
+    "scene": "justice",
+    "convey-tasks": "(convey-task-8 convey-task-7)",
+    "establish-tasks": "(establish-task-15)",
+    "(time-estimates-for (move-near-and-turn step-mother (prince cinderella)))": "(time-estimates: ideal 6.61 least 2.577 most 17.025)",
+    "(time-estimates-for (repeatedly-come-in-contact prince cinderella))": "(time-estimates: ideal 30.48 most 97.68 least 12.2772)",
+    "(time-estimates-for (change-to: element (step-mother path-curvature) new-value low speed low))": "(time-estimates: ideal 0.0 least 0.0 most 0.0)",
+    "(time-estimates-for (change-to: element (step-mother path-length) new-value long speed low))": "(time-estimates: ideal 6.9314718 least 1.3862944 most 34.657359)",
+    "(time-estimates-for (change: element (step-mother acceleration) amount (negative high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
+    "(time-estimates-for (change: element (step-mother rhythmic-level) amount (negative high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
+    "(time-estimates-for (change: element (step-mother speed) amount (negative high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
+    "(time-estimates-for (change: element (step-mother activity-level) amount (negative high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
+    "(time-estimates-for (look-change: element (step-mother color-intensity) amount (negative high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
+    "(location-of prince)": "(place: where (xy-position -0.27212975 -0.28144122) why (ended up here in meeting) status cool)",
+    "(location-of fairy-godmother)": "(place: where (xy-position 0.17251129 -0.60000806) why (ended up here in meeting) status cool)",
+    "(location-of step-mother)": "(place: where (xy-position 0.11001011 -0.6000833) why (ended up here in meeting) status cool)",
+    "(location-of cinderella)": "(place: where (xy-position -0.34211041 -0.33061846) why (ended up here in meeting) status cool)",
+    "stretched-by": "1.0",
+    "(distance-between (vicinity-of prince) (vicinity-of cinderella))": "(screen-fraction 0.2)",
+    "(actions-of prince)": "((walk of prince to (a-little-bit-away-from (vicinity-of prince) (vicinity-of cinderella)) as stationary-target careful of collisions starting at 1.0 using |(special-dynamics-of prince in (subscene-of justice 1))-1-3| called (activity-of move-apart-a-little 1) stopping if (stop-when-moved-original-distance-then (quote (subscene-of justice 1)) (stop-plan (quote (activity-of move-apart-a-little 2))))) (walk of prince to (contact-with cinderella by prince) as moving-target regardless of collisions starting at 0.0 using |(special-dynamics-of prince in (subscene-of justice 1))-1-2-1| called (activity-of goes-to-contact-other 3) stopping if (stop-when-there (quote (subscene-of justice 1)))) (walk of prince to (contact-with cinderella by prince) as moving-target regardless of collisions starting at 0.0 using |(special-dynamics-of prince in (subscene-of justice 1))-1-1| called (activity-of goes-to-contact-other 1) stopping if (stop-when-there (quote (subscene-of justice 1)))))",
+    "(actions-of cinderella)": "((walk of cinderella to (a-little-bit-away-from (vicinity-of cinderella) (vicinity-of prince)) as stationary-target careful of collisions starting at 1.0 using |(special-dynamics-of cinderella in (subscene-of justice 1))-2-3| called (activity-of move-apart-a-little 2) stopping if (stop-when-moved-original-distance-then (quote (subscene-of justice 1)) (stop-plan (quote (activity-of move-apart-a-little 1))))) (walk of cinderella to (contact-with prince by cinderella) as moving-target regardless of collisions starting at 0.0 using |(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1| called (activity-of goes-to-contact-other 4) stopping if (stop-when-there (quote (subscene-of justice 1)))) (walk of cinderella to (contact-with prince by cinderella) as moving-target regardless of collisions starting at 0.0 using |(special-dynamics-of cinderella in (subscene-of justice 1))-2-1| called (activity-of goes-to-contact-other 2) stopping if (stop-when-there (quote (subscene-of justice 1)))))",
+    "movements": "((and (activity-of move-near-the-group 1) (activity-of turn-towards-others 1)) (sequence: (repeat 4 (sequence: (and (activity-of goes-to-contact-other 1) (activity-of goes-to-contact-other 2)) (and (activity-of move-apart-a-little 1) (activity-of move-apart-a-little 2)))) (and (activity-of goes-to-contact-other 3) (activity-of goes-to-contact-other 4))))",
+    "(actions-of step-mother)": "((walk of step-mother to (small-distance-from-center-of (vicinity-of prince) (vicinity-of cinderella)) as moving-target careful of collisions starting at 0.0 using |(special-dynamics-of step-mother in (subscene-of justice 1))-3| called (activity-of move-near-the-group 1) stopping if (stop-when-there (quote (subscene-of justice 1)))))",
+    "plans": "((activity-of goes-to-contact-other 2) (activity-of goes-to-contact-other 4) (activity-of move-apart-a-little 2) (activity-of move-near-the-group 1) (activity-of goes-to-contact-other 1) (activity-of goes-to-contact-other 3) (activity-of move-apart-a-little 1) (activity-of turn-towards-others 1))",
+    "special-dynamics": "(|(special-dynamics-of cinderella in (subscene-of justice 1))-2-1| |(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1| |(special-dynamics-of cinderella in (subscene-of justice 1))-2-3| |(special-dynamics-of prince in (subscene-of justice 1))-1-1| |(special-dynamics-of prince in (subscene-of justice 1))-1-2-1| |(special-dynamics-of prince in (subscene-of justice 1))-1-3| |(special-dynamics-of step-mother in (subscene-of justice 1))-3|)",
+    "(distance-between (vicinity-of step-mother) (vicinity-of prince))": "(screen-fraction 0.3)",
+    "(distance-between (vicinity-of step-mother) (vicinity-of cinderella))": "(screen-fraction 0.3)",
+    "initial-actions": "((ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of justice 1))))",
+    "(changes-for step-mother)": "((gradually change look by 0.66666667 factor for color-intensity at high speed) (gradually change by 0.66666667 factor for activity-level at high speed) (gradually change by 0.66666667 factor for speed at high speed) (gradually change by 0.66666667 factor for rhythmic-level at high speed) (gradually change by 0.66666667 factor for acceleration at high speed) (gradually change by 2.0 factor for path-length at low speed))",
+    "running-time": "30.48"
+   },
+   "items": [
+    "(special-dynamics-packages-for (move-near-and-turn step-mother (prince cinderella)) ((special-dynamics-package: who step-mother speed low deliberateness high)))"
+   ]
+  }
+ ],
+ "plans": [
+  {
+   "name": "(activity-of goes-to-contact-other 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-contact-other 2)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of justice 1))-2-1|) (ask cinderella initialize your curvature-sign towards (contact-with prince by cinderella)) (ask (activity-of goes-to-contact-other 2) cause (cinderella) to gradually go in arc regardless of collisions to (contact-with prince by cinderella) as moving-target stopping if (stop-when-there (quote (subscene-of justice 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of goes-to-contact-other 4)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-contact-other 4)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1|) (ask cinderella initialize your curvature-sign towards (contact-with prince by cinderella)) (ask (activity-of goes-to-contact-other 4) cause (cinderella) to gradually go in arc regardless of collisions to (contact-with prince by cinderella) as moving-target stopping if (stop-when-there (quote (subscene-of justice 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of move-apart-a-little 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of move-apart-a-little 2)",
+    "begin-time": "1.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in (subscene-of justice 1))-2-3|) (ask cinderella initialize your curvature-sign towards (a-little-bit-away-from (vicinity-of cinderella) (vicinity-of prince))) (ask (activity-of move-apart-a-little 2) cause (cinderella) to gradually go in arc careful of collisions to (a-little-bit-away-from (vicinity-of cinderella) (vicinity-of prince)) as stationary-target stopping if (stop-when-moved-original-distance-then (quote (subscene-of justice 1)) (stop-plan (quote (activity-of move-apart-a-little 1)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of move-near-the-group 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of move-near-the-group 1)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask step-mother set your special-dynamics to |(special-dynamics-of step-mother in (subscene-of justice 1))-3|) (ask step-mother initialize your curvature-sign towards (small-distance-from-center-of (vicinity-of prince) (vicinity-of cinderella))) (ask (activity-of move-near-the-group 1) cause (step-mother) to gradually go in arc careful of collisions to (small-distance-from-center-of (vicinity-of prince) (vicinity-of cinderella)) as moving-target stopping if (stop-when-there (quote (subscene-of justice 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of goes-to-contact-other 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-contact-other 1)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of justice 1))-1-1|) (ask prince initialize your curvature-sign towards (contact-with cinderella by prince)) (ask (activity-of goes-to-contact-other 1) cause (prince) to gradually go in arc regardless of collisions to (contact-with cinderella by prince) as moving-target stopping if (stop-when-there (quote (subscene-of justice 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of goes-to-contact-other 3)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of goes-to-contact-other 3)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of justice 1))-1-2-1|) (ask prince initialize your curvature-sign towards (contact-with cinderella by prince)) (ask (activity-of goes-to-contact-other 3) cause (prince) to gradually go in arc regardless of collisions to (contact-with cinderella by prince) as moving-target stopping if (stop-when-there (quote (subscene-of justice 1))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of move-apart-a-little 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of move-apart-a-little 1)",
+    "begin-time": "1.0",
+    "subscene": "(subscene-of justice 1)",
+    "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of justice 1))-1-3|) (ask prince initialize your curvature-sign towards (a-little-bit-away-from (vicinity-of prince) (vicinity-of cinderella))) (ask (activity-of move-apart-a-little 1) cause (prince) to gradually go in arc careful of collisions to (a-little-bit-away-from (vicinity-of prince) (vicinity-of cinderella)) as stationary-target stopping if (stop-when-moved-original-distance-then (quote (subscene-of justice 1)) (stop-plan (quote (activity-of move-apart-a-little 2)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of turn-towards-others 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of turn-towards-others 1)",
+    "subscene": "(subscene-of justice 1)",
+    "begin-time": "(after (end-of (activity-of move-near-the-group 1)) 0.5)",
+    "plans": "((sequence: (ask step-mother set your special-dynamics to |(special-dynamics-of step-mother in (subscene-of justice 1))-3|) (ask (activity-of turn-towards-others 1) gradually face step-mother towards (vicinity-of prince) plus 0.0) (ask (activity-of turn-towards-others 1) gradually face step-mother towards (vicinity-of cinderella) plus 0.0)))"
+   },
+   "items": []
+  }
+ ],
+ "dynamics": [
+  {
+   "name": "|(special-dynamics-of step-mother in (subscene-of justice 1))-3|",
+   "variables": {
+    "parent": "(special-dynamics-of step-mother in (subscene-of justice 1))",
+    "name": "|(special-dynamics-of step-mother in (subscene-of justice 1))-3|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of step-mother in (subscene-of justice 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of step-mother in (subscene-of justice 1))-3|)",
+    "name": "(special-dynamics-of step-mother in (subscene-of justice 1))",
+    "path-jaggedness": "medium",
+    "path-curvature": "low",
+    "path-length": "medium",
+    "deliberateness": "high",
+    "repetiveness": "medium",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "high",
+    "speed": "low",
+    "dominates": "(cinderella)"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-3|",
+   "variables": {
+    "parent": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2|",
+    "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-3|",
+    "(speed factor)": "0.3",
+    "path-curvature": "medium"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2|",
+    "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1|",
+    "(speed factor)": "0.35",
+    "path-curvature": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2|",
+   "variables": {
+    "parent": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2|",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2-1|)",
+    "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-2|",
+    "(speed factor)": "0.5"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2|",
+    "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2-1|",
+    "(speed factor)": "0.7",
+    "path-curvature": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2|",
+   "variables": {
+    "parent": "(special-dynamics-of cinderella in (subscene-of justice 1))",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of justice 1))-2-3| |(special-dynamics-of cinderella in (subscene-of justice 1))-2-2| |(special-dynamics-of cinderella in (subscene-of justice 1))-2-1|)",
+    "name": "|(special-dynamics-of cinderella in (subscene-of justice 1))-2|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of cinderella in (subscene-of justice 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of cinderella in (subscene-of justice 1))-2|)",
+    "name": "(special-dynamics-of cinderella in (subscene-of justice 1))",
+    "path-jaggedness": "medium",
+    "path-curvature": "high",
+    "path-length": "medium",
+    "deliberateness": "medium",
+    "repetiveness": "medium",
+    "acceleration": "low",
+    "rhythmic-level": "high",
+    "activity-level": "high",
+    "speed": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-3|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of justice 1))-1|",
+    "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-3|",
+    "(speed factor)": "0.3",
+    "path-curvature": "medium"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-2-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of justice 1))-1-2|",
+    "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-2-1|",
+    "(speed factor)": "0.35",
+    "path-curvature": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-2|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of justice 1))-1|",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of justice 1))-1-2-1|)",
+    "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-2|",
+    "(speed factor)": "0.5"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-1|",
+   "variables": {
+    "parent": "|(special-dynamics-of prince in (subscene-of justice 1))-1|",
+    "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1-1|",
+    "(speed factor)": "0.7",
+    "path-curvature": "low"
+   },
+   "items": []
+  },
+  {
+   "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1|",
+   "variables": {
+    "parent": "(special-dynamics-of prince in (subscene-of justice 1))",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of justice 1))-1-3| |(special-dynamics-of prince in (subscene-of justice 1))-1-2| |(special-dynamics-of prince in (subscene-of justice 1))-1-1|)",
+    "name": "|(special-dynamics-of prince in (subscene-of justice 1))-1|",
+    "(speed factor)": "1.0"
+   },
+   "items": []
+  },
+  {
+   "name": "(special-dynamics-of prince in (subscene-of justice 1))",
+   "variables": {
+    "parent": "special-dynamics",
+    "offspring": "(|(special-dynamics-of prince in (subscene-of justice 1))-1|)",
+    "name": "(special-dynamics-of prince in (subscene-of justice 1))",
+    "path-jaggedness": "low",
+    "path-curvature": "medium",
+    "path-length": "long",
+    "deliberateness": "medium",
+    "repetiveness": "high",
+    "acceleration": "high",
+    "rhythmic-level": "medium",
+    "activity-level": "medium",
+    "speed": "high"
+   },
+   "items": []
+  }
+ ],
+ "choices": {
+  "name": "(choices-made-in justice)",
+  "variables": {
+   "parent": "something",
+   "name": "(choices-made-in justice)",
+   "(getting-it-on prince cinderella)": "((repeatedly-come-in-contact prince cinderella))",
+   "(aware step-mother (getting-it-on prince cinderella))": "((move-near-and-turn step-mother (prince cinderella)))",
+   "(emotional-state step-mother (joy (negative high)))": "((change-to: element (step-mother path-curvature) new-value low speed low) (change-to: element (step-mother path-length) new-value long speed low) (change: element (step-mother acceleration) amount (negative high) speed high) (change: element (step-mother rhythmic-level) amount (negative high) speed high) (change: element (step-mother speed) amount (negative high) speed high) (change: element (step-mother activity-level) amount (negative high) speed high) (look-change: element (step-mother color-intensity) amount (negative high) speed high))"
+  },
+  "items": []
+ },
+ "looks": [
+  {
+   "character": "cinderella",
+   "shape": "hexagon",
+   "angle": 60,
+   "centerOffset": null,
+   "aniSize": 0.036,
+   "color": [
+    270,
+    1,
+    0.65
+   ],
+   "form": "(ask cinderella take look (look: shape hexagon angle 60 center-offset nil ani-size 0.036 look-color (270.0 1.0 0.65)))"
+  },
+  {
+   "character": "step-mother",
+   "shape": "triangle",
+   "angle": 120,
+   "centerOffset": "(right 30)",
+   "aniSize": 0.07,
+   "color": [
+    240,
+    0.35,
+    0.45
+   ],
+   "form": "(ask step-mother take look (look: shape triangle angle 120 center-offset (right 30) ani-size 0.07 look-color (240.0 0.35 0.45)))"
+  },
+  {
+   "character": "fairy-godmother",
+   "shape": "eight-pointed-star",
+   "angle": 135,
+   "centerOffset": null,
+   "aniSize": 0.05,
+   "color": [
+    30,
+    0.65,
+    0.85
+   ],
+   "form": "(ask fairy-godmother take look (look: shape eight-pointed-star angle 135 center-offset nil ani-size 0.05 look-color (30.0 0.65 0.85)))"
+  },
+  {
+   "character": "prince",
+   "shape": "circle",
+   "angle": 5,
+   "centerOffset": null,
+   "aniSize": 0.07,
+   "color": [
+    0,
+    1,
+    0.85
+   ],
+   "form": "(ask prince take look (look: shape circle angle 5 center-offset nil ani-size 0.07 look-color (0.0 1.0 0.85)))"
+  }
+ ],
+ "lookChanges": [
+  {
+   "task": "establish-task-15",
+   "subscene": "(subscene-of justice 1)",
+   "method": "(look-change: element (step-mother color-intensity) amount (negative high) speed high)",
+   "change": "(gradually change look by 0.66666667 factor for color-intensity at high speed)",
+   "character": "step-mother",
+   "element": "color-intensity",
+   "kind": "look-change:",
+   "amount": "(negative high)",
+   "speed": "high",
+   "feeling": "(joy (negative high))"
+  }
+ ],
+ "becomes": [
+  {
+   "actor": "(change-of cinderella in cinderella-beautified)",
+   "character": "cinderella",
+   "scene": "cinderella-beautified",
+   "changes": [
+    "(change (physical cinderella shabby) (physical cinderella elegant))"
+   ],
+   "causes": [
+    "fairy-godmother"
+   ],
+   "described": [
+    {
+     "type": "physical",
+     "was": "shabby",
+     "now": "elegant"
+    }
+   ],
+   "madeSo": [
+    {
+     "element": "color-saturation",
+     "was": "low",
+     "now": "high"
+    }
+   ],
+   "notDescribed": [],
+   "looks": {
+    "before": {
+     "shape": "hexagon",
+     "angle": 60,
+     "centerOffset": null,
+     "aniSize": 0.036,
+     "hue": "purple",
+     "color": [
+      270,
+      0.35,
+      0.65
+     ]
+    },
+    "after": {
+     "shape": "hexagon",
+     "angle": 60,
+     "centerOffset": null,
+     "aniSize": 0.036,
+     "hue": "purple",
+     "color": [
+      270,
+      1,
+      0.65
+     ]
+    },
+    "changed": [
+     "clarity"
+    ]
+   },
+   "lookMadeSo": true
+  }
+ ]
+}

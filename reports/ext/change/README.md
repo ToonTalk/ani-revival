@@ -123,7 +123,7 @@ Each story is made as the film page makes it: change-of-heart and socializing wi
 |---|---|---|
 | change-of-heart | At Home 108, Change of Heart 52, Kind Again 29 | At Home 769, Change of Heart 395, Kind Again 167 |
 | socializing | The Wallflower 69, Learning to Socialize 68, The Dance 64 | The Wallflower 414, Learning to Socialize 406, The Dance 543 |
-| beautified-film | Introduction 171, Kept Apart 116, Cinderella Beautified 137, No Longer Kept Apart 20, Meeting 193, Justice 90 | pending |
+| beautified-film | Introduction 171, Kept Apart 116, Cinderella Beautified 137, No Longer Kept Apart 20, Meeting 193, Justice 90 | Introduction 950, Kept Apart 701, Cinderella Beautified 820, No Longer Kept Apart 116, Meeting 920, Justice 420 |
 
 **With APPEAR's colors and look changes (stage 5, 14 October).** The stories' goldens were made again when APPEAR came to choose colors and change looks (`reports/ext/appear/README.md`). Every frame and event of all six scenes was as it was. What changed: each program's take-look forms carry the character's `look-color`; each joy task has one more method, a `look-change:` of its character's color intensity, by the joy's amount at its speed, and its subscene one more change, `(gradually change look by ...)`; the summaries list those methods, and the glass boxes them and their `lookChanges`; each film's `looks` has each character's color, and its changes. And again on 14 October, for Ken's decision 11 (his uniqueness rule for hues): the stepmother blue and the fairy godmother orange where they were orange and purple.
 
@@ -155,18 +155,18 @@ Your CINDY 46 with cinderella-beautified uncommented as the film description is 
 - Frames 5 to 89: Cinderella wanders about, three walks across the stage and back (`wandering-while-changing`), for as long as one walk across takes her, 17.3 seconds, stretched by 1.17.
 - From frame 81: the two joys, Cinderella's (positive high) and the fairy godmother's (positive medium), a part of changes only, extend the transformation (`extend-last-actions-of`, as Kept Apart's joy extends the standing guard), and both brighten (stage 5): Cinderella from .65 to .975 by frame 97, the fairy godmother from .85 to the TV's full 1.0 by frame 84; their changes of how they move run on to frame 135 (your change at high speed runs four times longer than Ani planned, the inversion SLIPS may correct).
 
-At 24 frames a second, pending.
+At 24 frames a second, 820 frames: the fairy godmother reaches Cinderella at frame 27, her colors are clear from frame 28, and she wanders to frame 525.
 
 **The scenes after** start where the beautified scene left everyone, and draw Cinderella as she has become: each program's take-look form gives her `look-color (270.0 1.0 0.65)`, each glass box's `becomes` her saturation made so (low to high) and her look (`lookMadeSo`). No Longer Kept Apart is 20 frames (19 before stage 6), the Meeting 193 (187), Justice 90 (90): each starts where the scene before it left everyone, and the beautified scene now leaves Cinderella where she wandered to and the fairy godmother where she met her.
 
 | Scene | Frames (4 a second) | At 24 |
 |---|---|---|
-| Introduction | 171 (before stage 6: 171) | pending |
-| Kept Apart | 116 (before stage 6: 116) | pending |
-| Cinderella Beautified | 137 (before stage 6: 2) | pending |
-| No Longer Kept Apart | 20 (before stage 6: 19) | pending |
-| Meeting | 193 (before stage 6: 187) | pending |
-| Justice | 90 (before stage 6: 90) | pending |
+| Introduction | 171 (before stage 6: 171) | 950 |
+| Kept Apart | 116 (before stage 6: 116) | 701 |
+| Cinderella Beautified | 137 (before stage 6: 2) | 820 |
+| No Longer Kept Apart | 20 (before stage 6: 19) | 116 |
+| Meeting | 193 (before stage 6: 187) | 920 |
+| Justice | 90 (before stage 6: 90) | 420 |
 
 Before stage 6 the beautified scene was 2 frames: its causes task was "cant-do", and the joys had nothing to extend.
 
@@ -176,12 +176,12 @@ The plan's test: "bridge timing on path-curvature (factor 4), measured from the 
 
 | | 4 frames a second | 24 frames a second |
 |---|---|---|
-| Ani's estimate | 13.86 s | pending |
-| The subscene's stretch | 1.387 | pending |
-| The bridges planned for | 19.22 s, 76.9 frames | pending |
-| The Prince touches her | frame 0 | pending |
-| The bridges begin | frame 1 | pending |
-| The factor reaches 4 | frame 78 (19.25 s after they began); the bridges end at frame 78 | pending |
+| Ani's estimate | 13.86 s | 13.86 s |
+| The subscene's stretch | 1.387 | 1.387 |
+| The bridges planned for | 19.22 s, 76.9 frames | 19.22 s, 461.4 frames |
+| The Prince touches her | frame 0 | frame 26 |
+| The bridges begin | frame 1 | frame 27 |
+| The factor reaches 4 | frame 78 (19.25 s after they began); the bridges end at frame 78 | frame 488 (19.21 s after they began); the bridges end at frame 488 |
 
 Ani's estimate is your `estimate-time-for-change-by` for a factor of 4 at low speed: ten seconds times ln 4, 13.86 seconds; the subscene stretches it, and the bridge is planned for the stretched time. The bridges begin the tick after the touch (a `sequence:` runs its next part on the next tick, `action.152:115-120`), and the factor reaches 4 the planned time after they begin, within a frame, at both rates; the bridges' plan ends then. (Your own change by 4 at low speed would take a quarter of the time DISPLY estimates, 3.5 seconds, and stop short of its factor.) The files have the factor frame by frame.
 
