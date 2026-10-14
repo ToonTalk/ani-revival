@@ -22,8 +22,11 @@
 ;;;     jagged") and shape-complexity ("simple or complex", p. 163), each three-valued
 ;;;     like speed (elemnt.1:24-26, 46-47), so that COSUG combines, compromises and
 ;;;     takes the opposites of their values as it does speed's, and each with a
-;;;     relative element. Color, p. 163's "intensity, hue, and saturation", is a later
-;;;     stage: it adds elements here, rows to REVIVE;APSUG's tables, and a value table.
+;;;     relative element; and the color, p. 163's "intensity, hue, and saturation":
+;;;     color-intensity and color-saturation three-valued too (intensity with a
+;;;     relative element), and color-hue, one of six hues on a painter's wheel, whose
+;;;     combining, opposites and compromises are the revival's semantic net of hues
+;;;     (REVIVE;COLORS, which also makes each character's color from the three).
 ;;;  2. Their choice points, (choice-point-of cinderella size) and so on, chosen by
 ;;;     Ken's make-choices-until-completed (chocho.19:15-19) once (z) has made the 102:
 ;;;     "Ani can explore the spaces of choices in either order" (p. 240), and this one,
@@ -56,9 +59,19 @@
 
 ;;; ------------------------------------------------- 1. the elements
 
-;; ELEMNT's elements, with three more (elemnt.1:24-31, 46-49). appearance-element is
+;; ELEMNT's elements, with six more (elemnt.1:24-31, 46-49). appearance-element is
 ;; an element as movement-element is, not one of the movement elements, so the
-;; special dynamics (char.2:63-68) and the 102 choices never meet them.
+;; special dynamics (char.2:63-68) and the 102 choices never meet them. The colors,
+;; "the elements of the color, for example, are the intensity, hue, and saturation"
+;; (p. 163), are defined first, so that they are the oldest of appearance-element's
+;; offspring and each character's node takes its size and shape choices first, in the
+;; order it took them before there were colors (make-appearance-node, below):
+;; color-intensity and color-saturation three-valued, as size is, intensity with a
+;; relative element; color-hue one of six hues, whose value description is the
+;; revival's semantic net of hues, hue-net (REVIVE;COLORS; "a 'semantic net of
+;; colors'", p. 240), listed round the painter's wheel as Itten drew it, yellow at
+;; the top. Where nothing else suggests a hue, the film's variety picks one by that
+;; order (REVIVE;COLORS says why it is Itten's).
 (defun define-appearance-elements ()
   (let ((:insert-methods-at-end nil))
        (define appearance-element element
@@ -67,6 +80,13 @@
 	(do when receiving (yield a value that is ?three-value)
 	    three-value)) ;;as movement-element's (elemnt.1:30-31)
        (define relative-appearance-element relative-element)
+       (define color-intensity appearance-element ;;"intensity, hue, and saturation" (p. 163)
+	(set your relative-element to relative-color-intensity))
+       (define relative-color-intensity relative-appearance-element)
+       (define color-saturation appearance-element)
+       (define color-hue appearance-element
+	(set your value-description to hue-net)
+	(set your possible-values to (yellow orange red purple blue green)))
        (define size appearance-element
 	(set your relative-element to relative-size))
        (define relative-size relative-appearance-element)
@@ -99,11 +119,14 @@
        (define appearance-choice-point absolute-choice-point)
        (define appearance something
 	(do when receiving (yield your look for ?scene)
-	    ;;the same in every scene for now: a look changes in the script (item 3)
-	    '(look: shape ,(ask :self recall your shape)
-		    angle ,(ask :self recall your angle)
-		    center-offset ,(ask :self recall your center-offset)
-		    ani-size ,(ask :self recall your ani-size))))))
+	    ;;the same in every scene for now: a look changes in the script (item 3);
+	    ;;its color only if REVIVE;COLORS colored it
+	    (append '(look: shape ,(ask :self recall your shape)
+			    angle ,(ask :self recall your angle)
+			    center-offset ,(ask :self recall your center-offset)
+			    ani-size ,(ask :self recall your ani-size))
+		    (let ((look-color (ask :self recall your look-color)))
+			 (and look-color (list 'look-color look-color))))))))
 
 (+after-load '|ken;cpoint >|
   '(revival-once 'appear-choice-point 'define-appearance-choice-point))
@@ -148,15 +171,19 @@
 ;; Ken's make-choices-until-completed, which takes the focus's characters first
 ;; (chocho.19:58-69), as for the dynamics. Then the characters the experts would draw
 ;; alike are told apart, the sizes chosen are counted again (4, below), and the experts
-;; draw each of them (REVIVE;SHAPES). Run by the pipeline after (z) (src/pipeline.js,
-;; EXTENSIONS: afterPass1).
+;; draw each of them (REVIVE;SHAPES); then the elements read as numbers for a color are
+;; counted again, and each character is given its color (REVIVE;COLORS). Run by the
+;; pipeline after (z) (src/pipeline.js, EXTENSIONS: afterPass1).
 (defun choose-appearances ()
   (define appearances-node top-level-node)
   (mapc 'make-appearance-node (ask character recall your offspring))
   (make-choices-until-completed 'appearances-node)
   (tell-apart-characters-drawn-alike)
   (count-appearance-choices-again 'size) ;;the element read as a number (4)
-  (draw-the-characters t (not (eq (film-level-of 'variety) 'low))))
+  (draw-the-characters t (not (eq (film-level-of 'variety) 'low)))
+  (count-appearance-choices-again 'color-intensity)
+  (count-appearance-choices-again 'color-saturation)
+  (color-the-characters))
 
 (defun make-appearance-node (character)
   (let ((node (intern (append-atoms character '-appearance-node))))
@@ -391,7 +418,9 @@
 ;; as Director is to draw it, for pass 2:
 ;;   (define (appearance-of cinderella) appearance
 ;;	     (set your shape to circle) (set your angle to 5)
-;;	     (set your center-offset to nil) (set your ani-size to .036))
+;;	     (set your center-offset to nil) (set your ani-size to .036)
+;;	     (set your hue to blue) (set your look-color to (240.0 .35 .65)))
+;; its hue and color (hue angle, saturation, value) only if REVIVE;COLORS colored it.
 (defun save-answers-and-appearances (file-name)
   (funcall (revival-wrapped 'save-answers 'appear) file-name)
   (let ((looks (appearance-definitions)))
@@ -407,13 +436,18 @@
 			(let ((appearance '(appearance-of ,character)))
 			     (and (exists? appearance)
 				  (ask ,appearance recall your shape)
-				  (list '(define ,appearance appearance
-					  (set your shape to ,(ask ,appearance recall your shape))
-					  (set your angle to ,(ask ,appearance recall your angle))
-					  (set your center-offset to
-					   ,(ask ,appearance recall your center-offset))
-					  (set your ani-size to
-					   ,(ask ,appearance recall your ani-size))))))))
+				  (list (append
+					 '(define ,appearance appearance
+					   (set your shape to ,(ask ,appearance recall your shape))
+					   (set your angle to ,(ask ,appearance recall your angle))
+					   (set your center-offset to
+					    ,(ask ,appearance recall your center-offset))
+					   (set your ani-size to
+					    ,(ask ,appearance recall your ani-size)))
+					 (and (ask ,appearance recall your look-color)
+					      '((set your hue to ,(ask ,appearance recall your hue))
+						(set your look-color to
+						 ,(ask ,appearance recall your look-color))))))))))
 	       (characters-in-focus-order))))
 
 (+after-load '|ken;datest >|

@@ -3,7 +3,8 @@
 ;;;
 ;;; This file is ours, not Ken's. It is part of APPEAR (src/pipeline.js, EXTENSIONS;
 ;;; REVIVE;APPEAR says what APPEAR does). Ani's choice points for size, shape-
-;;; jaggedness and shape-complexity take their suggestions from the thesis's sources
+;;; jaggedness, shape-complexity and a color's intensity, saturation and hue
+;;; (REVIVE;COLORS) take their suggestions from the thesis's sources
 ;;; of suggestions (AI-TR-540 pp. 91-95), as her choice points for the dynamics do:
 ;;;  1. Descriptors. A table of what a word suggests for a look, taught to each word
 ;;;     with Ken's own (process suggestions (for element value strength strength))
@@ -25,8 +26,9 @@
 ;;;     character moves quickly.)" (p. 175). The revival's: a character whose paths
 ;;;     are jagged is drawn jagged, and one that moves quickly is drawn simply, since
 ;;;     detail is lost in quick movement.
-;;;  5. The film's levels: "size is also bigger is flashier" (Ken's comment in
-;;;     (flashiness level), glosug.41:39). The revival's: a film that is not obvious
+;;;  5. The film's levels: "size is also bigger is flashier" and "color is many and
+;;;     bright is flashier" (Ken's comment in (flashiness level), glosug.41:39-40),
+;;;     for size and for a color's intensity and saturation. The revival's: a film that is not obvious
 ;;;     leans the looks toward medium, motivated by "if the film is supposed to be
 ;;;     obvious, then many aspects should be used---if subtle, then only a few"
 ;;;     (p. 165). Variety and originality need nothing: they suggest a value for any
@@ -47,8 +49,10 @@
 
 ;;; ------------------------------------------------- 1. descriptors
 
-;; (descriptor element value strength evidence). Two are the thesis's own: friendly's
-;; smooth (p. 161), and strong's large size, Ken's knowledge (his decision of 11 October
+;; (descriptor element value strength evidence). Three are the thesis's own: friendly's
+;; smooth and evil's dark colors, two of the social conventions of p. 161 ("'bad guys
+;; wear black', 'smooth is friendly', 'green is jealous'"; no word of Ani's is
+;; jealous), and strong's large size, Ken's knowledge (his decision of 11 October
 ;; 2026, reports/chapter-x/PLAN.md, "Decisions" 6) from p. 238, where an improved Ani
 ;; gives a very pleasant friendly character a large pointed shape, "chosen because the
 ;; character is supposed to be a strong friendly ally". The thesis gives it for a strong
@@ -58,9 +62,15 @@
 ;; his own knowledge may agree with them. The rest are the revival's, each with its
 ;; reason. shabby's ragged outline is motivated by p. 166, where the script changes
 ;; Cinderella "from being shabby and ragged", which says what shabby is, not how Ani is
-;; to draw it. Evil's red is not here: it would give back Ken's red stepmother, and
-;; decision 4 drops it. Nor does strong mean pointed: pointed is "typically an
-;; unfriendly shape" (p. 238), which unfriendly gets from friendly's opposite.
+;; to draw it; its dull colors and beautiful's and pretty's clear ones by p. 225,
+;; "bright and harmonious colors are typically more pleasant than muddy, dull, or
+;; clashing colors", which says what pleases, not who wears what. Evil's red is not
+;; here: it would give back Ken's red stepmother, and decision 4 drops it; evil's
+;; black is a darkness, an intensity, not a hue. Nor does strong mean pointed: pointed
+;; is "typically an unfriendly shape" (p. 238), which unfriendly gets from friendly's
+;; opposite. Magical's purple is the only hue here; no other word of Ken's has one the
+;; revival could give it without guessing, and the film's variety (glosug.41:43-55)
+;; gives every character a hue.
 (setq :appearance-knowledge
       '((strong size high medium
 	 (thesis 238 |The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally|))
@@ -79,7 +89,17 @@
 	(shy shape-complexity low low
 	 (why |a shy character draws no attention to itself, so a plain shape|))
 	(magical shape-complexity high medium
-	 (why |magic sparkles: a shape with many points|))))
+	 (why |magic sparkles: a shape with many points|))
+	(evil color-intensity low high
+	 (thesis 161 |bad guys wear black|))
+	(beautiful color-saturation high medium
+	 (why |a beautiful character is drawn in clear, bright colors, since bright and harmonious colors are typically more pleasant than muddy, dull, or clashing colors (p. 225)|))
+	(pretty color-saturation high medium
+	 (why |a pretty character is drawn in clear, bright colors, since bright and harmonious colors are typically more pleasant than muddy, dull, or clashing colors (p. 225)|))
+	(shabby color-saturation low high
+	 (why |a shabby character's clothes are faded and dirty, so it is drawn in muddy, dull colors (p. 225's words; p. 166: the fairy godmother changes Cinderella from being shabby and ragged to being beautiful and elegant)|))
+	(magical color-hue purple medium
+	 (why |purple is the color picture books give magic, the robes of wizards and fairies|))))
 
 ;; Each entry goes to its descriptor as Ken's process suggestions takes it, and its
 ;; evidence onto the descriptor's appearance-evidence, (element value strength
@@ -143,7 +163,7 @@
 (defun teach-uniqueness-about-appearance ()
   (ask uniqueness-summary: process suggestions
        (suggestion: element ({or relative-size relative-shape-jaggedness
-				 relative-shape-complexity}
+				 relative-shape-complexity relative-color-intensity}
 			     ? ?)
 		    value 'different-from
 		    strength level
@@ -151,7 +171,8 @@
 						descriptor-type physical
 						of-who ?)))
   (putprop 'uniqueness-summary:
-	   '((physical (relative-size relative-shape-jaggedness relative-shape-complexity)
+	   '((physical (relative-size relative-shape-jaggedness relative-shape-complexity
+				   relative-color-intensity)
 		       different-from level
 		       (thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|)))
 	   'appearance-evidence))
@@ -308,6 +329,24 @@
 	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
 	 film-level-suggestions)
 
+;; Ken's comment goes on, "color is many and bright is flashier": a flashy film's
+;; characters are bright, a film that is not flashy has them darker and duller. Bright
+;; is both, intense and saturated. (Many colors is the film's variety's, which gives
+;; the characters different hues, glosug.41:43-55.)
+(defprop color-intensity
+	 (((flashiness level) same medium
+	   (code |glosug.41:40| |color is many and bright is flashier|))
+	  ((obviousness level) medium-unless-high low
+	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
+	 film-level-suggestions)
+
+(defprop color-saturation
+	 (((flashiness level) same medium
+	   (code |glosug.41:40| |color is many and bright is flashier|))
+	  ((obviousness level) medium-unless-high low
+	   (why |a film that is not obvious leaves a look at medium, which says nothing, so that only a few aspects carry the characters (motivated by p. 165: if the film is supposed to be obvious, then many aspects should be used---if subtle, then only a few)|)))
+	 film-level-suggestions)
+
 ;; Each of those levels answers as before (glosug.41), and, if that is nothing, with
 ;; its suggestion for an appearance element, as Ken's comment in (flashiness level)
 ;; has it: "size is also bigger is flashier".
@@ -341,8 +380,9 @@
 ;;; ------------------------------------------------- all of it, for the glass box
 
 ;; Every piece of knowledge above as (kind source element value strength evidence),
-;; kind descriptor, relationship, comparison, dynamics or film (src/glassbox-pass1.js
-;; collectAppearances; tools/check-appear.mjs).
+;; kind descriptor, relationship, comparison, dynamics or film, and look-change, when
+;; a feeling changes a look (REVIVE;ALTER) (src/glassbox-pass1.js collectAppearances;
+;; tools/check-appear.mjs).
 (defun appearance-knowledge ()
   (append
    (mapcar (function
@@ -357,7 +397,8 @@
 			       (cons 'and evidence)))))
 	   :appearance-relationship-knowledge)
    (list (list 'comparison '(uniqueness-summary: physical)
-	       '(relative-size relative-shape-jaggedness relative-shape-complexity)
+	       '(relative-size relative-shape-jaggedness relative-shape-complexity
+		 relative-color-intensity)
 	       'different-from 'level
 	       '(thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|))
 	 (list 'comparison 'look-alike:
@@ -371,7 +412,7 @@
 				     (let (((moving relation strength evidence) rule))
 					  (list 'dynamics moving element relation strength evidence))))
 			    (get element 'dynamics-suggestions))))
-	   '(size shape-jaggedness shape-complexity))
+	   :appearance-elements)
    (mapcan (function
 	    (lambda (element)
 		    (mapcar (function
@@ -379,4 +420,16 @@
 				     (let (((film-level relation strength evidence) rule))
 					  (list 'film film-level element relation strength evidence))))
 			    (get element 'film-level-suggestions))))
-	   '(size shape-jaggedness shape-complexity))))
+	   :appearance-elements)
+   ;; and when a look changes (REVIVE;ALTER): (look-change joy color-intensity amount
+   ;; strength evidence), the feeling's own amount
+   (and (boundp ':look-change-knowledge)
+	(mapcar (function
+		 (lambda (entry)
+			 (let (((feeling element evidence) entry))
+			      (list 'look-change feeling element 'amount 'medium evidence))))
+		:look-change-knowledge))))
+
+;; The appearance elements, in the order REVIVE;APPEAR's tables list them.
+(setq :appearance-elements
+      '(size shape-jaggedness shape-complexity color-intensity color-saturation color-hue))

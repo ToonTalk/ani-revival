@@ -309,16 +309,24 @@
 			(t .05))))))
 
 ;; The value a character's look, as drawn, has on an element: its shape's place on a
-;; shape element (the table above), or the value whose number its size is
-;; (REVIVE;APPEAR's table). It differs from Ani's choice where the experts overrode it,
+;; shape element (the table above), the value whose number its size, its color's
+;; saturation or its color's value is (REVIVE;APPEAR's and REVIVE;COLORS's tables), or
+;; its hue (REVIVE;COLORS). It differs from Ani's choice where the experts overrode it,
 ;; and is one value where she chose (not X); the glass box shows it beside her choice
 ;; (src/glassbox-pass1.js collectAppearances).
 (defun drawn-value (character element)
   (let ((appearance '(appearance-of ,character)))
        (and (exists? appearance)
-	    (cond ((get element 'appearance-numbers)
-		   (let ((number (ask ,appearance recall your ani-size)))
+	    (cond ((eq element 'color-hue) (ask ,appearance recall your hue))
+		  ((get element 'appearance-numbers)
+		   (let ((number (drawn-number appearance element)))
 			(do ((n (get element 'appearance-numbers) (rest n)))
 			    ((null n) nil)
 			    (and (equal (second (first n)) number) (return (first (first n)))))))
 		  (t (get (shape-named (ask ,appearance recall your shape)) element))))))
+
+;; The number an element was drawn with: the size, or a part of the color.
+(defun drawn-number (appearance element)
+  (cond ((eq element 'color-saturation) (second (ask ,appearance recall your look-color)))
+	((eq element 'color-intensity) (third (ask ,appearance recall your look-color)))
+	(t (ask ,appearance recall your ani-size))))

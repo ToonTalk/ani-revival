@@ -109,12 +109,18 @@ export function evidenceJSON(L, x) {
   return { other: L.print(x) };
 }
 
-// How Ani chose each character's look (REVIVE;APPEAR, APSUG and SHAPES), for the glass
-// box's "How she looks": for each character, in focus order,
+// How Ani chose each character's look (REVIVE;APPEAR, APSUG, SHAPES and COLORS), for
+// the glass box's "How she looks": for each character, in focus order,
 //   { character,
-//     look: { shape, angle, centerOffset, aniSize },          what Director is to draw
+//     look: { shape, angle, centerOffset, aniSize, hue, color },
+//                                                             what Director is to draw,
+//                                                             color [hue angle,
+//                                                             saturation, value] as
+//                                                             the page paints it, hue
+//                                                             its name (null if none)
 //     elements: { size: { choicePoint, value, strength, sources, drawn, overriddenBy },
-//                 shape-jaggedness: ..., shape-complexity: ... },
+//                 shape-jaggedness: ..., shape-complexity: ..., color-intensity: ...,
+//                 color-saturation: ..., color-hue: ... },
 //                                                             each choice, its winning
 //                                                             suggestion's strength and
 //                                                             sources (the choice point
@@ -126,7 +132,8 @@ export function evidenceJSON(L, x) {
 //                                                             X)), and, only if they
 //                                                             overrode it, the choice
 //                                                             point's (overridden-by: ...)
-//     experts: [ "(considered: ...)", "(relaxed: ...)", "(chosen: ...)" ] }
+//     experts: [ "(considered: ...)", "(relaxed: ...)", "(chosen: ...)",
+//                "(colored: hue ... angle ... saturation ... value ...)" ] }
 // with knowledge, every piece of knowledge a look's suggestion can come from, each
 // { kind, source, element, value, strength, evidence }, and findings, what telling
 // the characters apart found: { comparison, items: ["(look-alike: ...)", ...] }.
@@ -144,9 +151,13 @@ export function collectAppearances(L) {
     const recall = (v) => ev(`(ask ,*gb-actor* recall your ${v})`);
     const num = (v) => (v === L.NIL ? null : L.num.val(v));
     const shape = recall("shape");
+    // its color (REVIVE;COLORS), if it was given one: its hue's name, or null for none,
+    // and [hue angle, saturation, value]
+    const lookColor = recall("look-color");
+    const color = lookColor === L.NIL ? {} : { hue: recall("hue") === L.NIL ? null : lisp(recall("hue")), color: L.toArray(lookColor).map(num) };
     const entry = {
       character: name,
-      look: { shape: shape === L.NIL ? null : lisp(shape), angle: num(recall("angle")), centerOffset: recall("center-offset") === L.NIL ? null : lisp(recall("center-offset")), aniSize: num(recall("ani-size")) },
+      look: { shape: shape === L.NIL ? null : lisp(shape), angle: num(recall("angle")), centerOffset: recall("center-offset") === L.NIL ? null : lisp(recall("center-offset")), aniSize: num(recall("ani-size")), ...color },
       elements: {},
       experts: L.toArray(ev("(ask ,*gb-actor* collect items)")).map(lisp).reverse(),
     };
@@ -196,7 +207,8 @@ export function collectKnowledge(L) {
 
 // The look each character is to take in the scene, as pass 2 writes it at the end of
 // the scene's program (REVIVE;APPEAR's take-look-forms): [{ character, shape, angle,
-// centerOffset, aniSize, form }]. Empty if REVIVE;APPEAR is not loaded.
+// centerOffset, aniSize, color?, form }], color [hue angle, saturation, value] if
+// REVIVE;COLORS gave it one. Empty if REVIVE;APPEAR is not loaded.
 export function collectLooks(L, scene) {
   if (!defined(L, "take-look-forms")) return [];
   const lisp = (x) => L.print(x).toLowerCase();
@@ -204,7 +216,8 @@ export function collectLooks(L, scene) {
     const [, character, , , look] = L.toArray(form);
     const get = (k) => plistGet(L, look, k);
     const num = (v) => (v === L.NIL ? null : L.num.val(v));
-    return { character: lisp(character), shape: get("shape") === L.NIL ? null : lisp(get("shape")), angle: num(get("angle")), centerOffset: get("center-offset") === L.NIL ? null : lisp(get("center-offset")), aniSize: num(get("ani-size")), form: lisp(form) };
+    const color = get("look-color") === L.NIL ? {} : { color: L.toArray(get("look-color")).map(num) };
+    return { character: lisp(character), shape: get("shape") === L.NIL ? null : lisp(get("shape")), angle: num(get("angle")), centerOffset: get("center-offset") === L.NIL ? null : lisp(get("center-offset")), aniSize: num(get("ani-size")), ...color, form: lisp(form) };
   });
 }
 

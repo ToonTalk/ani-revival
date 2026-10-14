@@ -23,7 +23,7 @@ import { createLisp } from "./maclisp/index.js";
 import { Cons, UNBOUND } from "./maclisp/types.js";
 import { pictureArea } from "./tv/canvas.js";
 import { UNIT_BIT } from "./tv/turtle.js";
-import { collectChoicePoints, collectAppearances, collectLooks, toJSON } from "./glassbox-pass1.js";
+import { collectChoicePoints, collectAppearances, collectLooks, toJSON, plistGet } from "./glassbox-pass1.js";
 
 export const SCENES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"];
 // RUN's file names for each scene: the program is KEN;<fn1> <fn2>, the summary
@@ -56,12 +56,12 @@ export const EXTENSIONS = [
   {
     id: "appear",
     label: "Ani chooses how her characters look",
-    files: ["wrap", "appear", "apsug", "shapes", "looks"],
+    files: ["wrap", "appear", "apsug", "shapes", "colors", "looks", "alter"],
     requires: [],
     changes1978: true,
     afterPass1: "(choose-appearances)",
     recorder: { looks: true },
-    note: "Ani chooses each character's size and shape as she chooses how it moves (thesis pp. 163-164): choice points for size, shape-jaggedness and shape-complexity, made after the 102 dynamics choices, with suggestions from the characters' words, relationships, comparisons and dynamics and the film's levels, each with its evidence; shape experts turn the choices into a polygon, star or circle, and characters drawn alike have a shape choice made again to tell them apart. Pass 2 writes each character's look into the scene's program, and Director draws it.",
+    note: "Ani chooses each character's size, shape and color as she chooses how it moves (thesis pp. 163-164): choice points for size, shape-jaggedness, shape-complexity and a color's intensity, saturation and hue, made after the 102 dynamics choices, with suggestions from the characters' words, relationships, comparisons and dynamics and the film's levels, each with its evidence; shape experts turn the choices into a polygon, star or circle, characters drawn alike have a shape choice made again to tell them apart, and the hue is one of six on a painter's wheel, a small semantic net of colors (p. 240). Pass 2 writes each character's look into the scene's program, and Director draws it; and looks change during a scene as Ani plans them, as display methods beside the dynamics changes (p. 166): joy brightens a character's colors, sadness dims them. Director keeps the colors without drawing them, and the film page paints them in color.",
   },
   {
     id: "change",
@@ -86,7 +86,7 @@ export const EXTENSIONS = [
 
 // The appearance elements REVIVE;APPEAR defines, and their relative elements: a
 // choice point for one of them is one of APPEAR's, not one of Ken's 102.
-export const APPEARANCE_ELEMENTS = ["size", "shape-jaggedness", "shape-complexity"];
+export const APPEARANCE_ELEMENTS = ["color-intensity", "color-saturation", "color-hue", "size", "shape-jaggedness", "shape-complexity"];
 export function isAppearanceChoice(name) {
   const m = /\s(relative-)?([a-z-]+)\)$/.exec(String(name).toLowerCase());
   return Boolean(m) && APPEARANCE_ELEMENTS.includes(m[2]);
@@ -359,6 +359,9 @@ export function glassBox(L, scene) {
   // there are looks, for the same reason
   const looks = collectLooks(L, scene);
   if (looks.length) glass.looks = looks;
+  // the changes of look planned (REVIVE;ALTER), only if any were, for the same reason
+  const lookChanges = collectLookChanges(L, scene);
+  if (lookChanges.length) glass.lookChanges = lookChanges;
   // who the characters changed in earlier scenes have become, as this scene's pass 2
   // made them so (REVIVE;CHANGE), only if any were, for the same reason
   const becomes = collectBecomes(L);
@@ -401,6 +404,52 @@ export function collectBorrowed(L, tasks) {
     }
   }
   return out;
+}
+
+// The changes of look pass 2 planned in the scene (REVIVE;ALTER look-changes-in): for
+// each, { task, subscene, method, change, character, element, kind, amount | newValue,
+// speed, feeling? }, task and subscene their names, method the display method as the
+// task chose it, (look-change: element (cinderella color-intensity) amount (negative
+// high) speed high), change what Director is to do, (gradually change look by
+// .66666667 factor for color-intensity at high speed), each printed as Lisp, kind
+// look-change: or look-change-to:, and feeling the feeling of an emotional-state task
+// whose level is the amount ("(joy (negative high))"), if the task is one. Looked up
+// without interning anything unless REVIVE;ALTER is loaded, so that a Lisp running as
+// in 1978 is left as it was.
+export function collectLookChanges(L, scene) {
+  if (!L.obarray.find("LOOK-CHANGES-IN") || L.evalString("(get 'look-changes-in 'expr)") === L.NIL) return [];
+  const lisp = (x) => (x === L.NIL ? null : L.print(x).toLowerCase());
+  const out = [];
+  for (const x of L.toArray(L.evalString(`(look-changes-in '${scene})`))) {
+    if (x === L.NIL) continue;
+    const [task, subscene, method, change] = L.toArray(x);
+    const get = (k) => plistGet(L, method, k);
+    const element = L.toArray(get("element")).map(lisp);
+    const kind = lisp(method.car);
+    L.intern("*GB-ACTOR*").value = task;
+    const description = L.evalString("(get (ask ,*gb-actor* recall your task) 'description)");
+    const feeling = feelingOf(L, description, kind === "look-change:" ? lisp(get("amount")) : null);
+    out.push({
+      task: lisp(task), subscene: lisp(subscene), method: lisp(method), change: lisp(change),
+      character: element[0], element: element[1], kind,
+      ...(kind === "look-change:" ? { amount: lisp(get("amount")) } : { newValue: lisp(get("new-value")) }),
+      speed: lisp(get("speed")), ...(feeling ? { feeling } : {}),
+    });
+  }
+  return out;
+}
+
+// The feeling of an emotional-state task's description, (emotional-state cinderella
+// (joy (negative high))), whose level is the amount a look change was made by, "(joy
+// (negative high))"; null if there is none.
+function feelingOf(L, description, amount) {
+  if (!(description instanceof Cons)) return null;
+  const lisp = (x) => L.print(x).toLowerCase();
+  const parts = L.toArray(description);
+  if (lisp(parts[0]) !== "emotional-state") return null;
+  const states = parts[2] instanceof Cons && lisp(parts[2].car) === "and" ? L.toArray(parts[2]).slice(1) : [parts[2]];
+  const found = states.find((s) => s instanceof Cons && (!amount || lisp(L.toArray(s)[1]) === amount));
+  return found ? lisp(found) : null;
 }
 
 // What pass 2 made so of the earlier scenes' changes (REVIVE;CHANGE
@@ -480,8 +529,12 @@ export function repairNotes(L, glass = null) {
 // called at each click too (to save a picture, say). With looks (an extension that
 // chooses how the characters look, REVIVE;APPEAR and LOOKS), film.looks records who
 // looks how from which frame, changes only: [frame, character, { shape, angle,
-// centerOffset, aniSize }], frame counted from 0 as frames are; frames[].chars is as
-// it is without.
+// centerOffset, aniSize, color?, morph? }], frame counted from 0 as frames are; color,
+// if the character has one (REVIVE;COLORS), [hue angle, saturation, value], as Director
+// keeps it and the page paints it; morph, while its shape changes to another
+// (REVIVE;LOOKS), { to, amount }, the shape it is becoming and how far it has come, 0
+// to 1 (the segments are the in-between, as drawn); frames[].chars is as it is
+// without.
 export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false } = {}) {
   const film = { picture: null, frames: [], events: [] };
   if (looks) film.looks = [];
@@ -525,15 +578,22 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
   // each character's look as Director now draws it, kept when it changes
   function recordLooks(frame) {
     const all = L.evalString(`(mapcar (function (lambda (c) (list (ask ,c recall your shape) (ask ,c recall your angle)
-                                                                  (ask ,c recall your center-offset) (ask ,c recall your ani-size))))
+                                                                  (ask ,c recall your center-offset) (ask ,c recall your ani-size)
+                                                                  (ask ,c recall your look-color) (ask ,c recall your look-amount)
+                                                                  (get (ask ,c recall your look-target) 'shape))))
                                       '(${cast.join(" ")}))`);
     L.toArray(all).forEach((x, i) => {
-      const [shape, angle, offset, size] = L.toArray(x);
+      const [shape, angle, offset, size, color, amount, target] = L.toArray(x);
       const num = (v) => (v === L.NIL ? null : Math.round(L.num.val(v) * 10000) / 10000);
       const look = {
         shape: shape === L.NIL ? null : L.print(shape).toLowerCase(), angle: num(angle),
         centerOffset: offset === L.NIL ? null : L.print(offset).toLowerCase(), aniSize: num(size),
       };
+      if (color instanceof Cons) {
+        const [h, s, v] = L.toArray(color).map((y) => L.num.val(y));
+        look.color = [Math.round(h * 10) / 10, Math.round(s * 1000) / 1000, Math.round(v * 1000) / 1000];
+      }
+      if (amount !== L.NIL) look.morph = { to: target === L.NIL ? null : L.print(target).toLowerCase(), amount: Math.round(L.num.val(amount) * 1000) / 1000 };
       const key = JSON.stringify(look);
       if (lastLook[cast[i]] !== key) {
         lastLook[cast[i]] = key;

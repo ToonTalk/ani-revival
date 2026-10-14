@@ -14,7 +14,17 @@
 //     glass box, without its looks, is reports/pass2/<scene>.glass.json, and what
 //     follows 1978's program is exactly the take-look forms, one for each character,
 //     as pass 1 chose its look (REVIVE;APPEAR take-look-forms), each printed on a line
-//     of its own as dicks-print prints every form of the program;
+//     of its own as dicks-print prints every form of the program; with the changes of
+//     look pass 2 planned (REVIVE;ALTER: joy's look-change: methods, and what each
+//     adds to its subscene's changes, (gradually change look ...)) taken out of the
+//     program, the summary, the printout and the glass box too, so that the look
+//     changes are seen to move no method, time or place;
+//   - the duration guard: the look changes lengthen nothing. Kept Apart, filmed again
+//     with its look changes taken out of its program, from where the Introduction
+//     left the characters, makes the same frames and events, and its joy subscene (the
+//     third, a parasite on the second, whose changes run beside its movements,
+//     action.152:41) ends on the same frame; at 4 frames a second against 1978's
+//     positions, and at the rate given against the chained film's;
 //   - the whole film, chained, at 4 frames a second (pass 1, then each scene's pass 2
 //     and filming, each starting from where the last filming left the characters, as
 //     the film page makes it): each scene's program, summary, printout, glass box,
@@ -131,6 +141,74 @@ const withoutLooksKey = (glass) => {
   return rest;
 };
 
+// The changes of look pass 2 planned (REVIVE;ALTER) taken out of Lisp printed in a
+// program, a summary, a printout or a glass box: each (gradually change look ...),
+// (look-change: ...) and (look-change-to: ...), with the space that sets it apart.
+const LOOK_CHANGE_HEADS = ["(gradually change look ", "(look-change: ", "(look-change-to: "];
+export function withoutLookChanges(text) {
+  let out = "";
+  let i = 0;
+  const lower = text.toLowerCase();
+  for (;;) {
+    let next = -1;
+    for (const h of LOOK_CHANGE_HEADS) {
+      const k = lower.indexOf(h, i);
+      if (k >= 0 && (next < 0 || k < next)) next = k;
+    }
+    if (next < 0) return out + text.slice(i);
+    let depth = 0, j = next;
+    for (; j < text.length; j++) {
+      if (text[j] === "(") depth++;
+      else if (text[j] === ")" && --depth === 0) break;
+    }
+    let start = next, end = j + 1;
+    if (text[start - 1] === " ") start--;
+    else if (text[end] === " ") end++;
+    out += text.slice(i, start);
+    i = end;
+  }
+}
+// The same for a glass box: an item or a variable about a look change goes, its looks
+// and lookChanges go, and a look change goes from any value that lists it with others.
+const aboutLookChange = (s) => LOOK_CHANGE_HEADS.some((h) => s.toLowerCase().includes(h.trim()));
+export function glassWithoutLookChanges(x) {
+  if (Array.isArray(x)) return x.filter((y) => !(typeof y === "string" && aboutLookChange(y))).map(glassWithoutLookChanges);
+  if (x && typeof x === "object") {
+    const out = {};
+    for (const [k, v] of Object.entries(x)) if (k !== "looks" && k !== "lookChanges" && !aboutLookChange(k)) out[k] = glassWithoutLookChanges(v);
+    return out;
+  }
+  return typeof x === "string" ? withoutLookChanges(x) : x;
+}
+
+// The duration guard: Kept Apart filmed from the positions on fs (and its program
+// there), and again with its look changes taken out of the program; the first film is
+// given, or made. Checks that the two have the same frames and events, and that the
+// joy subscene ends on the same frame.
+function durationGuard(fs, first, what) {
+  const [fn1, fn2] = FILE_NAMES["kept-apart"].split(" ");
+  const program = textIn(fs, "KEN", fn1, fn2);
+  const changes = (program.match(/\(GRADUALLY CHANGE LOOK /g) || []).length;
+  // a file system of its own for each filming, with the program, the answers file and
+  // where the Introduction left the characters, so that fs keeps its own POSIT files
+  const fsWith = (text) => {
+    const out = makeProjectFileSystem();
+    for (const e of [["KEN", fn1, fn2], ["KEN", "CP", "30"], ["KEN1", "INTRO", "POSIT"]]) {
+      const t = e[0] === "KEN" && e[1] === fn1 ? text : textIn(fs, ...e);
+      if (t) out.addFile(e[0], e[1], e[2], { text: t, origin: "the duration guard" });
+    }
+    return out;
+  };
+  const with_ = first || run(`kept-apart: filming ${what}, with its look changes`, () => film(fsWith(program), "kept-apart", { extensions, fps, frames }).film).value;
+  const w = run(`kept-apart: filming ${what}, without its look changes`, () => film(fsWith(withoutLookChanges(program)), "kept-apart", { extensions, fps, frames }).film);
+  const without = w.value;
+  const endOf = (f) => (f.events.find((e) => e[1] === "(end-of (subscene-of kept-apart 3))") || [null])[0];
+  check(`kept-apart ${what}: ${changes} look change${changes === 1 ? "" : "s"} in the program; the joy subscene ends on frame ${endOf(with_)} with them, ${endOf(without)} without (${fps} frames a second)`,
+    !changes ? "there are none to take out" : endOf(with_) !== null && endOf(with_) === endOf(without) ? null : "it ends on another frame", w.seconds);
+  check(`kept-apart ${what}: the same ${with_.frames.length} frames and ${with_.events.length} events with and without them`,
+    same(JSON.stringify({ frames: with_.frames, events: with_.events }), JSON.stringify({ frames: without.frames, events: without.events })));
+}
+
 console.log(`Ani with the extensions ${extensions.join(", ")}, against 1978 and ${filmDir}${quick ? ", without the chained film" : `, the chained film at ${fps} frames a second`}${save ? " (saving the chained film's files)" : ""}\n`);
 
 // ---------------------------------------------------------------- pass 1
@@ -187,7 +265,7 @@ if (fps === 4 && kind === "appear") {
     const lower = fn1.toLowerCase();
     const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
     const program = textIn(fs2, "KEN", fn1, fn2);
-    check(`${scene}: KEN;${fn1} ${fn2}, without its looks, as 1978's (reports/pass2)`, same(withoutLooks(program), read(`reports/pass2/ken-${lower}.${fn2.toLowerCase()}`)), p2.seconds);
+    check(`${scene}: KEN;${fn1} ${fn2}, without its looks and look changes, as 1978's (reports/pass2)`, same(withoutLookChanges(withoutLooks(program)), read(`reports/pass2/ken-${lower}.${fn2.toLowerCase()}`)), p2.seconds);
     // what was taken off is exactly the take-look forms, one for each character, as
     // the Lisp that wrote the program prints them: nothing else, nothing missing
     const L = p2.value.lisp;
@@ -197,9 +275,12 @@ if (fps === 4 && kind === "appear") {
     const missing = characters.filter((c) => !named.includes(c));
     check(`${scene}: what follows 1978's program is exactly the ${forms.length} take-look forms`, same(looksOf(program), expected));
     check(`${scene}: a look for each of the ${characters.length} characters`, missing.length || !characters.length ? `none for ${missing.join(", ") || "anyone"}` : null);
-    check(`${scene}: KEN1;${fn1} MINI as 1978's`, same(textIn(fs2, "KEN1", fn1, "MINI"), read(`reports/pass2/ken1-${lower}.mini`)));
-    check(`${scene}: KEN1;${fn1} PRINT as 1978's`, same(textIn(fs2, "KEN1", fn1, "PRINT"), read(`reports/pass2/ken1-${lower}.print`)));
-    check(`${scene}: the glass box, without its looks, as 1978's`, same(JSON.stringify(withoutLooksKey(p2.value.glass), null, 1), read(`reports/pass2/${scene}.glass.json`)));
+    check(`${scene}: KEN1;${fn1} MINI, without its look changes, as 1978's`, same(withoutLookChanges(textIn(fs2, "KEN1", fn1, "MINI")), read(`reports/pass2/ken1-${lower}.mini`)));
+    check(`${scene}: KEN1;${fn1} PRINT, without its look changes, as 1978's`, same(withoutLookChanges(textIn(fs2, "KEN1", fn1, "PRINT")), read(`reports/pass2/ken1-${lower}.print`)));
+    check(`${scene}: the glass box, without its looks and look changes, as 1978's`, same(JSON.stringify(glassWithoutLookChanges(withoutLooksKey(p2.value.glass)), null, 1), read(`reports/pass2/${scene}.glass.json`)));
+    const planned = p2.value.glass.lookChanges || [];
+    console.log(`       look changes: ${planned.length ? planned.map((c) => `${c.character} ${c.element} by ${c.amount} at ${c.speed} speed, for ${c.feeling || c.task}, in ${c.subscene}`).join("; ") : "none"}`);
+    if (scene === "kept-apart") durationGuard(fs2, null, "from 1978's positions");
   }
 }
 
@@ -256,6 +337,7 @@ if (!quick) {
     const ours = f.value.film;
     console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events${ours.looks ? `, ${ours.looks.length} looks` : ""}`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));
+    if (kind === "appear" && scene === "kept-apart") durationGuard(fs3, ours, "chained");
     const movie = f.value.lisp.print(f.value.lisp.evalString(`(get '${scene} 'movie-name)`)).toLowerCase();
     golden(`${scene}: KEN1;${movie.toUpperCase()} POSIT`, `ken1-${movie}.posit`, textIn(fs3, "KEN1", movie.toUpperCase(), "POSIT"));
   }

@@ -36,7 +36,7 @@ function setUp() {
   return shared;
 }
 
-const ONCE = ["appear-elements", "shape-experts", "appear-choice-point", "appear-choice-point-sources", "apsug-descriptors", "apsug-relationships", "apsug-comparisons", "apsug-film-levels", "looks-take-look"];
+const ONCE = ["appear-elements", "shape-experts", "appear-choice-point", "appear-choice-point-sources", "apsug-descriptors", "apsug-relationships", "apsug-comparisons", "apsug-film-levels", "colors-hue-net", "looks-take-look", "looks-changes", "looks-shape-changes"];
 const WRAPPED = { "save-answers": "(APPEAR)", "save-all": "(APPEAR)", "collect-relationship-and-comparison-suggestions": "(APSUG)", "gather-suggestions-of-type": "(APSUG)", "source-type": "(APSUG)" };
 
 test("the registry: APPEAR changes Ken's Cinderella, chooses after (z), records looks; its elements are REVIVE;APPEAR's", () => {
@@ -44,7 +44,7 @@ test("the registry: APPEAR changes Ken's Cinderella, chooses after (z), records 
   assert.equal(e.changes1978, true);
   assert.equal(e.afterPass1, "(choose-appearances)");
   assert.deepEqual(e.recorder, { looks: true });
-  assert.deepEqual(e.files, ["wrap", "appear", "apsug", "shapes", "looks"]);
+  assert.deepEqual(e.files, ["wrap", "appear", "apsug", "shapes", "colors", "looks", "alter"]);
   const { run } = setUp();
   assert.equal(run("(reverse (ask appearance-element recall your offspring))"), `(${APPEARANCE_ELEMENTS.join(" ").toUpperCase()})`);
   assert.ok(isAppearanceChoice("(choice-point-of cinderella size)"));
@@ -69,7 +69,7 @@ test("each hook fires once, though the REVIVE files are loaded again", () => {
   assert.equal(first.shy, "2"); // size and shape-complexity
   assert.equal(first.shySize, "1");
   // every hook given again fires at once, its file being loaded; nothing is done twice
-  for (const f of ["appear", "apsug", "shapes", "looks"]) run(`(load '|revive;${f} >|)`);
+  for (const f of ["appear", "apsug", "shapes", "colors", "looks", "alter"]) run(`(load '|revive;${f} >|)`);
   assert.deepEqual(state(), first);
 });
 
@@ -94,14 +94,15 @@ test("the knowledge: each entry is taught as Ken's process suggestions takes it,
       `((SUGGESTION: ELEMENT ${element} VALUE ${value} STRENGTH ${strength} SOURCE ${descriptor}))`);
   }
   // the reviews' corrections: no strong pointed, no evil red; strong large is Ken's,
-  // from p. 238 (his decision of 11 October), and with friendly's smooth (p. 161) the
-  // only entries that are the thesis's own; shabby's ragged outline is the revival's,
-  // motivated by p. 166
+  // from p. 238 (his decision of 11 October), and with friendly's smooth and evil's
+  // dark colors (p. 161) the only entries that are the thesis's own; shabby's ragged
+  // outline is the revival's, motivated by p. 166
   const text = entries.map((e) => L.print(e)).join(" ");
   assert.match(text, /\(STRONG SIZE HIGH MEDIUM \(THESIS 238 \|The atypical size and shape for the friendly character might be chosen because the character is supposed to be a strong friendly ally\|\)\)/);
   assert.doesNotMatch(text, /\(STRONG SHAPE-JAGGEDNESS/);
-  assert.doesNotMatch(text, /\(EVIL /);
-  assert.deepEqual(text.match(/\(THESIS \d+/g), ["(THESIS 238", "(THESIS 161"]);
+  assert.doesNotMatch(text, /\(EVIL COLOR-HUE/);
+  assert.match(text, /\(EVIL COLOR-INTENSITY LOW HIGH \(THESIS 161 \|bad guys wear black\|\)\)/);
+  assert.deepEqual(text.match(/\(THESIS \d+/g), ["(THESIS 238", "(THESIS 161", "(THESIS 161"]);
   assert.match(text, /\(SHABBY SHAPE-JAGGEDNESS HIGH LOW \(WHY \|.*motivated by p\. 166/);
   // dominates suggests a greater relative size, as its comment says (relate.22:63)
   assert.equal(run("(ask dominates collect items memorized matching (suggestion: element (relative-size step-mother cinderella) value ? strength ? source ?))"),
