@@ -93,11 +93,12 @@ if (process.argv[1]?.endsWith("build-ani-bundle.mjs")) {
   console.log(`wrote app/data/ani-bundle-files.json and app/data/ani-bundle.json: ${bundle.files.length} files and ${bundle.fasl.length} FASL sources, ${Math.round(json.length / 1024)} KB`);
 
   if (!process.argv.includes("--no-check")) {
-    const digest = (scenes) => scenes.map((s) => createHash("sha256").update(JSON.stringify(s.film.frames)).digest("hex").slice(0, 12));
+    // each scene's frames, and the looks a film made with Ani's looks records, colors and all
+    const digest = (scenes) => scenes.map((s) => createHash("sha256").update(JSON.stringify([s.film.frames, s.film.looks || null])).digest("hex").slice(0, 12));
     const second = makeFilm(makeBundleFileSystem(bundle), { progress, extensions });
     const a = digest(first.scenes), b = digest(second.scenes);
     const same = a.every((x, k) => x === b[k]);
-    console.log(same ? "the bundle alone makes the same film, frame for frame" : `the bundle's film differs: ${a.join(" ")} vs ${b.join(" ")}`);
+    console.log(same ? "the bundle alone makes the same film, frame for frame and look for look" : `the bundle's film differs: ${a.join(" ")} vs ${b.join(" ")}`);
     process.exit(same ? 0 : 1);
   }
 }
