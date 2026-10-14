@@ -786,6 +786,8 @@ function place(p) {
     case "good-distance-from": return `a good distance from ${near(a)}`;
     case "medium-distance-from": return `a medium distance from ${near(a)}`;
     case "medium-distance-from-and-offstage": return `off the stage, a medium distance from ${near(a)}`;
+    case "good-distance-from-and-offstage": return `off the stage, far from ${near(a)}`;
+    case "off-screen-position": return `just off the stage, by the ${[a, b].map(plain).join(" ")} of the screen`;
     case "small-distance-from-and-offstage": return `just off the stage near ${near(a)}`;
     case "small-way-from": return `a small way from ${near(a)} towards ${near(b)}`;
     case "small-way-from-plus-size": return `just past ${near(a)}, between ${near(a)} and ${near(b)}`;
@@ -1076,6 +1078,8 @@ const REVIVE_TEXT = {
   mend15: "Two characters whose goals lead to each other (one guarding the other away from himself) are found where they stand, the second time round, as Ken's own code does for a goal that leads to itself.",
   mend16: "How far a place a small way from one character towards another is from a third place, which Ken's INTERF can't say, is measured from where that small way went as the walk set off.",
   mend17: "When Ani has more ways to show what a task establishes than the few she takes, she keeps the strongest few, as Ken's own code picks the strongest of one word's suggestions; Ken never wrote what she should do then.",
+  mend18: "A scene whose only task is shown by one thing the characters do: with that one task in its place, Ken's SCENE took it for a list of tasks and stopped; now one task is the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 takes it.",
+  mend19: "Far off and off the stage, where PLACE asks to put a character with no place yet before two move towards each other, but never defines: it is defined as Ken's medium-distance-and-offstage is, at his good-distance-from-and-offstage.",
   know: "What KNOW's parts share and the rule each piece is judged by; and a word with no way of showing itself borrowing its neighbors' ways, as Ken's comment on bad has it (dscrp.17:183).",
   knowds: "Words for characters, written as DSCRP: gentle and rough, nervous and calm, cheerful and gloomy, clever, brave and cowardly, curious, playful, old and young, slow and quick; and timid, wicked and cruel, which borrow from shy, evil and mean.",
   knowrl: "Relationships, written as RELATE: dislikes and fears; ways of showing likes, is-obedient-to, is-helpful-towards, is-protective-to, is-grateful-to and is-intolerant-of; and CINDY's is-protective-of, as a neighbor of is-protective-to.",
@@ -1207,6 +1211,20 @@ function repairSentence({ actor, what, notes }, sc) {
       const what = Array.isArray(d) && d[0] === "relationship" ? relationshipText(d[1]) : Array.isArray(d) ? about(d) : "this";
       const count = (n) => NUMBER_WORDS[n] || String(n);
       return `Ani had ${count(all.length)} ways to show that ${what} (${words(all.map((x) => about(x)))}), more than the few she takes (${count(few)} here), and Ken never wrote what she does then (explore-method-suggestions), so Ani as in 1978 stopped; the revival's repairs keep the strongest ${count(kept.length)}, as Ken's own code picks the strongest of one word's suggestions: ${words(kept.map((x) => about(x)))}.`;
+    }
+    case "one-task-ordering": {
+      // REVIVE;MEND18: on the one convey task, was (rest task), now the task; what it
+      // shows is what the establish task it came from establishes
+      const up = t ? sc.glass.tasks.find((x) => x.name === taskInfo(t).source) : null;
+      const from = up ? taskInfo(up).description : null;
+      const what = Array.isArray(from) ? taskText("establish", from) : "to establish something";
+      return `The scene's only task was ${what}, which Ani shows by one thing the characters do${Array.isArray(d) ? `: ${about(d)}` : ""}. With that one task in its place, Ken's SCENE took the scene's order of tasks for a list and stopped, in Ani as in 1978 (scene.9:535-538); the revival's repairs take one task as the whole order, as Ken's own reorder-task-ordering-1 already does (scene.9:474).`;
+    }
+    case "defined-constraint": {
+      // REVIVE;MEND19: was (large-distance-and-offstage not-defined); now (c at place)
+      const [c, , where] = Array.isArray(now) ? now : [];
+      const offstage = Array.isArray(where) && where[0] === "good-distance-from-and-offstage";
+      return `${cap(who(c))} had no place yet, and was to come on from off the stage, far from ${offstage ? place(where[1]) : "the other"}; Ken's PLACE asks for that (large-distance-and-offstage) but defines only its small and medium distances, so Ani as in 1978 stopped there. The revival defined it as Ken's medium-distance-and-offstage is, and placed ${who(c)} ${place(where)}.`;
     }
     case "feeling-not-shown": {
       // REVIVE;KNOWEM: was the feeling as written, (pride (negative high)), on the task
@@ -1372,10 +1390,29 @@ const KNOW_METHOD_TEXT = {
   "follows-behind": "the leader goes on ahead, and the follower follows it, keeping behind",
 };
 const VERB_ING = { follows: "following", helps: "helping", avoids: "keeping away", chases: "chasing", accompanys: "going along with", meets: "going to meet" };
+// A way of showing a word borrowed from its neighbor (REVIVE;KNOW's sharing: a word with
+// no way of showing itself borrows each neighbor's, dscrp.17:183), as the glass box
+// records it (src/pipeline.js collectBorrowed: { task, word, neighbor, way, strength,
+// chosen }), in a sentence: who made the two neighbors, KNOW (is-protective-of, timid) or
+// Ken (is-generous-towards, kind), and the sharing's badge.
+function borrowedText(b) {
+  const ing = Array.isArray(parse(b.way)) ? VERB_ING[parse(b.way)[0]] || plain(parse(b.way)[0]) : plain(b.way);
+  const ours = KNOWN.words[b.word];
+  const f = KNOWN.files[KNOWN.sharing.file];
+  const sharing = `<span class="evidence"><span class="ours-tag">the revival's</span> ${f ? codeLink(f.id, KNOWN.sharing.line) : ""}</span>`;
+  return `“${esc(plain(b.word))}” borrows “${esc(plain(b.neighbor))}”'s way of showing it, ${esc(ing)}: ${ours ? "the revival's knowledge makes them neighbors" : "Ken's knowledge makes them neighbors, and the revival's has a word with no way of its own borrow its neighbor's"} (Ken's comment, dscrp.17:183). ${ours ? knowBadge(ours) : sharing}`;
+}
+// The borrowed ways Ani chose for a task, from its scene's glass box.
+const borrowedFor = (sc, name) => ((sc && sc.glass && sc.glass.borrowed) || []).filter((b) => b.chosen && b.task === name);
 // A scene's pieces of the revival's knowledge, each a plain sentence with its badge.
 function knowItems(run, sc) {
   if (!knowOn(run) || !sc || !sc.glass) return [];
-  return using(run, () => atScene(run.scenes.indexOf(sc), () => sc.glass.tasks.map(taskInfo).flatMap((t) => {
+  // each word that borrowed its neighbor's way of showing, a way Ani chose
+  const borrowed = using(run, () => atScene(run.scenes.indexOf(sc), () => sc.glass.tasks.map(taskInfo).flatMap((t) => borrowedFor(sc, t.name).map((b) => {
+    const d = t.description;
+    return { chars: Array.isArray(d) && d[0] === "relationship" && Array.isArray(d[1]) ? d[1].slice(1) : Array.isArray(d) ? [d[1]] : [], html: borrowedText(b) };
+  }))));
+  return [...using(run, () => atScene(run.scenes.indexOf(sc), () => sc.glass.tasks.map(taskInfo).flatMap((t) => {
     const k = knowOfTask(t);
     if (!k) return [];
     const d = t.description;
@@ -1389,7 +1426,7 @@ function knowItems(run, sc) {
       const c = d[1], ch = CHARS[c] || { she: "she" };
       return { chars: [c], html: `${cap(who(c))} ${agree(ch, "is", "are")} ${esc(feeling(f))}, which the revival's ${esc(f[0])} shows${changes.length ? `: ${changesText(changes)}` : ""}. ${knowBadge(KNOWN.feelings[f[0]])}` };
     });
-  })));
+  }))), ...borrowed];
 }
 // One of KNOW's words in a pass-1 suggestion's source, with its piece of knowledge for the
 // element (or the word itself, for one that borrows): (opposite-of rough gentle) is
@@ -1435,15 +1472,17 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   // REVIVE;MEND16 and MEND17
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
   if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few she takes, and Ken never wrote what she does then (explore-method-suggestions).", repair: "keep the strongest few" };
-  // an open item: a scene whose only task is a relationship Ani shows by one thing the
+  // REVIVE;MEND18: a scene whose only task is a relationship Ani shows by one thing the
   // characters do (scene.9:535-538)
-  if (/cdr of non-list: CONVEY-TASK/i.test(m)) return { text: "The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped (scene.9:535-538). Give the scene a second task, such as how someone feels.", repair: null };
+  if (/cdr of non-list: CONVEY-TASK/i.test(m)) return { text: "The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped (scene.9:535-538).", repair: "take one task as the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 does" };
   if (/NO-SUCH-ACTOR/i.test(m)) {
     const name = (said.match(/ASK: (.+?) is not an actor/) || [])[1];
     const actor = name ? parse(name.toLowerCase()) : null;
     const personality = (w) => !!run && Object.values(run.story.characters).some((c) => c.personality.includes(w));
     if (actor === "move-to") return { text: "Ani shows a meeting with move-to, which Ken's CONVEY names but no file of his defines.", repair: "make move-to from DISPLY's own parts" };
     if (actor === "wander-around") return { text: "A character's only part at the start of the scene is a change of feeling, so Ani planned for them to wander around, which no file of Ken's defines.", repair: null };
+    // REVIVE;MEND19: far off and off the stage, which PLACE asks for and never defines
+    if (actor === "large-distance-and-offstage") return { text: "A character with no place yet was to come on from off the stage, far from another, before they moved; Ken's PLACE asks for that place (large-distance-and-offstage) but defines only its small and medium distances.", repair: "define it as Ken's medium-distance-and-offstage is" };
     // a way of showing of the revival's knowledge (REVIVE;KNOWCV), which Ani as in 1978 doesn't have
     if (typeof actor === "string" && KNOWN && KNOWN.verbs[actor]) return { text: `Ani as in 1978 has no way to show ${esc(VERB_ING[actor] || plain(actor))}: no file of Ken's defines “${esc(plain(actor))}”.`, repair: `show it with the knowledge Ken could have added (KNOW), by ${KNOWN.verbs[actor].method}` };
     if (Array.isArray(actor) && actor[0] === "relationship-of") return { text: `The story doesn't say how ${who(actor[1])} feels about ${who(actor[2])}, and Ani asked.`, repair: "take a relationship the story doesn't give as unknown" };
@@ -2851,10 +2890,15 @@ function methodsBox(t) {
 }
 function chainOfTask(t) {
   const steps = [];
+  let below = null; // the task before, which this one is shown by
   for (let guard = 0; t && guard < 6; guard++) {
     const k = knowOfTask(t);
-    const ours = !k ? "" : k.kind === "verb" ? ` <span class="ours-tag">(the revival's way of showing it)</span>` : k.kind === "word" ? ` <span class="ours-tag">(shown as the revival's knowledge of “${esc(plain(k.word))}” says)</span>` : ` <span class="ours-tag">(the revival's ${esc(words(k.feelings.map((f) => f[0])))})</span>`;
+    // a way a word borrowed from its neighbor (REVIVE;KNOW's sharing), the one shown
+    const b = knowOn(R) && below ? borrowedFor(scene(), t.name).find((x) => x.way === show(below.description)) : null;
+    const ours = b ? ` <span class="ours-tag">(shown by the way “${esc(plain(b.word))}” borrows from its neighbor “${esc(plain(b.neighbor))}”, as the revival's knowledge has it)</span>`
+      : !k ? "" : k.kind === "verb" ? ` <span class="ours-tag">(the revival's way of showing it)</span>` : k.kind === "word" ? ` <span class="ours-tag">(shown as the revival's knowledge of “${esc(plain(k.word))}” says)</span>` : ` <span class="ours-tag">(the revival's ${esc(words(k.feelings.map((f) => f[0])))})</span>`;
     steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","} ${taskCode(t)}${ours}</span></li>`);
+    below = t;
     t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
   }
   return `<ul class="chain">${steps.join("")}</ul>`;

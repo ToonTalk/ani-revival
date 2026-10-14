@@ -56,7 +56,11 @@
 // in the scene it undoes, can be made, without "downloading" said for a model already
 // there and with its streamed JSON shown without its padding; and the claude.ai copy
 // (artifact/ani-cinderella-claude-artifact.html, built first) is under 950,000 bytes,
-// starts, and gives a model the full page's prompt and schema word for word.
+// starts, and gives a model the full page's prompt and schema word for word. And MEND's
+// two newest repairs, M18 (a scene that is one task shown by one) and M19 (far off and off
+// the stage), each said where Ani as in 1978 stops and, in a film made with it, in a
+// sentence with its code; and a word borrowing its neighbor's way of showing (CINDY's
+// is-protective-of, is-protective-to's), as the glass box records it, in a sentence.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width.
@@ -71,7 +75,7 @@ import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { storyWithoutClashes } from "../src/pipeline.js";
+import { storyWithoutClashes, makeFilm } from "../src/pipeline.js";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3)
 const REVIVAL = ["mend", "know", "appear", "change"];
@@ -113,6 +117,17 @@ const RENAMED = Object.fromEntries(WELL_FORMED.map((f) => {
   const renamed = (extensions) => { try { return storyWithoutClashes(nodeFs, text, { extensions }).text; } catch { return text; } };
   return [f, { y1978: renamed([]), revival: renamed(REVIVAL) }];
 }));
+// MEND's two newest repairs and a word borrowing its neighbor's way of showing, each made
+// here in Node as the page's worker makes it (src/pipeline.js makeFilm), for the page to
+// say in a sentence: MEND18 in test/stories/stress/only-relationship.lisp and MEND19 in
+// far-and-offstage.lisp, with MEND; and is-protective-of borrowing is-protective-to's
+// accompanying in know-protective.lisp (REVIVE;KNOW's sharing, Ken's decision 10), with
+// the switch's extensions
+const NEWER = Object.fromEntries([["only-relationship", ["mend"]], ["far-and-offstage", ["mend"]], ["know-protective", REVIVAL]].map(([name, extensions]) => {
+  const story = readFileSync(`test/stories/stress/${name}.lisp`, "utf8").replace(/\r\n/g, "\n");
+  const made = makeFilm(makeProjectFileSystem(), { description: story, keepGoing: true, extensions, frames: 1000, fps: 4 });
+  return [name, { story, extensions, choicePoints: made.choicePoints, scenes: made.scenes, repairs: made.repairs || null, appearances: made.appearances || null }];
+}));
 // the claude.ai copy, as tools/build-film-app.mjs --claude-artifact built it, and a story
 // to compare the prompts it and the full page give a model
 const ARTIFACT = "artifact/ani-cinderella-claude-artifact.html";
@@ -128,7 +143,7 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [138, 48, 5, 16, 16, 1];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode"];
 const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
 // Two pages made from app/film.html: film.check.html hands some of its functions to
 // window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
@@ -302,6 +317,35 @@ try {
   check(/Pass 1: Ani couldn't read beast's description: \(physical ugly physically-strong\) — two words need \(and \.\.\.\) around them\./.test(named(tidy.box)) && /^;warning from BEAST: \(PROCESS EACH INITIAL DESCRIPTION \(PHYSICAL UGLY PHYSICALLY-STRONG\)\) is not understood\nbreak BAD-MESSAGE$/.test(tidy.said), `where Ani stopped on it says why in plain words, with what Lisp said a click away: ${(tidy.box.match(/Pass 1:.*?them\./) || [tidy.box])[0]} | ${JSON.stringify(tidy.said)}`);
   check(tidy.generic === "Belle didn't understand a message Ani sent: “(frobnicate your widget)”.", `any other message not understood is said with who and which: ${tidy.generic}`);
   check(tidy.lit > 400 && /^WEBVTT\n\n1\n00:00:00\.000 --> 00:00:01\.000\nThe Introduction\n\n2\n00:00:01\.000 --> /.test(tidy.vtt) && /\nScene 1 · The Introduction · part 1 of \d+\n/.test(tidy.vtt), `a video's subtitles are drawn below the picture (${tidy.lit} lit dots) and written as WebVTT, timed after the title card`);
+  // MEND18, MEND19 and a borrowed way of showing, each in a sentence: where Ani as in 1978
+  // stops, and, in a film made with them (in Node, above), what the repair did, and that
+  // is-protective-of borrows is-protective-to's way of showing, as the glass box records it
+  const newer = await js(`(() => {
+    const t = window.__check;
+    const NEWER = ${JSON.stringify(NEWER)};
+    const plain = (s) => s.replace(/<[^>]+>/g, "").replace(/\\s+/g, " ").trim();
+    const said = (name) => {
+      const x = NEWER[name];
+      const run = t.makeRun({ label: "Yours", short: "Yours", cindy: x.story, scenes: x.scenes, extensions: x.extensions, choicePoints: x.choicePoints, repairs: x.repairs, appearances: x.appearances });
+      const sc = run.scenes[0];
+      return { frames: sc && sc.film ? sc.film.frames.length : 0, borrowed: JSON.stringify((sc && sc.glass && sc.glass.borrowed) || null), repairs: t.repairsIn(run, sc).map((r) => plain(r.html)), known: t.knowItems(run, sc).map((k) => plain(k.html)) };
+    };
+    const one = t.whyStopped(null, "cdr of non-list: CONVEY-TASK-1");
+    const far = t.whyStopped(null, "break NO-SUCH-ACTOR", [";warning from ASK: LARGE-DISTANCE-AND-OFFSTAGE is not an actor --- type (?) for help"]);
+    const code = (what) => { const a = document.createElement("div"); a.innerHTML = t.repairCode(what); const l = a.querySelector("a"); return l ? l.getAttribute("href") : ""; };
+    return { one, far, only: said("only-relationship"), offstage: said("far-and-offstage"), protective: said("know-protective"), codes: [code("one-task-ordering"), code("defined-constraint")] };
+  })()`);
+  check(/^The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped \(scene\.9:535-538\)\.$/.test(newer.one.text) && /^take one task as the scene's whole order of tasks/.test(newer.one.repair || "")
+    && /^A character with no place yet was to come on from off the stage, far from another, before they moved; Ken's PLACE asks for that place \(large-distance-and-offstage\) but defines only its small and medium distances\.$/.test(newer.far.text) && /^define it as Ken's medium-distance-and-offstage is$/.test(newer.far.repair || ""),
+    `where Ani as in 1978 stops on a scene that is one task shown by one, or on a place PLACE never defines, the page says why, and offers MEND18's and MEND19's repairs: ${newer.one.repair} | ${newer.far.repair}`);
+  check(newer.only.frames === 87 && newer.only.repairs.length === 1 && /^The scene's only task was to establish that the troll dominates the goat, which Ani shows by one thing the characters do: the troll pushes the goat around\. With that one task in its place, Ken's SCENE took the scene's order of tasks for a list and stopped, in Ani as in 1978 \(scene\.9:535-538\); the revival's repairs take one task as the whole order, as Ken's own reorder-task-ordering-1 already does \(scene\.9:474\)\.$/.test(newer.only.repairs[0]) && /source\.html#revive-mend18-\d+$/.test(newer.codes[0]),
+    `MEND18's note in a sentence, with its code (only-relationship, ${newer.only.frames} frames; ${newer.codes[0]}): ${newer.only.repairs[0]}`);
+  check(newer.offstage.frames === 48 && newer.offstage.repairs.length === 1 && /^The troll had no place yet, and was to come on from off the stage, far from the kid; Ken's PLACE asks for that \(large-distance-and-offstage\) but defines only its small and medium distances, so Ani as in 1978 stopped there\. The revival defined it as Ken's medium-distance-and-offstage is, and placed the troll off the stage, far from the kid\.$/.test(newer.offstage.repairs[0]) && /source\.html#revive-mend19-\d+$/.test(newer.codes[1]),
+    `MEND19's note in a sentence, with its code (far-and-offstage, ${newer.offstage.frames} frames; ${newer.codes[1]}): ${newer.offstage.repairs[0]}`);
+  check(newer.protective.frames === 35 && newer.protective.borrowed === JSON.stringify([{ task: "establish-task-1", word: "is-protective-of", neighbor: "is-protective-to", way: "(accompanys troll kid)", strength: "low", chosen: true }])
+    && newer.protective.known.some((k) => /^“is protective of” borrows “is protective to”'s way of showing it, going along with: the revival's knowledge makes them neighbors \(Ken's comment, dscrp\.17:183\)\. the revival's: CINDY's word for how the fairy godmother is to Cinderella/.test(k) && / code$/.test(k))
+    && newer.protective.repairs.length === 1 && /^The scene's only task was to establish that the troll is protective of the kid, which Ani shows by one thing the characters do: the troll accompanies the kid\./.test(newer.protective.repairs[0]),
+    `the glass box records that is-protective-of borrowed is-protective-to's way of showing, and the page says so, with its reason and code (know-protective, ${newer.protective.frames} frames): ${newer.protective.known.join(" | ")}`);
   await shot("1b-stop-sentence.png");
   await phone("1c-stop-sentence-phone.png", `document.querySelector("#side .stop-box")`);
   await open();
