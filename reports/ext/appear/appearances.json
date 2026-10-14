@@ -94,9 +94,9 @@
     "angle": 120,
     "centerOffset": "(right 30)",
     "aniSize": 0.07,
-    "hue": "orange",
+    "hue": "blue",
     "color": [
-     30,
+     240,
      0.35,
      0.45
     ]
@@ -126,12 +126,14 @@
     },
     "color-hue": {
      "choicePoint": "(choice-point-of step-mother color-hue)",
-     "value": "orange",
-     "strength": "low",
+     "value": "(not orange purple red)",
+     "strength": "medium",
      "sources": [
-      "(variety level)"
+      "(relative-choice-point-of (step-mother prince) relative-color-hue)",
+      "(relative-choice-point-of (step-mother cinderella) relative-color-hue)",
+      "(relative-choice-point-of (step-mother fairy-godmother) relative-color-hue)"
      ],
-     "drawn": "orange"
+     "drawn": "blue"
     },
     "size": {
      "choicePoint": "(choice-point-of step-mother size)",
@@ -170,7 +172,7 @@
    "experts": [
     "(considered: constraints ((shape-jaggedness high 30) (shape-complexity low 16)) offered ((polygon-expert triangle)))",
     "(chosen: shape triangle by polygon-expert from (triangle))",
-    "(colored: hue orange angle 30.0 saturation 0.35 value 0.45)"
+    "(colored: hue blue angle 240.0 saturation 0.35 value 0.45)"
    ]
   },
   {
@@ -180,9 +182,9 @@
     "angle": 135,
     "centerOffset": null,
     "aniSize": 0.05,
-    "hue": "purple",
+    "hue": "orange",
     "color": [
-     270,
+     30,
      0.65,
      0.85
     ]
@@ -212,13 +214,14 @@
     },
     "color-hue": {
      "choicePoint": "(choice-point-of fairy-godmother color-hue)",
-     "value": "purple",
+     "value": "orange",
      "strength": "medium",
      "sources": [
-      "magical",
-      "(variety level)"
+      "(variety level)",
+      "(relative-choice-point-of (fairy-godmother cinderella) relative-color-hue)",
+      "(relative-choice-point-of (fairy-godmother prince) relative-color-hue)"
      ],
-     "drawn": "purple"
+     "drawn": "orange"
     },
     "size": {
      "choicePoint": "(choice-point-of fairy-godmother size)",
@@ -255,7 +258,7 @@
    "experts": [
     "(considered: constraints ((shape-jaggedness (not low) 24) (shape-complexity high 21)) offered ((star-expert eight-pointed-star) (star-expert ten-pointed-star)))",
     "(chosen: shape eight-pointed-star by star-expert from (eight-pointed-star ten-pointed-star))",
-    "(colored: hue purple angle 270.0 saturation 0.65 value 0.85)"
+    "(colored: hue orange angle 30.0 saturation 0.65 value 0.85)"
    ]
   },
   {
@@ -297,8 +300,9 @@
     "color-hue": {
      "choicePoint": "(choice-point-of prince color-hue)",
      "value": "red",
-     "strength": "low",
+     "strength": "medium",
      "sources": [
+      "(relative-choice-point-of (prince cinderella) relative-color-hue)",
       "(variety level)"
      ],
      "drawn": "red"
@@ -521,6 +525,24 @@
   },
   {
    "kind": "comparison",
+   "source": "(uniqueness-summary: physical hue)",
+   "element": [
+    "relative-color-hue"
+   ],
+   "value": "different-from",
+   "strength": "level",
+   "evidence": [
+    {
+     "thesis": 94,
+     "text": "the finding that a character is unique suggests that that character move (or appear) differently from the others"
+    },
+    {
+     "why": "Ken's rule applied by the revival to a hue, as he decided on 14 October 2026 (go with the uniqueness rule for hues): a character unique in its looks is drawn in a hue none of the others it differs from has, where the film's variety would otherwise take hues by their order alone"
+    }
+   ]
+  },
+  {
+   "kind": "comparison",
    "source": "look-alike:",
    "element": [
     "relative-shape-jaggedness",
@@ -659,7 +681,7 @@
    "value": "(yellow orange red purple blue green)",
    "strength": "low",
    "evidence": {
-    "why": "where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top. Read from red, as a wheel usually is, the list gave Ken's Cinderella, stepmother and Prince his own 1978 green, red and yellow, so under his decision 4 it is read from yellow, which gives back none of his hues. Which order, or another source of hues, is for Ken to decide"
+    "why": "where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top. It is read from yellow, not from red as a wheel usually is, because read from red the variety alone gave Ken's Cinderella, stepmother and Prince his own 1978 green, red and yellow (his decision 4). Since his decision 11 his uniqueness rule keeps characters apart in hue, and this order decides only among the hues the rule leaves"
    }
   }
  ],

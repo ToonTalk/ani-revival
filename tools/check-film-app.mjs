@@ -70,11 +70,14 @@
 // Kept Apart; the caption says so, with its note only in TV mode, and says where a look
 // change shows nothing (Justice); "Ani changes how they look" is said only for a change
 // of shape or size; a shape changing into another is cut at the picture's edges; and a
-// video paints the colors, its subtitles to match. And the review of stage 5: the hue's
-// sentence says what decided it (no one had a hue yet, so the revival's list of hues; or
-// how often each had been used), the order of the hues is in "Where the reasons for her
-// colors come from" as the revival's, the fairy godmother's purple is said from Ani's
-// record of its compromise with the film's variety's orange, the glass box says where a
+// video paints the colors, its subtitles to match. And the review of stage 5, with Ken's
+// decision 11 (his uniqueness rule for hues): the hue's sentence says what decided it
+// (no one had a hue yet, so the revival's list of hues; or which others it keeps the
+// character apart from, by Ken's rule applied by the revival, and what the film's
+// variety took of the hues left), the order of the hues and the rule are in "Where the
+// reasons for her colors come from", the order as the revival's, the fairy godmother's
+// orange (Ken's own 1978 hue for her) is said with magical's purple set aside, the glass
+// box says where a
 // change was cut short by the scene's end (the Meeting at 4 frames a second) and where the
 // screen draws a color lighter than Ani chose it (a dark one under 3:1 against black,
 // lifted in the same hue, dark kept darker than medium; Cinderella's four as she chose
@@ -1137,7 +1140,7 @@ try {
   const castOk = (x) => /Cinderella: star in 1978, hexagon in yours \[5 points, 6 points\]/.test(x.legend) && /The stepmother: square in 1978, triangle in yours \[4 points, 3 points\]/.test(x.legend)
     && /The fairy godmother: circle in 1978, eight-pointed star in yours \[circle, 8 points\]/.test(x.legend) && /The Prince: triangle in 1978, circle in yours \[3 points, circle\]/.test(x.legend);
   check(castOk(drew), `the screens' legend and icons are Ani's looks beside Ken's: ${drew.legend}`);
-  check(/Cinderella: a small hexagon in a dull purple \(in 1978, a green star\)/.test(drew.drawn) && /The stepmother: a large triangle in a dark, dull orange \(in 1978, a red square\)/.test(drew.drawn) && /The fairy godmother: an eight-pointed star in a bright purple \(in 1978, an orange circle\)/.test(drew.drawn) && /The Prince: a large circle in a bright, clear red \(in 1978, a yellow triangle\)/.test(drew.drawn), `"How Ani drew them", in Ani's colors: ${drew.drawn}`);
+  check(/Cinderella: a small hexagon in a dull purple \(in 1978, a green star\)/.test(drew.drawn) && /The stepmother: a large triangle in a dark, dull blue \(in 1978, a red square\)/.test(drew.drawn) && /The fairy godmother: an eight-pointed star in a bright orange \(in 1978, an orange circle\)/.test(drew.drawn) && /The Prince: a large circle in a bright, clear red \(in 1978, a yellow triangle\)/.test(drew.drawn), `"How Ani drew them", in Ani's colors: ${drew.drawn}`);
   await js(`(() => { document.querySelector("#scenes button").click(); const s = document.getElementById("scrub"); s.value = 12; s.dispatchEvent(new Event("input")); })()`);
   await sleep(200);
   await shot("7-cinderella-with-looks.png");
@@ -1155,10 +1158,10 @@ try {
   }`);
   check(how.found && how.closed && /^How she looks\s+Ani made her a small hexagon: small because she is shy and the film isn't to be flashy; smooth because she is friendly and graceful; moderately complex, from suggestions Ani combined\./.test(how.text), `her glass box has "How she looks", closed, with a sentence from Ani's reasons: ${(how.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
   const howText = how.text || "", howBox = how.box || "";
-  check(/\nAni colored her a dull purple: neither bright nor dark, a compromise between bright, because she is good \(the opposite of evil\), and dark, because the film isn't to be flashy; dull because she is shabby and the film isn't to be flashy \(clear, for “beautiful”, set aside as not compatible with the others\); purple, since nothing suggests a hue for her and no one had a hue yet: the film's medium variety takes the middle one of the revival's list of hues/.test(howText),
+  check(/\nAni colored her a dull purple: neither bright nor dark, a compromise between bright, because she is good \(the opposite of evil\), and dark, because the film isn't to be flashy; dull because she is shabby and the film isn't to be flashy \(clear, for “beautiful”, set aside as not compatible with the others\); purple, since nothing suggests a hue for her and no one had a hue yet: the film's medium variety takes the middle one of the revival's list of hues.{0,8}; and by the same rule the stepmother, the fairy godmother and the Prince are each drawn in another hue than her\./.test(howText),
     `and a sentence for her colors, with Ani's reasons, her compromise, what she set aside, and what decided her hue: ${(howText.match(/Ani colored her[^\n]*/) || [""])[0]}`);
   check(/“evil” suggests dark, and so its opposite “good” bright\. Ken's: .?bad guys wear black.? \(thesis, p\. 161\)/.test(howText) && /The film's flashiness reaches brightness and clarity\. Ken's code: .?color is many and bright is flashier.? \(glosug\.41:40\)/.test(howText) && /“shabby” suggests dull\. the revival's: a shabby character's clothes are faded/.test(howText) && /“beautiful” suggests clear\. the revival's: /.test(howText)
-    && /The order of the hues: yellow, orange, red, purple, blue and green\. the revival's: where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top\. Read from red, .*decision 4.*Which order, or another source of hues, is for Ken to decide/.test(howText),
+    && /The order of the hues: yellow, orange, red, purple, blue and green\. the revival's: where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top\. .*decision 4.*decision 11.*the hues the rule leaves/.test(howText),
     "where each reason for her colors comes from, Ken's knowledge quoted and the revival's marked as the revival's, the order of the hues among it");
   check(/In part 1, to show that Cinderella is a little happy, Ani brightens her colors, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\): a look change.*by the same amount at the same speed; only color mode shows it\.\s*Ken's, .?a suggestion for how to establish that a character is very happy is that the intensity of the colors of the character be increased.? \(thesis, p\. 166\); the revival's: a less happy character brightens less/.test(howText),
     `and, in the Introduction, her look change, with Ken's evidence and the revival's reason: ${(howText.match(/In part \d+, to show[^\n]*/) || [""])[0].slice(0, 160)}`);
@@ -1176,7 +1179,11 @@ try {
     d.scrollIntoView({ block: "start" });
     return { found: true, text: d.innerText, box: d.querySelector("#look-box").innerText };
   }`);
-  check(/\nAni colored her a dark, dull orange: dark because she is evil and is to be different in brightness from Cinderella and the fairy godmother; dull because she is ugly \(the opposite of beautiful\) and the film isn't to be flashy; orange, since nothing suggests a hue for her: the film's medium variety takes the middle one of the hues ordered by how often each had been used so far, most first \(purple twice and red once, the others not yet\), hues used as often in the order of the revival's list/.test(step.text || ""), `the stepmother's colors, with Ani's reasons, and what the film's variety picked her hue from: ${((step.text || "").match(/Ani colored her[^\n]*/) || [""])[0]}`);
+  // her hue, by Ken's uniqueness rule for hues (his decision 11): any but the others'
+  check(/\nAni colored her a dark, dull blue: dark because she is evil and is to be different in brightness from Cinderella and the fairy godmother; dull because she is ugly \(the opposite of beautiful\) and the film isn't to be flashy; any hue but orange, purple and red: she is to look different from the Prince \(red\), Cinderella \(purple\) and the fairy godmother \(orange\), by Ken's rule that a unique character should “move \(or appear\) differently” \(thesis p\. 94\), which the revival applies to hue as he decided; drawn blue, as the film's medium variety takes the middle one of the hues left, yellow, blue and green, in the order of the revival's list/.test(step.text || "")
+    && /A character unique in its looks is to look different from the others, in its hue too\. Ken's: .?the finding that a character is unique suggests that that character move \(or appear\) differently from the others.? \(thesis, p\. 94\); the revival's: Ken's rule applied by the revival to a hue/.test(step.text || "")
+    && /On the black screen a dark, dull blue would be hard to see \(2\.55:1 against black\), so the page draws her lighter, in the same hue, at 3:1\./.test(step.text || ""),
+    `the stepmother's colors, with Ani's reasons: her hue kept apart from the others' by Ken's rule, applied by the revival, and drawn lighter on the black screen: ${((step.text || "").match(/Ani colored her[^\n]*/) || [""])[0]}`);
   check(step.found && /^How she looks\s+Ani made her a large triangle: large because she is strong and is to be larger than Cinderella/.test(step.text || "") && /strong friendly ally.{0,3}\s*\(thesis, p\. 238\)/.test(step.box || "") && /In 1978 Ken drew her himself as a large red square/.test(step.text || ""), `the stepmother's "How she looks": ${(step.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
   await shot("8b-how-the-stepmother-looks.png");
   const kens = await clickOn("fig-0", "Cinderella", `() => ({ found: true, looks: !!document.querySelector("#side details.looks") })`);
@@ -1330,30 +1337,34 @@ try {
     const body = (c, i) => { const d = document.createElement("div"); d.innerHTML = t.atScene(i, () => t.using(run, () => t.looksBody(run, c, "x", run.scenes[i]))); return d.innerText.replace(/\\s+/g, " "); };
     return { fairy: body("fairy-godmother", 0), kept: body("cinderella", 1), meeting: body("cinderella", 3), justice: body("step-mother", 4) };
   })()`);
-  check(/Ani colored her a bright purple: bright because she is good and kind \(both opposites of evil\) and is to be different in brightness from Cinderella; neither clear nor dull, a compromise between dull, because the film isn't to be flashy \(and for the film's variety\), and clear, because she is pretty; purple because she is magical \(orange, for the film's variety, two steps away on the wheel, gave way: the film's originality is low, so Ani takes the more strongly suggested/.test(glassColors.fairy),
-    `the fairy godmother's purple, said from Ani's record of its compromise with the film's variety's orange: ${(glassColors.fairy.match(/Ani colored her[^.]*\.[^.]*\./) || [""])[0]}`);
+  check(/Ani colored her a bright orange: bright because she is good and kind \(both opposites of evil\) and is to be different in brightness from Cinderella; neither clear nor dull, a compromise between dull, because the film isn't to be flashy \(and for the film's variety\), and clear, because she is pretty; orange: she is to look different from Cinderella \(purple\) and the Prince \(red\), by Ken's rule that a unique character should “move \(or appear\) differently” \(thesis p\. 94\), which the revival applies to hue as he decided, so any hue but purple and red; of those, the film's variety took orange: its medium variety takes the middle one of the hues ordered by how often each had been used so far, most first \(red once and purple once, the others not yet\)/.test(glassColors.fairy)
+    && /\(purple, for “magical” \(one of the hues ruled out, so the two conflict\), set aside as much less strongly suggested than any hue but red and purple\)/.test(glassColors.fairy),
+    `the fairy godmother's orange, Ken's own 1978 hue for her, by his uniqueness rule (magical's purple set aside, as Cinderella's) and the film's variety in the revival's order: ${(glassColors.fairy.match(/orange: she is to look[^)]*\)[^)]*\)/) || [""])[0]}`);
   check(/In part 3, to show that Cinderella is very unhappy, Ani dims her colors, from a brightness of \.65 to \.45 \(1 is the screen's brightest\); on the black screen the page draws her a little lighter than \.45, so that she can still be seen: a look change/.test(glassColors.kept)
     && /In part 7, to show that Cinderella is very happy, Ani brightens her colors, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\), and the scene ends before she is as bright as Ani planned \(\.975\): a look change/.test(glassColors.meeting)
     && /In part 1, to show that the stepmother is very unhappy, Ani would dim her colors, but she is as dark as Ani draws anyone already: a look change/.test(glassColors.justice) && !/On the black screen/.test(glassColors.kept),
     `the glass box says where a look change is cut short and where the screen draws a color lighter: ${(glassColors.meeting.match(/In part 7, to show[^:]*/) || [""])[0]} | ${(glassColors.kept.match(/In part 3, to show[^:]*/) || [""])[0]}`);
   // Ani's colors as drawn: on the black screen, at least 3:1 at her darkest and a little
   // more the brighter she made it, so a dark blue, a medium one and a bright one are lifted
-  // and stay in that order; Cinderella's four as she chose them; on the light theme's
+  // and stay in that order; Cinderella's, the fairy godmother's and the Prince's as Ani
+  // chose them, the stepmother's dark, dull blue lifted in its hue; on the light theme's
   // white, an icon in a bright yellow toned to 3:1
   const drawnColors = await js(`(() => {
     const t = window.__check;
     const light = (style) => (style.match(/--ani-light:rgb\\((\\d+),(\\d+),(\\d+)\\)/) || []).slice(1).map(Number);
-    return { blues: [0.45, 0.65, 0.85].map((v) => t.screenRgb([240, 1, v])), lifted: [[240, 1, 0.45], [270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.lifted(c)),
-      cinderella: [[270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.screenRgb(c)), yellow: light(t.inkStyle([60, 1, 0.85])) };
+    return { blues: [0.45, 0.65, 0.85].map((v) => t.screenRgb([240, 1, v])), lifted: [[240, 1, 0.45], [270, 0.35, 0.65], [240, 0.35, 0.45], [30, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.lifted(c)),
+      cinderella: [[270, 0.35, 0.65], [30, 0.65, 0.85], [0, 1, 0.85]].map((c) => t.screenRgb(c)), stepmother: t.screenRgb([240, 0.35, 0.45]), yellow: light(t.inkStyle([60, 1, 0.85])) };
   })()`);
   const lin = (c) => { c /= 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
   const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
   const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lum(b)) + 0.05);
   const hsv = ([h, s, v]) => [5, 3, 1].map((n) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); });
   const onBlack = drawnColors.blues.map((c) => ratio(c, [0, 0, 0]));
-  check(onBlack[0] >= 3 && onBlack[1] >= 3.4 && onBlack[2] >= 3.8 && onBlack[0] < onBlack[1] && onBlack[1] < onBlack[2] && drawnColors.lifted.join() === "true,false,false,false,false"
-    && drawnColors.cinderella.every((c, k) => c.join() === hsv([[270, 0.35, 0.65], [30, 0.35, 0.45], [270, 0.65, 0.85], [0, 1, 0.85]][k]).join()) && ratio(drawnColors.yellow, [255, 255, 255]) >= 3,
-    `a dark, a medium and a bright clear blue are drawn at ${onBlack.map((x) => x.toFixed(2)).join(", ")} to 1 against the black screen, in that order; Cinderella's four are drawn as Ani chose them; a bright yellow icon is ${ratio(drawnColors.yellow, [255, 255, 255]).toFixed(2)} to 1 on the light theme's white`);
+  const sm = drawnColors.stepmother;
+  check(onBlack[0] >= 3 && onBlack[1] >= 3.4 && onBlack[2] >= 3.8 && onBlack[0] < onBlack[1] && onBlack[1] < onBlack[2] && drawnColors.lifted.join() === "true,false,true,false,false"
+    && drawnColors.cinderella.every((c, k) => c.join() === hsv([[270, 0.35, 0.65], [30, 0.65, 0.85], [0, 1, 0.85]][k]).join())
+    && ratio(sm, [0, 0, 0]) >= 3 && ratio(sm, [0, 0, 0]) < 3.2 && sm[2] > sm[0] && Math.abs(sm[0] - sm[1]) <= 1 && ratio(drawnColors.yellow, [255, 255, 255]) >= 3,
+    `a dark, a medium and a bright clear blue are drawn at ${onBlack.map((x) => x.toFixed(2)).join(", ")} to 1 against the black screen, in that order; Cinderella's, the fairy godmother's and the Prince's as Ani chose them, the stepmother's dark, dull blue lifted to ${sm.join(", ")} (${ratio(sm, [0, 0, 0]).toFixed(2)} to 1); a bright yellow icon is ${ratio(drawnColors.yellow, [255, 255, 255]).toFixed(2)} to 1 on the light theme's white`);
   // the reviewer's story of six: "How he looks" for each, the Prince's too, whose shape the
   // experts found after relaxing every constraint, and "How Ani drew them"
   const six = await js(`(() => {
@@ -1375,7 +1386,7 @@ try {
     const t = window.__check;
     const repairs = [{ actor: "(choice-point-of cinderella color-hue)", note: "(revival-repair: what read-as-color was none now grey because (given up so no hue))" },
       { actor: "(choice-point-of cinderella color-intensity)", note: "(revival-repair: what read-as-number was (not high) now 0.65 because (narrowed-to medium (variety level) medium (counts (0 low) (0 medium)) (middle-element ken1 reconstruction)))" },
-      { actor: "(choice-point-of prince color-hue)", note: "(revival-repair: what read-as-color was (not purple) now grey because (not one hue))" },
+      { actor: "(choice-point-of prince color-hue)", note: "(revival-repair: what read-as-color was (not purple red) now blue because (narrowed-to blue (variety level) medium (counts (0 yellow) (0 orange) (0 blue) (0 green)) (middle-element ken1 reconstruction)))" },
       { actor: "establish-task-7", note: "(revival-repair: what look-change-alone was (look-change: element (cinderella color-intensity) amount (negative high) speed high) now left-out because (no change of how it moves by the same amount at the same speed))" }];
     const run = t.makeRun({ label: "Yours", short: "Yours", cindy: t.DATA.cindy, extensions: ["appear"], repairs });
     const code = (what) => { const a = document.createElement("div"); a.innerHTML = t.repairCode(what); const l = a.querySelector("a"); return l ? l.getAttribute("href") : ""; };
@@ -1383,10 +1394,10 @@ try {
   })()`);
   check(colorNotes.said[0] === "Ani gave up on Cinderella's hue, so there was no hue to draw her in; the revival's repairs draw her grey, a color with no hue, at the brightness Ani chose."
     && /^Ani chose Cinderella's brightness “not bright”, and her table of brightnesses has a number only for dark, neither bright nor dark and bright; the revival's repairs narrowed it to neither bright nor dark \(0\.65\), the one of the two left that the film's medium variety picks/.test(colorNotes.said[1] || "")
-    && colorNotes.said[2] === "Ani chose the Prince's hue “not purple”, which is no one hue, so there was no hue to draw him in; the revival's repairs draw him grey, a color with no hue, at the brightness Ani chose."
+    && colorNotes.said[2] === "Ani chose the Prince's hue as any hue but purple and red, to keep him apart from the others in hue (Ken's rule, p. 94, applied by the revival), and drew him blue, the one of the hues left that the film's medium variety picks, as for a size chosen as “not large”."
     && /^Ani was to dim Cinderella's colors beside her changes of how she moves by the same amount at the same speed, but those changes were all set aside \(Ken's CHOMET makes neither of two changes of different signs\); alone, the look change would decide how long the part runs, where it is only to go along with them, so the revival leaves it out\.$/.test(colorNotes.said[3] || "")
     && /source\.html#revive-colors-\d+$/.test(colorNotes.codes[0]) && /source\.html#revive-appear-\d+$/.test(colorNotes.codes[1]) && /source\.html#revive-alter-\d+$/.test(colorNotes.codes[2]),
-    `a hue given up on, a brightness narrowed, a hue that is no one hue and a look change left alone, each in a sentence with its code (${colorNotes.codes.join(", ")}): ${colorNotes.said.join(" | ")}`);
+    `a hue given up on, a brightness narrowed, a hue chosen as any hue but some and a look change left alone, each in a sentence with its code (${colorNotes.codes.join(", ")}): ${colorNotes.said.join(" | ")}`);
   // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
   await open();
   await sleep(1500);

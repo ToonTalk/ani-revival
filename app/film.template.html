@@ -1391,7 +1391,16 @@ function repairSentence({ actor, what, notes }, sc) {
     }
     // REVIVE;COLORS' color-character: a hue Ani gave up on, or one that is no one hue,
     // drawn grey
-    case "read-as-color": return `${was === "none" ? `Ani gave up on ${cp}` : `Ani chose ${cp} ${quoted(was)}, which is no one hue`}, so there was no hue to draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} in; the revival's repairs draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} grey, a color with no hue, at the brightness Ani chose.`;
+    case "read-as-color": {
+      const her = CHARS[a[1]] ? CHARS[a[1]].her : "them";
+      // a hue chosen as any hue but those of the others it is to differ from, drawn as one
+      // of the hues left, picked by the film's variety (REVIVE;COLORS narrowed-hue)
+      if (Array.isArray(because) && because[0] === "narrowed-to") {
+        const level = typeof because[3] === "string" ? `${esc(because[3])} ` : "";
+        return `Ani chose ${cp} as ${esc(lookValue("color-hue", was))}, to keep ${her} apart from the others in hue (Ken's rule, p. 94, applied by the revival), and drew ${her} ${esc(plain(now))}, the one of the hues left that the film's ${level}variety picks, as for a size chosen as “not large”.`;
+      }
+      return `${was === "none" ? `Ani gave up on ${cp}` : `Ani chose ${cp} as ${esc(lookValue("color-hue", was))}, which leaves no hue`}, so there was no hue to draw ${her} in; the revival's repairs draw ${her} grey, a color with no hue, at the brightness Ani chose.`;
+    }
     // REVIVE;ALTER: a look change left with none of the changes of how its character moves
     // that it was to go with, left out
     case "look-change-alone": {
@@ -1698,6 +1707,8 @@ const lispValue = (v) => (typeof v === "string" && v.startsWith("(") ? parse(v) 
 function lookValue(el, v) {
   const x = lispValue(v);
   const w = LOOK_VALUE[el] || {};
+  // a hue chosen as any hue but those of the others it is to differ from (REVIVE;COLORS)
+  if (el === "color-hue" && Array.isArray(x) && x[0] === "not") return x.length > 1 ? `any hue but ${words(x.slice(1).map(plain))}` : "any hue";
   if (Array.isArray(x) && x[0] === "not") return `not ${w[x[1]] || plain(x[1])}`;
   // a relative suggestion's value, (different-from high): another than large, and so on
   const rel = { "different-from": "other than", "greater-than": "more than", "less-than": "less than", "same-as": "the same as" };
@@ -1818,6 +1829,7 @@ const REL_WORDS = {
   "relative-shape-jaggedness": { "greater-than": "more jagged than", "less-than": "smoother than", "different-from": "different in outline from", "same-as": "the same in outline as" },
   "relative-shape-complexity": { "greater-than": "more complex than", "less-than": "simpler than", "different-from": "different in complexity from", "same-as": "the same in complexity as" },
   "relative-color-intensity": { "greater-than": "brighter than", "less-than": "darker than", "different-from": "different in brightness from", "same-as": "as bright as" },
+  "relative-color-hue": { "different-from": "a different hue from", "same-as": "the same hue as" },
 };
 const relWords = (s) => (REL_WORDS[s.element] || {})[s.relation] || `${plain(show(s.relation))} ${plain(s.element)}`;
 const FILM_WORDS = {
@@ -1997,8 +2009,12 @@ function colorPart(run, c, el) {
   // a hue compromise merged into it
   const won = cp && (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), chosen));
   const record = el === "color-hue" && won ? lispList(kv(won, "compromises")).filter(Array.isArray).pop() : null;
+  // the others a hue keeps her apart from, by Ken's uniqueness rule applied to hue (his
+  // decision 11), and what that left the film's variety, or a word, to choose from
+  const apart = el === "color-hue" ? hueApart(run, c, e) : [];
   let text;
-  if (record) text = hueCompromiseText(run, c, word, why, record, side);
+  if (apart.length) text = hueApartText(run, c, e, word, why, apart, won);
+  else if (record) text = hueCompromiseText(run, c, word, why, record, side);
   else if (why) text = `${word} because ${why}`;
   else if (comp) {
     const [a, b] = lispList(kv(comp, "offenders")).map((sg) => side(kv(sg, "value"), kv(sg, "source")));
@@ -2006,8 +2022,12 @@ function colorPart(run, c, el) {
   } else if (el === "color-hue" && (e.sources || []).length && (e.sources || []).every((src) => src === "(variety level)")) {
     text = `${word}, since nothing suggests a hue for ${k.her}${varietyHueText(run, won)}`;
   } else text = (e.sources || []).length ? `${word}, from suggestions Ani combined` : `${word} (nothing suggested a value)`;
-  // a (not X) is drawn as one of the two values left (REVIVE;APPEAR appearance-number)
-  if (e.drawn && !sameValue(e.drawn, e.value)) text += `, drawn ${esc(lookValue(el, e.drawn))}`;
+  // a (not X) is drawn as one of the two values left (REVIVE;APPEAR appearance-number);
+  // a hue's (not ...), as one of the hues left (REVIVE;COLORS narrowed-hue), as said
+  if (e.drawn && !sameValue(e.drawn, e.value) && !(el === "color-hue" && apart.length)) text += `, drawn ${esc(lookValue(el, e.drawn))}`;
+  // and who is kept apart from her in hue by the same rule (said after what was set aside)
+  const kept = el === "color-hue" ? run.cast.filter((o) => o !== c && run.appearances.get(o) && hueApart(run, o, run.appearances.get(o).elements["color-hue"] || {}).some((a) => a.other === c)) : [];
+  const keptText = kept.length ? `; and by the same rule ${who(kept)} ${kept.length > 1 ? "are each" : "is"} drawn in another hue than ${k.her}` : "";
   // what was set aside, by value, each with its sources: "clear, for “beautiful”, set aside
   // as not compatible with the others"; a value from a comparison as what it rules out
   // ("not dark, to be different in brightness from the owl"); the winner named
@@ -2019,7 +2039,8 @@ function colorPart(run, c, el) {
     const winner = fight && lispList(kv(fight, "offenders")).find((o) => show(o) !== show(sg));
     let reason = rejectText(kv(r, "reason"));
     if (winner && / than another$/.test(reason)) reason = reason.replace(/ than another$/, ` than ${esc(lookValue(el, kv(winner, "value")))}`);
-    const wheel = fight && ["adjacent-hues", "complementary"].includes(kv(fight, "type")) ? ` (${esc(plain(show(v)))} is ${kv(fight, "type") === "complementary" ? "opposite" : "a step from"} ${esc(plain(show(winner ? kv(winner, "value") : chosen)))} on the wheel, so the two conflict)` : "";
+    const wheel = fight && ["adjacent-hues", "complementary"].includes(kv(fight, "type")) ? ` (${esc(plain(show(v)))} is ${kv(fight, "type") === "complementary" ? "opposite" : "a step from"} ${esc(plain(show(winner ? kv(winner, "value") : chosen)))} on the wheel, so the two conflict)`
+      : fight && kv(fight, "type") === "thing-and-not-thing" ? ` (one of the hues ruled out, so the two conflict)` : "";
     const rel = relativeAside(c, el, v, src);
     const key = `${rel || show(v)}|${reason}|${wheel}`;
     if (!groups.has(key)) groups.set(key, { value: v, rel, reason, wheel, sources: [] });
@@ -2033,7 +2054,7 @@ function colorPart(run, c, el) {
   }
   const several = (xs) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")}, and ${xs[xs.length - 1]}` : xs[0]);
   const reasons = [...byReason].map(([why_, ws]) => `${several(ws)}, set aside as ${why_}`);
-  return `${text}${reasons.length ? ` (${reasons.join("; ")})` : ""}`;
+  return `${text}${reasons.length ? ` (${reasons.join("; ")})` : ""}${keptText}`;
 }
 // A compromise between two hues two steps apart, from Ani's record of it (REVIVE;COLORS
 // hue-compromise): (compromised: hues (h1 h2) sources (s1 s2) to h because b), b
@@ -2060,15 +2081,71 @@ function hueCompromiseText(run, c, word, why, rec, side) {
 // colors come from").
 function varietyHueText(run, won) {
   const counts = lispList(won ? kv(won, "counts") : null).filter(Array.isArray);
+  if (!counts.length) return `: the film's variety picks one, by how often each hue has been used so far, and among those used as often, by the revival's list of hues ${codeLink("glosug.41", 61)}`;
+  const n = counts.map((x) => Number(x[0]));
+  if (n.every((m) => m === n[0])) return ` and ${n[0] ? "every hue had been used as often" : "no one had a hue yet"}: ${varietyClause(run, counts)}`;
+  return `: ${varietyClause(run, counts)}`;
+}
+// What the film's variety does with the counts it picked from: "the film's medium variety
+// takes the middle one of the hues ordered by how often each had been used so far, most
+// first (purple once, the others not yet), hues used as often in the order of the
+// revival's list"; or, where all were used as often, "takes the middle one of the
+// revival's list of hues" (of those left, if left).
+function varietyClause(run, counts, left = false) {
   const level = run.story.levels.variety || "medium";
   const link = codeLink("glosug.41", 61);
   const which = level === "medium" ? "the middle one" : "the first";
-  if (!counts.length) return `: the film's variety picks one, by how often each hue has been used so far, and among those used as often, by the revival's list of hues ${link}`;
   const n = counts.map((x) => Number(x[0]));
-  if (n.every((m) => m === n[0])) return ` and ${n[0] ? "every hue had been used as often" : "no one had a hue yet"}: the film's ${esc(level)} variety takes ${which} of the revival's list of hues ${link}`;
+  if (n.every((m) => m === n[0])) return `the film's ${esc(level)} variety takes ${which} of ${left ? `the hues left, ${esc(words(counts.map((x) => plain(x[1]))))}, in the order of the revival's list` : "the revival's list of hues"} ${link}`;
   const times = (m) => (m === 1 ? "once" : m === 2 ? "twice" : `${NUMBER_WORDS[m] || m} times`);
   const used = counts.filter((x) => Number(x[0]) > 0).sort((x, y) => Number(y[0]) - Number(x[0])).map((x) => `${esc(plain(x[1]))} ${times(Number(x[0]))}`);
-  return `: the film's ${esc(level)} variety takes ${which} of the hues ordered by how often each had been used so far, ${level === "low" ? "least" : "most"} first (${words(used)}, the others not yet), hues used as often in the order of the revival's list ${link}`;
+  return `the film's ${esc(level)} variety takes ${which} of the hues${left ? " left" : ""} ordered by how often each had been used so far, ${level === "low" ? "least" : "most"} first (${words(used)}, the others not yet), hues used as often in the order of the revival's list ${link}`;
+}
+// Ken's rule, for a hue: a unique character should "move (or appear) differently" (p. 94),
+// which the revival applies to a hue, as Ken decided on 14 October 2026 (PLAN.md,
+// "Decisions" 11).
+const HUE_RULE = "by Ken's rule that a unique character should “move (or appear) differently” (thesis p. 94), which the revival applies to hue as he decided";
+// The others a character's hue keeps it apart from: the relative choice points among the
+// sources of the suggestion that won ((relative-choice-point-of (prince cinderella)
+// relative-color-hue), different-from), each other character with the hue Ani had chosen
+// for it then, or null where that was still any hue but some (a (not ...)), which kept
+// nothing apart then (REVIVE;COLORS hue-absolute; the hue it is drawn in is kept apart
+// from when it is drawn, narrowed-hue).
+function hueApart(run, c, e) {
+  const out = [];
+  for (const src of (e && e.sources) || []) {
+    const s = lookSource(run, c, "color-hue", src);
+    if (s.kind !== "relative" || s.relation !== "different-from") continue;
+    const v = lispValue(s.otherValue);
+    out.push({ other: s.other, hue: typeof v === "string" && HUES.includes(v) ? v : null });
+  }
+  return out;
+}
+// A hue that keeps a character apart from others: "red: he is to look different from
+// Cinderella (purple), by Ken's rule ..., so any hue but purple; of those, the film's
+// medium variety took red: it takes ..."; or, a hue chosen as any hue but those, drawn as
+// one of the hues left (REVIVE;COLORS' note, narrowed-to).
+function hueApartText(run, c, e, word, why, apart, won) {
+  const k = meet(run.story, c);
+  const ruled = [...new Set(apart.map((a) => a.hue).filter(Boolean))];
+  const open = apart.filter((a) => !a.hue).map((a) => a.other);
+  const keep = `${k.she} ${agree(k, "is", "are")} to look different from ${words(apart.map((a) => `${who(a.other)}${a.hue ? ` (${esc(a.hue)})` : ""}`))}${open.length ? ` (${open.length > 1 ? "whose hues were" : "whose hue was"} still open then)` : ""}, ${HUE_RULE}`;
+  const chosen = lispValue(e.value);
+  if (Array.isArray(chosen)) {
+    // narrowed in coloring, from the hues left (REVIVE;COLORS narrowed-hue's note)
+    const cp = cpNamed(run, ["choice-point-of", c, "color-hue"]);
+    const note = cp && (cp.memory || []).find((m) => m[0] === "revival-repair:" && kv(m, "what") === "read-as-color");
+    const because = note ? lispList(kv(note, "because")) : [];
+    const counts = because[0] === "narrowed-to" ? lispList(because.find((x) => Array.isArray(x) && x[0] === "counts")).slice(1).filter(Array.isArray) : [];
+    // the open ones already drawn by then, whose hues the hues left leave out
+    const left = counts.map((x) => x[1]), out = chosen.slice(1);
+    const drawnBy = open.map((o) => [o, run.appearances.get(o) && run.appearances.get(o).look.hue]).filter(([, h]) => h && !left.includes(h) && !out.includes(h));
+    return `${word}: ${keep}; drawn ${esc(plain(e.drawn || "?"))}${drawnBy.length ? `, not ${words(drawnBy.map(([o, h]) => `${who(o)}'s ${esc(h)}`))}, drawn by then` : ""}${counts.length ? `, as ${varietyClause(run, counts, true)}` : ""}`;
+  }
+  const counts = lispList(won ? kv(won, "counts") : null).filter(Array.isArray);
+  if (why) return `${word} because ${why}, and ${keep}, which ${esc(plain(chosen))} is`;
+  const variety = (e.sources || []).includes("(variety level)");
+  return `${word}: ${keep}, so ${ruled.length ? `any hue but ${esc(words(ruled))}` : "any hue"}${variety ? `; of those, the film's variety took ${esc(plain(chosen))}${counts.length ? `: ${varietyClause(run, counts).replace(/^the film's (\w+) variety /, "its $1 variety ")}` : ""}` : ""}`;
 }
 // A suggestion from a comparison, set aside, as what it rules out and why: (different-from
 // low) from how she compares with the owl, "not dark, to be different in brightness from
@@ -2114,6 +2191,8 @@ function colorKnowledge(run, c) {
       // takes the hues in, the revival's (REVIVE;COLORS :hue-order-knowledge)
       const row = word ? knowFor(run, "descriptor", word, el)
         : Array.isArray(x) && x[1] === "level" ? knowFor(run, "film", show(x), el) || (x[0] === "variety" && knowFor(run, "order", show(x), el)) || null
+        // Ken's uniqueness rule, which the revival applies to hue (Ken's decision 11)
+        : Array.isArray(x) && x[0] === "relative-choice-point-of" && x[2] === "relative-color-hue" ? knowledgeOf(run).find((k) => k.kind === "comparison" && k.source === "(uniqueness-summary: physical hue)") || null
         : null;
       if (!row) continue;
       // one piece of knowledge, said once: the film's flashiness reaches brightness and clarity
@@ -2127,6 +2206,9 @@ function colorKnowledge(run, c) {
     const e = entry.elements[el];
     if (!e) continue;
     for (const src of e.sources || []) add(el, src);
+    // a hue chosen as any hue but some is drawn as the one the film's variety takes of
+    // those left, in the revival's order (REVIVE;COLORS narrowed-hue)
+    if (el === "color-hue" && Array.isArray(lispValue(e.value))) add(el, "(variety level)");
     const cp = cpNamed(run, ["choice-point-of", c, el]);
     for (const x of [...((cp && cp.conflictsResolved) || []).flatMap((y) => kv(y, "offenders") || []), ...((cp && cp.rejectedSuggestions) || []).map((y) => kv(y, "suggestion"))]) add(el, kv(x, "source"));
   }
@@ -2134,8 +2216,12 @@ function colorKnowledge(run, c) {
     const opp = ["opposite-of", "neighbor-of"].map((how) => vias.filter((v) => v[0] === how).map((v) => `“${esc(plain(v[1]))}”`)).map((ws, n) => (ws.length ? `its ${n ? "neighbor" : "opposite"}${ws.length > 1 ? "s" : ""} ${words(ws)} ${esc(lookValue(els[0], n ? row.value : opposite3(row.value)))}` : "")).filter(Boolean);
     const what = row.kind === "film" ? `The film's ${esc(plain(lispValue(row.source)[0]))} reaches ${esc(words(els.map(elementName)))}`
       : row.kind === "order" ? `The order of the hues: ${esc(words(lispList(lispValue(row.value)).map(plain)))}`
+      : row.kind === "comparison" ? "A character unique in its looks is to look different from the others, in its hue too"
+
       : `“${esc(plain(row.source))}” suggests ${esc(words(rs.map((x, n) => lookValue(els[n], x.value))))}${opp.length ? `, and so ${words(opp)}` : ""}`;
-    return `<li>${what}. ${row.evidence && row.evidence.why ? evidenceText(row.evidence) : kensEvidence(row.evidence)}</li>`;
+    // Ken's rule applied by the revival: his words, and the revival's reason
+    const ev = Array.isArray(row.evidence) ? row.evidence.map((y) => (y.why ? evidenceText(y) : kensEvidence(y))).join("; ") : row.evidence && row.evidence.why ? evidenceText(row.evidence) : kensEvidence(row.evidence);
+    return `<li>${what}. ${ev}</li>`;
   }).join("");
 }
 // What Ani changes of a character's look in a scene (glass.lookChanges, REVIVE;ALTER),

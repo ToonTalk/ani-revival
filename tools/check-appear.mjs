@@ -72,7 +72,9 @@ import { choicesOfItsFile } from "./choices.mjs";
 const opposite = (v) => (v === "high" ? "low" : v === "low" ? "high" : v);
 
 // What was flagged and reviewed under Ken's decision 4, and the decision, keyed as
-// flagKey makes them. reports/ext/appear/README.md, "Ken's looks and the revival's
+// flagKey makes them. (And on 14 October, after Ken's decision 11, "go with the
+// uniqueness rule for hues": the fairy godmother's orange, below, is reported to him and
+// left as the rule and the revival's order make it, as he asked, not tuned away.) reports/ext/appear/README.md, "Ken's looks and the revival's
 // knowledge", gives the same. (Reviewed on 10 October 2026, and again on 11 October,
 // when Ken decided that strong's large size is his own knowledge, from p. 238, which may
 // give back his stepmother's size: PLAN.md, "Decisions" 6.)
@@ -81,6 +83,12 @@ export const REVIEWED = {
     "kept: the rule (a character's outline follows its paths, motivated by p. 175) reaches all four, and gives Ken's value only to the stepmother; Cinderella's medium paths, the fairy godmother's jagged ones and the Prince's smooth ones disagree with his star, circle and triangle. In Ani's film she is not a square, and no look of Ken's in it needs the rule (5).",
   "combination: path-jaggedness shape-jaggedness + speed shape-complexity, step-mother square":
     "kept, both: together the two dynamics rules give the stepmother a square only where nothing else speaks. The speed rule (fast, so simple) agrees with Ken for her and the Prince, whose square and triangle are both simple, and not for Cinderella or the fairy godmother. In Ani's film Ken's own uniqueness summary (p. 94) and mean's jagged outline draw her otherwise.",
+  "result: (variety level) color-hue, fairy-godmother color":
+    "reported to Ken, not tuned away (his decision 11, 14 October: say so, don't tune it away silently): by his uniqueness rule for hues the fairy godmother is to differ in hue from Cinderella (purple) and the Prince (red), so magical's purple is set aside, and of the hues left the film's variety takes orange, his 1978 hue for her, by the revival's order of the hues (Itten's wheel read from yellow). That order was chosen on 13 October because, with the variety alone, it gave back none of his hues; with the rule it gives back this one. Read from red, it would give back Cinderella's green and the Prince's yellow instead (5, below). README, \"Decisions for Ken\".",
+  "result: (uniqueness-summary: physical hue) relative-color-hue, fairy-godmother color":
+    "Ken's own rule, which he chose for hues (decision 11): without the revival's physical uniqueness row for hue she is orange all the same, since Ken's CSUMRY summaries (uniqueness of all and of personality, comparison) suggest different-from on every relative element, relative-color-hue among them (5, below). The orange itself is the revival's order's doing; see the flag above.",
+  "only the revival's: fairy-godmother color":
+    "the same orange as in Ani's film: with Ken's appearance knowledge left out, his CSUMRY summaries still keep her apart in hue from Cinderella's purple and the Prince's red (they aren't pieces of APSUG's knowledge, and stay), and the revival's order of the hues takes orange of those left. Reported to Ken with the flags above.",
   "only the revival's: step-mother shape":
     "kept: with Ken's own knowledge of looks left out (friendly's smooth, strong's large size, dominates, the physical uniqueness and look-alike summaries, flashiness), her jaggedness is a compromise between mean's jagged, her medium paths and the film's variety, and her complexity is the one value left once she is to differ from the fairy godmother (complex) and Cinderella (medium), as Ken's own comparison summaries (CSUMRY) ask of characters so unlike. Ani's film has all of Ken's knowledge in it, and there she is not a square; nothing is dropped for a film Ani doesn't make.",
 };
@@ -280,10 +288,12 @@ export function checkResult(world, appearances, choicePoints) {
       if (!w) return [];
       const inner = w[w.indexOf("source") + 1];
       const sources = Array.isArray(inner) && inner[0] === "and" ? inner.slice(1) : [inner];
+      // only knowledge for this relative choice point's own element (its third part)
+      const of = (k) => (Array.isArray(k.element) ? k.element : [k.element]).includes(src[2]);
       return sources.flatMap((x) => {
-        if (typeof x === "string") return world.knowledge.filter((k) => k.kind === "relationship" && k.source === x);
-        if (x[0] === "uniqueness-summary:" && x[4] === "physical") return world.knowledge.filter((k) => k.kind === "comparison" && k.source.startsWith("(uniqueness-summary:"));
-        if (x[0] === "look-alike:") return world.knowledge.filter((k) => k.kind === "comparison" && k.source === "look-alike:");
+        if (typeof x === "string") return world.knowledge.filter((k) => k.kind === "relationship" && k.source === x && of(k));
+        if (x[0] === "uniqueness-summary:" && x[4] === "physical") return world.knowledge.filter((k) => k.kind === "comparison" && k.source.startsWith("(uniqueness-summary:") && of(k));
+        if (x[0] === "look-alike:") return world.knowledge.filter((k) => k.kind === "comparison" && k.source === "look-alike:" && of(k));
         return [];
       });
     }
@@ -361,7 +371,8 @@ export function leaveOut(L, rows) {
     ev(`(putprop '${r.element} (mapcan (function (lambda (rule) (and (not (equal (first rule) '${r.source})) (list rule)))) (get '${r.element} '${prop})) '${prop})`);
   }
   for (const r of rows.filter((x) => x.kind === "comparison")) {
-    ev(`(defun ${r.source === "look-alike:" ? "teach-look-alike-about-appearance" : "teach-uniqueness-about-appearance"} () nil)`);
+    const teacher = r.source === "look-alike:" ? "teach-look-alike-about-appearance" : r.source === "(uniqueness-summary: physical hue)" ? "teach-uniqueness-about-hue" : "teach-uniqueness-about-appearance";
+    ev(`(defun ${teacher} () nil)`);
   }
 }
 
@@ -401,7 +412,10 @@ const lookWords = (a) => {
 export async function ablate(world, cp29, jobs) {
   const revivals = world.knowledge.filter((k) => isTheRevivals(k.evidence));
   const kens = world.knowledge.filter((k) => !isTheRevivals(k.evidence));
-  const reaching = revivals.filter((k) => reach(k, world, cp29).length);
+  // a comparison says only that two characters differ, so reach() follows it nowhere,
+  // but it reaches every pair the summaries reach: Ken's uniqueness rule for hues, as the
+  // revival applies it (his decision 11), is left out like any other piece
+  const reaching = revivals.filter((k) => k.kind === "comparison" || reach(k, world, cp29).length);
   const order = revivals.find((k) => k.kind === "order");
   const runs = [{ name: "all of it", leave: [] }, { name: "only the revival's", leave: kens, onlyRevivals: true },
     ...reaching.map((k) => ({ name: `without ${shortName(k)}`, leave: [k], without: k })),

@@ -26,7 +26,10 @@
 ;;;     color-intensity and color-saturation three-valued too (intensity with a
 ;;;     relative element), and color-hue, one of six hues on a painter's wheel, whose
 ;;;     combining, opposites and compromises are the revival's semantic net of hues
-;;;     (REVIVE;COLORS, which also makes each character's color from the three).
+;;;     (REVIVE;COLORS, which also makes each character's color from the three), with a
+;;;     relative element too, so that Ken's uniqueness rule (p. 94) can keep a character
+;;;     apart from the others in hue (his decision of 14 October 2026, "Decisions" 11 in
+;;;     reports/chapter-x/PLAN.md; REVIVE;APSUG, 3).
 ;;;  2. Their choice points, (choice-point-of cinderella size) and so on, chosen by
 ;;;     Ken's make-choices-until-completed (chocho.19:15-19) once (z) has made the 102:
 ;;;     "Ani can explore the spaces of choices in either order" (p. 240), and this one,
@@ -70,9 +73,11 @@
 ;; relative element; color-hue one of six hues, whose value description is the
 ;; revival's semantic net of hues, hue-net (REVIVE;COLORS; "a 'semantic net of
 ;; colors'", p. 240), listed round the painter's wheel as Itten drew it, yellow at
-;; the top. Where nothing else decides between hues, the film's variety takes them in
-;; that order: the revival's, chosen so as not to give back Ken's 1978 hues (his
-;; decision 4), and open for his decision (REVIVE;COLORS says why).
+;; the top, with a relative element, relative-color-hue, as Ken decided on 14 October
+;; ("Decisions" 11): his uniqueness summary suggests that a unique character look
+;; different from the others in its hue too (REVIVE;APSUG, 3). Where nothing else
+;; decides between hues, the film's variety takes them in the list's order, the
+;; revival's (REVIVE;COLORS says why).
 (defun define-appearance-elements ()
   (let ((:insert-methods-at-end nil))
        (define appearance-element element
@@ -87,7 +92,9 @@
        (define color-saturation appearance-element)
        (define color-hue appearance-element
 	(set your value-description to hue-net)
-	(set your possible-values to (yellow orange red purple blue green)))
+	(set your possible-values to (yellow orange red purple blue green))
+	(set your relative-element to relative-color-hue)) ;;Ken's decision 11
+       (define relative-color-hue relative-appearance-element)
        (define size appearance-element
 	(set your relative-element to relative-size))
        (define relative-size relative-appearance-element)

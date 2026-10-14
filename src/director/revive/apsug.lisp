@@ -18,8 +18,10 @@
 ;;;  3. Comparisons. A character unique in its physical description is told to look
 ;;;     different from the others, "the finding that a character is unique suggests
 ;;;     that that character move (or appear) differently from the others" (p. 94), as
-;;;     CSUMRY tells it to move differently (csumry.12:31-38). And two characters the
-;;;     shape experts would draw alike are told to look different (REVIVE;APPEAR, 3).
+;;;     CSUMRY tells it to move differently (csumry.12:31-38): in size, shape and
+;;;     brightness, and, by Ken's decision of 14 October 2026 ("Decisions" 11), in hue,
+;;;     Ken's rule applied by the revival to a hue. And two characters the shape experts
+;;;     would draw alike are told to look different (REVIVE;APPEAR, 3).
 ;;;  4. The character's own dynamics, a source the thesis does not have: "the way an
 ;;;     image is rendered is influenced strongly by how it is to change. (For example,
 ;;;     a subtle color effect in a drawing of a character will be overridden if that
@@ -150,13 +152,15 @@
 
 ;; CSUMRY's uniqueness summary suggests that a character unique in its physical
 ;; description move differently (csumry.12:31-38); here, also that it look different,
-;; on each relative appearance element, as strongly as it is unique. And look-alike:,
-;; a summary as uniqueness-summary: is, whose finding, two characters the experts would
-;; draw alike (REVIVE;APPEAR, 3), suggests that they differ on the shape's elements.
-;; Each of the two is taught by a function of its own, so that tools/check-appear.mjs
-;; can leave either out when it asks what Ani would choose without it.
+;; on each relative appearance element, as strongly as it is unique; and, Ken's rule
+;; applied by the revival to a hue (his decision 11), on relative-color-hue. And
+;; look-alike:, a summary as uniqueness-summary: is, whose finding, two characters the
+;; experts would draw alike (REVIVE;APPEAR, 3), suggests that they differ on the shape's
+;; elements. Each of the three is taught by a function of its own, so that
+;; tools/check-appear.mjs can leave any out when it asks what Ani would choose without it.
 (defun teach-comparisons-about-appearance ()
   (teach-uniqueness-about-appearance)
+  (teach-uniqueness-about-hue)
   (let ((:insert-methods-at-end nil))
        (define look-alike: summary))
   (teach-look-alike-about-appearance))
@@ -177,6 +181,27 @@
 		       different-from level
 		       (thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|)))
 	   'appearance-evidence))
+
+;; Ken's decision of 14 October 2026 ("Decisions" 11, reports/chapter-x/PLAN.md): "go
+;; with the uniqueness rule for hues". So a character unique in its physical description
+;; is to differ in hue from the others as well, as strongly as it is unique, a
+;; different-from on relative-color-hue, which hue-net reads as any hue but theirs
+;; (REVIVE;COLORS). The rule is Ken's (p. 94); applying it to a hue is the revival's, so
+;; its evidence is both.
+(defun teach-uniqueness-about-hue ()
+  (ask uniqueness-summary: process suggestions
+       (suggestion: element (relative-color-hue ? ?)
+		    value 'different-from
+		    strength level
+		    source (uniqueness-summary: uniqueness-level ?level
+						descriptor-type physical
+						of-who ?)))
+  (putprop 'relative-color-hue :hue-uniqueness-evidence 'appearance-evidence))
+
+(setq :hue-uniqueness-evidence
+      '((physical (relative-color-hue) different-from level
+		  (and (thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|)
+		       (why |Ken's rule applied by the revival to a hue, as he decided on 14 October 2026 (go with the uniqueness rule for hues): a character unique in its looks is drawn in a hue none of the others it differs from has, where the film's variety would otherwise take hues by their order alone|)))))
 
 (defun teach-look-alike-about-appearance ()
   (ask look-alike: process suggestions
@@ -403,6 +428,9 @@
 		 relative-color-intensity)
 	       'different-from 'level
 	       '(thesis 94 |the finding that a character is unique suggests that that character move (or appear) differently from the others|))
+	 (list 'comparison '(uniqueness-summary: physical hue) '(relative-color-hue)
+	       'different-from 'level
+	       (nth 4 (first :hue-uniqueness-evidence)))
 	 (list 'comparison 'look-alike:
 	       '(relative-shape-jaggedness relative-shape-complexity)
 	       'different-from 'high

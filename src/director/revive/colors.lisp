@@ -35,6 +35,16 @@
 ;;;         the stronger wins;
 ;;;       complementary, opposite each other (red and green), a conflict, as two
 ;;;         speeds top and bottom are.
+;;;     Since Ken's decision of 14 October 2026 ("Decisions" 11), color-hue has a
+;;;     relative element, and his uniqueness rule (p. 94) suggests (different-from
+;;;     purple) of a unique character and one with purple. hue-net reads it as COSUG's
+;;;     relative-three-values-and-not reads (different-from high), as the values left,
+;;;     (not purple), any hue but purple (cosug.215:341-357, 392-402); (not purple red),
+;;;     any but those, when two such meet. A hue and a (not ...) are compatible, merged
+;;;     as the hue, if it is not one of those, and else a conflict, thing-and-not-thing,
+;;;     as three-values-and-not has it (cosug.215:196-205); two (not ...)s merge, unless
+;;;     together they leave no hue, a conflict, no-hue-left. A choice that is still a
+;;;     (not ...) once Ani has made it is drawn as one of the hues left (3, below).
 ;;;     A compromise is Ken's compromise-three-values-different's (cosug.215:832-863)
 ;;;     with "the hue between" for "medium": two hues suggested equally strongly meet
 ;;;     between, unless the film is to be obvious, when one of them is kept, as Ken's
@@ -79,16 +89,21 @@
 ;; red and his Prince yellow, the hues he gave them in 1978; the list is the revival's,
 ;; so his decision 4 (no knowledge of the revival's may give back his 1978 looks,
 ;; reports/chapter-x/PLAN.md, "Decisions") drops that reading. Itten's, from yellow at
-;; the top of his color circle, gives back none of them (tools/check-appear.mjs). It is
-;; an order chosen by what it gives, which is the revival's, labeled so with its reason
-;; (:hue-order-knowledge, below), and open for Ken's decision
-;; (reports/ext/appear/README.md, "Decisions for Ken" 1).
+;; the top of his color circle, gave back none of them. Ken then decided (14 October
+;; 2026, "Decisions" 11) to "go with the uniqueness rule for hues": his uniqueness
+;; summary (p. 94) keeps characters apart in hue (color-hue's relative element,
+;; REVIVE;APPEAR and REVIVE;APSUG), and the order decides only among the hues the rule
+;; leaves. It is still an order chosen by what it gave, the revival's, labeled so with
+;; its reason (:hue-order-knowledge, below); with the rule, it gives the fairy godmother
+;; Ken's own orange (reports/ext/appear/README.md, tools/check-appear.mjs).
 (defun define-hue-net ()
   (let ((:insert-methods-at-end nil))
        (define hue-net normal-value-description
 	(set your relative-value-description to hue-net) ;;as relative-value is its own
 	(set your wheel to ((yellow 60.0) (orange 30.0) (red 0.0)
 			    (purple 270.0) (blue 240.0) (green 120.0)))
+	(do when receiving (combine suggestions ?suggestion)
+	    (hue-suggestion-made-absolute suggestion)) ;;as relative-three-values-and-not's
 	(do when receiving (combine suggestions ?suggestion1 ?suggestion2)
 	    (combine-hue-suggestions suggestion1 suggestion2))
 	(do when receiving (yield relationship ?value1 ?value2 %)
@@ -129,12 +144,64 @@
        (let ((apart (abs (- place1 place2))))
 	    (min apart (- 6 apart)))))
 
+;; How two hue values are related, a relative one made absolute first (hue-absolute):
+;; two hues by their steps on the wheel; a hue and a (not ...), (compatible hue) if it
+;; is not one of those, else thing-and-not-thing; two (not ...)s, (compatible (not ...))
+;; of every hue either leaves out, or no-hue-left if together they leave out all six;
+;; a value hue-net can't read as a hue (greater-than, say: hues have no order),
+;; impossible-relative-value.
 (defun hue-relationship (value1 value2)
-  (let ((steps (hue-steps value1 value2)))
+  (let ((hue1 (hue-absolute value1))
+	(hue2 (hue-absolute value2)))
+       (cond ((or (null hue1) (null hue2)) 'impossible-relative-value)
+	     ((equal hue1 hue2) 'identical)
+	     ((and (atom hue1) (atom hue2)) (hue-wheel-relationship hue1 hue2))
+	     ((atom hue1) (hue-and-not-hues hue1 hue2))
+	     ((atom hue2) (hue-and-not-hues hue2 hue1))
+	     (t (let ((out (union (rest hue1) (rest hue2))))
+		     (cond ((set-minus (hue-names) out) '(compatible (not !,out)))
+			   (t 'no-hue-left)))))))
+
+(defun hue-wheel-relationship (hue1 hue2)
+  (let ((steps (hue-steps hue1 hue2)))
        (cond ((= steps 0) 'identical)
 	     ((= steps 1) 'adjacent-hues)
 	     ((= steps 2) 'near-enough)
 	     (t 'complementary))))
+
+(defun hue-and-not-hues (hue not-hues)
+  (cond ((memq hue (rest not-hues)) 'thing-and-not-thing)
+	(t '(compatible ,hue))))
+
+(defun hue-names () (mapcar 'car (hue-wheel)))
+
+;; A hue value made absolute, as relative-three-values-and-not makes a relative one
+;; (absolute-three-value-of, cosug.215:392-402): (different-from purple), from a
+;; comparison, is any hue but purple, (not purple); (same-as purple) is purple; a hue,
+;; or a (not ...) of hues, is as it is. (different-from (not purple)), from someone
+;; whose choice was any hue but purple, says nothing yet: (not), any hue. Anything else
+;; is nil.
+(defun hue-absolute (value)
+  (cond ((atom value) value)
+	((eq (first value) 'not) value)
+	((eq (first value) 'same-as) (second value))
+	((eq (first value) 'different-from)
+	 (cond ((atom (second value)) '(not ,(second value)))
+	       (t '(not))))
+	(t nil)))
+
+;; A suggestion of hue-net's on its own, relative made absolute, as relative-three-
+;; values-and-not's combine of one suggestion does (cosug.215:341-357): (suggestion:
+;; element color-hue value (different-from purple) ...) is the suggestion of (not purple).
+(defun hue-suggestion-made-absolute (suggestion)
+  (let ((value (get suggestion 'value)))
+       (let ((hue (hue-absolute value)))
+	    (cond ((null hue)
+		   '(conflict: type impossible-relative-value
+			       elements-involved ,(get suggestion 'element)
+			       offenders (,suggestion)))
+		  ((equal hue value) suggestion)
+		  (t (replaceprop suggestion hue 'value))))))
 
 ;; Its complement, across the wheel.
 (defun hue-opposite (hue)
@@ -150,13 +217,16 @@
 ;; Two hue suggestions combined, as combine-two-suggestions combines two speeds
 ;; (cosug.215:169-181): the same hue merged; two steps apart, compromised and merged,
 ;; with Ani's record of the compromise; a step apart or opposite, a conflict for CHOOSE
-;; to resolve.
+;; to resolve; and, relative ones made absolute, a hue and a (not ...) it isn't one of,
+;; merged as the hue, two (not ...)s merged as one, or a conflict.
 (defun combine-hue-suggestions (suggestion1 suggestion2)
   (let ((value1 (get suggestion1 'value))
 	(value2 (get suggestion2 'value)))
        (let ((relationship (hue-relationship value1 value2)))
 	    (cond ((eq relationship 'identical)
-		   (hue-merged value1 suggestion1 suggestion2 nil))
+		   (hue-merged (hue-absolute value1) suggestion1 suggestion2 nil))
+		  ((and (not (atom relationship)) (eq (first relationship) 'compatible))
+		   (hue-merged (second relationship) suggestion1 suggestion2 nil))
 		  ((eq relationship 'near-enough)
 		   (let ((compromise (hue-compromise value1 value2 suggestion1 suggestion2)))
 			(hue-merged (first compromise) suggestion1 suggestion2
@@ -170,15 +240,18 @@
 				 offenders (,suggestion1 ,suggestion2)))))))
 
 ;; Ken's merge-suggestions (cosug.215:778-793), and Ani's records of the compromises in
-;; the two merged and in this one, if any, under compromises: COSUG merges three hue
+;; the two merged and in this one, if any, under compromises, and what the film's
+;; variety picked from, its counts (below), if either has them: COSUG merges three hue
 ;; suggestions two at a time, and a merged suggestion is made anew each time.
 (defun hue-merged (value suggestion1 suggestion2 record)
   (let ((merged (merge-suggestions value suggestion1 suggestion2))
 	(records (append (get suggestion1 'compromises)
 			 (get suggestion2 'compromises)
-			 (and record (list record)))))
-       (cond (records (append merged (list 'compromises records)))
-	     (t merged))))
+			 (and record (list record))))
+	(counts (or (get suggestion1 'counts) (get suggestion2 'counts))))
+       (append merged
+	       (and records (list 'compromises records))
+	       (and counts (list 'counts counts)))))
 
 ;; Two hues two steps apart compromised, as compromise-three-values-different
 ;; compromises two values (cosug.215:832-863), the hue between them for its medium.
@@ -249,7 +322,7 @@
 ;; order the film's variety takes hues in where nothing else decides between them.
 (setq :hue-order-knowledge
       '((order (variety level) color-hue (yellow orange red purple blue green) low
-	 (why |where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top. Read from red, as a wheel usually is, the list gave Ken's Cinderella, stepmother and Prince his own 1978 green, red and yellow, so under his decision 4 it is read from yellow, which gives back none of his hues. Which order, or another source of hues, is for Ken to decide|))))
+	 (why |where nothing else decides between hues, the film's variety takes them in this order, round Johannes Itten's color circle from the yellow at its top. It is read from yellow, not from red as a wheel usually is, because read from red the variety alone gave Ken's Cinderella, stepmother and Prince his own 1978 green, red and yellow (his decision 4). Since his decision 11 his uniqueness rule keeps characters apart in hue, and this order decides only among the hues the rule leaves|))))
 
 ;;; ------------------------------------------------- 2. values
 
@@ -270,19 +343,25 @@
 ;; After the shape experts have drawn each character (REVIVE;APPEAR choose-appearances):
 ;; its appearance's hue, and its look-color, (hue-angle saturation value), from its
 ;; three color choices. A saturation or intensity chosen as (not X) or given up on is
-;; read as a size is (REVIVE;APPEAR's appearance-number, with its note). A hue that is
-;; not a hue on the wheel gives no hue: the character is drawn grey, with a note on the
-;; choice point. That is a safeguard no story reaches today, as appearance-number's
-;; reading of a size given up on is: CHOOSE gives up on a choice point (none) only when
-;; no suggestion is left (choose.198:60-73), and the film's variety suggests a hue to
-;; every character; and only a relative hue element could make a (not X), which
-;; color-hue doesn't have. It is kept, not for a later stage, but so that a hue Ani
-;; can't draw is said, not a Lisp error:
+;; read as a size is (REVIVE;APPEAR's appearance-number, with its note). A hue chosen as
+;; a (not ...), any hue but those of the others it is to differ from (1, above), is
+;; drawn as one of the hues left, picked by the film's variety from how often each has
+;; been chosen, as a size's (not X) is (REVIVE;APPEAR narrow-appearance-value), the
+;; characters taken in focus order and each hue counted as it is picked:
+;;   (revival-repair: what read-as-color was (not purple red) now orange
+;;		       because (narrowed-to orange (variety level) medium (counts (0 yellow) ...)
+;;				(middle-element ken1 reconstruction)))
+;; A hue given up on (none), or a (not ...) that leaves no hue, gives no hue: the
+;; character is drawn grey, with a note. No story reaches that today, as no story
+;; reaches appearance-number's reading of a size given up on: CHOOSE gives up on a
+;; choice point only when no suggestion is left (choose.198:60-73), and the film's
+;; variety suggests a hue to every character. It is kept so that a hue Ani can't draw is
+;; said, not a Lisp error:
 ;;   (revival-repair: what read-as-color was none now grey because (given up so no hue))
-;;   (revival-repair: what read-as-color was (not purple) now grey because (not one hue))
 ;; Each appearance memorizes what it was given, for the glass box:
 ;;   (colored: hue blue angle 240.0 saturation .35 value .65)
 (defun color-the-characters ()
+  (count-appearance-choices-again 'color-hue) ;;the hues chosen, a (not ...) not counted
   (mapc 'color-character (characters-in-focus-order)))
 
 (defun color-character (character)
@@ -292,16 +371,54 @@
 	(intensity-choice '(choice-point-of ,character color-intensity)))
        (and (exists? appearance)
 	    (exists? hue-choice)
-	    (let ((hue (ask ,hue-choice recall your current-choice))
+	    (let ((hue (narrowed-hue hue-choice (ask ,hue-choice recall your current-choice)))
 		  (saturation (appearance-number saturation-choice))
 		  (value (appearance-number intensity-choice)))
 		 (let ((angle (and (atom hue) (hue-place hue) (hue-angle hue))))
 		      (cond ((null angle)
 			     (revival-note hue-choice 'read-as-color hue 'grey
 					   (cond ((eq hue 'none) '(given up so no hue))
-						 (t '(not one hue))))
+						 (t '(no hue left))))
 			     (setq hue nil angle 0.0 saturation 0.0)))
 		      (ask ,appearance set your hue to ,hue)
 		      (ask ,appearance set your look-color to (,angle ,saturation ,value))
 		      (ask ,appearance memorize
 			   (colored: hue ,hue angle ,angle saturation ,saturation value ,value)))))))
+
+;; A hue choice as it is drawn: a hue as it is; a (not ...), any hue but those, narrowed
+;; to one of the hues left by the film's variety, counted as chosen, and noted (above);
+;; a (not ...) that leaves none, as it is (drawn grey). The hues left are also not those
+;; drawn already of the others its relative choice points have it differ from: when
+;; Ani chose it, some of theirs may still have been a (not ...) too, which keeps nothing
+;; apart (hue-absolute), and drawn in focus order each is a hue by now. If that leaves
+;; none, the (not ...) alone decides.
+(defun narrowed-hue (choice-point value)
+  (cond ((or (atom value) (not (eq (first value) 'not))) value)
+	(t (let ((values-left (set-minus (ask color-hue recall your possible-values) (rest value)))
+		  (variety-level (film-level-of 'variety)))
+		 (let ((apart (set-minus values-left
+					 (hues-drawn-to-differ-from (ask ,choice-point recall your thing)))))
+		      (and apart (setq values-left apart)))
+		 (cond ((null values-left) value)
+		       (t (let ((counts (cons 'counts (count-of-each values-left 'color-hue)))
+				(narrowed (pick-value-with-variety variety-level values-left 'color-hue)))
+			       (ask color-hue increment your (count-for ,narrowed) by 1)
+			       (revival-note choice-point 'read-as-color value narrowed
+					     (append (list 'narrowed-to narrowed '(variety level) variety-level counts)
+						     (and (eq variety-level 'medium)
+							  '((middle-element ken1 reconstruction)))))
+			       narrowed)))))))
+
+;; The hues already drawn of the others a character is to differ from in hue: those
+;; whose relative hue choice point with it is different-from.
+(defun hues-drawn-to-differ-from (character)
+  (mapcan (function
+	   (lambda (other)
+		   (let ((relative '(relative-choice-point-of (,character ,other) relative-color-hue))
+			 (appearance '(appearance-of ,other)))
+			(and (exists? relative)
+			     (eq (ask ,relative recall your current-choice) 'different-from)
+			     (exists? appearance)
+			     (ask ,appearance recall your hue)
+			     (list (ask ,appearance recall your hue))))))
+	  (ask ,character recall your siblings)))

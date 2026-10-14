@@ -88,11 +88,56 @@ test("hue-net's combine: the same hue merged; two steps apart, compromised as CO
   assert.throws(() => run("(hue-between 'none 'red)"), /NONE IS NOT A HUE ON THE WHEEL/);
 });
 
+test("Ken's uniqueness rule for hues (his decision 11): color-hue has a relative element, and hue-net reads (different-from purple) as any hue but purple", () => {
+  const { run } = setUp();
+  assert.equal(run("(ask color-hue recall your relative-element)"), "RELATIVE-COLOR-HUE");
+  assert.equal(run("(get 'apsug-comparisons 'revival-done)"), "T");
+  // the physical uniqueness summary suggests a different hue, as strongly as unique
+  assert.match(run("(ask uniqueness-summary: collect items memorized matching (suggestion: element (relative-color-hue cinderella prince) value ? strength ? source (uniqueness-summary: uniqueness-level high descriptor-type physical of-who cinderella)))"),
+    /VALUE DIFFERENT-FROM STRENGTH HIGH/);
+  const related = (a, b) => run(`(ask hue-net yield relationship ${a} ${b} in nil nil)`);
+  assert.equal(related("(different-from purple)", "red"), "(COMPATIBLE RED)");
+  assert.equal(related("(different-from purple)", "purple"), "THING-AND-NOT-THING");
+  assert.equal(related("(different-from purple)", "(different-from purple)"), "IDENTICAL");
+  assert.match(related("(not purple)", "(different-from red)"), /^\(COMPATIBLE \(NOT (PURPLE RED|RED PURPLE)\)\)$/);
+  assert.equal(related("(not yellow orange red)", "(not purple blue green)"), "NO-HUE-LEFT");
+  assert.equal(related("(greater-than purple)", "red"), "IMPOSSIBLE-RELATIVE-VALUE");
+  // from someone whose own choice was still any hue but some, nothing is kept apart yet
+  assert.equal(related("(different-from (not purple))", "purple"), "(COMPATIBLE PURPLE)");
+  const combine = (...s) => run(`(ask hue-net combine suggestions ${s.join(" ")})`);
+  const rel = (value, other) => `(suggestion: element color-hue value ${value} strength high source (relative-choice-point-of (t-a ${other}) relative-color-hue))`;
+  assert.equal(combine(rel("(different-from purple)", "t-b")), "(SUGGESTION: ELEMENT COLOR-HUE VALUE (NOT PURPLE) STRENGTH HIGH SOURCE (RELATIVE-CHOICE-POINT-OF (T-A T-B) RELATIVE-COLOR-HUE))");
+  assert.match(combine(rel("(different-from purple)", "t-b"), suggestion("red", "low", "(variety level)")), /^\(SUGGESTION: ELEMENT COLOR-HUE VALUE RED STRENGTH /);
+  assert.match(combine(rel("(different-from purple)", "t-b"), rel("(different-from red)", "t-c")), /^\(SUGGESTION: ELEMENT COLOR-HUE VALUE \(NOT (PURPLE RED|RED PURPLE)\) /);
+  assert.match(combine(rel("(different-from purple)", "t-b"), suggestion("purple", "medium", "magical")), /^\(CONFLICT: TYPE THING-AND-NOT-THING /);
+});
+
+test("a hue chosen as any hue but some is drawn as one of the hues left, the film's variety's, with a note", () => {
+  const { run } = setUp();
+  const choose = (who, e, v) => {
+    run(`(ask appearance-choice-point if new make (choice-point-of ${who} ${e}))`);
+    run(`(ask (choice-point-of ${who} ${e}) set your current-choice to ${v})`);
+  };
+  run("(define t-apart something)");
+  run("(ask appearance if new make (appearance-of t-apart))");
+  choose("t-apart", "color-hue", "(not purple red)");
+  choose("t-apart", "color-saturation", "low");
+  choose("t-apart", "color-intensity", "medium");
+  run("(color-character 't-apart)");
+  const hue = run("(ask (appearance-of t-apart) recall your hue)");
+  assert.ok(["YELLOW", "ORANGE", "BLUE", "GREEN"].includes(hue), hue);
+  assert.match(run("(ask (choice-point-of t-apart color-hue) collect items memorized matching (revival-repair: %))"),
+    new RegExp(`WHAT READ-AS-COLOR WAS \\(NOT PURPLE RED\\) NOW ${hue} BECAUSE \\(NARROWED-TO ${hue} \\(VARIETY LEVEL\\) MEDIUM \\(COUNTS `));
+  assert.equal(run("(drawn-value 't-apart 'color-hue)"), hue);
+});
+
 test("the film's variety's hue says what it picked from, the counts in the list's order", () => {
   const { run } = setUp();
   run("(ask appearance-choice-point if new make (choice-point-of cinderella color-hue))");
   run("(ask appearance-choice-point if new make (choice-point-of cinderella color-saturation))");
-  // no hue chosen yet: the middle of the revival's list, as for Cinderella in her film
+  // no hue chosen yet (the tests before may have counted some): the middle of the
+  // revival's list, as for Cinderella in her film
+  run("(mapc (function (lambda (h) (ask color-hue set your (count-for ,h) to 0))) (ask color-hue recall your possible-values))");
   assert.equal(run("(ask (variety level) yield suggestions for (choice-point-of cinderella color-hue))"),
     "(SUGGESTION: ELEMENT COLOR-HUE VALUE PURPLE STRENGTH LOW SOURCE (VARIETY LEVEL) COUNTS ((0 YELLOW) (0 ORANGE) (0 RED) (0 PURPLE) (0 BLUE) (0 GREEN)))");
   // the other elements' suggestions are as Ken's code makes them
@@ -157,10 +202,13 @@ test("the knowledge of colors: evil's black is Ken's (p. 161), the rest the revi
   assert.deepEqual(of(/^\(DESCRIPTOR EVIL COLOR-/), ["(DESCRIPTOR EVIL COLOR-INTENSITY LOW HIGH (THESIS 161 |bad guys wear black|))"]);
   assert.match(of(/^\(DESCRIPTOR MAGICAL COLOR-HUE/)[0], /PURPLE MEDIUM \(WHY /);
   assert.match(of(/^\(DESCRIPTOR SHABBY COLOR-SATURATION/)[0], /LOW HIGH \(WHY .*p\. 225/);
-  // magical's purple, the only hue a word suggests (no evil red: decision 4), and the
-  // order the film's variety takes the hues in, the revival's, with its reason
-  assert.equal(of(/COLOR-HUE/).length, 2);
-  assert.match(of(/^\(ORDER \(VARIETY LEVEL\) COLOR-HUE /)[0], /^\(ORDER \(VARIETY LEVEL\) COLOR-HUE \(YELLOW ORANGE RED PURPLE BLUE GREEN\) LOW \(WHY \|where nothing else decides between hues.*decision 4.*for Ken to decide\|\)\)$/);
+  // magical's purple, the only hue a word suggests (no evil red: decision 4); the order
+  // the film's variety takes the hues in, the revival's, with its reason; and Ken's
+  // uniqueness rule applied by the revival to hue (his decision 11), his words and the
+  // revival's reason
+  assert.equal(of(/COLOR-HUE/).length, 3);
+  assert.match(of(/^\(ORDER \(VARIETY LEVEL\) COLOR-HUE /)[0], /^\(ORDER \(VARIETY LEVEL\) COLOR-HUE \(YELLOW ORANGE RED PURPLE BLUE GREEN\) LOW \(WHY \|where nothing else decides between hues.*decision 4.*decision 11.*the hues the rule leaves\|\)\)$/);
+  assert.match(of(/^\(COMPARISON \(UNIQUENESS-SUMMARY: PHYSICAL HUE\)/)[0], /^\(COMPARISON \(UNIQUENESS-SUMMARY: PHYSICAL HUE\) \(RELATIVE-COLOR-HUE\) DIFFERENT-FROM LEVEL \(AND \(THESIS 94 .*\(WHY \|Ken's rule applied by the revival to a hue/);
   assert.equal(run("(equal (fourth (first :hue-order-knowledge)) (ask color-hue recall your possible-values))"), "T");
   assert.deepEqual(of(/^\(FILM \(FLASHINESS LEVEL\) COLOR-/).map((r) => r.split(" ")[3]), ["COLOR-INTENSITY", "COLOR-SATURATION"]);
   assert.match(of(/^\(LOOK-CHANGE JOY/)[0], /COLOR-INTENSITY AMOUNT MEDIUM \(AND \(THESIS 166 /);
@@ -190,8 +238,8 @@ test("each character's color: its hue's angle, its saturation and intensity as A
   assert.equal(run("(ask (appearance-of t-colored) collect items memorized matching (colored: %))"), "((COLORED: HUE BLUE ANGLE 240.0 SATURATION 0.35 VALUE 0.45))");
   assert.equal(run("(list (drawn-value 't-colored 'color-hue) (drawn-value 't-colored 'color-saturation) (drawn-value 't-colored 'color-intensity))"), "(BLUE LOW LOW)");
   assert.equal(run("(get 'color-intensity 'appearance-numbers)"), "((LOW 0.45) (MEDIUM 0.65) (HIGH 0.85))");
-  // a hue given up on: grey, with a note; and a (not X), which no element of today's
-  // makes for a hue, grey with a note of its own
+  // a hue given up on: grey, with a note; and a (not ...) that leaves no hue, grey with a
+  // note of its own
   run("(define t-grey something)");
   run("(ask appearance if new make (appearance-of t-grey))");
   choose("t-grey", "color-hue", "none");
@@ -202,11 +250,11 @@ test("each character's color: its hue's angle, its saturation and intensity as A
   assert.match(run("(ask (choice-point-of t-grey color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS NONE NOW GREY BECAUSE \(GIVEN UP SO NO HUE\)/);
   run("(define t-not something)");
   run("(ask appearance if new make (appearance-of t-not))");
-  choose("t-not", "color-hue", "(not purple)");
+  choose("t-not", "color-hue", "(not yellow orange red purple blue green)");
   choose("t-not", "color-saturation", "high");
   choose("t-not", "color-intensity", "high");
   run("(color-character 't-not)");
-  assert.match(run("(ask (choice-point-of t-not color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS \(NOT PURPLE\) NOW GREY BECAUSE \(NOT ONE HUE\)/);
+  assert.match(run("(ask (choice-point-of t-not color-hue) collect items memorized matching (revival-repair: %))"), /READ-AS-COLOR WAS \(NOT YELLOW ORANGE RED PURPLE BLUE GREEN\) NOW GREY BECAUSE \(NO HUE LEFT\)/);
 });
 
 test("look changes are display methods, children of change-method, whose estimates are Ken's for the same change", () => {
