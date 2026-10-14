@@ -203,6 +203,8 @@ The never-ending scene PLAN.md describes is `test/stories/red-riding-hood.lisp`'
 
 **Control.** With one joy, (positive medium), the scene films in 12 frames.
 
+**With APPEAR (stage 5).** Each joy also suggests a change of the goat's color intensity (REVIVE;ALTER), so the two joys' look changes combine as their changes of how she moves do, and M7 leaves a fifth combined-changes note. The scene films in its 12 frames, as before.
+
 ## The controls: tortoise-and-hare and red-riding-hood
 
 `node tools/run-story.mjs test/stories/tortoise-and-hare.lisp`
@@ -331,3 +333,12 @@ Eight stories use KNOW, the knowledge you could have added (`reports/ext/know/RE
 - **know-scene-named-fear**, a reviewer's: a scene called fear, which with KNOW EMOTE's definition of the feeling replaced. `storyWithoutClashes` (src/pipeline.js) renames it fear-scene before Ani reads the story: 123 frames. Without KNOW nothing is renamed; in 1978 pass 2 stops on wander-around (M9), and with MEND it films in 123.
 
 With the page's set, every other story here, both controls and the three fresh fables also film every scene, each under the cap.
+
+## APPEAR's stories (stage 5)
+
+Two stories use APPEAR's colors and its looks that change (`reports/ext/appear/README.md`), on the skeleton's lines. They are here for what a run with APPEAR reaches that Ken's Cinderella doesn't; without APPEAR each is the skeleton story with something added.
+
+- **appear-hues.** The skeleton with a wizard (magical; good, kind) and a witch (ugly, magical; evil, mean), so that two characters are magical and suggest purple. The goat, first in the focus, takes the film's variety's hue, purple, the middle of six none has yet; for the wizard and the witch the variety then suggests red, a step from purple on the wheel, and REVIVE;COLORS' hue-net makes that a conflict (adjacent-hues), which CHOOSE resolves as any other: magical's purple, much more strongly suggested, wins, and the variety's red is rejected (`much-less-strongly-suggested`), each in the choice point's record. The witch is evil, so dark (Ken's "bad guys wear black", p. 161): .45, the darkest a character is drawn. In 1978 pass 1 stops, as no-descriptors does: the wizard and the troll have no word in common to compare them by (M8). With MEND: 10 frames; with MEND and APPEAR, and with the page's set, 11, the sizes changing Director's collisions as they do in every story with APPEAR.
+- **joy-looks.** The goat is very happy and the troll very sad, so each joy also changes its character's color intensity, by the joy's amount at its speed, beside joy's changes of how it moves. The goat is good and bright already (.85), and brightens to the TV's full intensity; the troll is dark (.45) and can't be darkened further. 17 frames in 1978 and with MEND; 18 with APPEAR, by the sizes, not the look changes, whose duration guard keeps every frame as it would be without them.
+
+The duration guard: in each, and in every story here, the frames and events are as they were before stage 5, with MEND and APPEAR and with the page's set: the look changes change nothing about when or where the characters move. That is how the guard on pushed-around's first scene (`tools/check-ext.mjs`) came about: before a look change was carried by the character's special dynamics (REVIVE;LOOKS), the very happy hare's Introduction ran 497 frames, not 586, and Red Riding Hood's Into the Woods 280, not 370.
