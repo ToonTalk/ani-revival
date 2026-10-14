@@ -17,11 +17,25 @@
 // extensions the prompt teaches the change task, and in 1978 mode it doesn't; in 1978
 // mode the page won't make the story, and offers the extensions; with them Ani takes a
 // fresh look at the stepmother after Change of Heart (the progress says so), every scene
-// ends as in Node, the changing scene's caption says the change itself isn't shown yet,
-// and Kind Again's glass box has "How she has changed", with a sentence made from the
-// fresh look, her elements before and after, each opening the fresh look's choice point,
-// and the dynamics saying where each value came from; and it all comes back after a
+// ends as in Node, the changing scene's caption says how Ani shows the change (the Prince
+// goes to the stepmother and transforms her, gradually, and she changes as she wanders),
+// and Change of Heart's and Kind Again's glass boxes have "How she has changed", with a
+// sentence made from the fresh look, the bridge (what changed, over how long, from which
+// frame, and what was chosen again and not bridged), how she looks, her elements before
+// and after, by who reads them, each opening the fresh look's choice point (her look's
+// too), and the dynamics saying where each value came from; and it all comes back after a
 // reload, and in a film file.
+// And the changes shown (REVIVE;CHSHOW, stage 6): "Change the story" offers Ken's own
+// cinderella-beautified scene, which he wrote and left commented out (cindy.46:94-105),
+// put back as he wrote it, and made with the extensions (the switch turns to them; in 1978
+// mode it is refused, and Ken's CINDY itself is as it was); Ani films its six scenes as
+// Node does, and in Cinderella Beautified the fairy godmother goes to Cinderella and, as
+// they touch, Cinderella's colors become clear at once (the fairy godmother is magical:
+// the revival's rule), which the film's looks, the captions, the subtitles, a video's
+// picture in color, "How she has changed" with its bridge, and "How she looks" in the
+// next scene say; a change with no cause (Learning to Socialize, reports/ext/change/
+// socializing, 68 frames), where Cinderella wanders as she grows into an octagon, said in
+// its captions and in "How she has changed"; and the prompt in 1978 mode is as it was.
 // And the page's care for a model's slips and the reader's films: it tidies a description
 // before Ani reads it (Ken's Beauty and the Beast, test/untidy/belfie.lisp, as the model's
 // reply: (and ...) put around the beast's looks, the focus's relationship made one part,
@@ -84,9 +98,10 @@
 // them), the icons are toned for the light theme, and the reviewer's story of six
 // (test/stories/six-colors.lisp), whose Prince the shape experts drew after relaxing
 // every constraint, has "How he looks" for everyone.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty-five minutes)
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
-// a stop sentence and the Save panel are also taken at a phone's width.
+// a stop sentence and the Save panel are also taken at a phone's width, and the fairy
+// godmother transforming Cinderella in color: before, as they touch, and after.
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -117,11 +132,20 @@ const EXPECTED_MENDED_LAST_FRAMES = [186, 110, 28];
 // the Introduction longer, reports/ext/know/README.md)
 const EXPECTED_LOOKS_LAST_FRAMES = [221, 115, 18, 174, 91];
 // the stepmother who repents, with the revival's extensions (MEND, KNOW, APPEAR and
-// CHANGE): At Home, Change of Heart and Kind Again film in 165, 72 and 29 frames (node
+// CHANGE): At Home, Change of Heart and Kind Again film in 165, 52 and 29 frames (node
 // tools/run-story.mjs test/stories/change-of-heart.lisp --extensions
-// mend,know,appear,change; without KNOW, 108, 72 and 29, reports/ext/change/README.md),
-// so they end at frames 164, 71 and 28
-const EXPECTED_CHANGE_LAST_FRAMES = [164, 71, 28];
+// mend,know,appear,change; without KNOW, 108, 52 and 29, reports/ext/change/README.md;
+// before Ani showed the change in its scene, stage 6, Change of Heart was 72), so they
+// end at frames 164, 51 and 28
+const EXPECTED_CHANGE_LAST_FRAMES = [164, 51, 28];
+// Ken's Cinderella with his cinderella-beautified scene put back, made with the four
+// extensions, as tools/check-change.mjs makes it (reports/ext/change/README.md,
+// beautified-film): 171, 116, 137, 20, 193 and 90 frames, so they end at these
+const EXPECTED_BEAUTIFIED_LAST_FRAMES = [170, 115, 136, 19, 192, 89];
+// the prompt with the extensions off (Lisp, then JSON, for STORY_FOR_PROMPTS), as it was
+// before Ani showed changes (stage 6): its SHA-256, which a change to the 1978 mode's
+// prompt changes (make it again, from storyPrompt with no extensions, if that is meant)
+const PROMPT_1978_SHA = ["635256ea2e8d8d3320ff4742d6b92c3198b49510759818dcbe1ff714bba91343", "fae292e1b61a1fbf17210863eda6108924f1e8d1f45879759c2f1602e61d0c39"];
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
@@ -170,14 +194,15 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 // on (test/untidy/nano-tortoise.lisp; Nano wrote it as JSON): in its scene The Push,
 // (undoes tortoise (from-scene push (convey (pushes hare tortoise)))), an undoes in the
 // scene it undoes, which "Ask Gemini Nano to fix these" wrote again. With that task left
-// out, all six scenes film, in 139, 49, 6, 17, 17 and 2 frames with the switch's
+// out, all six scenes film, in 139, 49, 48, 17, 17 and 111 frames with the switch's
 // extensions (node tools/run-story.mjs on the tidied story --extensions
 // mend,know,appear,change; its last scene establishes a relationship and changes it,
-// which stage 3's fix of 13 October films), so they end at these frames
+// which stage 3's fix of 13 October films; Determination and the last scene show their
+// changes since stage 6, where they were 6 and 2), so they end at these frames
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
-const EXPECTED_NANO_LAST_FRAMES = [138, 48, 5, 16, 16, 1];
+const EXPECTED_NANO_LAST_FRAMES = [138, 48, 47, 16, 16, 110];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy"];
 const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
 // Two pages made from app/film.html: film.check.html hands some of its functions to
 // window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
@@ -418,7 +443,8 @@ try {
   check(/^closed /.test(panel) && /MEND/.test(panel) && /APPEAR/.test(panel) && /SHAPES/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs and Ani choosing the looks");
   check(/Ani chooses each character's size, shape and colors as she chooses how it moves/.test(panel) && /COLORS A small semantic net of six hues on a painter's wheel \(thesis p\. 240\)/.test(panel) && /ALTER Looks that change during a scene, as display methods beside Ken's changes of how a character moves \(thesis p\. 166\): joy brightens a character's colors and sadness dims them/.test(panel) && !/next stage|doesn't choose colors|keeps the color it has/.test(panel),
     "and Ani's colors, with what COLORS and ALTER do, and nothing of colors to come");
-  check(/Characters who change \(CHANGE\)\. A scene may change a character/.test(panel) && /fresh look/.test(panel) && /isn't shown yet/.test(panel), "and characters who change, in a plain sentence");
+  check(/Characters who change \(CHANGE\)\. A scene may change a character/.test(panel) && /fresh look/.test(panel) && /In the scene itself Ani shows the change \(p\. 169\): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes/.test(panel) && /his own cinderella-beautified scene, put back as he wrote it, now plays/.test(panel) && !/isn't shown yet/.test(panel)
+    && /CHSHOW Showing a change in its scene \(thesis p\. 169\)/.test(panel) && /noted as not bridged, since Director doesn't read it/.test(panel), "and characters who change, in a plain sentence, with what CHSHOW does: the change shown in its scene");
   check(/The switch turns on four of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how her characters look \(APPEAR\) and characters who change \(CHANGE\)\./.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /Corrections of slips in Ken's files \(SLIPS\), and a few more of the thesis's details \(DETAIL\), will be switches of their own/.test(panel),
     "the panel says in a sentence which extensions the switch turns on, KNOW among them with what each of its files does, and that SLIPS and DETAIL will be switches of their own");
 
@@ -1470,8 +1496,8 @@ try {
     const offer = document.getElementById("ed-make-mend");
     return { prompt, revival, as1978, editor: document.getElementById("ed-check").innerText, refused: document.getElementById("ed-make").disabled, offer: offer && !offer.hidden ? offer.textContent : "" };
   })()`);
-  check(/\(convey \(change \(personality X OLD\) \(personality X NEW\)\)\)/.test(changeTold.prompt || "") && /\(convey \(causes Y \(change \.\.\.\)\)\)/.test(changeTold.prompt || "") && /A change is shown from the next scene on, for now/.test(changeTold.prompt || "") && /isn't animated yet/.test(changeTold.prompt || ""), "with the extensions, the prompt teaches the change task, and says it is shown from the next scene on");
-  check(/nothing wrong/.test(changeTold.revival) && /Ani takes a fresh look at the stepmother after this scene, and she moves as she has become from Kind Again on; the change itself isn't shown yet/.test(changeTold.revival), "with them, the draft passes Ani's checks, and says what CHANGE will do");
+  check(/\(convey \(change \(personality X OLD\) \(personality X NEW\)\)\)/.test(changeTold.prompt || "") && /\(convey \(causes Y \(change \.\.\.\)\)\)/.test(changeTold.prompt || "") && /A change is shown in its scene: if Y brings it about, Y goes to X and transforms X; if nothing does, X wanders about as X changes\. Ani changes how X moves and looks/.test(changeTold.prompt || "") && /\(sequence: \(convey \(causes Y \(change \.\.\.\)\)\) \(establish \(emotional-state X \(joy \(positive high\)\)\)\)\)/.test(changeTold.prompt || "") && !/isn't animated yet/.test(changeTold.prompt || ""), "with the extensions, the prompt teaches the change task, and says the change is shown in its scene, then from the next scene on");
+  check(/nothing wrong/.test(changeTold.revival) && /Ani shows the change in this scene, where the Prince goes to the stepmother and transforms her, gradually; after it Ani takes a fresh look at the stepmother, and she moves and looks as she has become from Kind Again on\./.test(changeTold.revival), "with them, the draft passes Ani's checks, and says what CHANGE will do: show the change, then take a fresh look");
   const refusal = /The Prince makes the stepmother good and kind, no longer evil and mean.{0,3} in Change of Heart: Ani as in 1978 can't change a character during a story/;
   check(refusal.test(changeTold.as1978) && refusal.test(changeTold.editor), "in 1978 mode it is refused, in a plain sentence");
   check(changeTold.refused && changeTold.offer === "Make it with the revival's extensions", `and can't be made as in 1978; the editor offers "${changeTold.offer}"`);
@@ -1512,14 +1538,15 @@ try {
   check(JSON.stringify(changeLasts) === JSON.stringify(EXPECTED_CHANGE_LAST_FRAMES), `its three scenes end at frames ${changeLasts.join(", ")} (Node: ${EXPECTED_CHANGE_LAST_FRAMES.join(", ")})`);
   const compared = await js(`document.getElementById("side").innerText`);
   check(/In Change of Heart the Prince made the stepmother good and kind, no longer evil and mean; from Kind Again on /.test(compared), "the story's panel says who the story changed, and how she moves after");
-  // Change of Heart: the caption says the change itself isn't shown yet
+  // Change of Heart: the caption says how Ani shows the change, and what it is doing now
   const changeCaption = await js(`(async () => {
     document.querySelectorAll("#scenes button")[1].click();
     const s = document.getElementById("scrub"); s.value = 2; s.dispatchEvent(new Event("input"));
     await new Promise((r) => setTimeout(r, 100));
     return document.getElementById("caption-1").innerText;
   })()`);
-  check(/Here the Prince makes the stepmother good and kind, no longer evil and mean\. Ani doesn't animate the change itself yet; a later stage will\. From Kind Again on, the stepmother moves as she has become\./.test(changeCaption), `Change of Heart's caption says the change isn't shown yet: ${changeCaption.split("\n").slice(-1)[0]}`);
+  check(/The Prince goes to the stepmother and transforms her, to convey that he makes her good and kind, no longer evil and mean: gradually, since an abrupt change could be misread \(thesis p\. 169\)\./.test(changeCaption) && /The stepmother changes as she wanders: her path grows smoother and curves more, and her curves grow longer, over [\d.]+ seconds\./.test(changeCaption) && !/a later stage/.test(changeCaption),
+    `Change of Heart's caption says how Ani shows the change, and what it is doing now: ${changeCaption.split("\n").filter((l) => /transforms|changes as she wanders/.test(l)).join(" ")}`);
   // Kind Again: the stepmother's glass box
   const howChanged = async () => {
     await js(`(async () => { document.querySelector('#runbar [data-view="1"]').click(); document.querySelectorAll("#scenes button")[2].click(); const s = document.getElementById("scrub"); s.value = 2; s.dispatchEvent(new Event("input")); await new Promise((r) => setTimeout(r, 100)); })()`);
@@ -1528,6 +1555,11 @@ try {
       if (!d) return { found: true, text: "" };
       const closed = !d.open;
       d.open = true;
+      // her look's choice, made again: its why opens the fresh look's choice point too
+      const lookRow = [...d.querySelectorAll("tbody tr")].find((r) => /Jaggedness of the shape/.test(r.innerText));
+      lookRow.querySelector("[data-cp]").click();
+      await new Promise((r) => setTimeout(r, 50));
+      const lookBox = d.querySelector("#chg-box").innerText;
       const row = [...d.querySelectorAll("tbody tr")].find((r) => /Curvature of the path/.test(r.innerText));
       row.querySelector("[data-cp]").click();
       await new Promise((r) => setTimeout(r, 50));
@@ -1536,16 +1568,26 @@ try {
       const moves = [...document.querySelectorAll("#side details")].find((x) => /^How she moves/.test(x.innerText));
       if (moves) moves.open = true;
       d.scrollIntoView({ block: "start" });
-      return { found: true, closed, text: d.innerText, box: d.querySelector("#chg-box").innerText, held: held.innerText, rows: [...d.querySelectorAll("tbody tr")].map((r) => r.innerText.replace(/\\s+/g, " ").trim()), moves: moves ? moves.innerText : "" };
+      return { found: true, closed, text: d.innerText, box: d.querySelector("#chg-box").innerText, lookBox, held: held.innerText, rows: [...d.querySelectorAll("tbody tr")].map((r) => r.innerText.replace(/\\s+/g, " ").trim()), moves: moves ? moves.innerText : "" };
     }`);
   };
   const changed = await howChanged();
   check(changed.found && changed.closed && /^How she has changed\s+In Change of Heart the Prince made the stepmother good and kind, no longer evil and mean; from Kind Again on her path curves more, her curves are longer and her path is smoother\./.test(changed.text || ""), `Kind Again's glass box has "How she has changed", closed, with a sentence from the fresh look: ${(changed.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
-  // the table's rows: Director's elements, then pass 2's, then those Director doesn't use, each group under a line that says so
+  // the bridge, in Change of Heart: the Prince's walk to her, the frames and time of the
+  // bridges, what they changed, and what was chosen again and not bridged; and her look,
+  // chosen again and drawn as before
+  check(/Ani shows it in Change of Heart: the Prince goes to her \((frames \d+ to \d+|they touch as the part begins, at frame 0)\), and once they touch she changes as she wanders, gradually, over [\d.]+ seconds \(frames \d+ to \d+\): her path grows smoother and curves more, and her curves grow longer; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” \(thesis p\. 169\)\./.test(changed.text || "")
+    && /Chosen again but not bridged: her acceleration, which Director doesn't use, as in 1978 \(thesis pp\. 185-186\); her likings for friends, enemies and strangers, which only pass 1 reads\./.test(changed.text || "")
+    && /Ani chose how she looks again too, as pass 1 chooses looks after how the characters move, with everyone else's held as they were, and she is drawn as before, as a large triangle in a dark, dull blue: the jaggedness of her shape is chosen “not smooth” where it was jagged, and she is drawn the same either way\./.test(changed.text || ""),
+    `with the bridge: ${((changed.text || "").match(/Ani shows it in Change of Heart:[^.]*\./) || [""])[0]}`);
+  // the table's rows: Director's elements, then her look's, then pass 2's, then those
+  // Director doesn't use, each group under a line that says who reads them and how those
+  // that changed are shown
   const rows = changed.rows || [];
   const at = (re) => rows.findIndex((r) => re.test(r));
-  const groups = [/^Director moves her by these$/, /^Pass 2 repeats an activity as often as these say$/, /^Chosen again; Director doesn't use these, as in 1978 \(thesis pp\. 185-186\)$/].map(at);
-  check(rows.length === 15 && groups.join() === "0,5,9" && /^Curvature of the path low medium why\?$/.test(rows[2] || "") && /^Acceleration high medium why\?$/.test(rows[10] || "") && /^Liking for enemies strong dislike strong liking why\?$/.test(rows[13] || ""), `her twelve elements before and after, Director's first, and those Director doesn't use marked so (${rows.slice(0, 3).join("; ")}; ...; ${rows.slice(9, 11).join("; ")}; ...)`);
+  const groups = [/^Director moves her by these; those that changed are bridged in Change of Heart, gradually, over [\d.]+ seconds$/, /^Director draws her by these; she is drawn as before$/, /^Pass 2 repeats an activity as often as these say$/, /^Chosen again; Director doesn't use these, as in 1978 \(thesis pp\. 185-186\)$/].map(at);
+  check(rows.length === 22 && groups.join() === "0,5,12,16" && /^Curvature of the path low medium why\?$/.test(rows[2] || "") && /^Jaggedness of the shape jagged not smooth \(drawn as before\) why\?$/.test(rows[7] || "") && /^Acceleration high medium why\?$/.test(rows[17] || "") && /^Liking for enemies strong dislike strong liking why\?$/.test(rows[20] || ""), `her eighteen elements before and after, Director's first, then her look's, and those Director doesn't use marked so (${rows.slice(0, 3).join("; ")}; ...; ${rows.slice(5, 8).join("; ")}; ...; ${rows.slice(16, 18).join("; ")}; ...)`);
+  check(/^Ani's fresh look after Change of Heart\s+The stepmother's jaggedness of the shape: not smooth/.test(changed.lookBox || "") && /How the stepmother looks is chosen after how she moves, as pass 1 chooses looks/.test(changed.lookBox || ""), `a look's "why?" opens the fresh look's choice point too: ${(changed.lookBox || "").split("\n").slice(0, 2).join(" | ")}`);
   check(/^Ani's fresh look after Change of Heart\s+The stepmother's curvature of the path: medium/.test(changed.box || "") && /good \(the opposite of evil\)/.test(changed.box || "") && /her curvature of the path is to be different from Cinderella's, the fairy godmother's and the Prince's/.test(changed.box || ""), `its "why?" opens the fresh look's choice point: ${(changed.box || "").split("\n").slice(0, 3).join(" | ")}`);
   check(/Without holding them, the Prince's deliberateness would have been high, not medium\./.test(changed.held || "") && /with everyone chosen afresh as of Change of Heart, the Prince's deliberateness would be high, not medium, and her deliberateness would be medium, not high/.test(changed.held || ""), "one click away, what was held, and the full recompute to compare");
   check(/as Ani chose for the stepmother in her fresh look after Change of Heart; it was low before/.test(changed.moves || ""), "How she moves says her curvature comes from the fresh look");
@@ -1561,6 +1603,15 @@ try {
     await shot("13c-fresh-look-choice-phone.png");
     await send("Emulation.setDeviceMetricsOverride", { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
   }
+  // Change of Heart, the scene of the change, has it too: the change said as it is made,
+  // and from Kind Again on
+  await js(`(async () => { document.querySelector('#runbar [data-view="1"]').click(); document.querySelectorAll("#scenes button")[1].click(); const s = document.getElementById("scrub"); s.value = 5; s.dispatchEvent(new Event("input")); await new Promise((r) => setTimeout(r, 100)); })()`);
+  const inScene = ((await clickOn("fig-1", "The stepmother", `async () => {
+    const d = document.querySelector("#side details.changed");
+    if (d) d.open = true;
+    return { found: true, text: d ? d.innerText : "" };
+  }`)) || {}).text || "";
+  check(/^How she has changed\s+In Change of Heart the Prince makes the stepmother good and kind, no longer evil and mean\. From Kind Again on her path curves more, her curves are longer and her path is smoother\.\s+Ani shows it in Change of Heart:/.test(inScene) && !/later stage/.test(inScene), `Change of Heart's glass box has "How she has changed" too, as the change is made: ${inScene.split("\n").filter((l) => l.trim())[1] || ""}`);
   // At Home, before the change, has none
   const before = await js(`(async () => {
     document.querySelectorAll("#scenes button")[0].click();
@@ -1603,6 +1654,172 @@ try {
   check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,know,appear,change" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
     `and, readable at its top, the story as told in English, the model and provider that wrote it, and its Lisp (${changeFile.model}, ${changeFile.provider})`);
   check(/^Your version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^Your version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
+
+  // Ken's own beautified scene, put back (REVIVE;CHSHOW, stage 6): "Change the story" offers
+  // it, turning the switch to the extensions; in 1978 mode it is refused; Ken's CINDY is as
+  // it was
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 75 && !(await js("!!window.__check && document.getElementById('caption-0').innerText.length > 0").catch(() => false)); k++) await sleep(200);
+  const beautyAsked = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const t = window.__check;
+    document.getElementById("open-editor").click();
+    await wait(200);
+    document.querySelector('#side [data-mode="1978"]').click();
+    await wait(100);
+    const b = [...document.querySelectorAll("#side [data-preset]")].find((x) => x.textContent === "Cinderella beautified");
+    if (!b) return { found: false };
+    const title = b.title;
+    b.click();
+    await wait(300);
+    const mode = [...document.querySelectorAll("#side [data-mode]")].filter((x) => x.getAttribute("aria-pressed") === "true").map((x) => x.dataset.mode).join();
+    const text = t.beautifiedCindy();
+    return { found: true, title, mode, same: document.getElementById("ed-lisp").value === text, editor: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled,
+      kens: t.DATA.cindy.includes(";;(define cinderella-beautified scene") && !t.DATA.cindy.includes("\\n(define cinderella-beautified scene") && text.includes("\\n(define cinderella-beautified scene") && text.replace(/^;;/gm, "") === t.DATA.cindy.replace(/^;;/gm, ""),
+      refused: t.checkStory(text, { extensions: [] }).stops.filter((s) => s.change).map((s) => s.as1978) };
+  })()`);
+  check(beautyAsked.found && /^Cinderella beautified: Ken's own scene, which he wrote and left commented out \(cindy\.46:94-105\)/.test(beautyAsked.title) && beautyAsked.mode === "revival" && beautyAsked.same && beautyAsked.make && beautyAsked.kens,
+    "\"Change the story\" offers Ken's own beautified scene, which he wrote and left commented out, put back as he wrote it (his CINDY itself is as it was), and turns the switch to the extensions");
+  check(/Ken's own scene Cinderella Beautified, which he wrote and left commented out \(cindy\.46:94-105\), put back as he wrote it: convey that the fairy godmother makes Cinderella elegant, no longer shabby/.test(beautyAsked.editor || "") && !/Other changes/.test(beautyAsked.editor || "")
+    && /Ani shows the change in this scene, where the fairy godmother goes to Cinderella and transforms her, at once, since the fairy godmother is magical \(the revival's rule\); after it Ani takes a fresh look at Cinderella, and she moves and looks as she has become from No Longer Kept Apart on\./.test(beautyAsked.editor || ""),
+    `the editor says what was put back, and what Ani will do with it: ${(beautyAsked.editor || "").split("\n").find((l) => /Ani shows the change/.test(l)) || ""}`);
+  check((beautyAsked.refused || []).length === 1 && /Ani as in 1978 can't change a character during a story/.test(beautyAsked.refused[0]), "in 1978 mode it is refused, in a plain sentence");
+  // made with the extensions: every scene as Node makes it
+  const t4 = Date.now();
+  await js(`document.getElementById("ed-make").click()`);
+  let beautyMade = "";
+  for (let k = 0; k < 1200; k++) {
+    await sleep(1000);
+    beautyMade = await js(`document.getElementById("run-status").innerText`);
+    if (!/·/.test(beautyMade)) break;
+  }
+  check(/with the revival's extensions: 6 of 6 scenes filmed/.test(beautyMade), `Ani makes it (${Math.round((Date.now() - t4) / 1000)} s): ${beautyMade.split("\n")[0]}`);
+  const beautyLasts = await js(`(async () => {
+    document.querySelector('#runbar [data-view="1"]').click();
+    const out = [];
+    for (const b of document.querySelectorAll("#scenes button")) {
+      b.click();
+      await new Promise((r) => setTimeout(r, 30));
+      out.push(Math.round(parseFloat(document.getElementById("frame-label").textContent.split("/")[1]) * 4));
+    }
+    return out;
+  })()`);
+  check(JSON.stringify(beautyLasts) === JSON.stringify(EXPECTED_BEAUTIFIED_LAST_FRAMES), `its six scenes end at frames ${beautyLasts.join(", ")} (Node: ${EXPECTED_BEAUTIFIED_LAST_FRAMES.join(", ")})`);
+  // Cinderella Beautified: the fairy godmother's walk to her, the touch, the change at once,
+  // her wander; her colors in the film's looks, painted in color mode, in the captions and
+  // the subtitles; and a video's picture
+  const beautified = await js(`(async () => {
+    const t = window.__check, run = t.RUNS[1], i = run.sceneIds.indexOf("cinderella-beautified"), sc = run.scenes[i];
+    const x = (sc.glass.changesShown || [])[0] || {};
+    const span = (plan) => { const a = sc.activities.find((y) => y.name === plan); return a ? [a.begin, a.end] : null; };
+    const look = (f) => { let l = null; for (const [fr, c, v] of sc.film.looks || []) { if (fr > f) break; if (c === "cinderella") l = v; } return l; };
+    const touch = x.goesTo ? span(x.goesTo.plan) : null, bridge = x.bridging ? span(x.bridging.plan) : null;
+    // her color, drawn alone in color at a frame: the dots in the color the screen draws hers in
+    const dots = (f, rgb) => {
+      const cv = document.createElement("canvas"); cv.width = 551; cv.height = 413;
+      const ctx = cv.getContext("2d"); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 551, 413);
+      t.drawFrame(ctx, { ...run, cast: ["cinderella"] }, sc, f, { color: true });
+      const d = ctx.getImageData(0, 0, 551, 413).data; let n = 0;
+      for (let k = 0; k < d.length; k += 4) if (Math.abs(d[k] - rgb[0]) < 8 && Math.abs(d[k + 1] - rgb[1]) < 8 && Math.abs(d[k + 2] - rgb[2]) < 8) n++;
+      return n;
+    };
+    const dull = t.screenRgb([270, 0.35, 0.65]), clear = t.screenRgb([270, 1, 0.65]);
+    const say = (f) => { const c = t.captionAt(run, i, f); return [c.text, ...c.more].join(" ").replace(/<[^>]+>/g, ""); };
+    document.getElementById("mode-bw").click();
+    const tv = say(touch ? touch[1] + 1 : 5);
+    document.getElementById("mode-color").click();
+    const caps = { going: say(2), touch: say(touch ? touch[1] + 1 : 5), after: say(30) };
+    const vtt = t.makeSubtitles([run], [i], false);
+    const cv = document.createElement("canvas"); cv.width = 551; cv.height = 413 + 124;
+    t.drawVideoFrame(cv.getContext("2d"), [run], { i, t: 8 / 4 }, 1, { subtitles: true, memo: Object.assign(new Map(), { both: false }) });
+    const vd = cv.getContext("2d").getImageData(0, 0, 551, 413).data;
+    let video = 0;
+    for (let k = 0; k < vd.length; k += 4) if (Math.abs(vd[k] - clear[0]) < 8 && Math.abs(vd[k + 1] - clear[1]) < 8 && Math.abs(vd[k + 2] - clear[2]) < 8) video++;
+    return { shownBy: x.shownBy, rate: x.rate, rule: x.rateRule, bridges: (x.bridges || []).map((b) => b.element + " " + b.was + " " + b.now).join(), touch, bridge, wander: (x.wanders || { plans: [] }).plans.map(span),
+      sat: [4, 5, 6, 40].map((f) => (look(f) && look(f).color ? look(f).color[1] : null)), before: [dots(4, dull), dots(4, clear)], after: [dots(6, dull), dots(6, clear)], tv, caps, video,
+      vtt: { going: /First the fairy godmother goes to Cinderella; once they touch, she changes at once\\./.test(vtt), touch: /They touch, and at once her colors become clear\\./.test(vtt) && !/colors become clear \\(colors show only/.test(vtt), after: /Cinderella wanders about as she has become, so that the change is seen\\./.test(vtt) } };
+  })()`);
+  check(beautified.shownBy === "(goes-to-and-transforms fairy-godmother cinderella)" && beautified.rate === "instantaneous" && beautified.rule === "(of the revival)" && beautified.bridges === "color-saturation 0.35 1.0"
+    && JSON.stringify(beautified.touch) === "[0,4]" && JSON.stringify(beautified.bridge) === "[5,5]" && JSON.stringify(beautified.sat) === "[0.35,0.35,1,1]",
+    `in Cinderella Beautified the fairy godmother goes to Cinderella (frames ${(beautified.touch || []).join(" to ")}), and as they touch Cinderella's colors become clear at once (the bridge at frame ${(beautified.bridge || [])[0]}; her saturation by frame 4, 5, 6 and 40: ${beautified.sat.join(", ")}), magical, by the revival's rule; then she wanders (${beautified.wander.map((w) => (w || []).join("-")).join(", ")})`);
+  check(beautified.before[0] > 10 && beautified.before[1] === 0 && beautified.after[1] > 10 && beautified.after[0] === 0,
+    `in color mode she is painted the dull purple Ani chose before the touch (${beautified.before[0]} dots at frame 4) and the clear one after (${beautified.after[1]} dots at frame 6)`);
+  check(/The fairy godmother goes to Cinderella and transforms her, to convey that she makes her elegant, no longer shabby: she is magical, so it happens at once \(the revival's rule\)\./.test(beautified.caps.going) && /First the fairy godmother goes to Cinderella; once they touch, she changes at once\./.test(beautified.caps.going)
+    && /They touch, and at once her colors become clear\./.test(beautified.caps.touch) && /They touch, and at once her colors become clear \(colors show only in color mode\)\./.test(beautified.tv) && /Cinderella wanders about as she has become, so that the change is seen\./.test(beautified.caps.after),
+    `the captions say so: ${beautified.caps.touch.replace(/^.*?\. /, "")}`);
+  check(beautified.vtt.going && beautified.vtt.touch && beautified.vtt.after && beautified.video > 10, `and so do the subtitles, and a video in color paints her clear purple after the touch (${beautified.video} dots)`);
+  if (shots) {
+    await js(`document.querySelectorAll("#scenes button")[2].click()`);
+    for (const [f, name] of [[2, "15a-beautified-before.png"], [6, "15b-beautified-touch.png"], [40, "15c-beautified-after.png"]]) {
+      await js(`(async () => { const s = document.getElementById("scrub"); s.value = ${f / 4}; s.dispatchEvent(new Event("input")); await new Promise((r) => setTimeout(r, 150)); document.getElementById("stage").scrollIntoView({ block: "start" }); })()`);
+      await shot(name);
+    }
+  }
+  // her glass box in Cinderella Beautified: "How she has changed", with the bridge; and in
+  // No Longer Kept Apart, "How she looks" says how she is drawn since
+  const beautyGlass = await js(`(async () => {
+    document.querySelector('#runbar [data-view="1"]').click();
+    document.querySelectorAll("#scenes button")[2].click();
+    const s = document.getElementById("scrub"); s.value = 40 / 4; s.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 100));
+    return true;
+  })()`);
+  const beautyChanged = beautyGlass && await clickOn("fig-1", "Cinderella", `async () => {
+    const d = document.querySelector("#side details.changed");
+    if (!d) return { found: true, text: "" };
+    d.open = true;
+    const row = [...d.querySelectorAll("tbody tr")].find((r) => /^Clarity/.test(r.innerText));
+    if (row) row.querySelector("[data-cp]").click();
+    await new Promise((r) => setTimeout(r, 50));
+    const lead = document.querySelector("#side .lead");
+    return { found: true, text: d.innerText, box: d.querySelector("#chg-box").innerText, lead: lead ? lead.innerText : "", row: row ? row.innerText.replace(/\\s+/g, " ").trim() : "" };
+  }`);
+  check(/In Cinderella Beautified the fairy godmother makes Cinderella elegant, no longer shabby\. From No Longer Kept Apart on she moves as before, but she is drawn in a clear purple, no longer a dull purple\./.test(beautyChanged.text || "")
+    && /Ani shows it in Cinderella Beautified: the fairy godmother goes to her \(frames 0 to 4\), and when they touch, at frame 5, her colors become clear at once, since the fairy godmother is magical \(the revival's rule\); then she wanders about for [\d.]+ seconds \(frames 5 to \d+\), so that the change is seen\./.test(beautyChanged.text || "")
+    && /^Clarity dull clear why\?$/.test(beautyChanged.row || "") && /^Ani's fresh look after Cinderella Beautified\s+Cinderella's clarity: clear/.test(beautyChanged.box || "") && /Cinderella is wandering about while the change is shown/.test(beautyChanged.lead || ""),
+    `her glass box there has "How she has changed", with the bridge: ${((beautyChanged.text || "").match(/Ani shows it in Cinderella Beautified:[^;]*/) || [""])[0]}`);
+  const beautyAfter = await js(`(async () => {
+    document.querySelectorAll("#scenes button")[3].click();
+    const s = document.getElementById("scrub"); s.value = 2; s.dispatchEvent(new Event("input"));
+    await new Promise((r) => setTimeout(r, 100));
+    return true;
+  })()`) && await clickOn("fig-1", "Cinderella", `async () => {
+    document.querySelectorAll("#side details").forEach((x) => (x.open = true));
+    const looks = [...document.querySelectorAll("#side details")].find((x) => /^How she looks/.test(x.innerText));
+    const changed = document.querySelector("#side details.changed");
+    return { found: true, looks: looks ? looks.innerText : "", changed: changed ? changed.innerText : "" };
+  }`);
+  check(/Since Cinderella Beautified, she is drawn in a clear purple, no longer a dull purple: Ani's fresh look after that scene chose her look again/.test(beautyAfter.looks || "") && /In Cinderella Beautified the fairy godmother made Cinderella elegant, no longer shabby; from No Longer Kept Apart on she moves as before, but she is drawn in a clear purple/.test(beautyAfter.changed || ""),
+    "and in No Longer Kept Apart, \"How she looks\" and \"How she has changed\" say how she is drawn since");
+  // a change with no cause: Learning to Socialize (reports/ext/change/socializing, made with
+  // MEND, APPEAR and CHANGE), where Cinderella wanders as she grows into an octagon
+  const social = await js(`(async () => {
+    const t = window.__check, get = async (p) => (await fetch(p)).json(), dir = "/reports/ext/change/socializing/";
+    const scenes = [];
+    for (const id of ["wallflower", "learning", "the-dance"]) scenes.push({ id, film: await get(dir + id + ".film.json"), glass: await get(dir + id + ".glass.json") });
+    const cindy = (await (await fetch("/test/stories/socializing.lisp")).text()).replace(/\\r\\n/g, "\\n");
+    const run = t.makeRun({ label: "Yours", short: "Yours", cindy, scenes, extensions: ["mend", "appear", "change"], changes: await get(dir + "changes.json") });
+    const sc = run.scenes[1];
+    document.getElementById("mode-bw").click();
+    const say = (f) => { const c = t.captionAt(run, 1, f); return [c.text, ...c.more].join(" ").replace(/<[^>]+>/g, ""); };
+    const shape = (f) => { let l = null; for (const [fr, c, v] of sc.film.looks || []) { if (fr > f) break; if (c === "cinderella") l = v; } return l ? l.shape + (l.morph ? ">" + l.morph.to : "") + " " + l.aniSize : ""; };
+    return { frames: sc.film.frames.length, caps: [say(5), say(66)], shapes: [0, 32, 64, 67].map(shape),
+      changed: t.using(run, () => t.changedBody(run, "cinderella", 1)).replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ") };
+  })()`);
+  check(social.frames === 68 && /^hexagon 0\.036,hexagon>octagon 0\.04\d*,/.test(social.shapes.join()) && /octagon 0\.05$/.test(social.shapes[3]),
+    `a change with no cause: Learning to Socialize, ${social.frames} frames, where Cinderella grows from a hexagon into an octagon (${social.shapes.join("; ")})`);
+  check(/Cinderella wanders about as she changes, to convey that she becomes brazen, no longer shy: gradually, since an abrupt change could be misread \(thesis p\. 169\)\./.test(social.caps[0]) && /Over 16 seconds, she grows, turns from a hexagon into an octagon and moves faster\./.test(social.caps[0]) && /Cinderella becomes an octagon/.test(social.caps[1]),
+    `its captions say so: ${(social.caps[0].match(/Over 16 seconds[^.]*\./) || [""])[0]}`);
+  check(/^ In Learning to Socialize Cinderella becomes brazen, no longer shy\. From The Dance on she moves faster, and she is drawn as an octagon, no longer a small hexagon\. Ani shows it in Learning to Socialize: she wanders as she changes, gradually, over 16 seconds \(frames 0 to 64\): she grows, turns from a hexagon into an octagon and moves faster;/.test(social.changed)
+    && /Ani's own estimate was 10 seconds \(ten seconds an e-fold of the largest change, at Ken's slowest speed; a change of shape or hue counts as one e-fold\), stretched by 1\.6/.test(social.changed) && /Chosen again but not bridged: her likings for enemies and strangers, which only pass 1 reads\./.test(social.changed)
+    && /Director draws her by these; her look's change is bridged in Learning to Socialize, gradually, over 16 seconds Size small middle-sized why\?/.test(social.changed),
+    "and \"How she has changed\" has the bridge: what changed, over how long, from which frame, and what was chosen again and not bridged");
+  // the prompt in 1978 mode is as it was
+  const prompts1978 = await js(`(async () => {
+    const t = window.__check, hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    return [await hex(t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions: [] })), await hex(t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions: [], format: "json" }))];
+  })()`);
+  check(JSON.stringify(prompts1978) === JSON.stringify(PROMPT_1978_SHA), `the prompt in 1978 mode, Lisp and JSON, is as it was (${prompts1978.map((h) => h.slice(0, 12)).join(", ")})`);
 
   check(await film1978() === shipped, "Ken's 1978 film is as it was shipped");
   await js(`document.querySelector('#runbar [data-view="both"]').click()`);
