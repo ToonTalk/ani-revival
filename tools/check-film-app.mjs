@@ -61,7 +61,17 @@
 // the stage), each said where Ani as in 1978 stops and, in a film made with it, in a
 // sentence with its code; and a word borrowing its neighbor's way of showing (CINDY's
 // is-protective-of, is-protective-to's), as the glass box records it, in a sentence.
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty minutes)
+// And Ani's colors (APPEAR, stage 5): the panel says what COLORS and ALTER do; "How she
+// looks" has a sentence for her colors with Ani's reasons, whose knowledge each one is,
+// and her look change in the scene; "How Ani drew them" names each color; in color mode
+// the film made with the extensions paints Cinderella in the dull purple Ani chose, and
+// Ken's film her green; a joy brightens the Prince and Cinderella over frames in the
+// Meeting at 24 frames a second (reports/ext/appear/24fps), and a sadness dims her in
+// Kept Apart; the caption says so, with its note only in TV mode, and says where a look
+// change shows nothing (Justice); "Ani changes how they look" is said only for a change
+// of shape or size; a shape changing into another is cut at the picture's edges; and a
+// video paints the colors, its subtitles to match.
+// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about forty-five minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width.
 //
@@ -1128,7 +1138,7 @@ try {
     `and a sentence for her colors, with Ani's reasons, her compromise and what she set aside: ${(howText.match(/Ani colored her[^\n]*/) || [""])[0]}`);
   check(/“evil” suggests dark, and so its opposite “good” bright: Ken's, .?bad guys wear black.? \(thesis, p\. 161\)/.test(howText) && /The film's flashiness reaches brightness and clarity: Ken's, .?color is many and bright is flashier.? \(Ken's code, glosug\.41:40\)/.test(howText) && /“shabby” suggests dull: the revival's: a shabby character's clothes are faded/.test(howText) && /“beautiful” suggests clear: the revival's: /.test(howText),
     "where each reason for her colors comes from, Ken's knowledge quoted and the revival's marked as the revival's");
-  check(/In part \d+, Cinderella's colors brighten, from a brightness of \.65 to \.7\d*, as Ani shows that Cinderella is a little happy: a look change.*by the same amount at the same speed; only color mode shows it\.\s*Ken's, .?a suggestion for how to establish that a character is very happy is that the intensity of the colors of the character be increased.? \(thesis, p\. 166\); the revival's: a less happy character brightens less/.test(howText),
+  check(/In part \d+, Cinderella's colors brighten, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\), as Ani shows that Cinderella is a little happy: a look change.*by the same amount at the same speed; only color mode shows it\.\s*Ken's, .?a suggestion for how to establish that a character is very happy is that the intensity of the colors of the character be increased.? \(thesis, p\. 166\); the revival's: a less happy character brightens less/.test(howText),
     `and, in the Introduction, her look change, with Ken's evidence and the revival's reason: ${(howText.match(/In part \d+, Cinderella's colors[^\n]*/) || [""])[0].slice(0, 160)}`);
   check(/In 1978 Ken drew her himself as a green star: the star in initialize-characters/.test(howText) && /the green in running-color/.test(howText) && /In 1978 Ken drew her/.test(howText.split("\n").filter(Boolean).pop() || ""), "it ends with how Ken drew her in 1978, and where he said so");
   check(/She is shy, which suggests small\.\s*the revival's: a shy character keeps small and takes up little room/.test(howBox) && /size is also bigger is flashier.{0,3}\s*\(Ken's code, glosug\.41:39\)/.test(howBox), "\"small\" opens her size's choice point, with Ken's code quoted and the revival's knowledge marked as the revival's");
@@ -1211,9 +1221,11 @@ try {
       for (let k = 0; k < d.length; k += 4) if (d[k] + d[k + 1] + d[k + 2] > best[0] + best[1] + best[2]) best = [d[k], d[k + 1], d[k + 2]];
       return { best, d };
     };
-    const yours = alone(run, run.scenes[0], 0, "cinderella").best, kens = alone(ken, ken.scenes[0], 0, "cinderella").best;
-    // Kept Apart: Cinderella's colors dim, from her first step to her last
-    const ka = run.scenes[1], steps = (ka.film.looks || []).filter((x) => x[1] === "cinderella" && x[0] > 0);
+    // in Kept Apart, from the first frame she is drawn in (frame 0 is the cleared screen)
+    const ka = run.scenes[1], first = (sc) => sc.film.frames.findIndex((fr) => fr.segs.cinderella);
+    const yours = alone(run, ka, first(ka), "cinderella").best, kens = alone(ken, ken.scenes[1], first(ken.scenes[1]), "cinderella").best;
+    // and there her colors dim, from her first step to her last
+    const steps = (ka.film.looks || []).filter((x) => x[1] === "cinderella" && x[0] > 0);
     const before = alone(run, ka, steps.length ? steps[0][0] - 1 : 0, "cinderella").best, after = alone(run, ka, steps.length ? steps[steps.length - 1][0] : 0, "cinderella").best;
     // the Meeting at 24 frames a second, as Node filmed it with APPEAR
     const get = async (p) => (await fetch(p)).json();
@@ -1260,7 +1272,7 @@ try {
     const vttTV = t.makeSubtitles([run], [1], true);
     document.getElementById("mode-color").click();
     const cv = document.createElement("canvas"); cv.width = 551; cv.height = 413 + 124;
-    t.drawVideoFrame(cv.getContext("2d"), [run], { i: 0, t: 0 }, 1, { subtitles: true, memo: Object.assign(new Map(), { both: false }) });
+    t.drawVideoFrame(cv.getContext("2d"), [run], { i: 1, t: first(ka) / 4 }, 1, { subtitles: true, memo: Object.assign(new Map(), { both: false }) });
     const vd = cv.getContext("2d").getImageData(0, 0, 551, 413).data;
     let purple = 0;
     for (let k = 0; k < vd.length; k += 4) if (Math.abs(vd[k] - 137) < 8 && Math.abs(vd[k + 1] - 108) < 8 && Math.abs(vd[k + 2] - 166) < 8) purple++;
@@ -1287,6 +1299,21 @@ try {
   check(colors.inside > 50 && colors.below === 0, `a shape in the middle of becoming another, partly off the picture, has every copy cut at the picture's edge (${colors.inside} dots on the picture, ${colors.below} below it)`);
   check(colors.purple > 10 && colors.vtt.color && colors.vtt.tv, `a video in color paints Ani's colors (${colors.purple} dots of Cinderella's purple in its first picture), and its subtitles say her colors dim, with the note only in black and white`);
   await shot("8d-color-mode.png");
+  // COLORS' and APPEAR's notes on a color, each in a sentence with its code: a hue Ani
+  // gave up on is drawn grey (read-as-color), a brightness chosen as (not X) narrowed to
+  // one of the two left (read-as-number)
+  const colorNotes = await js(`(() => {
+    const t = window.__check;
+    const repairs = [{ actor: "(choice-point-of cinderella color-hue)", note: "(revival-repair: what read-as-color was none now grey because (given up so no hue))" },
+      { actor: "(choice-point-of cinderella color-intensity)", note: "(revival-repair: what read-as-number was (not high) now 0.65 because (narrowed-to medium (variety level) medium (counts (0 low) (0 medium)) (middle-element ken1 reconstruction)))" }];
+    const run = t.makeRun({ label: "Yours", short: "Yours", cindy: t.DATA.cindy, extensions: ["appear"], repairs });
+    const code = (what) => { const a = document.createElement("div"); a.innerHTML = t.repairCode(what); const l = a.querySelector("a"); return l ? l.getAttribute("href") : ""; };
+    return { said: t.repairsIn(run, null).map((r) => r.html.replace(/<[^>]+>/g, "")), codes: [code("read-as-color"), code("read-as-number")] };
+  })()`);
+  check(colorNotes.said[0] === "Ani gave up on Cinderella's hue, so there was no hue to draw her in; the revival's repairs draw her grey, a color with no hue, at the brightness Ani chose."
+    && /^Ani chose Cinderella's brightness “not bright”, and her table of brightnesses has a number only for dark, neither bright nor dark and bright; the revival's repairs narrowed it to neither bright nor dark \(0\.65\), the one of the two left that the film's medium variety picks/.test(colorNotes.said[1] || "")
+    && /source\.html#revive-colors-\d+$/.test(colorNotes.codes[0]) && /source\.html#revive-appear-\d+$/.test(colorNotes.codes[1]),
+    `a hue given up on and a brightness narrowed, each in a sentence with its code (${colorNotes.codes.join(", ")}): ${colorNotes.said.join(" | ")}`);
   // it comes back from this browser's copy, and from a film file, drawn with Ani's looks
   await open();
   await sleep(1500);
