@@ -233,9 +233,11 @@ const HEAD = { speed: ["speed"], "activity-level": ["activity"], "rhythmic-level
   "attraction-towards-enemies": ["to", "enemies"], "attraction-towards-strangers": ["to", "strangers"] };
 const RELATIVE = ELEMENTS.slice(0, 9);
 // The revival's APPEAR (src/pipeline.js APPEARANCE_ELEMENTS): in a run made with it, Ani
-// also chooses how each character looks, after the 102, and these get a group of their own.
-const LOOKS = ["size", "shape-jaggedness", "shape-complexity"];
-Object.assign(ELEMENT, { size: "size", "shape-jaggedness": "shape jaggedness", "shape-complexity": "shape complexity" });
+// also chooses how each character looks, after the 102, its shape and its colors
+// (REVIVE;COLORS: a color's intensity, its saturation and its hue, one of six on a
+// painter's wheel), and these get a group of their own.
+const LOOKS = ["size", "shape-jaggedness", "shape-complexity", "color-intensity", "color-saturation", "color-hue"];
+Object.assign(ELEMENT, { size: "size", "shape-jaggedness": "shape jaggedness", "shape-complexity": "shape complexity", "color-intensity": "brightness", "color-saturation": "clarity", "color-hue": "hue" });
 const PAIRS = [["cinderella", "step-mother"], ["cinderella", "fairy-godmother"], ["cinderella", "prince"],
   ["step-mother", "fairy-godmother"], ["step-mother", "prince"], ["fairy-godmother", "prince"]];
 
@@ -306,9 +308,11 @@ function reasonText(r) {
   return "Postponed: " + lisp(r) + ".";
 }
 const HOW = { "much-less-strongly-suggested": "rejected the much weaker side", "less-strongly-suggested": "rejected the weaker side",
-  compromised: "made a compromise", "rejected-by-previous-choices": "rejected by earlier choices" };
+  compromised: "made a compromise", "rejected-by-previous-choices": "rejected by earlier choices", "not-compatible-with-others": "rejected the side not compatible with the others" };
 const KIND = { incompatible: "incompatible values", "top-bottom": "a high value against a low one", "incompatible-relation": "incompatible relations",
-  "incompatible-relative-values": "incompatible relative values" };
+  "incompatible-relative-values": "incompatible relative values",
+  // two hues (REVIVE;COLORS' hue-net)
+  "adjacent-hues": "two hues a step apart on the painter's wheel", complementary: "two hues opposite each other on the painter's wheel" };
 
 // ---------------------------------------------------------------- the choice points
 const cp29 = new Map(DATA.cp29);
@@ -328,7 +332,9 @@ const byKey = new Map(points.map((p) => [p.key, p]));
 // a run made with APPEAR: its looks' rows follow the others', in a group of their own
 const HAS_LOOKS = points.some((p) => LOOKS.includes(p.elem));
 const ROWS = HAS_LOOKS ? [...ELEMENTS, ...LOOKS] : ELEMENTS;
-const REL_ROWS = HAS_LOOKS ? [...RELATIVE, ...LOOKS] : RELATIVE;
+// (of the looks, only those with comparisons between two characters: size, the shape's
+// and brightness)
+const REL_ROWS = HAS_LOOKS ? [...RELATIVE, ...LOOKS.filter((e) => points.some((p) => !p.absolute && p.elem === e))] : RELATIVE;
 const isLook = (p) => LOOKS.includes(p.elem);
 for (const p of points) for (const s of p.synonyms || []) byKey.set(lisp(s), p);
 for (const a of DATA.attempts) { const p = byKey.get(lisp(a.choicePoint)); if (p) { a.point = p; p.attempts.push(a); } }
@@ -356,7 +362,7 @@ function slug(p) {
     `<span class="ok"><b>${matches} of ${cp29.size}</b> the same as the file Ani wrote on 14 September 1978</span>`;
   if (HAS_LOOKS) {
     const looks = points.filter(isLook).length;
-    document.querySelector("header .intro").insertAdjacentHTML("beforeend", ` In this run, made with the revival's APPEAR, Ani also chose how each character looks (in 1978 Ken drew them himself): ${looks} more choice points, made after the 102, in the groups called looks.`);
+    document.querySelector("header .intro").insertAdjacentHTML("beforeend", ` In this run, made with the revival's APPEAR, Ani also chose how each character looks, its shape and its colors (in 1978 Ken drew and colored them himself): ${looks} more choice points, made after the 102, in the groups called looks.`);
   }
 }
 

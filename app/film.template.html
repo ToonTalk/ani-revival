@@ -293,7 +293,9 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .look-line .aspect { font-weight: 600; }
 .cp .src .evidence { display: block; }
 .cp .evidence { color: var(--muted); font-size: 0.86rem; }
-.cp .evidence q { font-style: italic; quotes: "“" "”"; }
+.cp .evidence q, .looks .evidence q, .look-know q { font-style: italic; quotes: "“" "”"; }
+.looks .fix-line .evidence { color: var(--muted); font-size: 0.86rem; }
+.look-know { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .ours-tag { color: var(--ours); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
 .ken-1978 { border-left: 3px solid var(--rule); padding-left: 10px; font-size: 0.9rem; }
 .cast-looks { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.9rem; }
@@ -633,12 +635,26 @@ const DRAWN = {
   star: { turn: 144, offset: 20 }, square: { turn: 90 }, triangle: { turn: 120 }, circle: { turn: 15 }, pentagon: { turn: 72 }, hexagon: { turn: 60 },
   octagon: { turn: 45 }, "eight-pointed-star": { turn: 135, offset: 20 }, "ten-pointed-star": { turn: 108, offset: 20 },
 };
-// Ani doesn't choose colors yet, so in color each character keeps its own: Ken's four
-// theirs from 1978, a new one that of the shape it would have had (run.slots, as
-// shapesOf gives them), whatever shape Ani gave it.
+// A character's color with Ani as in 1978 (and in a film made with Ani's looks before she
+// chose colors): Ken's four theirs from 1978, a new one that of the shape it would have
+// had (run.slots, as shapesOf gives them), whatever shape Ani gave it.
 function colorOf(run, c) {
   const slot = (run && run.slots && run.slots[c]) || (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
   return SHAPE_LOOK[slot] || SHAPE_LOOK.circle;
+}
+// Ani's colors (REVIVE;COLORS): a look's color is [hue angle, saturation, value], as
+// Director keeps it, painted with HSV's usual formula.
+function hsvColor([h, s, v]) {
+  v = Math.max(0, Math.min(1, v));
+  const f = (n) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); };
+  return `rgb(${f(5)},${f(3)},${f(1)})`;
+}
+// What a character is painted in at frame f of a scene: in a film made with Ani's
+// colors, hers as Director had it then (a look change steps it frame by frame); else
+// its 1978 color.
+function paintAt(run, sc, c, f) {
+  const look = sc && lookAt(sc, c, f);
+  return look && look.color ? hsvColor(look.color) : colorOf(run, c).film;
 }
 const shapeName = (s) => String(s).replace(/-star$/, " star");
 // A character met in a new story: named as the film description's cast line says
@@ -665,20 +681,22 @@ function who(x) {
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 const words = (list) => (list.length > 1 ? list.slice(0, -1).join(", ") + " and " + list[list.length - 1] : list[0] || "");
 const plain = (w) => String(w).replace(/-/g, " ");
-// A character's icon: its shape (Ani's, in a film made with her looks), in its color.
+// A character's icon: its shape (Ani's, in a film made with her looks), in its color
+// (Ani's, as pass 1 chose it, in a film made with her colors).
 function icon(c, size = 16, run = R) {
   const shape = (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
   const drawn = DRAWN[shape];
   if (!drawn) return "";
-  const look = colorOf(run, c);
+  const own = run && run.cast && lookOf(run, c);
+  const stroke = own && own.color ? hsvColor(own.color) : `var(${colorOf(run, c).tone})`;
   const r = size / 2 - 1.5, cx = size / 2, cy = size / 2;
-  if (shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(${look.tone})" stroke-width="1.6"/></svg>`;
+  if (shape === "circle") return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${stroke}" stroke-width="1.6"/></svg>`;
   const gcd = (a, b) => (b ? gcd(b, a % b) : a);
   const pts = [];
   let a = shape === "square" ? -45 : shape === "octagon" ? -67.5 : -90;
   for (let n = 0; n < 360 / gcd(drawn.turn, 360); n++) { pts.push([cx + r * Math.cos(a * Math.PI / 180), cy + r * Math.sin(a * Math.PI / 180)]); a += drawn.turn; }
   const d = "M" + pts.map((p) => p.map((v) => v.toFixed(1)).join(" ")).join("L") + "Z";
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="var(${look.tone})" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><path d="${d}" fill="none" stroke="${stroke}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 }
 
 // ---------------------------------------------------------------- runs of Ani
@@ -711,6 +729,7 @@ const ELEMENTS = {
   "attraction-towards-strangers": "liking for strangers", "attraction-towards-enemies": "liking for enemies", "attraction-towards-friends": "liking for friends",
   // the revival's (REVIVE;APPEAR)
   size: "size", "shape-jaggedness": "jaggedness of the shape", "shape-complexity": "complexity of the shape",
+  "color-intensity": "brightness", "color-saturation": "clarity", "color-hue": "hue",
 };
 const elementName = (e) => ELEMENTS[e] || plain(e);
 // joy's and pride's, Ken's (CINDY 46), and the revival's (REVIVE;KNOWEM)
@@ -857,6 +876,9 @@ function methodText(m, bare = false) {
     case "follows-behind": return `${who(a)} follows ${who(b)}`;
     case "change:": { const el = kv(m, "element"); const [sg, am] = kv(m, "amount") || []; return `${who(el[0])}'s ${elementName(el[1])} ${sg === "negative" ? "falls" : "rises"} ${am === "high" ? "a lot" : am === "low" ? "a little" : ""}`.trim(); }
     case "change-to:": { const el = kv(m, "element"); return `${who(el[0])}'s ${elementName(el[1])} changes to ${kv(m, "new-value")}`; }
+    // the revival's (REVIVE;ALTER): a change of how a character looks
+    case "look-change:": { const el = kv(m, "element"), g = LOOK_GROW[el[1]], v = g && g[(kv(m, "amount") || [])[0] === "negative" ? 1 : 0]; return !g ? `${who(el[0])}'s ${elementName(el[1])} changes` : el[1] === "size" ? `${who(el[0])} ${v}s` : `${who(el[0])}'s colors ${v}`; }
+    case "look-change-to:": { const el = kv(m, "element"); return `${who(el[0])}'s ${elementName(el[1])} changes to ${lookValue(el[1], kv(m, "new-value"))}`; }
     default: return bare ? esc(show(m)) : esc(show(m));
   }
 }
@@ -943,6 +965,7 @@ const REJECT = {
   "no-idea-how-to-convey-method": "Ani knows no way to show this",
   "much-less-strongly-suggested": "much less strongly suggested than another",
   "less-strongly-suggested": "less strongly suggested than another",
+  "not-compatible-with-others": "not compatible with the others",
 };
 function beginText(b) {
   if (!Array.isArray(b)) return Number(b) === 0 ? "at the start of the part" : `${b} s into the part`;
@@ -1020,7 +1043,7 @@ const madeWith = (run) => (runExtensions(run).length ? `with ${extensionsName(ru
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
 // whether the switch changes what Ken's own story makes (APPEAR does: Ani draws his cast)
 const switchChanges1978 = () => MODE === "revival" && SWITCHED.some((id) => EXTENSIONS.find((e) => e.id === id).changes1978);
-const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size and shape, which Ken drew himself", change: "takes a fresh look at a character a story changes" };
+const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "takes a fresh look at a character a story changes" };
 // clauses with an "and" of their own, set apart with commas: "A, B, and C"
 const clauseList = (clauses) => (clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : clauses[0] || "");
 function modeNote() {
@@ -1050,16 +1073,18 @@ document.addEventListener("click", (e) => {
 // and each of the revival's files; a file not here is described by its title line.
 const EXTENSION_TEXT = {
   mend: "Where Ani as in 1978 stops on a story Ken never gave her, each repair lets her go on the way her own code already goes on elsewhere, and notes where it acted. Ken's Cinderella comes out exactly as in 1978.",
-  appear: "Ani chooses each character's size and shape as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
+  appear: "Ani chooses each character's size, shape and colors as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit, and the hue is one of six on a painter's wheel. During a scene, joy brightens a character's colors and sadness dims them (p. 166), beside Ani's changes of how it moves; color mode shows them. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
   change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were. From the next scene on she is described and moves as she has become. The change itself isn't shown yet; a later stage will animate it. Ken's Cinderella has no change, so it comes out exactly as in 1978.",
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
 };
 const REVIVE_TEXT = {
   wrap: "The helper every extension goes through: it wraps one of Ken's functions once a job, and notes each repair where it acted.",
-  appear: "Choice points for each character's size, the jaggedness of its shape and the complexity of its shape, made with Ken's own machinery after his 102 choices; and two characters who would be drawn alike told apart by choosing again.",
-  apsug: "Where the suggestions for a look come from: nine words, each with its evidence; one character dominating another; characters who stand out; how the character moves; and the film's flashiness, complexity and obviousness.",
+  appear: "Choice points for each character's size, the jaggedness and complexity of its shape, and the brightness, clarity and hue of its colors, made with Ken's own machinery after his 102 choices; and two characters who would be drawn alike told apart by choosing again.",
+  apsug: "Where the suggestions for a look come from: eleven words, each with its evidence (evil's dark colors are Ken's, “bad guys wear black”); one character dominating another; characters who stand out; how the character moves; and the film's flashiness, complexity and obviousness.",
   shapes: "The shape experts, for polygons, stars and a circle, who find a shape that fits the choices, and set aside the least justified choice when none does.",
-  looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code.",
+  colors: "A small semantic net of six hues on a painter's wheel (thesis p. 240): two hues a step apart conflict, two steps apart meet at the hue between, opposite hues are complements; and the color each character is drawn in, from its hue, clarity and brightness.",
+  looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER).",
+  alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed.",
   change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was), saved for the later scenes; and, in each of them, who they have become.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
@@ -1102,12 +1127,10 @@ function extensionsPanel() {
   const on = NAMED.filter(([id]) => SWITCHED.includes(id)).map(([, t]) => t);
   const later = NAMED.filter(([id]) => !SWITCHED.includes(id)).map(([, t]) => t);
   const count = ["no", "one", "two", "three", "four", "five", "six"][SWITCHED.length] || SWITCHED.length;
-  // what is still to come of those switched on: Ani's colors (APPEAR's next stage)
-  const colors = SWITCHED.includes("appear") ? "Ani's own colors, and looks that change during a scene, are APPEAR's next stage; until then, in color, each character keeps the color it has with Ani as in 1978. " : "";
   return `<details class="ext-panel"><summary>Which extensions</summary><div class="body">
     <p class="note">The switch turns on ${count} of the revival's extensions: ${esc(words(on))}.</p>${groups}
     ${later.length ? `<p class="note">${esc(cap(words(later)))} will join this switch ${later.length > 1 ? "as they are" : "when it is"} written.</p>` : ""}
-    <p class="note">${colors}Corrections of slips in Ken's files (SLIPS), and a few more of the thesis's details (DETAIL), will be switches of their own, off unless you turn them on.</p>
+    <p class="note">Corrections of slips in Ken's files (SLIPS), and a few more of the thesis's details (DETAIL), will be switches of their own, off unless you turn them on.</p>
     <p class="note">Each is the revival's Lisp, in Ken's idioms, in files of its own that load after his only when the switch asks for them. Ken's 1978 film is shown as it was made, whichever is chosen.</p></div></details>`;
 }
 
@@ -1298,8 +1321,9 @@ function repairSentence({ actor, what, notes }, sc) {
       return `Where ${who(c)} was going depended on where someone else was going, which depended on where ${who(c)} was going, and Ani as in 1978 went round and round finding it; the revival's repairs take ${who(c)}'s own place the second time round, as Ken's code already does for a goal that leads to itself.`;
     }
     case "read-as-number": {
-      // REVIVE;APPEAR's appearance-number: a size Ani chose as (not X), narrowed to one of
-      // the two left as MEND1 narrows how characters move, or one she gave up on
+      // REVIVE;APPEAR's appearance-number: a size (or a color's brightness or clarity,
+      // REVIVE;COLORS) Ani chose as (not X), narrowed to one of the two left as MEND1
+      // narrows how characters move, or one she gave up on
       const el = Array.isArray(a) ? a[2] : "size";
       const c = Array.isArray(a) ? a[1] : null;
       const her = CHARS[c] ? CHARS[c].her : "them";
@@ -1307,9 +1331,11 @@ function repairSentence({ actor, what, notes }, sc) {
       const to = Array.isArray(because) && because[0] === "narrowed-to" ? because[1] : null;
       const level = Array.isArray(because) && typeof because[3] === "string" ? `${esc(because[3])} ` : "";
       return Array.isArray(was) && was[0] === "not"
-        ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and her table of sizes has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
+        ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and her table of ${({ "color-intensity": "brightnesses", "color-saturation": "clarities" })[el] || "sizes"} has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
         : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${names.medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
     }
+    // REVIVE;COLORS' color-character: a hue Ani gave up on, drawn grey
+    case "read-as-color": return `Ani gave up on ${cp}, so there was no hue to draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} in; the revival's repairs draw ${CHARS[a[1]] ? CHARS[a[1]].her : "them"} grey, a color with no hue, at the brightness Ani chose.`;
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
       const [c, assumed] = Array.isArray(was) ? was : [];
@@ -1595,7 +1621,13 @@ const LOOK_VALUE = {
   size: { low: "small", medium: "middle-sized", high: "large" },
   "shape-jaggedness": { low: "smooth", medium: "angular", high: "jagged" },
   "shape-complexity": { low: "simple", medium: "moderately complex", high: "complex" },
+  // the revival's colors (REVIVE;COLORS): a color's intensity and saturation
+  "color-intensity": { low: "dark", medium: "neither bright nor dark", high: "bright" },
+  "color-saturation": { low: "dull", medium: "neither clear nor dull", high: "clear" },
 };
+// a look's colors (REVIVE;COLORS) are said apart from its shape
+const COLOR_ELEMENTS = ["color-intensity", "color-saturation", "color-hue"];
+const isColor = (el) => COLOR_ELEMENTS.includes(String(el).replace(/^relative-/, ""));
 const lispValue = (v) => (typeof v === "string" && v.startsWith("(") ? parse(v) : v);
 function lookValue(el, v) {
   const x = lispValue(v);
@@ -1719,6 +1751,7 @@ const REL_WORDS = {
   "relative-size": { "greater-than": "larger than", "less-than": "smaller than", "different-from": "a different size from", "same-as": "the same size as" },
   "relative-shape-jaggedness": { "greater-than": "more jagged than", "less-than": "smoother than", "different-from": "different in outline from", "same-as": "the same in outline as" },
   "relative-shape-complexity": { "greater-than": "more complex than", "less-than": "simpler than", "different-from": "different in complexity from", "same-as": "the same in complexity as" },
+  "relative-color-intensity": { "greater-than": "brighter than", "less-than": "darker than", "different-from": "different in brightness from", "same-as": "as bright as" },
 };
 const relWords = (s) => (REL_WORDS[s.element] || {})[s.relation] || `${plain(show(s.relation))} ${plain(s.element)}`;
 const FILM_WORDS = {
@@ -1805,7 +1838,7 @@ function lookSentence(run, c) {
   const entry = run.appearances.get(c);
   const k = meet(run.story, c);
   const parts = [];
-  for (const el of APPEAR_ELEMENTS) {
+  for (const el of APPEAR_ELEMENTS.filter((x) => !isColor(x))) {
     const e = entry.elements[el];
     if (!e) continue;
     const sources = e.sources || [];
@@ -1820,6 +1853,135 @@ function lookSentence(run, c) {
     parts.push(why ? `${word} because ${why}${drawn}` : sources.length ? `${word}, from suggestions Ani combined${drawn}` : `${word} (nothing suggested a value)${drawn}`);
   }
   return `Ani made ${k.her} ${aShape(entry.look)}: ${parts.join("; ")}.`;
+}
+
+// A look's color in words: "a dull purple, neither bright nor dark" (short, "a dull
+// purple"), from its numbers (REVIVE;COLORS: intensity .45, .65 or .85, saturation .35,
+// .65 or 1.0; a hue Ani gave up on is grey).
+const HUES = ["yellow", "orange", "red", "purple", "blue", "green"]; // REVIVE;COLORS' wheel, Itten's
+const HUE_ANGLE = { yellow: 60, orange: 30, red: 0, purple: 270, blue: 240, green: 120 };
+function colorName(look, short = false) {
+  const [h, sat, v] = look.color;
+  const level = (x, lo, hi) => (x <= lo ? "low" : x >= hi ? "high" : "medium");
+  const iv = level(v, 0.45, 0.85), sv = level(sat, 0.35, 1);
+  const hue = sat === 0 ? "grey" : look.hue || HUES.find((x) => HUE_ANGLE[x] === h) || `hue ${h}`;
+  const adj = [iv, sv].map((x, n) => (x === "medium" ? "" : LOOK_VALUE[COLOR_ELEMENTS[n]][x])).filter(Boolean);
+  const tail = short ? [] : [iv, sv].map((x, n) => (x === "medium" ? LOOK_VALUE[COLOR_ELEMENTS[n]].medium : "")).filter(Boolean);
+  return `${article(adj[0] || hue)} ${adj.length ? `${adj.join(", ")} ` : ""}${hue}${tail.length ? `, ${tail.join(", ")}` : ""}`;
+}
+// What a source of a suggestion is, as a noun: “shabby”, the film's flashiness, how he
+// compares with the fairy godmother.
+function sourceNoun(run, c, src) {
+  const k = meet(run.story, c);
+  const list = Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src];
+  return words(list.map((x) => {
+    if (typeof x === "string") return `“${esc(plain(x))}”`;
+    if (!Array.isArray(x)) return esc(show(x));
+    if (x[0] === "opposite-of" || x[0] === "neighbor-of") return `“${esc(plain(x[1]))}” (${x[0] === "opposite-of" ? "the opposite of" : "close to"} ${esc(plain(x[2]))})`;
+    if (x.length === 2 && x[1] === "level") return `the film's ${esc(plain(x[0]))}`;
+    if (x[0] === "relative-choice-point-of" && Array.isArray(x[1])) return `how ${k.she} ${agree(k, "compares", "compare")} with ${who(x[1][0] === c ? x[1][1] : x[1][0])}`;
+    return esc(plain(show(x)));
+  }));
+}
+// One aspect of a character's color with Ani's reasons: the sources whose own suggestion
+// it was; or, where she compromised (a brightness between bright and dark, or the hue
+// between two hues two steps apart on the wheel), the two she met between; or, for a hue
+// nothing suggests, the film's variety; and what she set aside, and why (a hue a step
+// from another, or opposite it, is a conflict, which CHOOSE resolves as any other).
+function colorPart(run, c, el) {
+  const k = meet(run.story, c);
+  const e = run.appearances.get(c).elements[el];
+  if (!e) return "";
+  const cp = cpNamed(run, ["choice-point-of", c, el]);
+  const chosen = lispValue(e.value);
+  const word = `<button type="button" class="linkish aspect" data-look="${esc(c)}|${esc(el)}">${esc(lookValue(el, e.value))}</button>`;
+  const list = (src) => (Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src]).map(show);
+  const because = (src) => reasonClause(run, c, el, list(src), { only: false }).text;
+  const why = reasonClause(run, c, el, e.sources || []).text;
+  const comp = ((cp && cp.conflictsResolved) || []).filter((x) => kv(x, "how-resolved") === "compromised").pop();
+  // the hues the sources suggest, where Ani's knowledge says (magical's purple)
+  const known = (e.sources || []).map((src) => ({ src, hue: lookSource(run, c, el, src).suggests })).filter((x) => HUES.includes(x.hue));
+  const at = (h) => HUES.indexOf(h), steps = (a, b) => Math.min(Math.abs(at(a) - at(b)), 6 - Math.abs(at(a) - at(b)));
+  const near = el === "color-hue" && !why && known.find((x) => steps(x.hue, chosen) === 1);
+  let text;
+  if (why) text = `${word} because ${why}`;
+  else if (comp) {
+    const [a, b] = (kv(comp, "offenders") || []).map((sg) => { const w = because(kv(sg, "source")); return `${lookValue(el, kv(sg, "value"))}${w ? `, because ${w}` : ""}`; });
+    text = `${word}, ${el === "color-hue" ? "the hue between" : "a compromise between"} ${a}, and ${b}`;
+  } else if (near) {
+    const other = HUES[(2 * at(chosen) - at(near.hue) + 12) % 6];
+    const w = because(near.src);
+    text = `${word}, the hue between ${near.hue}${w ? `, because ${w}` : ""}, and ${other}, which the film's variety suggested (two hues two steps apart on the wheel meet between) ${fileLink("colors")}`;
+  } else if (el === "color-hue" && (e.sources || []).length && (e.sources || []).every((src) => src === "(variety level)")) {
+    text = `${word}, since nothing suggests a hue for ${k.her}: the film's variety picks one, by how often each was used so far ${codeLink("glosug.41", 61)}`;
+  } else text = (e.sources || []).length ? `${word}, from suggestions Ani combined` : `${word} (nothing suggested a value)`;
+  // a (not X) is drawn as one of the two values left (REVIVE;APPEAR appearance-number)
+  if (e.drawn && !sameValue(e.drawn, e.value)) text += `, drawn ${esc(lookValue(el, e.drawn))}`;
+  // what was set aside: "clear, for “beautiful”, set aside as not compatible with the others"
+  const aside = ((cp && cp.rejectedSuggestions) || []).map((r) => {
+    const sg = kv(r, "suggestion"), v = kv(sg, "value");
+    const fight = ((cp && cp.conflictsResolved) || []).find((x) => ["adjacent-hues", "complementary"].includes(kv(x, "type")) && (kv(x, "offenders") || []).some((o) => sameValue(kv(o, "value"), v)));
+    const wheel = fight ? ` (${esc(plain(show(v)))} is ${kv(fight, "type") === "complementary" ? "opposite" : "a step from"} ${esc(show(chosen))} on the wheel, so the two conflict)` : "";
+    return { what: `${esc(lookValue(el, v))}, for ${sourceNoun(run, c, kv(sg, "source"))}${wheel}`, why: rejectText(kv(r, "reason")) };
+  });
+  const reasons = [...new Set(aside.map((x) => x.why))].map((why) => `${words(aside.filter((x) => x.why === why).map((x) => x.what))}, set aside as ${why}`);
+  return `${text}${reasons.length ? ` (${reasons.join("; ")})` : ""}`;
+}
+// "Ani colored her a dull purple, neither bright nor dark: ...", each aspect a button.
+function colorSentence(run, c) {
+  const entry = run.appearances.get(c);
+  const parts = COLOR_ELEMENTS.map((el) => colorPart(run, c, el)).filter(Boolean);
+  return `Ani colored ${meet(run.story, c).her} ${colorName(entry.look)}: ${parts.join("; ")}.`;
+}
+// The knowledge a character's colors came from, each piece Ken's (his words quoted) or
+// the revival's (marked, with its reason): every source of a suggestion that won, was
+// combined, compromised between or set aside.
+function colorKnowledge(run, c) {
+  const entry = run.appearances.get(c), rows = [];
+  const add = (el, src) => {
+    const x0 = lispValue(typeof src === "string" ? src : show(src));
+    for (const x of Array.isArray(x0) && x0[0] === "and" ? x0.slice(1) : [x0]) {
+      const via = Array.isArray(x) && (x[0] === "opposite-of" || x[0] === "neighbor-of") ? x : null;
+      const word = typeof x === "string" ? x : via ? x[2] : null;
+      const row = word ? knowFor(run, "descriptor", word, el) : Array.isArray(x) && x[1] === "level" ? knowFor(run, "film", show(x), el) : null;
+      if (!row) continue;
+      // one piece of knowledge, said once: the film's flashiness reaches brightness and clarity
+      const same = rows.find((r) => r.row.kind === row.kind && r.row.source === row.source && JSON.stringify(r.row.evidence) === JSON.stringify(row.evidence));
+      const r = same || rows[rows.push({ els: [], rows: [], row, vias: [] }) - 1];
+      if (!r.els.includes(el)) { r.els.push(el); r.rows.push(row); }
+      if (via && !r.vias.some((v) => v[1] === via[1])) r.vias.push(via);
+    }
+  };
+  for (const el of COLOR_ELEMENTS) {
+    const e = entry.elements[el];
+    if (!e) continue;
+    for (const src of e.sources || []) add(el, src);
+    const cp = cpNamed(run, ["choice-point-of", c, el]);
+    for (const x of [...((cp && cp.conflictsResolved) || []).flatMap((y) => kv(y, "offenders") || []), ...((cp && cp.rejectedSuggestions) || []).map((y) => kv(y, "suggestion"))]) add(el, kv(x, "source"));
+  }
+  return rows.map(({ els, rows: rs, row, vias }) => {
+    const opp = ["opposite-of", "neighbor-of"].map((how) => vias.filter((v) => v[0] === how).map((v) => `“${esc(plain(v[1]))}”`)).map((ws, n) => (ws.length ? `its ${n ? "neighbor" : "opposite"}${ws.length > 1 ? "s" : ""} ${words(ws)} ${esc(lookValue(els[0], n ? row.value : opposite3(row.value)))}` : "")).filter(Boolean);
+    const what = row.kind === "film" ? `The film's ${esc(plain(lispValue(row.source)[0]))} reaches ${esc(words(els.map(elementName)))}` : `“${esc(plain(row.source))}” suggests ${esc(words(rs.map((x, n) => lookValue(els[n], x.value))))}${opp.length ? `, and so ${words(opp)}` : ""}`;
+    const ev = evidenceText(row.evidence);
+    return `<li>${what}: ${row.evidence && row.evidence.why ? ev : `Ken's, ${ev}`}</li>`;
+  }).join("");
+}
+// What Ani changes of a character's look in a scene (glass.lookChanges, REVIVE;ALTER),
+// each in a sentence with its reason and evidence; or that it shows nothing there.
+function lookChangeLines(run, sc, c) {
+  return ((sc && sc.glass && sc.glass.lookChanges) || []).filter((x) => x.character === c).map((x) => {
+    const sub = sc.subscenes.find((y) => y.name === x.subscene) || { n: "?", begin: 0, end: sc.last };
+    const t = lookChangeText(sc, sub, x);
+    const v0 = lookAt(sc, c, Math.max(0, sub.begin - 1)), v1 = lookAt(sc, c, sub.end);
+    const num = (l) => (l && l.color ? String(Math.round(l.color[2] * 1000) / 1000).replace(/^0\./, ".") : "?");
+    const task = sc.glass.tasks.find((y) => y.name === x.task);
+    const d = task ? taskInfo(task).description : null;
+    const f = parse(x.feeling || "nil");
+    const row = knowledgeOf(run).find((r) => r.kind === "look-change" && Array.isArray(f) && r.source === f[0] && r.element === x.element);
+    const ev = row ? (Array.isArray(row.evidence) ? row.evidence : [row.evidence]).map((y) => (y.why ? evidenceText(y) : `Ken's, ${evidenceText(y)}`)).join("; ") : "";
+    const k = meet(run.story, c);
+    return `In part ${sub.n}, ${t.does}${t.shows && x.element === "color-intensity" ? `, from a brightness of ${num(v0)} to ${num(v1)} (1 is the screen's brightest)` : ""}${d ? `, as Ani shows that ${about(d)}` : ""}: a look change ${methodCode(["look-change:"], "run")}, made beside ${theirs(c)} changes of how ${k.she} ${agree(k, "moves", "move")}, by the same amount at the same speed${t.shows ? "; only color mode shows it" : ""}.${ev ? ` <span class="evidence">${ev}</span>` : ""}`;
+  });
 }
 
 // Ani's own record of a look, in plain words: what the shape experts did ((considered: ...),
@@ -1919,15 +2081,21 @@ function ken1978Note(run, c) {
 }
 // The body of "How she looks": the sentence, a box for the aspect opened, the experts,
 // telling apart, and 1978.
-function looksBody(run, c, boxId) {
+function looksBody(run, c, boxId, sc = null) {
   const look = lookOf(run, c);
   if (!look) return "";
   const k = meet(run.story, c);
   const entry = run.appearances && run.appearances.get(c);
   const sentence = entry ? lookSentence(run, c) : `${cap(k.the)} ${agree(k, "is", "are")} drawn as ${aShape(look)}, as Ani chose in pass 1.`;
+  // her colors (REVIVE;COLORS), with whose knowledge each reason is
+  const colored = entry && entry.look.color ? colorSentence(run, c) : look.color ? `${cap(k.the)} ${agree(k, "is", "are")} colored ${colorName(look)}.` : "";
+  const known = entry && entry.look.color ? colorKnowledge(run, c) : "";
   const experts = entry ? expertsText(run, c) : "";
   const notes = entry ? lookNotes(run, c) : [];
-  return `<p class="look-line">${sentence}</p><div class="look-box" id="${esc(boxId)}"></div>
+  const changes = lookChangeLines(run, sc, c);
+  return `<p class="look-line">${sentence}</p>${colored ? `<p class="look-line">${colored}</p>` : ""}<div class="look-box" id="${esc(boxId)}"></div>
+    ${known ? `<div class="note"><p>Where the reasons for ${theirs(c)} colors come from ${fileLink("apsug")}:</p><ul class="look-know">${known}</ul></div>` : ""}
+    ${changes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     ${experts ? `<p class="note">${experts} ${fileLink("shapes")}</p>` : ""}
     ${notes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     <p class="ken-1978">${ken1978Note(run, c)}</p>`;
@@ -2016,7 +2184,7 @@ function lookChoiceBox(run, char, el) {
     ${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${[...notes, ...fixes.map((f) => `${f.html} ${repairCode(f.what)}`)].map((n) => `<p class="fix-line">${n}</p>`).join("")}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
-    <span class="note">Chosen in this version's pass 1, after all ${run.choicePoints.filter((x) => !isAppearance(x.name[2])).length} of its choices of how the characters move, by REVIVE;APPEAR ${fileLink("appear")}; the knowledge is REVIVE;APSUG's ${fileLink("apsug")}.</span></div>`;
+    <span class="note">Chosen in this version's pass 1, after all ${run.choicePoints.filter((x) => !isAppearance(x.name[2])).length} of its choices of how the characters move, by REVIVE;APPEAR ${fileLink("appear")}; the knowledge is REVIVE;APSUG's ${fileLink("apsug")}${isColor(el) ? `, and the colors and their wheel of hues REVIVE;COLORS' ${fileLink("colors")}` : ""}.</span></div>`;
 }
 
 // ---------------------------------------------------------------- how she has changed
@@ -2076,6 +2244,13 @@ function changedSentence(run, x, c, k) {
   const then = next ? `from ${esc(run.titles[next])} on ${moves}` : `the film ends there, so it never shows who ${kk.she} ${agree(kk, "has", "have")} become`;
   return past ? `${said}; ${then}.` : `${said}. Ani doesn't animate the change itself yet; a later stage will. So here ${kk.she} ${agree(kk, "moves", "move")} as before, and ${then}.`;
 }
+// What becomes of her looks after a change (LOOKS_KEPT: the fresh look chooses only how
+// she moves): kept as pass 1 chose them, her colors too.
+function keptLook(run, c) {
+  const kk = meet(run.story, c), look = lookOf(run, c);
+  const as = look && look.color ? `, ${aShape(look)} in ${colorName(look, true)}` : "";
+  return `Ani keeps how ${kk.she} ${agree(kk, "looks", "look")} as pass 1 chose it${as}; choosing ${kk.her} ${look && look.color ? "shape, size and colors" : "looks"} again after a change comes in a later stage.`;
+}
 // clauses with commas of their own, listed: "a, not b, and c, not d"; "x; y; and z"
 const clauses = (xs) => (xs.length < 3 ? xs.join(", and ") : `${xs.slice(0, -1).join("; ")}; and ${xs[xs.length - 1]}`);
 // The body of "How she has changed": the sentence; her elements before and after, each
@@ -2088,7 +2263,7 @@ function changedBody(run, c, k) {
   return changesOf(run, c, k).map((x) => {
     const sentence = `<p class="look-line">${changedSentence(run, x, c, k)}</p>`
       + (x.rec.error || !(x.rec.characters.find((y) => y.character === c) || {}).looks ? ""
-        : `<p class="note">Ani keeps how ${kk.she} ${agree(kk, "looks", "look")} as pass 1 chose it; choosing ${kk.her} looks again after a change comes in a later stage.</p>`);
+        : `<p class="note">${keptLook(run, c)}</p>`);
     if (x.rec.error) return sentence;
     const ch = x.rec.characters.find((y) => y.character === c);
     const order = (v) => ["director", "cycles", "none"].indexOf(v.use) * 20 + CHANGE_ORDER.indexOf(v.element);
@@ -2475,25 +2650,29 @@ function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
     const seg = fr.segs[c];
     if (!seg) continue;
     // the segments are as Director drew them, Ani's shape and size in a film made with
-    // her looks; color draws a shape again inside itself, by its own size and density,
-    // in the character's color
-    const look = colorOf(run, c);
+    // her looks (in the middle of a change of shape, the in-between); color draws a
+    // shape again inside itself, by its own size and density (between the two shapes',
+    // as far as the change has come), in the character's color, Ani's as it is at this
+    // frame in a film made with her colors
+    const paint = paintAt(run, sc, c, f);
     const drawn = lookAt(sc, c, f);
     const shape = drawn && DRAWN[drawn.shape] ? drawn.shape : run.shapes[c];
     const isSelected = selected === c;
     const copies = [1];
     if (color) {
       const size = (drawn && drawn.aniSize ? drawn.aniSize : (SHAPE_LOOK[run.shapes[c]] || SHAPE_LOOK.circle).size) * ROOT;
-      const offset = (DRAWN[shape] && DRAWN[shape].offset) || 10;
+      const offsetOf = (s) => (DRAWN[s] && DRAWN[s].offset) || 10;
+      const to = drawn && drawn.morph && drawn.morph.to;
+      const offset = offsetOf(shape) + (to ? (offsetOf(to) - offsetOf(shape)) * drawn.morph.amount : 0);
       for (let k = 1; size - k * offset > 0; k++) copies.push((size - k * offset) / size);
     }
     const [cx, cy] = centroid(seg);
     if (isSelected) {
       ctx.save();
-      ctx.shadowColor = color ? look.film : "#9fd0ff";
+      ctx.shadowColor = color ? paint : "#9fd0ff";
       ctx.shadowBlur = 14;
     }
-    ctx.strokeStyle = color ? look.film : "#f4f4f4";
+    ctx.strokeStyle = color ? paint : "#f4f4f4";
     ctx.lineWidth = isSelected ? 2.2 : 1.25;
     ctx.beginPath();
     for (const f of copies) {
@@ -2656,8 +2835,45 @@ function caption(r) {
     return;
   }
   const c = captionAt(run, state.scene, frameIn(sc));
-  const colors = sc.film.looks && state.color ? `<span class="part">Ani chose these shapes and sizes; she doesn't choose colors yet, so in color each character keeps the color it has with Ani as in 1978.</span>` : "";
+  // whose colors these are, in a film made with Ani's looks
+  const colors = !sc.film.looks || !state.color ? ""
+    : `<span class="part">${hasColors(sc) ? "Ani chose these colors, as she chose the shapes and sizes." : "This film was made before Ani chose colors, so each character keeps the color it has with Ani as in 1978."}</span>`;
   el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+}
+const hasColors = (sc) => (sc.film.looks || []).some((x) => x[2] && x[2].color);
+// The changes of shape or size in a scene's looks within a second before frame f, from
+// frame 1 on (film.looks has an entry each frame a color steps too, and a size grows
+// in steps): each a change of how the shape is said, or a change of shape begun.
+function shapeChanges(sc, f) {
+  const was = {}, out = [];
+  for (const x of sc.film.looks || []) {
+    const [frame, c, look] = x;
+    if (frame > f) break;
+    const before = was[c];
+    was[c] = look;
+    const begun = look.morph && look.morph.to && !(before && before.morph);
+    if (before && frame > 0 && f - frame < fpsOf(sc) && (begun || aShape(before) !== aShape(look))) out.push(x);
+  }
+  return out;
+}
+// A look change Ani planned (glass.lookChanges, REVIVE;ALTER) in words, "Cinderella's
+// colors dim", and what the film shows of it in its part: nothing, where the look was
+// already as far as it goes (the darkest Ani draws a character, .45, or the screen's
+// brightest) or the film ended first.
+const LOOK_GROW = { "color-intensity": ["brighten", "dim"], "color-saturation": ["grow clearer", "grow duller"], size: ["grow", "shrink"] };
+function lookChangeText(sc, sub, x) {
+  const c = x.character, amount = parse(x.amount || "nil");
+  const up = !(Array.isArray(amount) && amount[0] === "negative");
+  const grow = LOOK_GROW[x.element] && LOOK_GROW[x.element][up ? 0 : 1];
+  const to = parse(String(x.change).replace(/^.* look to (\(look:.*\)) at .*$/, "$1"));
+  // grouped in a caption by what it does: "Cinderella's and the Prince's colors brighten"
+  const [key, does] = !grow ? [null, Array.isArray(to) && kv(to, "hue") ? `${who(c)}'s colors turn ${plain(kv(to, "hue"))}` : Array.isArray(to) && kv(to, "shape") ? `${who(c)} turns into ${article(shapeName(kv(to, "shape")))} ${shapeName(kv(to, "shape"))}` : esc(show(x.method))]
+    : x.element === "size" ? [`size ${grow}`, `${who(c)} ${grow}s`] : [`colors ${grow}`, `${who(c)}'s colors ${grow}`];
+  const before = lookAt(sc, c, Math.max(0, sub.begin - 1)), after = lookAt(sc, c, sub.end);
+  if (!grow || !before || !after || JSON.stringify(before) !== JSON.stringify(after)) return { c, key, does, shows: true };
+  const k = meet(R.story, c), v = before.color ? before.color[2] : null;
+  const why = x.element === "color-intensity" && v !== null && (up ? v >= 1 : v <= 0.45) ? `${k.she} ${agree(k, "is", "are")} as ${up ? "bright as the screen shows" : "dark as Ani draws anyone"} already` : "the film ends before it shows";
+  return { does: `${x.element === "size" ? who(c) : `${who(c)}'s colors`} would ${grow}, but ${why}`, shows: false };
 }
 // What a caption says at frame f of scene i of a run, as html: the part ("Scene 1 · The
 // Introduction · part 1 of 4"), what is shown and why, and more (meanwhile, a change, a
@@ -2684,14 +2900,23 @@ function captionAt(run, i, f) {
     const feel = changes.map((t) => about(t.description));
     const more = [];
     if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.`);
+    // how they look, changed beside how they move (REVIVE;ALTER: joy brightens, sadness
+    // dims), which only color shows; and a change that shows nothing here
+    const lookChanges = subs.flatMap((sub) => (sc.glass.lookChanges || []).filter((x) => x.subscene === sub.name).map((x) => lookChangeText(sc, sub, x)));
+    const groups = new Map();
+    for (const x of lookChanges.filter((y) => y.shows)) { const k = x.key || x.does; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); }
+    const shown = [...groups.values()].map((xs) => (xs.length < 2 || !xs[0].key ? xs.map((x) => x.does).join(" and ") : xs[0].key.startsWith("size") ? `${who(xs.map((x) => x.c))} ${xs[0].key.slice(5)}` : `${words(xs.map((x) => `${who(x.c)}'s`))} ${xs[0].key}`));
+    const idle = lookChanges.filter((x) => !x.shows).map((x) => x.does);
+    if (shown.length) more.push(`${cap(words(shown))}${feel.length ? " too" : ""}${state.color || !lookChanges.some((x) => /colors/.test(x.does)) ? "" : " (colors show only in color mode)"}.`);
+    if (idle.length) more.push(`${cap(words(idle))}.`);
     // a change of who someone is (REVIVE;CHANGE), which Ani has no way to show yet
     const cant = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do").flatMap((t) => changesIn(t.description));
     const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
     if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}. Ani doesn't animate the change itself yet; a later stage will.${next ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
     if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
-    // a look that changes here, for a second after it changes (looks change during a
-    // scene in APPEAR's next stage)
-    const looked = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map(([, c, look]) => `${who(c)} becomes ${aShape(look)}`);
+    // a shape or size that changes here, for a second after it changes (a color's steps
+    // are said above, by the look change that makes them)
+    const looked = shapeChanges(sc, f).map(([, c, look]) => (look.morph && look.morph.to ? `${who(c)} begins to turn into ${article(shapeName(look.morph.to))} ${shapeName(look.morph.to)}` : `${who(c)} becomes ${aShape(look)}`));
     if (looked.length) more.push(`Here Ani changes how they look: ${esc(words(looked))}.`);
     return { part: `Scene ${i + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}`, text: shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part."), more };
   }));
@@ -2964,7 +3189,7 @@ function whyPanel(char) {
     if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
   }
   // in a film made with Ani's looks (REVIVE;APPEAR), how she chose this one
-  const looks = looksBody(R, char, "look-box");
+  const looks = looksBody(R, char, "look-box", s);
   if (looks) sections += `<details class="looks"><summary>How ${esc(k.she)} ${agree(k, "looks", "look")}</summary><div class="body">${looks}</div></details>`;
   // in the scene that changed her and every later one (REVIVE;CHANGE), who she has become
   const changed = R.raw.changes ? changedBody(R, char, state.scene) : "";
@@ -4195,14 +4420,14 @@ const changeLines = (run) => using(run, () => run.sceneIds.flatMap((id, i) => {
   return cs.map((c) => `<p class="note made-with">${changedSentence(run, { id, i, rec }, c, run.sceneIds.length)}</p>`);
 }).join(""));
 // How Ani drew a film's characters, when she chose their looks: "Cinderella: a small
-// circle (Ken drew a green star)", each opening how she chose it.
+// hexagon in a dull purple (in 1978, a green star)", each opening how she chose it.
 function drawnList(run) {
   if (!hasLooks(run)) return "";
   const rows = run.cast.map((c) => {
     const look = lookOf(run, c);
     if (!look) return "";
     const ken = KEN_DREW && KEN_DREW.characters[c];
-    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
+    return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` in ${esc(colorName(look, true))}` : ""}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
   }).join("");
   return `<div><p class="label">How Ani drew them</p><ul class="cast-looks">${rows}</ul><div id="cmp-look"></div></div>`;
 }

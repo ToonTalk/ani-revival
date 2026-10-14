@@ -87,14 +87,15 @@ function videoPlan(runs, sceneIndexes, rate, titles = true) {
 }
 // The subtitles at one of a video's pictures, for one film: the scene and part, and what
 // the page's caption says there (what is shown, to show what), as plain text. The same
-// subscenes, looks and ending give the same words, so they are worked out once (memo).
+// subscenes, changes of shape or size and ending give the same words (a color's steps
+// are said by the part's look changes), so they are worked out once (memo).
 function subtitleAt(run, k, item, memo) {
   const sc = run.scenes[item.i];
   const tag = memo.both ? `${run.short} · ` : "";
   if (item.title) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: "" };
   if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
   const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
-  const looks = (sc.film.looks || []).filter(([frame]) => frame > 0 && frame <= f && f - frame < fpsOf(sc)).map((x) => x[0]).join();
+  const looks = shapeChanges(sc, f).map((x) => x[0]).join();
   const key = `${k} ${item.i} ${atScene(item.i, () => using(run, () => subsceneAt(f).map((x) => x.n).join()))} ${looks} ${f === sc.last}`;
   if (!memo.has(key)) {
     const c = captionAt(run, item.i, f);
