@@ -56,7 +56,7 @@ None of Ani's hues is Ken's: of all four, only the fairy godmother's comes from 
 | Meeting | Cinderella and the Prince, joy (positive high) | from frame 172, Cinderella .65 to .70 and the Prince .85 to .92, when the film stops at frame 174: the joy's subscene starts at frame 171 and the scene ends with the subscene before it, which ends at 173, as in 1978, where joy's changes of speed are cut short the same way |
 | Justice | the stepmother, joy (negative high) | nothing: she is as dark as a character is drawn already |
 
-In black and white none of this shows; the film page paints it in color mode. The glass box of each scene lists its look changes (`lookChanges`: the task, the feeling, the method and what Director does), and `film.looks` has each character's color from frame to frame.
+At 24 frames a second (`24fps/`) each change takes six times as many frames: the Introduction's over its first 7 frames, Kept Apart's from frame 368 (Cinderella to the floor by frame 455, the stepmother by 394), and in the Meeting, whose joy subscene runs to its end at 24 (frame 1036), Cinderella brightens from .65 to .975 by frame 968 and the Prince to the TV's full 1.0 by frame 910. In black and white none of this shows; the film page paints it in color mode. The glass box of each scene lists its look changes (`lookChanges`: the task, the feeling, the method and what Director does), and `film.looks` has each character's color from frame to frame.
 
 ## Ken's looks and the revival's knowledge
 
