@@ -1177,7 +1177,7 @@ const REVIVE_TEXT = {
   looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER), at a speed or, for a change of who someone is, over a time in seconds.",
   alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed, and only beside a change of how it moves by the same amount at the same speed; and, for a change of who someone is, what Director is to do with each aspect of her look that changed: a size, brightness or clarity by a factor, a hue or a shape to the new one.",
   change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was, and with APPEAR how she looks), saved for the later scenes; and, in each of them, who they have become, how she moves and how she is drawn.",
-  chshow: "Showing a change in its scene (thesis p. 169): change and causes as ways of conveying; the cause going to the one it changes and transforming her (goes-to-and-transforms), or, with no cause, her wandering about as she changes (changes-while-wandering); and bridging the gap in each element Director reads, and with APPEAR in her look. The thesis leaves how long to Ani, and these are the revival's choices: every element together, over the time the largest change needs; gradually at Ken's slowest speed, ten seconds an e-fold, or at once if the cause is magical; the cause walking to her regardless of anyone in the way, as Ken's hitting does, and standing by once there; one task showing all of a character's changes in a scene; and no wander while another part of the scene moves her. A shape Director has no in-between for changes at once, and a part that extends the change's and ends first no longer stops the film in the middle of it (a repair). What else Ani chose again is noted as not bridged, since Director doesn't read it: acceleration and deliberateness, which Director doesn't use, as in 1978; the likings, which only pass 1 reads; and the rhythm, activity and repetitiveness, which pass 2 reads from the next scene on.",
+  chshow: "Showing a change in its scene (thesis p. 169): change and causes as ways of conveying; the cause going to the one it changes and transforming her (goes-to-and-transforms), or, with no cause, her wandering about as she changes (changes-while-wandering); and bridging the gap in each element Director reads, and with APPEAR in her look. The thesis leaves how long to Ani, and these are the revival's choices: every element together, over the time the largest change needs; gradually at Ken's slowest speed, ten seconds an e-fold, or at once if the cause is magical; the cause walking to her regardless of anyone in the way, as Ken's hitting does, and standing by once there; one task showing all of a character's changes in a scene; and no wander while another part of the scene moves her. A shape Director has no in-between for changes at once, and a part that extends the change's and ends first no longer stops the film before the change's part has ended (a repair). What else Ani chose again is noted as not bridged, since Director doesn't read it: acceleration and deliberateness, which Director doesn't use, as in 1978; the likings, which only pass 1 reads; and the rhythm, activity and repetitiveness, which pass 2 reads from the next scene on.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
   mend3: "A personality word Ani doesn't know is left out, and named.",
@@ -1451,7 +1451,7 @@ function repairSentence({ actor, what, notes }, sc) {
     // REVIVE;CHSHOW: the film kept going while a change was shown
     case "film-waited-for-change": {
       const at = Array.isArray(because) ? because[because.length - 1] : null;
-      return `${at !== null && at !== undefined ? `At frame ${esc(at)} a` : "A"} part that extends the one where a change is shown ended first, and Ken's code would have stopped the film there, in the middle of the change; the revival's repairs keep it going until the change has been shown, her bridges and her wander. Ken's own scenes show no change, and stop as they did.`;
+      return `${at !== null && at !== undefined ? `At frame ${esc(at)} a` : "A"} part that extends the one where a change is shown ended first, and Ken's code would have stopped the film there, in the middle of the change; the revival's repairs keep it going until the part that shows the change has ended. Ken's own scenes show no change, and stop as they did.`;
     }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
@@ -2640,11 +2640,15 @@ const rises = (b) => (RANK[b.now] !== undefined && RANK[b.was] !== undefined ? R
 const atOnce = (x) => x.rate === "instantaneous" || (!!x.bridging && !x.bridging.seconds && x.bridges.length > 0);
 // Whether the revival's repairs stopped the cause's walk to her before they touched
 // (REVIVE;MEND12's note in the film: (revival-repair: what overdue-move was (kid going-to
-// (contact-with goat by kid)) now stopped-as-if-there ...)).
+// (contact-with goat by kid)) now stopped-as-if-there ...)). A walk regardless of
+// collisions, as the cause's is since the review of stage 6, never waits for anyone, so
+// a note of waiting with the same goal is another walk's (an accompanying's, careful).
 function walkStopped(sc, x) {
   if (!x.goesTo || !sc.film) return false;
   const goal = `(${x.goesTo.by} going-to (contact-with ${x.character} by ${x.goesTo.by}))`;
-  return (sc.film.repairs || []).some((r) => /^\(revival-repair: what overdue-move /.test(r.note) && r.note.includes(goal));
+  const plan = ((sc.glass && sc.glass.plans) || []).find((p) => p.name === x.goesTo.plan);
+  const careful = !plan || / careful of collisions /.test(plan.variables.plans || "");
+  return (sc.film.repairs || []).some((r) => /^\(revival-repair: what overdue-move /.test(r.note) && r.note.includes(goal) && (careful || /no-nearer-for-more-than/.test(r.note)));
 }
 // How far apart two characters are at frame f, center to center in TV dots, or null.
 function apart(sc, a, b, f) {
@@ -2672,8 +2676,9 @@ function drawnFrom(sc, x, fr) {
 function bridgeEnd(sc, x) {
   const plan = x.bridging && x.bridging.plan;
   if (!plan || !sc.film) return "";
-  const shows = [plan, ...((x.wanders && x.wanders.plans) || [])];
-  if ((sc.film.repairs || []).some((r) => shows.includes(r.actor) && /film-waited-for-change/.test(r.note))) return "kept";
+  // the plan the film waited for: her bridges, her wander, or another plan of her part
+  const ofHerPart = (actor) => [plan, ...((x.wanders && x.wanders.plans) || [])].includes(actor) || sc.activities.some((a) => a.name === actor && a.subscene && show(a.subscene) === x.subscene);
+  if ((sc.film.repairs || []).some((r) => /film-waited-for-change/.test(r.note) && ofHerPart(r.actor))) return "kept";
   const happened = (e) => sc.film.events.some(([, what]) => what === `(${e} ${plan})`);
   return happened("beginning-of") && !happened("end-of") ? "cut" : "";
 }
@@ -2760,7 +2765,7 @@ function wayText(x, m) {
   return methodText(m);
 }
 // The caption's line for a change task shown in a part: "The fairy godmother goes to
-// Cinderella and transforms her, to convey that she makes her elegant, no longer shabby:
+// Cinderella and transforms her, to convey that she makes Cinderella elegant, no longer shabby:
 // she is magical, so it happens at once (the revival's rule)." m is its way of showing,
 // or one of its bridges (bridge-to:) when they run alone. Every change of the task is
 // said.

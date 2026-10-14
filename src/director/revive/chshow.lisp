@@ -951,14 +951,15 @@
 ;; while the actors tick (REVIVE;BRIDGE), the film stops with the part it extends still
 ;; running. A change and then a feeling, the form of Ken's cinderella-beautified, made
 ;; gradually, stopped so in the middle of the transformation, the goat's colors half
-;; cleared, her bridges never ending. So the film is not stopped while a change is being
-;; shown: while one of the scene's bridges (a bridging-the-gap plan), or a walk of the
-;; wander that shows it (wandering-while-changing), has begun and not ended; the part it
-;; belongs to, ending, asks again, as every part does. Ken's scenes show no change and
-;; stop as they did (node tools/check-1978.mjs --extensions change); a part of Ken's
-;; that a feeling's part extends is still cut short when that part ends first (his
-;; accompanying, say), as in 1978. The repair leaves a note on the plan it waited for,
-;; once:
+;; cleared, her bridges never ending. So the film is not stopped while a part that shows
+;; a change is still running: while a plan of a part with a change's bridges or her
+;; wander in it (a bridging-the-gap or wandering-while-changing plan) has begun and not
+;; ended, whether it is one of those or the part's other plans (the Prince's
+;; accompanying the repentant stepmother, at 24 frames a second); the part, ending, asks
+;; again, as every part does. Ken's scenes show no change and stop as they did (node
+;; tools/check-1978.mjs --extensions change); a part of Ken's that a feeling's part
+;; extends is still cut short when that part ends first (his accompanying, say), as in
+;; 1978. The repair leaves a note on the plan it waited for, once:
 ;;   (revival-repair: what film-waited-for-change was stopped now kept-filming
 ;;		     because (a change shown at frame 64))
 (defun define-the-film-waits-for-a-change ()
@@ -970,19 +971,27 @@
 
 (+after-load '|ken;action >| '(revival-once 'chshow-film-waits 'define-the-film-waits-for-a-change))
 
-;; A plan of the scene's parts that shows a change, its bridges or a walk of her wander,
-;; that has begun and not ended, as the movie keeps their events (action.152:52), or nil.
+;; A plan of the scene's parts that show a change (a part with a change's bridges or her
+;; wander among its plans) that has begun and not ended, as the movie keeps their events
+;; (action.152:52), or nil.
 (defun change-shown-in-progress (subscene)
   (let ((movie (ask movie recall your current-movie)))
        (do ((p (apply 'append
-		      (mapcar (function (lambda (s) (append (ask ,s recall your plans) nil)))
+		      (mapcar (function (lambda (s) (plans-of-a-part-showing-a-change s)))
 			      (ask ,subscene ask your scene to recall your subscenes)))
 	       (rest p)))
 	   ((null p) nil)
-	   (and (change-showing-plan? (first p))
-		(ask ,movie recall your (beginning-of ,(first p)))
+	   (and (ask ,movie recall your (beginning-of ,(first p)))
 		(null (ask ,movie recall your (end-of ,(first p))))
 		(return (first p))))))
+
+;; A part's plans, if a change is shown in it; else none.
+(defun plans-of-a-part-showing-a-change (subscene)
+  (let ((plans (append (ask ,subscene recall your plans) nil)))
+       (and (do ((p plans (rest p)))
+		((null p) nil)
+		(and (change-showing-plan? (first p)) (return t)))
+	    plans)))
 
 (defun change-showing-plan? (plan)
   (and (not (atom plan)) (eq (first plan) 'activity-of)

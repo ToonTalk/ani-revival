@@ -297,7 +297,10 @@ function showsAsPlanned(shown, f, want, glass) {
   if (shown.goesTo) {
     const walk = planOf(shown.goesTo.plan);
     if (!walk || !/ regardless of collisions /.test(walk.variables.plans || "")) problems.push(`${shown.goesTo.plan} doesn't walk regardless of collisions`);
-    const stopped = (f.repairs || []).find((r) => /overdue-move/.test(r.note) && r.note.includes(`(${shown.goesTo.by} going-to (contact-with ${shown.character} by ${shown.goesTo.by}))`));
+    // a walk regardless of collisions never waits for anyone (Ken's careful step does,
+    // dichar.103:285-318), so a note of waiting with the same goal is another walk's (the
+    // Prince's goes-to-to-accompany, careful, in Change of Heart at 24 frames a second)
+    const stopped = (f.repairs || []).find((r) => /overdue-move/.test(r.note) && r.note.includes(`(${shown.goesTo.by} going-to (contact-with ${shown.character} by ${shown.goesTo.by}))`) && /no-nearer-for-more-than/.test(r.note));
     if (stopped) problems.push(`the revival's repairs stopped the walk to her: ${stopped.note}`);
   }
   const bridgesOf = (glass.plans || []).filter((p) => /^\(activity-of bridging-the-gap /.test(p.name) && (p.variables.plans || "").includes(`(ask ${shown.character} gradually`));
