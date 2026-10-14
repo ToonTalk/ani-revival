@@ -900,6 +900,20 @@ function reason(w) {
     default: return esc(show(w));
   }
 }
+// How the scene shown shows a change by this way of showing (glass.changesShown), if it
+// does, so that the way is said as it was shown: with nothing bridged, "the goat goes to
+// the troll", not "and transforms him".
+function shownByWay(m) {
+  const sc = typeof R !== "undefined" && R && R.scenes ? R.scenes[state.scene] : null;
+  const list = sc && sc.glass && sc.glass.changesShown;
+  return list ? list.find((x) => x.shownBy === show(m)) || null : null;
+}
+// How the scene shown shows a character's change, if it does.
+function shownOf(c) {
+  const sc = typeof R !== "undefined" && R && R.scenes ? R.scenes[state.scene] : null;
+  const list = sc && sc.glass && sc.glass.changesShown;
+  return list ? list.find((x) => x.character === c) || null : null;
+}
 // a method of display, or of conveying, or a change in dynamics
 function methodText(m, bare = false) {
   if (!Array.isArray(m)) return esc(String(m));
@@ -931,9 +945,9 @@ function methodText(m, bare = false) {
     case "follows-behind": return `${who(a)} follows ${who(b)}`;
     // the revival's (REVIVE;CHSHOW): a change shown in its scene, by the cause going to the
     // one it changes, or by her wandering as she changes; and each element bridged
-    case "goes-to-and-transforms": return `${who(a)} goes to ${who(b)} and transforms ${CHARS[b] ? CHARS[b].her : "them"}`;
-    case "changes-while-wandering": { const k = CHARS[a] || { she: "they" }; return `${who(a)} ${agree(k, "wanders", "wander")} about as ${k.she} ${agree(k, "changes", "change")}`; }
-    case "bridge-to:": { const el = kv(m, "element") || [], v = kv(m, "new-value"); return `${who(el[0])}'s ${elementName(el[1])} goes ${kv(m, "speed") === "instantaneous" ? "at once" : "gradually"} to ${esc(isAppearance(el[1]) ? lookValue(el[1], v) : plain(show(v)))}`; }
+    case "goes-to-and-transforms": { const x = shownByWay(m); if (x && !x.bridges.length) return `${who(a)} goes to ${who(b)}`; return `${who(a)} goes to ${who(b)} and transforms ${CHARS[b] ? CHARS[b].her : "them"}`; }
+    case "changes-while-wandering": { const k = CHARS[a] || { she: "they" }, x = shownByWay(m); if (x && x.wanders && x.wanders.carriedBy) return `${who(a)} ${agree(k, "changes", "change")}`; if (x && !x.bridges.length) return `${who(a)} ${agree(k, "wanders", "wander")} about`; return `${who(a)} ${agree(k, "wanders", "wander")} about as ${k.she} ${agree(k, "changes", "change")}`; }
+    case "bridge-to:": { const el = kv(m, "element") || [], v = kv(m, "new-value"), x = shownOf(el[0]), once = kv(m, "speed") === "instantaneous" || (!!x && x.bridges.some((b) => b.element === el[1] && b.atOnce)); return `${who(el[0])}'s ${elementName(el[1])} goes ${once ? "at once" : "gradually"} to ${esc(isAppearance(el[1]) ? lookValue(el[1], v) : plain(show(v)))}`; }
     case "change:": { const el = kv(m, "element"); const [sg, am] = kv(m, "amount") || []; return `${who(el[0])}'s ${elementName(el[1])} ${sg === "negative" ? "falls" : "rises"} ${am === "high" ? "a lot" : am === "low" ? "a little" : ""}`.trim(); }
     case "change-to:": { const el = kv(m, "element"); return `${who(el[0])}'s ${elementName(el[1])} changes to ${kv(m, "new-value")}`; }
     // the revival's (REVIVE;ALTER): a change of how a character looks
@@ -1163,7 +1177,7 @@ const REVIVE_TEXT = {
   looks: "Director draws each character as the scene's program says Ani chose, resizing it with Ken's own code; keeps its colors, which the page paints; and changes a look gradually, a size or a color by a factor, a shape through Ken's in-betweening (KEN1;INTER), at a speed or, for a change of who someone is, over a time in seconds.",
   alter: "Looks that change during a scene, as display methods beside Ken's changes of how a character moves (thesis p. 166): joy brightens a character's colors and sadness dims them, by the joy's amount at its speed, and only beside a change of how it moves by the same amount at the same speed; and, for a change of who someone is, what Director is to do with each aspect of her look that changed: a size, brightness or clarity by a factor, a hue or a shape to the new one.",
   change: "Who takes part in a change; Ani's fresh look at whoever it changes (pass 1 again, with every other choice held as it was, and with APPEAR how she looks), saved for the later scenes; and, in each of them, who they have become, how she moves and how she is drawn.",
-  chshow: "Showing a change in its scene (thesis p. 169): change and causes as ways of conveying; the cause going to the one it changes and transforming her (goes-to-and-transforms), or, with no cause, her wandering about as she changes (changes-while-wandering); and bridging the gap in each element Director reads, and with APPEAR in her look, all together, over the time the largest change needs: gradually, at ten seconds an e-fold, or at once if the cause is magical (the revival's rule). What else Ani chose again is noted as not bridged, since Director doesn't read it: acceleration and deliberateness, which Director doesn't use, as in 1978; the likings, which only pass 1 reads; and the rhythm, activity and repetitiveness, which pass 2 reads from the next scene on.",
+  chshow: "Showing a change in its scene (thesis p. 169): change and causes as ways of conveying; the cause going to the one it changes and transforming her (goes-to-and-transforms), or, with no cause, her wandering about as she changes (changes-while-wandering); and bridging the gap in each element Director reads, and with APPEAR in her look. The thesis leaves how long to Ani, and these are the revival's choices: every element together, over the time the largest change needs; gradually at Ken's slowest speed, ten seconds an e-fold, or at once if the cause is magical; the cause walking to her regardless of anyone in the way, as Ken's hitting does, and standing by once there; one task showing all of a character's changes in a scene; and no wander while another part of the scene moves her. A shape Director has no in-between for changes at once, and a part that extends the change's and ends first no longer stops the film in the middle of it (a repair). What else Ani chose again is noted as not bridged, since Director doesn't read it: acceleration and deliberateness, which Director doesn't use, as in 1978; the likings, which only pass 1 reads; and the rhythm, activity and repetitiveness, which pass 2 reads from the next scene on.",
   mend1: "A value pass 1 left as “not high” (say) is narrowed in pass 2 to one of the two values left, picked by the film's variety, as pass 1 picks values.",
   mend2: "A value pass 1 gave up on reads as medium, as Ani already reads an element no one set.",
   mend3: "A personality word Ani doesn't know is left out, and named.",
@@ -1433,6 +1447,11 @@ function repairSentence({ actor, what, notes }, sc) {
       const g = Array.isArray(el) && LOOK_GROW[el[1]], v = g && g[Array.isArray(amount) && amount[0] === "negative" ? 1 : 0];
       const look = !g ? "change how it looks" : el[1] === "size" ? `${v === "grow" ? "grow" : "shrink"} ${c ? who(c) : "a character"}` : `${v} ${c ? `${who(c)}'s` : "a character's"} colors`;
       return `Ani was to ${look} beside ${c ? `${theirs(c)} changes of how ${CHARS[c] ? CHARS[c].she : "they"} ${CHARS[c] && CHARS[c].she !== "they" ? "moves" : "move"}` : "changes of how it moves"} by the same amount at the same speed, but those changes were all set aside (Ken's CHOMET makes neither of two changes of different signs); alone, the look change would decide how long the part runs, where it is only to go along with them, so the revival leaves it out.`;
+    }
+    // REVIVE;CHSHOW: the film kept going while a change was shown
+    case "film-waited-for-change": {
+      const at = Array.isArray(because) ? because[because.length - 1] : null;
+      return `${at !== null && at !== undefined ? `At frame ${esc(at)} a` : "A"} part that extends the one where a change is shown ended first, and Ken's code would have stopped the film there, in the middle of the change; the revival's repairs keep it going until the change has been shown, her bridges and her wander. Ken's own scenes show no change, and stop as they did.`;
     }
     case "least-stretch": return `Counting the walk onto the stage would have made this part run ${Number.isFinite(Number(was)) && Number(was) > 0 ? `${Math.round(1 / Number(was))} times` : "far"} faster than Ani planned, faster than Ken's own warning allows; the revival's repairs hold it to eight times as fast, the most his SCENE accepts without a warning.`;
     case "bringing-on-assumed": {
@@ -2392,9 +2411,11 @@ function looksBody(run, c, boxId, sc = null) {
   if (!look) return "";
   const k = meet(run.story, c);
   const entry = run.appearances && run.appearances.get(c);
-  const sentence = entry ? lookSentence(run, c) : `${cap(k.the)} ${agree(k, "is", "are")} drawn as ${aShape(look)}, as Ani chose in pass 1.`;
+  // in a scene after a change that drew her anew, pass 1's look is said as pass 1's
+  const redrawn = !!sc && !!sc.glass && (sc.glass.becomes || []).some((x) => x.character === c && x.looks && x.looks.after && x.looks.changed.length);
+  const sentence = entry ? `${redrawn ? "In pass 1, " : ""}${lookSentence(run, c)}` : redrawn ? `Pass 1 drew ${k.the} as ${aShape(look)}.` : `${cap(k.the)} ${agree(k, "is", "are")} drawn as ${aShape(look)}, as Ani chose in pass 1.`;
   // her colors (REVIVE;COLORS), with whose knowledge each reason is
-  const colored = entry && entry.look.color ? colorSentence(run, c) : look.color ? `${cap(k.the)} ${agree(k, "is", "are")} colored ${colorName(look)}.` : "";
+  const colored = entry && entry.look.color ? `${redrawn ? "In pass 1, " : ""}${colorSentence(run, c)}` : look.color ? (redrawn ? `Pass 1 colored ${k.her} ${colorName(look)}.` : `${cap(k.the)} ${agree(k, "is", "are")} colored ${colorName(look)}.`) : "";
   const lift = liftedNote(run, c, look);
   const known = entry && entry.look.color ? colorKnowledge(run, c) : "";
   const experts = entry ? expertsText(run, c) : "";
@@ -2537,21 +2558,28 @@ function changesIn(x, cause = null) {
   if (x[0] === "causes" && x.length > 2) return x.slice(2).flatMap((y) => changesIn(y, x[1]));
   return x.flatMap((y) => changesIn(y, cause));
 }
-// "the Prince makes the stepmother good and kind, no longer evil and mean" (past: made)
+// "herself", "himself", "itself", "themselves": one who changes herself
+const selfOf = (k) => ({ she: "herself", he: "himself", it: "itself" })[k.she] || "themselves";
+// "the Prince makes the stepmother good and kind, no longer evil and mean" (past: made);
+// "the fairy makes herself brazen, no longer shy"
 function changeText(c, past = false) {
   const rel = c.type === "relationship" && Array.isArray(c.who);
   const ws = (l) => words(l.map(rel ? verb : plain));
   if (rel) return `${c.cause ? `${who(c.cause)} ${past ? "changed" : "changes"} how` : "how"} ${who(c.who[1])} feels about ${who(c.who[2])}${c.cause ? "" : past ? " changed" : " changes"}, from “${ws(c.from)}” to “${ws(c.to)}”`;
-  return `${c.cause ? `${who(c.cause)} ${past ? "made" : "makes"} ${who(c.who)}` : `${who(c.who)} ${past ? "became" : "becomes"}`} ${ws(c.to)}, no longer ${ws(c.from)}`;
+  const whom = c.cause && c.cause === c.who ? selfOf(CHARS[c.who] || { she: "they" }) : who(c.who);
+  return `${c.cause ? `${who(c.cause)} ${past ? "made" : "makes"} ${whom}` : `${who(c.who)} ${past ? "became" : "becomes"}`} ${ws(c.to)}, no longer ${ws(c.from)}`;
 }
 // The same, said after a way of showing it that has named them both: "she makes her
-// elegant, no longer shabby"; a relationship's, which names two more, in full.
+// elegant, no longer shabby"; "she makes herself brazen"; two of one pronoun, the one
+// changed by name, "he makes the troll kind"; a relationship's, which names two more, in
+// full.
 function changeSaid(c) {
   if (c.type === "relationship") return changeText(c);
   const k = meet(R.story, c.who), ws = (l) => words(l.map(plain));
   if (!c.cause) return `${k.she} ${agree(k, "becomes", "become")} ${ws(c.to)}, no longer ${ws(c.from)}`;
   const kc = meet(R.story, c.cause);
-  return `${kc.she} ${agree(kc, "makes", "make")} ${k.her} ${ws(c.to)}, no longer ${ws(c.from)}`;
+  const whom = c.cause === c.who ? selfOf(k) : kc.she === k.she ? who(c.who) : k.her;
+  return `${kc.she} ${agree(kc, "makes", "make")} ${whom} ${ws(c.to)}, no longer ${ws(c.from)}`;
 }
 
 // ---- the change shown in its scene (REVIVE;CHSHOW)
@@ -2559,20 +2587,27 @@ function changeSaid(c) {
 // A task gets one way of showing (chomet.123:216-240), so a change and its cause are one:
 // goes-to-and-transforms, the cause going to the one it changes and transforming her, as
 // Ken's move-to-and-hits goes and hits; or, with no cause, changes-while-wandering, her
-// wandering about as she changes; with neither (the way set aside), the bridges run alone
-// from the part's start. Their plans: the cause's walk, the bridges, the walks of her
-// wander. Each element is bridged from what it was to what the fresh look chose, all
-// together over the time the largest change needs: gradually, at Ken's slowest speed, ten
-// seconds an e-fold (disply.311:1098-1111), since an abrupt change "could easily be
-// misinterpreted" (thesis p. 169); or at once if the cause is magical (the revival's rule).
+// wandering about as she changes; with neither (the way set aside, or a second character
+// a task changes), the bridges run alone from the part's start. Their plans: the cause's
+// walk, the bridges, the walks of her wander. Each element is bridged from what it was to
+// what the fresh look chose, all together over the time the largest change needs:
+// gradually, at Ken's slowest speed, ten seconds an e-fold (disply.311:1098-1111), since
+// an abrupt change "could easily be misinterpreted" (thesis p. 169); or at once if the
+// cause is magical. The revival's choices, where the thesis leaves them to Ani, are said
+// so: the slowest speed, every element over the largest's time, the cause walking to her
+// regardless of anyone in the way (as Ken's hitting does) and standing by once there, a
+// magical cause at once, one task showing all of a character's changes in a scene, and
+// no wander while another part of the scene moves her.
 const CHANGE_METHODS = ["goes-to-and-transforms", "changes-while-wandering"];
 const CHANGE_ACTIVITIES = ["goes-to-to-transform", "bridging-the-gap", "wandering-while-changing"];
-// Who reads each element Ani chose again (src/pipeline.js ELEMENT_USE): Director moves a
-// character by speed and the path's curvature, length and jaggedness (dichar.103:164-169)
-// and draws her look; pass 2 repeats an activity as often as the rhythmic level, activity
-// level and repetitiveness say (place.45:411-420), from the next scene on; acceleration and
-// deliberateness no one uses, as in 1978 (thesis pp. 185-186); the likings only pass 1.
-const READ_BY = { speed: "director", "path-curvature": "director", "path-length": "director", "path-jaggedness": "director", "rhythmic-level": "cycles", "activity-level": "cycles", repetiveness: "cycles", acceleration: "nobody", deliberateness: "nobody", "attraction-towards-friends": "pass1", "attraction-towards-enemies": "pass1", "attraction-towards-strangers": "pass1" };
+// Who reads an element Ani chose again, from its use in the run's record of the change
+// (characters[].values, src/pipeline.js ELEMENT_USE): Director moves her by some
+// ("director") and draws her by others ("looks"); pass 2 repeats an activity as often as
+// the rhythmic level, activity level and repetitiveness say ("cycles", place.45:411-420),
+// from the next scene on; of the rest, used by neither, the likings only pass 1 reads
+// ("pass1"), and acceleration and deliberateness no one uses, as in 1978 ("nobody",
+// thesis pp. 185-186).
+const readBy = (use, el) => (use && use !== "none" ? use : /^attraction-towards-/.test(el) ? "pass1" : "nobody");
 // how c's change is shown in a scene (glass.changesShown), or null
 const shownChange = (sc, c) => (ready(sc) && (sc.glass.changesShown || []).find((x) => x.character === c)) || null;
 // the frames one of a scene's plans ran, { begin, end } (its first run), or null
@@ -2581,12 +2616,18 @@ function planFrames(sc, plan) {
   return a ? { begin: a.begin, end: a.end } : null;
 }
 // the frames of a change's showing: the cause's walk to her (it ends as they touch), the
-// bridges, and her wander, each { begin, end }, or null
+// bridges, and her wander, each { begin, end }, or null. Bridges shown alone have no plan
+// of their own: they run from their part's start for their seconds (as Ken's
+// run-change-to's changes do, disply.311:1079-1096).
+function aloneFrames(sc, x) {
+  const sub = (sc.subscenes || []).find((y) => y.name === x.subscene && y.begin !== null);
+  return sub ? { begin: sub.begin, end: Math.min(sub.end, sub.begin + Math.round((x.seconds || 0) * fpsOf(sc))) } : null;
+}
 function changeFrames(sc, x) {
   const walks = ((x.wanders && x.wanders.plans) || []).map((p) => planFrames(sc, p)).filter(Boolean);
   return {
     walk: x.goesTo ? planFrames(sc, x.goesTo.plan) : null,
-    bridge: x.bridging ? planFrames(sc, x.bridging.plan) : null,
+    bridge: x.bridging ? planFrames(sc, x.bridging.plan) : x.shownBy === "alone" ? aloneFrames(sc, x) : null,
     wander: walks.length ? { begin: Math.min(...walks.map((w) => w.begin)), end: Math.max(...walks.map((w) => w.end)) } : null,
   };
 }
@@ -2594,10 +2635,53 @@ const secondsWords = (n) => { const r = Math.round(Number(n) * 10) / 10; return 
 const framesWords = (p) => (!p ? "" : p.end > p.begin ? ` (frames ${p.begin} to ${p.end})` : ` (frame ${p.begin})`);
 // whether a bridge raises its element (a dynamics value by its rank, a look's number)
 const rises = (b) => (RANK[b.now] !== undefined && RANK[b.was] !== undefined ? RANK[b.now] > RANK[b.was] : Number(b.now) > Number(b.was));
+// A change made at once: a magical cause's (the revival's rule), or one whose bridges take
+// no time, a shape Director has no in-between for (REVIVE;CHSHOW's shape-at-once?).
+const atOnce = (x) => x.rate === "instantaneous" || (!!x.bridging && !x.bridging.seconds && x.bridges.length > 0);
+// Whether the revival's repairs stopped the cause's walk to her before they touched
+// (REVIVE;MEND12's note in the film: (revival-repair: what overdue-move was (kid going-to
+// (contact-with goat by kid)) now stopped-as-if-there ...)).
+function walkStopped(sc, x) {
+  if (!x.goesTo || !sc.film) return false;
+  const goal = `(${x.goesTo.by} going-to (contact-with ${x.character} by ${x.goesTo.by}))`;
+  return (sc.film.repairs || []).some((r) => /^\(revival-repair: what overdue-move /.test(r.note) && r.note.includes(goal));
+}
+// How far apart two characters are at frame f, center to center in TV dots, or null.
+function apart(sc, a, b, f) {
+  const fr = sc.film.frames[f], p = fr && fr.chars[a], q = fr && fr.chars[b];
+  return p && q && p.state && q.state ? Math.round(Math.hypot(p.state[0] - q.state[0], p.state[1] - q.state[1])) : null;
+}
+// The frame the change is first seen from: for a change of her look, the first frame
+// Director draws her otherwise once the bridges have begun (film.looks); for one of how she
+// moves, the bridges' first frame; null if they never ran.
+function drawnFrom(sc, x, fr) {
+  if (!fr.bridge) return null;
+  if (x.bridges.some((b) => isAppearance(b.element))) {
+    let before = null;
+    for (const [frame, c, look] of sc.film.looks || []) {
+      if (c !== x.character) continue;
+      if (frame < fr.bridge.begin) { before = look; continue; }
+      if (JSON.stringify(look) !== JSON.stringify(before)) return frame;
+    }
+  }
+  return fr.bridge.begin;
+}
+// How the bridges ended: "cut" if the film ended first (their plan never ended), "kept" if
+// the revival's repairs kept the film going while the change was shown (REVIVE;CHSHOW, 7),
+// else "".
+function bridgeEnd(sc, x) {
+  const plan = x.bridging && x.bridging.plan;
+  if (!plan || !sc.film) return "";
+  const shows = [plan, ...((x.wanders && x.wanders.plans) || [])];
+  if ((sc.film.repairs || []).some((r) => shows.includes(r.actor) && /film-waited-for-change/.test(r.note))) return "kept";
+  const happened = (e) => sc.film.events.some(([, what]) => what === `(${e} ${plan})`);
+  return happened("beginning-of") && !happened("end-of") ? "cut" : "";
+}
 // What a change's bridges do, in one clause: "she grows, turns from a hexagon into an
 // octagon and moves faster"; "her path grows smoother and curves more, and her curves
 // grow longer"; at once, "her colors become clear". Her look first, then how she moves;
-// a shape's two elements give one morph, said once.
+// a shape's two elements give one morph, said once; one Director has no in-between for
+// is said to be made at once.
 function bridgeWords(c, bridges, instant) {
   const k = meet(R.story, c), her = theirs(c), s = (one, many) => agree(k, one, many);
   const at = (el) => bridges.filter((b) => b.element === el);
@@ -2606,7 +2690,7 @@ function bridgeWords(c, bridges, instant) {
   for (const b of bridges.filter((y) => /^shape-/.test(y.element))) {
     if (b.was === b.now || morphs.has(`${b.was} ${b.now}`)) continue;
     morphs.add(`${b.was} ${b.now}`);
-    she.push(`${s("turns", "turn")} from ${article(shapeName(b.was))} ${shapeName(b.was)} into ${article(shapeName(b.now))} ${shapeName(b.now)}`);
+    she.push(`${s("turns", "turn")} from ${article(shapeName(b.was))} ${shapeName(b.was)} into ${article(shapeName(b.now))} ${shapeName(b.now)}${b.atOnce && !instant ? " at once (Director has no in-between for the two)" : ""}`);
   }
   for (const b of at("speed")) she.push(`${s("moves", "move")} ${rises(b) ? "faster" : "more slowly"}`);
   const extreme = (v, lo, hi, [low, high]) => (Number(v) >= hi ? high : Number(v) <= lo ? low : null);
@@ -2627,26 +2711,28 @@ function magicalCause(x) {
 }
 const isMagical = (c) => { const k = meet(R.story, c); return `${who(c)} ${agree(k, "is", "are")} magical`; };
 // Why nothing of a changed character is bridged: a relationship changed, and how one
-// feels about another doesn't reach how either moves; what Ani chose again Director
+// feels about another doesn't change how either moves; what Ani chose again Director
 // doesn't read; or the fresh look chose everything as it was (a change of looks that Ani
 // doesn't choose, Ken's footnote's "meaningless until Ani is extended to handle
 // appearances").
+function nothingWhy(x) {
+  const chs = (x.changes || []).flatMap((d) => changesIn(parse(d)));
+  return chs.some((y) => y.type === "relationship") ? "how one feels about another doesn't change how either moves"
+    : x.notBridged.length ? `what Ani chose again for ${meet(R.story, x.character).her} is what Director doesn't read`
+      : `Ani's fresh look chose everything as it was${chs.some((y) => y.type === "physical") && !runExtensions(R).includes("appear") ? `, as Ken's footnote foresaw: a scene like this is “meaningless until Ani is extended to handle appearances” (thesis p. 166)` : ""}`;
+}
 function nothingBridged(x) {
   const c = x.character, k = meet(R.story, c);
-  const chs = (x.changes || []).flatMap((d) => changesIn(parse(d)));
-  const why = chs.some((y) => y.type === "relationship") ? "how one feels about another doesn't reach how either moves"
-    : x.notBridged.length ? "what Ani chose again is what Director doesn't read"
-      : `Ani's fresh look chose everything as it was${chs.some((y) => y.type === "physical") && !runExtensions(R).includes("appear") ? `, as Ken's footnote foresaw: a scene like this is “meaningless until Ani is extended to handle appearances” (thesis p. 166)` : ""}`;
-  return `nothing changes in how ${who(c)} ${agree(k, "moves", "move")} or ${agree(k, "looks", "look")}: ${why}`;
+  return `nothing changes in how ${who(c)} ${agree(k, "moves", "move")} or ${agree(k, "looks", "look")}: ${nothingWhy(x)}`;
 }
 // "the jaggedness of her shape", "her size"
 const herElement = (c, el) => { const w = elementWords(el); return / of the /.test(w) ? `the ${w.replace(" of the ", ` of ${theirs(c)} `)}` : `${theirs(c)} ${w}`; };
 // The elements chosen again and not bridged, by who reads them, in one sentence (each
 // noted (not-bridged: element E was X now Y because (director does not read it)) on her
-// change-of actor, REVIVE;CHSHOW).
-function notBridgedWords(c, list) {
+// change-of actor, REVIVE;CHSHOW); useOf(element) is its use in the run's record.
+function notBridgedWords(c, list, useOf = () => null) {
   const her = theirs(c), by = {};
-  for (const n of list || []) (by[/cannot weigh/.test(n.because || "") ? "weigh" : READ_BY[n.element] || "nobody"] ||= []).push(n.element);
+  for (const n of list || []) (by[/cannot weigh/.test(n.because || "") ? "weigh" : readBy(useOf(n.element), n.element)] ||= []).push(n.element);
   const out = [];
   if (by.nobody) out.push(`${words(by.nobody.map((e) => herElement(c, e)))}, which Director doesn't use, as in 1978 (thesis pp. 185-186)`);
   if (by.pass1) out.push(`${her} liking${by.pass1.length > 1 ? "s" : ""} for ${words(by.pass1.map((e) => e.replace(/^attraction-towards-/, "")))}, which only pass 1 reads`);
@@ -2655,58 +2741,104 @@ function notBridgedWords(c, list) {
   for (const k of ["director", "looks"]) if (by[k]) out.push(words(by[k].map((e) => herElement(c, e))));
   return out.length ? `Chosen again but not bridged: ${out.join("; ")}.` : "";
 }
+// The other way of showing that carries her change (wanders.carriedBy), in words, with her
+// pronoun: "the troll chases her".
+function carriedWords(x) {
+  const k = meet(R.story, x.character), text = methodText(parse(x.wanders.carriedBy)), name = who(x.character);
+  const at = text.lastIndexOf(name);
+  return at > 0 ? text.slice(0, at) + k.her + text.slice(at + name.length) : text;
+}
+// The way of showing a change, as the scene showed it: "the fairy godmother goes to
+// Cinderella and transforms her"; with nothing bridged, "the goat goes to the troll";
+// carried by another way of showing of the part, "the goat changes".
+function wayText(x, m) {
+  const nothing = x && !x.bridges.length, carried = x && x.wanders && x.wanders.carriedBy;
+  if (m[0] === "bridge-to:") return `${who((kv(m, "element") || [])[0])} changes`;
+  if (m[0] === "goes-to-and-transforms" && nothing) return `${who(m[1])} goes to ${who(m[2])}`;
+  if (m[0] === "changes-while-wandering" && carried) { const k = CHARS[m[1]] || { she: "they" }; return `${who(m[1])} ${agree(k, "changes", "change")}`; }
+  if (m[0] === "changes-while-wandering" && nothing) { const k = CHARS[m[1]] || { she: "they" }; return `${who(m[1])} ${agree(k, "wanders", "wander")} about`; }
+  return methodText(m);
+}
 // The caption's line for a change task shown in a part: "The fairy godmother goes to
 // Cinderella and transforms her, to convey that she makes her elegant, no longer shabby:
 // she is magical, so it happens at once (the revival's rule)." m is its way of showing,
-// or one of its bridges (bridge-to:) when they run alone.
+// or one of its bridges (bridge-to:) when they run alone. Every change of the task is
+// said.
 function changeShowLine(sc, t, m) {
-  const x = (sc.glass.changesShown || []).find((y) => y.task === t.name) || null;
-  const ch = changesIn(t.description)[0];
-  const way = m[0] === "bridge-to:" ? `${cap(who((kv(m, "element") || [])[0]))} changes` : cap(methodText(m));
-  const by = x && x.rate === "instantaneous" ? magicalCause(x) : null;
-  const rate = !x || !x.bridges.length ? ""
-    : x.rate === "instantaneous" ? (by ? `: ${meet(R.story, by).she} ${agree(meet(R.story, by), "is", "are")} magical, so it happens at once (the revival's rule)` : ": at once")
-      : ": gradually, since an abrupt change could be misread (thesis p. 169)";
-  return `<b>${way}</b>, to convey that ${ch ? changeSaid(ch) : about(t.description)}${rate}.`;
+  const all = (sc.glass.changesShown || []).filter((y) => y.task === t.name);
+  const x = all.find((y) => y.shownBy && y.shownBy !== "alone") || all[0] || null;
+  const chs = changesIn(t.description);
+  const said = chs.length ? [changeSaid(chs[0]), ...chs.slice(1).map((ch) => changeText(ch))].join("; and ") : about(t.description);
+  const rateOf = (y) => {
+    const by = y.rate === "instantaneous" ? magicalCause(y) : null;
+    return !y.bridges.length ? `${nothingWhy(y)}, so nothing changes on screen`
+      : y.rate === "instantaneous" ? (by ? `${meet(R.story, by).she} ${agree(meet(R.story, by), "is", "are")} magical, so it happens at once (the revival's rule)` : "at once")
+        : atOnce(y) ? "at once, since Director has no in-between for the two shapes"
+          : "gradually, since an abrupt change could be misread (thesis p. 169)";
+  };
+  const rate = !x ? "" : all.length < 2 ? `: ${rateOf(x)}` : `: ${all.map((y) => `${who(y.character)}, ${rateOf(y)}`).join("; ")}`;
+  return `<b>${cap(wayText(x, m))}</b>, to convey that ${said}${rate}.`;
 }
-// Where a change's showing is at frame f: the cause's walk to her ("walk"), the bridges
-// ("bridge"), her wander after them or with nothing to bridge ("wander"), or neither (""). A
-// change at once is a tick, and Director draws it the frame after: the touch is both.
+// Where a change's showing is at frame f: the cause's walk to her ("walk"), the frame it
+// ends, as they touch ("touch"), the bridges ("bridge"), her wander after them or with
+// nothing to bridge ("wander"), or neither (""). A change at once is a tick, and Director
+// draws a look the frame after: its phase runs to the frame she is drawn changed.
 function changePhase(sc, x, f) {
-  const fr = changeFrames(sc, x), instant = x.rate === "instantaneous";
-  const inBridge = !!fr.bridge && x.bridges.length > 0 && f >= fr.bridge.begin && f <= fr.bridge.end + (instant ? 1 : 0);
-  if (fr.walk && !inBridge && f <= fr.walk.end && (!fr.bridge || f < fr.bridge.begin)) return "walk";
+  const fr = changeFrames(sc, x), instant = atOnce(x);
+  const end = !fr.bridge ? null : instant ? Math.max(fr.bridge.end, drawnFrom(sc, x, fr)) : fr.bridge.end;
+  const inBridge = !!fr.bridge && x.bridges.length > 0 && f >= fr.bridge.begin && f <= end;
+  const beforeBridge = (g) => !fr.bridge || g < fr.bridge.begin;
+  if (fr.walk && f === fr.walk.end && beforeBridge(f)) return "touch";
+  if (fr.walk && f < fr.walk.end && beforeBridge(f)) return "walk";
   if (inBridge) return "bridge";
   if (fr.wander && f >= fr.wander.begin && f <= fr.wander.end) return "wander";
   return "";
 }
 // What a change's showing is doing at frame f, in a sentence: the cause on its way to
-// her, the moment they touch, her changing as she wanders, or her wander after it.
+// her, the moment they touch (or the walk stopped before they do), her changing as she
+// wanders, or her wander after it.
 function changePhaseLine(sc, x, f) {
-  const c = x.character, k = meet(R.story, c), fr = changeFrames(sc, x), s = (one, many) => agree(k, one, many);
-  const instant = x.rate === "instantaneous", her = who(c), phase = changePhase(sc, x, f);
+  const c = x.character, k = meet(R.story, c), s = (one, many) => agree(k, one, many);
+  const instant = atOnce(x), her = who(c), phase = changePhase(sc, x, f);
   const note = !state.color && x.bridges.some((b) => /^color-/.test(b.element)) ? " (colors show only in color mode)" : "";
-  if (phase === "walk") {
-    const then = !x.bridges.length ? `${k.she} ${s("wanders", "wander")} about` : instant ? `${k.she} ${s("changes", "change")} at once` : `${k.she} ${s("begins", "begin")} to change`;
-    return `First ${who(x.goesTo.by)} goes to ${her}; once they touch, ${then}.`;
+  const carried = x.wanders && x.wanders.carriedBy ? parse(x.wanders.carriedBy) : null;
+  const then = !x.bridges.length ? `${k.she} ${s("wanders", "wander")} about; nothing changes on screen` : instant ? `${k.she} ${s("changes", "change")} at once` : `${k.she} ${s("begins", "begin")} to change`;
+  if (phase === "walk") return walkStopped(sc, x) ? `First ${who(x.goesTo.by)} goes towards ${her}, to transform ${k.her}.` : `First ${who(x.goesTo.by)} goes to ${her}; once they touch, ${then}.`;
+  if (phase === "touch") {
+    if (!walkStopped(sc, x)) return `They touch, and ${then}.`;
+    const d = apart(sc, x.goesTo.by, c, f);
+    return `${cap(who(x.goesTo.by))} can't reach ${her}: the revival's repairs stop ${theirs(x.goesTo.by)} walk${d !== null ? `, their centers ${d} dots apart,` : ""} as if there, and ${then} without their touching.`;
   }
   if (phase === "bridge") {
     const what = bridgeWords(c, x.bridges, instant);
-    if (instant) return `${fr.walk ? "They touch, and at once" : "At once"} ${what}${note}.`;
-    const over = x.bridging && x.bridging.seconds ? secondsWords(x.bridging.seconds) : "";
+    if (instant) return `At once ${what}${note}.`;
+    const secs = x.bridging ? x.bridging.seconds : x.seconds;
+    const over = secs ? secondsWords(secs) : "";
+    const cut = bridgeEnd(sc, x) === "cut" ? "; the scene ends before the change is complete" : "";
     // her wander as she changes is the way of showing it, said already: what changes, and how long
-    if (!x.goesTo && x.wanders) return `${over ? `Over ${over}, ` : ""}${over ? what : cap(what)}${note}.`;
-    return `${cap(her)} ${x.goesTo ? `${s("changes", "change")} as ${k.she} ${s("wanders", "wander")}` : s("changes", "change")}: ${what}${over ? `, over ${over}` : ""}${note}.`;
+    if (!x.goesTo && x.wanders && !carried) return `${over ? `Over ${over}, ` : ""}${over ? what : cap(what)}${cut}${note}.`;
+    const as = carried ? ` as ${carriedWords(x)}` : x.goesTo && x.wanders && x.wanders.plans.length ? ` as ${k.she} ${s("wanders", "wander")}` : x.shownBy === "alone" ? " too" : "";
+    return `${cap(her)} ${s("changes", "change")}${as}: ${what}${over ? `, over ${over}` : ""}${cut}${note}.`;
   }
   if (phase === "wander") {
-    if (!x.bridges.length) return `${cap(nothingBridged(x))}; ${k.she} ${s("wanders", "wander")} about, so that the change is seen.`;
+    if (!x.bridges.length) return `${cap(her)} ${s("wanders", "wander")} about; ${nothingBridged(x)}.`;
     return `${cap(her)} ${s("wanders", "wander")} about as ${k.she} ${s("has", "have")} become, so that the change is seen.`;
   }
   return "";
 }
 // Whether c's look is being bridged at frame f of a scene (a shape's change is then said
 // by the change's own line, not as a change of how they look).
-const bridgingAt = (sc, c, f) => { const x = shownChange(sc, c), fr = x && changeFrames(sc, x); return !!fr && !!fr.bridge && f >= fr.bridge.begin && f <= fr.bridge.end; };
+const bridgingAt = (sc, c, f) => { const x = shownChange(sc, c); return !!x && changePhase(sc, x, f) === "bridge"; };
+// The revival's choices in how a change was shown, where the thesis leaves them to Ani,
+// in a sentence.
+function revivalChoices(x) {
+  const out = [];
+  if (x.rate === "gradual" && x.bridges.length && !atOnce(x)) out.push("a gradual change goes at Ken's slowest speed, ten seconds an e-fold");
+  if (x.bridges.length > 1) out.push("every element changes together, over the time the largest change needs");
+  if (x.goesTo) out.push("the cause walks to the one it changes regardless of anyone in the way, as Ken's hitting does, and stands by once there");
+  if (x.wanders && x.wanders.carriedBy) out.push("she doesn't wander while another part of the scene moves her");
+  return out.length ? ` The revival's choices here, where the thesis leaves them to Ani: ${out.join("; ")}.` : "";
+}
 // How Ani shows c's change in the scene of it, with the bridge: what changed, over how
 // long, from which frame, and what she chose again and didn't bridge. x: { id, i, rec }.
 function bridgeSentence(run, x, c) {
@@ -2716,26 +2848,57 @@ function bridgeSentence(run, x, c) {
   if (!shown || !shown.shownBy) {
     // the second character of a relationship change has no way of showing of her own
     const first = (sc.glass.changesShown || []).find((y) => y !== shown && y.shownBy && (y.changes || []).some((d) => changesIn(parse(d)).some((ch) => ch.characters.includes(c))));
-    return first ? `Ani shows the change in ${title} by ${who(first.character)}, whose relationship it is; ${who(c)} ${s("is", "are")} chosen again too. ${fileLink("chshow")}` : "";
+    if (!first) return "";
+    if (first.goesTo && first.goesTo.by === c) return `Ani shows the change in ${title}: ${who(c)}, who brings it about, ${s("goes", "go")} to ${who(first.character)}, whose relationship it is; ${k.she} ${s("is", "are")} chosen again too. ${fileLink("chshow")}`;
+    return `Ani shows the change in ${title} by ${who(first.character)}, whose relationship it is; ${who(c)} ${s("is", "are")} chosen again too. ${fileLink("chshow")}`;
   }
-  const fr = changeFrames(sc, shown), instant = shown.rate === "instantaneous";
-  const walk = !shown.goesTo ? "" : `${who(shown.goesTo.by)} goes to ${k.her}${!fr.walk ? "" : fr.walk.end > fr.walk.begin ? ` (frames ${fr.walk.begin} to ${fr.walk.end})` : ` (they touch as the part begins, at frame ${fr.walk.end})`}`;
+  const fr = changeFrames(sc, shown), instant = atOnce(shown), stopped = walkStopped(sc, shown);
+  const ch = x.rec.characters.find((y) => y.character === c);
+  const useOf = (el) => ((ch && ch.values.find((v) => v.element === el)) || {}).use;
+  const carried = shown.wanders && shown.wanders.carriedBy ? parse(shown.wanders.carriedBy) : null;
+  const by = shown.goesTo ? shown.goesTo.by : null;
+  // the cause's walk: to her, until they touch; or towards her, stopped before they did
+  let walk = "";
+  if (by && stopped) {
+    const d = fr.walk ? apart(sc, by, c, fr.walk.end) : null;
+    walk = `${who(by)} goes towards ${k.her}${framesWords(fr.walk)} but never reaches ${k.her}: the revival's repairs stop ${theirs(by)} walk${fr.walk ? ` at frame ${fr.walk.end}` : ""}${d !== null ? `, their centers ${d} dots apart,` : ""} as if there (MEND12)`;
+  } else if (by) walk = `${who(by)} goes to ${k.her}${!fr.walk ? "" : fr.walk.end > fr.walk.begin ? ` (frames ${fr.walk.begin} to ${fr.walk.end})` : ` (they touch as the part begins, at frame ${fr.walk.end})`}`;
+  const touched = by && !stopped;
   const what = shown.bridges.length ? bridgeWords(c, shown.bridges, instant) : "";
-  const wander = `${k.she} ${s("wanders", "wander")} about for ${secondsWords(shown.seconds)}${framesWords(fr.wander)}, so that the change is seen`;
+  const wander = shown.wanders && shown.wanders.plans.length ? `${k.she} ${s("wanders", "wander")} about for ${secondsWords(shown.seconds)}${framesWords(fr.wander)}` : "";
+  // her bridges beside another character's showing, with no way of showing of their own
+  const beside = shown.shownBy === "alone" ? (sc.glass.changesShown || []).find((y) => y !== shown && y.task && y.task === shown.task && y.shownBy && y.shownBy !== "alone") : null;
+  const moves = sc.activities.some((a) => a.chars.includes(c) && a.subscene && show(a.subscene) === shown.subscene);
+  const alone = shown.shownBy !== "alone" ? ""
+    : `${beside ? `beside another change, where ${methodText(parse(beside.shownBy))}, ` : ""}${k.she} ${s("changes", "change")} with no way of showing of ${k.her} own, from the start of the part`;
+  const still = shown.shownBy === "alone" && !moves && shown.bridges.some((b) => !isAppearance(b.element)) ? `. ${cap(k.she)} ${s("has", "have")} no part of ${k.her} own in it, so a change in how ${k.she} ${s("moves", "move")} shows only from the next scene on` : "";
   let body;
-  if (!shown.bridges.length) body = `${walk ? `${walk}, and once they touch ` : ""}${wander}; ${nothingBridged(shown)}`;
+  if (!shown.bridges.length) body = `${walk ? `${walk}${touched ? ", and once they touch " : "; "}` : ""}${wander || `${k.she} ${s("changes", "change")}`}; ${nothingBridged(shown)}`;
   else if (instant) {
-    const by = magicalCause(shown);
-    body = `${walk ? `${walk}, and when they touch${fr.bridge ? `, at frame ${fr.bridge.begin},` : ""} ` : fr.bridge ? `at frame ${fr.bridge.begin} ` : ""}${what} at once${by ? `, since ${isMagical(by)} (the revival's rule)` : ""}; then ${wander}`;
+    const magic = magicalCause(shown);
+    const drawn = drawnFrom(sc, shown, fr);
+    const shapes = shown.rate !== "instantaneous" ? ", since Director has no in-between for the two shapes" : magic ? `, since ${magic === c ? `${k.she} ${s("is", "are")} magical` : isMagical(magic)} (the revival's rule)` : "";
+    const when = touched ? `${walk}, and when they touch, at frame ${fr.walk ? fr.walk.end : "?"}, ` : walk ? `${walk}; without their touching, ` : alone ? `${alone}: ` : drawn !== null ? `at frame ${drawn}, ` : "";
+    const later = (walk || alone) && drawn !== null && (!fr.walk || drawn > fr.walk.end) ? ` (Director draws the change from frame ${drawn})` : "";
+    body = `${when}${what} at once${later}${shapes}${wander ? `; then ${wander}, so that the change is seen` : ""}`;
   } else {
-    const how = walk ? `${walk}, and once they touch ${k.she} ${s("changes", "change")} as ${k.she} ${s("wanders", "wander")}` : shown.wanders ? `${k.she} ${s("wanders", "wander")} as ${k.she} ${s("changes", "change")}` : `${k.she} ${s("changes", "change")}`;
-    body = `${how}, gradually, over ${secondsWords(shown.bridging.seconds)}${framesWords(fr.bridge)}: ${what}; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” (thesis p. 169)`;
+    const as = carried ? `as ${carriedWords(shown)}` : shown.wanders && shown.wanders.plans.length ? `as ${k.she} ${s("wanders", "wander")}` : "";
+    const how = walk ? `${walk}, ${touched ? "and once they touch " : `and, without their touching, from where ${k.she} ${s("is", "are")}, `}${k.she} ${s("changes", "change")}${as ? ` ${as}` : ""}`
+      : carried ? `${k.she} ${s("changes", "change")} ${as}` : shown.wanders && shown.wanders.plans.length ? `${k.she} ${s("wanders", "wander")} as ${k.she} ${s("changes", "change")}` : alone || `${k.she} ${s("changes", "change")}`;
+    const seconds = shown.bridging ? shown.bridging.seconds : shown.seconds;
+    const end = bridgeEnd(sc, shown);
+    const ended = end === "cut" ? "; the scene ends before the change is complete"
+      : end === "kept" ? "; a part that extends this one ended first, and the revival's repairs kept the film going until the change had been shown (Ken's code would have stopped it in the middle)" : "";
+    body = `${how}, gradually, over ${secondsWords(seconds)}${framesWords(fr.bridge)}: ${what}; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” (thesis p. 169)${ended}${still}`;
   }
-  const morph = shown.bridges.some((b) => /^(shape-|color-hue)/.test(b.element));
-  const estimate = !instant && shown.bridging && shown.bridging.ideal && shown.stretchedBy && Math.abs(shown.stretchedBy - 1) > 0.005
-    ? ` Ani's own estimate was ${secondsWords(shown.bridging.ideal)} (ten seconds an e-fold of the largest change, at Ken's slowest speed${morph ? "; a change of shape or hue counts as one e-fold" : ""}), stretched by ${Math.round(shown.stretchedBy * 100) / 100} as the part was fitted to the scene.` : "";
-  const notBridged = notBridgedWords(c, shown.notBridged);
-  return `Ani shows it in ${title}: ${body}.${estimate}${notBridged ? ` ${notBridged}` : ""} ${fileLink("chshow")}`;
+  const morph = shown.bridges.some((b) => /^(shape-|color-hue)/.test(b.element) && !b.atOnce);
+  const ideal = shown.bridging ? shown.bridging.ideal : shown.ideal;
+  const stretch = shown.stretchedBy && Math.abs(shown.stretchedBy - 1) > 0.005 ? `, stretched by ${Math.round(shown.stretchedBy * 100) / 100} as the part was fitted to the scene` : "";
+  // her wander, with nothing to bridge, is one walk of hers across the stage
+  const estimate = !stretch ? "" : !shown.bridges.length ? (shown.ideal && wander ? ` Ani's own estimate of the wander was ${secondsWords(shown.ideal)}, one walk of ${k.her === "them" ? "theirs" : k.her === "him" ? "his" : k.her === "it" ? "its" : "hers"} across the stage${stretch}.` : "")
+    : !instant && ideal ? ` Ani's own estimate was ${secondsWords(ideal)} (ten seconds an e-fold of the largest change${morph ? "; a change of shape or hue counts as one e-fold" : ""})${stretch}.` : "";
+  const notBridged = notBridgedWords(c, shown.notBridged, useOf);
+  return `Ani shows it in ${title}: ${body}.${estimate}${notBridged ? ` ${notBridged}` : ""}${revivalChoices(shown)} ${fileLink("chshow")}`;
 }
 
 // ---- how she has changed, in the glass box
@@ -2782,7 +2945,8 @@ const changesOf = (run, c, k) => run.sceneIds.slice(0, k + 1).map((id, i) => ({ 
 // how it will be); how she is drawn from then on, with APPEAR.
 function changedSentence(run, x, c, k) {
   const kk = meet(run.story, c), next = run.sceneIds[x.i + 1], past = k > x.i, s = (one, many) => agree(kk, one, many);
-  const said = `In ${esc(run.titles[x.id])} ${words((x.rec.changes || run.changing[x.id] || []).filter((ch) => ch.characters.includes(c)).map((ch) => changeText(ch, past)))}`;
+  const hers = (x.rec.changes || run.changing[x.id] || []).filter((ch) => ch.characters.includes(c)).map((ch) => changeText(ch, past));
+  const said = `In ${esc(run.titles[x.id])} ${hers.length > 1 ? `${hers.slice(0, -1).join("; ")}; and ${hers[hers.length - 1]}` : hers[0] || ""}`;
   if (x.rec.error) return `${said}, but Ani's fresh look at ${kk.her} stopped (${esc(stopText(x.rec.error))}), so the later scenes were planned with ${kk.her} as before.`;
   const ch = x.rec.characters.find((y) => y.character === c);
   const seen = ch.values.filter((v) => v.changed && (v.use === "director" || v.use === "cycles")).sort((a, b) => CHANGE_ORDER.indexOf(a.element) - CHANGE_ORDER.indexOf(b.element));
@@ -2825,7 +2989,7 @@ function changedBody(run, c, k) {
     const look = lookAgainNote(run, c, ch);
     const shown = shownChange(run.scenes[x.i], c);
     const where = esc(run.titles[x.id]);
-    const rate = !shown ? "" : shown.rate === "instantaneous" ? "at once" : `gradually${shown.bridging && shown.bridging.seconds ? `, over ${secondsWords(shown.bridging.seconds)}` : ""}`;
+    const rate = !shown ? "" : atOnce(shown) ? "at once" : `gradually, over ${secondsWords(shown.bridging ? shown.bridging.seconds : shown.seconds)}`;
     const bridged = (look_) => !!shown && shown.bridges.some((b) => isAppearance(b.element) === look_);
     // each group under a line that says who reads them, and how those that changed are shown
     const line = (use) => {
@@ -3470,8 +3634,7 @@ function captionAt(run, i, f) {
         // a change of who someone is, shown here (REVIVE;CHSHOW)
         if (CHANGE_METHODS.includes(m[0]) || m[0] === "bridge-to:") {
           shows.push(changeShowLine(sc, t, m));
-          const x = (sc.glass.changesShown || []).find((y) => y.task === t.name);
-          if (x) transforms.push(x);
+          for (const x of (sc.glass.changesShown || []).filter((y) => y.task === t.name)) transforms.push(x);
           continue;
         }
         const top = purpose(t);
@@ -3492,16 +3655,27 @@ function captionAt(run, i, f) {
     const idle = lookChanges.filter((x) => !x.shows).map((x) => x.does);
     if (shown.length) more.push(`${cap(words(shown))}${feel.length ? " too" : ""}${state.color || !lookChanges.some((x) => /colors/.test(x.does)) ? "" : " (colors show only in color mode)"}.`);
     if (idle.length) more.push(`${cap(words(idle))}.`);
+    // a change of who someone is (REVIVE;CHANGE) shown by another task of the scene: Ani's
+    // fresh look takes all her changes in a scene together, and one task shows them
+    // (REVIVE;CHSHOW's showing-task-of), so this one is "cant-do"
+    const cantTasks = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do" && changesIn(t.description).length);
+    const elsewhere = (t) => changesIn(t.description).flatMap((c) => c.characters).every((c) => (sc.glass.changesShown || []).some((y) => y.character === c && y.task && y.task !== t.name));
+    for (const t of cantTasks.filter(elsewhere)) {
+      const cs = [...new Set(changesIn(t.description).flatMap((c) => c.characters))];
+      const by = (sc.glass.changesShown || []).find((y) => y.character === cs[0]);
+      const other = by && by.shownBy && by.shownBy !== "alone" ? methodText(parse(by.shownBy)) : null;
+      more.push(`Here ${words(changesIn(t.description).map((c) => changeText(c)))}; Ani shows it with ${other ? `the other change of ${who(cs)} in this scene, where ${other}` : `${theirs(cs[0])} other change in this scene`}: ${theirs(cs[0])} fresh look takes all ${theirs(cs[0])} changes in a scene together, and one bridge shows them (the revival's rule).`);
+    }
     // a change of who someone is (REVIVE;CHANGE) that Ani has no way to show here: a
     // change whose fresh look wasn't made is "cant-do", as before REVIVE;CHSHOW
-    const cant = subs.flatMap((sub) => tasksIn(sub.name)).filter((t) => t.actor.variables.status === "cant-do").flatMap((t) => changesIn(t.description));
+    const cant = cantTasks.filter((t) => !elsewhere(t)).flatMap((t) => changesIn(t.description));
     const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
     const rec = run.raw.changes && run.raw.changes[run.sceneIds[i]];
     if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}; Ani has no way to show it${rec && rec.error ? `, since her fresh look at ${who(cs)} stopped` : ""}.${next && !(rec && rec.error) ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
     if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
     // a shape or size that changes here, for a second after it changes (a color's steps
     // are said above, by the look change that makes them)
-    const looked = shapeChanges(sc, f).filter(([, c]) => !bridgingAt(sc, c, f)).map(([, c, look]) => (look.morph && look.morph.to ? `${who(c)} begins to turn into ${article(shapeName(look.morph.to))} ${shapeName(look.morph.to)}` : `${who(c)} becomes ${aShape(look)}`));
+    const looked = shapeChanges(sc, f).filter(([at, c]) => !bridgingAt(sc, c, f) && !(bridgingAt(sc, c, at) && atOnce(shownChange(sc, c)))).map(([, c, look]) => (look.morph && look.morph.to ? `${who(c)} begins to turn into ${article(shapeName(look.morph.to))} ${shapeName(look.morph.to)}` : `${who(c)} becomes ${aShape(look)}`));
     if (looked.length) more.push(`Here Ani changes how they look: ${esc(words(looked))}.`);
     return { part: `Scene ${i + 1} · ${esc(sc.title)} · part ${main.n} of ${parts}${alongside.length ? `, with part ${alongside.join(" and ")} running alongside` : ""}`, text: shows.join(" ") || (feel.length || cant.length ? "" : "Nothing new is planned for this part."), more };
   }));
@@ -3759,10 +3933,12 @@ function whyPanel(char) {
     const fam = familyOfActivity(act);
     const with_ = act.chars.filter((c) => c !== char);
     const method = t && (t.choice.find((m) => Array.isArray(m) && (m[0] === fam || m[0] === "goes-to-and-accompanies")) || t.choice[0]);
-    // the cause of a change, once it has reached her, stands while she changes (REVIVE;CHSHOW)
+    // the cause of a change, once it has reached her, stands while she changes (REVIVE;CHSHOW,
+    // the revival's choice); or the revival's repairs stopped its walk before they touched
     const reached = between && !between.next && between.prev && between.prev.base === "goes-to-to-transform" ? changeOfActivity(between.prev) : null;
+    const kr = reached ? meet(R.story, reached.character) : null;
     lead = (reached
-      ? `<p class="lead">${esc(cap(k.the))} went to ${esc(who(reached.character))} until they touched (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}), and ${agree(k, "stands", "stand")} by while ${esc(meet(R.story, reached.character).she)} ${reached.rate === "instantaneous" ? `${agree(meet(R.story, reached.character), "wanders", "wander")} about as ${esc(meet(R.story, reached.character).she)} ${agree(meet(R.story, reached.character), "has", "have")} become` : agree(meet(R.story, reached.character), "changes", "change")}.</p>`
+      ? `<p class="lead">${esc(cap(k.the))} ${walkStopped(s, reached) ? `went towards ${esc(who(reached.character))} until the revival's repairs stopped the walk, as if there, without their touching (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end})` : `went to ${esc(who(reached.character))} until they touched (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end})`}, and ${agree(k, "stands", "stand")} by while ${esc(kr.she)} ${atOnce(reached) ? `${agree(kr, "wanders", "wander")} about as ${esc(kr.she)} ${agree(kr, "has", "have")} become` : agree(kr, "changes", "change")} (the revival's choice: the thesis gives the cause nothing more to do).</p>`
       : between
       ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at frame ${between.next.begin}` : ""}.</p>`
       : `<p class="lead">${esc(cap(k.the))} is ${para(label(act) + (with_.length ? ` (with ${esc(who(with_))})` : ""), act.name)}.</p>`) +
@@ -4072,12 +4248,20 @@ function taskVerdict(story, sceneId, earlier, t, extensions = modeExtensions(), 
     const looks = SWITCHED.includes("appear") && (extensions.includes("appear") || !extensions.length);
     const after = next ? `${k.she} ${agree(k, "moves", "move")}${looks ? ` and ${agree(k, "looks", "look")}` : ""} as ${k.she} ${agree(k, "has", "have")} become from ${esc(titleOf(story, next))} on` : `this is the last scene, so no scene after it shows who ${k.she} ${agree(k, "has", "have")} become`;
     // how REVIVE;CHSHOW will show it: the cause goes to her and transforms her, at once if
-    // the cause is magical (the revival's rule); with no cause, she wanders as she changes
+    // a cause is magical (the revival's rule, CHSHOW's magical-cause-of, one who changes
+    // herself among them); with no cause, or one who changes herself, she wanders as she
+    // changes; a relationship's change moves no one differently, so nothing changes on
+    // screen
     const one = found[0], first = one.characters[0], kf = meet(story, first);
     const magical = (c) => !!story.characters[c] && ["physical", "personality", "movement"].some((slot) => story.characters[c][slot].includes("magical"));
+    const magic = found.map((x) => x.cause).find((x) => x && magical(x)) || null;
+    const isMagic = magic ? `${magic === first ? kf.she : who(magic)} ${agree(meet(story, magic), "is", "are")} magical` : "";
+    const nothing = "how one feels about another doesn't change how either moves, so nothing changes on screen";
     const how = one.cause && one.cause !== first
-      ? `${who(one.cause)} goes to ${who(first)} and transforms ${kf.her}, ${one.type === "relationship" ? `and ${kf.she} ${agree(kf, "wanders", "wander")} about` : magical(one.cause) ? `at once, since ${who(one.cause)} ${agree(meet(story, one.cause), "is", "are")} magical (the revival's rule)` : "gradually"}`
-      : `${who(first)} ${agree(kf, "wanders", "wander")} about as ${kf.she} ${agree(kf, "changes", "change")}${one.type === "relationship" ? "" : ", gradually"}`;
+      ? `${who(one.cause)} goes to ${who(first)}${one.type === "relationship" ? `, and ${kf.she} ${agree(kf, "wanders", "wander")} about; ${nothing}` : ` and transforms ${kf.her}, ${magic ? `at once, since ${isMagic} (the revival's rule)` : "gradually"}`}`
+      : one.type === "relationship" ? `${who(first)} ${agree(kf, "wanders", "wander")} about; ${nothing}`
+        : magic ? `${who(first)} ${agree(kf, "changes", "change")} at once, since ${isMagic} (the revival's rule), and ${agree(kf, "wanders", "wander")} about`
+          : `${who(first)} ${agree(kf, "wanders", "wander")} about as ${kf.she} ${agree(kf, "changes", "change")}, gradually`;
     return { stop: {
       change: true,
       as1978: `${said()}: Ani as in 1978 can't change a character during a story (Ken wrote one such scene, his cinderella-beautified, and left it commented out), so it isn't made as in 1978. Make it with the revival's extensions: Ani then shows the change in this scene, takes a fresh look at ${who(cs)} after it, and ${after}.`,
@@ -5057,7 +5241,8 @@ function drawnList(run) {
     const ken = KEN_DREW && KEN_DREW.characters[c];
     // a change that redrew her (REVIVE;CHANGE with APPEAR): the last
     const redrawn = run.sceneIds.map((id) => ({ id, rec: run.raw.changes && run.raw.changes[id] })).map(({ id, rec }) => ({ id, ch: rec && !rec.error && rec.characters.find((y) => y.character === c) })).filter((x) => x.ch && x.ch.looks && x.ch.looks.after && x.ch.looks.changed.length).pop();
-    const now = redrawn ? ` <span class="made-with">(after ${esc(run.titles[redrawn.id])}, ${esc(aShape(redrawn.ch.looks.after))}${redrawn.ch.looks.after.color ? ` ${esc(inColor(redrawn.ch.looks.after))}` : ""})</span>` : "";
+    const drawn = (l) => `${aShape(l)}${l.color ? ` ${inColor(l)}` : ""}`;
+    const now = redrawn && drawn(redrawn.ch.looks.after) !== drawn(look) ? ` <span class="made-with">(after ${esc(run.titles[redrawn.id])}, ${esc(drawn(redrawn.ch.looks.after))})</span>` : "";
     return `<li>${icon(c, 16, run)}<span>${esc(cap(meet(run.story, c).name))}: ${esc(aShape(look))}${look.color ? ` ${esc(inColor(look))}` : ""}${now}${ken ? ` <span class="was">(in 1978, ${esc(article(ken.color))} ${esc(ken.color)} ${esc(shapeName(ken.shape))})</span>` : ""}${run.appearances.get(c) ? ` <button type="button" class="linkish" data-cmp-look="${esc(c)}">why?</button>` : ""}</span></li>`;
   }).join("");
   return `<div><p class="label">How Ani drew them</p><ul class="cast-looks">${rows}</ul><div id="cmp-look"></div></div>`;
