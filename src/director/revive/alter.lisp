@@ -30,11 +30,12 @@
 ;;; CHOMET takes the longest of the task's methods, change methods among them
 ;;; (ideal-time-for-task and time-bounds-for-task, chomet.123:95-129). So a look
 ;;; change by an amount is planned only beside a dynamics change of the same task, by
-;;; the same factor at the same speed, whose estimate it equals, as joy's is (below),
-;;; and a look change to a new value, from the script, inside the activity that shows
-;;; its cause (Phase 9 stage 6): it never makes a task or a subscene longer, and never
-;;; stands alone, where SCENE would make the character wander around to have something
-;;; to do (plan-something-if-only-changes, scene.9:211-221). The first is a rule here,
+;;; the same factor at the same speed, whose estimate it equals, as joy's is (below):
+;;; it never makes a task or a subscene longer, and never stands alone, where SCENE
+;;; would make the character wander around to have something to do
+;;; (plan-something-if-only-changes, scene.9:211-221). A change of look the script
+;;; makes is not one of these: REVIVE;CHSHOW bridges it as it bridges how she moves,
+;;; with a display method whose time counts (below, "a look's change in seconds"). The first is a rule here,
 ;;; not only how joy is taught: a look-change: that CHOMET leaves with no change: of
 ;;; its task's for the same character by the same amount at the same speed (two
 ;;; feelings' changes of different signs cancel each other, chomet.123:463-472) is
@@ -209,8 +210,8 @@
   (and (not (atom method)) (memq (first method) '(look-change: look-change-to:))))
 
 ;; Whether a look change has a change: of the task's beside it for the same character,
-;; by the same amount at the same speed. A look-change-to: is paired otherwise, with
-;; the activity that shows its cause (Phase 9 stage 6), and is kept.
+;; by the same amount at the same speed. A look-change-to:, which no knowledge suggests
+;; yet (a change of look the script makes is bridged, REVIVE;CHSHOW), is kept.
 (defun look-change-paired? (look methods)
   (or (not (eq (first look) 'look-change:))
       (do ((m methods (rest m)))

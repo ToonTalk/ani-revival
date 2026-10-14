@@ -71,6 +71,11 @@
 ;;;  - (gradually change look to (look: hue blue) at medium speed) moves the color's hue
 ;;;    round the painter's wheel (REVIVE;COLORS), hue by hue, in the ticks of one
 ;;;    e-fold too.
+;;;  - Each of these also in seconds, (gradually change look by 2.857 factor for
+;;;    color-saturation in 16.0 seconds), (gradually change look to (look: hue blue) in
+;;;    16.0 seconds), as REVIVE;CHSHOW bridges a look when a character changes
+;;;    (REVIVE;ALTER gives the form): its ticks are the seconds' at the film's frame
+;;;    rate, so the change ends when Ani planned, and in no seconds it is a tick.
 
 ;;; ------------------------------------------------- taking a look
 

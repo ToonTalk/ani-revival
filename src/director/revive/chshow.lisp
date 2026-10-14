@@ -36,6 +36,10 @@
 ;;;        Cinderella", L4346-4348);
 ;;;      - changes-while-wandering, for a change with no cause: she wanders while she
 ;;;        changes, "so that the changes are apparent" (p. 126, L3391-3393).
+;;;     Both wander as REVIVE;MEND9's wander-around does (CHANGE requires MEND), whose
+;;;     plan receiver is what SCENE asks for when a first part has only changes
+;;;     (plan-something-if-only-changes, scene.9:216-221): a change task has a way of
+;;;     showing of its own, so it isn't one of those, and no plan receiver is added.
 ;;;  3. The bridges. bridge-to: is a display method, not a change method: its time counts
 ;;;     toward the subscene's and it is stretched with the subscene (scene.9:159-197),
 ;;;     where a change method's is not (Ken's (g), p. 186, L4857-4860: "This estimate does
