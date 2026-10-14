@@ -2648,7 +2648,11 @@ function walkStopped(sc, x) {
   const goal = `(${x.goesTo.by} going-to (contact-with ${x.character} by ${x.goesTo.by}))`;
   const plan = ((sc.glass && sc.glass.plans) || []).find((p) => p.name === x.goesTo.plan);
   const careful = !plan || / careful of collisions /.test(plan.variables.plans || "");
-  return (sc.film.repairs || []).some((r) => /^\(revival-repair: what overdue-move /.test(r.note) && r.note.includes(goal) && (careful || /no-nearer-for-more-than/.test(r.note)));
+  // MEND12 stops a walk only after the most time Ani allows for it, which the note gives:
+  // a walk that ended sooner (they touched at once, say) wasn't the one it stopped
+  const walk = planFrames(sc, x.goesTo.plan), lasted = walk ? (walk.end - walk.begin) / fpsOf(sc) : 0;
+  const after = (note) => { const m = /([\d.]+) seconds\)\)$/.exec(note); return m ? Number(m[1]) : 0; };
+  return (sc.film.repairs || []).some((r) => /^\(revival-repair: what overdue-move /.test(r.note) && r.note.includes(goal) && (careful || /no-nearer-for-more-than/.test(r.note)) && lasted + 1 / fpsOf(sc) >= after(r.note));
 }
 // How far apart two characters are at frame f, center to center in TV dots, or null.
 function apart(sc, a, b, f) {

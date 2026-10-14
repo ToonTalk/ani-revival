@@ -300,7 +300,11 @@ function showsAsPlanned(shown, f, want, glass) {
     // a walk regardless of collisions never waits for anyone (Ken's careful step does,
     // dichar.103:285-318), so a note of waiting with the same goal is another walk's (the
     // Prince's goes-to-to-accompany, careful, in Change of Heart at 24 frames a second)
-    const stopped = (f.repairs || []).find((r) => /overdue-move/.test(r.note) && r.note.includes(`(${shown.goesTo.by} going-to (contact-with ${shown.character} by ${shown.goesTo.by}))`) && /no-nearer-for-more-than/.test(r.note));
+    // ... and MEND12 stops a walk only after the most time Ani allows for it, which its
+    // note gives, so a walk that ended sooner wasn't the one it stopped
+    const lasted = (eventFrame(f, `(end-of ${shown.goesTo.plan})`) - eventFrame(f, `(beginning-of ${shown.goesTo.plan})`)) / (f.fps || fps);
+    const stopped = (f.repairs || []).find((r) => /overdue-move/.test(r.note) && r.note.includes(`(${shown.goesTo.by} going-to (contact-with ${shown.character} by ${shown.goesTo.by}))`) && /no-nearer-for-more-than/.test(r.note)
+      && lasted + 1 / (f.fps || fps) >= Number((/([\d.]+) seconds\)\)$/.exec(r.note) || [0, 0])[1]));
     if (stopped) problems.push(`the revival's repairs stopped the walk to her: ${stopped.note}`);
   }
   const bridgesOf = (glass.plans || []).filter((p) => /^\(activity-of bridging-the-gap /.test(p.name) && (p.variables.plans || "").includes(`(ask ${shown.character} gradually`));
