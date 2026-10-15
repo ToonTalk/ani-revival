@@ -5,7 +5,7 @@
 ;;; EXTENSIONS), a repair of the revival's that Ken approved after testing the film page
 ;;; (15 October 2026), switched on with MEND, KNOW, APPEAR and CHANGE. It is not in MEND,
 ;;; because it changes Ken's own Cinderella: his Meeting ends with the two joys of
-;;; Cinderella and the Prince (cindy.46, the meeting's last establish tasks), a part of
+;;; Cinderella and the Prince (cindy.46:137-138), a part of
 ;;; changes only, which at 24 frames a second runs on for six seconds after their walk
 ;;; to each other has ended, with no one moving (reports/ext/seen/README.md).
 ;;;
@@ -24,8 +24,8 @@
 ;;;
 ;;; What goes wrong. The extended activity is planned to fill the extended time, but in
 ;;; Director it can end before the changes do, and a character may have had no part in
-;;; it at all. Director runs a change at a speed four times slower than Ani's estimate of
-;;; it at high speed (the inversion REVIVE;SLIPS9 corrects, opt-in), so a feeling's part
+;;; it at all. Director takes four times as long over a change at high speed as Ani's
+;;; estimate of it (the inversion REVIVE;SLIPS9 corrects, opt-in), so a feeling's part
 ;;; planned for 3.5 seconds runs for 14. In Ken's Meeting at 24 frames a second, the
 ;;; joys run on from frame 899, when Cinderella and the Prince have met, to 1,049, and
 ;;; no one moves; in his cinderella-beautified scene, from frame 91, when Cinderella's
@@ -55,7 +55,11 @@
 ;;;    changes, which grow the subscene's dynamics and hers (dichar.103:102-121), show in
 ;;;    how she walks;
 ;;;  - only if she is on the stage when the subscene begins: one who has left is not
-;;;    brought back.
+;;;    brought back;
+;;;  - and the film waits while she wanders: Director stops it when the part a part of
+;;;    only changes extends ends (action.152:62-91), as it cut Ken's Meeting's joys short
+;;;    at 4 frames a second; as REVIVE;CHSHOW keeps filming while a change is shown, the
+;;;    film is not stopped while a wander of SEEN's waits or walks.
 ;;; Two plans do it, both the subscene's, as Ken's methods' plans are: waiting-to-wander,
 ;;; which ends once nothing else moves her (or her changes have ended), and
 ;;; wandering-while-changes-run, which begins when it ends ((after (end-of ...) 0.0), as
@@ -67,7 +71,8 @@
 ;;; and the wandering plan memorizes what it waits for and why, for the glass box:
 ;;;   (wanders: character cinderella while (changes-for cinderella)
 ;;;	       in (subscene-of cinderella-beautified 2) after (activity-of waiting-to-wander 7)
-;;;	       once-free-of ((activity-of wandering-while-changing 3) ...)
+;;;	       once-nothing-moves-her-in ((subscene-of cinderella-beautified 2)
+;;;					  (subscene-of cinderella-beautified 1))
 ;;;	       because (so that the changes are apparent thesis 126))
 ;;; With SEEN off, everything is as before: Ani as in 1978 and MEND alone make Ken's
 ;;; Cinderella byte for byte (node tools/check-1978.mjs, --extensions mend).
@@ -135,12 +140,12 @@
 ;; action.152:125-145), so the wandering plan is told when the waiting one ends however
 ;; soon it does.
 (defun plan-to-wander-while-changes-run (character subscene)
-  (let ((others (what-else-moves character subscene))
+  (let ((parts (parts-to-watch subscene))
 	(waiting (ask plan if new make ,(activity-name-of 'waiting-to-wander)))
 	(wandering (ask plan if new make ,(activity-name-of 'wandering-while-changes-run))))
        (ask ,waiting set your begin-time to 0.0) ;;as the subscene begins
        (ask ,waiting set your subscene to ,subscene)
-       (ask ,waiting add (ask ,waiting wait until ,character is moved by none of ,others
+       (ask ,waiting add (ask ,waiting wait until ,character is moved by nothing in ,parts
 			      or ,subscene changes end)
 	    to your list of plans)
        (ask ,wandering set your begin-time to (after (end-of ,waiting) 0.0))
@@ -149,7 +154,7 @@
 	    to your list of plans)
        (ask ,wandering memorize
 	    (wanders: character ,character while (changes-for ,character) in ,subscene
-		      after ,waiting once-free-of ,others
+		      after ,waiting once-nothing-moves-her-in ,parts
 		      because (so that the changes are apparent thesis 126)))
        (ask ,subscene add ,waiting to your list of plans)
        (join-the-movements waiting subscene)
@@ -158,17 +163,16 @@
 
 ;;; ------------------------------------------------- what else moves her
 
-;; The plans that move the character in the subscene and, after the first, in the one
-;; before it, which SCENE has extended for this one (extend-last-actions-of,
-;; scene.9:223-240, run before this is planned), each once.
-(defun what-else-moves (character subscene)
-  (do ((p (append (plans-that-move character subscene)
-		  (let ((previous (previous-subscene-of subscene)))
-		       (and previous (plans-that-move character previous))))
-	  (rest p))
-       (found nil (cond ((member (first p) found) found)
-			(t (cons (first p) found)))))
-      ((null p) (reverse found))))
+;; The parts whose plans may move her while her changes run: the subscene and, after
+;; the first, the one before it, which SCENE extends for this one (extend-last-actions-of,
+;; scene.9:223-240). Which of their plans move her Director reads as it runs them, from
+;; the plans the program gives them (nothing-moves-her-in?, below): SCENE may plan the
+;; part before again after this one is planned (it is restored and planned anew when a
+;; part extends it, scene.9:229-239), and its plans are named anew.
+(defun parts-to-watch (subscene)
+  (let ((previous (previous-subscene-of subscene)))
+       (cond (previous (list subscene previous))
+	     (t (list subscene)))))
 
 (defun previous-subscene-of (subscene)
   (and (> (ask ,subscene recall your order-in-scene) 1)
@@ -253,9 +257,9 @@
 
 ;; Two messages of a plan's, as ACTION's plans have (action.152:278-390), and a stop
 ;; condition, in the idiom of Ken's arc stop conditions (dichar.103:401-499).
-;;  - wait until c is moved by none of (p ...) or s changes end: done, the followup,
-;;    when each of the plans has ended (the movie has its end, at or after its
-;;    beginning, action.152:51-53), or when her changes in s have ended; otherwise
+;;  - wait until c is moved by nothing in (s ...) or s changes end: done, the followup,
+;;    when each plan of those parts that moves her has ended (the movie has its end, at
+;;    or after its beginning, action.152:51-53), or when her changes in s have ended; otherwise
 ;;    asked again the next tick, as Ken's director-character asks itself again while it
 ;;    is still off the stage (dichar.103:51-59).
 ;;  - wander c while changes run in s: while her changes in s run, a walk, as
@@ -269,11 +273,11 @@
   (let ((:insert-methods-at-end nil))
        (define-receiver
 	{and ?the-whole-message
-	     (wait until ?character is moved by none of ?others or ?subscene changes end
+	     (wait until ?character is moved by nothing in ?parts or ?subscene changes end
 		   %followup)}
 	plan
 	(cond ((or (not (changes-still-running? character subscene))
-		   (all-ended? others))
+		   (nothing-moves-her-in? character parts))
 	       (and (eq (first followup) 'then) (ask :self !,(rest followup))))
 	      (t (ask :self plan next !,the-whole-message))))
        (define-receiver (wander ?character while changes run in ?subscene %followup) plan
@@ -336,9 +340,25 @@
 	   (eq (second (first a)) character)
 	   (return t))))
 
-;; Whether each plan has ended: the movie has its end, at or after its beginning (a
-;; repeated plan, which begins again after it ends, action.152:94-111, has no wander
-;; planned beside it, carried-by-a-repeat?).
+;; Whether nothing in the parts moves her: each plan of theirs whose Lisp has her move
+;; (moves-in-lisp?, as the program gives it, action.152:278-322), but SEEN's own, has
+;; ended. A repeated plan, which begins again after it ends (action.152:94-111), has no
+;; wander planned beside it (carried-by-a-repeat?).
+(defun nothing-moves-her-in? (character parts)
+  (do ((p (apply 'append (mapcar (function (lambda (part) (append (ask ,part recall your plans) nil)))
+				 parts))
+	  (rest p)))
+      ((null p) t)
+      (and (not (seens-plan? (first p)))
+	   (moves-in-lisp? character (ask ,(first p) recall your plans))
+	   (not (all-ended? (list (first p))))
+	   (return nil))))
+
+(defun seens-plan? (plan)
+  (and (not (atom plan)) (eq (first plan) 'activity-of)
+       (memq (second plan) '(waiting-to-wander wandering-while-changes-run))))
+
+;; Whether each plan has ended: the movie has its end, at or after its beginning.
 (defun all-ended? (names)
   (let ((movie (ask movie recall your current-movie)))
        (do ((n names (rest n)))

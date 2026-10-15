@@ -483,11 +483,12 @@ export function glassBox(L, scene) {
 }
 
 // The wanders REVIVE;SEEN planned in the scene, from the memo each wandering plan keeps,
-// (wanders: character c while (changes-for c) in s after w once-free-of (p ...) because
-// (...)): for each, { character, plan, waiting, subscene, onceFreeOf, because }, plan
-// the wandering plan, waiting the plan that waits until nothing else moves her, both
-// printed as Lisp, onceFreeOf the plans (or a subscene, for a repeated plan) she waits
-// for, because the reason as Lisp. From the glass box's plans, so it needs no Lisp.
+// (wanders: character c while (changes-for c) in s after w once-nothing-moves-her-in
+// (s ...) because (...)): for each, { character, plan, waiting, subscene, watched,
+// because }, plan the wandering plan, waiting the plan that waits until nothing else
+// moves her, both printed as Lisp, watched the parts whose plans that move her it waits
+// for (her part, and the one it extends), because the reason as Lisp. From the glass
+// box's plans, so it needs no Lisp.
 export function collectWanders(glass) {
   const out = [];
   for (const p of glass.plans || []) {
@@ -495,10 +496,10 @@ export function collectWanders(glass) {
       if (!item.startsWith("(wanders: ")) continue;
       const memo = readForms(item)[0];
       const get = (k) => { const i = memo.indexOf(k); return i >= 0 ? memo[i + 1] : null; };
-      const free = get("once-free-of"); // nil, read as "nil", if nothing else moves her
+      const watched = get("once-nothing-moves-her-in");
       out.push({
         character: get("character"), plan: p.name, waiting: printForm(get("after")), subscene: printForm(get("in")),
-        onceFreeOf: Array.isArray(free) ? free.map(printForm) : [], because: printForm(get("because")),
+        watched: Array.isArray(watched) ? watched.map(printForm) : [], because: printForm(get("because")),
       });
     }
   }
@@ -998,7 +999,10 @@ const REVIVAL_METHODS = {
 //              and repeated, the n of a (repeat n ...) of the part's movements it is in),
 //              and, with the film, when it ran (spans of frames) and how each run ended,
 //              as far as the frames tell ("time" if it ran its seconds, "there" if it got
-//              there sooner, else null)
+//              there sooner; REVIVE;SEEN's wander "changes-ended", its waiting "free" if
+//              the wander after it walked, else "changes-ended"; else null); and, for
+//              SEEN's waiting plans, watched (the parts whose plans it watches) and
+//              waitsFor (those of their plans that move her)
 //   stills     with the film, each stretch of more than a second inside a part in which
 //              no character on the stage moves, { from, to, seconds, part, parasiteOn,
 //              after, kind, ... }, after the plans that ended last before it (of the part
@@ -1135,15 +1139,29 @@ export function whyTheyAct(glass, film = null, { fps = (film && film.fps) || 4, 
       const seconds = (r.end - r.begin) / fps;
       if (after && seconds >= after.seconds - 1.5 / fps) return "time";
       if (stops.some((s) => s.kind === "when-there")) return "there";
+      // REVIVE;SEEN's: the wander ends with her changes; its waiting, once nothing else
+      // moves her, if the wander after it walked, else with her changes
+      if (activity === "wandering-while-changes-run") return "changes-ended";
+      if (activity === "waiting-to-wander" && wander) {
+        const walked = (spans.get(wander.plan) || []).some((w) => w.begin !== null && (w.end === null ? last : w.end) > w.begin);
+        return walked ? "free" : "changes-ended";
+      }
       return null;
     });
     return {
       plan: p.name, activity, part: part ? part.n : null, subscene: v.subscene || null, characters: [...characters],
       method, by: family ? REVIVAL_METHODS[family] || "DISPLY" : null, task, estimate,
+      ...(wander && activity === "waiting-to-wander" ? { watched: wander.watched } : {}),
       beginTime: v["begin-time"] || null, stops, repeated,
       ...(film ? { film: { spans: runs, seconds: runs.reduce((a, r) => a + (r.end - r.begin) / fps, 0) }, ended } : {}),
     };
   });
+  // what each of SEEN's waiting plans waits for: the plans of the parts it watches that
+  // move her, but SEEN's own (REVIVE;SEEN nothing-moves-her-in?)
+  for (const a of activities) {
+    if (!a.watched) continue;
+    a.waitsFor = activities.filter((b) => a.watched.includes(b.subscene) && b.by !== "REVIVE;SEEN" && b.activity !== "bridging-the-gap" && b.characters.includes(a.characters[0])).map((b) => b.plan);
+  }
   // each still stretch as it falls in each part (a part of only changes runs beside the
   // part it extends), where it is more than a second
   const stills = [];

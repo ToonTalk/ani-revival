@@ -79,8 +79,11 @@ test("what else moves her: the walks and hits that move her in her part and the 
   assert.equal(run("(movers-of-action '(turning of a 30 degrees starting at 0.0 using x called p stopping if c))"), "(A)");
   assert.equal(run("(movers-of-action '(hit v by a using x called p))"), "(A)");
   // (the characters in the order SCENE has them, the troll first)
-  assert.equal(run("(what-else-moves 't-goat '(subscene-of t-scene 2))"), "((ACTIVITY-OF T-DRAG 1) (ACTIVITY-OF T-WALK 1))");
-  assert.equal(run("(what-else-moves 't-troll '(subscene-of t-scene 2))"), "((ACTIVITY-OF T-DRAG 1) (ACTIVITY-OF T-HIT 1))");
+  assert.equal(run("(plans-that-move 't-goat '(subscene-of t-scene 1))"), "((ACTIVITY-OF T-DRAG 1) (ACTIVITY-OF T-WALK 1))");
+  assert.equal(run("(plans-that-move 't-troll '(subscene-of t-scene 1))"), "((ACTIVITY-OF T-DRAG 1) (ACTIVITY-OF T-HIT 1))");
+  // Director watches her part and the one it extends
+  assert.equal(run("(parts-to-watch '(subscene-of t-scene 2))"), "((SUBSCENE-OF T-SCENE 2) (SUBSCENE-OF T-SCENE 1))");
+  assert.equal(run("(parts-to-watch '(subscene-of t-scene 1))"), "((SUBSCENE-OF T-SCENE 1))");
   // a plan already made whose Lisp has her move
   assert.equal(run("(moves-in-lisp? 't-goat '((sequence: (ask p cause (t-goat) to gradually go in arc))))"), "T");
   assert.equal(run("(moves-in-lisp? 't-goat '((ask p gradually face t-goat towards x plus 0.0)))"), "T");
@@ -101,9 +104,9 @@ test("the wander: a plan that waits until nothing else moves her, and one after 
   assert.equal(run(`(ask ${waiting} recall your begin-time)`), "0.0");
   assert.equal(run(`(ask ${plan} recall your begin-time)`), `(AFTER (END-OF ${waiting}) 0.0)`);
   assert.equal(run(`(ask ${waiting} recall your plans)`),
-    `((ASK ${waiting} WAIT UNTIL T-GOAT IS MOVED BY NONE OF ((ACTIVITY-OF T-DRAG 1) (ACTIVITY-OF T-WALK 1)) OR (SUBSCENE-OF T-SCENE 2) CHANGES END))`);
+    `((ASK ${waiting} WAIT UNTIL T-GOAT IS MOVED BY NOTHING IN ((SUBSCENE-OF T-SCENE 2) (SUBSCENE-OF T-SCENE 1)) OR (SUBSCENE-OF T-SCENE 2) CHANGES END))`);
   assert.equal(run(`(ask ${plan} recall your plans)`), `((ASK ${plan} WANDER T-GOAT WHILE CHANGES RUN IN (SUBSCENE-OF T-SCENE 2)))`);
-  assert.match(run(`(ask ${plan} collect items)`), /\(WANDERS: CHARACTER T-GOAT WHILE \(CHANGES-FOR T-GOAT\) IN \(SUBSCENE-OF T-SCENE 2\) AFTER \(ACTIVITY-OF WAITING-TO-WANDER \d+\) ONCE-FREE-OF \(\(ACTIVITY-OF T-DRAG 1\) \(ACTIVITY-OF T-WALK 1\)\) BECAUSE \(SO THAT THE CHANGES ARE APPARENT THESIS 126\)\)/);
+  assert.match(run(`(ask ${plan} collect items)`), /\(WANDERS: CHARACTER T-GOAT WHILE \(CHANGES-FOR T-GOAT\) IN \(SUBSCENE-OF T-SCENE 2\) AFTER \(ACTIVITY-OF WAITING-TO-WANDER \d+\) ONCE-NOTHING-MOVES-HER-IN \(\(SUBSCENE-OF T-SCENE 2\) \(SUBSCENE-OF T-SCENE 1\)\) BECAUSE \(SO THAT THE CHANGES ARE APPARENT THESIS 126\)\)/);
   assert.equal(run("(ask (subscene-of t-scene 2) collect items memorized matching (revival-repair: %))"),
     "((REVIVAL-REPAIR: WHAT NOTHING-TO-DO WAS (STANDS-STILL T-GOAT) NOW (WANDER-WHILE-CHANGES-RUN T-GOAT) BECAUSE (SO THAT THE CHANGES ARE APPARENT THESIS 126)))");
 });
