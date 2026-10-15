@@ -37,4 +37,4 @@ same lines; Ken's files go as they are), and the page's script goes without comm
 gzipped and written as text, as the page's data is, in a block of its own that a small
 module script unpacks and runs (as the body of an async function made with
 `new Function`, as the in-page runner makes Ani's runtime). Built so on 15 October
-2026, with SLIPS and DETAIL on the page, it is about 732 KB.
+2026, with SLIPS and DETAIL on the page, it is about 737 KB.

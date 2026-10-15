@@ -1858,7 +1858,7 @@ function slipsSaid(run, scenes) {
     const cps = heard.map((r) => parse(r.actor)).filter(Array.isArray);
     const chars = [...new Set(cps.map((a) => a[1]))];
     const same = cps.every((a) => { const k = RUNS[0].cp.get(show(a)), y = run.cp.get(show(a)); return k && y && show(k.currentChoice) === show(y.currentChoice); });
-    out.push(`In pass 1, friendly's suggestions for ${who(chars)}'s ${words(cps.map((a) => elementWords(a[2]).replace(/^liking for /, "")).map((w, k) => (k ? w : `likings for ${w}`)))} are heard, named as pass 1's elements are (${kenAt("dscrp.17:106-108")}, ${kenAt("elemnt.1:101-105")}); ${same && sameStory(RUNS[0], run) ? "each is chosen as in 1978, and pass 1 still writes CP 29" : "“How Ani's choices changed” says what each chose"}. (S3)`);
+    out.push(`In pass 1, friendly's suggestions for ${who(chars)}'s ${words(cps.map((a) => elementWords(a[2]).replace(/^liking for /, "")).map((w, k) => (k ? w : `likings for ${w}`)))} are heard, named as pass 1's elements are (${kenAt("dscrp.17:106-108")}, ${kenAt("elemnt.1:101-105")}); ${same && sameStory(RUNS[0], run) ? "each is chosen as in 1978" : "“How Ani's choices changed” says what each chose"}. (S3)`);
   }
   // S8: a walk set again takes its parent's factor once
   const parts = [];

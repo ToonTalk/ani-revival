@@ -450,6 +450,8 @@ function show(p, push = true) {
     return `<li><span class="step">${a.step}</span>${esc(reasonText(a.postponed))}${within}</li>`;
   }).join("");
   const chosen = (p.memory || []).filter((m) => Array.isArray(m) && m[0] === "suggestion:");
+  // in a run made with the revival's SLIPS, its note on the choice point (REVIVE;SLIPS3)
+  const noted = (p.memory || []).filter((m) => Array.isArray(m) && m[0] === "revival-repair:");
   const conflicts = p.conflictsResolved || [];
   const rejected = p.rejectedSuggestions || [];
   const title = p.absolute ? `${who(p.character, true)}'s ${elementName(p.elem)}` : `${who(p.pair[0], true)} compared with ${who(p.pair[1])} in ${elementName(p.elem)}`;
@@ -462,6 +464,7 @@ function show(p, push = true) {
     ${verdictLine}
     ${p.key === "(choice-point-of step-mother speed)" ? THESIS_STEPMOTHER : ""}
     <div class="block"><h3>What happened <span class="count">${p.attempts.length} attempts</span></h3><ol class="story">${story || "<li>Never attempted.</li>"}</ol></div>
+    ${noted.length ? `<div class="block"><h3>The revival's note</h3>${noted.map((n) => `<p class="thesis">${esc(noteText(n))}</p>`).join("")}</div>` : ""}
     ${chosen.length ? `<div class="block"><h3>The suggestion it kept</h3>${chosen.map((s) => suggestionHTML(s)).join("")}</div>` : ""}
     ${conflicts.length ? `<div class="block"><h3>Conflicts it settled <span class="count">${conflicts.length}</span></h3>${conflicts.map((c) =>
       `<div class="conflict"><p class="how">${esc(cap(KIND[plist(c, "type")] || String(plist(c, "type")).replace(/-/g, " ")))}: Ani ${esc(HOW[plist(c, "how-resolved")] || String(plist(c, "how-resolved")).replace(/-/g, " "))}.</p>` +
@@ -470,6 +473,14 @@ function show(p, push = true) {
       `<p class="how" style="font-size:.88rem">Because the suggestion was ${esc(String(plist(r, "reason")).replace(/-/g, " "))}:</p>` + suggestionHTML(plist(r, "suggestion") || [], "rejected")).join("")}</div>` : ""}
     <details class="raw"><summary>Ani's own record</summary><pre>${esc(rawRecord(p))}</pre></details>`;
   drawTimeline();
+}
+// A note the revival's extensions left on a choice point, in a sentence: SLIPS' S3, friendly's
+// tendencies, which Ken wrote for attraction-to-friends and the like (dscrp.17:106-108),
+// heard under the names the elements have (elemnt.1:101-105).
+function noteText(n) {
+  const what = plist(n, "what"), was = plist(n, "was"), now = plist(n, "now"), because = plist(n, "because") || [];
+  if (what === "friendly-attraction") return `With the revival's SLIPS (S3): friendly suggests ${valueText(because[1])}, at ${because[2]} strength, which Ken wrote for ${String(was).replace(/-/g, " ")} (dscrp.17:106-108); no element is called that, so in 1978 pass 1 never heard it. SLIPS names it as the element is, ${String(now).replace(/-/g, " ")} (elemnt.1:101-105), and pass 1 hears it here.`;
+  return `The revival's ${String(what).replace(/-/g, " ")}: ${lisp(was)}, now ${lisp(now)}, because ${lisp(because)}.`;
 }
 function rawRecord(p) {
   const lines = [`(define ${p.key} ${p.parent}`];
