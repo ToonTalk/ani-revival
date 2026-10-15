@@ -260,6 +260,23 @@ Each correction comes with a written Cinderella diff. The parenthesis slips in g
 
 Director's walk has no actor of its own, so the subscene memorizes what DETAIL did, for the glass box.
 
+*As built (15 October, stage 7), SLIPS:* `REVIVE;SLIPS` and SLIPS1, 2, 3, 6, 7, 8 and 9 (`reports/ext/slips/README.md`, with each correction's line and written diff). Opt-in (`optIn`, group repairs), requiring KNOW. Each correction can be turned off on its own (`:slips-off`), so each has a diff of its own, beside KNOW's Cinderella (`tools/check-slips.mjs --each`, `each.json`).
+- S1 and S2 as designed, with what S1 newly reaches: friendly's bind inside a bind is bound in turn, and is-desired-by, which no file defines, comes up with no value (`no-such-generator`). In the Introduction Cinderella helps her stepmother, who is neither weak nor good ("anyone"): your find-related-suggestions takes good's helping the stepmother and friendly's helping the Prince as identical, and the first is the convey task.
+- S3: Cinderella's three tendency choices are CP 29's; their choice points hear friendly now, and lose to shy as before. CP 30 is CP 29 byte for byte with SLIPS.
+- S4 is KNOW's (decision 10); S5 documented. S6 and S7 change nothing in Cinderella.
+- New: S8, Director multiplies a character's dynamics by their parent's factors once, not again each time the same dynamics are set (`dichar.103:27-31`: in 1978 Kept Apart's guard slows cycle by cycle, Cinderella's walk 0.34, 0.24, 0.17, 0.12); S9, **the speed inversion, which the run confirmed** (`tools/check-slips.mjs --speed`: all 20 changes at high speed take 3.95 to 4.04 times DISPLY's estimate, all 11 at low 0.21 to 0.25, the 4 at medium 0.9); S10, stage 6's finding 1, a change grows a factor once a tick; S11, a change takes as many steps as it counts (SOME's repeat does one fewer, `some.666:444-450`, so in 1978 the Introduction's joys did nothing); S12, a high level of variety picks the least used value and a low the most used, as the thesis says (`glosug.41:61-70`, L2384-2387).
+- Left alone, for Ken: CHOMET's redistribution of a scene's time (`more-time-needed:` against `need-more-time:`, `chomet.123:193, 413`, and its signs, `61-64, 167-180`), and the special dynamics a change carries forth, found once and kept (`dichar.103:22-26`).
+- Cinderella with SLIPS, chained: 230, 115, 19, 180 and 85 frames (KNOW's 225, 116, 17, 179, 84), and at 24 frames a second 1379, 712, 109, 878 and 442. Goldens in `reports/ext/slips/` (`tools/check-ext.mjs --extensions slips`).
+
+*As built (15 October, stage 7), DETAIL:* `REVIVE;DETAIL`, DTWALK, DTTEND and DTRHYM (`reports/ext/detail/README.md`). Opt-in (group knowledge), requiring MEND, each detail turnable off (`:detail-off`), each the revival's reading of the thesis's sentence (X.B.3 (f) and (c), pp. 185-186; B.2 (a), p. 184).
+- Deliberateness: a character d times as deliberate goes in arcs d times as long and jags 1/d as far in Director's walk (go-in-arc); medium changes nothing. With CHANGE, a change bridges deliberateness too.
+- The tendencies: a prerequisite `drawn-to`, read from the tendency towards what the other is (friend, enemy or stranger, by the generators' own tests), is the best-when clause of the ways of showing that take one character to another (or away). In Cinderella it decides nothing; the tendencies on the convey methods too, an option off by default, would have the stepmother avoid Cinderella instead of pushing her around (mean's strong avoidance of enemies): a decision for Ken.
+- Rhythm: fast and slow are a change: of a quarter at medium speed in each subscene, (changes A B) A's in the first and B's in the last, picking-up (changes normal fast), for each character who acts or changes there.
+- Found: DETAIL's rhythm alone compounds through Ken's slip S8 in the Meeting's turning (with SLIPS too, it doesn't).
+- Cinderella with DETAIL, chained: 189, 116, 16, 169 and 87 frames (1978's 192, 116, 17, 179, 84), and at 24 frames a second 910, 705, 88, 647 and 486. Goldens in `reports/ext/detail/` (`tools/check-ext.mjs --extensions detail`, `tools/check-detail.mjs`).
+
+*The glass box (stage 7):* every correction and detail notes where it acted through REVIVE;WRAP's `revival-note` (kinds in each README's "The glass box"); Director's corrections and the walk on Director's subscene, so the film's `repairs` has them. *Tests:* `test/slips.test.js`, `test/detail.test.js`; `tools/check-stress.mjs` has a mode with all six extensions (`with-all`) and four new stories (`slips-good-helps`, `slips-variety`, `detail-rhythm`, `detail-tendency`). The page is the next agent's: each README's "For the page (stage 7)".
+
 ## Item 5: a mini-Ani in the Agent Kit
 
 The mini-Ani is an example under "＋ New society", not a tenth microworld. It is a society of program agents:
@@ -373,6 +390,16 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 ## Decisions (Ken, 14 October)
 
 11. **"Go with the uniqueness rule for hues."** After the review of stage 5 found that three of Cinderella's four hues were decided by the order of the revival's list of hues, with nothing in Ani's knowledge behind them, Ken chose, of the sources of hues put to him, his own uniqueness summary: "the finding that a character is unique suggests that that character move (or appear) differently from the others" (AI-TR-540 p. 94). So color-hue has a relative element, as size, the shape elements and brightness have, and a character is drawn in a hue none of the others it is to differ from has. The rule is his; applying it to a hue is the revival's, and is labeled so. Where the rule leaves a choice, the film's variety still takes the hues in the revival's order (Itten's wheel read from yellow), which is labeled the revival's with its reason. Decision 4 still holds: a hue of his 1978 that comes back is said, not tuned away (in his Cinderella, the fairy godmother's orange). The two alternatives he passed over: the relationships (enemies in complementary hues), and leaving a hue no word suggests grey, with a sentence saying so.
+
+## Questions for Ken (stage 7, 15 October)
+
+1. **SLIPS' list.** S1 (with S2), S3, S6 to S12 corrected; S4 and S5 left. The speed inversion is in, the run confirming it (`reports/ext/slips/speed.json`).
+2. **CHOMET's redistribution of a scene's time**: correct the reason's name (`chomet.123:193`) and the two signs (`61-64, 167-180`), or leave them? Recommended: leave them, as now, until a story needs it.
+3. **Cinderella helps her stepmother** with SLIPS: good's helping, finding anyone, displaces friendly's helping the Prince, the two being identical to your relating. Recommended: as your code, corrected, makes it.
+4. **Decision 12 again**: with feelings at their planned speed, a feeling's part that extends an activity and ends first stops more stories in the middle (a chase and then sadness: 13 frames with SLIPS, 49 without). Should CHSHOW's wait cover your own parts?
+5. **The tendencies on the convey methods too?** Run so, your stepmother avoids Cinderella instead of pushing her around. Recommended: off, as now.
+6. **Should DETAIL require SLIPS?** Alone its rhythm compounds through your slip S8. Recommended: no.
+7. **The rhythm's amount and scenes**, a quarter at medium speed, are the revival's; should the film's level of rhythm scale it?
 
 ## The questions as they were put
 
