@@ -68,7 +68,15 @@ Chained, at 4 frames a second:
 | Meeting | 179 | 204 | Cinderella and the Prince meet at frame 177, as in 1978; then, where your Director stopped the film at 179 with their joys cut short, each waits until their walk to each other has ended (frame 177) and wanders from frame 178 while their joys run, to frame 202; the film waits for them (`film-waited-for-wander`) |
 | Justice | 84 | 148 | it starts where the Meeting now leaves them: Cinderella near the middle, (0.05, -0.02), 0.4 of a screen from the Prince, where in 1978 she ended touching him, (-0.32, -0.32). Their five comings in contact and movings apart (repeatedly-come-in-contact) each have farther to go, the last walk to contact taking frames 94 to 145 where it took 56 to 81 |
 
-At 24 frames a second: see `24fps/` and the table in "With the page's set", below.
+At 24 frames a second (`24fps/`):
+
+| Scene | 1978 | With SEEN | Why |
+|---|---|---|---|
+| Introduction | 917 | 917 | as in 1978, frame for frame |
+| Kept Apart | 701 | 701 | as in 1978, frame for frame |
+| No Longer Kept Apart | 113 | 113 | as in 1978, frame for frame |
+| Meeting | 1,051 | 1,051 | as long as in 1978: their walk to each other ends at frame 899, as in 1978, and where in 1978 no one moved from 900 to 1,049 while their joys ran, each now wanders from 899 until their joys end, at 1,049 (the film's `film-waited-for-wander` at frame 900) |
+| Justice | 458 | 959 | it starts where the Meeting now leaves them: Cinderella near the middle, (0.04, 0.04), the Prince at (-0.26, -0.27), where in 1978 they ended touching. Ani plans the scene as in 1978 (its program from 1978's places is 1978's: 30.48 seconds, the comings together repeated four times); Director, starting them from those places, takes about twice as long over each of their comings together and movings apart (in the first moving apart, frames 92 to 151, where 1978's took 62 to 89, the Prince stands for 36 of the 59 frames, his walk careful of collisions, with the stepmother's move near the group passing close by them in the middle) |
 
 ## With the page's set
 
