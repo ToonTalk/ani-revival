@@ -65,9 +65,20 @@
 //   - the whole film, chained, as for APPEAR: each scene's files are those in
 //     reports/ext/slips/ or reports/ext/detail/ (or its 24fps/), and the README there
 //     says how and why they differ from KNOW's (SLIPS) or 1978's (DETAIL).
+// For SEEN (--extensions seen, with MEND, which it requires), a part of only changes made
+// seen (REVIVE;SEEN, Ken's testing of the film page, 15 October 2026), it asserts:
+//   - pass 1 as for DETAIL: as 1978's, with no notes;
+//   - pass 2, scene by scene, each starting from where the 1978 film left the
+//     characters: the scenes SEEN doesn't change there (SEEN_CHANGES) as 1978's
+//     reports/pass2; the Meeting, whose last part, Cinderella's and the Prince's joys,
+//     has them wander once their walk to each other ends, in reports/ext/seen/from-1978/;
+//   - the whole film, chained, as for APPEAR, against reports/ext/seen/ (or its 24fps/),
+//     and in each scene no part of only changes in which no one moves for more than a
+//     second (src/pipeline.js whyTheyAct's stills, "only-changes"); reports/ext/seen/
+//     README.md says how and why the films differ from 1978's.
 // The goldens are in reports/ext/<the ids of the extensions that change Cinderella>, but
 // SLIPS's in reports/ext/slips/ and DETAIL's in reports/ext/detail/.
-// Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail] [--quick] [--fps 24] [--save]
+// Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail|seen] [--quick] [--fps 24] [--save]
 //   --quick  skip the chained film (about three of its four minutes)
 //   --fps 24 film the chain at 24 frames a second, as the film page does by default,
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
@@ -79,7 +90,7 @@
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film, storyPlan, storyOutline } from "../src/pipeline.js";
+import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film, storyPlan, storyOutline, whyTheyAct } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
@@ -87,12 +98,12 @@ const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1
 const chosen = extensionsFor((opt("--extensions") || "appear").split(",").filter(Boolean));
 const extensions = chosen.map((e) => e.id);
 if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.join(", ")} changes Ken's Cinderella: tools/check-1978.mjs --extensions ${extensions.join(",")} checks it`);
-// what this check knows each should make: APPEAR's, KNOW's, SLIPS's (with KNOW) or
-// DETAIL's, one at a time
-const KINDS = ["appear", "know", "slips", "detail"];
+// what this check knows each should make: APPEAR's, KNOW's, SLIPS's (with KNOW),
+// DETAIL's or SEEN's, one at a time
+const KINDS = ["appear", "know", "slips", "detail", "seen"];
 const asked = KINDS.filter((k) => extensions.includes(k) && !(k === "know" && extensions.includes("slips")));
 const kind = asked.length === 1 ? asked[0] : null;
-if (!kind) throw new Error("tools/check-ext.mjs knows what APPEAR should make, what KNOW should, what SLIPS should (with KNOW, which it requires) and what DETAIL should; give it --extensions with one of appear, know, slips and detail");
+if (!kind) throw new Error("tools/check-ext.mjs knows what APPEAR should make, what KNOW should, what SLIPS should (with KNOW, which it requires), what DETAIL should and what SEEN should; give it --extensions with one of appear, know, slips, detail and seen");
 const quick = args.includes("--quick");
 const save = args.includes("--save");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
@@ -270,10 +281,10 @@ if (kind === "know") {
   check("pass 1: no repair notes", (p1.value.repairs || []).length ? `${p1.value.repairs.length}, the first ${JSON.stringify(p1.value.repairs[0])}` : null);
 }
 // SLIPS: pass 1 as 1978's, but for what three of Cinderella's choice points hear
-// (REVIVE;SLIPS3); DETAIL: as 1978's
+// (REVIVE;SLIPS3); DETAIL and SEEN: as 1978's
 const TENDENCIES = ["attraction-towards-strangers", "attraction-towards-enemies", "attraction-towards-friends"];
 const SLIPS_PASS1 = TENDENCIES.map((e) => JSON.stringify(["choice-point-of", "cinderella", e]));
-if (kind === "slips" || kind === "detail") {
+if (kind === "slips" || kind === "detail" || kind === "seen") {
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
   const theirs = choicesOfItsFile("original/7005017/cp.29");
   const c = compareChoices(theirs, ours);
@@ -425,14 +436,15 @@ if (fps === 4 && kind === "know") {
   }
 }
 
-// For SLIPS and DETAIL: each scene planned from where the 1978 film left the
+// For SLIPS, DETAIL and SEEN: each scene planned from where the 1978 film left the
 // characters. The scenes each changes have their files in <dir>/from-1978/; the others
 // are as the reference has them: for SLIPS, KNOW's (its from-1978/ for the scenes KNOW
-// changes, else 1978's reports/pass2), for DETAIL 1978's.
+// changes, else 1978's reports/pass2), for DETAIL and SEEN 1978's.
 const SLIPS_CHANGES = ["introduction"]; // S1; the other corrections act in Director
 const DETAIL_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"]; // the tendencies' notes, and the rhythm's changes
-if (fps === 4 && (kind === "slips" || kind === "detail")) {
-  const changes = kind === "slips" ? SLIPS_CHANGES : DETAIL_CHANGES;
+const SEEN_CHANGES = ["meeting"]; // the joys of its last part; Kept Apart's are carried by the standing guard, a repeat
+if (fps === 4 && (kind === "slips" || kind === "detail" || kind === "seen")) {
+  const changes = kind === "slips" ? SLIPS_CHANGES : kind === "seen" ? SEEN_CHANGES : DETAIL_CHANGES;
   const fs2 = makeProjectFileSystem();
   fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
   for (const f of readdirSync("reports/pass2")) {
@@ -484,6 +496,13 @@ if (!quick) {
     console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events${ours.looks ? `, ${ours.looks.length} looks` : ""}`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));
     if (kind === "appear" && scene === "kept-apart") durationGuard(fs3, ours, "chained");
+    if (kind === "seen") {
+      // no part of only changes leaves everyone standing still for more than a second
+      const stills = whyTheyAct(p2.value.glass, ours, { fps, extensions }).stills;
+      const left = stills.filter((x) => x.kind === "only-changes");
+      check(`${scene}: no part of only changes in which no one moves for more than a second${stills.length ? ` (still: ${stills.map((x) => `${x.kind} frames ${x.from} to ${x.to}`).join("; ")})` : ""}`,
+        left.length ? left.map((x) => `${x.part} frames ${x.from} to ${x.to}`).join("; ") : null);
+    }
     const movie = f.value.lisp.print(f.value.lisp.evalString(`(get '${scene} 'movie-name)`)).toLowerCase();
     golden(`${scene}: KEN1;${movie.toUpperCase()} POSIT`, `ken1-${movie}.posit`, textIn(fs3, "KEN1", movie.toUpperCase(), "POSIT"));
   }

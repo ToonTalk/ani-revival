@@ -95,6 +95,20 @@ export const EXTENSIONS = [
     note: "Knowledge Ken could have added (thesis p. 19: words such as \"clever\", \"fears\" or \"helps\" \"could be added\"), each piece in the idiom of the file of his it extends and each with its evidence or the revival's reason: words for characters (gentle, rough, nervous, calm, cheerful, gloomy, clever, brave, cowardly, curious, playful, old, young, slow and quick, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears; ways of showing likes, is-obedient-to, is-helpful-towards, and, by Ken's decision 10, is-protective-to, is-grateful-to and is-intolerant-of; is-protective-of a neighbor of is-protective-to); ways of showing helps, avoids and follows (helps-along, moves-away-from and follows-behind); feelings (pride, anticipation, loneliness, fear and anger); and a word with no way of showing itself borrowing its neighbors' (dscrp.17:183). Ken's Cinderella makes the same choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where Ani had no idea how in 1978, and the stepmother's pride makes her paths smoother in Kept Apart.",
   },
   {
+    // Ken's testing of the film page (15 October): a feeling's part with nothing else to
+    // do left everyone standing still for seconds while the feeling ran. Not in MEND,
+    // since it changes Ken's Cinderella (his Meeting's last part); switched on with the
+    // four by default (the page's switch must list it beside them)
+    id: "seen",
+    label: "Changes seen when no one has anything to do",
+    group: "repairs",
+    files: ["wrap", "seen"],
+    // the wander is REVIVE;MEND9's: its walks, and joining a subscene's movements
+    requires: ["mend"],
+    changes1978: true,
+    note: "A feeling changes how a character moves (joy makes her faster and bouncier), but \"cannot stand alone\" (thesis pp. 125-126): where a character has only changes in a part, Ken's SCENE extends the activity before it, or has her \"wander around\" at the start of a scene, \"so that the changes are apparent\". In Director the extended activity can end before the changes do (Director runs a change at high speed four times longer than Ani planned), and a character may have had no part in it, so everyone stood still while the feeling ran on. The revival's repair, which Ken approved: in such a part, once nothing else moves her, she wanders about while her changes run, across the stage and back as SCENE's wander does, and stops when they end. In Ken's Cinderella, Cinderella and the Prince wander after they meet at the end of the Meeting, as their joy runs; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978. Each part leaves a note where it acted.",
+  },
+  {
     id: "slips",
     label: "Corrections of slips in Ken's files",
     group: "repairs",
@@ -461,7 +475,39 @@ export function glassBox(L, scene) {
   // if any were, for the same reason
   const borrowed = collectBorrowed(L, glass.tasks);
   if (borrowed.length) glass.borrowed = borrowed;
+  // the wanders while changes run that REVIVE;SEEN planned, only if any were, for the
+  // same reason
+  const wanders = collectWanders(glass);
+  if (wanders.length) glass.wanders = wanders;
   return glass;
+}
+
+// The wanders REVIVE;SEEN planned in the scene, from the memo each wandering plan keeps,
+// (wanders: character c while (changes-for c) in s after w once-free-of (p ...) because
+// (...)): for each, { character, plan, waiting, subscene, onceFreeOf, because }, plan
+// the wandering plan, waiting the plan that waits until nothing else moves her, both
+// printed as Lisp, onceFreeOf the plans (or a subscene, for a repeated plan) she waits
+// for, because the reason as Lisp. From the glass box's plans, so it needs no Lisp.
+export function collectWanders(glass) {
+  const out = [];
+  for (const p of glass.plans || []) {
+    for (const item of p.items || []) {
+      if (!item.startsWith("(wanders: ")) continue;
+      const memo = readForms(item)[0];
+      const get = (k) => { const i = memo.indexOf(k); return i >= 0 ? memo[i + 1] : null; };
+      const free = get("once-free-of"); // nil, read as "nil", if nothing else moves her
+      out.push({
+        character: get("character"), plan: p.name, waiting: printForm(get("after")), subscene: printForm(get("in")),
+        onceFreeOf: Array.isArray(free) ? free.map(printForm) : [], because: printForm(get("because")),
+      });
+    }
+  }
+  return out;
+}
+
+// A form readForms read, printed again as Lisp.
+function printForm(x) {
+  return Array.isArray(x) ? `(${x.map(printForm).join(" ")})` : x === null || x === undefined ? null : String(x);
 }
 
 // The suggestions of the scene's establish tasks that a word borrowed from a neighbor
@@ -880,6 +926,336 @@ export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onC
   const repairs = noting(L) ? repairNotes(L) : [];
   if (repairs.length) f.repairs = repairs; // only then, so a film is as it was
   return { film: f, lisp: L };
+}
+
+// ---------------------------------------------------------------- why they act as they do
+
+// Which display method writes which activities. A plan is named (activity-of <activity>
+// n) (activity-name-of, place.45:240-242) by the method that writes it: DISPLY's (the
+// lines of disply.311 each method names its activities at) and the revival's own. A
+// change's plans (REVIVE;CHSHOW) are its way of showing's, which the glass box's
+// changesShown names; a getting-on-stage REVIVE;MEND6 planned for another method says so
+// in its note; REVIVE;SEEN's are named by its wanders.
+export const ACTIVITY_METHODS = {
+  "chasee-runs-away": "chases-to", "chaser-pursues": "chases-to", // disply.311:47-82
+  "goes-to-to-hit": "move-to-and-hits", "hitting-other": "move-to-and-hits", // 113-153
+  "getting-on-stage": "goes-to-and-accompanys", "goes-to-to-accompany": "goes-to-and-accompanys", "accompanying-each-other": "goes-to-and-accompanys", // 186-225
+  "pusher-comes-in-contact": "pushes-around", "moving-together": "pushes-around", "pushee-coasts": "pushes-around", "pushee-moves-away": "pushes-around", // 243-328
+  "prisoner-escapes": "stands-guard", "guard-chases": "stands-guard", "prisoner-escapes-again-plan": "stands-guard", "resume-guard": "stands-guard", "make-guarding-more-interesting": "stands-guard", // 455-556
+  "moving-towards-each-other": "move-to-each-other", // 653-700
+  "moving-small-part-towards": "move-small-part-towards", // 711
+  "goes-to-contact-other": "repeatedly-come-in-contact", "move-apart-a-little": "repeatedly-come-in-contact", // 790-830
+  "turn-character": "alternately-turn", "turn-character-back": "alternately-turn", // 940-960
+  "move-near-the-group": "move-near-and-turn", "turn-towards-others": "move-near-and-turn", // 982-985
+  "exit-by-character": "exit-by", // 1029
+  "goes-to-meet": "move-to", // REVIVE;MEND5
+  "wander-around": "wander-around", // REVIVE;MEND9, SCENE's (scene.9:216-218)
+  "trying-alone": "helps-along", "goes-behind-to-help": "helps-along", "comes-in-contact-to-help": "helps-along", "helping-along": "helps-along", // REVIVE;KNOWDI
+  "other-approaches": "moves-away-from", "moves-away": "moves-away-from", "leading": "follows-behind", "following": "follows-behind", // REVIVE;KNOWDI
+  "goes-to-to-transform": "goes-to-and-transforms", // REVIVE;CHSHOW
+  "waiting-to-wander": "wander-while-changes-run", "wandering-while-changes-run": "wander-while-changes-run", // REVIVE;SEEN
+};
+// The methods the revival wrote, by the file that has them.
+const REVIVAL_METHODS = {
+  "move-to": "REVIVE;MEND5", "wander-around": "REVIVE;MEND9", "helps-along": "REVIVE;KNOWDI", "moves-away-from": "REVIVE;KNOWDI", "follows-behind": "REVIVE;KNOWDI",
+  "goes-to-and-transforms": "REVIVE;CHSHOW", "changes-while-wandering": "REVIVE;CHSHOW", "bridge-to:": "REVIVE;CHSHOW", "wander-while-changes-run": "REVIVE;SEEN",
+};
+
+// Why the characters of a scene act as they do, and for as long as they do: what the
+// film page needs to say why each activity lasts as long as it does, gathered from a
+// scene's glass box (pass 2's records: glassBox) and, if given, its film (the frames
+// and the movie's events: recorder). Nothing here is new to Ani: each value is one of
+// her records, found where she keeps it (each field says where), or a film's frames.
+// extensions: the run's (with SLIPS, Director runs a change at the speed Ani planned).
+// Returns { scene, parts, tasks, activities, stills }:
+//   scene      { length, lengthBounds, runningTime, mood, rhythm }: the scene's length
+//              setting (CINDY's, or SCENE's default medium, scene.9:8-10), the bounds
+//              it gives the scene (its share of the film's film-length, scene.9:346-357),
+//              and the running time CHOMET gave it (chomet.123:68-74, 141-153)
+//   parts      each subscene, { name, n, tasks, runningTime, stretchedBy, beginTime,
+//              parasiteOn, extendedBy: [{ seconds, by }], estimates: { method: { ideal,
+//              least, most } }, changesFor: { character: [form] }, movements, film:
+//              { begin, end } }: its running time (the longest of its tasks', scene.9:
+//              137-140, plus any part's that extends it, extend-last-actions-of,
+//              scene.9:223-240) and how much its methods were stretched to fill it
+//              (scene.9:159-170); a part of only changes begins a time after the part it
+//              extends (beginTime) and is its parasite
+//   tasks      each task, { name, kind, description, subscene, share, allocatedTime,
+//              runningTime, status, chosen, scores, rejected }: its share of the scene
+//              and the time that allocates it (compute-bounds-on-time-for, scene.9:332-344),
+//              the running time CHOMET picked within it for its methods' ideal
+//              (pick-time-within, chomet.123:95-139), the methods chosen and, as Lisp,
+//              CHOMET's scores and the suggestions it rejected with their reasons
+//   activities each plan, { plan, activity, part, subscene, characters, method, by, task,
+//              estimate, beginTime, stops, repeated, film: { spans, seconds }, ended }:
+//              the method that wrote it and the task it serves (ACTIVITY_METHODS, the
+//              task whose chosen methods have it), who wrote it (by: "DISPLY", or the
+//              revival's file), Ani's estimate of the method in its part (its
+//              time-estimates-for: ideal, least, most), when it begins, what stops it
+//              (its stop conditions as its Lisp has them: after-seconds, when-there,
+//              when-plan-ended, when-changes-ended, original-distance, after-a-hit,
+//              after-turning, when-nothing-else-moves-her, the bridges' after-seconds;
+//              and repeated, the n of a (repeat n ...) of the part's movements it is in),
+//              and, with the film, when it ran (spans of frames) and how each run ended,
+//              as far as the frames tell ("time" if it ran its seconds, "there" if it got
+//              there sooner, else null)
+//   stills     with the film, each stretch of more than a second inside a part in which
+//              no character on the stage moves, { from, to, seconds, part, parasiteOn,
+//              after, kind, ... }, after the plans that ended last before it (of the part
+//              or the one it extends); kind
+//                "plans-running"     a plan of the part runs and moves no one (running);
+//                "repeat-unwinding"  the part's (repeat n ...) (repeat: n) unwinding after
+//                                    its last run, a tick a run (action.152:94-123: each
+//                                    run's sequence: runs its empty rest the next tick);
+//                "only-changes"      a part of only changes (its plans, if any,
+//                                    REVIVE;SEEN's), its changes still running with
+//                                    nothing to move anyone, what SEEN is for;
+//                "changes-running"   the part's plans have ended and its changes still run;
+//                "nothing-running"   none of these;
+//              with changes, each { character, form, aniSeconds, directorSeconds }: Ani's
+//              estimate (estimate-time-for-change-by, disply.311:1098-1111) and how long
+//              Director takes (DICHAR's gradually change, dichar.103:102-121: four times
+//              Ani's at high speed and a quarter at low, unless SLIPS).
+export function whyTheyAct(glass, film = null, { fps = (film && film.fps) || 4, extensions = [] } = {}) {
+  const read = (s) => (s === undefined || s === null ? null : readForms(String(s))[0]);
+  const num = (x) => (x === undefined || x === null || x === "nil" ? null : Number(x));
+  const list = (x) => (Array.isArray(x) ? x : []);
+  const sv = glass.scene.variables;
+  const bounds = read(sv["length-bounds"]);
+  const scene = {
+    length: sv.length || null, lengthBounds: Array.isArray(bounds) ? bounds.map(Number) : null,
+    runningTime: num(sv["running-time"]), mood: sv.mood || null, rhythm: sv.rhythm || null,
+  };
+  // the movie's events, as spans of frames for each plan or subscene
+  const spans = new Map();
+  for (const [frame, ev] of film ? film.events : []) {
+    const m = /^\((beginning|end)-of (\(.*\))\)$/.exec(ev);
+    if (!m) continue;
+    const runs = spans.get(m[2]) || [];
+    spans.set(m[2], runs);
+    if (m[1] === "beginning") runs.push({ begin: frame, end: null });
+    else {
+      const open = [...runs].reverse().find((r) => r.end === null);
+      if (open) open.end = frame;
+      else if (!runs.length) runs.push({ begin: null, end: frame }); // a parasite told it ended before it began (REVIVE;BRIDGE)
+    }
+  }
+  const last = film ? film.frames.length - 1 : null;
+  const tasks = glass.tasks.map((t) => {
+    const v = t.variables;
+    const task = read(v.task);
+    const at = (k) => { const i = list(task).indexOf(k); return i >= 0 ? task[i + 1] : null; };
+    const allocated = read(v["allocated-time"]);
+    return {
+      name: t.name, kind: v.parent === "establish-task" ? "establish" : v.parent === "convey-task" ? "convey" : v.parent || null,
+      description: printForm(at("description")), subscene: v.subscene || null, share: num(v.share),
+      allocatedTime: Array.isArray(allocated) ? allocated.map(Number) : null, runningTime: num(v["running-time"]), status: v.status || null,
+      chosen: list(read(v["current-choice"])).map(printForm), scores: v.scores || null, rejected: v["rejected-suggestions"] || null,
+    };
+  });
+  const parts = glass.subscenes.map((s, k) => {
+    const v = s.variables;
+    const estimates = {}, changesFor = {};
+    for (const [key, value] of Object.entries(v)) {
+      const est = /^\(time-estimates-for (.*)\)$/.exec(key);
+      if (est) { const e = read(value); const get = (x) => num(e[e.indexOf(x) + 1]); estimates[est[1]] = { ideal: get("ideal"), least: get("least"), most: get("most") }; }
+      const ch = /^\(changes-for ([^ ()]+)\)$/.exec(key);
+      if (ch) changesFor[ch[1]] = list(read(value)).map(printForm);
+    }
+    const status = read(v.status);
+    const span = (spans.get(s.name) || []).find((r) => r.begin !== null) || null;
+    return {
+      name: s.name, n: k + 1, tasks: [...list(read(v["convey-tasks"])), ...list(read(v["establish-tasks"]))],
+      runningTime: num(v["running-time"]), stretchedBy: num(v["stretched-by"]), beginTime: v["begin-time"] || null,
+      parasiteOn: Array.isArray(status) && status[0] === "parasite-on" ? printForm(status[1]) : null,
+      extendedBy: (s.items || []).filter((i) => i.startsWith("(extra-time-added ")).map((i) => { const x = read(i); return { seconds: num(x[1]), by: printForm(x[3]) }; }),
+      estimates, changesFor, movements: v.movements || null,
+      film: span ? { begin: span.begin, end: span.end === null ? last : span.end } : null,
+    };
+  });
+  const partOf = (name) => parts.find((p) => p.name === name) || null;
+  const shown = glass.changesShown || [];
+  const wanders = glass.wanders || collectWanders(glass);
+  const activities = glass.plans.map((p) => {
+    const v = p.variables;
+    const lisp = read(v.plans);
+    const activity = list(read(p.name))[1] || null;
+    const part = partOf(v.subscene);
+    // who it moves or changes
+    const characters = new Set();
+    walkForm(lisp, (f) => {
+      if (f[0] !== "ask") return;
+      if (f[2] === "cause") (Array.isArray(f[3]) ? f[3] : [f[3]]).forEach((c) => characters.add(c));
+      else if (f[2] === "set" && f[4] === "special-dynamics") characters.add(f[1]);
+      else if (f[2] === "gradually" && f[3] === "face") characters.add(f[4]);
+      else if (f[2] === "gradually" && f[3] === "change") characters.add(f[1]);
+      else if ((f[2] === "wander" || (f[2] === "wait" && f[3] === "until"))) characters.add(f[f[2] === "wander" ? 3 : 4]);
+    });
+    // the method that wrote it, and the task whose chosen methods have it
+    let method = null, family = ACTIVITY_METHODS[activity] || null, task = null;
+    const change = shown.find((x) => (x.goesTo && x.goesTo.plan === p.name) || (x.bridging && x.bridging.plan === p.name) || (x.wanders && x.wanders.plans.includes(p.name)));
+    const wander = wanders.find((w) => w.plan === p.name || w.waiting === p.name);
+    const brought = activity === "getting-on-stage" && (glass.repairs || []).map((r) => read(r.note)).find((n) => list(n)[2] === "brought-on-stage" && printForm(n[n.indexOf("now") + 1]) === p.name);
+    if (change) {
+      method = change.shownBy && change.shownBy !== "alone" ? change.shownBy : null;
+      family = method ? list(read(method))[0] : "bridge-to:";
+      task = change.task || null;
+    } else if (wander) {
+      method = `(wander-while-changes-run ${wander.character})`;
+    } else if (brought) {
+      const because = list(brought[brought.indexOf("because") + 1]);
+      family = because[because.length - 1] || family;
+    } else if (activity === "wander-around") {
+      method = `(wander-around ${[...characters][0] || ""})`.replace(" )", ")");
+    }
+    if (!task && family && family !== "wander-around" && family !== "wander-while-changes-run") {
+      const candidates = tasks.filter((t) => !part || t.subscene === part.name);
+      for (const t of candidates) {
+        const m = t.chosen.find((c) => list(read(c))[0] === family || (family === "goes-to-and-accompanys" && list(read(c))[0] === "goes-to-and-accompanies"));
+        if (m) { task = t.name; method = method || m; break; }
+      }
+    }
+    const estimate = part && method && part.estimates[method] ? part.estimates[method] : null;
+    // what stops it, as its Lisp has it
+    const stops = [];
+    walkForm(lisp, (f) => {
+      const i = f.indexOf("stopping");
+      if (i >= 0 && f[i + 1] === "if") stopsOf(f[i + 2], stops);
+      if (f[2] === "cause" && f.includes("hit") && f.includes("retreat")) stops.push({ kind: "after-a-hit" });
+      if (f[2] === "cause" && f[5] === "gradually" && f[6] === "turn") stops.push({ kind: "after-turning", degrees: num(f[7]) });
+      if (f[2] === "wait" && f[3] === "until") stops.push({ kind: "when-nothing-else-moves-her" }, { kind: "when-changes-ended" });
+      if (f[2] === "wander" && f.includes("while")) stops.push({ kind: "when-changes-ended" });
+      if (f[2] === "gradually" && f[3] === "change" && f[f.length - 1] === "seconds") stops.push({ kind: "after-seconds", seconds: num(f[f.length - 2]) });
+    });
+    const movements = part && part.movements ? read(part.movements) : null;
+    const repeated = repeatAround(movements, p.name);
+    const runs = (spans.get(p.name) || []).filter((r) => r.begin !== null).map((r) => ({ begin: r.begin, end: r.end === null ? last : r.end }));
+    const after = stops.find((s) => s.kind === "after-seconds");
+    const ended = runs.map((r) => {
+      const seconds = (r.end - r.begin) / fps;
+      if (after && seconds >= after.seconds - 1.5 / fps) return "time";
+      if (stops.some((s) => s.kind === "when-there")) return "there";
+      return null;
+    });
+    return {
+      plan: p.name, activity, part: part ? part.n : null, subscene: v.subscene || null, characters: [...characters],
+      method, by: family ? REVIVAL_METHODS[family] || "DISPLY" : null, task, estimate,
+      beginTime: v["begin-time"] || null, stops, repeated,
+      ...(film ? { film: { spans: runs, seconds: runs.reduce((a, r) => a + (r.end - r.begin) / fps, 0) }, ended } : {}),
+    };
+  });
+  // each still stretch as it falls in each part (a part of only changes runs beside the
+  // part it extends), where it is more than a second
+  const stills = [];
+  for (const s of film ? stillStretches(film, { fps, atLeast: 0 }) : []) {
+    for (const p of parts) {
+      if (!p.film) continue;
+      const from = Math.max(s.from, p.film.begin), to = Math.min(s.to, p.film.end);
+      if ((to - from) / fps <= 1) continue;
+      const out = { from, to, seconds: Math.round(((to - from) / fps) * 100) / 100, part: p.name, parasiteOn: p.parasiteOn };
+      // the plans that ended last before it, in the part or the one it extends
+      const before = activities.filter((a) => (a.subscene === p.name || a.subscene === p.parasiteOn) && a.film && a.film.spans.some((r) => r.end <= from + 1));
+      const lastEnd = Math.max(-1, ...before.flatMap((a) => a.film.spans.map((r) => r.end)).filter((e) => e <= from + 1));
+      out.after = before.filter((a) => a.film.spans.some((r) => r.end === lastEnd)).map((a) => a.plan);
+      const own = activities.filter((a) => a.subscene === p.name);
+      const running = own.filter((a) => a.film && a.film.spans.some((r) => r.begin < to && r.end > from)).map((a) => a.plan);
+      const repeat = p.movements ? /\(repeat (\d+) /.exec(p.movements) : null;
+      const changes = () => Object.entries(p.changesFor).flatMap(([character, forms]) => forms.map((form) => ({ character, form, ...changeSeconds(form, extensions) })));
+      if (running.length) {
+        out.kind = "plans-running";
+        out.running = running;
+      } else if (repeat && p.film.end <= to + 1 && (to - from) <= Number(repeat[1]) + 2) {
+        out.kind = "repeat-unwinding";
+        out.repeat = Number(repeat[1]);
+      } else if (Object.keys(p.changesFor).length) {
+        // a part of only changes (its plans, if any, REVIVE;SEEN's), or one whose plans
+        // have ended with its changes still running
+        out.kind = own.every((a) => a.by === "REVIVE;SEEN") ? "only-changes" : "changes-running";
+        out.changes = changes();
+      } else out.kind = "nothing-running";
+      stills.push(out);
+    }
+  }
+  return { scene, parts, tasks, activities, stills };
+}
+
+// Each list in a form, depth first.
+function walkForm(form, f) {
+  if (!Array.isArray(form)) return;
+  f(form);
+  for (const x of form) walkForm(x, f);
+}
+
+// The stop conditions of a "stopping if" (dichar.103:401-499; REVIVE;CHSHOW's
+// stop-when-plan-ended, REVIVE;SEEN's stop-when-changes-ended), each { kind, ... }.
+function stopsOf(form, out) {
+  if (!Array.isArray(form)) return;
+  const [head, ...args] = form;
+  const quoted = (x) => (Array.isArray(x) && x[0] === "quote" ? x[1] : x);
+  if (head === "stop-if-either-wants-to") args.forEach((a) => stopsOf(a, out));
+  else if (head === "stop-after-so-many-seconds") out.push({ kind: "after-seconds", seconds: Number(args[0]) });
+  else if (head === "stop-when-there") out.push({ kind: "when-there" });
+  else if (head === "stop-when-there-then") out.push({ kind: "when-there", then: printForm(quoted(args[1])) });
+  else if (head === "stop-when-moved-original-distance-then" || head === "move-only-original-distance") out.push({ kind: "original-distance" });
+  else if (head === "move-only-fraction-of-distance") out.push({ kind: "fraction-of-distance", fraction: Number(args[1]) });
+  else if (head === "stop-when-plan-ended") out.push({ kind: "when-plan-ended", plan: printForm(quoted(args[0])) });
+  else if (head === "stop-when-changes-ended") out.push({ kind: "when-changes-ended" });
+  else out.push({ kind: "other", lisp: printForm(form) });
+}
+
+// The n of the (repeat n ...) of movements a plan is in, or null.
+function repeatAround(movements, plan) {
+  let found = null;
+  walkForm(movements, (f) => {
+    if (found === null && f[0] === "repeat" && JSON.stringify(f).includes(JSON.stringify(readForms(plan)[0]))) found = Number(f[1]);
+  });
+  return found;
+}
+
+// How long a change form of a part's changes runs: Ani's estimate (ten seconds an
+// e-fold at low speed, five at medium, two and a half at high: DISPLY's
+// estimate-time-for-change-by, disply.311:1098-1111, time-to-grow-e-times 5.0,
+// interf.149:917) and Director's (DICHAR's gradually change, dichar.103:102-121, the
+// weight multiplying where Ani's divides: four times Ani's at high speed, a quarter at
+// low; as Ani's with SLIPS, whose S9 corrects it); a change in seconds (REVIVE;CHSHOW,
+// LOOKS) takes its seconds.
+function changeSeconds(form, extensions = []) {
+  const f = readForms(form)[0];
+  if (!Array.isArray(f)) return {};
+  if (f[f.length - 1] === "seconds") { const s = Number(f[f.length - 2]); return { aniSeconds: s, directorSeconds: s }; }
+  const by = f.indexOf("by"), at = f.indexOf("at");
+  if (by < 0 || at < 0) return {};
+  const factor = Number(f[by + 1]);
+  const weight = { low: 0.5, medium: 1, high: 2 }[f[at + 1]];
+  if (!weight || !(factor > 0)) return {};
+  const ani = (5.0 / weight) * Math.abs(Math.log(factor));
+  const slips = extensionsFor(extensions).some((e) => e.id === "slips");
+  return { aniSeconds: Math.round(ani * 100) / 100, directorSeconds: Math.round((slips ? ani : 5.0 * weight * Math.abs(Math.log(factor))) * 100) / 100 };
+}
+
+// The stretches of a film of more than a second in which no character on the stage
+// moves (its place or heading the same frame to frame): { from, to, seconds }, from the
+// last frame anyone moved to the last still frame.
+export function stillStretches(film, { fps = film.fps || 4, atLeast = 1 } = {}) {
+  const moved = film.frames.map((fr, i) => {
+    if (i === 0) return true;
+    const prev = film.frames[i - 1];
+    return Object.entries(fr.chars).some(([c, ch]) => {
+      const p = prev.chars[c];
+      if (!ch.visible || !ch.state) return false;
+      if (!p || !p.visible || !p.state) return true;
+      return ch.state[0] !== p.state[0] || ch.state[1] !== p.state[1] || ch.state[2] !== p.state[2];
+    });
+  });
+  const out = [];
+  for (let i = 1; i < moved.length; i++) {
+    if (moved[i]) continue;
+    let j = i;
+    while (j + 1 < moved.length && !moved[j + 1]) j++;
+    if ((j - (i - 1)) / fps > atLeast) out.push({ from: i - 1, to: j, seconds: Math.round(((j - (i - 1)) / fps) * 100) / 100 });
+    i = j;
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------- new stories

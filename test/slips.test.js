@@ -28,8 +28,9 @@ test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinde
   assert.equal(slips.optIn, true);
   assert.deepEqual(slips.files, ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"]);
   assert.equal(slips.afterPass1, "(note-friendlys-attractions)");
-  // the four the page's switch turns on are not opt-in (Ken's decision 3)
-  for (const id of ["mend", "know", "appear", "change"]) assert.ok(!EXTENSIONS.find((e) => e.id === id).optIn, id);
+  // the four the page's switch turns on are not opt-in (Ken's decision 3), nor SEEN,
+  // which it turns on beside them since Ken's testing of 15 October
+  for (const id of ["mend", "know", "appear", "change", "seen"]) assert.ok(!EXTENSIONS.find((e) => e.id === id).optIn, id);
 });
 
 test("each wrapper is installed once SUGEST, CHOMET, ELEMNT, INTERF and DICHAR have loaded, and in 1978 mode none is", () => {
