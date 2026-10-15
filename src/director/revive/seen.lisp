@@ -5,9 +5,9 @@
 ;;; EXTENSIONS), a repair of the revival's that Ken approved after testing the film page
 ;;; (15 October 2026), switched on with MEND, KNOW, APPEAR and CHANGE. It is not in MEND,
 ;;; because it changes Ken's own Cinderella: his Meeting ends with the two joys of
-;;; Cinderella and the Prince (cindy.46:137-138), a part of
-;;; changes only, which at 24 frames a second runs on for six seconds after their walk
-;;; to each other has ended, with no one moving (reports/ext/seen/README.md).
+;;; Cinderella and the Prince (cindy.46:137-138), a part of changes only, which at 24
+;;; frames a second runs on for six seconds after their walk to each other has ended,
+;;; with no one moving (reports/ext/seen/README.md).
 ;;;
 ;;; What Ken's SCENE does. A feeling, in Ani, changes how a character moves: joy, say,
 ;;; makes her faster and bouncier (emote.9:11-60). "The problem with these suggestions is
@@ -46,7 +46,7 @@
 ;;;    stepmother and Cinderella stand guard to the end, as in 1978;
 ;;;  - only while her changes in the subscene are still running, as ACTION's record of
 ;;;    what is still running has them (set-up-running-actions, action.152:148-157), so
-;;;    that the subscene ends when it did;
+;;;    that she stops when her feeling is done;
 ;;;  - each walk as REVIVE;MEND9's wander-around walks: across the stage and back, to the
 ;;;    place good-distance-from finds, the farthest of the middle and the corners
 ;;;    (interf.149:595-616), careful of collisions, stopping when she is there or her

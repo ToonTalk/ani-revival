@@ -30,6 +30,8 @@ So the changes ran on for eleven seconds with nothing to show them: a character 
 
 At 4 frames a second the Meeting's joys don't show as still: your Director stops the film two frames after their walk to each other ends (frame 177; 175 with the four extensions), the joys cut short (stage 6's finding 6, `reports/ext/change/README.md`: a part a joy extends tells the joy's part it has ended too, and asks Director to stop the film if nothing is running, `action.152:62-91`). At 24 frames a second the same request comes when something is planned, and the joys run to their end, with no one moving.
 
+Over every golden film (`node tools/check-still.mjs`, 18 folders), the stretches left are your Director's repeats unwinding (14), parts of only changes in films made without SEEN (5: your Meeting's joys at 24 frames a second in 1978, with APPEAR alone and with KNOW alone; with DETAIL at 4; and Change of Heart's joy in `reports/ext/change/change-of-heart/`, a story `check-change` makes with MEND, APPEAR and CHANGE), and two where a part's activity ends before its feeling does (question 3, below); none in a film made with SEEN.
+
 So your Cinderella reaches a feeling's part with nothing to do: the Meeting's last part. The repeats' unwinding (a tick for each run, so 2.5 seconds at 4 frames a second and under half a second at 24) is your Director's, in parts that are no feeling's; SEEN leaves it alone (a question for you, below).
 
 ## The repair
