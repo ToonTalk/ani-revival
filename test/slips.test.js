@@ -51,6 +51,14 @@ test("each wrapper is installed once SUGEST, CHOMET, ELEMNT, INTERF and DICHAR h
   assert.equal(ken.run("(boundp ':slips-off)"), "nil");
 });
 
+test("with CHANGE too, SLIPS' functions leave CHSHOW's as they are (S13's carrier-of-walk, not CHSHOW's carrier-of)", () => {
+  const { run } = lisp(["change", "slips"]);
+  run("(define t-sub something)");
+  run("(ask t-sub set your methods to ((changes-while-wandering cinderella)))");
+  assert.equal(run("(carrier-of 'cinderella 't-sub)"), "(changes-while-wandering cinderella)");
+  assert.notEqual(run("(get 'carrier-of-walk 'expr)"), "nil");
+});
+
 test("S2: described as all of the words, or any of them", () => {
   const { run } = lisp(["slips"]);
   run("(load '|ken;datest >|)");

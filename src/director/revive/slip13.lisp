@@ -101,7 +101,7 @@
 			   (and (actor-of top dont-autoload)
 				(mapc (function
 				       (lambda (walk)
-					       (let ((carrier (carrier-of walk variable top)))
+					       (let ((carrier (carrier-of-walk walk variable top)))
 						    (and carrier
 							 (not (member carrier carriers))
 							 (not (equal carrier (name-of scene-dynamics)))
@@ -121,7 +121,7 @@
 ;; The dynamics, up to top, that carry variable to walk, by name: if walk has it of its
 ;; own, the nearest of its parent and their ancestors that has it of its own; else the
 ;; nearest of its ancestors that has; failing either, top.
-(defun carrier-of (walk variable top)
+(defun carrier-of-walk (walk variable top)
   (do ((d (cond ((has-own? walk variable) (ask ,walk recall your parent))
 		(t walk))
 	  (ask ,d recall your parent)))
