@@ -399,6 +399,8 @@ The glass box of Cinderella Beautified has `wanders` and two `nothing-to-do` not
 
 ## For the page: why they act as they do
 
+*Done on the page, 15 October ("Ken's testing on the page" commits): `whyTheyAct` and what it needs go into the page as written here (`tools/build-film-app.mjs` checks the page's copy against this one), and the character panel says, in a sentence each and step by step a click away, why she does what she does this way and for this long, what keeps a part going while she stands by, and where no one moves, why; each scene's parts and steps are listed, each opening its explanation.*
+
 *15 October 2026, after Ken's testing: "it is easy to find why characters look as they do but harder to figure out why they act as they do".* What the page needs to say why each activity lasts as long as it does, and why no one moves where no one does. Almost all of it was already in each scene's glass box, as Ani keeps it; `src/pipeline.js` `whyTheyAct(glass, film, { fps, extensions })` gathers it for each activity, from the glass box and the film, with nothing new to Ani: each value is one of her records, found where she keeps it, or the film's frames. It runs in the page's worker bundle as `src/pipeline.js` does (it needs no Lisp), on any glass box and film, 1978's among them (`reports/pass2/<scene>.glass.json` with `reports/film/<scene>.film.json` at 4 frames a second, and `reports/film/24fps/`). What it returns, and where each piece comes from:
 
 | The page wants | `whyTheyAct` gives | Ani's record it reads |
