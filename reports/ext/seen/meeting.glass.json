@@ -367,7 +367,7 @@
     "(time-estimates-for (change: element (cinderella speed) amount (positive high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
     "(time-estimates-for (change: element (cinderella activity-level) amount (positive high) speed high))": "(time-estimates: ideal 1.0136628 least 0.20273255 most 5.0683139)",
     "stretched-by": "0.0",
-    "initial-actions": "((ask prince to set your special-dynamics to (special-dynamics-of prince in (subscene-of meeting 7))) (ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of meeting 7))))",
+    "initial-actions": "((ask prince to set your special-dynamics to (special-dynamics-of prince in (subscene-of meeting 7))) (ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of meeting 7))) (run (activity-of waiting-to-wander 1) then see if everybody is done) (run (activity-of wandering-while-changes-run 1) then see if everybody is done) (run (activity-of waiting-to-wander 2) then see if everybody is done) (run (activity-of wandering-while-changes-run 2) then see if everybody is done))",
     "(changes-for cinderella)": "((gradually change by 1.5 factor for activity-level at high speed) (gradually change by 1.5 factor for speed at high speed) (gradually change by 1.5 factor for rhythmic-level at high speed) (gradually change by 1.5 factor for acceleration at high speed) (gradually change by 2.0 factor for path-length at high speed))",
     "(changes-for prince)": "((gradually change by 1.5 factor for activity-level at high speed) (gradually change by 1.5 factor for speed at high speed) (gradually change by 1.5 factor for rhythmic-level at high speed) (gradually change by 1.5 factor for acceleration at high speed) (gradually change by 2.0 factor for path-curvature at high speed))",
     "begin-time": "(after (beginning-of (subscene-of meeting 6)) 3.0662013)",
@@ -376,6 +376,7 @@
     "(location-of prince)": "(place: where (contact-with cinderella by prince) why (and move-character (so that (move-to-each-other prince cinderella))) status symbolic)",
     "(location-of cinderella)": "(place: where (contact-with prince by cinderella) why (and move-character (so that (move-to-each-other prince cinderella))) status symbolic)",
     "(distance-between (vicinity-of prince) (vicinity-of cinderella))": "(screen-fraction 0.3)",
+    "movements": "((and))",
     "running-time": "1.732868"
    },
    "items": [
@@ -579,7 +580,7 @@
    "variables": {
     "parent": "plan",
     "name": "(activity-of waiting-to-wander 2)",
-    "begin-time": "0.0",
+    "begin-time": "(after (beginning-of (subscene-of meeting 7)) 0.0)",
     "subscene": "(subscene-of meeting 7)",
     "plans": "((ask (activity-of waiting-to-wander 2) wait until cinderella is moved by nothing in ((subscene-of meeting 7) (subscene-of meeting 6)) or (subscene-of meeting 7) changes end))"
    },
@@ -603,7 +604,7 @@
    "variables": {
     "parent": "plan",
     "name": "(activity-of waiting-to-wander 1)",
-    "begin-time": "0.0",
+    "begin-time": "(after (beginning-of (subscene-of meeting 7)) 0.0)",
     "subscene": "(subscene-of meeting 7)",
     "plans": "((ask (activity-of waiting-to-wander 1) wait until prince is moved by nothing in ((subscene-of meeting 7) (subscene-of meeting 6)) or (subscene-of meeting 7) changes end))"
    },

@@ -132,7 +132,7 @@
     "(time-estimates-for (change: element (fairy-godmother activity-level) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
     "(time-estimates-for (look-change: element (fairy-godmother color-intensity) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
     "stretched-by": "0.0",
-    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of cinderella-beautified 2))) (ask fairy-godmother to set your special-dynamics to (special-dynamics-of fairy-godmother in (subscene-of cinderella-beautified 2))))",
+    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of cinderella-beautified 2))) (ask fairy-godmother to set your special-dynamics to (special-dynamics-of fairy-godmother in (subscene-of cinderella-beautified 2))) (run (activity-of waiting-to-wander 1) then see if everybody is done) (run (activity-of wandering-while-changes-run 1) then see if everybody is done) (run (activity-of waiting-to-wander 2) then see if everybody is done) (run (activity-of wandering-while-changes-run 2) then see if everybody is done))",
     "(changes-for fairy-godmother)": "((gradually change look by 1.25 factor for color-intensity at medium speed) (gradually change by 1.25 factor for activity-level at medium speed) (gradually change by 1.25 factor for speed at medium speed) (gradually change by 1.25 factor for rhythmic-level at medium speed) (gradually change by 1.25 factor for acceleration at medium speed) (gradually change by 4.0 factor for path-length at high speed) (gradually change by 4.0 factor for path-curvature at high speed))",
     "(changes-for cinderella)": "((gradually change look by 1.5 factor for color-intensity at high speed) (gradually change by 1.5 factor for activity-level at high speed) (gradually change by 1.5 factor for speed at high speed) (gradually change by 1.5 factor for rhythmic-level at high speed) (gradually change by 1.5 factor for acceleration at high speed) (gradually change by 2.0 factor for path-length at high speed))",
     "begin-time": "(after (beginning-of (subscene-of cinderella-beautified 1)) 20.270563)",
@@ -146,6 +146,7 @@
     "(distance-between (screen-position lower right) (vicinity-of cinderella))": "(xy-distance -0.369929 0.31250912)",
     "(location-of cinderella)": "(place: where (xy-position -0.375 0.375) why (and move-character (ended up here in kept-apart)) status cool)",
     "plans": "((activity-of wandering-while-changes-run 2) (activity-of waiting-to-wander 2) (activity-of wandering-while-changes-run 1) (activity-of waiting-to-wander 1))",
+    "movements": "((and))",
     "running-time": "3.4657359"
    },
    "items": [
@@ -228,7 +229,7 @@
    "variables": {
     "parent": "plan",
     "name": "(activity-of waiting-to-wander 2)",
-    "begin-time": "0.0",
+    "begin-time": "(after (beginning-of (subscene-of cinderella-beautified 2)) 0.0)",
     "subscene": "(subscene-of cinderella-beautified 2)",
     "plans": "((ask (activity-of waiting-to-wander 2) wait until cinderella is moved by nothing in ((subscene-of cinderella-beautified 2) (subscene-of cinderella-beautified 1)) or (subscene-of cinderella-beautified 2) changes end))"
    },
@@ -252,7 +253,7 @@
    "variables": {
     "parent": "plan",
     "name": "(activity-of waiting-to-wander 1)",
-    "begin-time": "0.0",
+    "begin-time": "(after (beginning-of (subscene-of cinderella-beautified 2)) 0.0)",
     "subscene": "(subscene-of cinderella-beautified 2)",
     "plans": "((ask (activity-of waiting-to-wander 1) wait until fairy-godmother is moved by nothing in ((subscene-of cinderella-beautified 2) (subscene-of cinderella-beautified 1)) or (subscene-of cinderella-beautified 2) changes end))"
    },
