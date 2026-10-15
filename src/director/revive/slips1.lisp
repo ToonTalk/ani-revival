@@ -140,8 +140,18 @@
       ((null w) nil)
       (and (described-as? character (first w)) (return t))))
 
+;; Described as word: by the word itself, of any type, or physically by
+;; physically-<word>, as DSCRP has physically-strong and its opposite physically-weak
+;; (dscrp.17:232, 292). Ken's own prerequisite for stronger reads weak and strong as
+;; physical descriptions (prereq.19:45-55), so a physically weak character is "described
+;; as weak" (the review of stage 7: the literal word alone never matched a character
+;; described (physical physically-weak)).
 (defun described-as? (character word)
-  (ask ,character recall if any items match (description: type ? descriptor ,word %)))
+  (or (ask ,character recall if any items match (description: type ? descriptor ,word %))
+      (ask ,character recall if any items match
+	   (description: type physical
+			 descriptor ,(implode (append (explodec 'physically-) (explodec word)))
+			 %))))
 
 ;;; ------------------------------------------------- what S1 newly reaches
 

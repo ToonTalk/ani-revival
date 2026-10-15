@@ -105,3 +105,27 @@
 ;;; 24, and one of no seconds is a tick.
 (defun ticks-in-seconds (seconds)
   (max 1 (round (*$ (float seconds) (float :frames-per-second) (float :ticks-per-frame)))))
+
+;;; Two helpers on Director's special dynamics that CHANGE's REVIVE;CHSHOW, SLIPS'
+;;; REVIVE;SLIPS8 and SLIPS9, and DETAIL's REVIVE;DTWALK share.
+
+;; Whether dynamics take variable from ancestor, as SOME's recall your finds it
+;; (some.666:115-120): none of them up to it has the variable of its own. True of the
+;; ancestor itself.
+(defun dynamics-have-it-from? (dynamics variable ancestor)
+  (let ((ancestor (actor-of ancestor dont-autoload)))
+       (do ((actor (actor-of dynamics dont-autoload) (parent-of actor t)))
+	   ((null actor) nil)
+	   (cond ((eq actor ancestor) (return t))
+		 ((assoc variable (ask ,actor internal-recall-your-normal-variable)) (return nil))))))
+
+;; A Director subscene a character's special dynamics are of, for a note: the subscene
+;; of (special-dynamics-of c in (subscene-of s n)), or of the nearest such ancestor of
+;; dynamics named otherwise (an activity's, |(special-dynamics-of c in ...)-15-1|);
+;; nil if there is none, or it is no actor.
+(defun subscene-of-dynamics (dynamics)
+  (do ((actor dynamics (and actor (ask ,actor recall your parent))))
+      ((or (null actor) (eq actor 'special-dynamics)) nil)
+      (and (not (atom actor))
+	   (eq (first actor) 'special-dynamics-of)
+	   (return (and (actor-of (fourth actor) dont-autoload) (fourth actor))))))

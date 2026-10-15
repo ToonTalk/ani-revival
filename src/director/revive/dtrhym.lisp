@@ -12,10 +12,26 @@
 ;;; scenes have slow and picking-up (cindy.46:81, 90, 104). The film's level of rhythm is
 ;;; high (cindy.46:161). Nothing reads a scene's rhythm: of what CINDY sets beside it,
 ;;; only the length is read (scene.9:346-364), and (rhythm level) is a global descriptor
-;;; with no suggestions (glosug.41:150). "The truth is that the meaning these words have
-;;; to Ani is a pale reflection of what they mean to people. ... (a) Add to each one the
-;;; ability to suggest values and activities (some do already)" (p. 183-184,
-;;; L4778-4792).
+;;; with no suggestions (glosug.41:150). The thesis names the gap: "Ani currently has
+;;; practically no conception of rhythm, for example, and so could not respond to
+;;; criticisms of the film's rhythm" (p. 191, L5006-5007); and the way to fill it: "The
+;;; truth is that the meaning these words have to Ani is a pale reflection of what they
+;;; mean to people. ... (a) Add to each one the ability to suggest values and activities
+;;; (some do already)" (p. 183-184, L4778-4792).
+;;;
+;;; Beside a feeling. The rhythm's change is a part's, not a task's, run as the part
+;;; runs a change: method of its own beside its tasks' (below). CHOMET's rule against
+;;; conflicting changes, "hopefully all conflicting ones are so noted for now rather than
+;;; resolving them I'll reject" (chomet.123:464), is among one task's suggestions: COSUG
+;;; combines a task's change suggestions for each element, noting a conflict, and the
+;;; task makes neither (Ken's decision 9, reports/ext/know/README.md). So the rule never
+;;; sees the rhythm's change, and Director runs it beside a feeling's change of the same
+;;; character's speed: in Kept Apart's last part the stepmother's joy (1.25 at medium
+;;; speed) and the rhythm's slowing (0.8 at medium speed) run together and cancel tick
+;;; by tick. To go through the rule the rhythm would have to be one of a task's
+;;; suggestions, which a scene's rhythm is not; whether it should give way to a
+;;; feeling, or both be dropped as the rule drops a task's, is a decision for Ken
+;;; (reports/ext/detail/README.md).
 ;;;
 ;;; Here a scene's rhythm suggests how fast its characters move, as an emotional state
 ;;; does: with DISPLY's change: method, which joy's changes are made with (emote.9:19-24;

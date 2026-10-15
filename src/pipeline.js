@@ -54,7 +54,7 @@ export const EXTENSIONS = [
     id: "mend",
     label: "Repairs for new stories",
     group: "repairs",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19", "mend20"],
     requires: [],
     changes1978: false,
     note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, more than a few ways to convey what a task establishes, a scene that is one task shown by one, and a place far off and off the stage that PLACE asks for and never defines. Each leaves a (revival-repair: ...) note where it acted.",
@@ -113,7 +113,7 @@ export const EXTENSIONS = [
     label: "Corrections of slips in Ken's files",
     group: "repairs",
     optIn: true,
-    files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"],
+    files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9", "slip13", "slip14"],
     // S1 has good's helping find someone to help, which needs KNOW's way of showing
     // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped
     requires: ["know"],

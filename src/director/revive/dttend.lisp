@@ -14,6 +14,16 @@
 ;;; them ("(c) The movement tendencies such as the tendency to avoid strangers, should
 ;;; be used in the prerequisite and "best when" clauses of methods", p. 185, L4827-4829).
 ;;;
+;;; The thesis names both kinds of clause; only the best-when half is read here. A
+;;; prerequisite not met rejects the way of showing outright (pass-prerequisite-test,
+;;; chomet.123:551-562, which with SLIPS' S6 reads them), while a best-when clause only
+;;; weighs it against the others (the pass-best-when-test beside it drops one only when
+;;; more than a few are left, chomet.123:565-577). A tendency is a leaning, not a rule:
+;;; mean has a character strongly avoid its enemies (dscrp.17:249), and as a
+;;; prerequisite that would forbid every way a mean character has of hurting or chasing
+;;; an enemy, mean's own ways of showing (dscrp.17:249-267), where as a best-when clause
+;;; it only makes them less than their best.
+;;;
 ;;; Here they are used as Ken's best-when clauses are: a status, met, not met or don't
 ;;; know, which CHOMET's score of a way of showing counts (best-when-score,
 ;;; chomet.123:376-387: one more for each met, one less for each not met), weighed by the
