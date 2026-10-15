@@ -42,8 +42,8 @@
 ;;; With CHANGE, Director now reads deliberateness, so a change of how a character moves
 ;;; bridges it as it bridges speed and the path (REVIVE;CHSHOW :change-director-elements).
 ;;;
-;;; The note, on Director's subscene of the walker's special dynamics (REVIVE;SLIPS'
-;;; subscene-of-dynamics, here as dtwalk-subscene-of), for each deliberateness, rounded,
+;;; The note, on Director's subscene of the walker's special dynamics (REVIVE;WRAP's
+;;; subscene-of-dynamics), for each deliberateness, rounded,
 ;;; it walks with there:
 ;;;   (revival-repair: what deliberate-walk was (step-mother deliberateness high)
 ;;;		     now (arcs-times 2.0 jags-divided-by 2.0) because (dichar go-in-arc))
@@ -71,7 +71,7 @@
 
 (defun note-deliberate-walk (character d)
   (let ((dynamics (ask ,character recall your special-dynamics)))
-       (let ((subscene (dtwalk-subscene-of dynamics)))
+       (let ((subscene (subscene-of-dynamics dynamics)))
 	    (and subscene
 		 (actor-of subscene dont-autoload)
 		 (revival-note subscene 'deliberate-walk
@@ -80,15 +80,6 @@
 			       (list 'arcs-times (detail-rounded d)
 				     'jags-divided-by (detail-rounded d))
 			       '(dichar go-in-arc))))))
-
-;; The Director subscene dynamics are of: those of (special-dynamics-of c in s), or of
-;; the nearest such ancestor (an activity's dynamics, |(special-dynamics-of c in ...)-15-1|).
-(defun dtwalk-subscene-of (dynamics)
-  (do ((actor dynamics (and actor (ask ,actor recall your parent))))
-      ((or (null actor) (eq actor 'special-dynamics)) nil)
-      (and (not (atom actor))
-	   (eq (first actor) 'special-dynamics-of)
-	   (return (fourth actor)))))
 
 ;; DICHAR's (src/director/tags: AUTOLOAD from KEN;DICHAR), wrapped once it has loaded.
 (+after-load '|ken;dichar >| '(revival-wrap 'go-in-arc 'dtwalk 'go-in-arc-deliberately))

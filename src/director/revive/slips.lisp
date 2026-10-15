@@ -45,7 +45,14 @@
 ;;;   S10     REVIVE;SLIPS9  ... grows a factor once a tick, not twice where the dynamics
 ;;;           have it from the scene's (dichar.103:112-121; finding 1 of stage 6)
 ;;;   S11     REVIVE;SLIPS9  ... takes as many steps as it counts (dichar.103:117,
-;;;           some.666:444-450)
+;;;           some.666:444-450; Ken's own later repeat, 9004336 some.1005:751-759)
+;;;   S13     REVIVE;SLIP13  ... and is carried forth into the walks of its part, and of
+;;;           the part it extends, as its comment says it is to be (dichar.103:112-115;
+;;;           scene.9:223-240; thesis L1897-1901)
+;;;   S14     REVIVE;SLIP14  the film is not stopped while the activity a part of
+;;;           changes extends still runs (action.152:67-91; scene.9:223-240)
+;;; (S13 and S14 were added after the review of stage 7, as was S8's counting a change
+;;; once.)
 ;;;
 ;;; What SLIPS leaves alone, and why (reports/ext/slips/README.md has each):
 ;;;   S4      CINDY's is-protective-of (cindy.46:38), which RELATE doesn't know, is a
@@ -90,14 +97,18 @@
 ;;;              before this one (PLAN.md, "Still open with MEND").
 ;;;            - change-to:-package merges a change without its method (cosug.215:509):
 ;;;              REVIVE;MEND7 puts the method back, which leaves Cinderella as it was.
-;;;   And one in Director, which changes nothing in Ken's Cinderella:
+;;;   And two in Director:
 ;;;            - The special dynamics a character's changes carry forth are found once
 ;;;              and kept (dichar.103:22-26, "or :old-value"), so in a later subscene a
 ;;;              change grows the dynamics of the subscene where her first change was,
-;;;              which no longer move her; the change reaches her through its second
-;;;              repeat, on her own dynamics. Ken's Cinderella has each character's changes
-;;;              in one subscene of a scene (each scene is a job of its own), so nothing
-;;;              differs; with DETAIL's rhythm she changes in several. Not corrected.
+;;;              which no longer move her. Left as it is: S13 carries each change into
+;;;              the walks of its own part, so the walks it was to reach take it.
+;;;            - A walk made by multiply-dynamics-by-factor has its parent's speed factor
+;;;              in its own already (place.45:455-460), and the demon multiplies it in
+;;;              again the first time the walk is set (dichar.103:27-31): the guard's
+;;;              walks in Kept Apart move at 0.71 squared of the speed DISPLY planned for
+;;;              them (disply.311:421-427). S8 keeps the first multiplication as Ken's.
+;;;              Not corrected: for Ken (reports/ext/slips/README.md).
 ;;;
 ;;; The DICHAR/DISPLY speed inversion, run: tools/check-slips.mjs --speed films Ken's
 ;;; Cinderella as in 1978 and, for every gradual change Director runs, sets the ticks
@@ -118,17 +129,9 @@
 
 (or (boundp ':slips-off) (setq :slips-off nil))
 
-;; Whether correction id (s1, s3, s6, s7, s8, s9, s10 or s11) is to be made.
+;; Whether correction id (s1, s3, s6, s7, s8, s9, s10, s11 or s12) is to be made.
 (defun slip-on? (id)
   (not (memq id :slips-off)))
 
-;; A Director subscene a character's special dynamics are of, for a note: the subscene
-;; of (special-dynamics-of c in (subscene-of s n)), or of the nearest such ancestor of
-;; dynamics named otherwise (an activity's, |(special-dynamics-of c in ...)-15-1|);
-;; nil if there is none, or it is no actor.
-(defun subscene-of-dynamics (dynamics)
-  (do ((actor dynamics (and actor (ask ,actor recall your parent))))
-      ((or (null actor) (eq actor 'special-dynamics)) nil)
-      (and (not (atom actor))
-	   (eq (first actor) 'special-dynamics-of)
-	   (return (and (actor-of (fourth actor) dont-autoload) (fourth actor))))))
+;; A Director subscene a character's special dynamics are of, for a note, is REVIVE;WRAP's
+;; subscene-of-dynamics.

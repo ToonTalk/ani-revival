@@ -84,3 +84,56 @@ test("M19: with a cut, or both placed, Ken's own constraints, and no note", () =
   assert.match(run("(ask t-s1 recall your (location-of t-troll))"), /^\(PLACE: WHERE \(GOOD-DISTANCE-FROM \(VICINITY-OF T-KID\)\)/);
   assert.equal(notes(run, "t-s1"), "NIL");
 });
+
+// REVIVE;MEND20 (M20): a character shown off the stage past a corner. DICHAR plans to
+// place her again each tick until she is on the stage, but with ymax unevaluated
+// (dichar.103:46-49, no comma), so its receiver compares her place with the symbol
+// YMAX and stops. Director as filming has it, at 4 frames a second, with a part (an
+// actor, for the note); the corner is past the top left, as the Three Little Pigs'
+// Friends Together left the first pig (test/stories/stress/offstage-corner.lisp).
+function directorShowing(extensions, at, setup = null) {
+  const L = boot(makeProjectFileSystem(), { extensions });
+  const run = (src) => L.print(L.evalString(src));
+  run("(cs)");
+  run("(load '|ken;aninit >|)");
+  run("(tvsize 550 413)");
+  run("(setq :frames-per-second 4)");
+  run("(define t-subscene director-subscene)");
+  if (setup) run(setup);
+  run(`(ask cinderella show yourself at location ${at} in t-subscene)`);
+  return { run, tick: () => run("(ask default-universe tick)") };
+}
+
+test("M20: shown past a corner at a place that can't move, she is left there, with a note; in 1978 mode the film stops on YMAX", () => {
+  const corner = "(xy-position -0.6 0.6)";
+  const { run, tick } = directorShowing(["mend"], corner);
+  const shown = run("(ask cinderella recall your position)");
+  tick();
+  tick();
+  assert.equal(run("(ask cinderella recall your position)"), shown);
+  assert.match(notes(run, "t-subscene"), /^\(\(REVIVAL-REPAIR: WHAT OFFSTAGE-CORNER WAS \(IF STILL OFFSTAGE [0-9.]+ YMAX\) NOW \(LEFT-AT \(XY-POSITION -0.6 0.6\)\) BECAUSE \(CINDERELLA AT \(-[0-9.]+ [0-9.]+\)\)\)\)$/);
+  // and is not placed there again: nothing holds her for a walk to take her on
+  assert.doesNotMatch(run("(ask cinderella recall your things-to-do-next)"), /RECOMPUTE/);
+  const ken = directorShowing([], corner);
+  assert.throws(() => ken.tick(), /not a number: YMAX/);
+  // past an edge, not a corner, no plan, so nothing to repair
+  const edge = directorShowing(["mend"], "(xy-position -0.6 0.1)");
+  edge.tick();
+  assert.equal(notes(edge.run, "t-subscene"), "NIL");
+  assert.equal(run("(get 'mend20-offstage-corner 'revival-done)"), "T");
+});
+
+test("M20: at a place that moves, she is placed again each tick with ymax a number until it comes on the stage", () => {
+  // the Prince off past the top left corner, and Cinderella shown in his vicinity
+  const { run, tick } = directorShowing(["mend"], "(vicinity-of prince)", "(progn (ask prince set your position to (-900.0 700.0)) (ask prince show))");
+  tick();
+  assert.match(notes(run, "t-subscene"), /^\(\(REVIVAL-REPAIR: WHAT OFFSTAGE-CORNER WAS \(IF STILL OFFSTAGE [0-9.]+ YMAX\) NOW \(IF STILL OFFSTAGE [0-9.]+ [0-9.]+\) BECAUSE \(CINDERELLA AT \(-900.0 700.0\)\)\)\)$/);
+  assert.match(run("(ask cinderella recall your things-to-do-next)"), /IF STILL OFFSTAGE [0-9.]+ [0-9.]+\)/);
+  run("(ask prince set your position to (-100.0 50.0))"); // he comes on
+  tick();
+  assert.equal(run("(ask cinderella recall your position)"), "(-100.0 50.0)");
+  assert.doesNotMatch(run("(ask cinderella recall your things-to-do-next)"), /RECOMPUTE/);
+  // Ken's stops on YMAX there too
+  const ken = directorShowing([], "(vicinity-of prince)", "(progn (ask prince set your position to (-900.0 700.0)) (ask prince show))");
+  assert.throws(() => ken.tick(), /not a number: YMAX/);
+});

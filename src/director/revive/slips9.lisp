@@ -71,11 +71,25 @@
 ;;;
 ;;; asked to repeat once it does only the followup, against its own help comment, and
 ;;; against its neighbor, repeat ... every so many ticks, which does the message and
-;;; then counts (some.666:435-442). So a change of a tick, the Introduction's joys at low
-;;; speed in 1978, doesn't change anything, and every other change stops a step short
-;;; of its factor. Ken's Director uses this repeat only here; the correction asks it to
-;;; repeat once more than the steps the change counts, so the change takes them all and
-;;; reaches its factor. (REVIVE;LOOKS and REVIVE;CHSHOW count their own steps so.)
+;;; then counts (some.666:435-442). Ken corrected it himself: his SOME of August 1979
+;;; (tape 9004336) repeats while the number is above none, so a message asked to be
+;;; repeated once is done once:
+;;;
+;;; (define-method (sequentially (repeat ?message ?number times) %followup) something
+;;;  (help-comments (pattern-is (repeat ?message ?number times))
+;;;   |do the MESSAGE and when finished plan on the next tick to repeat one less time the MESSAGE|)
+;;;   (let ((number (fix number)))
+;;;	  (cond ((> number 0)
+;;;		 (ask ,myself sequentially
+;;;		      ,message
+;;;		      (plan next repeat ,message ,(1- number) times)
+;;;		      !,followup)))))			(9004336 some.1005:751-759)
+;;;
+;;; So a change of a tick, the Introduction's joys at low speed in 1978, doesn't change
+;;; anything, and every other change stops a step short of its factor. Ken's Director
+;;; uses this repeat only here; the correction asks it to repeat once more than the
+;;; steps the change counts, so the change takes them all and reaches its factor, as his
+;;; own later repeat would. (REVIVE;LOOKS and REVIVE;CHSHOW count their own steps so.)
 ;;;
 ;;; With APPEAR, a look change Ani pairs with a change of how a character moves by the
 ;;; same factor at the same speed takes as many ticks as it (REVIVE;LOOKS
@@ -117,45 +131,55 @@
 	     (let ((growth-rate (cond ((> factor 1.0) (expt :e (//$ ticks-to-grow-e)))
 				      (t (expt (//$ :e) (//$ ticks-to-grow-e)))))
 		   (steps (round (*$ ticks-to-grow-e (abs (log factor)))))
-		   (scene-dynamics (ask :self recall your special-dynamics-for-current-scene)))
-		  (let ((count (cond ((slip-on? 's11) (1+ steps)) (t steps))))
+		   (scene-dynamics (ask :self recall your special-dynamics-for-current-scene))
+		   ;; the part the change runs in, for S13 (REVIVE;SLIP13)
+		   (part (part-of-change :self)))
+		  (let ((count (cond ((slip-on? 's11) (1+ steps)) (t steps)))
+			;; S13: the dynamics that carry the factor to her walks of the part
+			(carriers (and (slip-on? 's13)
+				       (carriers-of-change :self (list element 'factor) part
+							   scene-dynamics))))
 		       (note-gradual-change :self scene-dynamics factor element speed steps count)
+		       (note-carried-forth :self element scene-dynamics carriers part)
 		       (ask ,scene-dynamics
 			    repeat (multiply your (,element factor) by ,growth-rate)
 			    ,count times !,followup)
+		       (mapc (function
+			      (lambda (carrier)
+				      (ask ,carrier
+					   repeat (multiply your (,element factor) by ,growth-rate)
+					   ,count times)))
+			     carriers)
 		       (ask ,:self
-			    repeat (grow your own dynamics factor for ,element by ,growth-rate)
+			    repeat (grow your own dynamics factor for ,element by ,growth-rate
+					 carried by ,carriers)
 			    ,count times)))))
        ;; the second repeat's step: Ken's, unless S10 and her own dynamics take the
-       ;; factor from the scene's
-       (define-receiver (grow your own dynamics factor for ?element by ?growth-rate)
+       ;; factor from the scene's, or S13 and they take it from dynamics that carry the
+       ;; change to her walks (REVIVE;SLIP13), which grow as the scene's do; a step whose
+       ;; growth her walk's parent has too is kept by S8, to be counted once when the
+       ;; walk is set again (REVIVE;SLIPS8)
+       (define-receiver (grow your own dynamics factor for ?element by ?growth-rate
+			      carried by ?carriers)
 			director-character
-	(cond ((and (slip-on? 's10)
-		    (dynamics-have-it-from? (ask :self recall your special-dynamics)
-					    (list element 'factor)
-					    (ask :self recall your special-dynamics-for-current-scene)))
-	       (let ((subscene (subscene-of-dynamics
-				(ask :self recall your special-dynamics-for-current-scene))))
-		    (and subscene
-			 (revival-note subscene 'grown-once
-				       (list (name-of :self) element 'twice 'a 'tick)
-				       '(once a tick)
-				       (list 'has-it-from
-					     (ask :self recall your special-dynamics-for-current-scene))))))
-	      (t (ask :self ask your special-dynamics to
-		      multiply your (,element factor) by ,growth-rate))))))
+	(let ((own (ask :self recall your special-dynamics))
+	      (scene-dynamics (ask :self recall your special-dynamics-for-current-scene))
+	      (variable (list element 'factor)))
+	     (cond ((and (slip-on? 's10)
+			 (dynamics-have-it-from? own variable scene-dynamics))
+		    (let ((subscene (subscene-of-dynamics scene-dynamics)))
+			 (and subscene
+			      (revival-note subscene 'grown-once
+					    (list (name-of :self) element 'twice 'a 'tick)
+					    '(once a tick)
+					    (list 'has-it-from scene-dynamics)))))
+		   ((and carriers (have-it-from-any? own variable carriers)))
+		   (t (note-growth-the-parent-carries own variable growth-rate
+						      (cons scene-dynamics carriers))
+		      (ask :self ask your special-dynamics to
+			   multiply your (,element factor) by ,growth-rate)))))))
 
 (+after-load '|ken;dichar >| '(revival-once 'slips9-gradual-change 'teach-gradual-change-as-planned))
-
-;; Whether dynamics take variable from ancestor, as SOME's recall your finds it
-;; (some.666:115-120): none of them up to it has the variable of its own. (REVIVE;CHSHOW
-;; has the same test for its bridge, has-it-from?.)
-(defun dynamics-have-it-from? (dynamics variable ancestor)
-  (let ((ancestor (actor-of ancestor dont-autoload)))
-       (do ((actor (actor-of dynamics dont-autoload) (parent-of actor t)))
-	   ((null actor) nil)
-	   (cond ((eq actor ancestor) (return t))
-		 ((assoc variable (ask ,actor internal-recall-your-normal-variable)) (return nil))))))
 
 (defun note-gradual-change (character scene-dynamics factor element speed steps count)
   (let ((subscene (subscene-of-dynamics scene-dynamics))

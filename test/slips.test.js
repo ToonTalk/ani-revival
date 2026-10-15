@@ -26,7 +26,7 @@ test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinde
   assert.equal(slips.changes1978, true);
   assert.equal(slips.group, "repairs");
   assert.equal(slips.optIn, true);
-  assert.deepEqual(slips.files, ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"]);
+  assert.deepEqual(slips.files, ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9", "slip13", "slip14"]);
   assert.equal(slips.afterPass1, "(note-friendlys-attractions)");
   // the four the page's switch turns on are not opt-in (Ken's decision 3), nor SEEN,
   // which it turns on beside them since Ken's testing of 15 October
@@ -51,6 +51,14 @@ test("each wrapper is installed once SUGEST, CHOMET, ELEMNT, INTERF and DICHAR h
   assert.equal(ken.run("(boundp ':slips-off)"), "nil");
 });
 
+test("with CHANGE too, SLIPS' functions leave CHSHOW's as they are (S13's carrier-of-walk, not CHSHOW's carrier-of)", () => {
+  const { run } = lisp(["change", "slips"]);
+  run("(define t-sub something)");
+  run("(ask t-sub set your methods to ((changes-while-wandering cinderella)))");
+  assert.equal(run("(carrier-of 'cinderella 't-sub)"), "(changes-while-wandering cinderella)");
+  assert.notEqual(run("(get 'carrier-of-walk 'expr)"), "nil");
+});
+
 test("S2: described as all of the words, or any of them", () => {
   const { run } = lisp(["slips"]);
   run("(load '|ken;datest >|)");
@@ -59,6 +67,11 @@ test("S2: described as all of the words, or any of them", () => {
   assert.equal(run("(described-as-all 'prince '(weak good))"), "nil");
   assert.equal(run("(described-as-any 'prince '(weak good))"), "t");
   assert.equal(run("(described-as-any 'step-mother '(weak good))"), "nil");
+  // weak physically: described (physical physically-weak), as DSCRP has it (dscrp.17:292)
+  // and PREREQ reads weak (prereq.19:45-55)
+  run("(define t-kid character (process initial description (physical physically-weak) (personality (and good shy))))");
+  assert.equal(run("(described-as-all 't-kid '(weak good))"), "t");
+  assert.equal(run("(described-as? 't-kid 'strong)"), "nil");
 });
 
 test("S12: a high variety picks the least used value, a low the most used; medium, and turned off, Ken's", () => {
@@ -173,6 +186,55 @@ test("S8: dynamics set again take their parent's factor once, as it is now; Ken'
   const ken = directorAt(4, ["slips"], "(setq :slips-off '(s8))");
   const kens = setTwice(ken.run);
   assert.ok(Math.abs(kens[1] - 0.2) < 1e-6 && Math.abs(kens[2] - 0.05) < 1e-6, `Ken's: ${kens}`);
+});
+
+// The review of stage 7's M1: a change grown into a walk of the scene's dynamics (DICHAR's
+// second repeat) and into the scene's dynamics (its first), and the walk then set again,
+// as an activity repeats. Ken's demon takes the change twice, once in the walk's own
+// factor and once in the parent's now; S8 takes it once (as the stepmother's second walk
+// in Justice). The walk's own factor is 1.0, so it walks at the scene's speed.
+test("S8: a change grown into a walk and into its parent is taken once when the walk is set again; Ken's demon takes it twice", () => {
+  const walk = "|(special-dynamics-of cinderella in t-subscene)-1|";
+  const run = (setup) => {
+    const d = directorAt(4, ["slips"], setup);
+    d.run(`(define ${walk} (special-dynamics-of cinderella in t-subscene) (set your (speed factor) to 1.0))`);
+    d.run(`(ask cinderella set your special-dynamics to ${walk})`); // her walk, first set
+    d.run("(ask cinderella gradually change by 0.5 factor for speed at medium speed)");
+    for (let k = 0; k < 30; k++) d.tick();
+    const scene = Number(d.run("(ask (special-dynamics-of cinderella in t-subscene) recall your (speed factor))"));
+    const own = Number(d.run(`(ask ${walk} recall your (speed factor))`));
+    d.run("(ask cinderella set your special-dynamics to (special-dynamics-of cinderella in t-subscene))");
+    d.run(`(ask cinderella set your special-dynamics to ${walk})`); // set again
+    const again = Number(d.run(`(ask ${walk} recall your (speed factor))`));
+    d.run("(ask cinderella set your special-dynamics to (special-dynamics-of cinderella in t-subscene))");
+    d.run(`(ask cinderella set your special-dynamics to ${walk})`); // and again
+    return { d, scene, own, again, third: Number(d.run(`(ask ${walk} recall your (speed factor))`)) };
+  };
+  // the change by 0.5 at medium speed: 14 steps of e^(-1/20), 2.718^(-14/20) = 0.4966
+  const change = 2.718 ** (-14 / 20);
+  const slips = run(null);
+  assert.ok(Math.abs(slips.scene - change) < 1e-4 && Math.abs(slips.own - change) < 1e-4, `the change grows both: ${slips.scene} ${slips.own}`);
+  assert.ok(Math.abs(slips.again - change) < 1e-4, `set again, the change once: ${slips.again}`);
+  assert.ok(Math.abs(slips.third - change) < 1e-4, `and again: ${slips.third}`);
+  assert.equal(slips.d.run(`(ask t-subscene recall if any items match (revival-repair: what factors-once was ((%)) now once because (set-again ${walk} (a-change-taken-twice ((%))))))`), "t");
+  // Ken's demon (S8 off): the change twice, 0.4966 squared
+  const ken = run("(setq :slips-off '(s8))");
+  assert.ok(Math.abs(ken.again - change * change) < 1e-4, `Ken's: ${ken.again}`);
+  // a change whose scene dynamics are not the walk's parent's (a part that extends
+  // another, its dynamics not the walk's ancestors) is kept in the walk, as before
+  const other = directorAt(4);
+  other.run("(define t-host director-subscene)");
+  other.run("(define (special-dynamics-of cinderella in t-host) special-dynamics (set your speed to medium))");
+  other.run("(define |(special-dynamics-of cinderella in t-host)-1| (special-dynamics-of cinderella in t-host) (set your (speed factor) to 1.0))");
+  // her first change is in t-subscene, whose dynamics she then has: they are her scene's
+  other.run("(ask cinderella gradually change by 1.0 factor for speed at medium speed)");
+  other.run("(ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in t-host)-1|)");
+  other.run("(ask cinderella gradually change by 0.5 factor for speed at medium speed)");
+  for (let k = 0; k < 30; k++) other.tick();
+  other.run("(ask cinderella set your special-dynamics to (special-dynamics-of cinderella in t-host))");
+  other.run("(ask cinderella set your special-dynamics to |(special-dynamics-of cinderella in t-host)-1|)");
+  const kept = Number(other.run("(ask |(special-dynamics-of cinderella in t-host)-1| recall your (speed factor))"));
+  assert.ok(Math.abs(kept - change) < 1e-4, `kept in the walk: ${kept}`);
 });
 
 test("S9, S10, S11: a gradual change takes DISPLY's estimate, grows once a tick, and reaches its factor", () => {

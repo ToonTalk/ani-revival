@@ -3,14 +3,18 @@
 // (Ken's decision 2 of 9 October, reports/chapter-x/PLAN.md), and the run that confirms
 // the DICHAR/DISPLY speed inversion before S9 corrects it. Two parts, both by default:
 //   --speed  Ken's Cinderella as in 1978 (no extensions), filmed: for every gradual
-//            change Director runs (dichar.103:102-121), the ticks DICHAR gives it, the
-//            time DISPLY's estimate gave it (disply.311:1098-1110), as ticks, their
-//            ratio, and the frame the factor the change grows last changed; then the
-//            same with SLIPS, where each change takes the ticks of its estimate. Checks
-//            that in 1978 every change at high speed takes about four times its
-//            estimate, every one at low speed about a quarter, and every one at medium
-//            about its estimate (rounding to whole ticks), which is what confirms the
-//            inversion; and that with SLIPS every change takes its estimate.
+//            change Director runs (dichar.103:102-121), the ticks DICHAR's formula
+//            gives it, the time DISPLY's estimate gave it (disply.311:1098-1110), as
+//            ticks, and what Director did: the frame the factor the change grows last
+//            changed, and so the ticks it grew for (measuredTicks, a tick a frame), and
+//            those over the estimate (measuredRatio); a change the film ends before is
+//            not measured. Checks, from what Director measured, that each change
+//            measured grew for the ticks of DICHAR's formula less one (S11's missing
+//            step), and that in 1978 every change measured at high speed took about four
+//            times its estimate, every one at low speed about a quarter, and every one
+//            at medium about its estimate (rounding to whole ticks, and the missing
+//            step), which is what confirms the inversion; then the same with SLIPS,
+//            where each change takes the ticks of its estimate.
 //   --each   the chained film (pass 1, then each scene's pass 2 and filming, as the film
 //            page makes it) with KNOW and one correction of SLIPS's (the others turned
 //            off with :slips-off, REVIVE;SLIPS), for each correction, and with all of
@@ -22,7 +26,8 @@
 //            reports/ext/slips/ (tools/check-ext.mjs --extensions slips checks them file
 //            by file).
 // Usage: node tools/check-slips.mjs [--speed] [--each] [--only s1,s9] [--fps 24] [--save]
-//   --only   only these corrections, with --each
+//   --only   only these corrections, with --each; each.json, which holds all of them, is
+//            then neither checked nor written
 //   --fps 24 film at 24 frames a second (--each against reports/ext/know/24fps)
 //   --save   write what was found to reports/ext/slips/speed.json and each.json (or
 //            each-24fps.json), which reports/ext/slips/README.md quotes, instead of
@@ -52,6 +57,8 @@ const CORRECTIONS = [
   ["s9", "S9: a gradual change runs at the speed DISPLY estimates it at"],
   ["s10", "S10: a gradual change grows a factor once a tick"],
   ["s11", "S11: a gradual change takes as many steps as it counts"],
+  ["s13", "S13: a change is carried forth into the walks of its part"],
+  ["s14", "S14: the film is not stopped while the part a part of changes extends runs"],
 ];
 const only = opt("--only") === null ? CORRECTIONS.map(([id]) => id) : opt("--only").split(",").filter(Boolean);
 for (const id of only) if (!CORRECTIONS.some(([c]) => c === id)) throw new Error(`no correction ${id}: known are ${CORRECTIONS.map(([c]) => c).join(", ")}`);
@@ -124,13 +131,19 @@ function speedRun(extensions) {
       const kensTicks = Math.round(w.tge * WEIGHT[w.speed] * w.fps * w.tpf * Math.abs(Math.log(w.factor)));
       const estimate = (w.tge / WEIGHT[w.speed]) * Math.abs(Math.log(w.factor));
       let last = null;
-      for (let fr = w.frame + 1; fr < values.length; fr++) if (values[fr] && values[fr - 1] && values[fr][k] !== values[fr - 1][k]) last = fr;
+      // (from the first frame the change is known at: before it there is no value to differ)
+      for (let fr = w.frame + 1; fr < values.length; fr++) if (values[fr] && values[fr - 1] && values[fr - 1][k] !== undefined && values[fr][k] !== values[fr - 1][k]) last = fr;
       const end = values.length ? values[values.length - 1][k] : null;
+      // what Director did: the ticks the factor grew for, from the frame the change began
+      // to the frame it last changed (ticks a frame times frames), if the film ran past
+      // it; a change that never changed its factor (Ken's change of a tick, S11) none
+      const measuredTicks = last !== null && last >= f.frames.length - 1 ? null : last === null ? 0 : (last - w.frame) * w.tpf;
       out.push({
         scene, frame: w.frame, character: w.who, element: w.element, factor: Math.round(w.factor * 1e6) / 1e6, speed: w.speed,
         directorTicks: kensTicks, estimateSeconds: Math.round(estimate * 1e4) / 1e4, estimateTicks: Math.round(estimate * w.fps * w.tpf * 100) / 100,
         ratio: Math.round((kensTicks / (estimate * w.fps * w.tpf)) * 100) / 100,
         lastChangedAt: last, factorAtTheEnd: end === null ? null : Math.round(end * 1e4) / 1e4, filmFrames: f.frames.length,
+        measuredTicks, measuredRatio: measuredTicks === null ? null : Math.round((measuredTicks / (estimate * w.fps * w.tpf)) * 100) / 100,
       });
     }
   }
@@ -141,18 +154,24 @@ const found = {};
 if (doSpeed) {
   console.log(`The speed of a gradual change, at ${fps} frames a second: Ken's Cinderella as in 1978\n`);
   const kens = speedRun([]);
-  for (const c of kens) console.log(`       ${c.scene} frame ${c.frame}: ${c.character} ${c.element} by ${c.factor} at ${c.speed} speed: Director ${c.directorTicks} ticks, DISPLY's estimate ${c.estimateSeconds} s = ${c.estimateTicks} ticks, ratio ${c.ratio}; the factor last changed at frame ${c.lastChangedAt}, ${c.factorAtTheEnd} at the end (${c.filmFrames} frames)`);
-  // at medium, rounding to whole ticks; a change of a tick or two rounds furthest
+  for (const c of kens) console.log(`       ${c.scene} frame ${c.frame}: ${c.character} ${c.element} by ${c.factor} at ${c.speed} speed: DICHAR's formula ${c.directorTicks} ticks, DISPLY's estimate ${c.estimateSeconds} s = ${c.estimateTicks} ticks; Director grew it for ${c.measuredTicks === null ? "? ticks (the film ended first)" : `${c.measuredTicks} ticks, ${c.measuredRatio} of the estimate`}; the factor last changed at frame ${c.lastChangedAt}, ${c.factorAtTheEnd} at the end (${c.filmFrames} frames)`);
+  // what Director measured is DICHAR's formula less S11's missing step
+  const measured = kens.filter((c) => c.measuredTicks !== null);
+  const notFormula = measured.filter((c) => c.measuredTicks !== Math.max(0, c.directorTicks - 1));
+  check(`1978: each of the ${measured.length} changes the film runs past grew its factor for the ticks of DICHAR's formula less one (S11), as Director measured them (the film ended first on ${kens.length - measured.length})`,
+    notFormula.length ? `${notFormula.length}, the first ${JSON.stringify(notFormula[0])}` : null);
+  // the inversion, from what Director measured: at medium, rounding to whole ticks and the
+  // missing step; a change of one tick, which takes no step (S11), is left out
   const near = (r, want) => Math.abs(r - want) <= want * 0.25 + 0.1;
   for (const [speed, want] of [["high", 4], ["low", 0.25], ["medium", 1]]) {
-    const these = kens.filter((c) => c.speed === speed);
-    check(`1978: the ${these.length} changes at ${speed} speed take ${want === 1 ? "about their estimate" : `about ${want === 4 ? "four times" : "a quarter of"} their estimate`} (ratios ${[...new Set(these.map((c) => c.ratio))].join(", ")})`,
-      !these.length ? "there are none" : these.every((c) => near(c.ratio, want)) ? null : "not all");
+    const these = measured.filter((c) => c.speed === speed && c.measuredTicks > 0);
+    check(`1978: the ${these.length} changes measured at ${speed} speed took ${want === 1 ? "about their estimate" : `about ${want === 4 ? "four times" : "a quarter of"} their estimate`} (measured ratios ${[...new Set(these.map((c) => c.measuredRatio))].join(", ")})`,
+      !these.length ? "there are none" : these.every((c) => near(c.measuredRatio, want)) ? null : "not all");
   }
   // with SLIPS (S9), each takes its estimate: Director's ticks are those of its estimate
   console.log(`\nThe same with SLIPS (and KNOW, which it requires)\n`);
   const slips = speedRun(["slips"]);
-  for (const c of slips) console.log(`       ${c.scene} frame ${c.frame}: ${c.character} ${c.element} by ${c.factor} at ${c.speed} speed: estimate ${c.estimateTicks} ticks; the factor last changed at frame ${c.lastChangedAt}, ${c.factorAtTheEnd} at the end`);
+  for (const c of slips) console.log(`       ${c.scene} frame ${c.frame}: ${c.character} ${c.element} by ${c.factor} at ${c.speed} speed: estimate ${c.estimateTicks} ticks; Director grew it for ${c.measuredTicks === null ? "? ticks (the film ended first)" : `${c.measuredTicks} ticks`}; the factor last changed at frame ${c.lastChangedAt}, ${c.factorAtTheEnd} at the end`);
   // the corrected change counts round(estimate in ticks) steps, and takes them from the
   // frame it begins: its factor's last step is that many ticks on (one a tick, at 4
   // frames a second a tick a frame); a change of no steps changes nothing
@@ -160,7 +179,15 @@ if (doSpeed) {
     const off = slips.filter((c) => Math.round(c.estimateTicks) > 0 && c.lastChangedAt !== null && c.lastChangedAt < c.filmFrames - 1 && Math.abs(c.lastChangedAt - c.frame - Math.round(c.estimateTicks)) > 1);
     check(`SLIPS: each of the ${slips.length} changes grows its factor for the ticks of its estimate, where the film runs that long`, off.length ? `${off.length}, the first ${JSON.stringify(off[0])}` : null);
   }
-  found.speed = { about: "Every gradual change Director runs in Ken's Cinderella (dichar.103:102-121), filmed as in 1978 and with SLIPS: the ticks DICHAR gives it (as in 1978), DISPLY's estimate (disply.311:1104-1107) in seconds and ticks, their ratio, the frame its factor last changed and the factor then (tools/check-slips.mjs --speed).", fps, kens, slips };
+  // for the page: at each speed, the changes, those measured, and the least and most
+  // measured ratio
+  const summary = ["high", "medium", "low"].map((speed) => {
+    const these = kens.filter((c) => c.speed === speed);
+    const m = these.filter((c) => c.measuredTicks !== null && c.measuredTicks > 0).map((c) => c.measuredRatio);
+    return { speed, changes: these.length, measured: m.length, least: m.length ? Math.min(...m) : null, most: m.length ? Math.max(...m) : null,
+      filmEndedFirst: these.filter((c) => c.measuredTicks === null).length, noStep: these.filter((c) => c.measuredTicks === 0).length };
+  });
+  found.speed = { about: "Every gradual change Director runs in Ken's Cinderella (dichar.103:102-121), filmed as in 1978 and with SLIPS: the ticks DICHAR's formula gives it (directorTicks, as in 1978), DISPLY's estimate (disply.311:1104-1107) in seconds and ticks, the formula's ratio to the estimate (ratio), the frame its factor last changed and the factor then, and what Director measured: the ticks the factor grew for (measuredTicks; null if the film ended first, 0 if it never changed, Ken's change of a tick, S11) and those over the estimate (measuredRatio). summary has, for each speed, the changes, those measured, the least and most measured ratio, and those not measured (tools/check-slips.mjs --speed).", fps, summary, kens, slips };
 }
 
 // ---------------------------------------------------------------- each correction
@@ -189,7 +216,9 @@ if (doEach) {
     for (const line of describe(r)) console.log(`       ${line}`);
     for (const s of r.scenes) check(`all of them, ${s.scene}: the film as ${slipsDir}/${s.scene}.film.json`, s.filmMatchesGolden === null ? "there is no such file (tools/check-ext.mjs --extensions slips --save makes it)" : s.filmMatchesGolden ? null : "it differs");
   }
-  report(fps === 24 ? "each-24fps.json" : "each.json", each);
+  // each.json holds every correction: with --only it is neither checked nor written
+  if (only.length === CORRECTIONS.length) report(fps === 24 ? "each-24fps.json" : "each.json", each);
+  else console.log(`\n(with --only, ${fps === 24 ? "each-24fps.json" : "each.json"}, which holds every correction, is neither checked nor written)`);
 }
 
 if (doSpeed) report(fps === 24 ? "speed-24fps.json" : "speed.json", found.speed);

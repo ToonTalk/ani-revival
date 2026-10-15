@@ -54,10 +54,10 @@ export const EXTENSIONS = [
     id: "mend",
     label: "Repairs for new stories",
     group: "repairs",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19", "mend20"],
     requires: [],
     changes1978: false,
-    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, more than a few ways to convey what a task establishes, a scene that is one task shown by one, and a place far off and off the stage that PLACE asks for and never defines. Each leaves a (revival-repair: ...) note where it acted.",
+    note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, more than a few ways to convey what a task establishes, a scene that is one task shown by one, a place far off and off the stage that PLACE asks for and never defines, and a character shown off the stage past a corner, where Director's placing her again each tick stopped the film. Each leaves a (revival-repair: ...) note where it acted.",
   },
   {
     id: "appear",
@@ -113,14 +113,14 @@ export const EXTENSIONS = [
     label: "Corrections of slips in Ken's files",
     group: "repairs",
     optIn: true,
-    files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"],
+    files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9", "slip13", "slip14"],
     // S1 has good's helping find someone to help, which needs KNOW's way of showing
     // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped
     requires: ["know"],
     changes1978: true,
     // REVIVE;SLIPS3's notes on the choice points of a friendly character's tendencies
     afterPass1: "(note-friendlys-attractions)",
-    note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); a high level of variety picks the least used value and a low the most used, as the thesis says (p. 85); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, the stepmother's guard no longer slows down cycle by cycle in Kept Apart, and every feeling changes her characters at the pace Ani planned. Each correction leaves a note where it acted.",
+    note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); a high level of variety picks the least used value and a low the most used, as the thesis says (p. 85); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a change once; a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, takes as many steps as it counts, and is carried forth into the walks the characters walk with in its part, as Ken's comment says it is to be; and the film is not stopped while the activity a feeling's part extends still runs. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction; in Kept Apart the guard no longer slows down cycle by cycle, and as the feelings play Cinderella slows down and her paths straighten while the stepmother speeds up and her paths curve, as the thesis tells it (p. 66); and every feeling runs at the pace Ani planned. Each correction leaves a note where it acted.",
   },
   {
     id: "detail",

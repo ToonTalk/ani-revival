@@ -903,18 +903,9 @@
 		       ,(1+ ticks) times))))
        (define-receiver (multiply your own dynamics factor for ?element by ?rate) director-character
 	(let ((own (ask :self recall your special-dynamics)))
-	     (or (has-it-from? own (list element 'factor)
-			       (ask :self recall your special-dynamics-for-current-scene))
+	     (or (dynamics-have-it-from? own (list element 'factor)
+					 (ask :self recall your special-dynamics-for-current-scene))
 		 (ask ,own multiply your (,element factor) by ,rate))))))
-
-;; Whether dynamics have a variable from an ancestor, as SOME's recall your finds it
-;; (some.666:115-120): none of them up to it has the variable of its own.
-(defun has-it-from? (dynamics variable ancestor)
-  (let ((ancestor (actor-of ancestor dont-autoload)))
-       (do ((actor (actor-of dynamics dont-autoload) (parent-of actor t)))
-	   ((null actor) nil)
-	   (cond ((eq actor ancestor) (return t))
-		 ((assoc variable (ask ,actor internal-recall-your-normal-variable)) (return nil))))))
 
 (+after-load '|ken;dichar >| '(revival-once 'chshow-director-bridge 'define-the-bridge-for-director))
 
