@@ -1276,14 +1276,20 @@ function changeSeconds(form, extensions = []) {
 
 // The stretches of a film of more than a second in which no character on the stage
 // moves (its place or heading the same frame to frame): { from, to, seconds }, from the
-// last frame anyone moved to the last still frame.
+// last frame anyone moved to the last still frame. A film whose frames keep only the
+// picture's segments (the film page's 1978 films, tools/build-film-app.mjs packFilm,
+// which keeps no state) is read by its segments instead: a character moves when its
+// lines on the picture do (the build checks that this finds the same stretches).
 export function stillStretches(film, { fps = film.fps || 4, atLeast = 1 } = {}) {
+  const same = (a, b) => (!a && !b) || (!!a && !!b && a.length === b.length && a.every((v, k) => v === b[k]));
   const moved = film.frames.map((fr, i) => {
     if (i === 0) return true;
     const prev = film.frames[i - 1];
     return Object.entries(fr.chars).some(([c, ch]) => {
       const p = prev.chars[c];
-      if (!ch.visible || !ch.state) return false;
+      if (!ch.visible) return false;
+      if (!ch.state && "state" in ch) return false;
+      if (!("state" in ch)) return !p || !p.visible || !same(fr.segs && fr.segs[c], prev.segs && prev.segs[c]);
       if (!p || !p.visible || !p.state) return true;
       return ch.state[0] !== p.state[0] || ch.state[1] !== p.state[1] || ch.state[2] !== p.state[2];
     });
@@ -1673,7 +1679,9 @@ export function makeFilm(fs, options = {}) {
 // { scene, error } there (with keepGoing; without, the run stops), and the later
 // scenes are planned without it. Each scene's pass 2 learns who they have become from
 // the BECOME files this run's fresh looks wrote in the scenes before it.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {} } = {}) {
+// onFrame(scene, frame), if given, is called as each frame is filmed (film's onClick),
+// frame counted from 0, so that a page can say how far the filming has got.
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null } = {}) {
   extensionsFor(extensions); // an unknown one stops the run before it starts
   const change = extensionsFor(extensions).some((e) => e.sceneSteps);
   let plan = null;
@@ -1736,7 +1744,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
       const { glass } = pass2(fs, scene, { plan, extensions, ...(planned ? { becomes: earlier } : {}) });
       progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { film: f } = film(fs, scene, { plan, frames, fps, extensions });
+      const { film: f } = film(fs, scene, { plan, frames, fps, extensions, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}) });
       done = { id: scene, film: f, glass };
     } catch (e) {
       if (!keepGoing) throw e;

@@ -27,16 +27,17 @@
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
 //     To keep under claude.ai's limit, its page script goes without comments and
-//     indentation, gzipped and written as text, run by a small module script
-//     (PAGE_LOADER), and the revival's own Lisp in its bundle without comments, every
-//     line kept (stripReviveComments); Ken's files go as they are.
+//     indentation, gzipped and written as text, which a small module script (PAGE_LOADER)
+//     unpacks and runs as a module script of its own (so that it needs no eval), and the
+//     revival's own Lisp in its bundle without comments, every line kept
+//     (stripReviveComments); Ken's files go as they are.
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames } from "../src/pipeline.js";
+import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames, whyTheyAct as whyTheyActOfPipeline } from "../src/pipeline.js";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
@@ -250,13 +251,14 @@ function stripChecked(js, what, ext) {
 }
 
 // The claude.ai copy's page script, packed (pack93 of its gzip, as the data blocks are),
-// in a block of its own, and the module script that unpacks and runs it: as the body of an
-// async function made with new Function (pageScriptBody), strict, with await at its top,
-// as the module it was. tools/check-film-app.mjs hooks a check's functions into it with
-// withPageScript.
+// in a block of its own, and the module script that unpacks it and runs it as the module it
+// was: an inline module script put on the page, with its text, so that it starts where a
+// page may run inline scripts but not eval (a CSP without 'unsafe-eval'), as the copy
+// before stage 7 did (the review of stage 7, M3: run with new Function, as it was, it
+// showed nothing at all there). tools/check-film-app.mjs hooks a check's functions into it
+// with withPageScript; test/page-script.test.js runs the loader on a packed block.
 export const PAGE_SCRIPT_ID = "page-script";
-export const pageScriptBody = (js) => `"use strict";return (async () => {\n${js}\n})();`;
-const PAGE_LOADER = `
+export const PAGE_LOADER = `
 const s = document.getElementById("${PAGE_SCRIPT_ID}").textContent.trim(), sp = s.indexOf(" "), n = Number(s.slice(0, sp));
 const T = [...Array(94)].map((_, k) => String.fromCharCode(33 + k)).filter((c) => c !== "<").join(""), digit = new Int16Array(128);
 for (let k = 0; k < 93; k++) digit[T.charCodeAt(k)] = k;
@@ -268,7 +270,10 @@ for (let i = sp + 1; i + 1 < s.length && o < n; i += 2) {
   while (bits >= 8 && o < n) { bytes[o++] = acc & 255; acc >>>= 8; bits -= 8; }
 }
 const js = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
-await new Function(${JSON.stringify(pageScriptBody("\u0000")).replace("\\u0000", '" + js + "')})();
+const el = document.createElement("script");
+el.type = "module";
+el.textContent = js;
+document.body.append(el);
 `;
 // The claude.ai copy with its page script changed by f (the script's text, unpacked, to
 // the text to pack again): for a check that hooks functions into it.
@@ -357,15 +362,22 @@ function storyNames(root) {
 // top-level function, ending at a line that is only "}", or a const on one line. The
 // build checks that they rename a story as src/pipeline.js's own do.
 const STORY_NAME_FUNCTIONS = ["readForms", "storyOutline", "LASTING", "changesOfTasks", "changesIn", "storyRenames", "renameStoryNames"];
-function pipelineFunctions(root) {
+// src/pipeline.js's own top-level functions and constants of these names, as written there:
+// a function ends at a line that is only "}", a const on one line at its ";", and a const
+// that opens an object on its line at the line that is only "};".
+function pipelineSource(root, names) {
   const src = readFileSync(`${root}/src/pipeline.js`, "utf8").replace(/\r\n?/g, "\n");
-  const code = STORY_NAME_FUNCTIONS.map((name) => {
+  return names.map((name) => {
     const m = new RegExp(`^(?:export )?(function\\*? ${name}\\(|const ${name} = )`, "m").exec(src);
     if (!m) throw new Error(`src/pipeline.js has no top-level ${name}`);
-    const end = m[1].startsWith("const") ? src.indexOf(";\n", m.index) + 2 : src.indexOf("\n}\n", m.index) + 3;
+    const line = src.slice(m.index, src.indexOf("\n", m.index));
+    const end = !m[1].startsWith("const") ? src.indexOf("\n}\n", m.index) + 3 : /\{$/.test(line) ? src.indexOf("\n};\n", m.index) + 4 : src.indexOf(";\n", m.index) + 2;
     if (end < m.index + 3) throw new Error(`src/pipeline.js's ${name} doesn't end as the build expects`);
     return src.slice(m.index, end).replace(/^export /, "");
   }).join("\n");
+}
+function pipelineFunctions(root) {
+  const code = pipelineSource(root, STORY_NAME_FUNCTIONS);
   const page = new Function(`${code}\nreturn { storyOutline, storyRenames, renameStoryNames };`)();
   const sample = `;; cast: alone = the alone one (she); goat = the goat (she)
 ;; scenes: fear = Fear; screen = The Screen
@@ -380,6 +392,47 @@ function pipelineFunctions(root) {
   const ours = renameStoryNames(sample, storyRenames(storyOutline(sample), taken));
   const theirs = page.renameStoryNames(sample, page.storyRenames(page.storyOutline(sample), taken));
   if (ours !== theirs || ours === sample) throw new Error("the page's copy of src/pipeline.js's story-name functions renames a story differently");
+  return code;
+}
+
+// src/pipeline.js's whyTheyAct and what it needs, as written there, for the page's "why
+// they act as they do" (the character panel's explanations and the scene's timeline): the
+// page runs Ani's records through the same code as the tools (tools/check-still.mjs). The
+// page's copy reads the page's own registry of extensions (DATA.extensions, as EXTENSIONS).
+// The build checks that it says what src/pipeline.js says of Ken's 1978 scenes and of his
+// beautified scene with the page's set (reports/ext/change/beautified-film), and that a
+// 1978 film as the page carries it (packFilm: the picture's segments, no state) has the
+// same stretches of more than a second in a part with no one moving (whyTheyAct's stills)
+// as the film itself.
+const WHY_FUNCTIONS = ["readForms", "printForm", "extensionsFor", "collectWanders", "ACTIVITY_METHODS", "REVIVAL_METHODS", "whyTheyAct", "walkForm", "stopsOf", "repeatAround", "changeSeconds", "stillStretches"];
+function unpackForCheck(film) {
+  // as the page's unpackFilm does
+  const last = {}, now = {};
+  const frames = film.packed.segs.map((s, k) => {
+    const segs = {};
+    for (const [c, t] of Object.entries(s)) { const abs = t[0] === "d" ? t.slice(1).map((v, i) => v + last[c][i]) : t; last[c] = abs; segs[c] = abs.map((v) => v / 10); }
+    for (const [c, v] of Object.entries(film.packed.chars[k])) now[c] = { visible: !!v[0], dynamics: v[1], goal: v[2] };
+    return { segs, chars: { ...now } };
+  });
+  const { packed, ...rest } = film;
+  return { ...rest, frames };
+}
+function whyFunctions(root) {
+  const code = pipelineSource(root, WHY_FUNCTIONS);
+  const page = new Function("EXTENSIONS", `${code}\nreturn { whyTheyAct };`)(EXTENSIONS);
+  const json = (f) => JSON.parse(readFileSync(`${root}/${f}`, "utf8"));
+  const cases = [
+    ...SCENES.map(([id]) => [`reports/pass2/${id}.glass.json`, `reports/film/${id}.film.json`, []]),
+    ...SCENES.map(([id]) => [`reports/film/24fps/${id}.glass.json`, `reports/film/24fps/${id}.film.json`, []]),
+    ["reports/ext/change/beautified-film/cinderella-beautified.glass.json", "reports/ext/change/beautified-film/cinderella-beautified.film.json", ["mend", "know", "appear", "change", "seen"]],
+  ].filter(([g, f]) => existsSync(`${root}/${g}`) && existsSync(`${root}/${f}`));
+  for (const [g, f, extensions] of cases) {
+    const glass = json(g), film = json(f);
+    const theirs = JSON.stringify(whyTheyActOfPipeline(glass, film, { extensions }));
+    if (JSON.stringify(page.whyTheyAct(glass, film, { extensions })) !== theirs) throw new Error(`the page's copy of whyTheyAct says otherwise of ${f}`);
+    const packedStills = JSON.stringify(page.whyTheyAct(glass, unpackForCheck(packFilm(film)), { extensions }).stills);
+    if (packedStills !== JSON.stringify(JSON.parse(theirs).stills)) throw new Error(`${f} as the page carries it has other stretches with no one moving than the film itself`);
+  }
   return code;
 }
 
@@ -459,7 +512,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
   const parts = ["llm.js", "json.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root) })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }
@@ -481,13 +534,8 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const stripped = stripChecked(js, "the claude.ai copy's script", ".mjs");
     sizes.comments = js.length - stripped.length;
     // and it goes gzipped and written as text, as the page's data does, in a block of its
-    // own (PAGE_SCRIPT_ID), which a small module script unpacks and runs: the script's
-    // top level becomes the body of an async function, made with new Function, as the
-    // page makes Ani's runtime when it runs Ani on the page itself (runInPage), with what
-    // a module has, strict mode and await at its top. Making the function checks that the
-    // script reads so (it isn't run here).
-    const body = pageScriptBody(stripped);
-    try { new Function(body); } catch (e) { throw new Error(`the claude.ai copy's script doesn't read as the body of an async function: ${e.message}`); }
+    // own (PAGE_SCRIPT_ID), which a small module script (PAGE_LOADER) unpacks and puts on
+    // the page as a module script of its own; stripChecked has read it as a module.
     const packedScript = packText(stripped);
     const loader = stripChecked(PAGE_LOADER, "the claude.ai copy's loader", ".mjs");
     sizes.script = packedScript.length;
