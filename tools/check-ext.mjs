@@ -48,8 +48,26 @@
 //   - the whole film, chained, as for APPEAR: each scene's files are those in
 //     reports/ext/know/ (or its 24fps/), and reports/ext/know/README.md says how and why
 //     they differ from 1978's.
-// The goldens are in reports/ext/<the ids of the extensions that change Cinderella>.
-// Usage: node tools/check-ext.mjs [--extensions appear|know] [--quick] [--fps 24] [--save]
+// For SLIPS (--extensions slips, with KNOW and MEND, which it requires), corrections of
+// slips in Ken's files, and for DETAIL (--extensions detail, with MEND), a few of the
+// "myriad details" (reports/chapter-x/PLAN.md, "Item 4, part 2"), it asserts:
+//   - pass 1: KEN;CP 30 is byte for byte reports/pass1-choices.txt, CP 29's 102 choices
+//     in place; with DETAIL its choice points and their reasons are app/data/pass1.json's
+//     and it leaves no note; with SLIPS they are but for the three of Cinderella's
+//     tendencies, which hear friendly now (REVIVE;SLIPS3) and are
+//     reports/ext/slips/pass1-tendencies.json, and its notes are those three choice
+//     points' friendly-attraction notes;
+//   - pass 2, scene by scene, each starting from where the 1978 film left the
+//     characters: a scene the extension doesn't change there (SLIPS_CHANGES,
+//     DETAIL_CHANGES) has the program, summary, printout and glass box of its reference,
+//     for SLIPS KNOW's (its from-1978/, else 1978's reports/pass2), for DETAIL 1978's; one
+//     it changes has those in reports/ext/<slips|detail>/from-1978/;
+//   - the whole film, chained, as for APPEAR: each scene's files are those in
+//     reports/ext/slips/ or reports/ext/detail/ (or its 24fps/), and the README there
+//     says how and why they differ from KNOW's (SLIPS) or 1978's (DETAIL).
+// The goldens are in reports/ext/<the ids of the extensions that change Cinderella>, but
+// SLIPS's in reports/ext/slips/ and DETAIL's in reports/ext/detail/.
+// Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail] [--quick] [--fps 24] [--save]
 //   --quick  skip the chained film (about three of its four minutes)
 //   --fps 24 film the chain at 24 frames a second, as the film page does by default,
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
@@ -69,9 +87,12 @@ const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1
 const chosen = extensionsFor((opt("--extensions") || "appear").split(",").filter(Boolean));
 const extensions = chosen.map((e) => e.id);
 if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.join(", ")} changes Ken's Cinderella: tools/check-1978.mjs --extensions ${extensions.join(",")} checks it`);
-// what this check knows each should make: APPEAR's or KNOW's, not both at once yet
-const kind = extensions.includes("appear") ? "appear" : extensions.includes("know") ? "know" : null;
-if (!kind || (extensions.includes("appear") && extensions.includes("know"))) throw new Error("so far tools/check-ext.mjs knows what APPEAR should make, and what KNOW should; give it --extensions with one of appear and know");
+// what this check knows each should make: APPEAR's, KNOW's, SLIPS's (with KNOW) or
+// DETAIL's, one at a time
+const KINDS = ["appear", "know", "slips", "detail"];
+const asked = KINDS.filter((k) => extensions.includes(k) && !(k === "know" && extensions.includes("slips")));
+const kind = asked.length === 1 ? asked[0] : null;
+if (!kind) throw new Error("tools/check-ext.mjs knows what APPEAR should make, what KNOW should, what SLIPS should (with KNOW, which it requires) and what DETAIL should; give it --extensions with one of appear, know, slips and detail");
 const quick = args.includes("--quick");
 const save = args.includes("--save");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
@@ -79,7 +100,7 @@ if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
 if (fps === 24 && quick) throw new Error("--quick skips the chained film, so --fps 24 would check only pass 1");
 // as tools/check-1978.mjs films: a scene takes six times the frames at 24 that it takes at 4
 const frames = fps === 24 ? 6000 : 1000;
-const dir = `reports/ext/${chosen.filter((e) => e.changes1978).map((e) => e.id).join("+")}`;
+const dir = kind === "slips" || kind === "detail" ? `reports/ext/${kind}` : `reports/ext/${chosen.filter((e) => e.changes1978).map((e) => e.id).join("+")}`;
 const filmDir = fps === 24 ? `${dir}/24fps` : dir;
 
 const read = (path) => readFileSync(path, "utf8");
@@ -248,6 +269,38 @@ if (kind === "know") {
   check("pass 1: the choice points and their reasons as app/data/pass1.json has them", same(JSON.stringify(p1.value.choicePoints), JSON.stringify(JSON.parse(read("app/data/pass1.json")).choicePoints)));
   check("pass 1: no repair notes", (p1.value.repairs || []).length ? `${p1.value.repairs.length}, the first ${JSON.stringify(p1.value.repairs[0])}` : null);
 }
+// SLIPS: pass 1 as 1978's, but for what three of Cinderella's choice points hear
+// (REVIVE;SLIPS3); DETAIL: as 1978's
+const TENDENCIES = ["attraction-towards-strangers", "attraction-towards-enemies", "attraction-towards-friends"];
+const SLIPS_PASS1 = TENDENCIES.map((e) => JSON.stringify(["choice-point-of", "cinderella", e]));
+if (kind === "slips" || kind === "detail") {
+  const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
+  const theirs = choicesOfItsFile("original/7005017/cp.29");
+  const c = compareChoices(theirs, ours);
+  const a = [...theirs.keys()], b = [...ours.keys()];
+  const inPlace = a.filter((k, i) => b[i] === k).length;
+  check(`pass 1: ${c.same} of CP 29's ${theirs.size} choices, ${inPlace} in place`,
+    c.same === theirs.size && ours.size === theirs.size && inPlace === a.length ? null : `${c.differ.length} differ, ${c.onlyA.length} missing, ${c.onlyB.length} extra`, p1.seconds);
+  check("pass 1: KEN;CP 30 as reports/pass1-choices.txt, as in 1978 mode", same(cp, read("reports/pass1-choices.txt")));
+  const golden = JSON.parse(read("app/data/pass1.json")).choicePoints;
+  const ourCPs = p1.value.choicePoints;
+  const differing = ourCPs.filter((x, k) => JSON.stringify(x) !== JSON.stringify(golden[k])).map((x) => JSON.stringify(x.name));
+  const expected = kind === "slips" ? SLIPS_PASS1 : [];
+  check(`pass 1: the choice points and their reasons as app/data/pass1.json has them${expected.length ? ", but for Cinderella's three tendencies" : ""}`,
+    ourCPs.length !== golden.length ? `${ourCPs.length} choice points, not ${golden.length}` : JSON.stringify([...differing].sort()) === JSON.stringify([...expected].sort()) ? null : `these differ: ${differing.join(", ") || "none"}`);
+  const notes = (p1.value.repairs || []);
+  if (kind === "slips") {
+    const noted = TENDENCIES.every((e) => notes.some((n) => n.actor === `(choice-point-of cinderella ${e})` && n.note.startsWith("(revival-repair: what friendly-attraction ")));
+    check("pass 1: the notes are the three tendencies' friendly-attraction notes", notes.length === 3 && noted ? null : JSON.stringify(notes));
+    const tendencies = JSON.stringify(ourCPs.filter((x) => SLIPS_PASS1.includes(JSON.stringify(x.name))), null, 1) + "\n";
+    const path = `${dir}/pass1-tendencies.json`;
+    if (save) {
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(path, tendencies);
+      console.log(`saved  pass 1's three tendencies' choice points as ${path}`);
+    } else check(`pass 1: the three tendencies' choice points as ${path}`, existsSync(path) ? same(tendencies, read(path)) : "there is no such file (make it with --save)");
+  } else check("pass 1: no repair notes", notes.length ? `${notes.length}, the first ${JSON.stringify(notes[0])}` : null);
+}
 if (kind === "appear") {
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
   const theirs = choicesOfItsFile("original/7005017/cp.29");
@@ -369,6 +422,47 @@ if (fps === 4 && kind === "know") {
       check(`${scene}: ${what} as ${path}`, existsSync(path) ? same(text, read(path)) : "there is no such file (make it with --save)");
     }
     check(`${scene}: the program is not 1978's`, files[0][2] === read(`reports/pass2/${files[0][1]}`) ? "KNOW should change it" : null, p2.seconds);
+  }
+}
+
+// For SLIPS and DETAIL: each scene planned from where the 1978 film left the
+// characters. The scenes each changes have their files in <dir>/from-1978/; the others
+// are as the reference has them: for SLIPS, KNOW's (its from-1978/ for the scenes KNOW
+// changes, else 1978's reports/pass2), for DETAIL 1978's.
+const SLIPS_CHANGES = ["introduction"]; // S1; the other corrections act in Director
+const DETAIL_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"]; // the tendencies' notes, and the rhythm's changes
+if (fps === 4 && (kind === "slips" || kind === "detail")) {
+  const changes = kind === "slips" ? SLIPS_CHANGES : DETAIL_CHANGES;
+  const fs2 = makeProjectFileSystem();
+  fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
+  for (const f of readdirSync("reports/pass2")) {
+    const m = /^ken1-([a-z0-9]+)\.posit$/.exec(f);
+    if (m) fs2.addFile("KEN1", m[1].toUpperCase(), "POSIT", { text: read(`reports/pass2/${f}`), origin: "reports/pass2" });
+  }
+  const from1978 = `${dir}/from-1978`;
+  if (save) mkdirSync(from1978, { recursive: true });
+  const reference = (name) => (kind === "slips" && existsSync(`reports/ext/know/from-1978/${name}`) ? `reports/ext/know/from-1978/${name}` : `reports/pass2/${name}`);
+  for (const scene of SCENES) {
+    const [fn1, fn2] = FILE_NAMES[scene].split(" ");
+    const lower = fn1.toLowerCase();
+    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
+    const files = [
+      [`KEN;${fn1} ${fn2}`, `ken-${lower}.${fn2.toLowerCase()}`, textIn(fs2, "KEN", fn1, fn2)],
+      [`KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs2, "KEN1", fn1, "MINI")],
+      [`KEN1;${fn1} PRINT`, `ken1-${lower}.print`, textIn(fs2, "KEN1", fn1, "PRINT")],
+      ["the glass box", `${scene}.glass.json`, JSON.stringify(p2.value.glass, null, 1)],
+    ];
+    if (!changes.includes(scene)) {
+      for (const [what, name, text] of files) check(`${scene}: ${what} as ${reference(name)}`, same(text, read(reference(name))));
+      console.log(`       (${p2.seconds.toFixed(1)}s)`);
+      continue;
+    }
+    for (const [what, name, text] of files) {
+      const path = `${from1978}/${name}`;
+      if (save) { writeFileSync(path, text); console.log(`saved  ${scene}: ${what} as ${path}`); continue; }
+      check(`${scene}: ${what} as ${path}`, existsSync(path) ? same(text, read(path)) : "there is no such file (make it with --save)");
+    }
+    check(`${scene}: the glass box is not ${reference(files[3][1])}'s`, files[3][2] === read(reference(files[3][1])) ? `${kind.toUpperCase()} should change it` : null, p2.seconds);
   }
 }
 

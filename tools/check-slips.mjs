@@ -31,6 +31,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { SCENES, FILE_NAMES, pass1, pass2, film } from "../src/pipeline.js";
+import { chained, describe } from "./one-by-one.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] || "" : null; };
@@ -66,16 +67,6 @@ function check(what, problem) {
     console.log(`FAIL   ${what}: ${problem}`);
   } else console.log(`ok     ${what}`);
 }
-const textIn = (fs, d, fn1, fn2) => {
-  const e = fs.find({ dir: d, fn1, fn2 });
-  return e ? fs.textOf(e) : "";
-};
-const kindOf = (note) => (/^\(revival-repair: what (\S+)/.exec(note) || [])[1];
-const kinds = (notes) => {
-  const out = {};
-  for (const n of notes) out[kindOf(n.note)] = (out[kindOf(n.note)] || 0) + 1;
-  return out;
-};
 // What was found, compared with or saved as a JSON file of reports/ext/slips.
 function report(name, value) {
   const path = `${DIR}/${name}`;
@@ -172,67 +163,34 @@ if (doSpeed) {
 }
 
 // ---------------------------------------------------------------- each correction
-// The chained film with these corrections off, beside KNOW's goldens.
-function chained(off) {
-  const fs = makeProjectFileSystem();
-  const setup = (L) => L.evalString(`(setq :slips-off '(${off.join(" ")}))`);
-  const extensions = ["slips"];
-  const p1 = pass1(fs, { extensions, setup });
-  const cp = textIn(fs, "KEN", "CP", "30");
-  const goldenCPs = JSON.parse(read("app/data/pass1.json")).choicePoints;
-  const differentCPs = p1.choicePoints.filter((c, k) => JSON.stringify(c) !== JSON.stringify(goldenCPs[k])).map((c) => c.name);
-  const result = {
-    pass1: { cp: cp === read("reports/pass1-choices.txt") ? "CP 29" : "differs", choicePointsDiffering: differentCPs, notes: kinds(p1.repairs || []) },
-    scenes: [],
-  };
-  for (const scene of SCENES) {
-    const [fn1, fn2] = FILE_NAMES[scene].split(" ");
-    const lower = fn1.toLowerCase();
-    const { glass } = pass2(fs, scene, { extensions, setup });
-    const f = film(fs, scene, { extensions, fps, frames, setup }).film;
-    const golden = JSON.parse(read(`${knowDir}/${scene}.film.json`));
-    const goldenGlass = JSON.parse(read(`${knowDir}/${scene}.glass.json`));
-    let first = null;
-    for (let i = 0; i < Math.max(f.frames.length, golden.frames.length); i++) if (JSON.stringify(f.frames[i]) !== JSON.stringify(golden.frames[i])) { first = i; break; }
-    const byName = (xs) => new Map(xs.map((x) => [x.name, x]));
-    const theirs = byName(goldenGlass.tasks);
-    const tasks = glass.tasks.filter((t) => !theirs.has(t.name) || theirs.get(t.name).variables["current-choice"] !== t.variables["current-choice"] || theirs.get(t.name).variables.task !== t.variables.task)
-      .map((t) => ({ task: t.name, description: t.variables.task, now: t.variables["current-choice"] || null, was: theirs.has(t.name) ? theirs.get(t.name).variables["current-choice"] || null : null }));
-    const theirSubscenes = byName(goldenGlass.subscenes);
-    const subscenes = glass.subscenes.filter((s) => !theirSubscenes.has(s.name) || ["running-time", "stretched-by", "movements"].some((v) => theirSubscenes.get(s.name).variables[v] !== s.variables[v]))
-      .map((s) => ({ subscene: s.name, runningTime: s.variables["running-time"], stretchedBy: s.variables["stretched-by"], was: theirSubscenes.has(s.name) ? { runningTime: theirSubscenes.get(s.name).variables["running-time"], stretchedBy: theirSubscenes.get(s.name).variables["stretched-by"] } : null }));
-    result.scenes.push({
-      scene, frames: f.frames.length, knowFrames: golden.frames.length, firstFrameDiffering: first,
-      events: JSON.stringify(f.events) === JSON.stringify(golden.events) ? "same" : f.events.length,
-      program: textIn(fs, "KEN", fn1, fn2) === read(`${knowDir}/ken-${lower}.${fn2.toLowerCase()}`) ? "same" : "differs",
-      tasks, subscenes, notes: kinds([...(glass.repairs || []), ...(f.repairs || [])]),
-      ...(off.length ? {} : { filmMatchesGolden: existsSync(`${slipsDir}/${scene}.film.json`) ? JSON.stringify(f) === read(`${slipsDir}/${scene}.film.json`) : null }),
-    });
-  }
-  return result;
-}
-
+// The chained film with KNOW and one correction (the others off, :slips-off), beside
+// KNOW's goldens; and with all of them, which should make SLIPS' goldens.
 if (doEach) {
-  const each = { about: `Ken's Cinderella with KNOW and each correction of SLIPS alone, then with all of them, beside KNOW's (${knowDir}), chained at ${fps} frames a second (tools/check-slips.mjs --each): pass 1's CP and the choice points that differ from app/data/pass1.json; for each scene its frames (and KNOW's), the first frame that differs, its events ("same", or how many), its program, the tasks whose current choice differs (now and as KNOW had it), the subscenes whose time, stretch or movements differ, and the notes left, by kind.`, fps, corrections: {} };
+  const reference = {
+    film: (scene) => `${knowDir}/${scene}.film.json`,
+    glass: (scene) => `${knowDir}/${scene}.glass.json`,
+    program: (scene) => { const [fn1, fn2] = FILE_NAMES[scene].split(" "); return `${knowDir}/ken-${fn1.toLowerCase()}.${fn2.toLowerCase()}`; },
+  };
+  const setupOff = (off) => (L) => L.evalString(`(setq :slips-off '(${off.join(" ")}))`);
+  const each = { about: `Ken's Cinderella with KNOW and each correction of SLIPS alone, then with all of them, beside KNOW's (${knowDir}), chained at ${fps} frames a second (tools/check-slips.mjs --each): pass 1's CP and the choice points that differ from app/data/pass1.json; for each scene its frames (and KNOW's, referenceFrames), the first frame that differs, its events ("same", or how many), its program, the tasks whose current choice differs (now, and as KNOW had it, was), the subscenes whose time, stretch or movements differ, and the notes left, by kind.`, fps, corrections: {} };
   for (const [id, what] of CORRECTIONS.filter(([c]) => only.includes(c))) {
     const t = Date.now();
-    const r = chained(CORRECTIONS.map(([c]) => c).filter((c) => c !== id));
+    const r = chained({ extensions: ["slips"], setup: setupOff(CORRECTIONS.map(([c]) => c).filter((c) => c !== id)), fps, reference });
     each.corrections[id] = { what, ...r };
-    console.log(`\n${what} (${((Date.now() - t) / 1000).toFixed(0)}s)\n       pass 1: ${r.pass1.cp}, ${r.pass1.choicePointsDiffering.length} choice points differ, notes ${JSON.stringify(r.pass1.notes)}`);
-    for (const s of r.scenes) console.log(`       ${s.scene}: ${s.frames} frames (KNOW ${s.knowFrames}), ${s.firstFrameDiffering === null ? "the same frames" : `differ from frame ${s.firstFrameDiffering}`}, events ${s.events}, program ${s.program}, ${s.tasks.length} tasks and ${s.subscenes.length} subscenes differ, notes ${JSON.stringify(s.notes)}`);
+    console.log(`\n${what} (${((Date.now() - t) / 1000).toFixed(0)}s)`);
+    for (const line of describe(r)) console.log(`       ${line}`);
   }
   if (only.length === CORRECTIONS.length) {
     const t = Date.now();
-    const r = chained([]);
+    const r = chained({ extensions: ["slips"], fps, reference, golden: (scene) => `${slipsDir}/${scene}.film.json` });
     each.all = r;
     console.log(`\nAll of them (${((Date.now() - t) / 1000).toFixed(0)}s)`);
-    for (const s of r.scenes) {
-      console.log(`       ${s.scene}: ${s.frames} frames (KNOW ${s.knowFrames}), notes ${JSON.stringify(s.notes)}`);
-      check(`all of them, ${s.scene}: the film as ${slipsDir}/${s.scene}.film.json`, s.filmMatchesGolden === null ? "there is no such file (tools/check-ext.mjs --extensions slips --save makes it)" : s.filmMatchesGolden ? null : "it differs");
-    }
+    for (const line of describe(r)) console.log(`       ${line}`);
+    for (const s of r.scenes) check(`all of them, ${s.scene}: the film as ${slipsDir}/${s.scene}.film.json`, s.filmMatchesGolden === null ? "there is no such file (tools/check-ext.mjs --extensions slips --save makes it)" : s.filmMatchesGolden ? null : "it differs");
   }
   report(fps === 24 ? "each-24fps.json" : "each.json", each);
 }
+
 if (doSpeed) report(fps === 24 ? "speed-24fps.json" : "speed.json", found.speed);
 
 const total = ((Date.now() - t0) / 1000).toFixed(0);

@@ -108,6 +108,18 @@ export const EXTENSIONS = [
     afterPass1: "(note-friendlys-attractions)",
     note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, the stepmother's guard no longer slows down cycle by cycle in Kept Apart, and every feeling changes her characters at the pace Ani planned. Each correction leaves a note where it acted.",
   },
+  {
+    id: "detail",
+    label: "A few of the \"myriad details\"",
+    group: "knowledge",
+    optIn: true,
+    files: ["wrap", "detail", "dtwalk", "dttend", "dtrhym"],
+    // a tendency or deliberateness left (not X) or none is read as MEND reads it, and a
+    // new story needs MEND's repairs anyway
+    requires: ["mend"],
+    changes1978: true,
+    note: "A few of the low-level details the thesis names as left undone (pp. 183-187, \"Attending to Myriad Details\"), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, how often, how quickly and how far it changes direction (f), a deliberate character going in longer arcs with smaller jags; its tendencies towards friends, enemies and strangers feed the best-when scores of the ways of showing that take it to another or away (c); and a scene's rhythm, fast, slow or changing, suggests changes of speed, as an emotional state does (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not, Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker. Each leaves a note where it acted.",
+  },
 ];
 
 // The appearance elements REVIVE;APPEAR defines, and their relative elements: a
@@ -219,6 +231,16 @@ export const ELEMENT_USE = {
   // with APPEAR, how she looks, which Director draws (REVIVE;LOOKS)
   size: "looks", "shape-jaggedness": "looks", "shape-complexity": "looks", "color-intensity": "looks", "color-saturation": "looks", "color-hue": "looks",
 };
+// What becomes of an element with these extensions: ELEMENT_USE's, but with DETAIL
+// (REVIVE;DTWALK and DTTEND) Director's walk reads deliberateness ("director"), and the
+// best-when scores of the ways of showing read the attractions ("best-when").
+export function elementUse(element, extensions = []) {
+  if (extensionsFor(extensions).some((e) => e.id === "detail")) {
+    if (element === "deliberateness") return "director";
+    if (element.startsWith("attraction-towards-")) return "best-when";
+  }
+  return ELEMENT_USE[element] || "none";
+}
 
 const becomeFiles = (fn1s) => `'(${fn1s.map((fn1) => `((ken1) ${fn1} become)`).join(" ")})`;
 // The extensions a job of CHANGE's own boots with: those asked for, and CHANGE.
@@ -252,7 +274,7 @@ const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(na
 // (by default the plan's). Returns, for the glass box:
 //   { scene, file, characters: [{ character, actor, changes, causes, values,
 //     relativeValues, choicePoints, notDescribed, looks? }], held, lisp }
-// values: every element, { element, before, after, changed, use } (use: ELEMENT_USE);
+// values: every element, { element, before, after, changed, use } (use: elementUse);
 // relativeValues: { choicePoint, value }; choicePoints: the fresh look's choice points
 // of the character, absolute and relative, as pass 1's glass box has them
 // (collectChoicePoints); notDescribed: the old words of her changes her description
@@ -283,7 +305,7 @@ export function freshLook(fs, scene, { plan, extensions = [], becomes = null, ba
       character, actor: lisp(name),
       changes: L.toArray(set.changes).map(lisp), causes: L.toArray(set.causes).map(lisp),
       values: pairs(set["new-values"]).map(([element, after]) => ({
-        element, before: before.get(element) ?? null, after, changed: JSON.stringify(before.get(element) ?? null) !== JSON.stringify(after), use: ELEMENT_USE[element] || "none",
+        element, before: before.get(element) ?? null, after, changed: JSON.stringify(before.get(element) ?? null) !== JSON.stringify(after), use: elementUse(element, extensions),
       })),
       relativeValues: pairs(set["relative-values"]).map(([choicePoint, value]) => ({ choicePoint, value })),
       choicePoints: choicePoints.filter((c) => choicePointCharacters(c.name).includes(character)),
