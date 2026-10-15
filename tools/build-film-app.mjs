@@ -438,14 +438,16 @@ function whyFunctions(root) {
 
 // The run that confirmed the DICHAR/DISPLY speed inversion (reports/ext/slips/speed.json,
 // tools/check-slips.mjs --speed): every gradual change Director runs in Ken's 1978
-// Cinderella, by its speed, how many, and the least and most of the ticks Director gave it
-// over DISPLY's estimate; null if the file isn't there.
+// Cinderella, by its speed: how many, how many Director was seen to run to their end (the
+// rest ended with the film, or were of a tick, which takes no step), and the least and
+// most of the ticks it measured over DISPLY's estimate (the review of stage 7: measured,
+// not the formula's); null if the file isn't there.
 function speedSummary(root) {
   const file = `${root}/reports/ext/slips/speed.json`;
   if (!existsSync(file)) return null;
-  const by = {};
-  for (const r of JSON.parse(readFileSync(file, "utf8")).kens) (by[r.speed] ||= []).push(r.ratio);
-  return ["high", "medium", "low"].filter((s) => by[s]).map((speed) => ({ speed, changes: by[speed].length, least: Math.min(...by[speed]), most: Math.max(...by[speed]) }));
+  const d = JSON.parse(readFileSync(file, "utf8"));
+  if (!Array.isArray(d.summary)) return null;
+  return d.summary.map(({ speed, changes, measured, least, most, filmEndedFirst, noStep }) => ({ speed, changes, measured, least, most, filmEndedFirst, noStep }));
 }
 
 const SCENES = [

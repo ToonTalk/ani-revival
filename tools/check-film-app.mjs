@@ -180,10 +180,11 @@ const EXPECTED_CHANGE_LAST_FRAMES = [164, 61, 28];
 const EXPECTED_BEAUTIFIED_LAST_FRAMES = [170, 115, 136, 17, 189, 154];
 // the opt-in extensions (Ken's decision 3), each with what it requires, as
 // reports/ext/slips/ and reports/ext/detail/ make Ken's Cinderella (their READMEs): with
-// SLIPS (and KNOW and MEND) 230, 115, 19, 180 and 85 frames, with DETAIL (and MEND) 189,
+// SLIPS (and KNOW and MEND) 230, 107, 17, 175 and 84 frames (230, 115, 19, 180 and 85
+// before the review of stage 7's S13), with DETAIL (and MEND) 189,
 // 116, 16, 169 and 87, so they end at these
 const WITH_SLIPS = ["mend", "know", "slips"], WITH_DETAIL = ["mend", "detail"];
-const EXPECTED_SLIPS_LAST_FRAMES = [229, 114, 18, 179, 84];
+const EXPECTED_SLIPS_LAST_FRAMES = [229, 106, 16, 174, 83];
 const EXPECTED_DETAIL_LAST_FRAMES = [188, 115, 15, 168, 86];
 // the prompt and schema with the switch's extensions (Lisp, JSON and the schema, for
 // STORY_FOR_PROMPTS), as SLIPS and DETAIL leave them (stage 7), with Ken's lines of 15
@@ -2156,7 +2157,7 @@ try {
   const slipsMade = await finished(400);
   check(/with some of the revival's extensions \(MEND, KNOW and SLIPS\): 5 of 5 scenes filmed/.test(slipsMade), `Ani makes Ken's Cinderella with SLIPS (${Math.round((Date.now() - t7) / 1000)} s): ${slipsMade}`);
   const slipsLasts = await lastsOf(5);
-  check(same(slipsLasts, EXPECTED_SLIPS_LAST_FRAMES), `its scenes end at frames ${slipsLasts.join(", ")} (reports/ext/slips/README.md: 230, 115, 19, 180 and 85 frames)`);
+  check(same(slipsLasts, EXPECTED_SLIPS_LAST_FRAMES), `its scenes end at frames ${slipsLasts.join(", ")} (reports/ext/slips/README.md: 230, 107, 17, 175 and 84 frames)`);
   // what it changed, and why, beside 1978's: the compare panel, the captions, the glass box
   await send("Page.navigate", { url: `${base}/app/film.check.html` });
   for (let k = 0; k < 100 && !(await js(`!!window.__check && /5 of 5 scenes filmed/.test(document.getElementById("run-status").innerText)`).catch(() => false)); k++) await sleep(200);
