@@ -8,7 +8,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { boot, EXTENSIONS, extensionsFor, whyTheyAct, stillStretches } from "../src/pipeline.js";
+import { boot, EXTENSIONS, extensionsFor, whyTheyAct, stillStretches, walksOffThePicture } from "../src/pipeline.js";
 
 function lisp(extensions = ["seen"]) {
   const L = boot(makeProjectFileSystem(), { extensions });
@@ -147,6 +147,20 @@ test("Ken's Cinderella as in 1978 has still stretches: the Meeting's joys at 24 
   const meeting = whyTheyAct(json("reports/pass2/meeting.glass.json"), json("reports/film/meeting.film.json"));
   assert.deepEqual(meeting.stills.map((s) => [s.part, s.from, s.to, s.kind, s.repeat]), [["(subscene-of meeting 2)", 79, 86, "repeat-unwinding", 8]]);
   assert.deepEqual(stillStretches(json("reports/film/kept-apart.film.json")), []);
+});
+
+test("the revival's walks end on the picture, by the recorder's own segments (Ken's testing: Cinderella was on the picture)", () => {
+  // the beautified scene: Cinderella's last walk of the transformation ends at frame 89 at
+  // Director's (-339.37, 195.05), which is on the picture, near its top left
+  const glass = json("reports/ext/change/beautified-film/cinderella-beautified.glass.json");
+  const film = json("reports/ext/change/beautified-film/cinderella-beautified.film.json");
+  assert.deepEqual(walksOffThePicture(glass, film, { fps: 4 }), []);
+  // and a character none of whose lines reach the picture is off it
+  const last = film.frames.length - 1;
+  const cut = { ...film, frames: film.frames.map((fr, i) => (i === 89 ? { ...fr, segs: { ...fr.segs, cinderella: undefined } } : fr)) };
+  const off = walksOffThePicture(glass, cut, { fps: 4 });
+  assert.ok(off.some((w) => w.character === "cinderella" && w.frame === 89), JSON.stringify(off));
+  assert.ok(last > 89);
 });
 
 test("why an activity lasts as long as it does: its task, method, estimate, part, stops and how it ended", () => {

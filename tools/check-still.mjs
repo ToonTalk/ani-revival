@@ -22,7 +22,7 @@
 // Exits non-zero if any check fails.
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { whyTheyAct } from "../src/pipeline.js";
+import { whyTheyAct, walksOffThePicture } from "../src/pipeline.js";
 
 const args = process.argv.slice(2);
 const quiet = args.includes("--quiet");
@@ -56,26 +56,13 @@ for (const dir of folders) {
         console.log(`FAIL   ${said}: made with SEEN, and no one wanders`);
       } else if (!quiet) console.log(`still  ${said}`);
     }
-    // the revival's walks end on the picture
-    const W = film.picture.width, H = film.picture.height;
-    for (const a of why.activities) {
-      if (!a.by || a.by === "DISPLY" || !a.film) continue;
-      for (const span of a.film.spans) {
-        const frame = film.frames[Math.min(span.end, film.frames.length - 1)];
-        for (const c of a.characters) {
-          const ch = frame.chars[c];
-          if (!ch || !ch.visible) continue;
-          walks++;
-          // none of her lines reach the picture: the recorder keeps no segments for her
-          // then; a character partly on, at an edge, is on the picture
-          if (!frame.segs[c]) {
-            failures++;
-            console.log(`FAIL   ${where}: ${a.plan} (${a.by}) ends at frame ${span.end} with ${c} off the picture`);
-          }
-        }
-      }
+    // the revival's walks end on the picture (src/pipeline.js walksOffThePicture)
+    walks += why.activities.filter((a) => a.by && a.by !== "DISPLY" && a.film).reduce((n, a) => n + a.film.spans.length, 0);
+    for (const w of walksOffThePicture(glass, film, { fps })) {
+      failures++;
+      console.log(`FAIL   ${where}: ${w.plan} (${w.by}) ends at frame ${w.frame} with ${w.character} off the picture`);
     }
   }
 }
-console.log(`\n${folders.length} folders: ${stills} still stretches (${Object.entries(byKind).map(([k, n]) => `${n} ${k}`).join(", ") || "none"}); ${walks} ends of the revival's walks, ${failures ? "" : "all "}on the picture${failures ? `; ${failures} check${failures > 1 ? "s" : ""} FAILED` : ""}`);
+console.log(`\n${folders.length} folders: ${stills} still stretches (${Object.entries(byKind).map(([k, n]) => `${n} ${k}`).join(", ") || "none"}); ${walks} ends of runs of the revival's plans, each with its characters on the picture unless said; ${failures ? `${failures} check${failures > 1 ? "s" : ""} FAILED` : "all checks ok"}`);
 process.exit(failures ? 1 : 0);

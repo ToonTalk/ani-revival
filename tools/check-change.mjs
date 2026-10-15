@@ -44,6 +44,10 @@
 //     moves-differently.json shows which of her elements the program carries
 //     differently and what Director then did differently (for the beautified film, her
 //     look: the take-look form);
+//   - in each story (since Ken's testing, 15 October), every walk the revival planned
+//     ends with its characters on the picture (src/pipeline.js walksOffThePicture), and,
+//     made with SEEN (the beautified film), no part of only changes leaves everyone
+//     standing still for more than a second (whyTheyAct's stills);
 //   - the bridge's timing (stage 6): Change of Heart planned again with the
 //     stepmother's path-curvature to become high, a factor of 4 from low, and filmed at
 //     4 frames a second and at 24: the bridges begin the tick after the Prince's walk to
@@ -60,7 +64,7 @@
 // Prints each check with ok or FAIL; exits non-zero if any fails.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { boot, pass1, pass2, film, makeFilm, freshLook, recomputeEveryone, changeRecord, storyOutline, storyPlan, whyTheyAct } from "../src/pipeline.js";
+import { boot, pass1, pass2, film, makeFilm, freshLook, recomputeEveryone, changeRecord, storyOutline, storyPlan, whyTheyAct, walksOffThePicture } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
@@ -352,6 +356,11 @@ if (!quick) {
       golden(`${st.name} ${s.id}: KEN1;${s.movie.toUpperCase()} POSIT`, `${dir}/ken1-${s.movie}.posit`, textIn(fs, "KEN1", s.movie.toUpperCase(), "POSIT"));
       if (s.become) golden(`${st.name} ${s.id}: KEN1;${s.become.toUpperCase()} BECOME`, `${dir}/ken1-${s.become}.become`, textIn(fs, "KEN1", s.become.toUpperCase(), "BECOME"));
     }
+    // every walk the revival plans (the cause's walk, her wander, SEEN's) ends with its
+    // characters on the picture (src/pipeline.js walksOffThePicture, the recorder's own
+    // segments)
+    const off = run.scenes.filter((x) => x.film).flatMap((x) => walksOffThePicture(x.glass, x.film, { fps }).map((w) => `${x.id} ${w.plan} at frame ${w.frame}, ${w.character}`));
+    check(`${st.name}: every walk the revival planned ends with its characters on the picture`, off.length ? off.join("; ") : null);
     // with SEEN, no part of only changes leaves everyone standing still for more than a
     // second (src/pipeline.js whyTheyAct's stills, "only-changes")
     if (st.extensions.includes("seen")) {

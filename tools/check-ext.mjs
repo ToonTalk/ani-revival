@@ -76,6 +76,9 @@
 //     and in each scene no part of only changes in which no one moves for more than a
 //     second (src/pipeline.js whyTheyAct's stills, "only-changes"); reports/ext/seen/
 //     README.md says how and why the films differ from 1978's.
+// For each, in each scene of the chained film, every walk the revival planned ends with
+// its characters on the picture (src/pipeline.js walksOffThePicture: the film's segments
+// are the picture's own dots, and a character none of whose lines reach it has none).
 // The goldens are in reports/ext/<the ids of the extensions that change Cinderella>, but
 // SLIPS's in reports/ext/slips/ and DETAIL's in reports/ext/detail/.
 // Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail|seen] [--quick] [--fps 24] [--save]
@@ -90,7 +93,7 @@
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film, storyPlan, storyOutline, whyTheyAct } from "../src/pipeline.js";
+import { SCENES, FILE_NAMES, extensionsFor, isAppearanceChoice, pass1, pass2, film, storyPlan, storyOutline, whyTheyAct, walksOffThePicture } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
@@ -496,6 +499,10 @@ if (!quick) {
     console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events${ours.looks ? `, ${ours.looks.length} looks` : ""}`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));
     if (kind === "appear" && scene === "kept-apart") durationGuard(fs3, ours, "chained");
+    // every walk the revival planned ends with its characters on the picture
+    // (src/pipeline.js walksOffThePicture, by the recorder's own segments)
+    const off = walksOffThePicture(p2.value.glass, ours, { fps });
+    check(`${scene}: every walk the revival planned ends with its characters on the picture`, off.length ? off.map((w) => `${w.plan} at frame ${w.frame}, ${w.character}`).join("; ") : null);
     if (kind === "seen") {
       // no part of only changes leaves everyone standing still for more than a second
       const stills = whyTheyAct(p2.value.glass, ours, { fps, extensions }).stills;

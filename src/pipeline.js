@@ -1197,6 +1197,29 @@ export function whyTheyAct(glass, film = null, { fps = (film && film.fps) || 4, 
   return { scene, parts, tasks, activities, stills };
 }
 
+// The ends of the revival's walks with a character off the picture: for each plan a
+// revival's method wrote (whyTheyAct's activities, by other than DISPLY's), at the frame
+// each of its runs ended, each of its characters shown on the stage none of whose lines
+// reach the picture. The film's segments are the picture's own dots, and the recorder
+// keeps none for a character none of whose lines reach it (recorder, above); one partly
+// off, at an edge, has some. [{ plan, by, frame, character }]; none is the check that the
+// revival plans no walk, but an exit, that leaves anyone off the picture (Ken's own
+// methods' walks, exit-by's among them, are not looked at).
+export function walksOffThePicture(glass, film, { fps = film.fps || 4 } = {}) {
+  const out = [];
+  for (const a of whyTheyAct(glass, film, { fps }).activities) {
+    if (!a.by || a.by === "DISPLY" || !a.film) continue;
+    for (const span of a.film.spans) {
+      const frame = film.frames[Math.min(span.end, film.frames.length - 1)];
+      for (const c of a.characters) {
+        const ch = frame.chars[c];
+        if (ch && ch.visible && !frame.segs[c]) out.push({ plan: a.plan, by: a.by, frame: span.end, character: c });
+      }
+    }
+  }
+  return out;
+}
+
 // Each list in a form, depth first.
 function walkForm(form, f) {
   if (!Array.isArray(form)) return;
