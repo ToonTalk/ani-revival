@@ -44,11 +44,16 @@ export const CHARACTERS = ["cinderella", "step-mother", "prince", "fairy-godmoth
 // after (z) has made the choices and before save-answers saves them. recorder: what
 // the filming records besides (recorder's options); looks: true means the extension
 // chooses how the characters look (pass 1 returns its appearances, each scene's
-// glass box its looks, and a cast may be larger than SHAPES).
+// glass box its looks, and a cast may be larger than SHAPES). group: where the page's
+// "Which extensions" panel lists it, "repairs" (repairs to 1978 limits) or "knowledge"
+// (knowledge Ken could have added); optIn: not among those the page's switch turns on
+// (Ken's decision 3 of 9 October: the switch turns on MEND, KNOW, APPEAR and CHANGE,
+// and SLIPS and DETAIL are opt-in).
 export const EXTENSIONS = [
   {
     id: "mend",
     label: "Repairs for new stories",
+    group: "repairs",
     files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19"],
     requires: [],
     changes1978: false,
@@ -57,6 +62,7 @@ export const EXTENSIONS = [
   {
     id: "appear",
     label: "Ani chooses how her characters look",
+    group: "knowledge",
     files: ["wrap", "appear", "apsug", "shapes", "colors", "looks", "alter"],
     requires: [],
     changes1978: true,
@@ -67,6 +73,7 @@ export const EXTENSIONS = [
   {
     id: "change",
     label: "Characters who change",
+    group: "knowledge",
     files: ["wrap", "change", "chshow"],
     // a change is shown by her wandering, as MEND9's wander-around wanders, and the one
     // it changes is brought on by MEND6's bring-on; a change story is a new story, which
@@ -79,12 +86,27 @@ export const EXTENSIONS = [
   {
     id: "know",
     label: "Knowledge Ken could have added",
+    group: "knowledge",
     files: ["wrap", "know", "knowds", "knowrl", "knowcv", "knowdi", "knowem"],
     // its display methods bring on a character off the stage with MEND6's bring-on, and
     // its feelings are combined with joy by MEND7's repair of COSUG's combine
     requires: ["mend"],
     changes1978: true,
     note: "Knowledge Ken could have added (thesis p. 19: words such as \"clever\", \"fears\" or \"helps\" \"could be added\"), each piece in the idiom of the file of his it extends and each with its evidence or the revival's reason: words for characters (gentle, rough, nervous, calm, cheerful, gloomy, clever, brave, cowardly, curious, playful, old, young, slow and quick, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears; ways of showing likes, is-obedient-to, is-helpful-towards, and, by Ken's decision 10, is-protective-to, is-grateful-to and is-intolerant-of; is-protective-of a neighbor of is-protective-to); ways of showing helps, avoids and follows (helps-along, moves-away-from and follows-behind); feelings (pride, anticipation, loneliness, fear and anger); and a word with no way of showing itself borrowing its neighbors' (dscrp.17:183). Ken's Cinderella makes the same choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where Ani had no idea how in 1978, and the stepmother's pride makes her paths smoother in Kept Apart.",
+  },
+  {
+    id: "slips",
+    label: "Corrections of slips in Ken's files",
+    group: "repairs",
+    optIn: true,
+    files: ["wrap", "slips", "slips1", "slips3", "slips6", "slips7", "slips8", "slips9"],
+    // S1 has good's helping find someone to help, which needs KNOW's way of showing
+    // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped
+    requires: ["know"],
+    changes1978: true,
+    // REVIVE;SLIPS3's notes on the choice points of a friendly character's tendencies
+    afterPass1: "(note-friendlys-attractions)",
+    note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, the stepmother's guard no longer slows down cycle by cycle in Kept Apart, and every feeling changes her characters at the pace Ani planned. Each correction leaves a note where it acted.",
   },
 ];
 
@@ -798,8 +820,12 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
 // are saved as KEN1;<movie> POSIT for the next scene's pass 2. If the revival's repairs
 // left notes while it was filmed (REVIVE;MEND2's weightify guard, say, in Director's
 // special dynamics), the film has them as repairs, as pass 2's glass box has its own.
-export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [] } = {}) {
+// setup, if given, is called with the Lisp once it has booted, before ANINIT loads, as
+// pass 1's and pass 2's are (tools/check-slips.mjs makes SLIPS's corrections one at a
+// time with it).
+export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null } = {}) {
   const L = boot(fs, { backtrace, extensions });
+  if (setup) setup(L);
   L.evalString("(cs)");
   L.evalString("(load '|ken;aninit >|)");
   let cast = CHARACTERS;
