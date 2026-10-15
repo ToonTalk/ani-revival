@@ -73,6 +73,7 @@
   (let ((dynamics (ask ,character recall your special-dynamics)))
        (let ((subscene (dtwalk-subscene-of dynamics)))
 	    (and subscene
+		 (actor-of subscene dont-autoload)
 		 (revival-note subscene 'deliberate-walk
 			       (list (name-of character) 'deliberateness
 				     (or (ask ,dynamics recall your deliberateness) 'medium))

@@ -111,10 +111,10 @@
 ;; A Director subscene a character's special dynamics are of, for a note: the subscene
 ;; of (special-dynamics-of c in (subscene-of s n)), or of the nearest such ancestor of
 ;; dynamics named otherwise (an activity's, |(special-dynamics-of c in ...)-15-1|);
-;; nil if there is none.
+;; nil if there is none, or it is no actor.
 (defun subscene-of-dynamics (dynamics)
   (do ((actor dynamics (and actor (ask ,actor recall your parent))))
       ((or (null actor) (eq actor 'special-dynamics)) nil)
       (and (not (atom actor))
 	   (eq (first actor) 'special-dynamics-of)
-	   (return (fourth actor)))))
+	   (return (and (actor-of (fourth actor) dont-autoload) (fourth actor))))))
