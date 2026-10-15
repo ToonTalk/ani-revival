@@ -5287,6 +5287,7 @@ function whyPanel(char) {
     // who wrote the plan: DISPLY's method, or the revival's (MEND5's move-to; MEND6's bring-on)
     const brought = act.base === "getting-on-stage" && broughtOnBy(act.name);
     const writer = brought ? `Written by the revival's repairs, which bring ${esc(k.her)} on first with this step of Ken's goes-to-and-accompanys ${repairCode("brought-on-stage")}`
+      : SEEN_ACTIVITIES.includes(act.base) ? `Written by the revival's repair for a character whose only part is a change of feeling (REVIVE;SEEN), from the part's own steps, with MEND9's walks ${fileLink("seen")}`
       : (CHANGE_METHODS.includes(fam) || fam === "bridge-to:") && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, the revival's way of showing a change (REVIVE;CHSHOW), made from DISPLY's and MEND's parts ${methodCode([fam], "run")}`
       : !CODE.display.methods[fam] && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, which the revival made from DISPLY's parts ${methodCode([fam], "run")}`
       : `Written by the method's code in DISPLY ${methodCode([fam], "run")}`;
@@ -6283,7 +6284,7 @@ function editorPanel() {
   const side = document.getElementById("side");
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
-    <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes about three minutes on a laptop; each scene plays as soon as it is filmed, beside the 1978 one.</p>
+    <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
@@ -6314,7 +6315,7 @@ function editorPanel() {
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
-  const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (some ten minutes on a laptop)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (about three minutes on a laptop). Choose 24 for the film's own rate."; };
+  const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (a quarter of an hour on a recent computer, half an hour with Ken's beautified scene)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (two or three minutes on a recent computer). Choose 24 for the film's own rate."; };
   side.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => {
     editor.fps = Number(b.dataset.fps);
     store.set(FPS_KEY, String(editor.fps));
@@ -6481,8 +6482,18 @@ self.onmessage = function (e) {
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
 // How long each step took for Ken's story, in seconds: the progress bar's estimate; and,
 // with CHANGE, Ani's fresh look and the full recompute before a scene that changes someone.
-const STEP_SECONDS = { pass1: 18, "fresh-look": 34, recompute: 33, introduction: [5, 20], "kept-apart": [4, 46], "cinderella-beautified": [5, 40], "no-longer-kept-apart": [3, 6], meeting: [7, 29], justice: [4, 19] };
-const stepSeconds = ([step, id], fps = 4) => (step === "pass2" ? (STEP_SECONDS[id] || [5, 25])[0] : step === "film" ? (STEP_SECONDS[id] || [5, 25])[1] * fps / 4 : STEP_SECONDS[step] || 20);
+// Each scene's is [pass 2, filming at 4 frames a second, filming at 24]. Measured on 15
+// October in headless Chrome (tools/check-film-app.mjs prints each run's steps) with the
+// page's set: Ken's Cinderella at 4 frames a second in 2:24 (pass 1 27 s, the
+// Introduction's filming 18, Kept Apart's 24, ...), his beautified scene in 4:45 (the fresh
+// look 37 s, the recompute 39); at 24, his Cinderella in 13:44 and the beautified scene in
+// 26:33, on a machine busy with other work (Justice alone 351 s: 967 frames). A filming
+// at 24 isn't six times one at 4: each scene's run is its own.
+const STEP_SECONDS = { pass1: 30, "fresh-look": 40, recompute: 40, introduction: [5, 18, 99], "kept-apart": [4, 34, 196], "cinderella-beautified": [4, 30, 251], "no-longer-kept-apart": [3, 4, 20], meeting: [6, 26, 110], justice: [3, 24, 351] };
+const stepSeconds = ([step, id], fps = 4) => {
+  const v = STEP_SECONDS[id] || [5, 25];
+  return step === "pass2" ? v[0] : step === "film" ? (fps === 24 && v[2] ? v[2] : v[1] * fps / 4) : STEP_SECONDS[step] || 20;
+};
 // A scene is filmed for at most this long: Ken's runs stopped at 1,000 frames, 250 seconds
 // at 4 frames a second ((m 1000)); some of Ani's scenes end on their own only after 200.
 const CAP_SECONDS = 250;
