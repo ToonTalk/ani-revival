@@ -24,6 +24,7 @@ These are the new REVIVE files. Each name is six characters or fewer, so ITS tru
 | CHANGE | Item 3 | No (CINDY has no change task) |
 | SLIPS | Corrections of slips in your files | Yes |
 | DETAIL | A few of the "myriad details" | Yes |
+| SEEN | A part of only changes made seen (added after your testing, 15 October) | Yes (the Meeting's last part) |
 
 The reviewers found two load-time rules by probing:
 - **One wrap per job.** `+after-load` hooks fire on every load of their file, and fire at once if the file is already loaded. A second load would wrap the wrapper and recurse, so every wrapper goes through WRAP.
@@ -400,6 +401,14 @@ That comes to about 32 working days for the revival. A new PLAN.md entry, Phase 
 5. **The tendencies on the convey methods too?** Run so, your stepmother avoids Cinderella instead of pushing her around. Recommended: off, as now.
 6. **Should DETAIL require SLIPS?** Alone its rhythm compounds through your slip S8. Recommended: no.
 7. **The rhythm's amount and scenes**, a quarter at medium speed, are the revival's; should the film's level of rhythm scale it?
+
+## Ken's testing (15 October)
+
+Ken tested the live film page with the four extensions on his Cinderella and his cinderella-beautified scene put back (the page's preset), and found two things; a third is for the page's next round.
+
+- **Cinderella off the picture: not a bug.** Her last walk of the transformation ends at Director's (-339.37, 195.05), which is not in the picture's dots: the recorder's segments (the picture's own dots, `recorder`) draw her there near the picture's top left, her center between 135.6 and 281.2 across and 125.2 and 260.2 down of 551 by 413 throughout the scene (at 24 frames a second, 146.6 to 288.8 and 137.6 to 272.7); every character of the scene stays on the picture. Ken's screenshot had scrolled off the top of the picture. No walk changed. A check that no walk the revival plans ends with a character off the picture, by those segments (`src/pipeline.js` `walksOffThePicture`), runs in `tools/check-still.mjs` over every golden, in `tools/check-change.mjs` over its three stories and in `tools/check-ext.mjs` over each chained film.
+- **Still stretches, and SEEN.** In the beautified scene's last part, the two joys (frames 81 to 135 at 4 frames a second, 486 to 818 at 24), no one moved from frame 91 (527) to the end: a part of only changes extends the transformation, as your SCENE extends an activity for a feeling (scene.9:216-240), Cinderella's wander of the transformation ends at frame 89, the fairy godmother has stood by since frame 4, and Director takes four times Ani's estimate over a change at high speed. Ken approved the repair: where a feeling's part leaves its characters with nothing to do, they wander, "so that the changes are apparent" (pp. 125-126, the reason SCENE gives for wander-around), applied beyond the start of a scene. Since Ken's own Cinderella reaches such a stretch (the Meeting's last part, the two joys, at 24 frames a second, frames 900 to 1,049 as in 1978), it is not in MEND: it is **SEEN** (`REVIVE;SEEN`, `reports/ext/seen/README.md`), a new extension, a repair (group repairs), requiring MEND, not opt-in, to be turned on by the page's switch beside the four. MEND alone and Ani as in 1978 are byte for byte as before (check-1978), and so is CHANGE alone.
+- **Why they act as they do.** `src/pipeline.js` `whyTheyAct(glass, film)` gathers, for each activity, what the page needs to say why it lasts as long as it does, and for each still stretch why no one moves; `reports/ext/change/README.md`, "For the page: why they act as they do".
 
 ## The questions as they were put
 
