@@ -167,8 +167,9 @@ const WITH_SLIPS = ["mend", "know", "slips"], WITH_DETAIL = ["mend", "detail"];
 const EXPECTED_SLIPS_LAST_FRAMES = [229, 114, 18, 179, 84];
 const EXPECTED_DETAIL_LAST_FRAMES = [188, 115, 15, 168, 86];
 // the prompt and schema with the switch's four (Lisp, JSON and the schema, for
-// STORY_FOR_PROMPTS), as they were before SLIPS and DETAIL came to the page (stage 7)
-const PROMPT_REVIVAL_SHA = ["dc71714c808695b9d01cf820d2762e51b00855b01bcd2a74b98b8ad59b61ba1b", "e1bbe6ed3073ffdda3cac9430be2d0ae0cf230f68fe8179dc75fce6a5f991c0f", "39c398879946467919cd3a3256b05257a2348dc2ed33c2650fefeb9a23b0a7c0"];
+// STORY_FOR_PROMPTS), as SLIPS and DETAIL leave them (stage 7), with Ken's lines of 15
+// October on the story's own cast (only with the revival's extensions; the schema is as before)
+const PROMPT_REVIVAL_SHA = ["6d415637b4d0fd3f5cd474aee3a569a3df44225e7e2e3ce8882516f89d21762d", "2d5995f95e11066d43507bebeb644d0649c2999e4f285f3de7da134fa9ab28a4", "39c398879946467919cd3a3256b05257a2348dc2ed33c2650fefeb9a23b0a7c0"];
 // the prompt with the extensions off (Lisp, then JSON, for STORY_FOR_PROMPTS), as it was
 // before Ani showed changes (stage 6): its SHA-256, which a change to the 1978 mode's
 // prompt changes (make it again, from storyPrompt with no extensions, if that is meant)
