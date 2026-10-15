@@ -927,8 +927,12 @@ try {
   const noEval = await js(`(async () => {
     const t = window.__check;
     if (!t) return { started: false };
-    let evalRefused = false;
-    try { new Function("return 1")(); } catch { evalRefused = true; }
+    // (a string given to setTimeout is compiled in the page, as eval is; this expression's
+    // own new Function would be DevTools', which a page's CSP doesn't refuse)
+    window.__evalRan = false;
+    setTimeout("window.__evalRan = true", 0);
+    await new Promise((r) => setTimeout(r, 300));
+    const evalRefused = !window.__evalRan;
     let runtime = "";
     try { t.ani.runtime = await t.unpack(document.getElementById("ani-runtime").textContent); const R = t.runtimeOnPage(); runtime = typeof R.makeFilmSteps; } catch (e) { runtime = String(e.message || e); }
     return { started: true, evalRefused, runtime, caption: document.getElementById("caption-0").innerText };
@@ -1554,7 +1558,8 @@ try {
   // the glass box's colors, the review of stage 5: the fairy godmother's purple from Ani's
   // record of its compromise with the film's variety's orange; Cinderella's sadness in Kept
   // Apart, which dims her to .45, which the screen draws a little lighter; her joy in the
-  // Meeting, cut short at 4 frames a second by the scene's end; the stepmother in Justice
+  // Meeting, which the film now waits for while she wanders (SEEN), where before SEEN the
+  // scene's end cut it short at 4 frames a second; the stepmother in Justice
   const glassColors = await js(`(() => {
     const t = window.__check, run = t.RUNS[1];
     const body = (c, i) => { const d = document.createElement("div"); d.innerHTML = t.atScene(i, () => t.using(run, () => t.looksBody(run, c, "x", run.scenes[i]))); return d.innerText.replace(/\\s+/g, " "); };
@@ -1564,9 +1569,9 @@ try {
     && /\(purple, for “magical” \(one of the hues ruled out, so the two conflict\), set aside as much less strongly suggested than any hue but red and purple\)/.test(glassColors.fairy),
     `the fairy godmother's orange, Ken's own 1978 hue for her, by his uniqueness rule (magical's purple set aside, as Cinderella's) and the film's variety in the revival's order: ${(glassColors.fairy.match(/orange: she is to look[^)]*\)[^)]*\)/) || [""])[0]}`);
   check(/In part 3, to show that Cinderella is very unhappy, Ani dims her colors, from a brightness of \.65 to \.45 \(1 is the screen's brightest\); on the black screen the page draws her a little lighter than \.45, so that she can still be seen: a look change/.test(glassColors.kept)
-    && /In part 7, to show that Cinderella is very happy, Ani brightens her colors, from a brightness of \.65 to \.7\d* \(1 is the screen's brightest\), and the scene ends before she is as bright as Ani planned \(\.975\): a look change/.test(glassColors.meeting)
+    && /In part 7, to show that Cinderella is very happy, Ani brightens her colors, from a brightness of \.65 to \.975 \(1 is the screen's brightest\): a look change/.test(glassColors.meeting) && !/the scene ends before/.test(glassColors.meeting)
     && /In part 1, to show that the stepmother is very unhappy, Ani would dim her colors, but she is as dark as Ani draws anyone already: a look change/.test(glassColors.justice) && !/On the black screen/.test(glassColors.kept),
-    `the glass box says where a look change is cut short and where the screen draws a color lighter: ${(glassColors.meeting.match(/In part 7, to show[^:]*/) || [""])[0]} | ${(glassColors.kept.match(/In part 3, to show[^:]*/) || [""])[0]}`);
+    `the glass box says how far a look change goes (with SEEN, the Meeting's joy to its end) and where the screen draws a color lighter: ${(glassColors.meeting.match(/In part 7, to show[^:]*/) || [""])[0]} | ${(glassColors.kept.match(/In part 3, to show[^:]*/) || [""])[0]}`);
   // Ani's colors as drawn: on the black screen, at least 3:1 at her darkest and a little
   // more the brighter she made it, so a dark blue, a medium one and a bright one are lifted
   // and stay in that order; Cinderella's, the fairy godmother's and the Prince's as Ani
@@ -1655,7 +1660,7 @@ try {
   await sleep(300);
   const reopened = await cast();
   check(saved.saved && saved.version === 2 && none && castOk(reopened), `saved as a film file (${saved.name}, version ${saved.version}, ${saved.kb} KB) and opened again on a fresh page, it is drawn with Ani's looks`);
-  check(saved.fields === "format,version,about,title,lisp,extensions,date,gzip" && saved.about === "A film of Cinderella, made by Ani, Ken Kahn's 1978 animation program, revived; open it at https://toontalk.github.io/ani/ to watch it with all of Ani's reasons." && saved.title === "Cinderella" && saved.lisp && saved.extensions === "mend,know,appear,change" && /^\d{4}-\d\d-\d\dT/.test(saved.date || "") && saved.readable && saved.story === undefined,
+  check(saved.fields === "format,version,about,title,lisp,extensions,date,gzip" && saved.about === "A film of Cinderella, made by Ani, Ken Kahn's 1978 animation program, revived; open it at https://toontalk.github.io/ani/ to watch it with all of Ani's reasons." && saved.title === "Cinderella" && saved.lisp && saved.extensions === "mend,know,appear,change,seen" && /^\d{4}-\d\d-\d\dT/.test(saved.date || "") && saved.readable && saved.story === undefined,
     `its top level is readable, with the film's title, its Lisp, the extensions and the date, and an "about" that names it (${saved.fields})`);
 
   // a story with a change: the stepmother repents (test/stories/change-of-heart.lisp, as
@@ -1848,7 +1853,7 @@ try {
       title: outer.title, story: outer.story, model: outer.model, provider: outer.provider, about: outer.about, lisp: typeof outer.lisp === "string" && outer.lisp === d.cindy, extensions: (outer.extensions || []).join(), old };
   })()`);
   check(changeFile.saved && changeFile.version === 2 && changeFile.who === "step-mother" && changeFile.held === 1, `its film file (${changeFile.name}, version ${changeFile.version}) carries Ani's fresh look`);
-  check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,know,appear,change" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
+  check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,know,appear,change,seen" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
     `and, readable at its top, the story as told in English, the model and provider that wrote it, and its Lisp (${changeFile.model}, ${changeFile.provider})`);
   check(/^Your version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^Your version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
 
