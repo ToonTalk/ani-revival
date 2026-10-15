@@ -2,6 +2,9 @@
 // (Flonum objects). The generic functions (PLUS, TIMES, ...) return a flonum
 // when any argument is one; the $ functions work on flonums.
 import { Flonum, LispError } from "../types.js";
+// sin, cos, atan2, log and exp as fdlibm has them, the same in every JavaScript engine
+// (src/maclisp/libm.js)
+import * as libm from "../libm.js";
 
 export function install(L) {
   const { NIL, T } = L;
@@ -104,15 +107,15 @@ export function install(L) {
   d("FIX", (x) => Math.floor(val(x)));
   d("IFIX", (x) => Math.floor(val(x)));
   d("SQRT", flo(Math.sqrt));
-  d("SIN", flo(Math.sin));
-  d("COS", flo(Math.cos));
+  d("SIN", flo(libm.sin));
+  d("COS", flo(libm.cos));
   d("ATAN", (y, x = 1) => {
-    let a = Math.atan2(val(y), val(x));
+    let a = libm.atan2(val(y), val(x));
     if (a < 0) a += 2 * Math.PI;
     return new Flonum(a);
   });
-  d("LOG", flo(Math.log));
-  d("EXP", flo(Math.exp));
+  d("LOG", flo(libm.log));
+  d("EXP", flo(libm.exp));
   d("EXPT", (a, b) => mk(Math.pow(val(a), val(b)), a instanceof Flonum || b instanceof Flonum));
   d("^", (a, b) => mk(Math.pow(val(a), val(b)), false));
   d("^$", (a, b) => new Flonum(Math.pow(val(a), val(b))));

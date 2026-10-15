@@ -1916,7 +1916,7 @@ try {
     await wait(100);
     const on = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join(), stored: localStorage.getItem("ani-cinderella:extensions:v1"), mode: localStorage.getItem("ani-cinderella:mode:v1") };
     const panel = side.querySelector(".ext-panel");
-    const groups = [...panel.querySelectorAll(".ext-group")].map((g) => g.querySelector(".label").innerText + ": " + [...g.querySelectorAll("input[data-ext]")].map((x) => x.dataset.ext + (x.checked ? "+" : "-") + (x.closest(".ext").querySelector(".opt-in") ? " opt-in" : "")).join(", ")).join("; ");
+    const groups = [...panel.querySelectorAll(".ext-group")].map((g) => g.querySelector(".label").textContent + ": " + [...g.querySelectorAll("input[data-ext]")].map((x) => x.dataset.ext + (x.checked ? "+" : "-") + (x.closest(".ext").querySelector(".opt-in") ? " opt-in" : "")).join(", ")).join("; ");
     const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)}, prompts = {};
     for (const [k, ext] of [["four", ${JSON.stringify(REVIVAL)}], ["all", [...${JSON.stringify(REVIVAL)}, "slips", "detail"]], ["slips", ${JSON.stringify(WITH_SLIPS)}], ["mendKnow", ["mend", "know"]], ["detail", ${JSON.stringify(WITH_DETAIL)}], ["mend", ["mend"]]]) prompts[k] = [await hex(t.storyPrompt(STORY, { extensions: ext })), await hex(t.storyPrompt(STORY, { extensions: ext, format: "json" })), await hex(JSON.stringify(t.storySchema(ext)))];
     side.querySelector('[data-mode="1978"]').click();

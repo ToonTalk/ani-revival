@@ -10,6 +10,8 @@
 // Each primitive and its abbreviations follow TVRTLE 542's DEFINE forms.
 
 import { Sym, Cons, Flonum, LispError, UNBOUND } from "../maclisp/types.js";
+// sin, cos and atan2 as fdlibm has them, the same in every JavaScript engine
+import * as libm from "../maclisp/libm.js";
 import { FrameBuffer } from "./framebuffer.js";
 import { TvTurtle, randomBits, toWord } from "./turtle.js";
 import { decodeItsWords, parseDumpArrays } from "./dumparrays.js";
@@ -157,10 +159,10 @@ function defineTvrtlePrimitives(L, tv) {
   def("BEARING", (...args) => tv.bearing(args));
   def("TOWARDS", (...args) => tv.towards(args));
   def("RANGE", (...args) => tv.range(args));
-  def("SINE", (d) => flo(Math.sin(val(d) * tv.piOver180)));
-  def("COSINE", (d) => flo(Math.cos(val(d) * tv.piOver180)));
+  def("SINE", (d) => flo(libm.sin(val(d) * tv.piOver180)));
+  def("COSINE", (d) => flo(libm.cos(val(d) * tv.piOver180)));
   def("ARCTAN", (opp, adj) => {
-    let a = Math.atan2(val(opp), val(adj));
+    let a = libm.atan2(val(opp), val(adj));
     if (a < 0) a += 2 * Math.PI;
     return flo(a / tv.piOver180);
   });

@@ -19,6 +19,8 @@
 // See reports/TV-TURTLE.md for the full account.
 
 import { Sym, Cons, Flonum, LArray, LispError, UNBOUND } from "../maclisp/types.js";
+// sin, cos and atan2 as fdlibm has them, the same in every JavaScript engine
+import * as libm from "../maclisp/libm.js";
 
 // TVRTLE's per-turtle variables (INITIAL-TURTLE-PROPERTIES), in its order,
 // with their values for a newly hatched turtle (INITIAL-HATCH-PROPERTIES).
@@ -501,10 +503,10 @@ export class TvTurtle {
     this.piOver180 = this.pi / 180.0;
     this.polygon = 30.0;
     this.echolines = NIL;
-    this.sine120 = Math.sin(120.0 * this.piOver180);
-    this.cosine120 = Math.cos(120.0 * this.piOver180);
-    this.sine240 = Math.sin(240.0 * this.piOver180);
-    this.cosine240 = Math.cos(240.0 * this.piOver180);
+    this.sine120 = libm.sin(120.0 * this.piOver180);
+    this.cosine120 = libm.cos(120.0 * this.piOver180);
+    this.sine240 = libm.sin(240.0 * this.piOver180);
+    this.cosine240 = libm.cos(240.0 * this.piOver180);
     this.tvTurtleFrontRadius = 15.0;
     this.tvTurtleSideRadius = 10.0;
     this.windowsList = NIL;
@@ -1489,8 +1491,8 @@ export class TvTurtle {
     this.eraseTriangle();
     const r = h * this.piOver180;
     this.heading = h;
-    this.sineHeading = Math.sin(r);
-    this.cosineHeading = Math.cos(r);
+    this.sineHeading = libm.sin(r);
+    this.cosineHeading = libm.cos(r);
     this.drawTriangle();
   }
 
@@ -1697,7 +1699,7 @@ export class TvTurtle {
   arc$(radius, degrees) {
     const L = this.L;
     this.eraseTurtles();
-    const unitCircleSide = 2.0 * Math.sin(this.pi / this.polygon);
+    const unitCircleSide = 2.0 * libm.sin(this.pi / this.polygon);
     const halfTurn = 360.0 / this.polygon / 2.0;
     const side = radius * unitCircleSide;
     const oldX = this.xcor;
@@ -1744,7 +1746,7 @@ export class TvTurtle {
     const dy = y - this.ycor;
     let b = 0.0;
     if (!(Math.abs(dx) < this.tolerance && Math.abs(dy) < this.tolerance)) {
-      let a = Math.atan2(dx, dy); // MacLisp's (ATAN dx dy), from 0 to 2 pi
+      let a = libm.atan2(dx, dy); // MacLisp's (ATAN dx dy), from 0 to 2 pi
       if (a < 0) a += 2 * Math.PI;
       b = a / this.piOver180;
       if (b < 0) b = 360.0 - b;
