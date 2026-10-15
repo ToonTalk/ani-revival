@@ -3098,12 +3098,13 @@ function changeSaid(c) {
 const CHANGE_METHODS = ["goes-to-and-transforms", "changes-while-wandering"];
 const CHANGE_ACTIVITIES = ["goes-to-to-transform", "bridging-the-gap", "wandering-while-changing"];
 // Who reads an element Ani chose again, from its use in the run's record of the change
-// (characters[].values, src/pipeline.js ELEMENT_USE): Director moves her by some
-// ("director") and draws her by others ("looks"); pass 2 repeats an activity as often as
-// the rhythmic level, activity level and repetitiveness say ("cycles", place.45:411-420),
-// from the next scene on; of the rest, used by neither, the likings only pass 1 reads
-// ("pass1"), and acceleration and deliberateness no one uses, as in 1978 ("nobody",
-// thesis pp. 185-186).
+// (characters[].values, src/pipeline.js elementUse, with the run's extensions): Director
+// moves her by some ("director") and draws her by others ("looks"); pass 2 repeats an
+// activity as often as the rhythmic level, activity level and repetitiveness say
+// ("cycles", place.45:411-420), from the next scene on; with DETAIL, Director's walk reads
+// deliberateness ("director") and the best-when scores the likings ("best-when"); of the
+// rest, used by neither, the likings only pass 1 reads ("pass1"), and acceleration (and,
+// without DETAIL, deliberateness) no one uses, as in 1978 ("nobody", thesis pp. 185-186).
 const readBy = (use, el) => (use && use !== "none" ? use : /^attraction-towards-/.test(el) ? "pass1" : "nobody");
 // how c's change is shown in a scene (glass.changesShown), or null
 const shownChange = (sc, c) => (ready(sc) && (sc.glass.changesShown || []).find((x) => x.character === c)) || null;
@@ -3411,7 +3412,7 @@ function bridgeSentence(run, x, c) {
 
 // ---- how she has changed, in the glass box
 
-// Director's elements first (src/pipeline.js ELEMENT_USE), then her look, then pass 2's,
+// Director's elements first (src/pipeline.js elementUse), then her look, then pass 2's,
 // then the rest.
 const CHANGE_ORDER = ["speed", "path-curvature", "path-length", "path-jaggedness", "size", "shape-jaggedness", "shape-complexity", "color-hue", "color-saturation", "color-intensity", "activity-level", "rhythmic-level", "repetiveness", "acceleration", "deliberateness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
 // With DETAIL (src/pipeline.js elementUse), Director's walk reads deliberateness
@@ -4454,10 +4455,15 @@ function whyPanel(char) {
   let fixSection = !fixes.length ? "" : `<details class="repairs"${fixes.length <= 4 ? " open" : ""}><summary>What the revival's repairs did here (${fixes.length})</summary><div class="body">
     ${repairList([...fixes.filter(mentions), ...fixes.filter((x) => !mentions(x))])}
     <p class="note">Ani as in 1978 would have stopped at each of these, or done otherwise. The repairs are the revival's Lisp, not Ken's; open one for Ani's own record of it.</p></div></details>`;
+  // SLIPS' and DETAIL's: those on this part, or on a task of the chain of what she does,
+  // first, then those about her, then the rest
+  const focus = new Set(main ? [main.name] : []);
+  for (let x = acts[0] ? taskOfActivity(acts[0]) : null, guard = 0; x && guard < 6; guard++) { focus.add(x.name); x = x.source && x.source !== "initial-description" ? taskByName(x.source) : null; }
+  const rank = (x) => (focus.has(x.actor) ? 0 : mentions(x) ? 1 : 2);
   for (const [id, cls, title, note] of OPT_SECTIONS) {
     const list = noted.filter((x) => noteExtension(x.what) === id);
     if (list.length) fixSection += `<details class="${cls}"${list.length <= 4 ? " open" : ""}><summary>${title} (${list.length})</summary><div class="body">
-    ${repairList([...list.filter(mentions), ...list.filter((x) => !mentions(x))])}
+    ${repairList([...list].sort((a, b) => rank(a) - rank(b)))}
     <p class="note">${note} ${fileLink(id)}</p></div></details>`;
   }
   // what the revival's knowledge (REVIVE;KNOW) did in this scene, this character's first

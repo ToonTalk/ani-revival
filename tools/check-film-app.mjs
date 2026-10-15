@@ -98,6 +98,21 @@
 // them), the icons are toned for the light theme, and the reviewer's story of six
 // (test/stories/six-colors.lisp), whose Prince the shape experts drew after relaxing
 // every constraint, has "How he looks" for everyone.
+// And SLIPS and DETAIL, the opt-in extensions (stage 7, Ken's decision 3): a visitor who
+// never ticks them sees the page as before (the switch opens on "Ani as in 1978" with
+// nothing ticked, "Ani with the revival's extensions" ticks MEND, KNOW, APPEAR and CHANGE
+// and nothing more, the prompt with them is today's, and with SLIPS and DETAIL ticked too
+// the same, and "Which extensions" has the registry's two groups, SLIPS and DETAIL opt-in
+// and unticked); ticked in 1978 mode, SLIPS brings KNOW and MEND and DETAIL brings MEND,
+// as reports/ext/slips/ and reports/ext/detail/ make Ken's Cinderella, and the page makes
+// it so, 230, 115, 19, 180 and 85 frames with SLIPS and 189, 116, 16, 169 and 87 with
+// DETAIL, each correction and detail said where it acted (the compare panel, with the
+// frames beside 1978's and the run that confirmed the speed inversion; the captions; the
+// glass box, with Ken's lines; pass 1's notes on Cinderella's tendencies); with DETAIL,
+// "How she has changed" says that Director's walk reads deliberateness and the best-when
+// scores the tendencies (test/stories/stress/change-alone.lisp, made in Node); and the
+// claude.ai copy, its page script packed, keeps under 950,000 bytes and gives a model the
+// full page's prompt with SLIPS and DETAIL too.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
@@ -114,6 +129,7 @@ import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { storyWithoutClashes, makeFilm, pass1 } from "../src/pipeline.js";
+import { withPageScript, PAGE_SCRIPT_ID } from "./build-film-app.mjs";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3)
 const REVIVAL = ["mend", "know", "appear", "change"];
@@ -143,6 +159,16 @@ const EXPECTED_CHANGE_LAST_FRAMES = [164, 52, 28];
 // extensions, as tools/check-change.mjs makes it (reports/ext/change/README.md,
 // beautified-film): 171, 116, 137, 20, 193 and 90 frames, so they end at these
 const EXPECTED_BEAUTIFIED_LAST_FRAMES = [170, 115, 136, 19, 192, 89];
+// the opt-in extensions (Ken's decision 3), each with what it requires, as
+// reports/ext/slips/ and reports/ext/detail/ make Ken's Cinderella (their READMEs): with
+// SLIPS (and KNOW and MEND) 230, 115, 19, 180 and 85 frames, with DETAIL (and MEND) 189,
+// 116, 16, 169 and 87, so they end at these
+const WITH_SLIPS = ["mend", "know", "slips"], WITH_DETAIL = ["mend", "detail"];
+const EXPECTED_SLIPS_LAST_FRAMES = [229, 114, 18, 179, 84];
+const EXPECTED_DETAIL_LAST_FRAMES = [188, 115, 15, 168, 86];
+// the prompt and schema with the switch's four (Lisp, JSON and the schema, for
+// STORY_FOR_PROMPTS), as they were before SLIPS and DETAIL came to the page (stage 7)
+const PROMPT_REVIVAL_SHA = ["dc71714c808695b9d01cf820d2762e51b00855b01bcd2a74b98b8ad59b61ba1b", "e1bbe6ed3073ffdda3cac9430be2d0ae0cf230f68fe8179dc75fce6a5f991c0f", "39c398879946467919cd3a3256b05257a2348dc2ed33c2650fefeb9a23b0a7c0"];
 // the prompt with the extensions off (Lisp, then JSON, for STORY_FOR_PROMPTS), as it was
 // before Ani showed changes (stage 6): its SHA-256, which a change to the 1978 mode's
 // prompt changes (make it again, from storyPrompt with no extensions, if that is meant)
@@ -198,6 +224,15 @@ const REVIEWED6 = Object.fromEntries(["change-two-effects", "change-won-over", "
   const made = makeFilm(makeProjectFileSystem(), { description: story, keepGoing: true, extensions: REVIVAL, frames: 1000, fps: 4 });
   return [name, { story, extensions: REVIVAL, choicePoints: made.choicePoints, scenes: made.scenes, repairs: made.repairs || null, appearances: made.appearances || null, changes: made.changes || null }];
 }));
+// A change made with DETAIL too (test/stories/stress/change-alone.lisp: the troll becomes
+// beautiful by himself), made here in Node as the page's worker makes it, for "How he has
+// changed" to say who reads each element (src/pipeline.js elementUse)
+const CHANGE_DETAIL = (() => {
+  const story = readFileSync("test/stories/stress/change-alone.lisp", "utf8").replace(/\r\n/g, "\n");
+  const extensions = [...REVIVAL, "detail"];
+  const made = makeFilm(makeProjectFileSystem(), { description: story, keepGoing: true, extensions, frames: 1000, fps: 4 });
+  return { story, extensions, choicePoints: made.choicePoints, scenes: made.scenes, repairs: made.repairs || null, appearances: made.appearances || null, changes: made.changes || null };
+})();
 // the claude.ai copy, as tools/build-film-app.mjs --claude-artifact built it, and a story
 // to compare the prompts it and the full page give a model
 const ARTIFACT = "artifact/ani-cinderella-claude-artifact.html";
@@ -214,8 +249,15 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [138, 48, 48, 16, 16, 111];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy"];
-const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + `\nwindow.__check = { ${CHECKED.join(", ")} };\n` + html.slice(end); };
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView"];
+// (the claude.ai copy's page script is packed, tools/build-film-app.mjs PAGE_LOADER: the
+// hook goes at its end, unpacked and packed again)
+const hooked = (html) => {
+  const line = `\nwindow.__check = { ${CHECKED.join(", ")} };\n`;
+  if (html.includes(`id="${PAGE_SCRIPT_ID}"`)) return withPageScript(html, (js) => js + line);
+  const end = html.lastIndexOf("</script>");
+  return html.slice(0, end) + line + html.slice(end);
+};
 // Two pages made from app/film.html: film.check.html hands some of its functions to
 // window.__check, as tools/render-film-video.mjs does; film.report-check.html has a DSN
 // that sends Sentry's envelopes here, where they are kept.
@@ -482,8 +524,8 @@ try {
     "and Ani's colors, with what COLORS and ALTER do, and nothing of colors to come");
   check(/Characters who change \(CHANGE\)\. A scene may change a character/.test(panel) && /fresh look/.test(panel) && /In the scene itself Ani shows the change \(p\. 169\): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes/.test(panel) && /his own cinderella-beautified scene, put back as he wrote it, now plays/.test(panel) && !/isn't shown yet/.test(panel)
     && /CHSHOW Showing a change in its scene \(thesis p\. 169\)/.test(panel) && /noted as not bridged, since Director doesn't read it/.test(panel), "and characters who change, in a plain sentence, with what CHSHOW does: the change shown in its scene");
-  check(/The switch turns on four of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how her characters look \(APPEAR\) and characters who change \(CHANGE\)\./.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /Corrections of slips in Ken's files \(SLIPS\), and a few more of the thesis's details \(DETAIL\), will be switches of their own/.test(panel),
-    "the panel says in a sentence which extensions the switch turns on, KNOW among them with what each of its files does, and that SLIPS and DETAIL will be switches of their own");
+  check(/The switch turns on four of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how her characters look \(APPEAR\) and characters who change \(CHANGE\)\./.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /Two more are opt-in, off unless you tick them \(Ken's decision 3\): corrections of slips in Ken's files \(SLIPS\) and a few of the thesis's “myriad details” \(DETAIL\)\./.test(panel) && !/will be switches of their own/.test(panel),
+    "the panel says in a sentence which extensions the switch turns on, KNOW among them with what each of its files does, and that SLIPS and DETAIL are opt-in");
 
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
@@ -720,7 +762,7 @@ try {
       && /\\n- determination: \\(convey \\(causes hare \\(change \\(personality tortoise/.test(fixLisp) && /Reply with the whole corrected film description as JSON/.test(fixJson);
     // what a model is given, in each mode and way, to compare with the claude.ai copy's
     const given = {};
-    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL]]) {
+    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL], ["slips", ${JSON.stringify(WITH_SLIPS)}], ["all", [...REVIVAL, "slips", "detail"]]]) {
       for (const format of ["lisp", "json"]) for (const compact of [false, true]) given[mode + " " + format + (compact ? " compact" : "")] = t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions, format, compact });
       given[mode + " schema"] = JSON.stringify(t.storySchema(extensions));
     }
@@ -768,7 +810,7 @@ try {
   const copy = await js(`(async () => {
     const t = window.__check, REVIVAL = ${JSON.stringify(REVIVAL)};
     const given = {};
-    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL]]) {
+    for (const [mode, extensions] of [["1978", []], ["revival", REVIVAL], ["slips", ${JSON.stringify(WITH_SLIPS)}], ["all", [...REVIVAL, "slips", "detail"]]]) {
       for (const format of ["lisp", "json"]) for (const compact of [false, true]) given[mode + " " + format + (compact ? " compact" : "")] = t.storyPrompt(${JSON.stringify(STORY_FOR_PROMPTS)}, { extensions, format, compact });
       given[mode + " schema"] = JSON.stringify(t.storySchema(extensions));
     }
@@ -778,8 +820,8 @@ try {
     return { given, caption: document.getElementById("caption-0").innerText, lit, providers: [...document.querySelectorAll("#tell-providers [data-provider]")].length };
   })()`);
   const differ = Object.keys(jsonWay.given).filter((k) => jsonWay.given[k] !== copy.given[k]);
-  check(!differ.length && Object.keys(copy.given).length === 10 && /The stepmother pushes Cinderella around/.test(copy.caption) && copy.lit > 100 && errors.length === errorsBefore,
-    `the claude.ai copy starts and draws Ken's film (${copy.lit} lit dots), and gives a model the full page's prompt and schema word for word, as in 1978 and with the extensions, in Lisp and JSON${differ.length ? ` (differ: ${differ.join(", ")})` : ""}`);
+  check(!differ.length && Object.keys(copy.given).length === 20 && /The stepmother pushes Cinderella around/.test(copy.caption) && copy.lit > 100 && errors.length === errorsBefore,
+    `the claude.ai copy starts and draws Ken's film (${copy.lit} lit dots), and gives a model the full page's prompt and schema word for word, as in 1978, with the extensions, and with SLIPS and DETAIL, in Lisp and JSON${differ.length ? ` (differ: ${differ.join(", ")})` : ""}`);
 
   // the JSON way in the panel, with the model's replies stood in for: Anthropic first
   // refuses the schema (as for "Schema is too complex"), so the page asks again without
@@ -1852,6 +1894,166 @@ try {
     && /Ani's own estimate was 10 seconds \(ten seconds an e-fold of the largest change; a change of shape or hue counts as one e-fold\), stretched by 1\.6/.test(social.changed) && /Chosen again but not bridged: her likings for enemies and strangers, which only pass 1 reads\./.test(social.changed)
     && /Director draws her by these; her look's change is bridged in Learning to Socialize, gradually, over 16 seconds Size small middle-sized why\?/.test(social.changed),
     "and \"How she has changed\" has the bridge: what changed, over how long, from which frame, and what was chosen again and not bridged");
+  // SLIPS and DETAIL, the opt-in extensions (stage 7, Ken's decision 3). A visitor who
+  // never ticks them sees the page as before: the switch opens on "Ani as in 1978" with
+  // nothing ticked, "Ani with the revival's extensions" ticks the four and nothing more
+  // (and keeps no list of ticks, only the switch, as before), the prompt and schema with
+  // the four are today's, and with SLIPS and DETAIL ticked too they are the same; "Which
+  // extensions" has the registry's two groups, SLIPS and DETAIL opt-in and unticked
+  await js(`(() => { for (const k of ["ani-cinderella:mode:v1", "ani-cinderella:extensions:v1", "ani-cinderella:run:v1"]) localStorage.removeItem(k); })()`);
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
+  const optDefault = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    document.getElementById("open-editor").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    const ticks = () => [...side.querySelectorAll("input[data-ext]")].filter((x) => x.checked).map((x) => x.dataset.ext).sort().join();
+    const pressed = () => [...side.querySelectorAll("[data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join();
+    const first = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join() };
+    side.querySelector('[data-mode="revival"]').click();
+    await wait(100);
+    const on = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join(), stored: localStorage.getItem("ani-cinderella:extensions:v1"), mode: localStorage.getItem("ani-cinderella:mode:v1") };
+    const panel = side.querySelector(".ext-panel");
+    const groups = [...panel.querySelectorAll(".ext-group")].map((g) => g.querySelector(".label").innerText + ": " + [...g.querySelectorAll("input[data-ext]")].map((x) => x.dataset.ext + (x.checked ? "+" : "-") + (x.closest(".ext").querySelector(".opt-in") ? " opt-in" : "")).join(", ")).join("; ");
+    const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)}, prompts = {};
+    for (const [k, ext] of [["four", ${JSON.stringify(REVIVAL)}], ["all", [...${JSON.stringify(REVIVAL)}, "slips", "detail"]], ["slips", ${JSON.stringify(WITH_SLIPS)}], ["mendKnow", ["mend", "know"]], ["detail", ${JSON.stringify(WITH_DETAIL)}], ["mend", ["mend"]]]) prompts[k] = [await hex(t.storyPrompt(STORY, { extensions: ext })), await hex(t.storyPrompt(STORY, { extensions: ext, format: "json" })), await hex(JSON.stringify(t.storySchema(ext)))];
+    side.querySelector('[data-mode="1978"]').click();
+    await wait(100);
+    return { first, on, groups, text: panel.textContent, prompts, back: pressed() + " " + ticks(), tidy: t.tidyStory(t.DATA.cindy, { extensions: [...${JSON.stringify(REVIVAL)}, "slips", "detail"] }).fixes.length };
+  })()`);
+  check(optDefault.first.pressed === "1978" && optDefault.first.ticks === "" && optDefault.first.ext === "" && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978 ",
+    `the default page is as before: the switch opens on "Ani as in 1978" with nothing ticked, and "Ani with the revival's extensions" ticks ${optDefault.on.ext} and nothing more, keeping only the switch in this browser`);
+  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, slips- opt-in" && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
+    `"Which extensions" has the registry's two groups, each extension with its tick and its sentence, SLIPS and DETAIL opt-in and unticked: ${optDefault.groups}`);
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  check(same(optDefault.prompts.four, PROMPT_REVIVAL_SHA) && same(optDefault.prompts.all, optDefault.prompts.four) && same(optDefault.prompts.slips, optDefault.prompts.mendKnow) && same(optDefault.prompts.detail, optDefault.prompts.mend) && optDefault.tidy === 0,
+    `the prompt and schema with the switch's four are today's (${optDefault.prompts.four.map((h) => h.slice(0, 12)).join(", ")}), and SLIPS and DETAIL change neither (they add nothing to Ani's vocabulary), nor anything the page tidies in Ken's CINDY`);
+
+  // Ken's Cinderella with SLIPS: ticked in 1978 mode, SLIPS brings KNOW and MEND, as
+  // reports/ext/slips/ makes it, and the page makes it again with them, as it makes a
+  // changed story, in the frames of SLIPS' README
+  await open();
+  const slipsTicked = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-editor").click();
+    await wait(200);
+    document.getElementById("ed-reset").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    const x = side.querySelector('input[data-ext="slips"]');
+    x.checked = true;
+    x.dispatchEvent(new Event("change", { bubbles: true }));
+    await wait(200);
+    side.querySelector(".ext-panel").open = true;
+    return { ticks: [...side.querySelectorAll("input[data-ext]")].filter((y) => y.checked).map((y) => y.dataset.ext).sort().join(), pressed: [...side.querySelectorAll("[data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join(), note: side.querySelector(".mode-note").innerText, editor: document.getElementById("ed-check").innerText, make: !document.getElementById("ed-make").disabled, stored: localStorage.getItem("ani-cinderella:extensions:v1") };
+  })()`);
+  check(slipsTicked.ticks === "know,mend,slips" && slipsTicked.pressed === "revival" && slipsTicked.stored === JSON.stringify(WITH_SLIPS) && slipsTicked.make && /^With the revival's extensions \(MEND, KNOW, SLIPS\), Ani goes on where Ken's stopped on a new story, knows words, relationships, ways of showing and feelings Ken could have added, and corrects slips in Ken's files; the glass box says where each one acted\. Ken's own Cinderella comes out differently with them/.test(slipsTicked.note) && /This is Ken's story as it is\. With the revival's extensions \(MEND, KNOW, SLIPS\) Ani knows words/.test(slipsTicked.editor),
+    `ticked in 1978 mode, SLIPS brings KNOW and MEND (${slipsTicked.ticks}), kept in this browser, and Ken's story as it is can be made with them: ${slipsTicked.note.split(";")[0]}`);
+  await js(`document.querySelector("#side .ext-panel").scrollIntoView({ block: "start" })`);
+  await shot("16-which-extensions-slips.png");
+  const t7 = Date.now();
+  await js(`document.getElementById("ed-make").click()`);
+  const slipsMade = await finished(400);
+  check(/with the revival's extensions \(MEND, KNOW, SLIPS\): 5 of 5 scenes filmed/.test(slipsMade), `Ani makes Ken's Cinderella with SLIPS (${Math.round((Date.now() - t7) / 1000)} s): ${slipsMade}`);
+  const slipsLasts = await lastsOf(5);
+  check(same(slipsLasts, EXPECTED_SLIPS_LAST_FRAMES), `its scenes end at frames ${slipsLasts.join(", ")} (reports/ext/slips/README.md: 230, 115, 19, 180 and 85 frames)`);
+  // what it changed, and why, beside 1978's: the compare panel, the captions, the glass box
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 100 && !(await js(`!!window.__check && /5 of 5 scenes filmed/.test(document.getElementById("run-status").innerText)`).catch(() => false)); k++) await sleep(200);
+  const slipsSaid = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms)), run = t.RUNS[1];
+    const say = (i, f) => { const c = t.captionAt(run, i, f); return [c.text, ...c.more].join(" ").replace(/<[^>]+>/g, ""); };
+    document.querySelector('#runbar [data-view="both"]').click();
+    await wait(100);
+    document.querySelectorAll("#side details").forEach((d) => (d.open = true));
+    const compare = document.getElementById("side").innerText;
+    t.setView(1);
+    t.goScene(0, 172 / 4);
+    t.select({ run: 1, char: "cinderella" });
+    await wait(50);
+    document.querySelectorAll("#side details").forEach((d) => (d.open = true));
+    const why = document.getElementById("side").innerText;
+    return { extensions: run.extensions.join(), compare, why, helps: say(0, 172), joys: say(0, 25), guard: say(1, 58) };
+  })()`);
+  check(/What SLIPS changed, and why/.test(slipsSaid.compare) && /Frames at 4 a second: The Introduction 230 \(192 in 1978\), Kept Apart 115 \(116 in 1978\), No Longer Kept Apart 19 \(17 in 1978\), The Meeting 180 \(179 in 1978\), Justice 85 \(84 in 1978\)\./.test(slipsSaid.compare),
+    "the compare panel says what SLIPS changed, with each scene's frames beside 1978's");
+  check(/In The Introduction, Cinderella helps the stepmother \(part 5, frames 155 to 189\), not the Prince: Cinderella's part asks for someone in the scene, ideally weak and good, and failing that anyone \(thesis p\. 100\), and is-not found the stepmother, who is neither; in 1978 Ken's is-not, given the task and not the scene, never found anyone \(sugest\.123:333-335, scene\.9:380\)\. Good's helping the stepmother and friendly's helping the Prince are the same to Ken's find-related-suggestions, which relates two conveys by their verb and who does it \(sugest\.123:162-177\), and only the first is made a task \(sugest\.123:204-210\)\./.test(slipsSaid.compare),
+    "and why Cinderella helps her stepmother, not the Prince: is-not now looks in the scene, and Ken's relating takes the two helps as one, good's first");
+  check(/In The Introduction, as the stepmother pushes Cinderella around, the stepmother's walk no longer speeds up cycle by cycle; and in Kept Apart, as the stepmother stands guard, keeping Cinderella away from the Prince, the stepmother's and Cinderella's walks no longer slow down cycle by cycle: Ken's Director multiplied in a walk's parent factor again each time the walk was set again \(dichar\.103:27-31\)/.test(slipsSaid.compare)
+    && /Every change Ani planned for how a character moves runs for as long as DISPLY estimates it \(31 changes, in The Introduction, Kept Apart, The Meeting and Justice\)/.test(slipsSaid.compare) && /now change over 5 ticks, not 1/.test(slipsSaid.compare) && /high\s+20\s+3\.95 to 4\.04/.test(slipsSaid.compare) && /low\s+11\s+0\.21 to 0\.25/.test(slipsSaid.compare)
+    && /35 changes \(in The Introduction, Kept Apart, The Meeting and Justice\) grow their factor once a tick/.test(slipsSaid.compare) && /Every change takes all its steps \(37, in/.test(slipsSaid.compare),
+    "and Director's corrections, each with Ken's line: the walks set again (S8), the speed inversion with the run that confirmed it (S9), each change grown once a tick (S10) and every step taken (S11)");
+  check(/In pass 1, friendly's suggestions for Cinderella's likings for strangers, enemies and friends are heard, named as pass 1's elements are \(dscrp\.17:106-108, elemnt\.1:101-105\); each is chosen as in 1978, and pass 1 still writes CP 29\./.test(slipsSaid.compare) && /Friendly suggests that Cinderella is drawn to strangers \(medium strength\), but Ken wrote it for attraction to strangers \(dscrp\.17:106-108\)[^]*Heard now, it is set aside, not compatible with the others: Cinderella strongly avoids strangers, as in 1978\./.test(slipsSaid.compare),
+    "and pass 1's notes on Cinderella's tendencies, which hear friendly now and are chosen as in 1978 (S3)");
+  check(/With SLIPS, Cinderella helps the stepmother: Cinderella's part asks for someone ideally weak and good, and failing that anyone, and is-not now looks in the scene; Ken's relating takes this and friendly's helping the Prince as the same, and good's comes first\./.test(slipsSaid.helps)
+    && /With SLIPS, Cinderella and the stepmother's changes here run as Ani planned them: over 5 ticks, not 1, growing once a tick and taking every step\./.test(slipsSaid.joys) && /With SLIPS, the stepmother's walk takes its parent's factor once, so each cycle is no slower than the last\./.test(slipsSaid.guard),
+    `the captions say each correction as its part plays: ${(slipsSaid.helps.match(/With SLIPS[^.]*\./) || [""])[0]}`);
+  check(/What the corrections of slips did here \(8\)\s+Cinderella's part asks for someone in the scene who is, ideally, weak and good/.test(slipsSaid.why) && /With SLIPS, good's helping the stepmother and friendly's helping the Prince are the same to Ken's find-related-suggestions/.test(slipsSaid.why) && /Ken's is-not applies is-described-as as if it were a function, but it is the name of a generator \(sugest\.123:402\)/.test(slipsSaid.why),
+    "her glass box, helping her stepmother, has the corrections, the one that found the stepmother first, and her chain says why the stepmother's helping displaced the Prince's");
+  if (shots) {
+    await js(`(async () => { document.querySelector('#runbar [data-view="both"]').click(); document.querySelectorAll("#scenes button")[0].click(); const s = document.getElementById("scrub"); s.value = 172 / 4; s.dispatchEvent(new Event("input")); await new Promise((r) => setTimeout(r, 150)); document.getElementById("stage").scrollIntoView({ block: "start" }); })()`);
+    await shot("17-cinderella-with-slips-helps.png");
+  }
+
+  // Ken's Cinderella with DETAIL: ticked in 1978 mode, DETAIL brings MEND, as
+  // reports/ext/detail/ makes it, in the frames of DETAIL's README
+  await open();
+  const detailTicked = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-editor").click();
+    await wait(200);
+    document.getElementById("ed-reset").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    side.querySelector('[data-mode="1978"]').click();
+    await wait(100);
+    const x = side.querySelector('input[data-ext="detail"]');
+    x.checked = true;
+    x.dispatchEvent(new Event("change", { bubbles: true }));
+    await wait(200);
+    return { ticks: [...side.querySelectorAll("input[data-ext]")].filter((y) => y.checked).map((y) => y.dataset.ext).sort().join(), make: !document.getElementById("ed-make").disabled, editor: document.getElementById("ed-check").innerText };
+  })()`);
+  check(detailTicked.ticks === "detail,mend" && detailTicked.make && /With the revival's extensions \(MEND, DETAIL\) Ani attends to a few of the thesis's “myriad details”, so you can make it as it is/.test(detailTicked.editor), `ticked in 1978 mode, DETAIL brings MEND (${detailTicked.ticks}), and Ken's story as it is can be made with them`);
+  const t8 = Date.now();
+  await js(`document.getElementById("ed-make").click()`);
+  const detailMade = await finished(400);
+  check(/with the revival's extensions \(MEND, DETAIL\): 5 of 5 scenes filmed/.test(detailMade), `Ani makes Ken's Cinderella with DETAIL (${Math.round((Date.now() - t8) / 1000)} s): ${detailMade}`);
+  const detailLasts = await lastsOf(5);
+  check(same(detailLasts, EXPECTED_DETAIL_LAST_FRAMES), `its scenes end at frames ${detailLasts.join(", ")} (reports/ext/detail/README.md: 189, 116, 16, 169 and 87 frames)`);
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 100 && !(await js(`!!window.__check && /5 of 5 scenes filmed/.test(document.getElementById("run-status").innerText)`).catch(() => false)); k++) await sleep(200);
+  const detailSaid = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms)), run = t.RUNS[1];
+    const say = (i, f) => { const c = t.captionAt(run, i, f); return [c.text, ...c.more].join(" ").replace(/<[^>]+>/g, ""); };
+    const compare = t.optInSummary(run).replace(/<[^>]+>/g, "");
+    const why = async (i, f, c) => { t.setView(1); t.goScene(i, f / 4); t.select({ run: 1, char: c }); await wait(50); document.querySelectorAll("#side details").forEach((d) => (d.open = true)); return document.getElementById("side").innerText; };
+    return { compare, keptApart: say(1, 2), meeting: say(3, 4), prince: await why(4, 43, "prince"), stepmother: await why(4, 43, "step-mother") };
+  })()`);
+  check(/What DETAIL changed, and why/.test(detailSaid.compare) && /Frames at 4 a second: The Introduction 189 \(192 in 1978\), Kept Apart 116 \(116 in 1978\), No Longer Kept Apart 16 \(17 in 1978\), The Meeting 169 \(179 in 1978\), Justice 87 \(84 in 1978\)\./.test(detailSaid.compare)
+    && /Director's walk reads deliberateness: [^.]*the stepmother \(high\) in The Introduction, Kept Apart, The Meeting and Justice; the fairy godmother \(low\) in No Longer Kept Apart and The Meeting/.test(detailSaid.compare)
+    && /\(16 clauses, on 12 tasks, in The Introduction, Kept Apart, No Longer Kept Apart, The Meeting and Justice\)[^.]*\. [^.]*\. Here they decide nothing: every way of showing chosen is the one chosen in 1978/.test(detailSaid.compare)
+    && /Kept Apart \(fast, then slow\): Cinderella speeds up in part 1, and Cinderella and the stepmother slow down in part 3; No Longer Kept Apart \(fast\): Cinderella and the fairy godmother speed up in part 1/.test(detailSaid.compare),
+    "the compare panel says what DETAIL changed, with each scene's frames beside 1978's: the deliberate walks, the tendencies (deciding nothing), the scenes' rhythms");
+  check(/With DETAIL, Cinderella walks deliberately \(high\): arcs twice as long, jags half as large\./.test(detailSaid.keptApart) && /With DETAIL, Kept Apart's rhythm \(fast, then slow\) speeds Cinderella up a quarter here\./.test(detailSaid.keptApart) && /With DETAIL, the fairy godmother walks with little deliberateness \(low\): arcs half as long, jags twice as large; the stepmother walks deliberately \(high\)/.test(detailSaid.meeting),
+    `the captions say each detail as its part plays: ${(detailSaid.keptApart.match(/With DETAIL, Kept[^.]*\./) || [""])[0]}`);
+  check(/Best when Cinderella is drawn to the Prince \(met\) and the Prince is drawn to Cinderella \(met\): DETAIL's clause/.test(detailSaid.prince) && /What the details did here \(2\)/.test(detailSaid.prince) && /Deliberateness\s+medium\s+as Ani chose for the Prince in pass 1 why medium\?; Director's walk reads it \(DETAIL\), and medium changes nothing/.test(detailSaid.prince)
+    && /Deliberateness\s+high[^\n]*Director's walk reads it \(DETAIL\): arcs twice as long, jags half as large/.test(detailSaid.stepmother),
+    "the glass box says DETAIL's best-when clauses where the scores show, and that Director's walk reads deliberateness, in the table of how each moves");
+  // "How he has changed" with DETAIL: deliberateness is read by Director's walk, the
+  // tendencies by the best-when scores (src/pipeline.js elementUse)
+  const changeDetail = await js(`(async () => {
+    const t = window.__check, r = ${JSON.stringify(CHANGE_DETAIL)};
+    const run = t.makeRun({ label: "Yours", short: "Yours", cindy: r.story, choicePoints: r.choicePoints, scenes: r.scenes, extensions: r.extensions, repairs: r.repairs, appearances: r.appearances, changes: r.changes });
+    const k = run.sceneIds.findIndex((id) => r.changes && r.changes[id] && !r.changes[id].error);
+    return { k, body: k < 0 ? "" : t.using(run, () => t.changedBody(run, "troll", k)).replace(/<[^>]+>/g, " ").replace(/\\s+/g, " ") };
+  })()`);
+  check(changeDetail.k >= 0 && /Director moves him by these[^]*Deliberateness \(Director's walk reads it: DETAIL\)/.test(changeDetail.body) && /The best-when scores of the ways of showing read these \(DETAIL\), from the next scene on Liking for friends/.test(changeDetail.body) && !/Liking for/.test((changeDetail.body.split("Chosen again; Director doesn't use these")[1] || "").split("What Ani held")[0]),
+    `with DETAIL, "How he has changed" says Director's walk reads deliberateness and the best-when scores the tendencies, where it said "Director doesn't use these, as in 1978": ${(changeDetail.body.match(/The best-when scores[^.]*\)/) || [""])[0]}`);
+  // back to the switch's two settings, for what follows
+  await js(`(() => { localStorage.removeItem("ani-cinderella:extensions:v1"); localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);
+
   // the prompt in 1978 mode is as it was
   const prompts1978 = await js(`(async () => {
     const t = window.__check, hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
