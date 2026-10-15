@@ -80,7 +80,7 @@ At 24 frames a second (`24fps/`):
 
 ## With the page's set
 
-With the four extensions the page's switch turns on and SEEN, your Cinderella films in 222, 116, 19, 200 and 148 frames at 4 frames a second (222, 116, 19, 175 and 92 with the four): the Introduction, Kept Apart and No Longer Kept Apart frame for frame as with the four; the Meeting's joys, as above (from frame 174, their walk to each other having ended at 173, to frame 198; 200 frames where your Director stopped the four's at 175); Justice from where the Meeting now leaves them, as above. At 24 frames a second: *(below)*.
+With the four extensions the page's switch turns on and SEEN, your Cinderella films in 222, 116, 19, 200 and 148 frames at 4 frames a second (222, 116, 19, 175 and 92 with the four): the Introduction, Kept Apart and No Longer Kept Apart frame for frame as with the four; the Meeting's joys, as above (from frame 174, their walk to each other having ended at 173, to frame 198; 200 frames where your Director stopped the four's at 175); Justice from where the Meeting now leaves them, as above. At 24 frames a second, 1,273, 701, 112, 1,038 and 964 frames (1,273, 701, 112, 1,038 and 418 with the four): the first four scenes as long as with the four, and the first three frame for frame; in the Meeting Cinderella and the Prince wander from frame 886, when their walk to each other ends, to 1,036, where with the four no one moved from 887 to 1,036 while their joys ran; Justice from where the Meeting now leaves them. In none of these films does anyone stand still for more than a second in a part of only changes (`tools/check-still.mjs`), and every walk of the revival's ends with its characters on the picture.
 
 Your cinderella-beautified, with the page's set and SEEN (`reports/ext/change/beautified-film/`, `tools/check-change.mjs`): see `reports/ext/change/README.md`, "Ken's testing (15 October)".
 
@@ -92,7 +92,7 @@ Your cinderella-beautified, with the page's set and SEEN (`reports/ext/change/be
 
 ## For the page
 
-- Add "seen" to the switch (`SWITCHED` in `app/film.template.html`), rebuild the bundle (`node tools/build-ani-bundle.mjs --extensions mend,know,appear,change,seen`): with the switch on, your Cinderella then films in 222, 116, 19, 200 and 148 frames at 4 a second (`tools/check-film-app.mjs` expects 222, 116, 19, 175 and 92).
+- Add "seen" to the switch (`SWITCHED` in `app/film.template.html`), rebuild the bundle (`node tools/build-ani-bundle.mjs --extensions mend,know,appear,change,seen`): with the switch on, your Cinderella then films in 222, 116, 19, 200 and 148 frames at 4 a second and 1,273, 701, 112, 1,038 and 964 at 24 (`tools/check-film-app.mjs` expects 222, 116, 19, 175 and 92), and the beautified preset in 171, 116, 138, 16, 189 and 114 (at 24, 950, 701, 821, 76, 1,059 and 963).
 - The activities: `waiting-to-wander` ("Cinderella waits until nothing else moves her", or nothing: no one is seen to do anything), and `wandering-while-changes-run` ("Cinderella wanders about while her joy changes how she moves, so that the change is seen (the revival's repair)"). Their characters are in their Lisp, `(ask <plan> wander cinderella while ...)`, not in a `cause (...)`; `glass.wanders` and `whyTheyAct` have them.
 - The extensions panel's text is the registry's `note`.
 
