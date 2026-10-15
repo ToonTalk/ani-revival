@@ -26,7 +26,7 @@ In your Cinderella, CP 29 makes the stepmother high and the fairy godmother low,
 
 | Scene | Who, how deliberate, where | How much each turned as it walked, 1978 and with the walk alone (degrees a frame, `turning` in each.json) |
 |---|---|---|
-| Introduction | Cinderella high (subscene 1); the stepmother high (1, 2, 3) | stepmother 10.82 to 10.44; Cinderella 28.18 to 27.49; the Prince 15.75 to 14.06 |
+| Introduction | the stepmother high (subscenes 1, 2, 3); Cinderella high while she is pushed, moving with the stepmother's dynamics, as your pushee does (`disply.311:289-315`) (1) | stepmother 10.82 to 10.44; Cinderella 28.18 to 27.49; the Prince 15.75 to 14.06 |
 | Kept Apart | Cinderella high, wanting to meet the Prince (1); the stepmother high, standing guard (2, 3) | stepmother 17.96 to 14.62; Cinderella 42.23 to 40.77 |
 | No Longer Kept Apart | the fairy godmother low (1) | fairy godmother 21.33 to 25.6 |
 | Meeting | the fairy godmother low and the stepmother high, sent off (1); Cinderella and the Prince high, going to each other (4, 6) | fairy godmother 28.27 to 39.37 |
