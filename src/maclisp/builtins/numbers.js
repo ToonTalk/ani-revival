@@ -2,8 +2,8 @@
 // (Flonum objects). The generic functions (PLUS, TIMES, ...) return a flonum
 // when any argument is one; the $ functions work on flonums.
 import { Flonum, LispError } from "../types.js";
-// sin, cos, atan2, log and exp as fdlibm has them, the same in every JavaScript engine
-// (src/maclisp/libm.js)
+// sin, cos, atan2, log and exp as fdlibm has them, and pow correctly rounded, the same
+// in every JavaScript engine (src/maclisp/libm.js)
 import * as libm from "../libm.js";
 
 export function install(L) {
@@ -116,9 +116,9 @@ export function install(L) {
   });
   d("LOG", flo(libm.log));
   d("EXP", flo(libm.exp));
-  d("EXPT", (a, b) => mk(Math.pow(val(a), val(b)), a instanceof Flonum || b instanceof Flonum));
-  d("^", (a, b) => mk(Math.pow(val(a), val(b)), false));
-  d("^$", (a, b) => new Flonum(Math.pow(val(a), val(b))));
+  d("EXPT", (a, b) => mk(libm.pow(val(a), val(b)), a instanceof Flonum || b instanceof Flonum));
+  d("^", (a, b) => mk(libm.pow(val(a), val(b)), false));
+  d("^$", (a, b) => new Flonum(libm.pow(val(a), val(b))));
 
   // A seeded generator, so runs are reproducible.
   let seed = 1979;

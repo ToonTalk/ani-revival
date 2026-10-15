@@ -9,7 +9,9 @@
 // e_log.c, s_sin.c, s_cos.c, k_sin.c, k_cos.c, e_rem_pio2.c, s_atan.c, e_atan2.c), each
 // checked against Node's own Math on millions of arguments (test/libm.test.js), so that
 // what Node made before is what it makes now. Arguments beyond what Ani asks for (a sine
-// of more than 2^19 pi/2) go to Math.
+// of more than 2^19 pi/2) go to Math. And pow, for EXPT, correctly rounded and worked
+// out in BigInt (at the end, with why: Node's own pow is neither fdlibm's nor correctly
+// rounded, so none written out could be Node's bit for bit).
 //
 // The fdlibm notice, as its files carry it:
 // ====================================================
@@ -263,4 +265,112 @@ export function atan2(y, x) {
     case 2: return pi - (z - pi_lo);
     default: return (z - pi_lo) - pi;
   }
+}
+
+// ---- pow, for EXPT (and ^ and ^$): every gradual change's growth rate is a power
+// (dichar.103:110-111), and so are CHSHOW's bridges' and DISPLY's turn-cycle factor
+// (disply.311:889). Node's Math.pow is neither fdlibm's (e_pow.c, written out as the
+// others are, differs from it in the last bit on about one argument in thirteen) nor
+// correctly rounded (on about one in two thousand, 1.5^0.25 among them, it is an ulp
+// off), and a browser's need not be Node's. So this pow is the correctly rounded one,
+// worked out exactly in BigInt arithmetic, which is the same in every engine: x^y as
+// exp(y log x) to 320 bits, and an integer power of x as the exact integer it is, each
+// rounded to the nearest double (ties to even). It is Node's own on every pow Ani asks
+// for in this repository's checks (test/libm.test.js has the arguments it meets), and
+// slow (some tens of microseconds), which a pow a change asks for once can afford.
+// Math.pow's special values (ES 6.1.6.1.3) are kept.
+const PF = 320n, PONE = 1n << PF;
+const fmul = (a, b) => (a * b) >> PF;
+const fdiv = (a, b) => (a << PF) / b;
+function atanhSum(z) {
+  let sum = 0n, term = z;
+  const z2 = fmul(z, z);
+  for (let k = 1n; term !== 0n; k += 2n) { sum += term / k; term = fmul(term, z2); }
+  return sum;
+}
+let LN2F = 0n;
+const ln2f = () => (LN2F || (LN2F = 2n * atanhSum(fdiv(PONE, 3n * PONE))));
+const bitLength = (n) => n.toString(2).length;
+// a positive finite double as [m, e], m an odd BigInt, x = m 2^e
+function parts(x) {
+  f64[0] = x;
+  const h = u32[HI] >>> 0, l = u32[LO] >>> 0, be = (h >>> 20) & 0x7ff;
+  let m = (BigInt(h & 0xfffff) << 32n) | BigInt(l), e = be === 0 ? -1074 : be - 1075;
+  if (be !== 0) m |= 1n << 52n;
+  while ((m & 1n) === 0n) { m >>= 1n; e++; }
+  return [m, e];
+}
+// m 2^k exactly, for a BigInt m below 2^54 and a value a double can hold
+const ldexp = (m, k) => (k < -1000 ? Number(m) * 2 ** (k + 600) * 2 ** -600 : k > 1000 ? Number(m) * 2 ** (k - 600) * 2 ** 600 : Number(m) * 2 ** k);
+// m 2^k (m a positive BigInt, sticky if a part below m's last bit is not zero) rounded to
+// the nearest double, ties to even
+function roundToDouble(m, k, sticky = false) {
+  const E = bitLength(m) - 1 + k; // m 2^k is in [2^E, 2^(E+1))
+  if (E > 1023) return Infinity;
+  if (E < -1075) return 0; // below half the least subnormal
+  const ulp = Math.max(E - 52, -1074);
+  const shift = ulp - k;
+  if (shift <= 0) return ldexp(m << BigInt(-shift), ulp); // exact (sticky is nothing below)
+  let q = m >> BigInt(shift);
+  const rest = m - (q << BigInt(shift)), half = 1n << BigInt(shift - 1);
+  if (rest > half || (rest === half && (sticky || (q & 1n) === 1n))) q += 1n;
+  if (q === 0n) return 0;
+  const r = ldexp(q, ulp);
+  return r >= 2 ** 1023 * 2 ? Infinity : r;
+}
+// x^y for a positive finite x and a finite y not zero
+function powPositive(x, y) {
+  if (x === 1) return 1;
+  const [m, e] = parts(x);
+  // an integer power, exactly: of a power of two whatever the integer, of any other x up
+  // to 4096 (past that m^n has some ten thousand digits, and a result in range is rare)
+  if (Number.isInteger(y) && (m === 1n || Math.abs(y) <= 4096)) {
+    const n = Math.abs(y), mn = m ** BigInt(n);
+    if (y > 0) return roundToDouble(mn, e * n);
+    // 2^(-e n) / m^n: a quotient with 128 bits more than it needs, and its remainder
+    const s = BigInt(bitLength(mn) + 128);
+    const q = (1n << s) / mn, rem = (1n << s) - q * mn;
+    return roundToDouble(q, -e * n - Number(s), rem !== 0n);
+  }
+  const [ym, ye] = parts(Math.abs(y));
+  let t = lnfixed(x) * ym;
+  t = ye >= 0 ? t << BigInt(ye) : t >> BigInt(-ye);
+  if (y < 0) t = -t;
+  // t = K ln 2 + r, 0 <= r < ln 2; e^r by its series
+  const L = ln2f();
+  let K = t / L;
+  let r = t - K * L;
+  if (r < 0n) { r += L; K -= 1n; }
+  if (K > 1100n) return Infinity;
+  if (K < -1100n) return 0;
+  let sum = PONE, term = PONE;
+  for (let i = 1n; term !== 0n; i++) { term = fmul(term, r) / i; sum += term; }
+  return roundToDouble(sum, Number(K) - Number(PF), true);
+}
+function lnfixed(x) {
+  const [m, e0] = parts(x);
+  const b = bitLength(m);
+  const mf = m << (PF - BigInt(b - 1)); // in [1, 2)
+  return 2n * atanhSum(fdiv(mf - PONE, mf + PONE)) + BigInt(e0 + b - 1) * ln2f();
+}
+const oddInteger = (y) => Number.isInteger(y) && Math.abs(y) < 2 ** 53 && Math.abs(y % 2) === 1;
+export function pow(x, y) {
+  if (Number.isNaN(y)) return NaN;
+  if (y === 0) return 1;
+  if (Number.isNaN(x)) return NaN;
+  const ax = Math.abs(x);
+  if (y === Infinity) return ax > 1 ? Infinity : ax === 1 ? NaN : 0;
+  if (y === -Infinity) return ax > 1 ? 0 : ax === 1 ? NaN : Infinity;
+  if (x === Infinity) return y > 0 ? Infinity : 0;
+  if (x === -Infinity) return y > 0 ? (oddInteger(y) ? -Infinity : Infinity) : oddInteger(y) ? -0 : 0;
+  if (x === 0) {
+    const neg = Object.is(x, -0) && oddInteger(y);
+    return y > 0 ? (neg ? -0 : 0) : neg ? -Infinity : Infinity;
+  }
+  if (x < 0) {
+    if (!Number.isInteger(y)) return NaN;
+    const r = powPositive(-x, y);
+    return oddInteger(y) ? -r : r;
+  }
+  return powPositive(x, y);
 }
