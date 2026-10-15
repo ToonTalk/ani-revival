@@ -30,6 +30,8 @@
 ;;;           then anyone (sugest.123:328-338, scene.9:373-381, sugest.123:402; thesis
 ;;;           L2757-2770); with what S1 newly reaches, a bind inside a bind and a
 ;;;           generator no file defines
+;;;   S12     REVIVE;SLIPS2  a high level of variety picks the least used value, and a low
+;;;           the most used (glosug.41:61-70; thesis L2384-2387)
 ;;;   S3      REVIVE;SLIPS3  friendly's attraction-to-* are attraction-towards-*
 ;;;           (dscrp.17:106-108; elemnt.1:101-105)
 ;;;   S6      REVIVE;SLIPS6  pass-prerequisite-test reads 'prerequisites (chomet.123:559;
@@ -69,21 +71,33 @@
 ;;;              personality, and the comparisons take strong as his, so nothing is lost.
 ;;;            - (relate.22:79, named in the first design, is not a slip: its strength
 ;;;              is at the depth of line 70's, outside method:, only indented oddly.)
-;;;   Two found while correcting the others, which change nothing in Ken's Cinderella:
+;;;   CHOMET's redistribution of a scene's time, which changes nothing in Ken's
+;;;   Cinderella (no task of hers is left without a way of showing for want of time):
 ;;;            - resurect-bad-time-fits looks for the reason more-time-needed:
 ;;;              (chomet.123:193), and time-fit-score-1 writes need-more-time:
 ;;;              (chomet.123:413), so a task whose only display method needs more time
 ;;;              is never given it. Cinderella's one such method (the Meeting's
 ;;;              repeatedly-come-in-contact) has another beside it, and the task takes
-;;;              that. Not corrected: giving such a task more time redistributes the
-;;;              scene's time (chomet.123:12-21, 39-65), and the fallback for a scene
-;;;              that can't be fitted then stops pass 2 (shouldnt-happen,
-;;;              chomet.123:151-153) where 1978 said "can't do". For Ken.
+;;;              that.
+;;;            - redistribute-time-for-tasks, for a scene the redistribution makes too
+;;;              short, adjusts by (-$ new-length scene-minimum), less than nothing, and
+;;;              for one too long by more than nothing (chomet.123:61-64); and
+;;;              adjust-task-lengths gives a task whose time falls below its least its
+;;;              most, ";;must be too large", and one above its most its least
+;;;              (chomet.123:167-180). Read together the signs may be one convention, or
+;;;              two slips; correcting the name alone would send more scenes into them.
+;;;              Not corrected: for Ken (reports/ext/slips/README.md). Found by the stage
+;;;              before this one (PLAN.md, "Still open with MEND").
+;;;            - change-to:-package merges a change without its method (cosug.215:509):
+;;;              REVIVE;MEND7 puts the method back, which leaves Cinderella as it was.
+;;;   And one in Director, which changes nothing in Ken's Cinderella:
 ;;;            - The special dynamics a character's changes carry forth are found once
 ;;;              and kept (dichar.103:22-26, "or :old-value"), so in a later subscene a
-;;;              change grows the subscene's dynamics where her first change was.
-;;;              Ken's Cinderella has each character's changes in one subscene of a scene
-;;;              (each scene is a job of its own), so nothing differs.
+;;;              change grows the dynamics of the subscene where her first change was,
+;;;              which no longer move her; the change reaches her through its second
+;;;              repeat, on her own dynamics. Ken's Cinderella has each character's changes
+;;;              in one subscene of a scene (each scene is a job of its own), so nothing
+;;;              differs; with DETAIL's rhythm she changes in several. Not corrected.
 ;;;
 ;;; The DICHAR/DISPLY speed inversion, run: tools/check-slips.mjs --speed films Ken's
 ;;; Cinderella as in 1978 and, for every gradual change Director runs, sets the ticks

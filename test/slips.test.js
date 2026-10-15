@@ -26,7 +26,7 @@ test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinde
   assert.equal(slips.changes1978, true);
   assert.equal(slips.group, "repairs");
   assert.equal(slips.optIn, true);
-  assert.deepEqual(slips.files, ["wrap", "slips", "slips1", "slips3", "slips6", "slips7", "slips8", "slips9"]);
+  assert.deepEqual(slips.files, ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"]);
   assert.equal(slips.afterPass1, "(note-friendlys-attractions)");
   // the four the page's switch turns on are not opt-in (Ken's decision 3)
   for (const id of ["mend", "know", "appear", "change"]) assert.ok(!EXTENSIONS.find((e) => e.id === id).optIn, id);
@@ -36,6 +36,8 @@ test("each wrapper is installed once SUGEST, CHOMET, ELEMNT, INTERF and DICHAR h
   const { run } = lisp(["slips"]);
   for (const f of ["sugest", "chomet", "elemnt", "dscrp"]) run(`(load '|ken;${f} >|)`);
   for (const f of ["first-sibling-that-satisfies", "bind-convey-method", "object-that-satisfies", "activity-that-satisfies", "event-that-satisfies"]) assert.equal(wraps(run, f), "(slips1)", f);
+  run("(load '|ken;glosug >|)");
+  assert.equal(wraps(run, "pick-value-with-variety"), "(slips2)");
   assert.equal(wraps(run, "character-that-satisfies"), "(slips1 mend6 mend4)");
   assert.equal(wraps(run, "pass-prerequisite-test"), "(slips6)");
   assert.equal(wraps(run, "eliminate-by-prerequisites"), "(slips6)");
@@ -56,6 +58,28 @@ test("S2: described as all of the words, or any of them", () => {
   assert.equal(run("(described-as-all 'prince '(weak good))"), "nil");
   assert.equal(run("(described-as-any 'prince '(weak good))"), "t");
   assert.equal(run("(described-as-any 'step-mother '(weak good))"), "nil");
+});
+
+test("S12: a high variety picks the least used value, a low the most used; medium, and turned off, Ken's", () => {
+  const pick = (run, level) => run(`(pick-value-with-variety '${level} '(high medium low) 'speed)`);
+  const counted = (setup) => {
+    const x = lisp(["slips"], setup);
+    x.run("(load '|ken;glosug >|)");
+    x.run("(load '|ken;elemnt >|)");
+    // speed chosen high three times, medium twice, low once
+    x.run("(ask speed set your (count-for high) to 3)");
+    x.run("(ask speed set your (count-for medium) to 2)");
+    x.run("(ask speed set your (count-for low) to 1)");
+    return x;
+  };
+  const { run } = counted();
+  assert.equal(pick(run, "high"), "low");
+  assert.equal(pick(run, "low"), "high");
+  assert.equal(pick(run, "medium"), "medium");
+  assert.equal(run("(ask speed recall if any items match (revival-repair: what variety-pick was (high high) now low %))"), "t");
+  const off = counted("(setq :slips-off '(s12))");
+  assert.equal(pick(off.run, "high"), "high"); // Ken's: the most used (glosug.41:67-68)
+  assert.equal(pick(off.run, "low"), "low");
 });
 
 test("S3: friendly's tendencies are named as ELEMNT's elements; turned off, as Ken wrote them", () => {

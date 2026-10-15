@@ -11,9 +11,12 @@
 // mend,appear,change,know ("with-know": the extensions the page's switch turns on, Ken's
 // decision 3 of 9 October; KNOW's knowledge gives some stories new ways of showing,
 // and its words, feelings and relationships, used by test/stories/stress/know-*.lisp,
-// are words and feelings Ani knows). What happened is held
+// are words and feelings Ani knows), and with --extensions
+// mend,appear,change,know,slips,detail ("with-all": those, and the two the page's switch
+// leaves to be chosen, SLIPS and DETAIL, Ken's decision 3; test/stories/stress/slips-*.lisp
+// and detail-*.lisp reach what they do). What happened is held
 // against test/stories/stress/expected.json. For each story, under each of those
-// four, that file gives:
+// five, that file gives:
 //   exit      run-story's exit status: 0 if every scene filmed and ended, else 1
 //   pass1     "ok", or "failed: " and the start of the error pass 1 stopped with
 //   scenes    each scene, in order: the frames it filmed; "under the cap", if it ended in
@@ -32,7 +35,7 @@
 // (git diff), and loosen what may change: a scene's frames to "under the cap", say.
 // Usage: node tools/check-stress.mjs [name ...] [--modes m,...] [--jobs n] [--record]
 //   name      only these stories (by name, as in expected.json, or by file); all by default
-//   --modes   only these of without, with, with-appear and with-know (all by default); with
+//   --modes   only these of without, with, with-appear, with-know and with-all (all by default); with
 //             --record, the others stay as expected.json has them
 //   --jobs    how many runs at once, each a process of its own (default: the cores less two, at most 6)
 //   --record  write what each story did into expected.json as its expectations
@@ -53,14 +56,14 @@ const names = args.filter((a, i) => !a.startsWith("--") && !valued.has(args[i - 
 const record = args.includes("--record");
 const at = args.indexOf("--jobs");
 const jobs = at >= 0 ? Math.max(1, Number(args[at + 1]) || 1) : Math.max(1, Math.min(6, availableParallelism() - 2));
-const ALL_MODES = [["without", []], ["with", ["--extensions", "mend"]], ["with-appear", ["--extensions", "mend,appear"]], ["with-know", ["--extensions", "mend,appear,change,know"]]];
-const label = { without: "without MEND", with: "with MEND", "with-appear": "with MEND and APPEAR", "with-know": "with the page's set" };
+const ALL_MODES = [["without", []], ["with", ["--extensions", "mend"]], ["with-appear", ["--extensions", "mend,appear"]], ["with-know", ["--extensions", "mend,appear,change,know"]], ["with-all", ["--extensions", "mend,appear,change,know,slips,detail"]]];
+const label = { without: "without MEND", with: "with MEND", "with-appear": "with MEND and APPEAR", "with-know": "with the page's set", "with-all": "with all six" };
 const modesAt = args.indexOf("--modes");
 const MODES = modesAt >= 0 ? (args[modesAt + 1] || "").split(",").filter(Boolean).map((m) => ALL_MODES.find(([n]) => n === m) || (() => { throw new Error(`no mode ${m}: known are ${ALL_MODES.map(([n]) => n).join(", ")}`); })()) : ALL_MODES;
 
 const expected = existsSync(expectedPath)
   ? JSON.parse(readFileSync(expectedPath, "utf8"))
-  : { about: "What each stress story does without MEND, with it, with MEND and APPEAR, and with the extensions the page's switch turns on, MEND, APPEAR, CHANGE and KNOW (tools/check-stress.mjs, which says what each field means).", frames: 1000, fps: 4, stories: {} };
+  : { about: "What each stress story does without MEND, with it, with MEND and APPEAR, with the extensions the page's switch turns on, MEND, APPEAR, CHANGE and KNOW, and with those and SLIPS and DETAIL (tools/check-stress.mjs, which says what each field means).", frames: 1000, fps: 4, stories: {} };
 // the stories: those with an entry, in its order, then any in the folder without one
 const stories = Object.entries(expected.stories).map(([name, e]) => ({ name, file: e.file || `${folder}/${name}.lisp` }));
 for (const f of readdirSync(join(root, folder)).filter((f) => f.endsWith(".lisp")).sort()) {

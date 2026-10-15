@@ -99,14 +99,14 @@ export const EXTENSIONS = [
     label: "Corrections of slips in Ken's files",
     group: "repairs",
     optIn: true,
-    files: ["wrap", "slips", "slips1", "slips3", "slips6", "slips7", "slips8", "slips9"],
+    files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9"],
     // S1 has good's helping find someone to help, which needs KNOW's way of showing
     // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped
     requires: ["know"],
     changes1978: true,
     // REVIVE;SLIPS3's notes on the choice points of a friendly character's tendencies
     afterPass1: "(note-friendlys-attractions)",
-    note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, the stepmother's guard no longer slows down cycle by cycle in Kept Apart, and every feeling changes her characters at the pace Ani planned. Each correction leaves a note where it acted.",
+    note: "Corrections of slips in Ken's files, places where his code does something other than what the code beside it, his comments or his thesis say it is to do, each quoting the line it corrects (Ken's decision 2): is-not looks for someone in the task's scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (p. 100); a high level of variety picks the least used value and a low the most used, as the thesis says (p. 85); friendly's attractions are named as the elements are; a method's prerequisites are read under the name they are kept by; MIDDLE compares itself with (not bottom); and in Director, a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs at the speed Ani's estimate gives it (the run confirmed the inversion: four times as long as planned at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, the stepmother's guard no longer slows down cycle by cycle in Kept Apart, and every feeling changes her characters at the pace Ani planned. Each correction leaves a note where it acted.",
   },
   {
     id: "detail",

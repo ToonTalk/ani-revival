@@ -44,6 +44,7 @@ const doEach = args.includes("--each") || !args.includes("--speed");
 // The corrections, as REVIVE;SLIPS names them for :slips-off.
 const CORRECTIONS = [
   ["s1", "S1 and S2: is-not looks in the task's scene; is-described-as is a preference"],
+  ["s12", "S12: a high variety picks the least used value, a low the most used"],
   ["s3", "S3: friendly's attractions named as the elements are"],
   ["s6", "S6: a method's prerequisites read under the name they are kept by"],
   ["s7", "S7: MIDDLE compares itself with (not bottom)"],
