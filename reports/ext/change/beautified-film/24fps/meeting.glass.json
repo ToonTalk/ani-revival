@@ -225,9 +225,9 @@
     "convey-tasks": "(convey-task-5)",
     "(time-estimates-for (exit-by (fairy-godmother step-mother)))": "(time-estimates: ideal 1.65 most 4.125 least 0.66)",
     "(location-of prince)": "(place: where (xy-position 0.25690998 -0.38220899) why (ended up here in no-longer-kept-apart) status cool)",
-    "(location-of fairy-godmother)": "(place: where (xy-position 0.17262451 -0.35596976) why (ended up here in no-longer-kept-apart) status cool)",
+    "(location-of fairy-godmother)": "(place: where (xy-position 0.25624153 -0.38232535) why (ended up here in no-longer-kept-apart) status cool)",
     "(location-of step-mother)": "(place: where (xy-position 0.10988814 -0.19402354) why (ended up here in no-longer-kept-apart) status cool)",
-    "(location-of cinderella)": "(place: where (xy-position 0.11019814 -0.31517691) why (ended up here in no-longer-kept-apart) status cool)",
+    "(location-of cinderella)": "(place: where (xy-position 0.17789267 -0.40209952) why (ended up here in no-longer-kept-apart) status cool)",
     "stretched-by": "2.0779221",
     "(actions-of fairy-godmother)": "((walk of fairy-godmother to (small-distance-from-and-offstage (vicinity-of fairy-godmother)) as stationary-target regardless of collisions starting at 0.0 using |(special-dynamics-of fairy-godmother in (subscene-of meeting 1))-5| called (activity-of exit-by-character 1) stopping if (stop-when-there (quote (subscene-of meeting 1)))))",
     "(actions-of step-mother)": "((walk of step-mother to (small-distance-from-and-offstage (vicinity-of step-mother)) as stationary-target regardless of collisions starting at 0.0 using |(special-dynamics-of step-mother in (subscene-of meeting 1))-6| called (activity-of exit-by-character 2) stopping if (stop-when-there (quote (subscene-of meeting 1)))))",
@@ -246,7 +246,7 @@
     "scene": "meeting",
     "convey-tasks": "(convey-task-6)",
     "(time-estimates-for (alternately-turn cinderella prince))": "(time-estimates: ideal 15.0 most 60.0 least 1.11)",
-    "(location-of fairy-godmother)": "(place: where (xy-position 0.17262451 -0.6) why (and move-character (ended up here in no-longer-kept-apart)) status cool)",
+    "(location-of fairy-godmother)": "(place: where (xy-position 0.25624153 -0.6) why (and move-character (ended up here in no-longer-kept-apart)) status cool)",
     "(location-of step-mother)": "(place: where (xy-position 0.10988814 -0.6) why (and move-character (ended up here in no-longer-kept-apart)) status cool)",
     "stretched-by": "0.57142857",
     "(actions-of cinderella)": "((turning of cinderella -49.790521 degrees starting at 0.0 using |(special-dynamics-of cinderella in (subscene-of meeting 2))-7| called (activity-of turn-character-back 1) stopping if (stop-when-turned (quote (subscene-of meeting 2)))) (turning of cinderella 49.790521 degrees starting at 0.0 using |(special-dynamics-of cinderella in (subscene-of meeting 2))-7| called (activity-of turn-character 1) stopping if (stop-when-turned (quote (subscene-of meeting 2)))))",
@@ -376,12 +376,16 @@
     "(changes-for prince)": "((gradually change look by 1.5 factor for color-intensity at high speed) (gradually change by 1.5 factor for activity-level at high speed) (gradually change by 1.5 factor for speed at high speed) (gradually change by 1.5 factor for rhythmic-level at high speed) (gradually change by 1.5 factor for acceleration at high speed) (gradually change by 2.0 factor for path-curvature at high speed))",
     "begin-time": "(after (beginning-of (subscene-of meeting 6)) 5.1614394)",
     "status": "(parasite-on (subscene-of meeting 6))",
+    "plans": "((activity-of wandering-while-changes-run 2) (activity-of waiting-to-wander 2) (activity-of wandering-while-changes-run 1) (activity-of waiting-to-wander 1))",
     "(location-of prince)": "(place: where (contact-with cinderella by prince) why (and move-character (so that (move-to-each-other prince cinderella))) status symbolic)",
     "(location-of cinderella)": "(place: where (contact-with prince by cinderella) why (and move-character (so that (move-to-each-other prince cinderella))) status symbolic)",
     "(distance-between (vicinity-of prince) (vicinity-of cinderella))": "(screen-fraction 0.3)",
     "running-time": "1.732868"
    },
-   "items": []
+   "items": [
+    "(revival-repair: what nothing-to-do was (stands-still cinderella) now (wander-while-changes-run cinderella) because (so that the changes are apparent thesis 126))",
+    "(revival-repair: what nothing-to-do was (stands-still prince) now (wander-while-changes-run prince) because (so that the changes are apparent thesis 126))"
+   ]
   }
  ],
  "plans": [
@@ -558,6 +562,54 @@
     "begin-time": "0.0",
     "subscene": "(subscene-of meeting 6)",
     "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of meeting 6))-19|) (ask prince initialize your curvature-sign towards (contact-with cinderella by prince)) (ask (activity-of moving-towards-each-other 7) cause (prince) to gradually go in arc careful of collisions to (contact-with cinderella by prince) as moving-target stopping if (stop-when-there-then (quote (subscene-of meeting 6)) (stop-plan (quote (activity-of moving-towards-each-other 8)))))))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of wandering-while-changes-run 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of wandering-while-changes-run 2)",
+    "begin-time": "(after (end-of (activity-of waiting-to-wander 2)) 0.0)",
+    "subscene": "(subscene-of meeting 7)",
+    "plans": "((ask (activity-of wandering-while-changes-run 2) wander cinderella while changes run in (subscene-of meeting 7)))"
+   },
+   "items": [
+    "(wanders: character cinderella while (changes-for cinderella) in (subscene-of meeting 7) after (activity-of waiting-to-wander 2) once-nothing-moves-her-in ((subscene-of meeting 7) (subscene-of meeting 6)) because (so that the changes are apparent thesis 126))"
+   ]
+  },
+  {
+   "name": "(activity-of waiting-to-wander 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of waiting-to-wander 2)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of meeting 7)",
+    "plans": "((ask (activity-of waiting-to-wander 2) wait until cinderella is moved by nothing in ((subscene-of meeting 7) (subscene-of meeting 6)) or (subscene-of meeting 7) changes end))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of wandering-while-changes-run 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of wandering-while-changes-run 1)",
+    "begin-time": "(after (end-of (activity-of waiting-to-wander 1)) 0.0)",
+    "subscene": "(subscene-of meeting 7)",
+    "plans": "((ask (activity-of wandering-while-changes-run 1) wander prince while changes run in (subscene-of meeting 7)))"
+   },
+   "items": [
+    "(wanders: character prince while (changes-for prince) in (subscene-of meeting 7) after (activity-of waiting-to-wander 1) once-nothing-moves-her-in ((subscene-of meeting 7) (subscene-of meeting 6)) because (so that the changes are apparent thesis 126))"
+   ]
+  },
+  {
+   "name": "(activity-of waiting-to-wander 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of waiting-to-wander 1)",
+    "begin-time": "0.0",
+    "subscene": "(subscene-of meeting 7)",
+    "plans": "((ask (activity-of waiting-to-wander 1) wait until prince is moved by nothing in ((subscene-of meeting 7) (subscene-of meeting 6)) or (subscene-of meeting 7) changes end))"
    },
    "items": []
   }
@@ -1035,6 +1087,16 @@
   },
   "items": []
  },
+ "repairs": [
+  {
+   "actor": "(subscene-of meeting 7)",
+   "note": "(revival-repair: what nothing-to-do was (stands-still cinderella) now (wander-while-changes-run cinderella) because (so that the changes are apparent thesis 126))"
+  },
+  {
+   "actor": "(subscene-of meeting 7)",
+   "note": "(revival-repair: what nothing-to-do was (stands-still prince) now (wander-while-changes-run prince) because (so that the changes are apparent thesis 126))"
+  }
+ ],
  "looks": [
   {
    "character": "cinderella",
@@ -1171,6 +1233,30 @@
     ]
    },
    "lookMadeSo": true
+  }
+ ],
+ "wanders": [
+  {
+   "character": "cinderella",
+   "plan": "(activity-of wandering-while-changes-run 2)",
+   "waiting": "(activity-of waiting-to-wander 2)",
+   "subscene": "(subscene-of meeting 7)",
+   "watched": [
+    "(subscene-of meeting 7)",
+    "(subscene-of meeting 6)"
+   ],
+   "because": "(so that the changes are apparent thesis 126)"
+  },
+  {
+   "character": "prince",
+   "plan": "(activity-of wandering-while-changes-run 1)",
+   "waiting": "(activity-of waiting-to-wander 1)",
+   "subscene": "(subscene-of meeting 7)",
+   "watched": [
+    "(subscene-of meeting 7)",
+    "(subscene-of meeting 6)"
+   ],
+   "because": "(so that the changes are apparent thesis 126)"
   }
  ]
 }
