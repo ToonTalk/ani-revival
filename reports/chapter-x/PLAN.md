@@ -277,6 +277,8 @@ Director's walk has no actor of its own, so the subscene memorizes what DETAIL d
 
 *The glass box (stage 7):* every correction and detail notes where it acted through REVIVE;WRAP's `revival-note` (kinds in each README's "The glass box"); Director's corrections and the walk on Director's subscene, so the film's `repairs` has them. *Tests:* `test/slips.test.js`, `test/detail.test.js`; `tools/check-stress.mjs` has a mode with all six extensions (`with-all`) and four new stories (`slips-good-helps`, `slips-variety`, `detail-rhythm`, `detail-tendency`). The page is the next agent's: each README's "For the page (stage 7)".
 
+*On the page (stage 7, 15 October):* the switch as it was; under it "Which extensions" with the registry's two groups, knowledge (KNOW, APPEAR, CHANGE, DETAIL) and repairs (MEND, SLIPS), each with a tick, SLIPS and DETAIL opt-in and unticked; ticking one ticks what it requires, so ticked in 1978 mode SLIPS and DETAIL each make Ken's Cinderella as its README has it (230, 115, 19, 180, 85; 189, 116, 16, 169, 87), every correction and detail said where it acted (compare panel, captions, glass box), with Ken's lines linked. Found: Chrome's Math differs from Node's in last bits, which changed SLIPS' Introduction in the page; `src/maclisp/libm.js` (fdlibm, bit for bit Node's) makes the film the same in every browser. Each README's "On the page (stage 7)"; PLAN.md.
+
 ## Item 5: a mini-Ani in the Agent Kit
 
 The mini-Ani is an example under "＋ New society", not a tenth microworld. It is a society of program agents:
