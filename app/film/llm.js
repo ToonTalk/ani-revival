@@ -607,10 +607,12 @@ function showDraft(failure = null) {
   const d = teller.draft;
   if (!result || !d) return;
   const { story, problems: hard, notes, stops } = checkStory(d.text);
-  // where Ani as in 1978 stops is a problem in 1978 mode, and a note of what the repairs do in theirs
+  // where Ani as in 1978 stops is a problem where the extensions ticked don't go on (in
+  // 1978 mode, everywhere), and a note of what they do where they do
   const as1978 = MODE === "1978";
-  const problems = [...hard, ...(as1978 ? stops.map((x) => x.as1978) : [])];
-  const mended = as1978 ? [] : stops.map((x) => `<span class="made-with">${x.mended}</span>`);
+  const unmet = stops.filter((x) => !CHOSEN.includes(x.change ? "change" : x.know ? "know" : "mend"));
+  const problems = [...hard, ...unmet.map((x) => x.as1978)];
+  const mended = stops.filter((x) => !unmet.includes(x)).map((x) => `<span class="made-with">${x.mended}</span>`);
   const cast = Object.keys(story.characters);
   const scenes = Object.keys(story.scenes);
   result.innerHTML = `

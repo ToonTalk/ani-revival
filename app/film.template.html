@@ -268,6 +268,12 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .seg.mode button[data-mode="revival"][aria-pressed="true"] { background: var(--ours-soft); color: var(--ours); }
 .ext-panel .body { font-size: 0.9rem; }
 .ext-panel .ext { display: grid; gap: 6px; }
+.ext-panel .ext-group { display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 8px; }
+.ext-tick { cursor: pointer; }
+.ext-tick input { margin: 0 4px 0 0; vertical-align: -1px; accent-color: var(--ours); }
+.opt-summary { display: grid; gap: 6px; }
+.opt-summary .table-wrap { margin-top: 6px; }
+.opt-in { color: var(--ours); font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
 .ext-panel details { border-top: 0; padding-top: 0; }
 .ext-panel details > summary { font-weight: 500; font-size: 0.88rem; }
 .ext-files { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 0.88rem; }
@@ -1114,50 +1120,110 @@ function taskCode(t) {
 // Lisp of ours in Ken's idioms, in files of its own (src/director/revive/), loaded after
 // his (src/pipeline.js EXTENSIONS; reports/chapter-x/PLAN.md). Ken's decision of 9
 // October 2026: the site opens in 1978 mode, and the switch turns on MEND, KNOW, APPEAR
-// and CHANGE, those of them written so far (MEND, the repairs; APPEAR, Ani choosing how
-// her characters look; and CHANGE, characters who change); SLIPS and DETAIL will be
-// switches of their own, off unless turned on. Ken's 1978 film is shown as it was made
-// either way: the switch is for the films made here.
+// and CHANGE (MEND, the repairs; KNOW, knowledge Ken could have added; APPEAR, Ani
+// choosing how her characters look; and CHANGE, characters who change); SLIPS and DETAIL
+// are opt-in (the registry's optIn), off unless a visitor ticks them in the "Which
+// extensions" panel. The panel ticks the switch's four too, in its two groups (the
+// registry's group): ticking one ticks those it requires, and unticking one unticks those
+// that require it, so that ticking SLIPS in 1978 mode makes Ken's Cinderella as
+// reports/ext/slips/ has it (with KNOW and MEND), and DETAIL as reports/ext/detail/ (with
+// MEND). Ken's 1978 film is shown as it was made either way: the switch is for the films
+// made here.
 const EXTENSIONS = DATA.extensions || [];
-const SWITCHED = ["mend", "know", "appear", "change"].filter((id) => EXTENSIONS.some((e) => e.id === id));
+const extNamed = (id) => EXTENSIONS.find((e) => e.id === id);
+const SWITCHED = ["mend", "know", "appear", "change"].filter((id) => extNamed(id));
+// the order a run's extensions are listed in: the switch's, then the opt-in ones
+const EXT_ORDER = [...SWITCHED, ...EXTENSIONS.map((e) => e.id).filter((id) => !SWITCHED.includes(id))];
+// ids with those they require, in EXT_ORDER; and ids without x and whatever requires it
+function withRequired(ids) {
+  const want = new Set();
+  const add = (id) => { const e = extNamed(id); if (!e || want.has(id)) return; want.add(id); for (const r of e.requires || []) add(r); };
+  for (const id of ids) add(id);
+  return EXT_ORDER.filter((id) => want.has(id));
+}
+function withoutExtension(ids, x) {
+  const gone = new Set([x]);
+  for (let more = true; more;) {
+    more = false;
+    for (const id of ids) if (!gone.has(id) && ((extNamed(id) || {}).requires || []).some((r) => gone.has(r))) { gone.add(id); more = true; }
+  }
+  return ids.filter((id) => !gone.has(id));
+}
+const sameIds = (a, b) => [...a].sort().join() === [...b].sort().join();
 // what a run's extensions are called: the repairs alone (as the switch turned on before
-// APPEAR), all those the switch turns on, or a list of them
-const extensionsName = (ids) => (ids.length === 1 && ids[0] === "mend" ? "the revival's repairs"
-  : ids.join() === SWITCHED.join() ? "the revival's extensions" : `the revival's extensions (${ids.map((x) => x.toUpperCase()).join(", ")})`);
+// APPEAR), all those the switch turns on, those and opt-in ones ("the revival's extensions
+// and SLIPS"), or a list of them
+const extensionsName = (ids) => {
+  if (ids.length === 1 && ids[0] === "mend") return "the revival's repairs";
+  if (sameIds(ids, SWITCHED)) return "the revival's extensions";
+  const extra = ids.filter((id) => !SWITCHED.includes(id));
+  if (SWITCHED.every((id) => ids.includes(id)) && extra.length) return `the revival's extensions and ${words(extra.map((x) => x.toUpperCase()))}`;
+  return `the revival's extensions (${ids.map((x) => x.toUpperCase()).join(", ")})`;
+};
 const REVIVAL = extensionsName(SWITCHED);
+// The visitor's choice, kept in this browser: the switch (MODE_KEY, as before), and, when
+// the ticks are other than the switch's two settings, the extensions ticked (EXT_KEY).
 const MODE_KEY = "ani-cinderella:mode:v1";
-let MODE = store.get(MODE_KEY) === "revival" && SWITCHED.length ? "revival" : "1978";
-const modeExtensions = () => (MODE === "revival" ? [...SWITCHED] : []);
+const EXT_KEY = "ani-cinderella:extensions:v1";
+function storedChoice() {
+  if (!SWITCHED.length) return [];
+  let ids = null;
+  try { const v = JSON.parse(store.get(EXT_KEY) || "null"); if (Array.isArray(v)) ids = v.filter((id) => typeof id === "string" && extNamed(id)); } catch { ids = null; }
+  if (ids) return withRequired(ids);
+  return store.get(MODE_KEY) === "revival" ? [...SWITCHED] : [];
+}
+let CHOSEN = storedChoice();
+let MODE = CHOSEN.length ? "revival" : "1978";
+const modeExtensions = () => [...CHOSEN];
 WORDS = vocabularyFor(modeExtensions());
 const runExtensions = (run) => (run && run.extensions) || [];
 const madeWith = (run) => (runExtensions(run).length ? `with ${extensionsName(runExtensions(run))}` : "by Ani as in 1978");
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
-// whether the switch changes what Ken's own story makes (APPEAR does: Ani draws his cast)
-const switchChanges1978 = () => MODE === "revival" && SWITCHED.some((id) => EXTENSIONS.find((e) => e.id === id).changes1978);
-const MODE_CLAUSE = { mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "shows a change a story makes in a character, and takes a fresh look at who they have become" };
+// whether the extensions ticked change what Ken's own story makes (APPEAR does: Ani draws
+// his cast; KNOW, SLIPS and DETAIL change what his characters do)
+const switchChanges1978 = () => MODE === "revival" && CHOSEN.some((id) => extNamed(id).changes1978);
+const MODE_CLAUSE = {
+  mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "shows a change a story makes in a character, and takes a fresh look at who they have become",
+  slips: "corrects slips in Ken's files",
+  detail: "attends to a few of the thesis's “myriad details”",
+};
 // clauses with an "and" of their own, set apart with commas: "A, B, and C"
 const clauseList = (clauses) => (clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : clauses[0] || "");
 function modeNote() {
   if (MODE !== "revival") return "Ani as in 1978 runs Ken's files and nothing more, so a new story may stop where his Ani stopped; the page then says why.";
-  return `With ${REVIVAL}, Ani ${clauseList(SWITCHED.map((id) => MODE_CLAUSE[id]).filter(Boolean))}; the glass box says where each one acted.${switchChanges1978() ? " Ken's own Cinderella comes out differently with them: make it as it is to see." : " Ken's Cinderella comes out exactly as in 1978 with them."}`;
+  return `With ${extensionsName(CHOSEN)}, Ani ${clauseList(CHOSEN.map((id) => MODE_CLAUSE[id]).filter(Boolean))}; the glass box says where each one acted.${switchChanges1978() ? " Ken's own Cinderella comes out differently with them: make it as it is to see." : " Ken's Cinderella comes out exactly as in 1978 with them."}`;
 }
 // The switch, beside the frame rate of the films made here.
 function modeSwitch() {
   if (!SWITCHED.length) return "";
   return `<div class="seg mode" role="group" aria-label="Which Ani makes the film"><button type="button" data-mode="1978" aria-pressed="${MODE === "1978"}">Ani as in 1978</button><button type="button" data-mode="revival" aria-pressed="${MODE === "revival"}">Ani with ${esc(REVIVAL)}</button></div>`;
 }
+// "Ani with the revival's extensions" turns on the switch's four, keeping the opt-in ones
+// ticked; "Ani as in 1978" turns everything off.
 function setMode(mode) {
-  MODE = mode === "revival" && SWITCHED.length ? "revival" : "1978";
+  setChosen(mode === "revival" ? [...SWITCHED, ...CHOSEN] : []);
+}
+function setChosen(ids) {
+  CHOSEN = SWITCHED.length ? withRequired(ids) : [];
+  MODE = CHOSEN.length ? "revival" : "1978";
   WORDS = vocabularyFor(modeExtensions());
   store.set(MODE_KEY, MODE);
+  // the ticks are kept only when they are other than the switch's two settings
+  if (!CHOSEN.length || sameIds(CHOSEN, SWITCHED)) { try { localStorage.removeItem(EXT_KEY); } catch { /* nothing kept */ } } else store.set(EXT_KEY, JSON.stringify(CHOSEN));
   document.querySelectorAll("[data-mode]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === MODE)));
   document.querySelectorAll(".mode-note").forEach((el) => { el.textContent = modeNote(); });
+  document.querySelectorAll("input[data-ext]").forEach((x) => { x.checked = CHOSEN.includes(x.dataset.ext); });
   if (state.panel === "edit") refreshEditor();
   else if (state.panel === "tell" && teller.draft) showDraft();
 }
 document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-mode]");
   if (b) setMode(b.dataset.mode);
+});
+// A tick in "Which extensions": with those it requires, or without those that require it.
+document.addEventListener("change", (e) => {
+  const x = e.target.closest && e.target.closest("input[data-ext]");
+  if (x) setChosen(x.checked ? [...CHOSEN, x.dataset.ext] : withoutExtension(CHOSEN, x.dataset.ext));
 });
 
 // What each extension does, in a sentence (the registry's note says it for programmers),
@@ -1167,6 +1233,8 @@ const EXTENSION_TEXT = {
   appear: "Ani chooses each character's size, shape and colors as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit, and the hue is one of six on a painter's wheel. During a scene, joy brightens a character's colors and sadness dims them (p. 166), beside Ani's changes of how it moves; color mode shows them. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
   change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were; with APPEAR, how she looks too. In the scene itself Ani shows the change (p. 169): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes, while Ani bridges the gap between how she moved and looked and how she will, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. Ken's Cinderella has no change, so it comes out exactly as in 1978; his own cinderella-beautified scene, put back as he wrote it, now plays (“Change the story” has it).",
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
+  slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion: four times as long at high speed, a quarter at low), grows once a tick, and takes as many steps as it counts. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; the stepmother's guard no longer slows down cycle by cycle in Kept Apart; and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and so MEND: ticking it ticks them.",
+  detail: "A few of the low-level details the thesis names as left undone (pp. 183-187, “Attending to Myriad Details”), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, a deliberate character going in longer arcs with smaller jags (X.B.3 (f)); its tendencies towards friends, enemies and strangers count in the best-when scores of the ways of showing that take it to another, or away (c); and a scene's rhythm, fast, slow or changing, speeds its characters up or slows them down a quarter, as a feeling would (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not; Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker; the tendencies decide nothing there. It needs MEND: ticking it ticks MEND.",
 };
 const REVIVE_TEXT = {
   wrap: "The helper every extension goes through: it wraps one of Ken's functions once a job, and notes each repair where it acted.",
@@ -1203,26 +1271,45 @@ const REVIVE_TEXT = {
   knowcv: "Ways of showing helps, avoids and follows, written as CONVEY, each by one of KNOWDI's display methods.",
   knowdi: "helps-along, moves-away-from and follows-behind, written as DISPLY and made from its own parts: helping someone along from behind, running off when someone comes near, and following someone.",
   knowem: "Feelings, written as EMOTE: pride, anticipation, loneliness, fear and anger, each changing how a character moves as joy does; a negative level of one of them shows nothing.",
+  slips: "What SLIPS is, the rule each correction is judged by (Ken's own, thesis p. 189: what his code, comments or thesis say his code is to do, nothing to make Cinderella come out one way), how each can be turned off on its own, and what is left alone.",
+  slips1: "S1 and S2: is-not, “any sibling who meets the extra-conditions”, looks in the task's scene, where Ken's code gave it the task and it never found anyone (sugest.123:333-335, scene.9:380); is-described-as is a preference, all of the words, then any, then anyone, as the thesis says (p. 100); a bind inside a bind is bound in turn; and a generator no file defines comes up with nothing, so “the suggestion is ignored”.",
+  slips2: "S12: a high level of variety picks the least used value and a low one the most used, as Ken's comment and the thesis say (p. 85), where his sort put the most used first (glosug.41:61-70).",
+  slips3: "S3: friendly's three tendencies, which Ken wrote for attraction-to-friends, -strangers and -enemies (dscrp.17:106-108), under the names pass 1's elements have, attraction-towards-friends and the rest (elemnt.1:101-105), so that pass 1 hears them.",
+  slips6: "S6: a convey method's prerequisites read under 'prerequisites, where SUGCON keeps them, not 'prerequisite, where nothing is (chomet.123:559), so that a method whose prerequisite is not met is dropped.",
+  slips7: "S7: MIDDLE asked whether it is less than (not bottom), the rank that reaches it, where Ken's receiver looked for (not low) (elemnt.1:165-171).",
+  slips8: "S8: a character's dynamics take their parent's factors once: Ken's demon multiplied them in again each time the same dynamics were set (dichar.103:27-31), so a guard's walk slowed, or a push sped up, cycle by cycle.",
+  slips9: "S9, S10 and S11, Director's gradual change as Ani plans it: over the ticks of DISPLY's estimate, where Ken's multiplied by the speed's weight that the estimate divides by (dichar.103:105-109, disply.311:1104-1106; a run confirmed it); growing a factor once a tick, where its two repeats could grow one twice (dichar.103:112-121); and taking every step it counts, where SOME's repeat does one fewer (some.666:444-450).",
+  detail: "What DETAIL's three parts share: each is the revival's reading of a sentence of the thesis's (pp. 183-187), labeled so, can be turned off on its own, and notes where it acted.",
+  dtwalk: "(f) Deliberateness in Director's walk (go-in-arc, dichar.103:214-256): a character d times as deliberate as one of medium deliberateness goes in arcs d times as long and jags 1/d as far; the curvature, the distance and the speed are left as Ani chose them; with CHANGE, a change bridges deliberateness too.",
+  dttend: "(c) The tendencies as best-when clauses: drawn-to, a prerequisite written as PREREQ's are, met if a character's tendency towards what the other is to it (friend, enemy or stranger, by Ken's own tests) is positive, not met if negative; on the ways of showing that take one character to another, or away (as Ken gives a method a clause, convey.64:29-33).",
+  dtrhym: "B.2 (a) A scene's rhythm as changes of speed, made with DISPLY's change:, as joy's are: fast and slow a quarter faster or slower at medium speed in each part, a changing rhythm its first value in the first part and its last in the last, for each character who does something there; normal changes nothing.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
-// Under the switch, closed: which extensions it turns on, and those still to come.
+// Under the switch, closed: the revival's extensions in their two groups (the registry's
+// group), knowledge and repairs, each with its tick, its sentence and its files. The
+// switch ticks its four; the opt-in ones (SLIPS and DETAIL) only a visitor ticks.
+const EXT_GROUPS = [
+  ["knowledge", "Knowledge", "What Ken could have added to Ani: words, relationships and ways of showing, looks, changes, and a few of the thesis's details."],
+  ["repairs", "Repairs", "Where Ken's files stop on a story he never gave Ani, or slip."],
+];
 function extensionsPanel() {
   if (!SWITCHED.length) return "";
-  const groups = SWITCHED.map((id) => {
-    const e = EXTENSIONS.find((x) => x.id === id);
+  const item = (e) => {
     const files = e.files.map((name) => `<li><b>${esc(name.toUpperCase())}</b> ${esc(REVIVE_TEXT[name] || (reviveFile(name) || {}).title || "")} ${fileLink(name)}</li>`).join("");
-    return `<div class="ext"><p><b>${esc(e.label)}</b> (${esc(id.toUpperCase())}). ${esc(EXTENSION_TEXT[id] || e.note)}</p>
+    return `<div class="ext"><p><label class="ext-tick"><input type="checkbox" data-ext="${esc(e.id)}"${CHOSEN.includes(e.id) ? " checked" : ""}> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</label>${e.optIn ? ` <span class="opt-in">opt-in</span>` : ""} ${esc(EXTENSION_TEXT[e.id] || e.note)}</p>
       <details><summary>What each of its ${e.files.length} files does</summary><ul class="ext-files">${files}</ul></details></div>`;
+  };
+  const groups = EXT_GROUPS.map(([g, title, about]) => {
+    const list = EXT_ORDER.map(extNamed).filter((e) => e && (e.group || "knowledge") === g);
+    return list.length ? `<div class="ext-group"><p class="label">${esc(title)}</p><p class="note">${esc(about)}</p>${list.map(item).join("")}</div>` : "";
   }).join("");
   const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how her characters look (APPEAR)"], ["change", "characters who change (CHANGE)"]];
   const on = NAMED.filter(([id]) => SWITCHED.includes(id)).map(([, t]) => t);
-  const later = NAMED.filter(([id]) => !SWITCHED.includes(id)).map(([, t]) => t);
   const count = ["no", "one", "two", "three", "four", "five", "six"][SWITCHED.length] || SWITCHED.length;
+  const opt = EXTENSIONS.filter((e) => e.optIn).map((e) => ({ slips: "corrections of slips in Ken's files (SLIPS)", detail: "a few of the thesis's “myriad details” (DETAIL)" })[e.id] || `${e.label} (${e.id.toUpperCase()})`);
   return `<details class="ext-panel"><summary>Which extensions</summary><div class="body">
-    <p class="note">The switch turns on ${count} of the revival's extensions: ${esc(words(on))}.</p>${groups}
-    ${later.length ? `<p class="note">${esc(cap(words(later)))} will join this switch ${later.length > 1 ? "as they are" : "when it is"} written.</p>` : ""}
-    <p class="note">Corrections of slips in Ken's files (SLIPS), and a few more of the thesis's details (DETAIL), will be switches of their own, off unless you turn them on.</p>
+    <p class="note">The switch turns on ${count} of the revival's extensions: ${esc(words(on))}.${opt.length ? ` ${cap(NUMBER_WORDS[opt.length] || String(opt.length))} more ${opt.length > 1 ? "are" : "is"} opt-in, off unless you tick ${opt.length > 1 ? "them" : "it"} (Ken's decision 3): ${esc(words(opt))}.` : ""} Tick or untick any of them for the films made here: ticking one ticks those it needs, and unticking one unticks those that need it.</p>${groups}
     <p class="note">Each is the revival's Lisp, in Ken's idioms, in files of its own that load after his only when the switch asks for them. Ken's 1978 film is shown as it was made, whichever is chosen.</p></div></details>`;
 }
 
@@ -1236,7 +1323,10 @@ const repairCode = (what) => { const at = CODE.revive && CODE.revive.notes[what]
 // repairNotes collects them, [{ actor, note }]: pass 1's, kept with the run, and each
 // scene's, in its glass box (pass 2's) and with its film (Director's, as MEND2's
 // weightify guard leaves them). Each becomes one plain sentence; the notes COSUG's
-// combine leaves, one for each element, make one sentence for their task.
+// combine leaves, one for each element, make one sentence for their task, and so do the
+// notes of one kind SLIPS and DETAIL leave on one task or one part (GROUPED: Director's,
+// one for each change, each walk set again, each walker).
+const GROUPED = new Set(["combined-changes", "is-not-in-the-scene", "factors-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency"]);
 function repairItems(run, notes, sc = null) {
   const seen = new Set(), items = [];
   for (const r of notes || []) {
@@ -1246,23 +1336,27 @@ function repairItems(run, notes, sc = null) {
     const note = parse(r.note);
     if (!Array.isArray(note)) continue;
     const what = kv(note, "what");
-    const same = what === "combined-changes" && items.find((x) => x.actor === r.actor && x.what === what);
+    const same = GROUPED.has(what) && items.find((x) => x.actor === r.actor && x.what === what);
     if (same) { same.notes.push(note); same.raw.push(r.note); continue; }
     items.push({ actor: r.actor, what, notes: [note], raw: [r.note] });
   }
   return items.map((x) => ({ ...x, html: using(run, () => repairSentence(x, sc)) }));
 }
 const sceneNotes = (sc) => [...((sc && sc.glass && sc.glass.repairs) || []), ...((sc && sc.film && sc.film.repairs) || [])];
-const repairsIn = (run, sc) => repairItems(run, [...((run && run.raw.repairs) || []), ...sceneNotes(sc)], sc);
+// a scene's notes, with pass 1's but for the opt-in extensions' (SLIPS3's on a friendly
+// character's tendencies are said where pass 1's choices are)
+const repairsIn = (run, sc) => repairItems(run, [...((run && run.raw.repairs) || []).filter((r) => !optInNote(r)), ...sceneNotes(sc)], sc);
 // The note on one of pass 1's choices, if a repair acted on it in pass 2 (MEND1 and MEND2
-// act on the choice points RUN loads, so each scene's glass box has the same).
+// act on the choice points RUN loads, so each scene's glass box has the same), or in pass
+// 1 itself (SLIPS3, on a friendly character's tendencies).
 function choiceRepair(run, char, el) {
   const name = show(["choice-point-of", char, el]);
   for (const s of (run && run.raw.scenes) || []) {
     const r = s && s.glass && (s.glass.repairs || []).find((x) => x.actor === name);
     if (r) return repairItems(run, [r])[0];
   }
-  return null;
+  const p = ((run && run.raw.repairs) || []).find((x) => x.actor === name);
+  return p ? repairItems(run, [p])[0] : null;
 }
 // html as plain text, for the screen, which draws its messages
 const unmark = (s) => String(s).replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&");
@@ -1271,6 +1365,9 @@ const quoted = (v) => (Array.isArray(v) && v[0] === "not" ? `“not ${esc(v[1])}
 const elementWords = (e) => ({ "activity-level": "activity level" })[e] || elementName(e);
 const theirs = (c) => ({ she: "her", he: "his", it: "its" })[CHARS[c] && CHARS[c].she] || "their";
 function repairSentence({ actor, what, notes }, sc) {
+  // SLIPS' corrections and DETAIL's details say themselves (optInSentence)
+  const opt = optInSentence({ actor, what, notes }, sc);
+  if (opt !== null) return opt;
   const a = parse(actor);
   const note = notes[0];
   const was = kv(note, "was"), now = kv(note, "now"), because = kv(note, "because");
@@ -1480,8 +1577,408 @@ function changesText(made) {
     : `${who(x.whose)}'s ${words(x.els)} ${x.els.length > 1 ? "each " : ""}${x.sg === "negative" ? "fall" : "rise"}${x.els.length > 1 ? "" : "s"}${x.am === "high" ? " a lot" : x.am === "low" ? " a little" : ""}`)));
 }
 // The sentences, each opening to Ani's own record of the repair.
+// (x.why, "cinderella|attraction-towards-friends": a choice point of pass 1 the compare
+// panel opens)
 function repairList(items) {
-  return `<ul class="fixes">${items.map((x) => `<li><details><summary><span>${x.html} ${repairCode(x.what)}</span></summary><div class="body"><p class="note">Ani's own record of it, on ${esc(x.actor)}:</p><pre class="lisp">${esc(x.raw.map((n) => pretty(parse(n))).join("\n"))}</pre></div></details></li>`).join("")}</ul>`;
+  return `<ul class="fixes">${items.map((x) => `<li><details><summary><span>${x.html} ${repairCode(x.what)}${x.why ? ` <button type="button" class="linkish" data-cmp-cp="${esc(x.why)}">why?</button>` : ""}</span></summary><div class="body"><p class="note">Ani's own record of it, on ${esc(x.actor)}:</p><pre class="lisp">${esc(x.raw.map((n) => pretty(parse(n))).join("\n"))}</pre></div></details></li>`).join("")}</ul>`;
+}
+
+// ---- the corrections of slips (SLIPS) and the details (DETAIL), in the glass box
+
+// SLIPS (reports/ext/slips/README.md) corrects slips in Ken's files, each quoting the line
+// it corrects (Ken's decision 2); DETAIL (reports/ext/detail/README.md) attends to three of
+// the thesis's "myriad details", each the revival's reading of its sentence. Both are
+// opt-in (Ken's decision 3), and each notes where it acted through REVIVE;WRAP's
+// revival-note, as MEND's repairs do: pass 1's (SLIPS3's, on a friendly character's
+// tendencies), each glass box's (on a task, or on a part) and each film's (on Director's
+// part, one for each change, each walk set again and each walker). Each kind becomes a
+// plain sentence here, with Ken's line cited and linked, and a link to the revival's code.
+// Which extension writes a kind of note: the one whose files include the file it is
+// written in (CODE.revive.notes, tools/build-film-app.mjs reviveIndex).
+function noteExtension(what) {
+  const at = CODE.revive && CODE.revive.notes[what];
+  const name = at ? String(at[0]).replace(/^revive-/, "") : null;
+  const e = name ? EXTENSIONS.find((x) => x.files.includes(name)) : null;
+  return e ? e.id : null;
+}
+const OPT_IN_IDS = EXTENSIONS.filter((e) => e.optIn).map((e) => e.id);
+const noteKind = (r) => { const n = parse(r.note); return Array.isArray(n) ? kv(n, "what") : null; };
+const optInNote = (r) => OPT_IN_IDS.includes(noteExtension(noteKind(r)));
+// the glass box's sections for them, beside the repairs': [id, class, title, note]
+const OPT_SECTIONS = [
+  ["slips", "corrections", "What the corrections of slips did here", "In 1978 Ken's code did otherwise at each of these, a slip: other than the code beside it, his comments or his thesis say it is to do. Each correction (SLIPS) is the revival's Lisp, quoting the line of his it corrects; open one for Ani's own record of it."],
+  ["detail", "details-done", "What the details did here", "Ani as in 1978 left each of these undone (thesis pp. 183-187). Each detail (DETAIL) is the revival's reading of a sentence of the thesis, in its Lisp; open one for Ani's own record of it."],
+];
+// Ken's line, cited as the page cites it ("dichar.103:27-31"), linked to his code
+const kenAt = (ref) => { const m = /^([a-z0-9]+\.\d+):(\d+)/.exec(ref); return m && CODE_SITE !== "none" ? `<a href="${CODE_SITE}source.html#${m[1]}-${m[2]}" title="Ken's code, ${esc(ref)}">${esc(ref)}</a>` : esc(ref); };
+const partOf = (actor) => { const a = parse(actor); return Array.isArray(a) && a[0] === "subscene-of" ? Number(a[2]) : null; };
+const inPart = (actor) => (partOf(actor) ? `In part ${partOf(actor)}` : "Here");
+const ticksWords = (n) => `${n} tick${Number(n) === 1 ? "" : "s"}`;
+// S8's notes on a part, by walker: [{ c, n, factors: [[element, factor]], f }]
+function walksOf(notes) {
+  const by = new Map();
+  for (const n of notes) {
+    const c = (String(lispList(kv(n, "because"))[1] || "").match(/special-dynamics-of ([a-z0-9+-]+) in/) || [])[1];
+    if (!c) continue;
+    if (!by.has(c)) { const factors = lispList(kv(n, "was")).map((p) => [Array.isArray(p[0]) ? p[0][0] : String(p[0]), Number(p[1])]); by.set(c, { c, n: 0, factors, f: factors.length ? factors[0][1] : 1 }); }
+    by.get(c).n++;
+  }
+  return [...by.values()];
+}
+// "Cinderella's and the stepmother's speed and rhythm"; where they differ, each's
+function whoseElements(pairs) {
+  const by = new Map();
+  for (const [c, el] of pairs) { if (!by.has(c)) by.set(c, []); if (!by.get(c).includes(el)) by.get(c).push(el); }
+  const els = (l) => words(l.map(elementWords));
+  if (new Set([...by.values()].map((l) => l.join())).size === 1) return `${words([...by.keys()].map((c) => `${who(c)}'s`))} ${els([...by.values()][0])}`;
+  return words([...by].map(([c, l]) => `${who(c)}'s ${els(l)}`));
+}
+// A tendency, (choice-point-of c attraction-towards-enemies) at (negative high), in words:
+// "the stepmother strongly avoids her enemies", "Cinderella is drawn to strangers"
+const TENDENCY_OF = { "attraction-towards-friends": "friends", "attraction-towards-enemies": "enemies", "attraction-towards-strangers": "strangers" };
+function tendencyWords(c, el, v) {
+  const x = lispValue(v), k = meet(R.story, c);
+  const [sign, level] = Array.isArray(x) ? x : [];
+  const them = TENDENCY_OF[el] === "strangers" ? "strangers" : `${theirs(c)} ${TENDENCY_OF[el] || plain(el)}`;
+  const how = { high: "strongly ", low: "a little " }[level] || "";
+  if (sign === "positive") return `${who(c)} ${agree(k, "is", "are")} ${how}drawn to ${them}`;
+  if (sign === "negative") return `${who(c)} ${level === "low" ? "a little " : how}${agree(k, "avoids", "avoid")} ${them}`;
+  return `${who(c)}'s ${elementWords(el)} is ${esc(plain(show(x)))}`;
+}
+// The way of showing a part shows for c (a convey task's choice there), or null.
+function partMethod(sc, sub, c) {
+  for (const t of ((sc && sc.glass && sc.glass.tasks) || []).filter((x) => x.variables.subscene === sub).map(taskInfo)) {
+    const m = t.choice[0];
+    if (Array.isArray(m) && !["method:", "change:", "change-to:"].includes(m[0]) && (!c || m[1] === c)) return m;
+  }
+  return null;
+}
+// Two of a task's suggestions Ken's find-related-suggestions takes as one (relationship
+// identical: two conveys of one verb by one character, sugest.123:162-177), the first the
+// main one, which SUGEST makes a task of (sugest.123:98-139, 204-210): { main, others },
+// each { value, source }, or null.
+function identicalOf(actor) {
+  for (const item of (actor && actor.items) || []) {
+    const x = parse(item);
+    if (!Array.isArray(x) || x[0] !== "related-suggestions:" || kv(x, "relationship") !== "identical") continue;
+    const others = lispList(kv(x, "others"));
+    if (!others.length) continue;
+    const said = (s) => ({ value: kv(kv(s, "value"), "value"), source: kv(s, "source") });
+    return { main: said(kv(x, "main-suggestion")), others: others.map(said) };
+  }
+  return null;
+}
+const verbIng = (v) => (Array.isArray(v) ? `${VERB_ING[v[0]] || plain(v[0])} ${who(v[2])}` : esc(plain(show(v))));
+const sourceOf = (s) => (typeof s.source === "string" ? `${plain(s.source)}'s` : "another");
+// "Good's helping the stepmother and friendly's helping the Prince are the same to ...: so
+// Cinderella helps the stepmother, not the Prince."
+function identicalSaid(r) {
+  if (!r || !Array.isArray(r.main.value)) return "";
+  return `${cap(sourceOf(r.main))} ${verbIng(r.main.value)} and ${words(r.others.map((o) => `${sourceOf(o)} ${verbIng(o.value)}`))} are the same to Ken's find-related-suggestions, which relates two conveys by their verb and who does it (${kenAt("sugest.123:162-177")}), and only the first is made a task (${kenAt("sugest.123:204-210")}): so ${about(r.main.value)}, not ${words(r.others.map((o) => (Array.isArray(o.value) ? who(o.value[2]) : esc(show(o.value)))))}.`;
+}
+// The ways of showing of a task (its scores, or set aside) whose best-when clauses include
+// one of these: [{ m, clauses }].
+function waysWithClauses(t, clauses) {
+  const v = t ? t.variables : {};
+  const sugs = [...lispList(v.scores ? parse(v.scores) : []).map((s) => kv(s, "suggestion")), ...lispList(v["rejected-suggestions"] ? parse(v["rejected-suggestions"]) : []).map((r) => kv(r, "suggestion"))];
+  const out = [];
+  for (const s of sugs) {
+    const m = kv(s, "value"), bw = lispList(kv(m, "best-when")).map(show);
+    const mine = clauses.filter((c) => bw.includes(c));
+    if (mine.length && !out.some((w) => show(w.m) === show(kv(m, "value")))) out.push({ m: kv(m, "value"), clauses: mine });
+  }
+  return out;
+}
+const times = (x) => (x === 2 ? "twice" : x === 0.5 ? "half" : `${+x.toFixed(2)} times`);
+// a walker's deliberateness, as DTWALK's note gives it: "the stepmother moves deliberately
+// (high), so Director walks her in arcs twice as long, with jags half as large"
+function walkWords({ c, v, d }, short = false) {
+  const k = Array.isArray(c) ? { she: "they", her: "them" } : meet(R.story, c);
+  const jags = d >= 1 ? (d === 2 ? "half" : `1/${+d.toFixed(2)}`) : times(1 / d);
+  const how = `${d >= 1 ? "deliberately" : "with little deliberateness"} (${esc(plain(show(v)))})`;
+  return short ? `${who(c)} ${agree(k, "walks", "walk")} ${how}: arcs ${times(d)} as long, jags ${jags} as large`
+    : `${who(c)} ${agree(k, "moves", "move")} ${how}, so Director walks ${k.her} in arcs ${times(d)} as long, with jags ${jags} as large`;
+}
+const walkersOf = (notes) => notes.map((n) => { const w = lispList(kv(n, "was")), x = lispList(kv(n, "now")); return { c: w[0], v: w[2], d: Number(x[1]) }; });
+// a scene's rhythm, (changes fast slow), in words: "fast, then slow"
+const rhythmWords = (r) => (Array.isArray(r) ? (r[0] === "changes" ? `${plain(r[1])}, then ${plain(r[2])}` : plain(show(r))) : plain(r));
+// One kind of note of SLIPS or DETAIL ({ actor, what, notes }) in a sentence, or null for
+// any other extension's.
+function optInSentence({ actor, what, notes }, sc) {
+  const note = notes[0];
+  const was = kv(note, "was"), now = kv(note, "now"), because = kv(note, "because");
+  const t = sc && sc.glass ? sc.glass.tasks.find((x) => x.name === actor) : null;
+  const d = t ? taskInfo(t).description : null;
+  const subject = Array.isArray(d) && typeof d[1] === "string" ? d[1] : null;
+  switch (what) {
+    // SLIPS' S1 and S2 (REVIVE;SLIPS1), on the task
+    case "is-not-in-the-scene": {
+      const found = [...new Set(notes.map((n) => kv(n, "now")).filter((x) => typeof x === "string"))];
+      return `Looking for someone else in the scene${subject ? ` for ${who(subject)}'s part` : ""}, Ken's is-not takes “any sibling who meets the extra-conditions” and is part of the scene (${kenAt("sugest.123:319")}, ${kenAt("sugest.123:333-335")}), but it was given the task, not the scene: a task asks for its suggestions with itself as the scene (${kenAt("scene.9:380")}), and SCENE keeps a character's part with the scene itself (${kenAt("scene.9:463-465")}). So in 1978 it never found anyone, “no such character exists”; SLIPS gives it the task's scene, and it found ${words(found.map((c) => who(c)))}.`;
+    }
+    case "described-as-preferred": {
+      const ws = lispList(Array.isArray(was) ? was : [was]);
+      const [found, how] = Array.isArray(now) ? now : [now, null];
+      const which = how === "all" ? `who is ${ws.length > 1 ? "all of them" : esc(plain(ws[0]))}` : how === "any" ? "who is one of them" : `who is ${ws.length > 2 ? "none of them" : "neither"}`;
+      const same = identicalSaid(identicalOf(t));
+      return `${subject ? `${cap(who(subject))}'s part asks` : "This asks"} for someone in the scene who is, ideally, ${esc(words(ws.map(plain)))}, and “will be satisfied with a character that is neither ... if need be” (thesis p. 100); Ani found ${who(found)}, ${which}. Ken's is-not applies is-described-as as if it were a function, but it is the name of a generator (${kenAt("sugest.123:402")}); SLIPS reads it as the thesis does, as a preference: someone who is all of the words, then any, then anyone.${same ? ` ${same}` : ""}`;
+    }
+    case "no-such-generator":
+      return `A suggestion here then asks for ${esc(show(was))}, which no file defines; Ani as in 1978 never got this far, since is-not found no one. SLIPS has a generator that doesn't exist come up with nothing, as one that knows nothing does, so that “the suggestion is ignored” (thesis p. 100).`;
+    // S12 (REVIVE;SLIPS2), on the element
+    case "variety-pick": {
+      const [level, kens] = lispList(was);
+      const high = level === "high";
+      return `The film's level of variety is ${esc(level)}, which is to pick the ${high ? "least" : "most"} used value for ${esc(elementWords(actor))}: “if the variety level is high pick the least used value for that element, if it is low pick the most used value” (thesis p. 85). Ken's sort puts the ${high ? "most" : "least"} used first (${kenAt("glosug.41:61-70")}), against his own comment, and would have picked ${esc(plain(show(kens)))}; SLIPS picked ${esc(plain(show(now)))}.`;
+    }
+    // S3 (REVIVE;SLIPS3), on one of pass 1's choice points
+    case "friendly-attraction": {
+      const a = parse(actor);
+      const c = Array.isArray(a) ? a[1] : null, el = Array.isArray(a) ? a[2] : now;
+      const [, value, strength] = lispList(because);
+      const cp = R && R.cp ? R.cp.get(actor) || null : null;
+      const chosen = cp ? cp.currentChoice : null;
+      const ken = RUNS[0] && RUNS[0].cp.get(actor);
+      const as1978 = !ken || !cp ? "" : show(ken.currentChoice) === show(chosen) ? ", as in 1978" : `; in 1978, ${esc(valueWords(ken.currentChoice))}`;
+      const set = cp ? (cp.rejectedSuggestions || []).find((r) => /\bfriendly\b/.test(show(kv(kv(r, "suggestion"), "source")))) : null;
+      const outcome = !cp ? "" : show(chosen) === show(value) ? ` Heard now, it is chosen: ${tendencyWords(c, el, chosen)}${as1978}.` : ` Heard now, it is set aside${set ? `, ${rejectText(kv(set, "reason"))}` : ""}: ${tendencyWords(c, el, chosen)}${as1978}.`;
+      return `Friendly suggests that ${tendencyWords(c, el, value)} (${esc(strength || "")} strength), but Ken wrote it for ${esc(plain(was))} (${kenAt("dscrp.17:106-108")}), and pass 1's element is ${esc(plain(now))} (${kenAt("elemnt.1:101-105")}), as shy, kind and mean name it; so in 1978 pass 1 never heard it. SLIPS names it as the element is.${outcome}`;
+    }
+    // S6 (REVIVE;SLIPS6), on the task
+    case "prerequisite-not-met": {
+      const p = Array.isArray(because) ? because[0] : because;
+      const way = Array.isArray(was) && !CODE.display.methods[was[0]] && !FAMILY[was[0]] ? `showing that ${about(was)}` : methodText(was);
+      return `Ani dropped ${way} as a way of showing this, since its prerequisite ${esc(show(p))} is not met. Ken's pass-prerequisite-test reads a method's prerequisites under 'prerequisite (${kenAt("chomet.123:559")}), where nothing is kept (SUGCON keeps them under 'prerequisites, ${kenAt("sugcon.26:30-52")}), so in 1978 every method passed; SLIPS reads them where they are kept.`;
+    }
+    // S7 (REVIVE;SLIPS7), on MIDDLE
+    case "middle-less-than":
+      return `Asked whether medium is less than “not low”, which reaches it as the rank (not bottom), Ken's MIDDLE looked for (not low) and answered nothing (${kenAt("elemnt.1:165-171")}); SLIPS reads (not bottom), as its greater-than reads (not top): it is.`;
+    // S8 (REVIVE;SLIPS8), on Director's part
+    case "factors-once": {
+      const walks = walksOf(notes);
+      const m = walks.length ? partMethod(sc, actor, walks[0].c) || partMethod(sc, actor, null) : null;
+      const each = walks.map((w) => `${who(w.c)}'s walk is set again ${w.n === 1 ? "once" : w.n === 2 ? "twice" : `${w.n} times`} as it repeats, and each time Ken's Director multiplied in its parent's factor again (${esc(words(w.factors.map(([e, v]) => `${elementWords(e)} ×${+v.toFixed(2)}`)))}), so that each cycle was ${w.f > 1 ? "faster" : "slower"} than the last`);
+      return `${inPart(actor)}${m ? `, as ${methodText(m)}` : ""}, ${each.join("; ") || "a walk is set again as it repeats"}: Director is to “multiply each of your variables matching (? factor) by those in” the parent (${kenAt("dichar.103:27-31")}), once. SLIPS takes the parent's factor once, as the comment on carrying a change forth means (${kenAt("dichar.103:112-115")}).`;
+    }
+    // S9, S10 and S11 (REVIVE;SLIPS9), on Director's part, one note for each change
+    case "change-at-its-speed": {
+      const groups = new Map();
+      for (const n of notes) {
+        const w = lispList(kv(n, "was")), x = lispList(kv(n, "now")), b = lispList(kv(n, "because"));
+        const key = `${w[5]} ${w[8]} ${x[1]} ${b[2]} ${w[3]}`;
+        if (!groups.has(key)) groups.set(key, { speed: w[5], factor: Number(w[3]), kens: Number(w[8]), ticks: Number(x[1]), secs: Number(b[2]), pairs: [] });
+        groups.get(key).pairs.push([w[0], w[1]]);
+      }
+      const said = [...groups.values()].map((g) => `of ${whoseElements(g.pairs)}, by ×${+g.factor.toFixed(3)} at ${esc(g.speed)} speed, for ${secondsWords(g.secs)}, ${ticksWords(g.ticks)}, which Ken's Director ran in ${ticksWords(g.kens)}`);
+      return `${inPart(actor)}, Ani planned the changes ${said.join("; and the changes ")}. DISPLY's estimate divides by the speed's weight (${kenAt("disply.311:1104-1106")}), so that a change at high speed is quick, and Ken's gradual change multiplies by it (${kenAt("dichar.103:105-109")}), so a change at high speed ran four times as long as planned and one at low speed a quarter as long, as a run of Ken's Cinderella confirmed. SLIPS runs each for the ticks of its estimate.`;
+    }
+    case "grown-once": {
+      const pairs = notes.map((n) => lispList(kv(n, "was")).slice(0, 2));
+      const one = new Set(pairs.map((p) => p[0])).size === 1;
+      return `${inPart(actor)}, ${whoseElements(pairs)} take their factors from the scene's dynamics, which Ken's gradual change grows “so that if changing special-dynamics in the scene this change is carried forth” (${kenAt("dichar.103:112-117")}), and then grew them again as ${one ? `${theirs(pairs[0][0])}` : "their"} own (${kenAt("dichar.103:118-121")}): twice a tick, so each change went further than planned. SLIPS grows each once a tick.`;
+    }
+    case "change-steps": {
+      const pairs = notes.map((n) => lispList(kv(n, "because")).slice(0, 2));
+      const one = new Set(notes.map((n) => show(kv(n, "was")))).size === 1;
+      const w = lispList(was), n = Number(lispList(now)[0]);
+      return `${inPart(actor)}, the changes of ${whoseElements(pairs)} each stopped a step short in Ken's Director${one ? ` (${esc(w[0])} steps of ${esc(w[3])}${Number(w[0]) === 0 ? ", so nothing changed" : ""})` : ""}: SOME's repeat, asked to repeat once, does only what follows, against its own help comment, “do the MESSAGE and plan for the next tick to repeat one less time the MESSAGE” (${kenAt("some.666:444-450")}). SLIPS asks it to repeat once more, so each change takes all ${one ? `${n} of ` : ""}its steps.`;
+    }
+    // DETAIL's (f) (REVIVE;DTWALK), on Director's part of the walker
+    case "deliberate-walk":
+      return `${inPart(actor)}, ${walkersOf(notes).map((x) => walkWords(x)).join("; ")}: how often, how quickly and how far a character changes direction, as the thesis says deliberateness should (p. 186, (f)), in Director's walk (${kenAt("dichar.103:214-256")}), which in 1978 never read it. The revival's reading.`;
+    // (c) (REVIVE;DTTEND), on the task whose ways of showing were scored
+    case "tendency": {
+      const clauses = notes.map((n) => { const w = lispList(kv(n, "was")), b = lispList(kv(n, "because")), cp = lispList(b[0]); return { a: w[1], b: w[2], met: kv(n, "now") === "met", el: cp[2], v: b[1], clause: show(w) }; });
+      const ways = waysWithClauses(t, clauses.map((x) => x.clause));
+      const verdict = (x) => `${tendencyWords(x.a, x.el, x.v)}, and ${who(x.b)} ${agree(meet(R.story, x.b), "is", "are")} ${x.el === "attraction-towards-strangers" ? `a stranger to ${meet(R.story, x.a).her}` : "one of them"}: ${x.met ? "met" : "not met"}`;
+      const body = (ways.length ? ways : [{ m: null, clauses: clauses.map((x) => x.clause) }]).map((w) => {
+        const mine = clauses.filter((x) => w.clauses.includes(x.clause));
+        return `${w.m ? `“${cap(methodText(w.m))}”` : "A way of showing this"} is at its best only if ${words(mine.map((x) => `${who(x.a)} ${agree(meet(R.story, x.a), "is", "are")} drawn to ${who(x.b)}`))}. ${cap(mine.map(verdict).join("; "))}`;
+      }).join(". ");
+      return `${body}. Its best-when score counts each as Ken's own clauses count, one more for each met and one less for each not met (${kenAt("chomet.123:376-387")}): the revival's reading of the thesis, “the movement tendencies ... should be used in the prerequisite and “best when” clauses of methods” (p. 185, (c)).`;
+    }
+    // B.2 (a) (REVIVE;DTRHYM), on the part
+    case "rhythm-speed": {
+      const cs = notes.map((n) => lispList(kv(n, "was"))[0]);
+      const up = lispList(kv(now, "amount"))[0] !== "negative";
+      const [, rhythm, where] = lispList(because);
+      const many = cs.length > 1 || meet(R.story, cs[0]).she === "they";
+      const n = partOf(actor);
+      return `${esc(sc ? sc.title : "The scene")}'s rhythm is ${esc(rhythmWords(rhythm))}${where === "beginning" || where === "end" ? `: in part ${n}, as it ${where === "beginning" ? "begins" : "ends"},` : `, so in part ${n}`} ${who(cs)} ${up ? (many ? "speed up" : "speeds up") : (many ? "slow down" : "slows down")} a quarter, a change of speed at medium speed, as a feeling changes it (${kenAt("emote.9:19-24")}). Ken's CINDY gives a scene its rhythm, “relative to the film's rhythm” (${kenAt("cindy.46:61")}), and in 1978 nothing read it; the revival's reading of the thesis's wish that Ani's suggestive words have “the ability to suggest values and activities” (pp. 183-184, B.2 (a)).`;
+    }
+    default: return null;
+  }
+}
+// What SLIPS and DETAIL changed in a film made with them, for the compare panel: the frames
+// of each scene beside 1978's, and a sentence for each correction and detail, where it
+// acted and why, made from their notes (each README's written diff of Ken's Cinderella,
+// reports/ext/slips/ and reports/ext/detail/).
+function optInSummary(run) {
+  const ids = runExtensions(run).filter((id) => OPT_IN_IDS.includes(id));
+  if (!ids.length) return "";
+  return using(run, () => ids.map((id) => {
+    // each scene's notes of the extension, by kind: [{ i, sc, title, kinds: Map }]
+    const scenes = run.scenes.map((sc, i) => ({ i, sc, title: run.titles[run.sceneIds[i]] })).filter((x) => ready(x.sc)).map((x) => {
+      const kinds = new Map();
+      for (const r of sceneNotes(x.sc).filter((y) => noteExtension(noteKind(y)) === id)) { const k = noteKind(r); if (!kinds.has(k)) kinds.set(k, []); kinds.get(k).push({ actor: r.actor, note: parse(r.note) }); }
+      return { ...x, kinds };
+    });
+    const items = atScene(0, () => (id === "slips" ? slipsSaid(run, scenes) : detailSaid(run, scenes)));
+    const ken = sameStory(RUNS[0], run);
+    const frames = scenes.map((x) => { const k = ken ? ((fpsOf(x.sc) === 24 ? DATA.scenes24 : DATA.scenes) || []).find((s) => s.id === x.sc.id) : null; return `${esc(x.title)} ${x.sc.film.frames.length}${k ? ` (${k.film.frames.length} in 1978)` : ""}`; });
+    const e = extNamed(id);
+    const needs = withRequired([id]).filter((x) => x !== id && x !== "mend");
+    return `<div class="opt-summary"><p class="label">What ${esc(id.toUpperCase())} changed, and why</p>
+      <p class="note made-with">${esc(e.label)} (${esc(id.toUpperCase())}), opt-in. Frames at ${fpsOf(scenes[0] ? scenes[0].sc : null)} a second: ${frames.join(", ")}.${needs.length ? ` It needs ${esc(words(needs.map((x) => x.toUpperCase())))}, whose own differences from 1978 the glass box marks as the revival's knowledge.` : ""}</p>
+      ${items.length ? `<ul class="fixes">${items.map((x) => `<li>${x} ${fileLink(id)}</li>`).join("")}</ul>` : `<p class="note">It acted nowhere in this film.</p>`}</div>`;
+  }).join(""));
+}
+const scenesWords = (list) => words([...new Set(list)].map((t) => esc(t)));
+// SLIPS, correction by correction (reports/ext/slips/README.md, "The corrections")
+function slipsSaid(run, scenes) {
+  const out = [];
+  const each = (kind) => scenes.flatMap((x) => (x.kinds.get(kind) || []).map((n) => ({ ...n, x })));
+  // S1 and S2: what is-not found in the scene, and what Ken's relating made of it
+  for (const n of each("described-as-preferred")) {
+    const { sc, title } = n.x;
+    const est = sc.glass.tasks.find((t) => t.name === n.actor);
+    const d = est ? taskInfo(est).description : null, subject = Array.isArray(d) ? d[1] : null;
+    const [found, how] = lispList(kv(n.note, "now")), ws = lispList(kv(n.note, "was"));
+    const conv = sc.glass.tasks.map(taskInfo).find((t) => t.source === n.actor && Array.isArray(t.description) && t.description[2] === found);
+    const sub = conv ? sc.subscenes.find((s) => s.name === conv.actor.variables.subscene) : null;
+    const same = identicalOf(est);
+    const where = sub ? ` (part ${sub.n}${sub.begin !== null ? `, frames ${sub.begin} to ${sub.end}` : ""})` : "";
+    const not = same ? `, not ${words(same.others.map((o) => (Array.isArray(o.value) ? who(o.value[2]) : esc(show(o.value)))))}` : "";
+    const which = how === "all" ? "who is all of them" : how === "any" ? "who is one of them" : `who is ${ws.length > 2 ? "none of them" : "neither"}`;
+    out.push(`In ${esc(title)}, ${conv ? about(conv.description) : `${who(subject)}'s part finds ${who(found)}`}${where}${not}: ${subject ? `${who(subject)}'s part` : "the part"} asks for someone in the scene, ideally ${esc(words(ws.map(plain)))}, and failing that anyone (thesis p. 100), and is-not found ${who(found)}, ${which}; in 1978 Ken's is-not, given the task and not the scene, never found anyone (${kenAt("sugest.123:333-335")}, ${kenAt("scene.9:380")}).${same ? ` ${identicalSaid(same).replace(/: so [^:]*$/, ".")}` : ""} (S1 and S2)`);
+  }
+  // S3: pass 1's notes on a friendly character's tendencies
+  const heard = ((run.raw && run.raw.repairs) || []).filter((r) => noteKind(r) === "friendly-attraction");
+  if (heard.length) {
+    const cps = heard.map((r) => parse(r.actor)).filter(Array.isArray);
+    const chars = [...new Set(cps.map((a) => a[1]))];
+    const same = cps.every((a) => { const k = RUNS[0].cp.get(show(a)), y = run.cp.get(show(a)); return k && y && show(k.currentChoice) === show(y.currentChoice); });
+    out.push(`In pass 1, friendly's suggestions for ${who(chars)}'s ${words(cps.map((a) => elementWords(a[2]).replace(/^liking for /, "")).map((w, k) => (k ? w : `likings for ${w}`)))} are heard, named as pass 1's elements are (${kenAt("dscrp.17:106-108")}, ${kenAt("elemnt.1:101-105")}); ${same && sameStory(RUNS[0], run) ? "each is chosen as in 1978, and pass 1 still writes CP 29" : "“How Ani's choices changed” says what each chose"}. (S3)`);
+  }
+  // S8: a walk set again takes its parent's factor once
+  const parts = [];
+  for (const n of each("factors-once")) if (!parts.some((p) => p.x === n.x && p.actor === n.actor)) parts.push({ x: n.x, actor: n.actor });
+  const walked = parts.map((p) => {
+    const ws = walksOf(each("factors-once").filter((n) => n.x === p.x && n.actor === p.actor).map((n) => n.note));
+    const m = ws.length ? partMethod(p.x.sc, p.actor, ws[0].c) || partMethod(p.x.sc, p.actor, null) : null;
+    const up = ws.filter((w) => w.f > 1), down = ws.filter((w) => w.f <= 1);
+    const say = (list, faster) => (list.length ? `${words(list.map((w) => `${who(w.c)}'s`))} walk${list.length > 1 ? "s" : ""} no longer ${faster ? (list.length > 1 ? "speed up" : "speeds up") : (list.length > 1 ? "slow down" : "slows down")} cycle by cycle` : "");
+    return `in ${esc(p.x.title)}${m ? `, as ${methodText(m)},` : ""} ${[say(up, true), say(down, false)].filter(Boolean).join(", and ")}`;
+  });
+  if (walked.length) out.push(`${cap(walked.join("; and "))}: Ken's Director multiplied in a walk's parent factor again each time the walk was set again (${kenAt("dichar.103:27-31")}); SLIPS takes it once. (S8)`);
+  // S9: each change for as long as DISPLY estimates it, with the run that confirmed it
+  const speeds = each("change-at-its-speed");
+  if (speeds.length) {
+    const first = speeds[0], w = lispList(kv(first.note, "was")), x = lispList(kv(first.note, "now"));
+    const firstPairs = speeds.filter((n) => n.x === first.x && n.actor === first.actor && lispList(kv(n.note, "was"))[8] === w[8]).map((n) => lispList(kv(n.note, "was")).slice(0, 2));
+    const table = DATA.slipsSpeed ? `<div class="table-wrap"><table class="dyn"><thead><tr><th>Speed</th><th>Changes</th><th>Director's ticks over DISPLY's estimate</th></tr></thead><tbody>${DATA.slipsSpeed.map((r) => `<tr><td>${esc(r.speed)}</td><td>${r.changes}</td><td class="v">${r.least === r.most ? r.least : `${r.least} to ${r.most}`}</td></tr>`).join("")}</tbody></table></div>` : "";
+    out.push(`Every change Ani planned for how a character moves runs for as long as DISPLY estimates it (${speeds.length} change${speeds.length === 1 ? "" : "s"}, in ${scenesWords(speeds.map((n) => n.x.title))}): Ken's gradual change multiplied by the speed's weight where the estimate divides by it (${kenAt("dichar.103:105-109")}, ${kenAt("disply.311:1104-1106")}), so a change at high speed ran four times as long as planned and one at low speed a quarter as long. In ${esc(first.x.title)}${partOf(first.actor) ? `, part ${partOf(first.actor)}` : ""}, ${whoseElements(firstPairs)} now change over ${ticksWords(x[1])}, not ${w[8]}. The run that confirmed it (Ken's decision 2: the inversion would go in only if a run confirmed it), every gradual change in his 1978 Cinderella: (S9)${table}`);
+  }
+  const grown = each("grown-once"), steps = each("change-steps");
+  if (grown.length) out.push(`${grown.length} change${grown.length === 1 ? "" : "s"} (in ${scenesWords(grown.map((n) => n.x.title))}) grow their factor once a tick, where Ken's gradual change grew a factor the character takes from the scene's dynamics twice a tick (${kenAt("dichar.103:112-121")}), so the change went further than planned. (S10)`);
+  if (steps.length) out.push(`Every change takes all its steps (${steps.length}, in ${scenesWords(steps.map((n) => n.x.title))}), where SOME's repeat did one fewer than it was asked (${kenAt("some.666:444-450")}): in 1978 each stopped a step short, and a change of one tick did nothing. (S11)`);
+  // S6, S7 and S12, where they act (not in Ken's Cinderella): each note's own sentence
+  for (const kind of ["prerequisite-not-met", "middle-less-than", "variety-pick", "no-such-generator"]) {
+    for (const x of scenes) for (const item of repairItems(run, sceneNotes(x.sc).filter((r) => noteKind(r) === kind), x.sc)) out.push(`In ${esc(x.title)}: ${item.html}`);
+  }
+  return out;
+}
+// DETAIL, detail by detail (reports/ext/detail/README.md, "The details")
+function detailSaid(run, scenes) {
+  const out = [];
+  const each = (kind) => scenes.flatMap((x) => (x.kinds.get(kind) || []).map((n) => ({ ...n, x })));
+  // (f): who walked how deliberately, where
+  const walkers = new Map();
+  for (const n of each("deliberate-walk")) for (const w of walkersOf([n.note])) {
+    if (!walkers.has(w.c)) walkers.set(w.c, { values: [], scenes: [], d: w.d });
+    const y = walkers.get(w.c);
+    if (!y.values.includes(plain(show(w.v)))) y.values.push(plain(show(w.v)));
+    if (!y.scenes.includes(n.x.title)) y.scenes.push(n.x.title);
+  }
+  if (walkers.size) out.push(`Director's walk reads deliberateness: ${[...walkers].map(([c, y]) => `${who(c)} (${esc(words(y.values))}) in ${scenesWords(y.scenes)}`).join("; ")}. A character d times as deliberate as one of medium deliberateness goes in arcs d times as long, turning round less often and more slowly, and jags 1/d as far, d being 2 for high and a half for low: how often, how quickly and how far it changes direction, as the thesis says deliberateness should (p. 186, (f)); the revival's reading. A different path takes a different time, so each scene's length changes. (f)`);
+  // (c): the tendencies in the best-when scores, and whether they decided anything
+  const tend = each("tendency");
+  if (tend.length) {
+    const tasks = [...new Map(tend.map((n) => [`${n.x.i} ${n.actor}`, n])).values()];
+    const changed = sameStory(RUNS[0], run) ? tasks.filter((n) => {
+      const t = n.x.sc.glass.tasks.find((y) => y.name === n.actor);
+      const k = (DATA.scenes.find((s) => s.id === n.x.sc.id) || { glass: { tasks: [] } }).glass.tasks.find((y) => t && show(kv(parse(y.variables.task), "description")) === show(kv(parse(t.variables.task), "description")));
+      return t && k && (t.variables["current-choice"] || "") !== (k.variables["current-choice"] || "");
+    }) : [];
+    out.push(`The tendencies count in the best-when scores of the ways of showing that take one character to another, or away (${tend.length} clause${tend.length === 1 ? "" : "s"}, on ${tasks.length} task${tasks.length === 1 ? "" : "s"}, in ${scenesWords(tend.map((n) => n.x.title))}), as the thesis says they should (p. 185, (c)); the revival's reading. ${!sameStory(RUNS[0], run) ? "Each task's box says how its ways scored." : changed.length ? `They changed what Ani chose in ${scenesWords(changed.map((n) => n.x.title))}; each task's box says how.` : "Here they decide nothing: every way of showing chosen is the one chosen in 1978, and each task's box says how its ways scored."} (c)`);
+  }
+  // B.2 (a): each scene's rhythm as changes of speed
+  const rh = each("rhythm-speed");
+  if (rh.length) {
+    const byScene = [...new Set(rh.map((n) => n.x))].map((x) => {
+      const mine = rh.filter((n) => n.x === x);
+      const rhythm = rhythmWords(lispList(kv(mine[0].note, "because"))[1]);
+      const parts = new Map();
+      for (const n of mine) {
+        const up = lispList(kv(kv(n.note, "now"), "amount"))[0] !== "negative";
+        const key = up ? "up" : "down";
+        if (!parts.has(key)) parts.set(key, { cs: new Set(), ps: new Set() });
+        parts.get(key).cs.add(lispList(kv(n.note, "was"))[0]);
+        parts.get(key).ps.add(partOf(n.actor));
+      }
+      return `${esc(x.title)} (${esc(rhythm)}): ${[...parts].map(([k, y]) => `${who([...y.cs])} ${k === "up" ? (y.cs.size > 1 ? "speed up" : "speeds up") : (y.cs.size > 1 ? "slow down" : "slows down")} in part${y.ps.size > 1 ? "s" : ""} ${words([...y.ps].map(String))}`).join(", and ")}`;
+    });
+    out.push(`A scene's rhythm speeds its characters up or slows them down a quarter, as a feeling would: ${byScene.join("; ")}. Ken's CINDY gives each scene its rhythm (${kenAt("cindy.46:61")}), and in 1978 nothing read it; the revival's reading of the thesis's wish that Ani's suggestive words could “suggest values and activities” (pp. 183-184, B.2 (a)).`);
+  }
+  return out;
+}
+// The opt-in extensions' notes of the parts playing, a short line each, for the captions:
+// what a correction or a detail does there as it plays.
+function optInLines(run, sc, subs) {
+  const notes = sceneNotes(sc).filter(optInNote);
+  if (!notes.length) return [];
+  const out = [];
+  for (const sub of subs) {
+    const kinds = new Map();
+    for (const r of notes.filter((x) => x.actor === sub.name)) { const k = noteKind(r); if (!kinds.has(k)) kinds.set(k, []); kinds.get(k).push(parse(r.note)); }
+    const of = (k) => kinds.get(k) || [];
+    // S8: each walker's parent factor once
+    const walks = new Map();
+    for (const n of of("factors-once")) {
+      const c = (String(lispList(kv(n, "because"))[1] || "").match(/special-dynamics-of ([a-z0-9+-]+) in/) || [])[1];
+      const f = Number((lispList(kv(n, "was"))[0] || [])[1]);
+      if (c) walks.set(c, f);
+    }
+    for (const [c, f] of walks) out.push(`With SLIPS, ${who(c)}'s walk takes its parent's factor once, so each cycle is no ${f > 1 ? "faster" : "slower"} than the last.`);
+    // S9 to S11: the changes here as Ani planned them
+    const speeds = of("change-at-its-speed").map((n) => [lispList(kv(n, "was")), lispList(kv(n, "now"))]);
+    const changed = [...new Set([...speeds.map(([w]) => w[0]), ...of("grown-once").map((n) => lispList(kv(n, "was"))[0]), ...of("change-steps").map((n) => lispList(kv(n, "because"))[0])])];
+    if (changed.length) {
+      const pairs = [...new Set(speeds.map(([w, x]) => `${x[1]} ${w[8]}`))];
+      const [ticks, kens] = pairs.length === 1 ? pairs[0].split(" ") : [];
+      const how = [speeds.length ? (ticks ? `over ${ticksWords(ticks)}, not ${kens}` : "for as long as DISPLY estimates") : "", of("grown-once").length ? "growing once a tick" : "", of("change-steps").length ? "taking every step" : ""].filter(Boolean);
+      out.push(`With SLIPS, ${who(changed)}'s changes here run as Ani planned them: ${words(how)}.`);
+    }
+    // DETAIL: deliberate walkers, and the rhythm
+    const alike = new Map();
+    for (const x of walkersOf(of("deliberate-walk"))) { const k = `${show(x.v)} ${x.d}`; if (!alike.has(k)) alike.set(k, { ...x, cs: [] }); if (!alike.get(k).cs.includes(x.c)) alike.get(k).cs.push(x.c); }
+    if (alike.size) out.push(`With DETAIL, ${[...alike.values()].map((x) => walkWords({ ...x, c: x.cs.length > 1 ? x.cs : x.c }, true)).join("; ")}.`);
+    const rhythm = of("rhythm-speed");
+    if (rhythm.length) {
+      const up = lispList(kv(kv(rhythm[0], "now"), "amount"))[0] !== "negative";
+      out.push(`With DETAIL, ${esc(sc.title)}'s rhythm (${esc(rhythmWords(lispList(kv(rhythm[0], "because"))[1]))}) ${up ? "speeds" : "slows"} ${who(rhythm.map((n) => lispList(kv(n, "was"))[0]))} ${up ? "up" : "down"} a quarter here.`);
+    }
+    // S1 and S2: a part showing what is-not found in the scene
+    for (const t of tasksIn(sub.name)) {
+      const up = t.source ? sc.glass.tasks.find((x) => x.name === t.source) : null;
+      const pref = (sc.glass.repairs || []).find((r) => up && r.actor === up.name && noteKind(r) === "described-as-preferred");
+      const found = pref ? (lispList(kv(parse(pref.note), "now"))[0]) : null;
+      if (!found || !Array.isArray(t.description) || t.description[2] !== found) continue;
+      const same = identicalOf(up);
+      out.push(`With SLIPS, ${about(t.description)}: ${who(t.description[1])}'s part asks for someone ideally ${esc(words(lispList(kv(parse(pref.note), "was")).map(plain)))}, and failing that anyone, and is-not now looks in the scene${same ? `; Ken's relating takes this and ${words(same.others.map((o) => `${sourceOf(o)} ${verbIng(o.value)}`))} as the same, and ${sourceOf(same.main)} comes first` : ""}.`);
+    }
+  }
+  return [...new Set(out)];
 }
 
 // ---- the revival's knowledge, in the glass box
@@ -2745,6 +3242,8 @@ function notBridgedWords(c, list, useOf = () => null) {
   const out = [];
   if (by.nobody) out.push(`${words(by.nobody.map((e) => herElement(c, e)))}, which Director doesn't use, as in 1978 (thesis pp. 185-186)`);
   if (by.pass1) out.push(`${her} liking${by.pass1.length > 1 ? "s" : ""} for ${words(by.pass1.map((e) => e.replace(/^attraction-towards-/, "")))}, which only pass 1 reads`);
+  // with DETAIL, the tendencies are read by the best-when scores (src/pipeline.js elementUse)
+  if (by["best-when"]) out.push(`${her} liking${by["best-when"].length > 1 ? "s" : ""} for ${words(by["best-when"].map((e) => e.replace(/^attraction-towards-/, "")))}, which the best-when scores read from the next scene on (DETAIL)`);
   if (by.cycles) out.push(`${words(by.cycles.map((e) => herElement(c, e)))}, which pass 2 reads from the next scene on, for how often an activity repeats`);
   if (by.weigh) out.push(`${words(by.weigh.map((e) => herElement(c, e)))}, which pass 2 can't weigh as Ani chose ${by.weigh.length > 1 ? "them" : "it"}`);
   for (const k of ["director", "looks"]) if (by[k]) out.push(words(by[k].map((e) => herElement(c, e))));
@@ -2915,8 +3414,13 @@ function bridgeSentence(run, x, c) {
 // Director's elements first (src/pipeline.js ELEMENT_USE), then her look, then pass 2's,
 // then the rest.
 const CHANGE_ORDER = ["speed", "path-curvature", "path-length", "path-jaggedness", "size", "shape-jaggedness", "shape-complexity", "color-hue", "color-saturation", "color-intensity", "activity-level", "rhythmic-level", "repetiveness", "acceleration", "deliberateness", "attraction-towards-friends", "attraction-towards-enemies", "attraction-towards-strangers"];
-const USE_ORDER = ["director", "looks", "cycles", "none"];
-const USE_WORDS = { director: "Director moves her by these", looks: "Director draws her by these", cycles: "Pass 2 repeats an activity as often as these say", none: "Chosen again; Director doesn't use these, as in 1978 (thesis pp. 185-186)" };
+// With DETAIL (src/pipeline.js elementUse), Director's walk reads deliberateness
+// ("director"), and the best-when scores of the ways of showing read the tendencies
+// ("best-when").
+const USE_ORDER = ["director", "looks", "cycles", "best-when", "none"];
+const USE_WORDS = { director: "Director moves her by these", looks: "Director draws her by these", cycles: "Pass 2 repeats an activity as often as these say", "best-when": "The best-when scores of the ways of showing read these (DETAIL), from the next scene on", none: "Chosen again; Director doesn't use these, as in 1978 (thesis pp. 185-186)" };
+// the note on a value DETAIL gives a reader: deliberateness, which Director's walk reads
+const detailRead = (v) => (v.use === "director" && v.element === "deliberateness" ? ` <span class="note made-with">(Director's walk reads it: DETAIL)</span>` : "");
 // a value in words: (negative high), a liking, is "strong dislike"
 const valueWords = (v) => { const x = lispValue(v); return Array.isArray(x) && x.length === 2 && ["positive", "negative"].includes(x[0]) ? `${({ low: "slight", medium: "moderate", high: "strong" })[x[1]] || x[1]} ${x[0] === "negative" ? "dislike" : "liking"}` : plain(show(x)); };
 // an element's value in words: a look's as its looks say ("dull", "small"), the rest as above
@@ -3010,7 +3514,7 @@ function changedBody(run, c, k) {
     };
     const same = new Set(drawnAsBefore(ch).map((v) => v.element));
     const order = (v) => (USE_ORDER.includes(v.use) ? USE_ORDER.indexOf(v.use) : USE_ORDER.length) * 20 + CHANGE_ORDER.indexOf(v.element);
-    const rows = [...ch.values].sort((a, b) => order(a) - order(b)).map((v, n, all) => `${n && all[n - 1].use === v.use ? "" : `<tr class="grp"><td colspan="3">${line(v.use)}</td></tr>`}<tr${v.changed ? "" : ` class="same"`}><td>${esc(cap(elementName(v.element)))}</td><td>${val(v.element, v.before)}</td><td class="v">${val(v.element, v.after)}${same.has(v.element) ? ` <span class="note">(drawn as before)</span>` : ""} <button type="button" class="linkish" data-cp="${esc(c)}|${esc(v.element)}|${esc(x.id)}">why?</button></td></tr>`).join("");
+    const rows = [...ch.values].sort((a, b) => order(a) - order(b)).map((v, n, all) => `${n && all[n - 1].use === v.use ? "" : `<tr class="grp"><td colspan="3">${line(v.use)}</td></tr>`}<tr${v.changed ? "" : ` class="same"`}><td>${esc(cap(elementName(v.element)))}${detailRead(v)}</td><td>${val(v.element, v.before)}</td><td class="v">${val(v.element, v.after)}${same.has(v.element) ? ` <span class="note">(drawn as before)</span>` : ""} <button type="button" class="linkish" data-cp="${esc(c)}|${esc(v.element)}|${esc(x.id)}">why?</button></td></tr>`).join("");
     const held = x.rec.held.map((h) => `${said(h.choicePoint)} would have been ${val(h.choicePoint, h.wouldHaveChosen)}, not ${val(h.choicePoint, h.heldAt)}`);
     const after = (e) => (ch.values.find((v) => v.element === e) || {}).after;
     const own = x.rec.recompute.differences.filter((d) => d.choicePoint[0] === "choice-point-of" && d.choicePoint[1] === c && show(after(d.choicePoint[2])) !== show(d.after));
@@ -3664,6 +4168,8 @@ function captionAt(run, i, f) {
     const idle = lookChanges.filter((x) => !x.shows).map((x) => x.does);
     if (shown.length) more.push(`${cap(words(shown))}${feel.length ? " too" : ""}${state.color || !lookChanges.some((x) => /colors/.test(x.does)) ? "" : " (colors show only in color mode)"}.`);
     if (idle.length) more.push(`${cap(words(idle))}.`);
+    // what SLIPS' corrections and DETAIL's details do in the parts playing
+    more.push(...optInLines(run, sc, subs));
     // a change of who someone is (REVIVE;CHANGE) shown by another task of the scene: Ani's
     // fresh look takes all her changes in a scene together, and one task shows them
     // (REVIVE;CHSHOW's showing-task-of), so this one is "cant-do"
@@ -3780,6 +4286,15 @@ function packagesFor(subName, char) {
   }
   return out;
 }
+// With DETAIL (REVIVE;DTWALK), Director's walk reads deliberateness: how it walked her in
+// this part, from the film's note on the part (a character of medium deliberateness walks
+// as in 1978, and has none).
+function walkRead(char, subName, base) {
+  if (!runExtensions(R).includes("detail")) return "";
+  const n = ((scene().film && scene().film.repairs) || []).filter((r) => r.actor === subName && noteKind(r) === "deliberate-walk").map((r) => parse(r.note)).find((x) => lispList(kv(x, "was"))[0] === char);
+  const k = meet(R.story, char);
+  return `<span class="made-with">; Director's walk reads it (DETAIL)${n ? `: ${walkersOf([n]).map((x) => walkWords(x, true).replace(/^.*?: /, "")).join("")}` : base === "medium" ? ", and medium changes nothing" : `, as ${k.she} ${agree(k, "walks", "walk")}`}</span> ${repairCode("deliberate-walk")}`;
+}
 function dynamicsTable(char, dynName, subName) {
   const chain = dynamicsChain(dynName);
   if (!chain.length) return `<p class="idle">Ani gave ${esc(who(char))} no special dynamics here.</p>`;
@@ -3805,7 +4320,7 @@ function dynamicsTable(char, dynName, subName) {
     else why = chosen ? `changed for this scene (pass 1 chose ${esc(chosen)} <button type="button" class="linkish" data-cp="${esc(char)}|${esc(el)}">why?</button>)` : "set for this scene";
     const fac = factor !== null && factor !== 1 ? ` × ${+factor.toFixed(2)}` : "";
     const facWhy = factor !== null && factor !== 1 ? (pkg[`(${el} factor)`] !== undefined && factorFrom === chain[chain.length - 1] ? "" : `; × ${+factor.toFixed(2)} for this activity`) : "";
-    return `<tr><td>${esc(cap(elementName(el)))}</td><td class="v">${esc(VALUE[base] || base)}${esc(fac)}</td><td class="why">${why}${facWhy}</td></tr>`;
+    return `<tr><td>${esc(cap(elementName(el)))}</td><td class="v">${esc(VALUE[base] || base)}${esc(fac)}</td><td class="why">${why}${facWhy}${el === "deliberateness" ? walkRead(char, subName, base) : ""}</td></tr>`;
   }).join("");
   return `<div class="table-wrap"><table class="dyn"><thead><tr><th>Element</th><th>Value</th><th>Where it comes from</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
@@ -3844,7 +4359,9 @@ function choicePointBox(char, el, from = null) {
   if (!cp) return "";
   const value = (v) => (isAppearance(el) ? lookValue(el, v) : plain(show(v)));
   // a suggestion from one of the revival's words (REVIVE;KNOWDS) is marked so
-  const sug = (s) => `${esc(value(kv(s, "value")))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}`;
+  // friendly's tendencies, which pass 1 hears with SLIPS (S3), are marked so
+  const heard = (s) => (runExtensions(R).includes("slips") && /^attraction-towards-/.test(el) && /\bfriendly\b/.test(show(kv(s, "source"))) ? ` <span class="ours-tag">friendly's, heard with SLIPS</span> ${repairCode("friendly-attraction")}` : "");
+  const sug = (s) => `${esc(value(kv(s, "value")))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}${heard(s)}`;
   const kept = (cp.memory || []).filter((m) => m[0] === "suggestion:").map((m) => `<li>${sug(m)}</li>`).join("");
   const rejected = (cp.rejectedSuggestions || []).map((r) => `<li>${sug(kv(r, "suggestion"))}: set aside, ${esc(rejectText(kv(r, "reason")))}</li>`).join("");
   const conflicts = (cp.conflictsResolved || []).length;
@@ -3856,6 +4373,16 @@ function choicePointBox(char, el, from = null) {
     ${fix ? `<p class="fix-line">${fix.html} ${repairCode(fix.what)}</p>` : ""}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
     ${more}</div>`;
+}
+// DETAIL's best-when clauses of a way of showing, (drawn-to a b), with the status each had
+// (REVIVE;DTTEND's tendency notes on the task): "Best when Cinderella is drawn to the
+// Prince (met): DETAIL's clause".
+function drawnToLine(t, m) {
+  const clauses = lispList(kv(m, "best-when")).filter((c) => Array.isArray(c) && c[0] === "drawn-to");
+  if (!clauses.length) return "";
+  const notes = (scene().glass.repairs || []).filter((r) => r.actor === t.name && noteKind(r) === "tendency").map((r) => parse(r.note));
+  const said = clauses.map((c) => { const n = notes.find((x) => show(kv(x, "was")) === show(c)); return `${who(c[1])} ${agree(meet(R.story, c[1]), "is", "are")} drawn to ${who(c[2])}${n ? ` (${kv(n, "now") === "met" ? "met" : "not met"})` : ""}`; });
+  return `<span class="note made-with">Best when ${words(said)}: DETAIL's clause, from the tendencies pass 1 chose, which its best-when score counts. ${repairCode("tendency")}</span>`;
 }
 function methodsBox(t) {
   if (!t) return "";
@@ -3875,12 +4402,12 @@ function methodsBox(t) {
     // a way of showing that is the revival's knowledge (REVIVE;KNOWCV's, source helps)
     const src = kv(kv(sc, "suggestion"), "source");
     const ours = knowOn(R) && typeof src === "string" && KNOWN.verbs[src] && Array.isArray(m) && m[0] === KNOWN.verbs[src].method ? ` ${knowBadge(KNOWN.verbs[src])}` : "";
-    cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)} ${methodCode(m)}${ours}</span><div class="scores">${rows}</div></div>`);
+    cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)} ${methodCode(m)}${ours}</span><div class="scores">${rows}</div>${drawnToLine(t, kv(kv(sc, "suggestion"), "value"))}</div>`);
   }
   if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)} ${methodCode(m)}</span></div>`);
   for (const r of Array.isArray(rejected) ? rejected : []) {
     const m = valueOf(kv(r, "suggestion"));
-    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)} ${methodCode(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span></div>`);
+    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)} ${methodCode(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span>${drawnToLine(t, kv(kv(r, "suggestion"), "value"))}</div>`);
   }
   return `<div class="methods">${cards.join("")}</div>`;
 }
@@ -3893,7 +4420,11 @@ function chainOfTask(t) {
     const b = knowOn(R) && below ? borrowedFor(scene(), t.name).find((x) => x.way === show(below.description)) : null;
     const ours = b ? ` <span class="ours-tag">(shown by the way “${esc(plain(b.word))}” borrows from its neighbor “${esc(plain(b.neighbor))}”, as the revival's knowledge has it)</span>`
       : !k ? "" : k.kind === "verb" ? ` <span class="ours-tag">(the revival's way of showing it)</span>` : k.kind === "word" ? ` <span class="ours-tag">(shown as the revival's knowledge of “${esc(plain(k.word))}” says)</span>` : ` <span class="ours-tag">(the revival's ${esc(words(k.feelings.map((f) => f[0])))})</span>`;
-    steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","} ${taskCode(t)}${ours}</span></li>`);
+    // with SLIPS, two of the task's ways of showing Ken's relating takes as one, and the
+    // one below the first (S1: good's helping, displacing friendly's)
+    const same = below && t.kind === "establish" && runExtensions(R).includes("slips") ? identicalOf(t.actor) : null;
+    const one = same && show(same.main.value) === show(below.description) ? ` <span class="made-with">With SLIPS, ${identicalSaid(same).replace(/^./, (x) => x.toLowerCase())}</span>` : "";
+    steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","} ${taskCode(t)}${ours}${one}</span></li>`);
     below = t;
     t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
   }
@@ -3915,12 +4446,20 @@ function whyPanel(char) {
     <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last} (${(f / fpsOf(s)).toFixed(1)} s, at ${fpsOf(s)} frames a second)</p>`;
   let lead, sections = "";
   // what the revival's repairs did in this scene (and in pass 1), those about this
-  // character first; shown after Why, or first if there is no Why
-  const fixes = repairsIn(R, s);
+  // character first; shown after Why, or first if there is no Why; and, apart, what SLIPS'
+  // corrections and DETAIL's details did
+  const noted = repairsIn(R, s);
+  const fixes = noted.filter((x) => !OPT_IN_IDS.includes(noteExtension(x.what)));
   const mentions = (x) => `${x.actor} ${x.raw.join(" ")}`.split(/[\s()]+/).includes(char);
   let fixSection = !fixes.length ? "" : `<details class="repairs"${fixes.length <= 4 ? " open" : ""}><summary>What the revival's repairs did here (${fixes.length})</summary><div class="body">
     ${repairList([...fixes.filter(mentions), ...fixes.filter((x) => !mentions(x))])}
     <p class="note">Ani as in 1978 would have stopped at each of these, or done otherwise. The repairs are the revival's Lisp, not Ken's; open one for Ani's own record of it.</p></div></details>`;
+  for (const [id, cls, title, note] of OPT_SECTIONS) {
+    const list = noted.filter((x) => noteExtension(x.what) === id);
+    if (list.length) fixSection += `<details class="${cls}"${list.length <= 4 ? " open" : ""}><summary>${title} (${list.length})</summary><div class="body">
+    ${repairList([...list.filter(mentions), ...list.filter((x) => !mentions(x))])}
+    <p class="note">${note} ${fileLink(id)}</p></div></details>`;
+  }
   // what the revival's knowledge (REVIVE;KNOW) did in this scene, this character's first
   const known = knowItems(R, s);
   if (known.length) fixSection += `<details class="knowledge"${known.length <= 4 ? " open" : ""}><summary>What the revival's knowledge did here (${known.length})</summary><div class="body">
@@ -4742,7 +5281,7 @@ function editorPanel() {
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
     // Ken's beautified scene is made with the revival's extensions, which show the change
-    if (p.revival && MODE !== "revival") setMode("revival");
+    if (p.revival && !CHOSEN.includes("change")) setMode("revival");
     if (p.text) { setEditorText(p.text(), { fresh: true }); return; }
     const base = readStory(editor.text).characters.cinderella ? editor.text : DATA.cindy;
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
@@ -4820,24 +5359,29 @@ function refreshEditor({ fromLisp = false } = {}) {
   const changes = story.error ? [] : fresh
     ? [`A new story: ${esc(words(castNow.map((c) => nameOf(story, c))))}, in ${Object.keys(story.scenes).length} scene${Object.keys(story.scenes).length === 1 ? "" : "s"}.${storyInWords(story)}`]
     : storyChanges(RUNS[0].story, story, DATA.cindy, text);
-  const same = RUNS[1] && text === RUNS[1].cindy && runExtensions(RUNS[1]).join() === modeExtensions().join();
-  // where Ani as in 1978 stops: a warning in 1978 mode, a note of what the repairs do in theirs
+  const same = RUNS[1] && text === RUNS[1].cindy && sameIds(runExtensions(RUNS[1]), modeExtensions());
+  // where Ani as in 1978 stops: a warning where the extensions ticked don't go on (in 1978
+  // mode, all of them; without CHANGE or KNOW ticked, a change or KNOW's words), a note of
+  // what they do where they do
+  const unmet = stops.filter((x) => !CHOSEN.includes(x.change ? "change" : x.know ? "know" : "mend"));
+  const met = stops.filter((x) => !unmet.includes(x));
   side.querySelector("#ed-check").innerHTML = tidyNote([...editor.tidied, ...pending.fixes]) +
-    (problems.length || (stops.length && as1978) ? `<ul class="problems">${[...problems, ...(as1978 ? stops.map((x) => x.as1978) : [])].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
+    (problems.length || unmet.length ? `<ul class="problems">${[...problems, ...unmet.map((x) => x.as1978)].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
     (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
-      : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(REVIVAL)} Ani ${esc(clauseList(SWITCHED.filter((id) => EXTENSIONS.find((e) => e.id === id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
+      : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(extensionsName(CHOSEN))} Ani ${esc(clauseList(CHOSEN.filter((id) => extNamed(id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
       : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
-    (notes.length || (stops.length && !as1978) ? `<ul class="changes note">${[...(as1978 ? [] : stops.map((x) => `<span class="made-with">${x.mended}</span>`)), ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : "") +
+    (notes.length || met.length ? `<ul class="changes note">${[...met.map((x) => `<span class="made-with">${x.mended}</span>`), ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : "") +
     (same && !RUNS[1].status?.running ? `<p class="note">Your version was made from exactly this, ${esc(madeWith(RUNS[1]))}.</p>` : "");
   const make = side.querySelector("#ed-make");
-  // Ken's story as it is can be made again when the switch changes what it makes (APPEAR)
+  // Ken's story as it is can be made again when the extensions ticked change what it makes
+  // (APPEAR, KNOW, SLIPS, DETAIL)
   const blocked = problems.length > 0 || (!changes.length && !switchChanges1978());
-  // a story that changes someone isn't made as in 1978 (REVIVE;CHANGE)
-  const refused = as1978 && stops.some((x) => x.change);
+  // a story that changes someone isn't made without CHANGE, as in 1978 (REVIVE;CHANGE)
+  const refused = unmet.some((x) => x.change);
   make.disabled = blocked || refused;
   make.textContent = RUNS[1] && RUNS[1].status && RUNS[1].status.running ? "Start again with this" : "Make the film";
-  // in 1978 mode, a story the extensions would take further can be made with them at once
-  side.querySelector("#ed-make-mend").hidden = !(as1978 && stops.length && SWITCHED.includes(refused ? "change" : "mend") && !blocked);
+  // a story the switch's extensions would take further can be made with them at once
+  side.querySelector("#ed-make-mend").hidden = !(unmet.length && SWITCHED.includes(refused ? "change" : "mend") && !blocked);
 }
 function onChipSelect(e) {
   const sel = e.target.closest("select[data-target]");
@@ -5173,7 +5717,8 @@ function comparePanel() {
   }
   const valueOf = (v) => (Array.isArray(v) ? (v[0] === "not" ? `not ${v[1]}` : v.join(" ")) : String(v));
   // what the revival's repairs did in pass 1 (MEND8's empty comparisons)
-  const pass1Fixes = repairItems(b, b.raw.repairs);
+  // (SLIPS3's, on a friendly character's tendencies, each open its choice point)
+  const pass1Fixes = repairItems(b, b.raw.repairs).map((x) => { const a = parse(x.actor); return x.what === "friendly-attraction" && Array.isArray(a) ? { ...x, why: `${a[1]}|${a[2]}` } : x; });
   const cpRows = diffs.map((cp) => {
     const [, char, el] = cp.name;
     const old = a.cp.get(show(cp.name));
@@ -5212,6 +5757,7 @@ function comparePanel() {
     <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
+    ${optInSummary(b)}
     ${drawnList(b)}
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
     <p class="note">${other ? `Click a character to see why Ani made it do what it does. Ken's Cinderella is a different story, so it isn't shown beside yours; the buttons over the screen show it.` : "Click a character on either screen to see why Ani made it do what it does."}</p>`;
@@ -5219,7 +5765,8 @@ function comparePanel() {
   side.querySelector("#cmp-edit").addEventListener("click", openEditor);
   side.querySelector("#cmp-stop")?.addEventListener("click", () => stopRun());
   side.querySelectorAll(".scene-card").forEach((el) => el.addEventListener("click", () => goScene(Number(el.dataset.scene), 0)));
-  side.querySelectorAll("[data-cmp-cp]").forEach((el) => el.addEventListener("click", () => {
+  side.querySelectorAll("[data-cmp-cp]").forEach((el) => el.addEventListener("click", (ev) => {
+    ev.preventDefault(); // (one in a note's summary opens the box, not the note)
     const [c, e] = el.dataset.cmpCp.split("|");
     const box = side.querySelector("#cmp-cp");
     box.innerHTML = using(b, () => choicePointBox(c, e));

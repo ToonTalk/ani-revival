@@ -27,7 +27,8 @@
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
 //     To keep under claude.ai's limit, its page script goes without comments and
-//     indentation, and the revival's own Lisp in its bundle without comments, every
+//     indentation, gzipped and written as text, run by a small module script
+//     (PAGE_LOADER), and the revival's own Lisp in its bundle without comments, every
 //     line kept (stripReviveComments); Ken's files go as they are.
 import { readFileSync, writeFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { gzipSync, gunzipSync } from "node:zlib";
@@ -248,6 +249,37 @@ function stripChecked(js, what, ext) {
   return stripped;
 }
 
+// The claude.ai copy's page script, packed (pack93 of its gzip, as the data blocks are),
+// in a block of its own, and the module script that unpacks and runs it: as the body of an
+// async function made with new Function (pageScriptBody), strict, with await at its top,
+// as the module it was. tools/check-film-app.mjs hooks a check's functions into it with
+// withPageScript.
+export const PAGE_SCRIPT_ID = "page-script";
+export const pageScriptBody = (js) => `"use strict";return (async () => {\n${js}\n})();`;
+const PAGE_LOADER = `
+const s = document.getElementById("${PAGE_SCRIPT_ID}").textContent.trim(), sp = s.indexOf(" "), n = Number(s.slice(0, sp));
+const T = [...Array(94)].map((_, k) => String.fromCharCode(33 + k)).filter((c) => c !== "<").join(""), digit = new Int16Array(128);
+for (let k = 0; k < 93; k++) digit[T.charCodeAt(k)] = k;
+const bytes = new Uint8Array(n);
+let acc = 0, bits = 0, o = 0;
+for (let i = sp + 1; i + 1 < s.length && o < n; i += 2) {
+  acc |= (digit[s.charCodeAt(i)] + 93 * digit[s.charCodeAt(i + 1)]) << bits;
+  bits += 13;
+  while (bits >= 8 && o < n) { bytes[o++] = acc & 255; acc >>>= 8; bits -= 8; }
+}
+const js = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+await new Function(${JSON.stringify(pageScriptBody("\u0000")).replace("\\u0000", '" + js + "')})();
+`;
+// The claude.ai copy with its page script changed by f (the script's text, unpacked, to
+// the text to pack again): for a check that hooks functions into it.
+export function withPageScript(html, f) {
+  const open = `<script type="text/plain" id="${PAGE_SCRIPT_ID}">`;
+  const a = html.indexOf(open), b = a < 0 ? -1 : html.indexOf("</script>", a);
+  if (a < 0 || b < 0) throw new Error("the page has no packed page script");
+  const js = gunzipSync(unpack93(html.slice(a + open.length, b))).toString("utf8");
+  return html.slice(0, a + open.length) + packText(f(js)) + html.slice(b);
+}
+
 // The claude.ai copy's bundle: the revival's own Lisp files (REVIVE;*) without their
 // comments (tools/strip-lisp-comments.mjs), every line kept, so that every line number
 // stays as it is; each must read back as the same forms on the same lines, or the build
@@ -351,6 +383,18 @@ function pipelineFunctions(root) {
   return code;
 }
 
+// The run that confirmed the DICHAR/DISPLY speed inversion (reports/ext/slips/speed.json,
+// tools/check-slips.mjs --speed): every gradual change Director runs in Ken's 1978
+// Cinderella, by its speed, how many, and the least and most of the ticks Director gave it
+// over DISPLY's estimate; null if the file isn't there.
+function speedSummary(root) {
+  const file = `${root}/reports/ext/slips/speed.json`;
+  if (!existsSync(file)) return null;
+  const by = {};
+  for (const r of JSON.parse(readFileSync(file, "utf8")).kens) (by[r.speed] ||= []).push(r.ratio);
+  return ["high", "medium", "low"].filter((s) => by[s]).map((speed) => ({ speed, changes: by[speed].length, least: Math.min(...by[speed]), most: Math.max(...by[speed]) }));
+}
+
 const SCENES = [
   ["introduction", "The Introduction"],
   ["kept-apart", "Kept Apart"],
@@ -379,8 +423,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     code: codeIndex(root),
     words: vocabulary(root),
     // the revival's extensions (src/pipeline.js EXTENSIONS), which the page's switch
-    // turns on for the films it makes; Ken's 1978 film above is as it was made
-    extensions: EXTENSIONS.map(({ id, label, files, requires, changes1978, note, recorder }) => ({ id, label, files, requires, changes1978, note, ...(recorder && recorder.looks ? { looks: true } : {}) })),
+    // turns on for the films it makes, each in its group of the "Which extensions" panel,
+    // and those (optIn) a visitor ticks there; Ken's 1978 film above is as it was made
+    extensions: EXTENSIONS.map(({ id, label, group, optIn, files, requires, changes1978, note, recorder }) => ({ id, label, group, ...(optIn ? { optIn: true } : {}), files, requires, changes1978, note, ...(recorder && recorder.looks ? { looks: true } : {}) })),
     // the elements Ani chooses a look by (REVIVE;APPEAR), and how Ken drew his cast in 1978
     appearanceElements: APPEARANCE_ELEMENTS,
     kenLooks: kenLooks(root),
@@ -389,6 +434,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     know: knowIndex(root),
     // the names a story's scenes and characters may not have, for the page's tidy step
     names: storyNames(root),
+    // the run that confirmed SLIPS' S9, the DICHAR/DISPLY speed inversion, which the page
+    // shows where it says the inversion
+    slipsSpeed: speedSummary(root),
   };
   // a 24-frame scene's glass box is its 4-frame one but for where the scenes before it left
   // the characters: carried as the differences (jsonPatch), which the page applies
@@ -432,7 +480,18 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const js = content.slice(a, b);
     const stripped = stripChecked(js, "the claude.ai copy's script", ".mjs");
     sizes.comments = js.length - stripped.length;
-    content = content.slice(0, a) + stripped + content.slice(b);
+    // and it goes gzipped and written as text, as the page's data does, in a block of its
+    // own (PAGE_SCRIPT_ID), which a small module script unpacks and runs: the script's
+    // top level becomes the body of an async function, made with new Function, as the
+    // page makes Ani's runtime when it runs Ani on the page itself (runInPage), with what
+    // a module has, strict mode and await at its top. Making the function checks that the
+    // script reads so (it isn't run here).
+    const body = pageScriptBody(stripped);
+    try { new Function(body); } catch (e) { throw new Error(`the claude.ai copy's script doesn't read as the body of an async function: ${e.message}`); }
+    const packedScript = packText(stripped);
+    const loader = stripChecked(PAGE_LOADER, "the claude.ai copy's loader", ".mjs");
+    sizes.script = packedScript.length;
+    content = content.slice(0, a - open.length) + `<script type="text/plain" id="${PAGE_SCRIPT_ID}">${packedScript}</script>\n` + open + loader + content.slice(b);
   }
   sizes.data = blocks["/*FILM-DATA*/"].length;
   sizes.runtime = blocks["/*ANI-RUNTIME*/"].length;
@@ -458,5 +517,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
+  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out, and the script packed in ${kb(sizes.script)}` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
 }
