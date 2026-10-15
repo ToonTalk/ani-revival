@@ -1373,8 +1373,8 @@ const repairCode = (what) => { const at = CODE.revive && CODE.revive.notes[what]
 // combine leaves, one for each element, make one sentence for their task, and so do the
 // notes of one kind SLIPS and DETAIL leave on one task or one part (GROUPED: Director's,
 // one for each change, each walk set again, each walker).
-// the elements Director reads in a walk (dichar.103:164-169), for SLIPS13's sentence
-const DIRECTOR_READS = ["speed", "path-curvature", "path-length", "path-jaggedness", "deliberateness"];
+// the elements Director reads in a walk (dichar.103:164-169), for SLIPS13's sentence (deliberateness only with DETAIL's walk)
+const DIRECTOR_READS = ["speed", "path-curvature", "path-length", "path-jaggedness"];
 const GROUPED = new Set(["carried-forth", "combined-changes", "is-not-in-the-scene", "factors-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency"]);
 function repairItems(run, notes, sc = null) {
   const seen = new Set(), items = [];
@@ -1837,7 +1837,7 @@ function optInSentence({ actor, what, notes }, sc) {
       const n = partOf(actor);
       const ext = lispList(because).slice(1).map((x) => partOf(show(x))).filter(Boolean);
       const by = new Map();
-      for (const x of notes) { const w = lispList(kv(x, "was")); if (!by.has(w[0])) by.set(w[0], []); if (!by.get(w[0]).includes(w[1]) && DIRECTOR_READS.includes(w[1])) by.get(w[0]).push(w[1]); }
+      for (const x of notes) { const w = lispList(kv(x, "was")); if (!by.has(w[0])) by.set(w[0], []); if (!by.get(w[0]).includes(w[1]) && (DIRECTOR_READS.includes(w[1]) || (w[1] === "deliberateness" && runExtensions(R).includes("detail")))) by.get(w[0]).push(w[1]); }
       const said = [...by].filter(([, els]) => els.length).map(([c, els]) => `${who(c)}'s ${words(els.map(elementWords))}`);
       return `${n ? `In part ${n}` : "Here"}${ext.length > 1 ? `, which extends part ${ext[ext.length - 1]}` : ""}, Ken's Director grew the dynamics of the part a feeling changes (${kenAt("dichar.103:112-117")}), which the walks of the activity it extends don't descend from, so a feeling reached only a walk a character happened to walk while it changed; SLIPS carries each change into those walks as well, through the dynamics they take each factor from, as Ken's comment says a change is to be carried forth${said.length ? `: ${words(said)}` : ""}.`;
     }
@@ -1969,8 +1969,9 @@ function slipsSaid(run, scenes) {
   const grown = each("grown-once"), steps = each("change-steps");
   if (grown.length) out.push(`${grown.length} change${grown.length === 1 ? "" : "s"} (in ${scenesWords(grown.map((n) => n.x.title))}) grow their factor once a tick, where Ken's gradual change grew a factor the character takes from the scene's dynamics twice a tick (${kenAt("dichar.103:112-121")}), so the change went further than planned. (S10)`);
   if (steps.length) out.push(`Every change takes all its steps (${steps.length}, in ${scenesWords(steps.map((n) => n.x.title))}), where SOME's repeat did one fewer than it was asked (${kenAt("some.666:444-450")}): in 1978 each stopped a step short, and a change of one tick did nothing. (S11)`);
-  // S6, S7 and S12, where they act (not in Ken's Cinderella): each note's own sentence
-  for (const kind of ["prerequisite-not-met", "middle-less-than", "variety-pick", "no-such-generator"]) {
+  // S13 and S14 (the review of stage 7), and S6, S7 and S12, where they act (not in Ken's
+  // Cinderella): each note's own sentence
+  for (const kind of ["carried-forth", "film-waited-for-activity", "prerequisite-not-met", "middle-less-than", "variety-pick", "no-such-generator"]) {
     for (const x of scenes) for (const item of repairItems(run, sceneNotes(x.sc).filter((r) => noteKind(r) === kind), x.sc)) out.push(`In ${esc(x.title)}: ${item.html}`);
   }
   return out;
