@@ -101,7 +101,12 @@ test("the wander: a plan that waits until nothing else moves her, and one after 
   assert.match(plan, /^\(ACTIVITY-OF WANDERING-WHILE-CHANGES-RUN \d+\)$/);
   const plans = run("(ask (subscene-of t-scene 2) recall your plans)");
   const waiting = /\(ACTIVITY-OF WAITING-TO-WANDER \d+\)/.exec(plans)[0];
-  assert.equal(run(`(ask ${waiting} recall your begin-time)`), "0.0");
+  // the waiting plan begins with its part, once the part's changes run; both are run from
+  // the part's initial actions, not among its movements, so that the part ends when its
+  // changes do
+  assert.equal(run(`(ask ${waiting} recall your begin-time)`), "(AFTER (BEGINNING-OF (SUBSCENE-OF T-SCENE 2)) 0.0)");
+  assert.equal(run("(ask (subscene-of t-scene 2) recall your initial-actions)"),
+    `((RUN ${waiting} THEN SEE IF EVERYBODY IS DONE) (RUN ${plan} THEN SEE IF EVERYBODY IS DONE))`);
   assert.equal(run(`(ask ${plan} recall your begin-time)`), `(AFTER (END-OF ${waiting}) 0.0)`);
   assert.equal(run(`(ask ${waiting} recall your plans)`),
     `((ASK ${waiting} WAIT UNTIL T-GOAT IS MOVED BY NOTHING IN ((SUBSCENE-OF T-SCENE 2) (SUBSCENE-OF T-SCENE 1)) OR (SUBSCENE-OF T-SCENE 2) CHANGES END))`);
@@ -116,10 +121,15 @@ test("her changes run while ACTION's list of what is still running has one of he
   run("(define t-part something)");
   assert.equal(run("(still-running-list? (append-atoms 'actions-still-running- 7))"), "T");
   assert.equal(run("(still-running-list? 'actions-still)"), "NIL");
-  assert.equal(run("(changes-still-running? 't-goat 't-part)"), "NIL");
-  run("(ask t-part set your ,(append-atoms 'actions-still-running- 7) to ((and (activity-of x 1)) (ask t-goat gradually change by 1.5 factor for speed at high speed)))");
+  // a part that has begun but not yet run its changes (no list yet): they are to run
+  assert.equal(run("(changes-still-running? 't-goat 't-part)"), "T");
+  run("(setq :t-list (append-atoms 'actions-still-running- 7))"); // ACTION's own names are made so, uninterned
+  run("(ask t-part set your ,:t-list to ((and (activity-of x 1)) (ask t-goat gradually change by 1.5 factor for speed at high speed)))");
   assert.equal(run("(changes-still-running? 't-goat 't-part)"), "T");
   assert.equal(run("(changes-still-running? 't-troll 't-part)"), "NIL");
+  // once hers has ended, taken off the list
+  run("(ask t-part set your ,:t-list to ((and (activity-of x 1))))");
+  assert.equal(run("(changes-still-running? 't-goat 't-part)"), "NIL");
 });
 
 test("the film waits while a wander SEEN planned is waiting or walking: its wandering plan knows its waiting plan", () => {

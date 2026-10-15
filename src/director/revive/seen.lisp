@@ -59,12 +59,18 @@
 ;;;  - and the film waits while she wanders: Director stops it when the part a part of
 ;;;    only changes extends ends (action.152:62-91), as it cut Ken's Meeting's joys short
 ;;;    at 4 frames a second; as REVIVE;CHSHOW keeps filming while a change is shown, the
-;;;    film is not stopped while a wander of SEEN's waits or walks.
-;;; Two plans do it, both the subscene's, as Ken's methods' plans are: waiting-to-wander,
-;;; which ends once nothing else moves her (or her changes have ended), and
-;;; wandering-while-changes-run, which begins when it ends ((after (end-of ...) 0.0), as
-;;; goes-to-and-accompanys begins its accompanying, disply.311:224), and walks while her
-;;; changes run. The subscene notes the repair:
+;;;    film is not stopped while a wander of SEEN's waits or walks with her changes still
+;;;    running;
+;;;  - and nothing else of the film is moved: the part of only changes ends when its
+;;;    changes do, as without SEEN, so that where your Director stops a film as a part
+;;;    ends (cutting short the activity a feeling's part extends, stage 6's finding 7),
+;;;    it stops it at the tick it did.
+;;; Two plans do it, both the subscene's, as Ken's methods' plans are, run from its
+;;; initial actions rather than among its movements: waiting-to-wander, which ends once
+;;; nothing else moves her (or her changes have ended), and wandering-while-changes-run,
+;;; which begins when it ends ((after (end-of ...) 0.0), as goes-to-and-accompanys begins
+;;; its accompanying, disply.311:224), and walks while her changes run. The subscene
+;;; notes the repair:
 ;;;   (revival-repair: what nothing-to-do was (stands-still cinderella)
 ;;;		     now (wander-while-changes-run cinderella)
 ;;;		     because (so that the changes are apparent thesis 126))
@@ -131,19 +137,27 @@
 ;; file, as they give REVIVE;MEND9's wander-around.
 (defprop wander-while-changes-run |KEN;DISPLY| actor-load)
 
-;; The two plans: waiting-to-wander, from the subscene's start, and
+;; The two plans: waiting-to-wander, from the subscene's beginning, and
 ;; wandering-while-changes-run, after it. SCENE adds the plan it returns to the
-;; subscene's plans (scene.9:208-210); the other is added here. Director runs a
-;; subscene's movements, or all its plans if it has none (director-subscene,
-;; action.152:45-48), so with movements both join them (REVIVE;MEND9's
-;; join-the-movements). Both are prepared before either runs (run (and ...),
-;; action.152:125-145), so the wandering plan is told when the waiting one ends however
-;; soon it does.
+;; subscene's plans (scene.9:208-210); the other is added here. They are not among the
+;; subscene's movements, which Director runs with its changes and waits for before the
+;; subscene ends (plan everything, action.152:23-43): the subscene ends when its changes
+;; do, as without SEEN, so that Director's stopping of the film, which hangs on the tick
+;; a part ends (action.152:62-91, the cut stage 6 found, its finding 7), comes when it
+;; came. Director runs them from the subscene's initial actions, (run (activity-of ...)
+;; then see if everybody is done) (action.152:160-166), after the subscene's own (her
+;; dynamics in it), each prepared to begin on an event (action.152:214-238): the waiting
+;; one when the subscene's beginning is noted, which Director does once its initial
+;; actions are done and just before it runs its changes (action.152:36-43), so that her
+;; changes are running when it first looks; the wandering one when the waiting one ends.
+;; A subscene that had no movements of its own is given Ken's
+;; default ones without them (keep-seens-plans-out-of-the-movements, below).
 (defun plan-to-wander-while-changes-run (character subscene)
   (let ((parts (parts-to-watch subscene))
 	(waiting (ask plan if new make ,(activity-name-of 'waiting-to-wander)))
 	(wandering (ask plan if new make ,(activity-name-of 'wandering-while-changes-run))))
-       (ask ,waiting set your begin-time to 0.0) ;;as the subscene begins
+       ;;as the subscene begins, once its changes are running
+       (ask ,waiting set your begin-time to (after (beginning-of ,subscene) 0.0))
        (ask ,waiting set your subscene to ,subscene)
        (ask ,waiting add (ask ,waiting wait until ,character is moved by nothing in ,parts
 			      or ,subscene changes end)
@@ -157,9 +171,34 @@
 		      after ,waiting once-nothing-moves-her-in ,parts
 		      because (so that the changes are apparent thesis 126)))
        (ask ,subscene add ,waiting to your list of plans)
-       (join-the-movements waiting subscene)
-       (join-the-movements wandering subscene)
+       ;;after the subscene's own initial actions (her dynamics in it, run-change-to,
+       ;;disply.311:1087-1089)
+       (ask ,subscene set your initial-actions to
+	    ,(append (ask ,subscene recall your initial-actions)
+		     (list (list 'run waiting 'then 'see 'if 'everybody 'is 'done)
+			   (list 'run wandering 'then 'see 'if 'everybody 'is 'done))))
        wandering))
+
+;; Director runs a subscene's movements, or all its plans if it has none
+;; (director-subscene, action.152:45-48). Once SCENE has planned a subscene's actions
+;; (plan your actions, scene.9:199-214), one with SEEN's plans and no movements is given
+;; the movements Director would have made of its other plans, ((and p ...)), so that
+;; SEEN's are run only from its initial actions.
+(defun define-seens-plans-kept-out ()
+  (let ((:insert-methods-at-end nil))
+       (define-extension-method (plan your actions) subscene
+	(ask-old :self plan your actions)
+	(keep-seens-plans-out-of-the-movements :self))))
+
+(+after-load '|ken;scene >| '(revival-once 'seen-movements 'define-seens-plans-kept-out))
+
+(defun keep-seens-plans-out-of-the-movements (subscene)
+  (let ((plans (ask ,subscene recall your plans)))
+       (and (do ((p plans (rest p))) ((null p) nil) (and (seens-plan? (first p)) (return t)))
+	    (null (ask ,subscene recall your movements))
+	    (ask ,subscene set your movements to
+		 ((and !,(mapcan (function (lambda (p) (and (not (seens-plan? p)) (list p))))
+				 plans)))))))
 
 ;;; ------------------------------------------------- what else moves her
 
@@ -293,7 +332,13 @@
 				 (stop-when-changes-ended (quote ,character) (quote ,subscene))
 				 (stop-when-there (quote ,subscene)))
 		    then wander ,character while changes run in ,subscene !,followup))
-	      ((eq (first followup) 'then) (ask :self !,(rest followup)))))))
+	      (t ;;her changes have ended: if the film waited for her, Director is asked
+		 ;;again to stop it, the tick after, as a part asks when it ends
+		 ;;(action.152:77-78): nothing else may end to ask
+		 (and (ask :self recall if any items match
+			   (revival-repair: what film-waited-for-wander %))
+		      (ask ,subscene plan next stop film if nothing running))
+		 (and (eq (first followup) 'then) (ask :self !,(rest followup))))))))
 
 (+after-load '|ken;action >| '(revival-once 'seen-director 'define-the-wander-for-director))
 
@@ -317,13 +362,18 @@
 ;; the actions still running there, kept under a name made by append-atoms
 ;; (set-up-running-actions, action.152:148-157), has one of hers, (ask cinderella
 ;; gradually change by 1.5 factor for speed at high speed): the subscene's changes are
-;; run so (plan everything, action.152:23-43), and taken off the list as each ends.
+;; run so (plan everything, action.152:23-43), and taken off the list as each ends. A
+;; subscene with no such list yet has begun this tick and is about to run them (its
+;; beginning is noted, and what waits for it runs, just before, action.152:36-43): they
+;; are still to run.
 (defun changes-still-running? (character subscene)
-  (do ((v (ask ,subscene list all your variable names) (rest v)))
-      ((null v) nil)
-      (and (still-running-list? (first v))
-	   (has-a-change-of? character (ask ,subscene recall your ,(first v)))
-	   (return t))))
+  (do ((v (ask ,subscene list all your variable names) (rest v))
+       (lists nil))
+      ((null v) (not lists))
+      (cond ((still-running-list? (first v))
+	     (setq lists t)
+	     (and (has-a-change-of? character (ask ,subscene recall your ,(first v)))
+		  (return t))))))
 
 (defun still-running-list? (name)
   (and name (atom name) (symbolp name)
@@ -379,9 +429,13 @@
 ;; Meeting at 4 frames a second, the two joys cut short (reports/ext/appear/README.md),
 ;; and so the wander SEEN plans to show them. As REVIVE;CHSHOW keeps filming while a part
 ;; that shows a change runs, the film is not stopped while a wander SEEN planned is
-;; waiting or walking: its waiting plan has begun and its wandering plan has not ended.
-;; The part, ending, asks again, as every part does. The plan the film waited for is
-;; noted, once:
+;; waiting or walking with her changes still running: its waiting plan has begun, its
+;; wandering plan has not ended, and her changes in its part run (changes-still-running?).
+;; Otherwise Director's own rule decides, at the tick it would have without SEEN: in a
+;; scene where a feeling's part ends before the activity it extends, your Director stops
+;; the film there or not as it would. When a wander the film waited for ends, it asks
+;; Director again, as a part does when it ends. The plan the film waited for is noted,
+;; once:
 ;;   (revival-repair: what film-waited-for-wander was stopped now kept-filming
 ;;		     because (a wander at frame 175))
 (defun define-the-film-waits-for-a-wander ()
@@ -393,8 +447,9 @@
 
 (+after-load '|ken;action >| '(revival-once 'seen-film-waits 'define-the-film-waits-for-a-wander))
 
-;; A wandering plan of the scene's parts whose waiting plan has begun and which has not
-;; ended, as the movie keeps their events (action.152:52), or nil.
+;; A wandering plan of the scene's parts whose waiting plan has begun, which has not
+;; ended, as the movie keeps their events (action.152:52), and whose character's changes
+;; in its part still run, or nil.
 (defun wander-in-progress (subscene)
   (let ((movie (ask movie recall your current-movie)))
        (do ((p (apply 'append
@@ -406,6 +461,9 @@
 		(and waiting
 		     (ask ,movie recall your (beginning-of ,waiting))
 		     (null (ask ,movie recall your (end-of ,(first p))))
+		     (let ((wander (first (ask ,(first p) recall your plans))))
+			  ;;(ask <plan> wander <character> while changes run in <part>)
+			  (changes-still-running? (fourth wander) (first (last wander))))
 		     (return (first p)))))))
 
 ;; The waiting plan of a wandering plan of SEEN's, from its begin time, (after (end-of
