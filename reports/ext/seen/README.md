@@ -102,7 +102,7 @@ Your cinderella-beautified, with the page's set and SEEN (`reports/ext/change/be
 
 ## For the page
 
-- Add "seen" to the switch (`SWITCHED` in `app/film.template.html`), rebuild the bundle (`node tools/build-ani-bundle.mjs --extensions mend,know,appear,change,seen`): with the switch on, your Cinderella then films in 222, 116, 19, 200 and 128 frames at 4 a second and 1,273, 701, 112, 1,038 and 964 at 24 (`tools/check-film-app.mjs` expects 222, 116, 19, 175 and 92), and the beautified preset in 171, 116, 138, 16, 189 and 114 (at 24, 950, 701, 821, 76, 1,059 and 963).
+- Add "seen" to the switch (`SWITCHED` in `app/film.template.html`), rebuild the bundle (`node tools/build-ani-bundle.mjs --extensions mend,know,appear,change,seen`): with the switch on, your Cinderella then films in 222, 116, 19, 200 and 128 frames at 4 a second and 1,273, 701, 112, 1,038 and 964 at 24 (`tools/check-film-app.mjs` expects 222, 116, 19, 175 and 92), and the beautified preset in 171, 116, 137, 18, 190 and 155 (at 24, 950, 701, 820, 76, 1,052 and 942).
 - The activities: `waiting-to-wander` ("Cinderella waits until nothing else moves her", or nothing: no one is seen to do anything), and `wandering-while-changes-run` ("Cinderella wanders about while her joy changes how she moves, so that the change is seen (the revival's repair)"). Their characters are in their Lisp, `(ask <plan> wander cinderella while ...)`, not in a `cause (...)`; `glass.wanders` and `whyTheyAct` have them.
 - The extensions panel's text is the registry's `note`.
 

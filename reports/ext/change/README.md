@@ -125,7 +125,7 @@ Each story is made as the film page makes it: change-of-heart and socializing wi
 |---|---|---|
 | change-of-heart | At Home 108, Change of Heart 62 (52 before the review of stage 6), Kind Again 29 | At Home 769, Change of Heart 422 (395), Kind Again 167 |
 | socializing | The Wallflower 69, Learning to Socialize 72 (68), The Dance 59 (64) | The Wallflower 414, Learning to Socialize 406 (406), The Dance 544 (543) |
-| beautified-film | Introduction 171, Kept Apart 116, Cinderella Beautified 138, No Longer Kept Apart 16, Meeting 189, Justice 114 (since Ken's testing, with SEEN; before, 137, 20, 193 and 90) | Introduction 950, Kept Apart 701, Cinderella Beautified 821, No Longer Kept Apart 76, Meeting 1,059, Justice 963 (before, 820, 116, 920 and 420) |
+| beautified-film | Introduction 171, Kept Apart 116, Cinderella Beautified 137, No Longer Kept Apart 18, Meeting 190, Justice 155 (since Ken's testing, with SEEN; before, 20, 193 and 90 for the last three) | Introduction 950, Kept Apart 701, Cinderella Beautified 820, No Longer Kept Apart 76, Meeting 1,052, Justice 942 (before, 116, 920 and 420 for the last three) |
 
 **With APPEAR's colors and look changes (stage 5, 14 October).** The stories' goldens were made again when APPEAR came to choose colors and change looks (`reports/ext/appear/README.md`). Every frame and event of all six scenes was as it was. What changed: each program's take-look forms carry the character's `look-color`; each joy task has one more method, a `look-change:` of its character's color intensity, by the joy's amount at its speed, and its subscene one more change, `(gradually change look by ...)`; the summaries list those methods, and the glass boxes them and their `lookChanges`; each film's `looks` has each character's color, and its changes. And again on 14 October, for Ken's decision 11 (his uniqueness rule for hues): the stepmother blue and the fairy godmother orange where they were orange and purple.
 
@@ -165,10 +165,10 @@ At 24 frames a second, 820 frames: the fairy godmother reaches Cinderella at fra
 |---|---|---|
 | Introduction | 171 (before stage 6: 171) | 950 |
 | Kept Apart | 116 (before stage 6: 116) | 701 |
-| Cinderella Beautified | 138 since Ken's testing, with SEEN (137; before stage 6: 2) | 821 (820) |
-| No Longer Kept Apart | 16 (20; before stage 6: 19) | 76 (116) |
-| Meeting | 189 (193; before stage 6: 187) | 1,059 (920) |
-| Justice | 114 (90; before stage 6: 90) | 963 (420) |
+| Cinderella Beautified | 137, with SEEN since Ken's testing (137; before stage 6: 2) | 820 (820) |
+| No Longer Kept Apart | 18 (20; before stage 6: 19) | 76 (116) |
+| Meeting | 190 (193; before stage 6: 187) | 1,052 (920) |
+| Justice | 155 (90; before stage 6: 90) | 942 (420) |
 
 Since Ken's testing (15 October) the film is made with SEEN too: from frame 81 the fairy godmother, and from 89 Cinderella, wander while their joys run, where no one moved from frame 91 to 135, and the scenes after start from where the beautified scene now leaves them ("Ken's testing (15 October)", below). The account of the scene above is of it as stage 6 made it, which is unchanged to frame 81.
 
@@ -380,22 +380,22 @@ The beautified film is now made with the page's set and SEEN (`check-change`, `b
 |---|---|---|---|
 | Introduction | 171 | 171 | as before, frame for frame |
 | Kept Apart | 116 | 116 | as before, frame for frame: its joys are carried by the standing guard, a repeat, and SEEN plans nothing there |
-| Cinderella Beautified | 138 | 137 | the joys' part (frames 81 to 136): the fairy godmother, whom nothing has moved since her walk to Cinderella ended at frame 4, wanders from frame 81 until her joy's changes end, at 136; Cinderella waits until her last walk of the transformation ends, at 89, and wanders from 89 until hers end, at 108. No one stands still for more than a second (`whyTheyAct`'s stills: none); the part ends at 136, a tick after its changes do, its last wander noticing they have |
-| No Longer Kept Apart | 16 | 20 | it starts where Cinderella Beautified now leaves everyone: Cinderella near the middle, (0.03, -0.07), not at (-0.25, 0.20), and the fairy godmother at (0.17, -0.08), not in the middle; Cinderella goes 346 dots, not 708 (`moves-differently.json`, which compares this scene with and without who she has become, from the same places: as before, colors don't reach Director's motion, both films the same) |
-| Meeting | 189 | 193 | it starts from where No Longer Kept Apart now leaves them; its last part, the two joys, has Cinderella and the Prince wander from frame 160, when their walk to each other ends, to 187, when their joys do, where before no one moved from frame 165 to 191 while the joys ran |
-| Justice | 114 | 90 | it starts where the Meeting now leaves them, Cinderella near the middle and the Prince 0.28 of a screen from her, where before they ended touching, so their comings in contact and movings apart each have farther to go |
+| Cinderella Beautified | 137 | 137 | frame for frame as before to frame 81; then the joys' part (frames 81 to 135): the fairy godmother, whom nothing has moved since her walk to Cinderella ended at frame 4, wanders from frame 81 until her joy's changes end; Cinderella waits until her last walk of the transformation ends, at 89, and wanders from 89 until hers end, at 108. No one stands still for more than a second (`whyTheyAct`'s stills: none); the part ends at 135, when its changes do, as before |
+| No Longer Kept Apart | 18 | 20 | it starts where Cinderella Beautified now leaves everyone: Cinderella near the middle, (0.03, -0.08), not at (-0.25, 0.20), and the fairy godmother at (0.17, -0.08), not in the middle; Cinderella goes 383 dots, not 708 (`moves-differently.json`, which compares this scene with and without who she has become, from the same places: as before, colors don't reach Director's motion, both films the same) |
+| Meeting | 190 | 193 | it starts from where No Longer Kept Apart now leaves them; its last part, the two joys, has Cinderella and the Prince wander from frame 161, when their walk to each other ends, to 188, when their joys do, where before no one moved from frame 165 to 191 while the joys ran |
+| Justice | 155 | 90 | it starts where the Meeting now leaves them, Cinderella near the middle, (0.02, -0.01), and the Prince 0.27 of a screen from her, where before they ended touching, so their comings in contact and movings apart each take longer |
 
-At 24 frames a second (`beautified-film/24fps/`), 950, 701, 821, 76, 1,059 and 963 frames, where they were 950, 701, 820, 116, 920 and 420:
+At 24 frames a second (`beautified-film/24fps/`), 950, 701, 820, 76, 1,052 and 942 frames, where they were 950, 701, 820, 116, 920 and 420:
 
 | Scene | Frames (24 a second) | Before | Why |
 |---|---|---|---|
 | Introduction, Kept Apart | 950, 701 | 950, 701 | as before, frame for frame |
-| Cinderella Beautified | 821 | 820 | the joys' part (frames 486 to 819): the fairy godmother wanders from 486 to 819, Cinderella from 525, when her last walk of the transformation ends, to 651, when her joy's changes do; no one stands still |
-| No Longer Kept Apart | 76 | 116 | it starts where Cinderella Beautified now leaves everyone: Cinderella at (0.07, -0.08), not (-0.23, 0.16), the fairy godmother at (0.17, -0.06), not in the middle |
-| Meeting | 1,059 | 920 | it starts from where No Longer Kept Apart now leaves them; their walk to each other ends at frame 896, and they wander from 897 to 1,057 while their joys run; before, your Director stopped the film as their walk ended, the joys cut short (stage 6's finding 6), and now it waits for their wander (`film-waited-for-wander`) |
-| Justice | 963 | 420 | it starts where the Meeting now leaves them, Cinderella near the middle, (0.03, 0.02), and the Prince at (-0.26, -0.25), where before they ended touching; Ani plans it as before, and Director takes about twice as long over their comings together and movings apart from there (as with SEEN alone, `reports/ext/seen/README.md`) |
+| Cinderella Beautified | 820 | 820 | frame for frame as before to frame 486; then the joys' part (frames 486 to 818): the fairy godmother wanders from 486 until her joy's changes end, Cinderella from 525, when her last walk of the transformation ends, to 651, when hers do; no one stands still, and the part ends when it did |
+| No Longer Kept Apart | 76 | 116 | it starts where Cinderella Beautified now leaves everyone: Cinderella at (0.07, -0.08), not (-0.23, 0.16), the fairy godmother at (0.16, -0.05), not in the middle |
+| Meeting | 1,052 | 920 | it starts from where No Longer Kept Apart now leaves them; their walk to each other ends at frame 889, and they wander from 890 to 1,050 while their joys run; before, your Director stopped the film as their walk ended, the joys cut short (stage 6's finding 6), and now it waits for their wander (`film-waited-for-wander`) |
+| Justice | 942 | 420 | it starts where the Meeting now leaves them, Cinderella near the middle, (0.03, 0.00), and the Prince at (-0.26, -0.27), where before they ended touching; Ani plans it as before, and Director takes about twice as long over their comings together and movings apart from there (as with SEEN alone, `reports/ext/seen/README.md`) |
 
-The glass box of Cinderella Beautified has `wanders` and two `nothing-to-do` notes, and its film the `film-waited-for-wander` note (frame 92; 528 at 24); the Meeting's, the same for Cinderella and the Prince. `tools/check-still.mjs` finds no still stretch in the beautified film at either rate but your Director's repeats unwinding at 4 frames a second (the Introduction's hits, the Meeting's turns).
+The glass box of Cinderella Beautified has `wanders` and two `nothing-to-do` notes, and its film `film-waited-for-wander` notes (at 4 frames a second, frames 92 and 109: the transformation's part ending at 91, and Cinderella's wander at 108, each asked Director to stop the film while a wander was still to show a change); the Meeting's, the same for Cinderella and the Prince. `tools/check-still.mjs` finds no still stretch in the beautified film at either rate but your Director's repeats unwinding at 4 frames a second (the Introduction's hits, the Meeting's turns).
 
 ## For the page: why they act as they do
 
