@@ -34,7 +34,10 @@
 ;;;           (some do already)" (p. 183-184, L4778-4791). A scene's rhythm, which CINDY
 ;;;           gives four of the five scenes ("relative to the film's rhythm", cindy.46:61)
 ;;;           and which only its length beside it is read of today (scene.9:346-364),
-;;;           suggests changes of speed, as an emotional state does.
+;;;           suggests changes of speed, as an emotional state does. This one is not
+;;;           among the sample of myriad details (X.B.3), but the first of the three
+;;;           improvements X.B.2, "A Better Knowledge Base", names just before them; the
+;;;           first design put it with DETAIL, and so does the plan.
 ;;;
 ;;; How each acts is the revival's reading of the thesis's sentence, and is labeled so
 ;;; where it is defined; the reasons are there. Each detail can be turned off on its own,
