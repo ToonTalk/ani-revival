@@ -31,8 +31,10 @@
 //     CP's, all of them;
 //   - the three stories end to end, as the film page makes them: change-of-heart and
 //     socializing with MEND, APPEAR and CHANGE, and Ken's Cinderella with his
-//     cinderella-beautified uncommented (beautified-film) with the four extensions the
-//     page's switch turns on: every scene films and ends; each scene's program,
+//     cinderella-beautified uncommented (beautified-film) with the extensions the
+//     page's switch turns on (the four, and SEEN since Ken's testing of 15 October,
+//     so that no one stands still while the two joys after the transformation run):
+//     every scene films and ends; each scene's program,
 //     summary, glass box, film and POSIT file, each BECOME file, and the run's record
 //     of each change, against reports/ext/change/<story>/ (or its 24fps/); how the
 //     changing scene shows its change (stage 6: its way of showing, the cause's walk,
@@ -42,6 +44,10 @@
 //     moves-differently.json shows which of her elements the program carries
 //     differently and what Director then did differently (for the beautified film, her
 //     look: the take-look form);
+//   - in each story (since Ken's testing, 15 October), every walk the revival planned
+//     ends with its characters on the picture (src/pipeline.js walksOffThePicture), and,
+//     made with SEEN (the beautified film), no part of only changes leaves everyone
+//     standing still for more than a second (whyTheyAct's stills);
 //   - the bridge's timing (stage 6): Change of Heart planned again with the
 //     stepmother's path-curvature to become high, a factor of 4 from low, and filmed at
 //     4 frames a second and at 24: the bridges begin the tick after the Prince's walk to
@@ -58,7 +64,7 @@
 // Prints each check with ok or FAIL; exits non-zero if any fails.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { boot, pass1, pass2, film, makeFilm, freshLook, recomputeEveryone, changeRecord, storyOutline, storyPlan } from "../src/pipeline.js";
+import { boot, pass1, pass2, film, makeFilm, freshLook, recomputeEveryone, changeRecord, storyOutline, storyPlan, whyTheyAct, walksOffThePicture } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
@@ -242,7 +248,7 @@ const STORIES = [
     shows: { scene: "change-of-heart", shownBy: "(goes-to-and-transforms prince step-mother)", rate: "gradual", bridges: ["path-jaggedness", "path-curvature", "path-length"] } },
   { name: "socializing", text: () => storyText("socializing"), extensions: STORY_EXTENSIONS, look: "socializes", after: "the-dance", who: "cinderella",
     shows: { scene: "learning", shownBy: "(changes-while-wandering cinderella)", rate: "gradual", bridges: ["speed", "size", "shape-complexity"] } },
-  { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
+  { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change", "seen"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
     shows: { scene: "cinderella-beautified", shownBy: "(goes-to-and-transforms fairy-godmother cinderella)", rate: "instantaneous", bridges: ["color-saturation"] } },
 ];
 // The root special dynamics of a character in each subscene of a program, as pass 2
@@ -349,6 +355,17 @@ if (!quick) {
       golden(`${st.name} ${s.id}: the film`, `${dir}/${s.id}.film.json`, JSON.stringify(done.film));
       golden(`${st.name} ${s.id}: KEN1;${s.movie.toUpperCase()} POSIT`, `${dir}/ken1-${s.movie}.posit`, textIn(fs, "KEN1", s.movie.toUpperCase(), "POSIT"));
       if (s.become) golden(`${st.name} ${s.id}: KEN1;${s.become.toUpperCase()} BECOME`, `${dir}/ken1-${s.become}.become`, textIn(fs, "KEN1", s.become.toUpperCase(), "BECOME"));
+    }
+    // every walk the revival plans (the cause's walk, her wander, SEEN's) ends with its
+    // characters on the picture (src/pipeline.js walksOffThePicture, the recorder's own
+    // segments)
+    const off = run.scenes.filter((x) => x.film).flatMap((x) => walksOffThePicture(x.glass, x.film, { fps }).map((w) => `${x.id} ${w.plan} at frame ${w.frame}, ${w.character}`));
+    check(`${st.name}: every walk the revival planned ends with its characters on the picture`, off.length ? off.join("; ") : null);
+    // with SEEN, no part of only changes leaves everyone standing still for more than a
+    // second (src/pipeline.js whyTheyAct's stills, "only-changes")
+    if (st.extensions.includes("seen")) {
+      const left = run.scenes.filter((x) => x.film).flatMap((x) => whyTheyAct(x.glass, x.film, { fps, extensions: st.extensions }).stills.filter((y) => y.kind === "only-changes").map((y) => `${x.id} ${y.part} frames ${y.from} to ${y.to}`));
+      check(`${st.name}: no part of only changes in which no one moves for more than a second (REVIVE;SEEN)`, left.length ? left.join("; ") : null);
     }
     const changes = Object.fromEntries(Object.entries(run.changes || {}).map(([k, v]) => [k, v]));
     golden(`${st.name}: the run's record of each change`, `${dir}/changes.json`, JSON.stringify(changes, null, 1) + "\n");
