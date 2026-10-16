@@ -27,8 +27,9 @@ test("the registry: DETAIL is knowledge, opt-in, changing Ken's Cinderella; it r
   assert.equal(detail.optIn, true);
   assert.deepEqual(detail.files, ["wrap", "detail", "dtwalk", "dttend", "dtrhym"]);
   // registry order: SLIPS and DETAIL after those the page's switch turns on (the four,
-  // and SEEN, since Ken's testing of 15 October)
-  assert.deepEqual(EXTENSIONS.map((e) => e.id), ["mend", "appear", "change", "know", "seen", "slips", "detail"]);
+  // and SEEN, since Ken's testing of 15 October); then CRITIC, loaded on demand with a
+  // film's criticism, never by the switch
+  assert.deepEqual(EXTENSIONS.map((e) => e.id), ["mend", "appear", "change", "know", "seen", "slips", "detail", "critic"]);
   // with DETAIL, Director reads deliberateness, and the best-when scores the tendencies
   assert.equal(elementUse("deliberateness", ["detail"]), "director");
   assert.equal(elementUse("attraction-towards-friends", ["detail"]), "best-when");

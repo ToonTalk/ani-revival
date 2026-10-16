@@ -32,7 +32,7 @@
 // glass box, and for each filmed again its film and program.
 // Usage: node tools/check-critic.mjs [example ...] [--save]
 //   --save   write the goldens instead of comparing them (after the other checks)
-// Prints each check with ok or FAIL; exits non-zero if any fails. About fifteen minutes.
+// Prints each check with ok or FAIL; exits non-zero if any fails. 35 to 55 minutes.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { remakeFilm, criticismChanges, contactsIn, closestApproach, taskDescription, whyTheyAct, SCENES, EXTENSIONS } from "../src/pipeline.js";
