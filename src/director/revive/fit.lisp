@@ -112,7 +112,7 @@
 ;;; The note, on the scene:
 ;;;   (revival-repair: what scene-time-kept was (planned 3.98) now 10.0
 ;;;		     because ((length-bounds 10.0 25.0)
-;;;			      (convey-task-3 was 3.98 now 10.0 least 0.0 most 6.95)))
+;;;			      (convey-task-3 was 3.98 now 10.0 least 2.792 most 6.95)))
 
 (or (boundp ':slips-off) (setq :slips-off nil))
 (or (boundp ':fit-scene) (setq :fit-scene nil))
