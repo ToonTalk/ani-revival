@@ -109,14 +109,28 @@ export const EXTENSIONS = [
     note: "A feeling changes how a character moves (joy makes her faster and bouncier), but \"cannot stand alone\" (thesis pp. 125-126): where a character has only changes in a part, Ken's SCENE extends the activity before it, or has her \"wander around\" at the start of a scene, \"so that the changes are apparent\". In Director the extended activity can end before the changes do (Director runs a change at high speed four times longer than Ani planned), and a character may have had no part in it, so everyone stood still while the feeling ran on. The revival's repair, which Ken approved: in such a part, once nothing else moves her, she wanders about while her changes run, across the stage and back as SCENE's wander does, and stops when they end. In Ken's Cinderella, Cinderella and the Prince wander after they meet at the end of the Meeting, as their joy runs; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978. Each part leaves a note where it acted.",
   },
   {
+    // Ken's decision of 16 October: CHOMET's slips in dividing a scene's time (SLIPS'
+    // S15, stage 7's question 2) corrected, on with the revival's extensions and never
+    // in "Ani as in 1978" (the page's switch must list it beside the five)
+    id: "fit",
+    label: "A scene keeps its time",
+    group: "repairs",
+    files: ["wrap", "fit"],
+    // the corrected adjust-task-lengths does REVIVE;MEND11's part too
+    requires: ["mend"],
+    changes1978: true,
+    note: "Corrections of Ken's slips in dividing a scene's time among its tasks (CHOMET): a scene's length (short, medium or long) gives it a least and a most time, and \"Ani tries to constrain the film to be a (user) desired length\" (thesis p. 126), but when a task's only way of showing didn't fit, Ken's code moved the task's time, judged the scene by a length it would not have, and then gave the task its own ideal time, so that No Longer Kept Apart ran 4 seconds against its own least of 10: \"things happen too quickly and the fairy godmother just appears and is quickly gone\" (p. 69). Now, once the tasks have their times, a scene shorter than its least (or longer than its most) has its tasks moved to the bound, each within its least and most where it can be, and SCENE stretches their activities to fill it; and the three slips beside it are corrected: a way of showing that needs more time is heard under the name Ken's scoring writes (need-more-time:), and a scene's time is moved towards its bounds with the right sign, a task to its own least or most. In Ken's Cinderella, No Longer Kept Apart takes its 10 seconds, the fairy godmother accompanying Cinderella towards the Prince, and Kept Apart, a quarter second short of its 30, takes 30. Each leaves a note where it acted.",
+  },
+  {
     id: "slips",
     label: "Corrections of slips in Ken's files",
     group: "repairs",
     optIn: true,
     files: ["wrap", "slips", "slips1", "slips2", "slips3", "slips6", "slips7", "slips8", "slips9", "slip13", "slip14"],
     // S1 has good's helping find someone to help, which needs KNOW's way of showing
-    // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped
-    requires: ["know"],
+    // helping (REVIVE;KNOWCV): without it the helping is chosen and then dropped;
+    // and S15 is FIT's, on with the revival's extensions (Ken's decision of 16 October)
+    requires: ["know", "fit"],
     changes1978: true,
     // REVIVE;SLIPS3's notes on the choice points of a friendly character's tendencies
     afterPass1: "(note-friendlys-attractions)",

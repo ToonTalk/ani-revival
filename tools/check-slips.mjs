@@ -59,6 +59,9 @@ const CORRECTIONS = [
   ["s11", "S11: a gradual change takes as many steps as it counts"],
   ["s13", "S13: a change is carried forth into the walks of its part"],
   ["s14", "S14: the film is not stopped while the part a part of changes extends runs"],
+  // REVIVE;FIT's, which SLIPS requires (Ken's decision of 16 October: on with the
+  // revival's extensions); (s15) turns off its four pieces
+  ["s15", "S15: a scene keeps the time its length gives it (FIT)"],
 ];
 const only = opt("--only") === null ? CORRECTIONS.map(([id]) => id) : opt("--only").split(",").filter(Boolean);
 for (const id of only) if (!CORRECTIONS.some(([c]) => c === id)) throw new Error(`no correction ${id}: known are ${CORRECTIONS.map(([c]) => c).join(", ")}`);

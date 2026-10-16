@@ -20,8 +20,8 @@ const lisp = (extensions, setup = null) => {
 };
 const wraps = (run, f) => run(`(mapcar 'car (get '${f} 'revival-wraps))`);
 
-test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinderella; it requires KNOW", () => {
-  assert.deepEqual(extensionsFor(["slips"]).map((e) => e.id), ["mend", "know", "slips"]);
+test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinderella; it requires KNOW, and FIT, whose S15 is", () => {
+  assert.deepEqual(extensionsFor(["slips"]).map((e) => e.id), ["mend", "know", "fit", "slips"]);
   const slips = EXTENSIONS.find((e) => e.id === "slips");
   assert.equal(slips.changes1978, true);
   assert.equal(slips.group, "repairs");
@@ -30,7 +30,8 @@ test("the registry: SLIPS corrects slips, a repair, opt-in, changing Ken's Cinde
   assert.equal(slips.afterPass1, "(note-friendlys-attractions)");
   // the four the page's switch turns on are not opt-in (Ken's decision 3), nor SEEN,
   // which it turns on beside them since Ken's testing of 15 October
-  for (const id of ["mend", "know", "appear", "change", "seen"]) assert.ok(!EXTENSIONS.find((e) => e.id === id).optIn, id);
+  // and FIT, which Ken's decision of 16 October has on with the revival's extensions
+  for (const id of ["mend", "know", "appear", "change", "seen", "fit"]) assert.ok(!EXTENSIONS.find((e) => e.id === id).optIn, id);
 });
 
 test("each wrapper is installed once SUGEST, CHOMET, ELEMNT, INTERF and DICHAR have loaded, and in 1978 mode none is", () => {

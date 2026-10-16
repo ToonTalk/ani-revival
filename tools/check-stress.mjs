@@ -8,12 +8,13 @@
 // --extensions mend ("with"), with --extensions mend,appear ("with-appear": APPEAR adds
 // a kind of choice point that MEND's repairs must step over, and its sizes change
 // Director's collisions, so a story films differently), and with --extensions
-// mend,appear,change,know,seen ("with-know": the extensions the page's switch turns on,
-// Ken's decision 3 of 9 October, and SEEN since his testing of 15 October; KNOW's
-// knowledge gives some stories new ways of showing, and its words, feelings and
-// relationships, used by test/stories/stress/know-*.lisp, are words and feelings Ani
-// knows; SEEN has a character whose part is only changes wander while they run), and
-// with --extensions mend,appear,change,know,seen,slips,detail ("with-all": those, and
+// mend,appear,change,know,seen,fit ("with-know": the extensions the page's switch turns
+// on, Ken's decision 3 of 9 October, SEEN since his testing of 15 October and FIT since
+// his decision of 16 October; KNOW's knowledge gives some stories new ways of showing,
+// and its words, feelings and relationships, used by test/stories/stress/know-*.lisp,
+// are words and feelings Ani knows; SEEN has a character whose part is only changes
+// wander while they run; FIT holds a scene to its length's bounds), and
+// with --extensions mend,appear,change,know,seen,fit,slips,detail ("with-all": those, and
 // the two the page's switch
 // leaves to be chosen, SLIPS and DETAIL, Ken's decision 3; test/stories/stress/slips-*.lisp
 // and detail-*.lisp reach what they do). What happened is held
@@ -58,7 +59,7 @@ const names = args.filter((a, i) => !a.startsWith("--") && !valued.has(args[i - 
 const record = args.includes("--record");
 const at = args.indexOf("--jobs");
 const jobs = at >= 0 ? Math.max(1, Number(args[at + 1]) || 1) : Math.max(1, Math.min(6, availableParallelism() - 2));
-const ALL_MODES = [["without", []], ["with", ["--extensions", "mend"]], ["with-appear", ["--extensions", "mend,appear"]], ["with-know", ["--extensions", "mend,appear,change,know,seen"]], ["with-all", ["--extensions", "mend,appear,change,know,seen,slips,detail"]]];
+const ALL_MODES = [["without", []], ["with", ["--extensions", "mend"]], ["with-appear", ["--extensions", "mend,appear"]], ["with-know", ["--extensions", "mend,appear,change,know,seen,fit"]], ["with-all", ["--extensions", "mend,appear,change,know,seen,fit,slips,detail"]]];
 const label = { without: "without MEND", with: "with MEND", "with-appear": "with MEND and APPEAR", "with-know": "with the page's set", "with-all": "with all seven" };
 const modesAt = args.indexOf("--modes");
 const MODES = modesAt >= 0 ? (args[modesAt + 1] || "").split(",").filter(Boolean).map((m) => ALL_MODES.find(([n]) => n === m) || (() => { throw new Error(`no mode ${m}: known are ${ALL_MODES.map(([n]) => n).join(", ")}`); })()) : ALL_MODES;

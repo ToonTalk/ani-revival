@@ -33,7 +33,8 @@
 //     socializing with MEND, APPEAR and CHANGE, and Ken's Cinderella with his
 //     cinderella-beautified uncommented (beautified-film) with the extensions the
 //     page's switch turns on (the four, and SEEN since Ken's testing of 15 October,
-//     so that no one stands still while the two joys after the transformation run):
+//     so that no one stands still while the two joys after the transformation run, and
+//     FIT since his decision of 16 October, so that a scene keeps its length's time):
 //     every scene films and ends; each scene's program,
 //     summary, glass box, film and POSIT file, each BECOME file, and the run's record
 //     of each change, against reports/ext/change/<story>/ (or its 24fps/); how the
@@ -248,7 +249,7 @@ const STORIES = [
     shows: { scene: "change-of-heart", shownBy: "(goes-to-and-transforms prince step-mother)", rate: "gradual", bridges: ["path-jaggedness", "path-curvature", "path-length"] } },
   { name: "socializing", text: () => storyText("socializing"), extensions: STORY_EXTENSIONS, look: "socializes", after: "the-dance", who: "cinderella",
     shows: { scene: "learning", shownBy: "(changes-while-wandering cinderella)", rate: "gradual", bridges: ["speed", "size", "shape-complexity"] } },
-  { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change", "seen"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
+  { name: "beautified-film", text: beautifiedCindy, extensions: ["mend", "know", "appear", "change", "seen", "fit"], look: "beautified", after: "no-longer-kept-apart", who: "cinderella", looks: true,
     shows: { scene: "cinderella-beautified", shownBy: "(goes-to-and-transforms fairy-godmother cinderella)", rate: "instantaneous", bridges: ["color-saturation"] } },
 ];
 // The root special dynamics of a character in each subscene of a program, as pass 2

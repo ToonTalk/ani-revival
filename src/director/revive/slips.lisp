@@ -51,8 +51,17 @@
 ;;;           scene.9:223-240; thesis L1897-1901)
 ;;;   S14     REVIVE;SLIP14  the film is not stopped while the activity a part of
 ;;;           changes extends still runs (action.152:67-91; scene.9:223-240)
+;;;   S15     REVIVE;FIT     a scene keeps the time its length gives it: once the tasks
+;;;           have their times, a scene below its least (or above its most) has them
+;;;           moved to the bound; and resurect-bad-time-fits hears need-more-time:,
+;;;           redistribute-time-for-tasks moves a scene's time towards its bounds, and
+;;;           adjust-task-lengths takes a task to its own least or most
+;;;           (chomet.123:9-198; thesis L3394-3401, L1956-1962). FIT is an extension
+;;;           of its own, on with the revival's extensions (Ken's decision of 16
+;;;           October 2026), which SLIPS requires; its pieces are turned off with
+;;;           :slips-off as these are, (s15) all four.
 ;;; (S13 and S14 were added after the review of stage 7, as was S8's counting a change
-;;; once.)
+;;; once; S15 at Ken's request of 16 October.)
 ;;;
 ;;; What SLIPS leaves alone, and why (reports/ext/slips/README.md has each):
 ;;;   S4      CINDY's is-protective-of (cindy.46:38), which RELATE doesn't know, is a
@@ -78,23 +87,9 @@
 ;;;              personality, and the comparisons take strong as his, so nothing is lost.
 ;;;            - (relate.22:79, named in the first design, is not a slip: its strength
 ;;;              is at the depth of line 70's, outside method:, only indented oddly.)
-;;;   CHOMET's redistribution of a scene's time, which changes nothing in Ken's
-;;;   Cinderella (no task of hers is left without a way of showing for want of time):
-;;;            - resurect-bad-time-fits looks for the reason more-time-needed:
-;;;              (chomet.123:193), and time-fit-score-1 writes need-more-time:
-;;;              (chomet.123:413), so a task whose only display method needs more time
-;;;              is never given it. Cinderella's one such method (the Meeting's
-;;;              repeatedly-come-in-contact) has another beside it, and the task takes
-;;;              that.
-;;;            - redistribute-time-for-tasks, for a scene the redistribution makes too
-;;;              short, adjusts by (-$ new-length scene-minimum), less than nothing, and
-;;;              for one too long by more than nothing (chomet.123:61-64); and
-;;;              adjust-task-lengths gives a task whose time falls below its least its
-;;;              most, ";;must be too large", and one above its most its least
-;;;              (chomet.123:167-180). Read together the signs may be one convention, or
-;;;              two slips; correcting the name alone would send more scenes into them.
-;;;              Not corrected: for Ken (reports/ext/slips/README.md). Found by the stage
-;;;              before this one (PLAN.md, "Still open with MEND").
+;;;   CHOMET's redistribution of a scene's time, left alone here until Ken's request of
+;;;   16 October ("settle the CHOMET question so the godmother scene keeps its time"),
+;;;   is now corrected, as S15, in REVIVE;FIT (above).
 ;;;            - change-to:-package merges a change without its method (cosug.215:509):
 ;;;              REVIVE;MEND7 puts the method back, which leaves Cinderella as it was.
 ;;;   And two in Director:
