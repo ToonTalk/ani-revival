@@ -2180,7 +2180,8 @@ try {
   // nothing ticked, "Ani with the revival's extensions" ticks the five and nothing more
   // (and keeps no list of ticks, only the switch, as before), the prompt and schema with
   // the five are today's, and with SLIPS and DETAIL ticked too they are the same; "Which
-  // extensions" has the registry's two groups, SLIPS and DETAIL opt-in and unticked
+  // extensions" has the registry's groups, SLIPS and DETAIL opt-in and unticked (and
+  // CRITIC, in its own, with no tick)
   await js(`(() => { for (const k of ["ani-cinderella:mode:v1", "ani-cinderella:extensions:v1", "ani-cinderella:run:v1"]) localStorage.removeItem(k); })()`);
   await send("Page.navigate", { url: `${base}/app/film.check.html` });
   for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
@@ -2206,7 +2207,7 @@ try {
   })()`);
   check(optDefault.first.pressed === "1978" && optDefault.first.ticks === "" && optDefault.first.ext === "" && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978 ",
     `the default page is as before: the switch opens on "Ani as in 1978" with nothing ticked, and "Ani with the revival's extensions" ticks ${optDefault.on.ext} and nothing more, keeping only the switch in this browser`);
-  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, slips- opt-in" && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
+  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, slips- opt-in; Criticism: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
     `"Which extensions" has the registry's two groups, each extension with its tick and its sentence, SLIPS and DETAIL opt-in and unticked: ${optDefault.groups}`);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   check(same(optDefault.prompts.page, PROMPT_REVIVAL_SHA) && same(optDefault.prompts.all, optDefault.prompts.page) && same(optDefault.prompts.slips, optDefault.prompts.mendKnow) && same(optDefault.prompts.detail, optDefault.prompts.mend) && optDefault.tidy === 0,
@@ -2659,13 +2660,15 @@ try {
       delete d.files;
       const run = t.runFromData(d);
       t.criticize(run, { kind: "start-far", scene: "no-longer-kept-apart", who: "fairy-godmother", from: "cinderella", said: null });
+      const had = !!run.raw.files;
       t.startRemake(run);
-      let what = "";
-      for (let k = 0; k < 100 && !/saved before Ani kept its working files/.test(what); k++) { await wait(100); what = (t.RUNS[1].status || {}).what || ""; }
+      const seen = [];
+      for (let k = 0; k < 150 && !seen.some((w) => /saved before Ani kept its working files/.test(w)); k++) { await wait(100); const w = t.RUNS[1] === run ? "(not started)" : (t.RUNS[1].status || {}).what || ""; if (seen[seen.length - 1] !== w) seen.push(w); }
+      const remaking = t.RUNS[1].remaking;
       t.stopRun({ quiet: true });
-      return what;
+      return { had, seen, remaking };
     })()`);
-    check(/^This film was saved before Ani kept its working files, so it is made again from the start/.test(scratch), `a film kept without its working files is made again from the start, and the page says so: "${scratch}"`);
+    check(!scratch.had && scratch.remaking && scratch.remaking.fromScratch && scratch.seen.some((w) => /^This film was saved before Ani kept its working files, so it is made again from the start/.test(w)), `a film kept without its working files is made again from the start, and the page says so: ${JSON.stringify(scratch.seen)}`);
     await js(`document.querySelector('#rate [data-rate="24"]').click()`);
     await sleep(200);
   }
@@ -2706,7 +2709,7 @@ try {
   check(!forgot.local.length && !forgot.session.length && forgot.films === 0 && forgot.runbar,
     `"Forget all of it" clears everything the page kept (localStorage, sessionStorage and its IndexedDB films), and the page starts afresh${forgot.local.length || forgot.session.length ? `: left ${[...forgot.local, ...forgot.session].join(", ")}` : ""}`);
   check(forgot.view === "0" && forgot.panel === "story" && forgot.side === "What Ani was told" && /The stepmother pushes Cinderella around/.test(forgot.caption) && forgot.picture === "true" && forgot.rate === "24 a second" && forgot.note
-    && forgot.more === "../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
+    && forgot.more === "../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers, ../site/pages/making-of.html=How this was made, ../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
     && JSON.stringify(forgot.prompts1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(forgot.promptsRevival) === JSON.stringify(PROMPT_REVIVAL_SHA),
     `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts as pinned (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);
   // back to the switch's extensions, for what follows
