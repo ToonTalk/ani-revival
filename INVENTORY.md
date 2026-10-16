@@ -9,7 +9,7 @@
 | `original/` | Byte-for-byte copies of the recovered files, by tape. `MANIFEST.json` lists each file with its tape, ITS name, size and SHA-256. 502 files are here; 34 personal files were left out (email, letters, résumés, a travel plan, lists of talks), and the manifest lists them. The archive in `Documents\MIT-AI-Lab` is untouched. |
 | `src/its/text.js` | Decodes the tape files (see "Text files" below). |
 | `src/maclisp/reader.js` | The MacLisp reader, with Director's read macros. This is the start of Phase 1. |
-| `src/sources.js` | Which files are Ani, her drivers, Director, and the 1979 run outputs. |
+| `src/sources.js` | Which files are Ani, its drivers, Director, and the 1979 run outputs. |
 | `tools/` | `copy_originals.py`, `xref.mjs` (cross-reference), `readall.mjs` (reads every file), `oracle-compare.mjs`, `render_pages.py`, `winocr.ps1`, plus the binary-format tools. |
 | `reports/` | `XREF.md` and `xref.json` (the cross-reference), `tvrtle-names.txt`, `BINARY-FORMATS.md`, FASL dumps, directory listings. |
 | `sources/` | The Director Guides, the thesis OCR text, and frames from the film. See `sources/README.md`. |
@@ -83,7 +83,7 @@ All 31 files from `READ-ANI-TAGS` (tape 7005017). Their creation dates run from 
 | `sugcon.26` | 116 | yes | Collects convey suggestions and makes sense of them |
 | `disply.311` | 1132 | yes | Display methods ("change:", "makes-fence", …) |
 | `prereq.19` | 137 | yes | Prerequisites and "best-when" |
-| `action.152` | 398 | yes | Runs in Director: runs her plans and subscenes |
+| `action.152` | 398 | yes | Runs in Director: runs its plans and subscenes |
 | `animov.21` | 90 | | Projects Ani's movies |
 | `interf.149` | 944 | yes | The interface to Director: symbolic positions, qualitative numbers |
 | `dichar.103` | 526 | yes | Director characters and their stand-in appearances |

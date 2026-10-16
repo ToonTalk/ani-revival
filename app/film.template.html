@@ -377,7 +377,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
   <header>
     <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
     <h1>Ani's Cinderella</h1>
-    <p class="intro">Ani, the program in Ken Kahn's 1979 thesis, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
+    <p class="intro">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
   </header>
 
   <div class="runbar" id="runbar" hidden>
@@ -429,7 +429,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
   </main>
 
   <footer>
-    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
+    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani itself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
     <p class="more-pages">More about Ani: <a href="making-of.html">How this was made</a> · <a href="students.html">A guide for students</a> · <a href="teachers.html">A guide for teachers</a>.</p>
@@ -697,7 +697,7 @@ const DRAWN = {
   star: { turn: 144, offset: 20 }, square: { turn: 90 }, triangle: { turn: 120 }, circle: { turn: 15 }, pentagon: { turn: 72 }, hexagon: { turn: 60 },
   octagon: { turn: 45 }, "eight-pointed-star": { turn: 135, offset: 20 }, "ten-pointed-star": { turn: 108, offset: 20 },
 };
-// A character's color with Ani as in 1978 (and in a film made with Ani's looks before she
+// A character's color with Ani as in 1978 (and in a film made with Ani's looks before it
 // chose colors): Ken's four theirs from 1978, a new one that of the shape it would have
 // had (run.slots, as shapesOf gives them), whatever shape Ani gave it.
 function colorOf(run, c) {
@@ -741,14 +741,14 @@ function toned(rgb, ground, floor) {
 }
 // The least a character stands out from the black screen: 3:1, WCAG's least for the
 // parts of a picture one has to see (its non-text contrast), at Ani's darkest, .45, and a
-// little more the brighter she made it (3.4:1 at .65, 3.8:1 at .85), so that a dark
+// little more the brighter Ani made it (3.4:1 at .65, 3.8:1 at .85), so that a dark
 // character stays darker than a medium one of its hue, and one dimming still dims. A dark
 // blue, purple or red falls short (a dark, clear blue is 1.25:1) and is drawn lighter, in
 // the same hue; Cinderella's four, from 3.5:1 to 4.8:1, are drawn as Ani chose them.
 const SCREEN = [0, 0, 0];
 const screenFloor = (v) => 3 + 2 * (Math.max(0.45, Math.min(1, v)) - 0.45);
 const screenRgb = (color) => toned(hsvRgb(color), SCREEN, screenFloor(color[2]));
-// whether the page draws one of Ani's colors lighter on the screen than she chose it
+// whether the page draws one of Ani's colors lighter on the screen than it chose it
 const lifted = (color) => !!color && contrast(hsvRgb(color), SCREEN) < screenFloor(color[2]);
 // one of Ani's colors as the screen, and a video, draw it
 const hsvColor = (color) => rgbText(screenRgb(color));
@@ -793,8 +793,8 @@ const plain = (w) => String(w).replace(/-/g, " ");
 // A list-valued field of one of Ani's records, as the page reads it: a printed nil is
 // the string "nil", the empty list.
 const lispList = (v) => (Array.isArray(v) ? v : []);
-// A character's icon: its shape (Ani's, in a film made with her looks), in its color
-// (Ani's, as pass 1 chose it, in a film made with her colors).
+// A character's icon: its shape (Ani's, in a film made with Ani's looks), in its color
+// (Ani's, as pass 1 chose it, in a film made with Ani's colors).
 function icon(c, size = 16, run = R) {
   const shape = (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
   const drawn = DRAWN[shape];
@@ -1155,6 +1155,10 @@ const CODE = DATA.code;
 // Where the code and choice-point pages are: beside this page, or (in the claude.ai copy,
 // which is one page) on the web, or nowhere ("none": the links are left out).
 const CODE_SITE = /*CODE-SITE*/"";
+// Ken's thesis (MIT, 1979) and AI-TR-540, a substantial rewrite of it: each citation of
+// AI-TR-540 in the revival's reasons links to it (Ken, 16 October)
+const AITR_URL = "https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077";
+const linkAitr = (html) => String(html).replace(/AI-TR-540/g, () => `<a href="${AITR_URL}" target="_blank" rel="noopener" title="AI-TR-540, a substantial rewrite of Ken's thesis">AI-TR-540</a>`);
 const codeLink = (file, line, label = "code") => (file && line && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${file}-${line}" title="${esc(`${file}, line ${line}`)}">${label}</a>` : "");
 if (CODE_SITE) document.querySelectorAll(".code-pages a").forEach((a) => { if (CODE_SITE === "none") a.closest(".code-pages").hidden = true; else a.href = CODE_SITE + a.getAttribute("href"); });
 // The site's pages about Ani (site/pages/, which tools/build-site.mjs puts beside the film
@@ -1187,7 +1191,7 @@ function taskCode(t) {
 // his (src/pipeline.js EXTENSIONS; reports/chapter-x/PLAN.md). Ken's decision of 9
 // October 2026: the site opens in 1978 mode, and the switch turns on MEND, KNOW, APPEAR
 // and CHANGE (MEND, the repairs; KNOW, knowledge Ken could have added; APPEAR, Ani
-// choosing how her characters look; and CHANGE, characters who change), and, since Ken's
+// choosing how its characters look; and CHANGE, characters who change), and, since Ken's
 // testing of 15 October, SEEN (a character with only a change of feeling wanders, so that
 // the change is seen: reports/ext/seen/README.md, a repair he approved); SLIPS and DETAIL
 // are opt-in (the registry's optIn), off unless a visitor ticks them in the "Which
@@ -1308,8 +1312,8 @@ document.addEventListener("change", (e) => {
 // What each extension does, in a sentence (the registry's note says it for programmers),
 // and each of the revival's files; a file not here is described by its title line.
 const EXTENSION_TEXT = {
-  mend: "Where Ani as in 1978 stops on a story Ken never gave her, each repair lets her go on the way her own code already goes on elsewhere, and notes where it acted. Ken's Cinderella comes out exactly as in 1978.",
-  appear: "Ani chooses each character's size, shape and colors as she chooses how it moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit, and the hue is one of six on a painter's wheel. During a scene, joy brightens a character's colors and sadness dims them (p. 166), beside Ani's changes of how it moves; color mode shows them. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
+  mend: "Where Ani as in 1978 stops on a story Ken never gave it, each repair lets it go on the way its own code already goes on elsewhere, and notes where it acted. Ken's Cinderella comes out exactly as in 1978.",
+  appear: "Ani chooses each character's size, shape and colors as it chooses how the character moves (thesis pp. 163-164): from its words, its relationships, how it compares with the others, how it moves and the film's levels, each with its evidence; then shape experts find a circle, polygon or star to fit, and the hue is one of six on a painter's wheel. During a scene, joy brightens a character's colors and sadness dims them (p. 166), beside Ani's changes of how it moves; color mode shows them. Ken drew his cast himself, so his Cinderella comes out with Ani's looks, and some scenes run a few frames longer or shorter, since Director's collisions use the sizes.",
   change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were; with APPEAR, how she looks too. In the scene itself Ani shows the change (p. 169): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes, while Ani bridges the gap between how she moved and looked and how she will, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. Ken's Cinderella has no change, so it comes out exactly as in 1978; his own cinderella-beautified scene, put back as he wrote it, now plays (“Change the story” has it).",
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
   seen: "A feeling changes how a character moves (joy makes her faster and bouncier), but it “cannot stand alone” (thesis pp. 125-126): where a character has only a change of feeling in a part, Ken's SCENE stretches the activity before it to show the change, or, at the start of a scene, has her “wander around” “so that the changes are apparent”. In Director the stretched activity can end before the feeling does (a change at high speed runs four times as long as Ani planned), and she may have had no part in it, so everyone stood still while the feeling ran. With this repair, which Ken approved after testing this page, she wanders about in such a part once nothing else moves her, across the stage and back as SCENE's wander does, and stops when her changes end. In Ken's Cinderella, Cinderella and the Prince wander after they meet, at the end of the Meeting, while their joy runs, so Justice starts with them apart; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978.",
@@ -1336,13 +1340,13 @@ const REVIVE_TEXT = {
   mend8: "Two characters with nothing to compare get an empty comparison, so pass 1 goes on.",
   mend9: "wander-around, which SCENE asks for when a character's only part is a change of feeling but Ken never wrote, is made from DISACT's walks.",
   mend10: "When “alone” would send off everyone else and there is no one else, that way of showing it is set aside: the two are already alone.",
-  mend11: "A task Ani can't show, left with no running time when she fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
+  mend11: "A task Ani can't show, left with no running time when it fits the scene's tasks to its length, gets 0 seconds, as ideal-time-for-task gives it.",
   mend12: "A walk or turn that would never end (someone keeps it waiting, or it goes round and round and gets no nearer for longer than Ani allows) stops where it is, as if there; every walk that ends on its own is left alone.",
   mend13: "A place reckoned from one character towards another standing at the very same spot, where Ani divided by zero and never got any further, goes straight up (or down) from the spot instead, as Ken's turtle would; and a step that isn't a number is never halved for ever.",
-  mend14: "makes-fence, a way of keeping two apart that DISPLY names but never gives a way to run, is set aside so Ani chooses another (as she chose stands guard for Cinderella); and a guard with no one else to walk across adds nothing Director can't run.",
+  mend14: "makes-fence, a way of keeping two apart that DISPLY names but never gives a way to run, is set aside so Ani chooses another (as it chose stands guard for Cinderella); and a guard with no one else to walk across adds nothing Director can't run.",
   mend15: "Two characters whose goals lead to each other (one guarding the other away from himself) are found where they stand, the second time round, as Ken's own code does for a goal that leads to itself.",
   mend16: "How far a place a small way from one character towards another is from a third place, which Ken's INTERF can't say, is measured from where that small way went as the walk set off.",
-  mend17: "When Ani has more ways to show what a task establishes than the few she takes, she keeps the strongest few, as Ken's own code picks the strongest of one word's suggestions; Ken never wrote what she should do then.",
+  mend17: "When Ani has more ways to show what a task establishes than the few it takes, it keeps the strongest few, as Ken's own code picks the strongest of one word's suggestions; Ken never wrote what it should do then.",
   mend18: "A scene whose only task is shown by one thing the characters do: with that one task in its place, Ken's SCENE took it for a list of tasks and stopped; now one task is the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 takes it.",
   mend20: "A character left off the stage past a corner, whom Director places again each tick until she is on it, with ymax a symbol, a comma left out (dichar.103:41-49), where Ani as in 1978 stopped (\"not a number: YMAX\"): the number is used, and at a place that can't move she is left for a walk to bring on.",
   mend19: "Far off and off the stage, where PLACE asks to put a character with no place yet before two move towards each other, but never defines: it is defined as Ken's medium-distance-and-offstage is, at his good-distance-from-and-offstage.",
@@ -1388,7 +1392,7 @@ function extensionsPanel() {
     const list = EXT_ORDER.map(extNamed).filter((e) => e && (e.group || "knowledge") === g);
     return list.length ? `<div class="ext-group"><p class="label">${esc(title)}</p><p class="note">${esc(about)}</p>${list.map(item).join("")}</div>` : "";
   }).join("");
-  const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how her characters look (APPEAR)"], ["change", "characters who change (CHANGE)"], ["seen", "changes seen when no one has anything to do (SEEN)"]];
+  const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how its characters look (APPEAR)"], ["change", "characters who change (CHANGE)"], ["seen", "changes seen when no one has anything to do (SEEN)"]];
   const on = NAMED.filter(([id]) => SWITCHED.includes(id)).map(([, t]) => t);
   const count = ["no", "one", "two", "three", "four", "five", "six"][SWITCHED.length] || SWITCHED.length;
   const opt = EXTENSIONS.filter((e) => e.optIn).map((e) => ({ slips: "corrections of slips in Ken's files (SLIPS)", detail: "a few of the thesis's “myriad details” (DETAIL)" })[e.id] || `${e.label} (${e.id.toUpperCase()})`);
@@ -1468,14 +1472,14 @@ function repairSentence({ actor, what, notes }, sc) {
       const rebuilt = Array.isArray(because) && because.some((b) => Array.isArray(b) && b[0] === "middle-element");
       return `Ani's pass 1 left ${cp} as ${quoted(was)}, which pass 2 can't use; the revival's repairs narrowed it to ${esc(now)}, the one of the two values left that the film's ${level}variety picks${rebuilt ? " (with middle-element, which the revival rebuilt)" : ""}.`;
     }
-    case "gave-up": return `Ani's pass 1 gave up on ${cp}; the revival's repairs read it as ${esc(now)}, as Ani already reads an element she never set.`;
-    case "read-as-medium": return `A time estimate met a value of ${quoted(was)}, which Ani's weightify can't weigh; the revival's repairs read it as ${esc(now)}, as Ani already reads an element she never set.`;
+    case "gave-up": return `Ani's pass 1 gave up on ${cp}; the revival's repairs read it as ${esc(now)}, as Ani already reads an element it never set.`;
+    case "read-as-medium": return `A time estimate met a value of ${quoted(was)}, which Ani's weightify can't weigh; the revival's repairs read it as ${esc(now)}, as Ani already reads an element it never set.`;
     case "unknown-word": return `Ani doesn't know the word ${quoted(was)}, and Ani as in 1978 stopped on it; the revival's repairs leave it out${subject ? `, so ${who(subject)}'s personality is shown by ${theirs(subject)} other words` : ""}.`;
     case "missing-relationship": {
       const [, x, y] = Array.isArray(was) ? was : [];
-      return `The story doesn't say how ${who(x)} feels about ${who(y)}, and Ani as in 1978 stopped when she asked; the revival's repairs take it as unknown, as her enemy-of already does, and she went on.`;
+      return `The story doesn't say how ${who(x)} feels about ${who(y)}, and Ani as in 1978 stopped when it asked; the revival's repairs take it as unknown, as its enemy-of already does, and it went on.`;
     }
-    case "no-such-display-method": return `Ani was offered ${quoted(Array.isArray(was) ? was[0] : was)} as a way to show this, which no file defines, and Ani as in 1978 stopped on it; the revival's repairs set it aside, as she sets aside a way she has no idea how to show.`;
+    case "no-such-display-method": return `Ani was offered ${quoted(Array.isArray(was) ? was[0] : was)} as a way to show this, which no file defines, and Ani as in 1978 stopped on it; the revival's repairs set it aside, as it sets aside a way it has no idea how to show.`;
     case "defined-display-method": {
       const [, c, p] = Array.isArray(now) ? now : [];
       const other = Array.isArray(p) && p[0] === "vicinity-of" ? who(p[1]) : place(p);
@@ -1508,7 +1512,7 @@ function repairSentence({ actor, what, notes }, sc) {
       const few = Array.isArray(because) ? Number(because[because.length - 1]) : kept.length;
       const what = Array.isArray(d) && d[0] === "relationship" ? relationshipText(d[1]) : Array.isArray(d) ? about(d) : "this";
       const count = (n) => NUMBER_WORDS[n] || String(n);
-      return `Ani had ${count(all.length)} ways to show that ${what} (${words(all.map((x) => about(x)))}), more than the few she takes (${count(few)} here), and Ken never wrote what she does then (explore-method-suggestions), so Ani as in 1978 stopped; the revival's repairs keep the strongest ${count(kept.length)}, as Ken's own code picks the strongest of one word's suggestions: ${words(kept.map((x) => about(x)))}.`;
+      return `Ani had ${count(all.length)} ways to show that ${what} (${words(all.map((x) => about(x)))}), more than the few it takes (${count(few)} here), and Ken never wrote what it does then (explore-method-suggestions), so Ani as in 1978 stopped; the revival's repairs keep the strongest ${count(kept.length)}, as Ken's own code picks the strongest of one word's suggestions: ${words(kept.map((x) => about(x)))}.`;
     }
     case "one-task-ordering": {
       // REVIVE;MEND18: on the one convey task, was (rest task), now the task; what it
@@ -1531,7 +1535,7 @@ function repairSentence({ actor, what, notes }, sc) {
       const whose = Array.isArray(d) && d[0] === "emotional-state" ? subject : null;
       const name = f ? f[0] : "the feeling";
       const negative = f && Array.isArray(f[1]) && f[1][0] === "negative";
-      return `Ani was to show that ${whose ? who(whose) : "a character"} ${whose && CHARS[whose] && CHARS[whose].she === "they" ? "are" : "is"} ${esc(feeling(f))}, written ${esc(show(f))}; the revival's ${esc(name)} takes only a positive level${negative ? ` (a negative ${esc(name)} is ${name === "pride" ? "shame" : "another feeling"}, not ${esc(name)} turned around)` : ""}, so it shows nothing here, as Ani passes over a feeling she doesn't know; for unhappiness, Ken's joy has a negative level.`;
+      return `Ani was to show that ${whose ? who(whose) : "a character"} ${whose && CHARS[whose] && CHARS[whose].she === "they" ? "are" : "is"} ${esc(feeling(f))}, written ${esc(show(f))}; the revival's ${esc(name)} takes only a positive level${negative ? ` (a negative ${esc(name)} is ${name === "pride" ? "shame" : "another feeling"}, not ${esc(name)} turned around)` : ""}, so it shows nothing here, as Ani passes over a feeling it doesn't know; for unhappiness, Ken's joy has a negative level.`;
     }
     case "combined-changes": {
       const made = notes.flatMap((n) => (Array.isArray(kv(n, "now")) ? kv(n, "now") : []));
@@ -1553,7 +1557,7 @@ function repairSentence({ actor, what, notes }, sc) {
     }
     case "no-running-time": {
       const status = Array.isArray(because) ? because[1] : null;
-      return `${status === "cant-do" ? `Ani has no idea how to show ${subject ? `${who(subject)}'s part` : "this"}` : "This is shown by the scene's other tasks"}, and when she fitted the scene's tasks to its length she gave it no running time, so Ani as in 1978 stopped on a missing number; the revival's repairs give it none at all, 0 seconds, as Ani's ideal-time-for-task already does.`;
+      return `${status === "cant-do" ? `Ani has no idea how to show ${subject ? `${who(subject)}'s part` : "this"}` : "This is shown by the scene's other tasks"}, and Ani, fitting the scene's tasks to its length, gave it no running time, so Ani as in 1978 stopped on a missing number; the revival's repairs give it none at all, 0 seconds, as Ani's ideal-time-for-task already does.`;
     }
     case "overdue-move": {
       const [c, , goal] = Array.isArray(was) ? was : [];
@@ -1598,7 +1602,7 @@ function repairSentence({ actor, what, notes }, sc) {
     case "read-as-number": {
       // REVIVE;APPEAR's appearance-number: a size (or a color's brightness or clarity,
       // REVIVE;COLORS) Ani chose as (not X), narrowed to one of the two left as MEND1
-      // narrows how characters move, or one she gave up on
+      // narrows how characters move, or one it gave up on
       const el = Array.isArray(a) ? a[2] : "size";
       const c = Array.isArray(a) ? a[1] : null;
       const her = CHARS[c] ? CHARS[c].her : "them";
@@ -1606,8 +1610,8 @@ function repairSentence({ actor, what, notes }, sc) {
       const to = Array.isArray(because) && because[0] === "narrowed-to" ? because[1] : null;
       const level = Array.isArray(because) && typeof because[3] === "string" ? `${esc(because[3])} ` : "";
       return Array.isArray(was) && was[0] === "not"
-        ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and her table of ${({ "color-intensity": "brightnesses", "color-saturation": "clarities" })[el] || "sizes"} has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
-        : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${names.medium || "medium"} (${esc(now)}), as Ani already reads an element she never set.`;
+        ? `Ani chose ${cp} ${quoted(["not", names[was[1]] || was[1]])}, and its table of ${({ "color-intensity": "brightnesses", "color-saturation": "clarities" })[el] || "sizes"} has a number only for ${words(Object.values(names))}; the revival's repairs narrowed it to ${esc(names[to] || to || "one of the two left")} (${esc(now)}), the one of the two left that the film's ${level}variety picks, as they do for how characters move.`
+        : `Ani gave up on ${cp}; the revival's repairs draw ${her} ${names.medium || "medium"} (${esc(now)}), as Ani already reads an element it never set.`;
     }
     // REVIVE;COLORS' color-character: a hue Ani gave up on, or one that is no one hue,
     // drawn grey
@@ -1661,7 +1665,7 @@ function repairSentence({ actor, what, notes }, sc) {
     case "bringing-on-assumed": {
       const [c, assumed] = Array.isArray(was) ? was : [];
       const actual = Array.isArray(now) ? now[1] : null;
-      return `When Ani timed this part she ${assumed === "brought-on" ? "counted" : "didn't count"} a walk to bring ${who(c)} on, but by the time it ran, ${actual === "brought-on" ? `${who(c)} still had to be brought on` : `an earlier step had already put ${CHARS[c] ? CHARS[c].her : "them"} on the stage`}; the part keeps the timing Ani worked out.`;
+      return `When Ani timed this part it ${assumed === "brought-on" ? "counted" : "didn't count"} a walk to bring ${who(c)} on, but by the time it ran, ${actual === "brought-on" ? `${who(c)} still had to be brought on` : `an earlier step had already put ${CHARS[c] ? CHARS[c].her : "them"} on the stage`}; the part keeps the timing Ani worked out.`;
     }
     default: return `The revival's repairs (${esc(plain(what))}) acted on ${esc(actor)}: ${esc(show(was))} became ${esc(show(now))}${because !== undefined ? `, because ${esc(plain(show(because)))}` : ""}.`;
   }
@@ -2123,7 +2127,7 @@ const knowOn = (run) => !!KNOWN && runExtensions(run).includes("know");
 function knowBadge(entry) {
   if (!entry) return "";
   const f = KNOWN.files[entry.file];
-  return `<span class="evidence"><span class="ours-tag">the revival's</span>${entry.why ? `: ${esc(entry.why)}` : ""} ${f ? codeLink(f.id, entry.line) : ""}</span>`;
+  return `<span class="evidence"><span class="ours-tag">the revival's</span>${entry.why ? `: ${linkAitr(esc(entry.why))}` : ""} ${f ? codeLink(f.id, entry.line) : ""}</span>`;
 }
 // The words a task is about, as the run's story gives them: a relationship's, or a
 // character's personality.
@@ -2222,7 +2226,7 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   const choices = (pred) => (run ? (run.choicePoints || []).filter((cp) => Array.isArray(cp.name) && cp.name[0] === "choice-point-of" && pred(cp.currentChoice)) : []);
   const which = (list) => (list.length ? words(list.slice(0, 3).map((cp) => `${who(cp.name[1])}'s ${elementWords(cp.name[2])}`)) + (list.length > 3 ? ` and ${list.length - 3} more` : "") : "one of the ways a character moves");
   let x;
-  if (/WEIGHTIFY \(NONE\b/i.test(m)) return { text: `In pass 1 Ani gave up on ${which(choices((v) => v === "none"))} (nothing suggested a value), and pass 2 can't weigh a value of none.`, repair: "read it as medium, as Ani already reads an element she never set" };
+  if (/WEIGHTIFY \(NONE\b/i.test(m)) return { text: `In pass 1 Ani gave up on ${which(choices((v) => v === "none"))} (nothing suggested a value), and pass 2 can't weigh a value of none.`, repair: "read it as medium, as Ani already reads an element it never set" };
   if ((x = m.match(/WEIGHTIFY \(\(NOT ([^\s)]+)\)/i))) {
     const v = x[1].toLowerCase();
     return { text: `Pass 1 left ${which(choices((c) => Array.isArray(c) && c[0] === "not" && c[1] === v))} as “not ${esc(v)}”, and pass 2 can't weigh that.`, repair: "narrow it to one of the two values left, as the film's variety picks" };
@@ -2230,7 +2234,7 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if ((x = m.match(/SUMMARIZE-COMPARISON \(\(COMPARISON-OF ([^\s)]+) ([^\s)]+)\)/i))) return { text: `In pass 1, ${who(x[1].toLowerCase())} and ${who(x[2].toLowerCase())} had nothing to compare: no word, opposite or neighbor in common.`, repair: "go on with an empty comparison" };
   // REVIVE;MEND14: a fence, which Ken's DISPLY never gives a way to run, or a guard's walk
   // across by no one (what Lisp typed names the message Director couldn't run)
-  if (/BAD-MESSAGE/i.test(m) && (x = said.match(/\(RUN MAKES-FENCE ([^\s)]+)/i))) return { text: `To keep two apart, Ani chose to have ${who(x[1].toLowerCase())} make a fence, a way Ken's DISPLY names but never gives a way to run.`, repair: "set the fence aside, so that Ani chooses another way, as she chose standing guard for Cinderella" };
+  if (/BAD-MESSAGE/i.test(m) && (x = said.match(/\(RUN MAKES-FENCE ([^\s)]+)/i))) return { text: `To keep two apart, Ani chose to have ${who(x[1].toLowerCase())} make a fence, a way Ken's DISPLY names but never gives a way to run.`, repair: "set the fence aside, so that Ani chooses another way, as it chose standing guard for Cinderella" };
   if (/BAD-MESSAGE/i.test(m) && /\(RUN NIL\b/i.test(said)) return { text: "Standing guard, Ken's code has someone else walk across meanwhile; there was no one else, and it planned that walk as nothing, which Director can't run.", repair: "leave out the walk that isn't there" };
   // any other message an actor didn't understand: who, and which, in plain words
   if (/BAD-MESSAGE/i.test(m) && (x = notUnderstood(typed))) return { text: notUnderstoodText(x), repair: null };
@@ -2241,7 +2245,7 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
   // REVIVE;MEND16 and MEND17
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
-  if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few she takes, and Ken never wrote what she does then (explore-method-suggestions).", repair: "keep the strongest few" };
+  if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few it takes, and Ken never wrote what it does then (explore-method-suggestions).", repair: "keep the strongest few" };
   // REVIVE;MEND18: a scene whose only task is a relationship Ani shows by one thing the
   // characters do (scene.9:535-538)
   if (/cdr of non-list: CONVEY-TASK/i.test(m)) return { text: "The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped (scene.9:535-538).", repair: "take one task as the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 does" };
@@ -2259,7 +2263,7 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
     if (typeof actor === "string" && personality(actor)) return { text: `Ani doesn't know the word “${esc(plain(actor))}”, and asked it how to show a personality.`, repair: "leave out a word Ani doesn't know" };
     if (actor) return { text: `Ani asked for ${esc(show(actor))}, which no file defines.`, repair: null };
     // without what Lisp typed (a film saved before it was kept), what in the story Ani as
-    // in 1978 would stop on: a meeting in the scene, a word she doesn't know for the
+    // in 1978 would stop on: a meeting in the scene, a word it doesn't know for the
     // personality of someone the scene shows, or a pair with no relationship
     const st = run && !runExtensions(run).length && run.story.scenes[sceneId];
     if (st) {
@@ -2348,8 +2352,8 @@ document.addEventListener("click", (e) => {
 // ---------------------------------------------------------------- how she looks
 
 // With APPEAR (REVIVE;APPEAR, APSUG, SHAPES and LOOKS), Ani chooses each character's size,
-// the jaggedness of its shape and the complexity of its shape, as she chooses how it
-// moves, and shape experts turn the choices into a shape. Pass 1 returns how she chose
+// the jaggedness of its shape and the complexity of its shape, as it chooses how the
+// character moves, and shape experts turn the choices into a shape. Pass 1 returns how it chose
 // each look (src/glassbox-pass1.js collectAppearances): for each character its look,
 // the winning suggestion's sources for each element, and what the experts did; with
 // every piece of knowledge a suggestion can come from and its evidence. Every sentence
@@ -2648,11 +2652,11 @@ function sourceNoun(run, c, src) {
   }));
 }
 // One aspect of a character's color with Ani's reasons: the sources whose own suggestion
-// it was; where she compromised (a brightness between bright and dark), the two she met
+// it was; where Ani compromised (a brightness between bright and dark), the two it met
 // between, each with its reason; for a hue, Ani's own record of a compromise between two
 // hues two steps apart on the wheel (REVIVE;COLORS' compromised:), and, for a hue only the
 // film's variety suggests, what it picked from (its counts) and by what order (the
-// revival's); and what she set aside, and why (a hue a step from another, or opposite it,
+// revival's); and what it set aside, and why (a hue a step from another, or opposite it,
 // is a conflict, which CHOOSE resolves as any other).
 function colorPart(run, c, el) {
   const k = meet(run.story, c);
@@ -2674,7 +2678,7 @@ function colorPart(run, c, el) {
   };
   const why = reasonClause(run, c, el, e.sources || []).text;
   const comp = ((cp && cp.conflictsResolved) || []).filter((x) => kv(x, "how-resolved") === "compromised").pop();
-  // the suggestion that won, as Ani memorized it (choose.198:596-603), with her record of
+  // the suggestion that won, as Ani memorized it (choose.198:596-603), with its record of
   // a hue compromise merged into it
   const won = cp && (cp.memory || []).find((m) => m[0] === "suggestion:" && sameValue(kv(m, "value"), chosen));
   const record = el === "color-hue" && won ? lispList(kv(won, "compromises")).filter(Array.isArray).pop() : null;
@@ -2838,12 +2842,12 @@ function colorSentence(run, c) {
   return `Ani colored ${meet(run.story, c).her} ${colorShort(entry.look)}: ${parts.join("; ")}.`;
 }
 // Where the screen draws a character lighter than Ani colored it (M2's floor, lifted):
-// said, with Ani's choice kept as she made it.
+// said, with Ani's choice kept as it made it.
 function liftedNote(run, c, look) {
   if (!look || !look.color || !lifted(look.color)) return "";
   const k = meet(run.story, c);
   const ratio = (x) => String(Math.round(x * 100) / 100);
-  return `On the black screen ${colorName(look, true)} would be hard to see (${ratio(contrast(hsvRgb(look.color), SCREEN))}:1 against black), so the page draws ${k.her} lighter, in the same hue, at ${ratio(screenFloor(look.color[2]))}:1. It draws every color at least 3:1 against black, the least WCAG asks of the parts of a picture one has to see, and a little more the brighter Ani made it (3.4:1 at medium, 3.8:1 at bright), so that dark stays darker than medium. Ani's numbers are as she chose them.`;
+  return `On the black screen ${colorName(look, true)} would be hard to see (${ratio(contrast(hsvRgb(look.color), SCREEN))}:1 against black), so the page draws ${k.her} lighter, in the same hue, at ${ratio(screenFloor(look.color[2]))}:1. It draws every color at least 3:1 against black, the least WCAG asks of the parts of a picture one has to see, and a little more the brighter Ani made it (3.4:1 at medium, 3.8:1 at bright), so that dark stays darker than medium. Ani's numbers are as it chose them.`;
 }
 // The knowledge a character's colors came from, each piece Ken's (his words quoted) or
 // the revival's (marked, with its reason): every source of a suggestion that won, was
@@ -3078,7 +3082,7 @@ function kensEvidence(ev) {
 function evidenceText(ev) {
   if (!ev) return "";
   if (Array.isArray(ev)) return ev.map(evidenceText).filter(Boolean).join("; ");
-  if (ev.why) return `<span class="ours-tag">the revival's</span>: ${esc(ev.why)}`;
+  if (ev.why) return `<span class="ours-tag">the revival's</span>: ${linkAitr(esc(ev.why))}`;
   if (ev.thesis) return `<q>${esc(ev.text)}</q> (thesis, p. ${esc(ev.thesis)})`;
   if (ev.code) { const [file, line] = String(ev.code).split(":"); return `<q>${esc(ev.text)}</q> (Ken's code, ${esc(ev.code)}) ${codeLink(file, Number(line))}`; }
   return "";
@@ -3477,7 +3481,7 @@ function revivalChoices(x) {
   return out.length ? ` The revival's choices here, where the thesis leaves them to Ani: ${out.join("; ")}.` : "";
 }
 // How Ani shows c's change in the scene of it, with the bridge: what changed, over how
-// long, from which frame, and what she chose again and didn't bridge. x: { id, i, rec }.
+// long, from which frame, and what Ani chose again and didn't bridge. x: { id, i, rec }.
 function bridgeSentence(run, x, c) {
   const sc = run.scenes[x.i], title = esc(run.titles[x.id]), k = meet(run.story, c), s = (one, many) => agree(k, one, many);
   if (!ready(sc)) return "";
@@ -3835,7 +3839,7 @@ function prepScene(s, run) {
 // look in pass 1, when an extension chose them (REVIVE;APPEAR; src/pipeline.js pass1).
 // run.slots: the shape each character has with Ani as in 1978 (Ken's four theirs, a new
 // one the next shape free), which gives it its color; run.shapes: the shape it is drawn
-// as, Ani's in a film made with her looks.
+// as, Ani's in a film made with Ani's looks.
 // changes: with CHANGE, each changing scene's record (src/pipeline.js changeRecord);
 // run.changing: the changes each scene's tasks ask for, when CHANGE is on.
 // tidied, what the page tidied in the description first (tidyStory); told, the story as
@@ -4034,6 +4038,8 @@ async function setPair(r, ref) {
   const pair = state.view === "both" ? [...state.pair] : ["ken", "cur"];
   pair[r] = ref;
   state.pair = pair;
+  // the films read from "Your films" and no longer on a screen are let go (each may be a few MB)
+  for (const id of [...LIB_RUNS.keys()]) if (!pair.includes(`lib:${id}`)) LIB_RUNS.delete(id);
   setView("both");
 }
 // a date as the films' lists say it: "16 Oct 2026, 10:42"
@@ -4102,10 +4108,10 @@ function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
     const seg = fr.segs[c];
     if (!seg) continue;
     // the segments are as Director drew them, Ani's shape and size in a film made with
-    // her looks (in the middle of a change of shape, the in-between); color draws a
+    // Ani's looks (in the middle of a change of shape, the in-between); color draws a
     // shape again inside itself, by its own size and density (between the two shapes',
     // as far as the change has come), in the character's color, Ani's as it is at this
-    // frame in a film made with her colors
+    // frame in a film made with Ani's colors
     const paint = paintAt(run, sc, c, f);
     const drawn = lookAt(sc, c, f);
     const shape = drawn && DRAWN[drawn.shape] ? drawn.shape : run.shapes[c];
@@ -4293,7 +4299,7 @@ function caption(r) {
   const c = captionAt(run, state.scene, frameIn(sc));
   // whose colors these are, in a film made with Ani's looks
   const colors = !sc.film.looks || !state.color ? ""
-    : `<span class="part">${hasColors(sc) ? "Ani chose these colors, as she chose the shapes and sizes." : "This film was made before Ani chose colors, so each character keeps the color it has with Ani as in 1978."}</span>`;
+    : `<span class="part">${hasColors(sc) ? "Ani chose these colors, as it chose the shapes and sizes." : "This film was made before Ani chose colors, so each character keeps the color it has with Ani as in 1978."}</span>`;
   el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
 }
 const hasColors = (sc) => (sc.film.looks || []).some((x) => x[2] && x[2].color);
@@ -4394,7 +4400,7 @@ function captionAt(run, i, f) {
     const cant = cantTasks.filter((t) => !elsewhere(t)).flatMap((t) => changesIn(t.description));
     const cs = [...new Set(cant.flatMap((c) => c.characters))], k = cs.length === 1 ? meet(run.story, cs[0]) : { she: "they" }, next = run.sceneIds[i + 1];
     const rec = run.raw.changes && run.raw.changes[run.sceneIds[i]];
-    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}; Ani has no way to show it${rec && rec.error ? `, since her fresh look at ${who(cs)} stopped` : ""}.${next && !(rec && rec.error) ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
+    if (cant.length) more.push(`Here ${words(cant.map((c) => changeText(c)))}; Ani has no way to show it${rec && rec.error ? `, since its fresh look at ${who(cs)} stopped` : ""}.${next && !(rec && rec.error) ? ` From ${esc(run.titles[next])} on, ${who(cs)} ${agree(k, "moves", "move")} as ${k.she} ${agree(k, "has", "have")} become.` : ""}`);
     if (sc.film.frames.length > CAP_SECONDS * fpsOf(sc) && f === sc.last) more.push(`Director stopped filming here, after ${CAP_WORDS}; the scene hadn't ended.`);
     // a shape or size that changes here, for a second after it changes (a color's steps
     // are said above, by the look change that makes them)
@@ -4794,7 +4800,7 @@ function wayWhy(t, method) {
     const better = KINDS.filter(([key]) => Number(kv(chosen, key)) > Number(kv(best, key))).map(([key, name]) => `${name} (${kv(chosen, key)} against ${kv(best, key)})`);
     out = `Ani weighed ${NUMBER_WORDS[scores.length] || scores.length} ways, each score weighted by the film's levels, and this one came out highest${better.length ? `, on ${words(better)}` : ""} (${kenAt("chomet.123:216-255")}); the other was ${wayQ(valueOf(kv(best, "suggestion")))}`;
   } else out = "it was the way Ani's suggestions offered";
-  if (rejected.length) out += `; she set aside ${words(rejected.map((r) => `${wayQ(valueOf(kv(r, "suggestion")))} (${rejectText(kv(r, "reason"))})`))}`;
+  if (rejected.length) out += `; it set aside ${words(rejected.map((r) => `${wayQ(valueOf(kv(r, "suggestion")))} (${rejectText(kv(r, "reason"))})`))}`;
   return out;
 }
 // The timing of an activity, step by step, from the scene's length to the frames it ran:
@@ -4808,7 +4814,7 @@ function timingSteps(run, sc, w, a, char) {
   const { says, bounds, film } = sceneLengthWords(run, sc, w);
   steps.push(`${says}${bounds ? `: ${bounds}${film ? `, its share of the film's ${film} by the scenes' lengths` : ""} (${kenAt("scene.9:346-357")})` : ""}.`);
   if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${task.allocatedTime[0]} to ${task.allocatedTime[1]} seconds,` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
-  if (a.estimate) steps.push(`Her estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; she planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to her best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
+  if (a.estimate) steps.push(`Its estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; it planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to its best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
   if (part) steps.push(partSteps(run, w, part));
   const stops = stopWords(a.stops, k, char);
   steps.push(`This step begins ${beginWords(w, a.beginTime || "0.0")}${stops.length ? ` and stops ${orWords(stops)}` : ""}${a.stops.some((s) => ["after-seconds", "when-there", "original-distance", "fraction-of-distance"].includes(s.kind)) ? ` (Ken's conditions, ${kenAt("dichar.103:401-499")})` : ""}.${a.repeated ? ` Ken's plan repeats it ${a.repeated} times, (repeat ${a.repeated} ...).` : ""}`);
@@ -4855,7 +4861,7 @@ function plannedWords(run, sc, w, part, task, method) {
   const { says, bounds } = sceneLengthWords(run, sc, w);
   const ext = part.extendedBy.length ? `, to take in part ${words(part.extendedBy.map((x) => String(partN(w, x.by))))}, which extends it` : " to fill its part";
   const stretched = part.stretchedBy && Math.abs(part.stretchedBy - 1) > 0.005;
-  return `${says}${bounds ? `, ${bounds}` : ""}; Ani planned ${task.runningTime !== null ? sec(task.runningTime) : "her estimate"} for ${wayQ(method)}${stretched ? ` and stretched it by ${+part.stretchedBy.toFixed(2)}${ext}` : ""}.`;
+  return `${says}${bounds ? `, ${bounds}` : ""}; Ani planned ${task.runningTime !== null ? sec(task.runningTime) : "its estimate"} for ${wayQ(method)}${stretched ? ` and stretched it by ${+part.stretchedBy.toFixed(2)}${ext}` : ""}.`;
 }
 // SEEN's and MEND9's wanders, for a part of only changes: why this way, and why so long.
 function onlyChangesWhy(run, sc, w, a, char, f) {
@@ -5082,7 +5088,7 @@ function whyPanel(char) {
       : `Written by the method's code in DISPLY ${methodCode([fam], "run")}`;
     if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
   }
-  // in a film made with Ani's looks (REVIVE;APPEAR), how she chose this one
+  // in a film made with Ani's looks (REVIVE;APPEAR), how it chose this one
   const looks = looksBody(R, char, "look-box", s);
   if (looks) sections += `<details class="looks"><summary>How ${esc(k.she)} ${agree(k, "looks", "look")}</summary><div class="body">${looks}</div></details>`;
   // in the scene that changed her and every later one (REVIVE;CHANGE), who she has become
@@ -5223,9 +5229,9 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
     for (const [slot, ws] of c.slots) {
       for (const w of ws) {
         // pass 2 asks a personality word for its suggestions (sugest.123:54-66); a word for
-        // looks or moves Ani doesn't know suggests nothing, and she goes on
+        // looks or moves Ani doesn't know suggests nothing, and it goes on
         if (!W[w] && slot === "personality") stops.push({
-          as1978: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}), and Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.${!extensions.includes("know") && vocabularyFor(["know"])[w] ? ` It is one of the words the revival's knowledge (KNOW) adds; make it with the revival's extensions, and Ani knows it.` : " Use one of her words, or make it with the revival's repairs, which leave the word out."}`,
+          as1978: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}), and Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.${!extensions.includes("know") && vocabularyFor(["know"])[w] ? ` It is one of the words the revival's knowledge (KNOW) adds; make it with the revival's extensions, and Ani knows it.` : " Use one of its words, or make it with the revival's repairs, which leave the word out."}`,
           mended: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}); the revival's repairs leave it out.`,
         });
         else if (!W[w]) notes.push(`Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}'s ${esc(SLOT_LABEL[slot] || slot)}): it is remembered, but suggests nothing.`);
@@ -5261,7 +5267,7 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
   const missing = story.missingPairs;
   const pairs = `${missing.slice(0, 5).map(([a, b]) => `how ${esc(nameOf(story, a))} feels about ${esc(nameOf(story, b))}`).join("; ")}${missing.length > 5 ? `; and ${missing.length - 5} more` : ""}`;
   if (missing.length) stops.push({
-    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair she hasn't been told about. Missing: ${pairs}. Fill them in (the page fills them with “is polite to”: Ani has no neutral word, and that is the mildest of hers, with no suggestions of its own), or make it with the revival's repairs, which take a missing one as unknown, which is neutral.`,
+    as1978: `Ani asks how ${kenCast ? "a friendly character feels about each of the others" : "each character feels about every other one"}, and Ani as in 1978 stops at a pair it hasn't been told about. Missing: ${pairs}. Fill them in (the page fills them with “is polite to”: Ani has no neutral word, and that is the mildest of its words, with no suggestions of its own), or make it with the revival's repairs, which take a missing one as unknown, which is neutral.`,
     mended: `The story doesn't say ${pairs}; the revival's repairs take a missing relationship as unknown, which is neutral: asked whether one likes the other, Ani hears “don't know” (REVIVE;MEND4), so nothing needs filling in.`,
   });
   const sceneIds = Object.keys(story.scenes);
@@ -5319,7 +5325,7 @@ function taskVerdict(story, sceneId, earlier, t, extensions = modeExtensions(), 
       if (!extensions.includes("know") && KNOWN && emotionOk(d[2], [...extensions, "know"])) {
         const fs = wordsOf(d[2]).map((f) => f[0]).filter((f) => KNOWN.feelings[f]);
         return { stop: { know: true,
-          as1978: `${said()}: Ani as in 1978 knows no feeling ${esc(words(fs))} (she shows joy, and passes over any other), so it would show nothing. Make it with the revival's extensions, whose knowledge shows ${esc(words(fs))}.`,
+          as1978: `${said()}: Ani as in 1978 knows no feeling ${esc(words(fs))} (it shows joy, and passes over any other), so it would show nothing. Make it with the revival's extensions, whose knowledge shows ${esc(words(fs))}.`,
           mended: `${said()}: the revival's knowledge shows ${esc(words(fs))}.` } };
       }
       const more = feelingsFor(extensions).filter((f) => f !== "joy");
@@ -5342,8 +5348,8 @@ function taskVerdict(story, sceneId, earlier, t, extensions = modeExtensions(), 
     if (!isChar(d[1]) || !Array.isArray(from) || from[0] !== "from-scene") return bad("write (undoes x (from-scene earlier-scene THAT-SCENE'S-TASK)).");
     if (!earlier.includes(from[1])) return { bad: `${esc(from[1])} isn't an earlier scene: a task undoes only what someone did in a scene before its own.`, undoes: true };
     // Ani undoes a task by asking how it was shown there for a way to undo it
-    // (convey.64:130-160); an (establish ...) has none, and she stops
-    if (!Array.isArray(from[2]) || from[2][0] !== "convey") return { bad: "Ani can undo only what someone did in that scene, a (convey ...) task; she undoes it by undoing how it was shown, and an (establish ...) has no way to be undone.", undoes: true };
+    // (convey.64:130-160); an (establish ...) has none, and it stops
+    if (!Array.isArray(from[2]) || from[2][0] !== "convey") return { bad: "Ani can undo only what someone did in that scene, a (convey ...) task; it undoes a task by undoing how it was shown, and an (establish ...) has no way to be undone.", undoes: true };
     return tasksIn(from[1]).map(show).includes(show(from[2])) ? null : { bad: `that isn't one of ${esc(titleOf(story, from[1]))}'s tasks; copy it exactly.`, undoes: true };
   }
   if (verb === "meets") {
@@ -5359,7 +5365,7 @@ function taskVerdict(story, sceneId, earlier, t, extensions = modeExtensions(), 
     if (!(isChar(d[1]) && isChar(d[2]) && d.length === 3)) return bad(`write (${verb} x y) with two defined characters.`);
     if (extensions.includes("know")) return null;
     return { stop: { know: true,
-      as1978: `${said()}: Ani as in 1978 has no way to show ${esc(VERB_ING[verb] || plain(verb))}, so she can't plan it. Make it with the revival's extensions, whose knowledge shows it with ${esc(KNOWN.verbs[verb].method)}.`,
+      as1978: `${said()}: Ani as in 1978 has no way to show ${esc(VERB_ING[verb] || plain(verb))}, so it can't plan that. Make it with the revival's extensions, whose knowledge shows it with ${esc(KNOWN.verbs[verb].method)}.`,
       mended: `${said()}: the revival's knowledge shows it with ${esc(KNOWN.verbs[verb].method)}.` } };
   }
   // a change of who someone is (REVIVE;CHANGE): Ani as in 1978 has none, so the page
@@ -5420,14 +5426,14 @@ function fillRelationships(text, word = "is-polite-to") {
 // the Prince's looks, CINDY 46); a relationship in the focus written as three parts; a
 // feeling written (joy positive high), or Ken's joy with a plain level, (joy high), which
 // stops pass 2 (emote.9:13-17); any task Ani can't plan (taskVerdict's bad: the wrong
-// number of characters, a character or verb she doesn't know, an undoes of what no earlier
+// number of characters, a character or verb it doesn't know, an undoes of what no earlier
 // scene did, ...), left out if its scene keeps another, and a scene left with none, left
 // out of the film if the film keeps another; a relationship of a character the story
 // doesn't define, left out; and a scene or character named as something Ani's files
 // define, renamed (src/pipeline.js storyWithoutClashes), for the extensions the film is
 // made with. Only these change: a description without them, Ken's CINDY and every story
 // in test/stories and reports/llm-trials, comes out as it was, but for a clashing name.
-// Ani then does as best she can with the rest, as Ken asked; only what still can't be
+// Ani then does as best it can with the rest, as Ken asked; only what still can't be
 // filmed is a problem.
 // Each fix is { short, long (html), before, after } (after "" when left out).
 const TWO_PARTS = ["meets", "getting-it-on", "accompanys", "chases", "hurts", "pushes"];
@@ -5492,7 +5498,7 @@ function namesTaken(extensions) {
   return new Set([...n.base, ...[...ids].flatMap((id) => n.byExtension[id] || [])]);
 }
 // What a name is in Ani, in words, and the file that defines it ("Ken's EMOTE"; none for
-// an actor she has from the start).
+// an actor it has from the start).
 function clashWhy(name, extensions) {
   const W = vocabularyFor(extensions), know = extensions.includes("know") && KNOWN;
   const kind = W[name] ? W[name].kind || W[name].kindByRelation : null;
@@ -5559,7 +5565,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
         } else if (rest.length === 1 && rest[0].items && rest[0].items.length > 1 && atoms(rest[0].items) && rest[0].items[0].atom !== "and") {
           words_.set(s, rest[0].items.map((x) => x.atom));
           touched.add(s);
-          fix(`put “and” into ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as a list without “and”; Ani reads a list of words only as (and word word ...), and would warn that she doesn't understand it and leave the words out (char.2:80-89).`, lispOfSpan(s), `(${slot} (and ${rest[0].items.map((x) => x.atom).join(" ")}))`);
+          fix(`put “and” into ${whose} ${label}`, `${esc(cap(whose))} ${esc(label)} were given as a list without “and”; Ani reads a list of words only as (and word word ...), and would warn that it doesn't understand them and leave the words out (char.2:80-89).`, lispOfSpan(s), `(${slot} (and ${rest[0].items.map((x) => x.atom).join(" ")}))`);
         } else if (rest.length === 1 && rest[0].atom) words_.set(s, [rest[0].atom]);
         else if (rest.length === 1 && headIs(rest[0], "and") && atoms(rest[0].items.slice(1))) words_.set(s, rest[0].items.slice(1).map((x) => x.atom));
         else words_.set(s, null);
@@ -5611,7 +5617,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
           if (parts[k].atom !== "relationship-of" || !isChar(parts[k + 1].atom) || !isChar(parts[k + 2].atom)) continue;
           const now = `(relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom})`;
           replace(parts[k].start, parts[k + 2].end, now);
-          fix(`made ${now} one part of the focus`, `The film's focus listed relationship-of, ${esc(parts[k + 1].atom)} and ${esc(parts[k + 2].atom)} as three parts; a relationship is one part, ${esc(now)}, as in Ken's focus (CINDY 46), and Ani looks for it there when she weighs what the film is about.`, `relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom}`, now);
+          fix(`made ${now} one part of the focus`, `The film's focus listed relationship-of, ${esc(parts[k + 1].atom)} and ${esc(parts[k + 2].atom)} as three parts; a relationship is one part, ${esc(now)}, as in Ken's focus (CINDY 46), and Ani looks for it there when it weighs what the film is about.`, `relationship-of ${parts[k + 1].atom} ${parts[k + 2].atom}`, now);
           k += 2;
         }
       }
@@ -5627,7 +5633,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
   }
   story.relationships = story.relationships.filter((r) => isChar(r.from) && isChar(r.to));
   // The scenes, in order: each task Ani can't plan (taskVerdict) is left out, if its scene
-  // keeps another; a scene with none she can plan is left out of the film, if the film
+  // keeps another; a scene with none Ani can plan is left out of the film, if the film
   // keeps another scene. What a later undoes may undo is what an earlier scene keeps.
   const plans = [], kept = {}, earlier = [];
   for (const n of nodes.filter((x) => x.items[2].atom === "scene" && x.items[1].atom)) {
@@ -5646,7 +5652,7 @@ function tidyStory(text, { extensions = modeExtensions() } = {}) {
         const [h, sign, amount] = f.items;
         // a feeling written (joy positive high): (joy (positive high))
         if (f.items.length === 3 && h.atom && ["positive", "negative"].includes(sign.atom) && LEVEL_WORDS.includes(amount.atom)) {
-          slips.push({ f, now: `(${h.atom} (${sign.atom} ${amount.atom}))`, why: (now) => `Ani reads a feeling as ${esc(now)}, its sign and amount in a list of their own (emote.9); written ${esc(lispOfSpan(f))} she would find no feeling to show.` });
+          slips.push({ f, now: `(${h.atom} (${sign.atom} ${amount.atom}))`, why: (now) => `Ani reads a feeling as ${esc(now)}, its sign and amount in a list of their own (emote.9); written ${esc(lispOfSpan(f))} it would find no feeling to show.` });
         }
         // Ken's joy with a plain level, (joy high): his joy reads only a signed one
         if (f.items.length === 2 && h.atom === "joy" && LEVEL_WORDS.includes(sign.atom)) {
@@ -6123,10 +6129,10 @@ function runWords(st) {
 function runNotes(st) {
   const out = [];
   if (st.resumedAt && Date.now() - st.resumedAt < 90000) out.push(`Chrome paused this tab while it was in the background, for ${clock(st.lastPause)}; Ani went on when it came back, and that time isn't counted.`);
-  if (document.hidden || (st.shownAt && Date.now() - st.shownAt < 60000)) out.push("While this tab is in the background Chrome may slow Ani down, or pause her; she runs faster with the tab in front.");
+  if (document.hidden || (st.shownAt && Date.now() - st.shownAt < 60000)) out.push("While this tab is in the background Chrome may slow Ani down, or pause it; it runs faster with the tab in front.");
   const quiet = Date.now() - (st.heard || st.started);
   const limit = Math.max(SILENT_MS, 3000 * stepSeconds([st.step, st.scene], (RUNS[1] && RUNS[1].fps) || 4));
-  if (!st.inPage && !document.hidden && quiet > limit) out.push(`Ani has sent nothing for ${Math.floor(quiet / 60000)} minutes (${st.what || "this step"}). She may still be working, or she may be stuck: <button type="button" class="linkish" data-stop-run>Stop</button> ends the run, keeping the scenes filmed so far.`);
+  if (!st.inPage && !document.hidden && quiet > limit) out.push(`Ani has sent nothing for ${Math.floor(quiet / 60000)} minutes (${st.what || "this step"}). It may still be working, or it may be stuck: <button type="button" class="linkish" data-stop-run>Stop</button> ends the run, keeping the scenes filmed so far.`);
   return out;
 }
 // Chrome may freeze a tab in the background, its worker with it (the Page Lifecycle API's
@@ -6330,7 +6336,7 @@ const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(r
 // a film as it is kept, and as a film file has it inside
 const filmData = (run) => ({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status && run.status.made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
 // A film kept as it was read back (from "Your films", a film file or RUN_KEY): version 1 is
-// Ani as in 1978, with no looks or changes of hers.
+// Ani as in 1978, with no looks or changes of its own.
 function runFromData(d, { label = null, short = "Yours" } = {}) {
   const v2 = d.v !== 1;
   const extensions = v2 && Array.isArray(d.extensions) ? d.extensions : [];
@@ -6632,8 +6638,8 @@ const changeLines = (run) => using(run, () => run.sceneIds.flatMap((id, i) => {
   const cs = !rec ? [] : rec.error ? [...new Set((run.changing[id] || []).flatMap((c) => c.characters))] : rec.characters.map((y) => y.character);
   return cs.map((c) => `<p class="note made-with">${changedSentence(run, { id, i, rec }, c, run.sceneIds.length)}</p>`);
 }).join(""));
-// How Ani drew a film's characters, when she chose their looks: "Cinderella: a small
-// hexagon in a dull purple (in 1978, a green star)", each opening how she chose it.
+// How Ani drew a film's characters, when it chose their looks: "Cinderella: a small
+// hexagon in a dull purple (in 1978, a green star)", each opening how it chose it.
 function drawnList(run) {
   if (!hasLooks(run)) return "";
   const rows = run.cast.map((c) => {

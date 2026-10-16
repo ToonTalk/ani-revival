@@ -73,7 +73,7 @@ export function buildSourceApp(root = ".", { contentOnly = null } = {}) {
   for (const f of files) f.defs = definitions(f.text);
   const data = {
     groups: [
-      { id: "ani", title: "Ani", note: "Ani herself: the 31 files the 1979 tags table lists, from tape 7005017 (January 1979)." },
+      { id: "ani", title: "Ani", note: "Ani itself: the 31 files the 1979 tags table lists, from tape 7005017 (January 1979)." },
       { id: "drivers", title: "Running Ani", note: "How the passes were run, and Ani's films." },
       { id: "director", title: "Director", note: "The Director files that survived, as of January 1979." },
       { id: "revival", title: "Written for the revival", note: "Not Ken's code: KEN1; files rebuilt from the evidence; REVIVE;BRIDGE, which restores the 1978 conventions Ani relies on; and the revival's extensions (REVIVE;WRAP, MEND1 and on), which are not part of Ani as in 1978 and load only when the film page's switch asks for the revival's repairs. Each definition cites its evidence." },

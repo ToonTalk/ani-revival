@@ -136,14 +136,14 @@ ${revival ? `- Use only the characters the story names. Add one only if the stor
 RELATIONSHIPS
 - ${L("Define (relationship-of a b)", `Give a relationship {"from": a, "to": b, "how": [...]}`)} ${mend ? `for each ordered pair who feel something about each other; a to b and b to a are two relationships.` : `for EVERY ordered pair of characters, both a to b and b to a: Ani asks about all of them.`}
 - ${L("Each is one word or (and word word ...)", "how is a list of one word or more")}: ${wordList("relationship", extensions)}
-${relShown.length ? `- Ani shows how one character feels about another by what they do: ${relShown.join("; ")} (as well as the ways she always had, such as loves by going along with the other).
+${relShown.length ? `- Ani shows how one character feels about another by what they do: ${relShown.join("; ")} (as well as the ways it always had, such as loves by going along with the other).
 ` : ""}${mend ? `- For characters who have little to do with each other, leave the pair out: Ani takes a relationship the story doesn't give as neutral.` : `- For characters who have little to do with each other, use is-polite-to: Ani has no neutral word, and is-polite-to is the mildest, with no suggestions of its own.`}
 - Let only characters who pick on someone hate or be hated: Ani gives a mean or evil character the first character it hates, or is hated by, as its victim, even one who isn't in the scene.
 
 SCENES (2 to 5, in story order)
 ${L(`- (define scene-name scene (process initial description TASKS) (set your mood to M) (set your rhythm to R) (set your length to L))
 - TASKS is one task, or (and task task ...) for tasks Ani may order as it likes, or (sequence: task task ...) for tasks in this order; a sequence may contain an (and ...).`, `- Each one: {"name", "title", "mood": M, "rhythm": R, "length": L, "steps": [[task, ...], ...]}; title is the scene's title for people.
-- steps are Ken's (sequence: ...) of (and ...)s: the steps come in this order, and the tasks within a step Ani may order as she likes. So one step of several tasks lets Ani order them all, and one task alone is [[task]].`)}
+- steps are Ken's (sequence: ...) of (and ...)s: the steps come in this order, and the tasks within a step Ani may order as ${revival ? "it" : "she"} likes. So one step of several tasks lets Ani order them all, and one task alone is [[task]].`)}
 - A task is one of these, with X, Y, Z characters:
 ${j ? `  {"kind": "establish-personality", "who": X}
   {"kind": "establish-emotional-state", "who": X, "feelings": [{"feeling": "joy", "sign": "positive", "amount": "low"}]} with positive or negative, and low, medium or high; a feeling is one of: ${feelingWords(extensions).join(", ")}${others.length ? `; only joy may be "negative" (unhappy): ${words(others)} are always "positive", and a negative one shows nothing` : ""}
@@ -184,7 +184,7 @@ ${knowTasks}` : ""}${mend ? `
 - L (length): short, medium or long
 
 MAKING A GOOD FILM
-- Ani shows what characters are like, how they feel and what they do to each other, by how they move. She can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's ${know ? "unhappiness" : "shame"} (establish${L(" ", "-")}emotional-state), a rivalry becomes chases or pushes, a friendship accompanys${know ? ", a fright avoids, loyalty follows" : ""}.
+- Ani shows what characters are like, how they feel and what they do to each other, by how they move. ${revival ? "It" : "She"} can't show places, objects, races, winning or speech. Turn each event of the story into those: a win becomes the winner's joy and pride and the loser's ${know ? "unhappiness" : "shame"} (establish${L(" ", "-")}emotional-state), a rivalry becomes chases or pushes, a friendship accompanys${know ? ", a fright avoids, loyalty follows" : ""}.
 - Give each scene two to four tasks that together tell its part of the story, mixing establish tasks (what someone is like, or feels) with convey tasks (what someone does to someone). A scene of one task is thin.
 ${revival ? `- A story of two characters stays a story of two: a scene's tasks can all be between them, one chasing, pushing or hurting the other, and how each feels. Don't add characters to have someone to meet, prevent meeting or go along with.
 ` : ""}- chases, pushes and hurts go on for as long as the scene lasts. Put them in short scenes, or in a ${L("sequence: with other tasks after them", "step with other steps after it")}; never make a scene of pushes alone.
@@ -195,7 +195,7 @@ ${revival ? `- A story of two characters stays a story of two: a scene's tasks c
 
 THE FILM
 - ${L("After the scenes, copy the example's (declare (coutput (read))) line, its film definition (name yours after the story, ending in -film) and its focus definition. In the focus, parts-of-the-focus lists the main character, the scenes that matter most and the main relationships.", `film: its name (after the story, ending in -film) and its levels. focus: the scenes that matter most and the main relationships (the main character comes first in the focus anyway).`)}
-- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies her choices, and originality whether she repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
+- The film's levels in the example are Cinderella's: set each to suit your story, to low, medium or high, rather than copying hers. energy is how lively everyone moves (high makes every character fast; a slow, patient or gentle story wants low or medium), flashiness how showy the movement is, variety how much Ani varies ${revival ? "its" : "her"} choices, and originality whether ${revival ? "it" : "she"} repeats them (low) or not; set rhythm, complexity, coherence and obviousness as the story feels.
 ${L(`- Keep the example's first lines (the -*-lisp-*- line, (include |ai:ken;declar >|), (defcomment cindy)) and its last line, (compile-actors).
 
 Right after the first line, add two comment lines naming things for people:

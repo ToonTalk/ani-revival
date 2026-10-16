@@ -291,13 +291,13 @@ function filmsPanel() {
   const running = !!(RUNS[1] && RUNS[1].status && RUNS[1].status.running);
   const intro = library.state === "unavailable"
     ? "This browser won't let the page keep a library of films here, so only your last film is kept, as before. Save a film as a film file to keep it."
-    : `Every film you make here, or open from a film file, is kept in this browser, the newest first, and nowhere else: up to ${LIBRARY_CAP}, after which the oldest is let go to make room (one you renamed only after the others), and the page says which. Save a film as a film file to keep it for good, or to watch it in another browser.`;
+    : `Every film you make here, or open from a film file, is kept in this browser, and nowhere else, the newest first: up to ${LIBRARY_CAP}; past that the page lets go of the oldest to make room (those you renamed last of all), and says which. Save a film as a film file to keep it for good, or to watch it in another browser.`;
   const dropped = library.dropped.length ? `<p class="note dropped">On this visit the page let go of ${words(library.dropped.map((f) => `“${esc(f.title)}” (made ${esc(shortDate(f.made))})`))} to make room.</p>` : "";
   const rows = films.map((f) => `<li class="film${f.id === cur ? " current" : ""}" data-film="${esc(f.id)}">
       <div class="film-head"><span class="film-title">${esc(f.title)}</span>${f.id === cur ? ` <span class="tag">your version now</span>` : ""}</div>
       <p class="note">${esc(filmFacts(f))}</p>
       <div class="film-actions">
-        <button type="button" class="linkish" data-film-act="open"${running ? ` disabled title="Ani is making a film; open this one when she has finished, or stop her"` : ""}>Open</button>
+        <button type="button" class="linkish" data-film-act="open"${running ? ` disabled title="Ani is making a film; open this one when it has finished, or stop it"` : ""}>Open</button>
         <span>Side by side: <button type="button" class="linkish" data-film-act="left">on the left</button> · <button type="button" class="linkish" data-film-act="right">on the right</button></span>
         <button type="button" class="linkish" data-film-act="rename">Rename</button>
         <button type="button" class="linkish" data-film-act="save">Save as a film file</button>
@@ -310,7 +310,7 @@ function filmsPanel() {
     <div class="side-head"><h2>Your films</h2><button type="button" class="linkish" id="films-close">Back</button></div>
     <p class="note">${intro}</p>
     ${dropped}
-    ${films.length ? `<ul class="films">${rows}</ul>` : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film she makes is kept here."}</p>`}
+    ${films.length ? `<ul class="films">${rows}</ul>` : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
     <div class="actions"><button type="button" class="btn" id="films-file">Open a saved film…</button></div>
     <p class="note" id="films-status" aria-live="polite"></p>`;
   side.querySelector("#films-close").addEventListener("click", () => select(null));

@@ -1,5 +1,5 @@
 ;;; -*-lisp-*-
-;;; REVIVE;APPEAR: Ani chooses each character's size and shape, as she chooses how it moves.
+;;; REVIVE;APPEAR: Ani chooses each character's size and shape, as it chooses how the character moves.
 ;;;
 ;;; This file is ours, not Ken's. It is part of APPEAR (src/pipeline.js, EXTENSIONS),
 ;;; Ani choosing how her characters look (reports/chapter-x/PLAN.md, "Items 1 and 2:

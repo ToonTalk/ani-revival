@@ -1,5 +1,5 @@
 ;;; -*-lisp-*-
-;;; REVIVE;CHSHOW: Ani shows a change: she bridges the gap, and the cause goes to the one it changes.
+;;; REVIVE;CHSHOW: Ani shows a change: it bridges the gap, and the cause goes to the one it changes.
 ;;;
 ;;; This file is ours, not Ken's. It is part of CHANGE (src/pipeline.js, EXTENSIONS;
 ;;; REVIVE;CHANGE says what CHANGE does), its stage 6: portraying the change in the scene

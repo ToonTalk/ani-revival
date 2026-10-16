@@ -61,14 +61,14 @@ export const EXTENSIONS = [
   },
   {
     id: "appear",
-    label: "Ani chooses how her characters look",
+    label: "Ani chooses how its characters look",
     group: "knowledge",
     files: ["wrap", "appear", "apsug", "shapes", "colors", "looks", "alter"],
     requires: [],
     changes1978: true,
     afterPass1: "(choose-appearances)",
     recorder: { looks: true },
-    note: "Ani chooses each character's size, shape and color as she chooses how it moves (thesis pp. 163-164): choice points for size, shape-jaggedness, shape-complexity and a color's intensity, saturation and hue, made after the 102 dynamics choices, with suggestions from the characters' words, relationships, comparisons and dynamics and the film's levels, each with its evidence; shape experts turn the choices into a polygon, star or circle, characters drawn alike have a shape choice made again to tell them apart, and the hue is one of six on a painter's wheel, a small semantic net of colors (p. 240). Pass 2 writes each character's look into the scene's program, and Director draws it; and looks change during a scene as Ani plans them, as display methods beside the dynamics changes (p. 166): joy brightens a character's colors, sadness dims them. Director keeps the colors without drawing them, and the film page paints them in color.",
+    note: "Ani chooses each character's size, shape and color as it chooses how the character moves (thesis pp. 163-164): choice points for size, shape-jaggedness, shape-complexity and a color's intensity, saturation and hue, made after the 102 dynamics choices, with suggestions from the characters' words, relationships, comparisons and dynamics and the film's levels, each with its evidence; shape experts turn the choices into a polygon, star or circle, characters drawn alike have a shape choice made again to tell them apart, and the hue is one of six on a painter's wheel, a small semantic net of colors (p. 240). Pass 2 writes each character's look into the scene's program, and Director draws it; and looks change during a scene as Ani plans them, as display methods beside the dynamics changes (p. 166): joy brightens a character's colors, sadness dims them. Director keeps the colors without drawing them, and the film page paints them in color.",
   },
   {
     id: "change",
@@ -81,7 +81,7 @@ export const EXTENSIONS = [
     requires: ["mend"],
     changes1978: false,
     sceneSteps: true,
-    note: "A scene may change a character, as Ken wrote one in his cinderella-beautified scene: (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani takes a fresh look at whoever changes (thesis p. 168): pass 1 again, with the new words, every choice of everyone else held as it was, so that only the changed character is chosen again, and with APPEAR how she looks too. In the scene of the change she shows it (p. 169): the cause goes to the one it changes, and once they touch she changes as she wanders about, or she wanders as she changes if nothing causes it; Ani bridges the gap between how she moved and looked and how she will, over a time she decides, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. A full recompute, with everyone chosen afresh, is kept for comparison.",
+    note: "A scene may change a character, as Ken wrote one in his cinderella-beautified scene: (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani takes a fresh look at whoever changes (thesis p. 168): pass 1 again, with the new words, every choice of everyone else held as it was, so that only the changed character is chosen again, and with APPEAR how she looks too. In the scene of the change Ani shows it (p. 169): the cause goes to the one it changes, and once they touch she changes as she wanders about, or she wanders as she changes if nothing causes it; Ani bridges the gap between how she moved and looked and how she will, over a time it decides, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. A full recompute, with everyone chosen afresh, is kept for comparison.",
   },
   {
     id: "know",
@@ -966,7 +966,7 @@ const REVIVAL_METHODS = {
 // film page needs to say why each activity lasts as long as it does, gathered from a
 // scene's glass box (pass 2's records: glassBox) and, if given, its film (the frames
 // and the movie's events: recorder). Nothing here is new to Ani: each value is one of
-// her records, found where she keeps it (each field says where), or a film's frames.
+// its records, found where it keeps it (each field says where), or a film's frames.
 // extensions: the run's (with SLIPS, Director runs a change at the speed Ani planned).
 // Returns { scene, parts, tasks, activities, stills }:
 //   scene      { length, lengthBounds, runningTime, mood, rhythm }: the scene's length

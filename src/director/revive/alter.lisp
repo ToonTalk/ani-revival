@@ -1,5 +1,5 @@
 ;;; -*-lisp-*-
-;;; REVIVE;ALTER: Ani changes how a character looks during a scene, as she changes how it moves.
+;;; REVIVE;ALTER: Ani changes how a character looks during a scene, as it changes how the character moves.
 ;;;
 ;;; This file is ours, not Ken's. It is part of APPEAR (src/pipeline.js, EXTENSIONS;
 ;;; REVIVE;APPEAR says what APPEAR does). The thesis: "The new problems for Ani, if

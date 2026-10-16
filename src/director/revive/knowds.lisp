@@ -113,7 +113,7 @@
 	  (for acceleration low strength medium)
 	  (for activity-level low strength medium)))
 
-;;why: Ani had no word for a character that moves slowly, and her words for one that works hard or holds on, hard-working and determined, suggest that it be not slow (dscrp.17:78, 241), so a slow, plodding character came out fast (as the film page's tortoise did); a word for how a character moves, as graceful is (dscrp.17:91-100)
+;;why: Ani had no word for a character that moves slowly, and its words for one that works hard or holds on, hard-working and determined, suggest that it be not slow (dscrp.17:78, 241), so a slow, plodding character came out fast (as the film page's tortoise did); a word for how a character moves, as graceful is (dscrp.17:91-100)
 (define slow movement-character-descriptor
  (process suggestions
 	  (for speed low strength high)))

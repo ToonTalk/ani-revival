@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------- the JSON way
 
 // A model may write a film description as JSON instead of Ken's Lisp: the page asks for
-// it with a JSON schema (storySchema) that allows only Ani's words for each slot and her
+// it with a JSON schema (storySchema) that allows only Ani's words for each slot and its
 // task forms, each with its own fields, so that where the provider enforces the schema
 // (OpenAI's strict json_schema, Anthropic's output_config.format, Gemini's
 // responseJsonSchema, Chrome's responseConstraint) the model can't write a word Ani

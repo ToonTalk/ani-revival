@@ -1,6 +1,6 @@
 // Check the revival's extensions that are meant to change Ken's Cinderella
 // (src/pipeline.js EXTENSIONS, changes1978) against what they should make, and against
-// 1978 where they should leave it alone. For APPEAR (the default), Ani choosing how her
+// 1978 where they should leave it alone. For APPEAR (the default), Ani choosing how its
 // characters look (reports/chapter-x/PLAN.md, "Items 1 and 2"), it asserts:
 //   - pass 1: KEN;CP 30 has CP 29's 102 choices, by name and value, in CP 29's order,
 //     and every other choice is one of the extension's (an appearance element's, or a
