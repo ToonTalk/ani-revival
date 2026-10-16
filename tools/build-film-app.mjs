@@ -14,7 +14,8 @@
 // Everything is inlined, gzipped and written as text (pack93: 13 bits to two printable
 // characters, denser than base64), so the page works opened directly, served, or
 // published as a claude.ai artifact (which can fetch nothing).
-// The page's script is the template's, with app/film/llm.js (telling Ani a new story),
+// The page's script is the template's, with app/film/criticism.js (the reader's criticism of
+// a film, and remaking it with it), app/film/llm.js (telling Ani a new story),
 // app/film/json.js (the JSON way of telling it), app/film/save.js (saving films),
 // app/film/library.js ("Your films", every film made kept in the browser, and what the
 // page keeps there), app/film/view.js (where the visitor is, put back on coming back to
@@ -39,7 +40,8 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames, whyTheyAct as whyTheyActOfPipeline } from "../src/pipeline.js";
+import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames, whyTheyAct as whyTheyActOfPipeline, criticismChanges as criticismChangesOfPipeline, addCriticism as addCriticismOfPipeline, SMALL_DISTANCE } from "../src/pipeline.js";
+import { film1978, film1978at24, BASE_24 } from "./critic-base.mjs";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
 import { bundleModules } from "./bundle-js.mjs";
@@ -169,11 +171,25 @@ function vocabulary(root) {
 // A film packed for the page, which unpacks it as it loads: each character's segment
 // coordinates in tenths of a dot, as changes from that character's last frame (consecutive
 // frames differ little, so this gzips well), and a character's visibility, special
-// dynamics and goal only when they change (the page uses no more of the record).
-function packFilm(film) {
-  const last = {}, was = {};
-  const segs = [], chars = [];
+// dynamics and goal only when they change; and where the turtle is (its state, x, y and
+// heading, in hundredths, as changes, only when it moves or turns), which src/pipeline.js closestApproach
+// measures how close two characters came by, for "What your criticism changed" (a scene of
+// Ken's film kept as it was by a remake is measured from it). The page uses no more of the
+// record.
+export function packFilm(film) {
+  const last = {}, was = {}, at = {};
+  const segs = [], chars = [], pos = [];
   for (const fr of film.frames) {
+    const p = {};
+    for (const [c, v] of Object.entries(fr.chars)) {
+      if (!v.state) continue;
+      const t = v.state.map((x) => Math.round(x * 100));
+      const q = at[c];
+      if (q && t.every((x, k) => x === q[k])) continue;
+      p[c] = q ? ["d", ...t.map((x, k) => x - q[k])] : t;
+      at[c] = t;
+    }
+    pos.push(p);
     const s = {};
     for (const [c, seg] of Object.entries(fr.segs)) {
       const t = seg.map((v) => Math.round(v * 10));
@@ -191,7 +207,7 @@ function packFilm(film) {
     chars.push(ch);
   }
   const { frames, ...rest } = film;
-  return { ...rest, packed: { segs, chars } };
+  return { ...rest, packed: { segs, chars, pos } };
 }
 
 // ---- the page's data, carried as text
@@ -407,14 +423,17 @@ function pipelineFunctions(root) {
 // same stretches of more than a second in a part with no one moving (whyTheyAct's stills)
 // as the film itself.
 const WHY_FUNCTIONS = ["readForms", "printForm", "extensionsFor", "collectWanders", "ACTIVITY_METHODS", "REVIVAL_METHODS", "whyTheyAct", "walkForm", "stopsOf", "repeatAround", "changeSeconds", "stillStretches"];
-function unpackForCheck(film) {
+export function unpackForCheck(film) {
   // as the page's unpackFilm does
-  const last = {}, now = {};
+  const last = {}, now = {}, at = {};
   const frames = film.packed.segs.map((s, k) => {
     const segs = {};
     for (const [c, t] of Object.entries(s)) { const abs = t[0] === "d" ? t.slice(1).map((v, i) => v + last[c][i]) : t; last[c] = abs; segs[c] = abs.map((v) => v / 10); }
     for (const [c, v] of Object.entries(film.packed.chars[k])) now[c] = { visible: !!v[0], dynamics: v[1], goal: v[2] };
-    return { segs, chars: { ...now } };
+    for (const [c, t] of Object.entries(film.packed.pos[k] || {})) at[c] = t[0] === "d" ? t.slice(1).map((x, i) => at[c][i] + x) : t;
+    const chars = {};
+    for (const c of Object.keys(now)) chars[c] = at[c] ? { ...now[c], state: at[c].map((x) => x / 100) } : now[c];
+    return { segs, chars };
   });
   const { packed, ...rest } = film;
   return { ...rest, frames };
@@ -436,6 +455,60 @@ function whyFunctions(root) {
     if (packedStills !== JSON.stringify(JSON.parse(theirs).stills)) throw new Error(`${f} as the page carries it has other stretches with no one moving than the film itself`);
   }
   return code;
+}
+
+// src/pipeline.js's record of a user's criticism and what a remake changed, as written
+// there, for the page's criticism (reports/ext/critic/README.md, "For the page"): the page
+// keeps the record with the same helpers (addCriticism, removeCriticism, criticismWords,
+// ...) and says "What your criticism changed" with the same criticismChanges, for any film
+// remade beside the film it was remade from, whatever is on the screens. SMALL_DISTANCE is
+// put in before them, as src/pipeline.js has it. The build checks that the page's copies say
+// what src/pipeline.js says of tools/check-critic.mjs's goldens (reports/ext/critic/), with
+// the films as the page carries them (packFilm), and keep a record as it keeps one.
+const CRITIC_FUNCTIONS = ["readForms", "printForm", "CRITICISM_KINDS", "PACE_FACTOR", "isName", "isForm", "normalForm", "checkCriticism", "checkRecord", "paceFactor", "criticismScenes", "addCriticism", "removeCriticism", "criticismWords", "taskDescription", "criticismChanges", "contactsIn", "closestApproach"];
+// A golden of tools/check-critic.mjs as a remade film: each scene planned again with its
+// glass box there, each filmed again with its film there, the rest the film it was remade
+// from (as src/pipeline.js remakeFilmSteps keeps them).
+function remadeFromGolden(root, previous, dir) {
+  const summary = JSON.parse(readFileSync(`${root}/${dir}/summary.json`, "utf8"));
+  const at = (id, kind) => (existsSync(`${root}/${dir}/${id}.${kind}.json`) ? JSON.parse(readFileSync(`${root}/${dir}/${id}.${kind}.json`, "utf8")) : null);
+  const scenes = previous.scenes.map((s) => ({ id: s.id, glass: at(s.id, "glass") || s.glass, film: at(s.id, "film") || s.film }));
+  return { summary, remade: { scenes, criticism: summary.record, remade: summary.remade } };
+}
+function criticFunctions(root) {
+  const code = `const SMALL_DISTANCE = ${JSON.stringify(SMALL_DISTANCE)};
+${pipelineSource(root, CRITIC_FUNCTIONS)}`;
+  const page = new Function(`${code}
+return { criticismChanges, addCriticism };`)();
+  const base = film1978(root);
+  const packed = { ...base, scenes: base.scenes.map((s) => ({ ...s, film: unpackForCheck(packFilm(s.film)) })) };
+  for (const example of ["intro-apart", "nlka-both", "meeting-apart", "ka-too-slow"]) {
+    const dir = `reports/ext/critic/${example}`;
+    if (!existsSync(`${root}/${dir}/summary.json`)) continue;
+    const { summary, remade } = remadeFromGolden(root, base, dir);
+    const theirs = JSON.stringify(criticismChangesOfPipeline(base, remade));
+    if (theirs !== JSON.stringify(summary.changes)) throw new Error(`src/pipeline.js's criticismChanges no longer says what ${dir}/summary.json says`);
+    if (JSON.stringify(page.criticismChanges(base, remade)) !== theirs) throw new Error(`the page's copy of criticismChanges says otherwise of ${dir}`);
+    // a scene kept by the remake is Ken's film as the page carries it
+    const kept = { ...remade, scenes: remade.scenes.map((s, k) => (s.film === base.scenes[k].film ? { ...s, film: packed.scenes[k].film } : s)) };
+    if (JSON.stringify(page.criticismChanges(packed, kept)) !== theirs) throw new Error(`with Ken's films as the page carries them, criticismChanges says otherwise of ${dir}`);
+  }
+  const item = { kind: "pace", scene: "no-longer-kept-apart", tasks: ["(undoes  fairy-godmother (from-scene kept-apart (convey (prevents step-mother (meets cinderella prince)))))"], direction: "too-quick" };
+  const twice = (f) => { const a = f([], item); return f(a.record, { ...item, said: "again" }); };
+  if (JSON.stringify(twice(page.addCriticism)) !== JSON.stringify(twice(addCriticismOfPipeline))) throw new Error("the page's copy of addCriticism keeps a record otherwise");
+  return code;
+}
+
+// The files Ken's 1978 Cinderella was made with, as a remake reads them (tools/critic-base.mjs:
+// KEN;CP 30 and each scene's program, summary and POSIT file), so that the page can remake
+// his film with criticism from them rather than make it again first: at 4 frames a second,
+// and at 24 as the differences from those (the files that differ, each whole), when
+// reports/ext/critic/24fps/base-files.json is there.
+function kenFiles(root) {
+  const at4 = film1978(root).files;
+  if (!existsSync(`${root}/${BASE_24}`)) return { 4: at4 };
+  const at24 = film1978at24(root).files;
+  return { 4: at4, 24: Object.fromEntries(Object.entries(at24).filter(([k, v]) => at4[k] !== v)) };
 }
 
 // The run that confirmed the DICHAR/DISPLY speed inversion (reports/ext/slips/speed.json,
@@ -484,7 +557,11 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     // the revival's extensions (src/pipeline.js EXTENSIONS), which the page's switch
     // turns on for the films it makes, each in its group of the "Which extensions" panel,
     // and those (optIn) a visitor ticks there; Ken's 1978 film above is as it was made
-    extensions: EXTENSIONS.map(({ id, label, group, optIn, files, requires, changes1978, note, recorder }) => ({ id, label, group, ...(optIn ? { optIn: true } : {}), files, requires, changes1978, note, ...(recorder && recorder.looks ? { looks: true } : {}) })),
+    // (onDemand: one the pipeline loads into a film's jobs when it has criticism, CRITIC,
+    // never one the switch or a tick turns on)
+    extensions: EXTENSIONS.map(({ id, label, group, optIn, onDemand, files, requires, changes1978, note, recorder }) => ({ id, label, group, ...(optIn ? { optIn: true } : {}), ...(onDemand ? { onDemand: true } : {}), files, requires, changes1978, note, ...(recorder && recorder.looks ? { looks: true } : {}) })),
+    // the files Ken's film was made with, by frames a second, for remaking it with criticism
+    kenFiles: kenFiles(root),
     // the elements Ani chooses a look by (REVIVE;APPEAR), and how Ken drew his cast in 1978
     appearanceElements: APPEARANCE_ELEMENTS,
     kenLooks: kenLooks(root),
@@ -516,9 +593,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root) })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": criticFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }

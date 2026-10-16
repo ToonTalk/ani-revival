@@ -89,7 +89,7 @@ The criticism: keep Cinderella and the Prince apart in the Introduction and Kept
 
 ## For the page
 
-Everything is in `src/pipeline.js`; the worker runs it as it runs `makeFilmSteps`. The page agent's work: the controls, "Your criticism", "Remake with my criticism", the glass box's words, the side by side, the saved film's version 3. Nothing here touches `app/`.
+Everything is in `src/pipeline.js`; the worker runs it as it runs `makeFilmSteps`. The page's side is built (16 October): `app/film/criticism.js`, with the record's helpers and `criticismChanges` copied into the page from `src/pipeline.js` by `tools/build-film-app.mjs` (which checks them against the goldens here), and Ken's 1978 film's files (`tools/critic-base.mjs`) carried in the page, at 4 and 24 frames a second, to remake it from. On the page his examples come out as here: "too quick" 30, 183 and 90 frames; "start far" 25, 177 and 85; his footnote 111, the rest kept (722 at 24 frames a second, "partly", 0.308 at frame 436); "not this way" 23, 178 and 100 (`tools/check-film-app.mjs`).
 
 **Making a film it can later remake.** Pass `keepFiles: true` to `makeFilmSteps`: the result's `files` is `{ "DIR;FN1 FN2": text }`, every file a later job reads (`KEN;CP 30`, each scene's program, `KEN1;<fn1> MINI`, `KEN1;<movie> POSIT`, with CHANGE the BECOME files, and a new story's `KEN;CINDY n`), about 116,000 characters for your Cinderella (`filesOf`; the printouts, 160,000 more, are left out, since no job reads them). Keep it with the saved film (version 3).
 

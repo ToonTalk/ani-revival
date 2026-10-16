@@ -79,7 +79,7 @@ async function takeInLastFilm() {
   if (!b64) return;
   try {
     const d = JSON.parse(await inflate(b64));
-    if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("not a film");
+    if (![1, 2, 3].includes(d.v) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("not a film");
     const r = await keepFilm(runFromData(d));
     if (!r.kept) return; // kept where it was, until the library has room
   } catch { /* an old or damaged copy: let it go, as the page always did */ }
@@ -90,12 +90,15 @@ async function takeInLastFilm() {
 
 // Its title, as the list says it until the visitor renames it: a new story's, or Ken's
 // with what was changed ("Cinderella: the stepmother pretty, kind and good; ...").
+// A film remade with criticism adds it, a few words each ("..., with your criticism:
+// No Longer Kept Apart too quick").
 function filmTitle(run) {
-  if (!sameCast(RUNS[0], run)) return storyTitle(run);
+  const critic = run.criticism && run.criticism.length ? critTitle(run) : "";
+  const cut = (t) => (t.length > 90 ? `${t.slice(0, 88).replace(/[\s;,]+\S*$/, "")}…` : t);
+  if (!sameCast(RUNS[0], run)) return cut(`${storyTitle(run)}${critic}`);
   const bits = changeBits(RUNS[0].story, run);
-  if (!bits.length) return "Cinderella, as Ken told it";
-  const t = `Cinderella: ${bits.slice(0, 2).join("; ")}${bits.length > 2 ? "; …" : ""}`;
-  return t.length > 90 ? `${t.slice(0, 88).replace(/[\s;,]+\S*$/, "")}…` : t;
+  if (!bits.length) return cut(`Cinderella, as Ken told it${critic}`);
+  return cut(`Cinderella: ${bits.slice(0, 2).join("; ")}${bits.length > 2 ? "; …" : ""}${critic}`);
 }
 // what a version of Ken's story changed, a few words each
 function changeBits(ken, run) {
@@ -135,9 +138,18 @@ function filmAbout(run) {
   } else out.push(`A story of ${words(run.cast.map((c) => meet(run.story, c).the))}, in ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"}: ${words(run.sceneIds.map((id) => run.titles[id]))}.`);
   return out;
 }
+// A film's fingerprint: when it was made, its description, its extensions, its frames (and
+// its criticism), which tells two films apart; a film remade with criticism names the film it
+// was remade from by it (remadeFrom.print).
+function printOf(run, data = null) {
+  const scenes = data ? data.scenes : run.raw.scenes.filter(Boolean);
+  const made = data ? data.made : run.status && run.status.made;
+  const frames = scenes.map((s) => (s.film && s.film.frames ? s.film.frames.length : -1)).join();
+  const record = run.criticism && run.criticism.length ? `|${hashText(JSON.stringify(run.criticism))}` : "";
+  return `${made || ""}|${hashText(run.cindy)}|${runExtensions(run).join()}|${hashText(frames)}${record}`;
+}
 function filmMeta(run, data, size, file) {
   const told = run.told || null;
-  const frames = data.scenes.map((s) => (s.film && s.film.frames ? s.film.frames.length : -1)).join();
   return {
     id: `f${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
     title: filmTitle(run), renamed: false,
@@ -147,7 +159,10 @@ function filmMeta(run, data, size, file) {
     about: filmAbout(run),
     scenes: run.sceneIds.length, filmed: run.scenes.filter(ready).length,
     stopped: !!(run.status && run.status.stopped), file: file || null,
-    print: `${data.made || ""}|${hashText(run.cindy)}|${runExtensions(run).join()}|${hashText(frames)}`,
+    print: printOf(run, data),
+    // a film remade with criticism (version 3): how many, and the film it was remade from
+    ...(run.criticism && run.criticism.length ? { criticism: run.criticism.length } : {}),
+    ...(run.remadeFrom ? { remadeFrom: { id: run.remadeFrom.id || null, title: run.remadeFrom.title || null, ken: !!run.remadeFrom.ken } } : {}),
   };
 }
 // The film to let go for room: the oldest not on a screen, one renamed only after the rest.
@@ -280,7 +295,8 @@ function openFilms() {
 const sizeWords = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 function filmFacts(f) {
   const told = f.told && (f.told.model || f.told.provider) ? `written by ${[f.told.provider, f.told.model].filter(Boolean).join(", ")}` : "";
-  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", told,
+  const remade = f.remadeFrom ? `remade from ${f.remadeFrom.ken ? "Ken's 1978 film" : `“${f.remadeFrom.title || "another film"}”`} ${f.criticism ? `with your criticism (${f.criticism})` : "without criticism"}` : f.criticism ? `with your criticism (${f.criticism})` : "";
+  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", remade, told,
     f.filmed < f.scenes ? `${f.filmed} of ${f.scenes} scenes${f.stopped ? ", stopped" : ""}` : `${f.scenes} scene${f.scenes === 1 ? "" : "s"}`, sizeWords(f.size || 0), f.file ? `opened from ${f.file}` : ""].filter(Boolean).join(" · ");
 }
 function setFilmsStatus(text) { const el = document.getElementById("films-status"); if (el) el.textContent = text; }

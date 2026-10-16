@@ -318,6 +318,34 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .send-box pre { max-height: 16em; overflow: auto; }
 .btn.revival { border-color: var(--ours); color: var(--ours); background: var(--ours-soft); font-weight: 600; height: auto; min-height: 34px; padding: 4px 12px; }
 .made-with { color: var(--ours); }
+/* the reader's criticism (app/film/criticism.js) */
+.crit { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent-soft); font-size: 0.92rem; }
+.crit-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.crit-state { color: var(--muted); font-size: 0.8rem; }
+.crit-new .crit-state, .crit-changed .crit-state { color: var(--accent); font-weight: 600; }
+.crit-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: baseline; }
+.crit-btn { border: 1px solid var(--accent); background: var(--sheet); color: var(--accent); border-radius: 999px; padding: 0 9px; font-size: 0.8rem; line-height: 1.6; cursor: pointer; }
+.crit-btn:hover { background: var(--accent-soft); }
+.crit-btn[aria-pressed="true"] { background: var(--accent); color: var(--sheet); }
+.crit-btn:disabled { border-color: var(--rule); color: var(--muted); cursor: not-allowed; background: none; }
+.crit-scene .body { gap: 8px; }
+.crit-scene select { font-size: 0.86rem; }
+.crit-added { color: var(--accent); }
+.crit-about { border-top: 0; padding-top: 0; }
+.crit-about > summary { font-weight: 500; font-size: 0.86rem; color: var(--muted); }
+.crit-fixes > li { border-left-color: var(--accent); }
+.method.vetoed { border-style: dashed; }
+.crit-changed { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--accent); font-size: 0.92rem; }
+.crit-outcomes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.crit-outcome { border-left: 3px solid var(--rule); padding-left: 10px; }
+.crit-outcome.met { border-left-color: var(--chosen); }
+.crit-outcome.partly { border-left-color: var(--godmother); }
+.crit-outcome.not-met, .crit-outcome.not-reached { border-left-color: var(--rejected); }
+.crit-verdict { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 4px; }
+.crit-outcome.met .crit-verdict { color: var(--chosen); }
+.crit-outcome.partly .crit-verdict { color: var(--godmother); }
+.crit-outcome.not-met .crit-verdict, .crit-outcome.not-reached .crit-verdict { color: var(--rejected); }
+.crit-why { margin: 4px 0 0; padding-left: 16px; display: grid; gap: 3px; font-size: 0.88rem; }
 
 /* how Ani chose a character's look (REVIVE;APPEAR) */
 .looks .body { gap: 12px; }
@@ -483,10 +511,11 @@ async function deflate(text) {
 const DATA = JSON.parse(await unpack(document.getElementById("film-data").textContent));
 // The 1978 films come packed (tools/build-film-app.mjs packFilm): each character's segments
 // in tenths of a dot as changes from its last frame, and its visibility, dynamics and goal
-// only when they change.
+// only when they change; and where each turtle is (its state, in hundredths, as changes),
+// which "What your criticism changed" measures how close two came by.
 function unpackFilm(film) {
   if (!film.packed) return film;
-  const last = {}, now = {};
+  const last = {}, now = {}, at = {};
   const frames = film.packed.segs.map((s, k) => {
     const segs = {};
     for (const [c, t] of Object.entries(s)) {
@@ -495,8 +524,9 @@ function unpackFilm(film) {
       segs[c] = abs.map((v) => v / 10);
     }
     for (const [c, v] of Object.entries(film.packed.chars[k])) now[c] = { visible: !!v[0], dynamics: v[1], goal: v[2] };
+    for (const [c, t] of Object.entries((film.packed.pos && film.packed.pos[k]) || {})) at[c] = t[0] === "d" ? t.slice(1).map((x, i) => at[c][i] + x) : t;
     const chars = {};
-    for (const c of Object.keys(now)) chars[c] = now[c];
+    for (const c of Object.keys(now)) chars[c] = at[c] ? { ...now[c], state: at[c].map((x) => x / 100) } : now[c];
     return { segs, chars };
   });
   const { packed, ...rest } = film;
@@ -1142,6 +1172,9 @@ function beginText(b) {
   return show(b);
 }
 function rejectText(r) {
+  // set aside by the reader's criticism (REVIVE;CRITIC): vetoed, or kept apart
+  const critic = critReject(r);
+  if (critic) return critic;
   if (Array.isArray(r) && r[0] === "too-much-time:") {
     const d = Number(kv(r, "ideal-difference")), w = Number(kv(r, "will-accept"));
     return `it doesn't fit the time: it would end ${Math.abs(d).toFixed(1)} s ${d < 0 ? "too soon" : "too late"} (Ani accepts ${Math.abs(w).toFixed(1)})`;
@@ -1245,7 +1278,7 @@ const EXT_KEY = "ani-cinderella:extensions:v1";
 function storedChoice() {
   if (!SWITCHED.length) return [];
   let ids = null;
-  try { const v = JSON.parse(store.get(EXT_KEY) || "null"); if (Array.isArray(v)) ids = v.filter((id) => typeof id === "string" && extNamed(id)); } catch { ids = null; }
+  try { const v = JSON.parse(store.get(EXT_KEY) || "null"); if (Array.isArray(v)) ids = v.filter((id) => typeof id === "string" && extNamed(id) && !extNamed(id).onDemand); } catch { ids = null; }
   if (ids) return withRequired(ids);
   return store.get(MODE_KEY) === "revival" ? [...SWITCHED] : [];
 }
@@ -1254,7 +1287,8 @@ let MODE = CHOSEN.length ? "revival" : "1978";
 const modeExtensions = () => [...CHOSEN];
 WORDS = vocabularyFor(modeExtensions());
 const runExtensions = (run) => (run && run.extensions) || [];
-const madeWith = (run) => (runExtensions(run).length ? `with ${extensionsName(runExtensions(run))}` : "by Ani as in 1978");
+// (a film remade with the reader's criticism says so: REVIVE;CRITIC, with MEND, was loaded for it)
+const madeWith = (run) => `${runExtensions(run).length ? `with ${extensionsName(runExtensions(run))}` : "by Ani as in 1978"}${run && run.criticism && run.criticism.length ? ", heeding your criticism" : ""}`;
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
 // whether the extensions ticked change what Ken's own story makes (APPEAR does: Ani draws
 // his cast; KNOW, SLIPS and DETAIL change what his characters do)
@@ -1322,6 +1356,7 @@ const EXTENSION_TEXT = {
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
   seen: "A feeling changes how a character moves (joy makes her faster and bouncier), but it “cannot stand alone” (thesis pp. 125-126): where a character has only a change of feeling in a part, Ken's SCENE stretches the activity before it to show the change, or, at the start of a scene, has her “wander around” “so that the changes are apparent”. In Director the stretched activity can end before the feeling does (a change at high speed runs four times as long as Ani planned), and she may have had no part in it, so everyone stood still while the feeling ran. With this repair, which Ken approved after testing this page, she wanders about in such a part once nothing else moves her, across the stage and back as SCENE's wander does, and stops when her changes end. In Ken's Cinderella, Cinderella and the Prince wander after they meet, at the end of the Meeting, while their joy runs, so Justice starts with them apart; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978.",
   slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion, by what Director measured: nearly four times as long at high speed, under a quarter at low), grows once a tick, takes as many steps as it counts, is counted once in a walk set again, and is carried forth into the walks of its part and of the part it extends; and the film waits for the activity a feeling's part extends. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; in Kept Apart the stepmother's guard no longer slows down cycle by cycle, and the feelings show on the guard's walks, Cinderella slower and straighter, the stepmother quicker and curving more (p. 66); and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and so MEND: ticking it ticks them.",
+  critic: "Your criticism of a film, kept with the film, and heeded as Ken's thesis proposes (Chapter X, Section D, “Critics and Criticism”, pp. 189–191): a way of showing vetoed, which Ani sets aside and chooses among what is left; a part too quick or too slow, whose time Ani stretches by half again or shrinks by a third, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside; and one who starts far from another, placed far off and off the stage. It is never ticked: Ani loads it, with MEND, into every job of a film you have criticized (“Remake with my criticism”), whatever else the film was made with, and only then; a film with no criticism never loads it, and Ken's Cinderella with it loaded and nothing criticized comes out exactly as in 1978.",
   detail: "A few of the low-level details the thesis names as left undone (pp. 183-187, “Attending to Myriad Details”), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, a deliberate character going in longer arcs with smaller jags (X.B.3 (f)); its tendencies towards friends, enemies and strangers count in the best-when scores of the ways of showing that take it to another, or away (c); and a scene's rhythm, fast, slow or changing, speeds its characters up or slows them down a quarter, as a feeling would (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not; Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker; the tendencies decide nothing there. It needs MEND: ticking it ticks MEND.",
 };
 const REVIVE_TEXT = {
@@ -1374,6 +1409,10 @@ const REVIVE_TEXT = {
   detail: "What DETAIL's three parts share: each is the revival's reading of a sentence of the thesis's (pp. 183-187), labeled so, can be turned off on its own, and notes where it acted.",
   dtwalk: "(f) Deliberateness in Director's walk (go-in-arc, dichar.103:214-256): a character d times as deliberate as one of medium deliberateness goes in arcs d times as long and jags 1/d as far; the curvature, the distance and the speed are left as Ani chose them; with CHANGE, a change bridges deliberateness too.",
   dttend: "(c) The tendencies as best-when clauses: drawn-to, a prerequisite written as PREREQ's are, met if a character's tendency towards what the other is to it (friend, enemy or stranger, by Ken's own tests) is positive, not met if negative; on the ways of showing that take one character to another, or away (as Ken gives a method a clause, convey.64:29-33).",
+  hold: "Holding Ani's pass-1 choices while it chooses again, every choice point but those it is to choose afresh kept at the value it had (Ken's decision 1 for changes): CHANGE's fresh look uses it, and CRITIC will.",
+  critic: "The record of your criticism, read from the film's own file (KEN1;FILM CRITIC), and “not this way, another way”: a way of showing vetoed in a task, how it is shown (a display method) or what is shown (a convey method of an establish task), set aside by Ken's own reject-suggestion with the reason “vetoed by you”, so that CHOMET chooses among what is left, and when nothing is left Ken's own path takes over.",
+  critpc: "Too quick, too slow: the part's time half as long again for each “too quick”, a third shorter for each “too slow”, by Ken's ideal-time-for-task, within the time the story gives the part and SCENE's own stretch of 8 and 1/8; SCENE then stretches or shrinks its walks to fit.",
+  critsc: "Keep two apart in a scene: every way of showing that would bring the two together (a walk to touch the other, or the two walking together, read from the code of each way, DISPLY's and the revival's) set aside as a prerequisite not met; and start far from: in the scene's first part that places the two, the one who starts where an earlier scene left her placed far off and off the stage by Ken's place-large-distance-apart (with MEND19's far place).",
   dtrhym: "B.2 (a) A scene's rhythm as changes of speed, made with DISPLY's change:, as joy's are: fast and slow a quarter faster or slower at medium speed in each part, a changing rhythm its first value in the first part and its last in the last, for each character who does something there; normal changes nothing.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
@@ -1384,12 +1423,16 @@ const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !
 const EXT_GROUPS = [
   ["knowledge", "Knowledge", "What Ken could have added to Ani: words, relationships and ways of showing, looks, changes, and a few of the thesis's details."],
   ["repairs", "Repairs", "Where Ken's files stop on a story he never gave Ani, or slip."],
+  // the registry's onDemand ones: loaded for a film that needs them, never ticked
+  ["criticism", "Criticism", "Ani heeding your criticism of a film, as Ken's thesis proposes (Chapter X, Section D, pp. 189–191): never ticked here, but loaded, with MEND, into every job of a film you have criticized, and only then."],
 ];
 function extensionsPanel() {
   if (!SWITCHED.length) return "";
   const item = (e) => {
     const files = e.files.map((name) => `<li><b>${esc(name.toUpperCase())}</b> ${esc(REVIVE_TEXT[name] || (reviveFile(name) || {}).title || "")} ${fileLink(name)}</li>`).join("");
-    return `<div class="ext"><p><label class="ext-tick"><input type="checkbox" data-ext="${esc(e.id)}"${CHOSEN.includes(e.id) ? " checked" : ""}> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</label>${e.optIn ? ` <span class="opt-in">opt-in</span>` : ""} ${esc(EXTENSION_TEXT[e.id] || e.note)}</p>
+    // one loaded on demand (CRITIC) has no tick of its own: it is never chosen here
+    const tick = e.onDemand ? `<span class="ext-tick"><input type="checkbox" disabled aria-label="Loaded on demand, never ticked"> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</span> <span class="opt-in">on demand</span>` : `<label class="ext-tick"><input type="checkbox" data-ext="${esc(e.id)}"${CHOSEN.includes(e.id) ? " checked" : ""}> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</label>${e.optIn ? ` <span class="opt-in">opt-in</span>` : ""}`;
+    return `<div class="ext"><p>${tick} ${esc(EXTENSION_TEXT[e.id] || e.note)}</p>
       <details><summary>What each of its ${e.files.length} files does</summary><ul class="ext-files">${files}</ul></details></div>`;
   };
   const groups = EXT_GROUPS.map(([g, title, about]) => {
@@ -4451,10 +4494,11 @@ function storyPanel() {
     <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
+    ${critBox(run)}
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
-    ${ready(scene()) ? timelineBox(slotOf(run), scene()) : ""}
+    ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
   side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), 0)));
   side.querySelector("#open-editor").addEventListener("click", openEditor);
@@ -4626,7 +4670,9 @@ function methodsBox(t) {
   if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)} ${methodCode(m)}</span></div>`);
   for (const r of Array.isArray(rejected) ? rejected : []) {
     const m = valueOf(kv(r, "suggestion"));
-    cards.push(`<div class="method rejected"><span class="verdict">Rejected</span><span>${methodText(m)} ${methodCode(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span>${drawnToLine(t, kv(kv(r, "suggestion"), "value"))}</div>`);
+    // a way the reader vetoed is struck through, with their words (REVIVE;CRITIC)
+    const vetoed = Array.isArray(kv(r, "reason")) && kv(r, "reason")[0] === "vetoed-by-you";
+    cards.push(`<div class="method rejected${vetoed ? " vetoed" : ""}"><span class="verdict">${vetoed ? "Vetoed by you" : "Rejected"}</span><span>${vetoed ? `<s>${methodText(m)}</s>` : methodText(m)} ${methodCode(m)}</span><span class="note">${rejectText(kv(r, "reason"))}</span>${drawnToLine(t, kv(kv(r, "suggestion"), "value"))}</div>`);
   }
   return `<div class="methods">${cards.join("")}</div>`;
 }
@@ -4677,6 +4723,13 @@ function seenLabel(a, char) {
 const AniWhy = (() => {
 /*WHY-THEY-ACT*/
   return { whyTheyAct, changeSeconds };
+})();
+// The record of a reader's criticism of a film, and what a remake with it changed: src/pipeline.js's
+// own helpers (addCriticism, criticismChanges, ...), put in here by tools/build-film-app.mjs,
+// for app/film/criticism.js.
+const AniCritic = (() => {
+/*CRITICISM*/
+  return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
 })();
 const WHY_OF = new WeakMap();
 function whyOf(run, sc) {
@@ -4818,6 +4871,8 @@ function timingSteps(run, sc, w, a, char) {
   const { says, bounds, film } = sceneLengthWords(run, sc, w);
   steps.push(`${says}${bounds ? `: ${bounds}${film ? `, its share of the film's ${film} by the scenes' lengths` : ""} (${kenAt("scene.9:346-357")})` : ""}.`);
   if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${task.allocatedTime[0]} to ${task.allocatedTime[1]} seconds,` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
+  const heeded = task ? critTiming(run, sc, task.name) : "";
+  if (heeded) steps.push(heeded);
   if (a.estimate) steps.push(`Its estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; it planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to its best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
   if (part) steps.push(partSteps(run, w, part));
   const stops = stopWords(a.stops, k, char);
@@ -4923,8 +4978,10 @@ function actWhyBox(run, sc, act, char, f) {
   if (a.by === "REVIVE;SEEN" || a.activity === "wander-around") ({ way, long } = onlyChangesWhy(run, sc, w, a, char, f));
   else {
     const t = a.task ? taskByName(a.task) : null;
-    way = t ? `${cap(wayWhy(t, parse(a.method || "nil")))}.` : "";
+    // with the reader's criticism of it a click away (app/film/criticism.js)
+    way = t ? `${cap(wayWhy(t, parse(a.method || "nil")))}.${critWayButtons(run, sc, t, parse(a.method || "nil"))}` : "";
     long = longWords(run, sc, w, a, char, f);
+    if (long) long += critPaceButtons(run, sc, w, w.parts.find((p) => p.name === a.subscene));
   }
   const steps = a.by === "REVIVE;SEEN" ? [] : timingSteps(run, sc, w, a, char);
   return `<div class="why-act">${way ? `<p><span class="label">Why this way</span> ${way}</p>` : ""}${long ? `<p><span class="label">Why so long</span> ${long}</p>` : ""}${steps.length ? `<details><summary>How Ani timed it</summary><div class="body"><ul class="chain timing">${steps.map((x) => `<li><span>${x}</span></li>`).join("")}</ul></div></details>` : ""}</div>`;
@@ -4971,7 +5028,7 @@ function timelineBox(r, sc, char = null) {
     }
     rows.sort((x, y) => x.at - y.at);
     const span = p.film ? `${p.film.begin === p.film.end ? `frame ${p.film.begin}` : `frames ${p.film.begin}–${p.film.end}`}, ${sec((p.film.end - p.film.begin) / fps)}` : "not reached";
-    return `<li><p><b>Part ${p.n}</b> <span class="note">${span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}</p>${rows.length ? `<ul>${rows.map((x) => x.html).join("")}</ul>` : ""}</li>`;
+    return `<li><p><b>Part ${p.n}</b> <span class="note">${span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}${critPaceButtons(run, sc, w, p, { short: true })}</p>${rows.length ? `<ul>${rows.map((x) => x.html).join("")}</ul>` : ""}</li>`;
   }).join("");
   return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">Each part's frames and what it is for, and each step in it; click one for why it is done that way and lasts that long.</p><ol class="tl">${parts}</ol></div></details>`;
 }
@@ -5103,7 +5160,7 @@ function whyPanel(char) {
   }
   if (main) {
     const loc = s.v(main.name, `(location-of ${char})`);
-    if (loc) sections += `<details><summary>Where ${esc(k.she)} started this part</summary><div class="body"><p>${cap(place(kv(loc, "where")))}: ${reason(kv(loc, "why"))}.</p><pre class="lisp">${esc(pretty(loc))}</pre></div></details>`;
+    if (loc) sections += `<details><summary>Where ${esc(k.she)} started this part</summary><div class="body"><p>${cap(place(kv(loc, "where")))}: ${reason(kv(loc, "why"))}.</p>${critStart(R, s, main.name, char)}<pre class="lisp">${esc(pretty(loc))}</pre></div></details>`;
   }
   const records = [main && main.name, st.dynamics].filter(Boolean).map((n) => {
     const a = s.actors.get(n);
@@ -5112,8 +5169,10 @@ function whyPanel(char) {
     return `<p class="label">${esc(n)}</p><pre class="lisp">${esc(vars)}</pre>`;
   }).join("");
   sections += timelineBox(slotOf(R), s, char);
+  sections += critSceneBox(R, s);
   sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
-  side.innerHTML = head + lead + stillBox(R, s, f) + whyBox + fixSection + sections;
+  // the reader's criticism of this film, if any, and what it did in this scene (app/film/criticism.js)
+  side.innerHTML = head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + fixSection + sections;
   if (/[?&]open(&|$)/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
   side.querySelector("#back-to-story").addEventListener("click", () => select(null));
   const run = R;
@@ -6068,9 +6127,12 @@ self.onmessage = function (e) {
   function post(m) { m.t = Date.now() - t0; postMessage(m); }
   try {
     var fs = AniRuntime.makeBundleFileSystem(JSON.parse(e.data.bundle));
-    var made = AniRuntime.makeFilm(fs, {
+    // every film keeps its working files, so that it can be remade with criticism; a remake
+    // (e.data.remake: the film as made, and the record of criticism) is made from them
+    var options = {
       description: e.data.description,
       keepGoing: true,
+      keepFiles: true,
       frames: e.data.frames,
       fps: e.data.fps,
       extensions: e.data.extensions || [],
@@ -6079,8 +6141,14 @@ self.onmessage = function (e) {
       onScene: function (s) { if (s.error) s.typed = typed(); post({ type: "scene", scene: s }); },
       onChange: function (scene, record) { post({ type: "change", scene: scene, record: record }); },
       onFrame: function (scene, frame) { if (frame % 10 === 0) post({ type: "frame", scene: scene, frame: frame }); }
-    });
-    post({ type: "done", renames: (made && made.renames) || null });
+    };
+    if (e.data.remake) {
+      options.previous = e.data.remake.previous;
+      options.criticism = e.data.remake.criticism;
+      options.onKept = function (scene, how) { post({ type: "kept", scene: scene, how: how }); };
+    }
+    var made = e.data.remake ? AniRuntime.remakeFilm(fs, options) : AniRuntime.makeFilm(fs, options);
+    post({ type: "done", renames: (made && made.renames) || null, files: (made && made.files) || null, remade: (made && made.remade) || null });
   } catch (err) {
     post({ type: "error", message: String((err && err.message) || err), typed: typed() });
   }
@@ -6108,7 +6176,9 @@ const CAP_SECONDS = 250;
 const CAP_WORDS = "about four minutes";
 function progressOf(st, run = RUNS[1]) {
   if (!st.running) return 1;
-  const steps = [["pass1", null], ...(run ? run.sceneIds : SCENE_IDS).flatMap((id) => [...(run && run.changing[id] ? [["fresh-look", id], ["recompute", id]] : []), ["pass2", id], ["film", id]])];
+  // (a remake from its working files has no pass 1 and no fresh looks, and starts at the first scene criticized)
+  const remaking = run && run.remaking && !run.remaking.fromScratch ? run.remaking : null;
+  const steps = [...(remaking ? [] : [["pass1", null]]), ...(run ? run.sceneIds : SCENE_IDS).filter((id, i) => !remaking || i >= remaking.from).flatMap((id) => [...(run && run.changing[id] && !remaking ? [["fresh-look", id], ["recompute", id]] : []), ["pass2", id], ["film", id]])];
   const fps = (run && run.fps) || 4;
   const total = steps.reduce((a, s) => a + stepSeconds(s, fps), 0);
   const k = steps.findIndex(([s, id]) => s === st.step && (s === "pass1" || id === st.scene));
@@ -6170,21 +6240,28 @@ const stopText = (msg) => {
 };
 
 // extensions: the revival's extensions to load (src/pipeline.js EXTENSIONS), as the
-// switch says; none is Ani as in 1978.
-async function startRun(description, fps = editor.fps, extensions = modeExtensions(), { tidied = [], told = null } = {}) {
+// switch says; none is Ani as in 1978. A remake with the reader's criticism
+// (app/film/criticism.js startRemake) gives the run it makes, the film it is remade from
+// and the record (remake: { previous, criticism }), and the pair to show: the two side by
+// side; description is then the film's own (none for Ken's), untidied.
+async function startRun(description, fps = editor.fps, extensions = modeExtensions(), { tidied = [], told = null, run: remade = null, remake = null, pair = null } = {}) {
   stopRun({ quiet: true });
-  const tidy = tidyStory(description, { extensions });
-  description = tidy.text;
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions, tidied: [...(tidied || []), ...tidy.fixes], told });
+  let run = remade;
+  if (!run) {
+    const tidy = tidyStory(description, { extensions });
+    description = tidy.text;
+    run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions, tidied: [...(tidied || []), ...tidy.fixes], told });
+  }
   run.fps = fps;
-  run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: "pass1", what: "Getting Ani ready", scene: null, heard: Date.now() };
+  run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: remake ? "pass2" : "pass1", what: "Getting Ani ready", scene: null, heard: Date.now() };
   RUNS[1] = run;
   state.selected = null;
   state.panel = "compare";
-  state.pair = ["ken", "cur"];
+  state.pair = pair || ["ken", "cur"];
   view.lost = false;
-  // a changed Cinderella is shown beside Ken's; a new story on its own
-  try { setView(sameStory(RUNS[0], run) ? "both" : 1); } catch (e) { console.error(e); }
+  // a changed Cinderella is shown beside Ken's; a new story on its own; a remake beside the
+  // film it was remade from
+  try { setView(pair || sameStory(RUNS[0], run) ? "both" : 1); } catch (e) { console.error(e); }
   try {
     if (!ani.runtime) {
       const [rt, bundle] = await Promise.all([unpack(document.getElementById("ani-runtime").textContent), unpack(document.getElementById("ani-bundle").textContent)]);
@@ -6192,7 +6269,7 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
       ani.bundle = bundle;
     }
     if (RUNS[1] !== run) return; // started again meanwhile
-    if (ARTIFACT_BUILD) { runInPage(run, description); }
+    if (ARTIFACT_BUILD) { runInPage(run, description, remake); }
     else {
       let heard = false;
       let w;
@@ -6201,13 +6278,13 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
         w = new Worker(url);
         URL.revokeObjectURL(url);
       } catch { w = null; }
-      if (!w) runInPage(run, description);
+      if (!w) runInPage(run, description, remake);
       else {
         ani.worker = w;
         w.onmessage = (e) => { heard = true; onWorker(run, e.data); };
         // a page whose sandbox refuses workers made from blobs hears nothing but this
-        w.onerror = (e) => { e.preventDefault(); if (!heard) { w.terminate(); ani.worker = null; runInPage(run, description); } else finishRun(run, { error: e.message || "The worker running Ani failed." }); };
-        w.postMessage({ bundle: ani.bundle, description, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions });
+        w.onerror = (e) => { e.preventDefault(); if (!heard) { w.terminate(); ani.worker = null; runInPage(run, description, remake); } else finishRun(run, { error: e.message || "The worker running Ani failed." }); };
+        w.postMessage({ bundle: ani.bundle, description, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions, ...(remake ? { remake } : {}) });
       }
     }
   } catch (err) {
@@ -6232,7 +6309,7 @@ function runtimeOnPage() {
 // Ani on the page itself, a step at a time, for a page that may not start a worker (a
 // claude.ai chat refuses them): the page shows each step before running it, and is
 // unresponsive while it runs (up to a minute).
-async function runInPage(run, description) {
+async function runInPage(run, description, remake = null) {
   run.status.inPage = true;
   let AniRuntime;
   try {
@@ -6245,21 +6322,24 @@ async function runInPage(run, description) {
   const failed = (e) => post({ type: "error", message: String((e && e.message) || e), typed: typed() });
   let steps;
   try {
-    steps = AniRuntime.makeFilmSteps(fs, {
-      description, keepGoing: true, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions,
+    const options = {
+      description, keepGoing: true, keepFiles: true, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions,
       progress: (step, what, scene) => post({ type: "progress", step, what, scene: scene || null }),
       onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }),
       onScene: (s) => post({ type: "scene", scene: s.error ? { ...s, typed: typed() } : s }),
       onChange: (scene, record) => post({ type: "change", scene, record }),
       onFrame: (scene, frame) => { if (frame % 10 === 0) post({ type: "frame", scene, frame }); },
-    });
+    };
+    steps = remake
+      ? AniRuntime.remakeFilmSteps(fs, { ...options, previous: remake.previous, criticism: remake.criticism, onKept: (scene, how) => post({ type: "kept", scene, how }) })
+      : AniRuntime.makeFilmSteps(fs, options);
   } catch (e) { failed(e); return; }
   for (;;) {
     await new Promise((r) => setTimeout(r, 80)); // let the page show the step first
     if (RUNS[1] !== run || !run.status.running) return;
     let r;
     try { r = steps.next(); } catch (e) { failed(e); return; }
-    if (r.done) { post({ type: "done", renames: (r.value && r.value.renames) || null }); return; }
+    if (r.done) { post({ type: "done", renames: (r.value && r.value.renames) || null, files: (r.value && r.value.files) || null, remade: (r.value && r.value.remade) || null }); return; }
   }
 }
 function onWorker(run, m) {
@@ -6294,7 +6374,15 @@ function onWorker(run, m) {
     renderSceneButtons();
     if (run.sceneIds[state.scene] === m.scene.id) { drawBands(); render(); }
     if (state.panel === "compare") comparePanel();
+  } else if (m.type === "kept") {
+    // a scene a remake kept: before the first scene criticized, or planned again the same
+    (run.keptHow ||= {})[m.scene] = m.how;
+    if (state.panel === "compare") comparePanel();
   } else if (m.type === "done") {
+    // the film's working files, which a remake with criticism is made from, and how a remake
+    // made each scene (src/pipeline.js filesOf, remakeFilmSteps)
+    if (m.files) run.raw.files = m.files;
+    if (m.remade) run.remade = m.remade;
     // what src/pipeline.js storyWithoutClashes renamed as Ani read the story: nothing, as
     // the page's tidy step renamed it already, but said if anything was
     for (const r of m.renames || []) {
@@ -6332,13 +6420,19 @@ function stopRun({ quiet = false } = {}) {
 // it made so of the changes before it (glass.becomes). Where this browser won't keep a
 // library, the last film made is kept as before, in localStorage (RUN_KEY), which the
 // library takes in once it can.
-const runVersion = (run) => (runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
+// A film remade with the reader's criticism is version 3, which keeps its record of criticism
+// (criticism), so that a page that doesn't know criticism refuses it rather than dropping it.
+// Any film may keep its working files (files, src/pipeline.js filesOf), which a remake is
+// made from, and a remade one the film it was remade from (remadeFrom) and how each scene was
+// made again (remade), which a page that doesn't know them leaves be.
+const runVersion = (run) => (run.criticism && run.criticism.length ? 3 : runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
 // what the page tidied first, and the story as told, in either version (a reader that
 // doesn't know them leaves them be)
 const madeFrom = (run) => ({ ...(run.tidied && run.tidied.length ? { tidied: run.tidied } : {}), ...(run.told ? { told: run.told } : {}) });
-const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
+const version2 = (run) => (runVersion(run) >= 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
+const version3 = (run) => ({ ...(runVersion(run) === 3 ? { criticism: run.criticism } : {}), ...(run.raw.files ? { files: run.raw.files } : {}), ...(run.remadeFrom ? { remadeFrom: run.remadeFrom } : {}), ...(run.remade ? { remade: run.remade } : {}) });
 // a film as it is kept, and as a film file has it inside
-const filmData = (run) => ({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status && run.status.made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
+const filmData = (run) => ({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status && run.status.made, seconds: run.status && run.status.seconds, ...version2(run), ...version3(run), ...madeFrom(run) });
 // A film kept as it was read back (from "Your films", a film file or RUN_KEY): version 1 is
 // Ani as in 1978, with no looks or changes of its own.
 function runFromData(d, { label = null, short = "Yours" } = {}) {
@@ -6347,6 +6441,10 @@ function runFromData(d, { label = null, short = "Yours" } = {}) {
   const run = makeRun({ label: label || yoursLabel(extensions), short, cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: v2 ? d.appearances || null : null, changes: v2 ? d.changes || null : null, tidied: d.tidied, told: d.told });
   run.fps = fpsOf(run.scenes.find(ready));
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
+  if (d.v === 3 && Array.isArray(d.criticism) && d.criticism.length) run.criticism = d.criticism;
+  if (d.files && typeof d.files === "object") run.raw.files = d.files;
+  if (d.remadeFrom) run.remadeFrom = d.remadeFrom;
+  if (d.remade) run.remade = d.remade;
   return run;
 }
 async function saveRun(run, { file = null } = {}) {
@@ -6379,7 +6477,7 @@ async function restoreRun() {
   if (!b64) return;
   try {
     const d = JSON.parse(await inflate(b64));
-    if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes) || RUNS[1]) return;
+    if (![1, 2, 3].includes(d.v) || typeof d.cindy !== "string" || !Array.isArray(d.scenes) || RUNS[1]) return;
     RUNS[1] = runFromData(d);
     updateRunbar();
     if (state.panel === "story") renderSide();
@@ -6561,6 +6659,7 @@ function comparePanel() {
     <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
     ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${running ? "" : stopBox(b)}
+    ${critChangedSection(a, b)}
     ${mine ? "" : `<p class="note">${kenLeft ? "On the right" : "On the left"}: ${esc(b.label)}, one of your films${b.status && b.status.made ? `, made ${esc(shortDate(b.status.made))}` : ""}.</p>`}
     ${apart && !kenPlus ? `<p class="note">These are two different stories, so they can't be compared scene by scene: Ken's Cinderella, with his four characters in five scenes, and ${esc(storyTitle(b))}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>` : ""}
     <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
@@ -6631,9 +6730,13 @@ function pairPanel(a, b) {
   }
   side.innerHTML = `
     <div class="side-head"><h2>${same && a.cindy === b.cindy ? "Two films of one description" : versions ? "Two versions of one story" : "Two different stories"}</h2></div>
+    ${[a, b].some((x) => x === RUNS[1] && x.status && x.status.running) ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(RUNS[1].status)).toFixed(1)}%"></i></span><span class="note what"></span><div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
+    ${critChangedSection(a, b) || critChangedSection(b, a)}
     <div><p class="label">What each was told</p><ul class="changes">${each}</ul></div>
     ${body}
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>${end}`;
+  updateProgress();
+  side.querySelector("#cmp-stop")?.addEventListener("click", () => stopRun());
   wireCompare(side, b);
 }
 // Who the story changed, and how they move after (REVIVE;CHANGE), a sentence each.

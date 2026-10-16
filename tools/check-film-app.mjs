@@ -142,11 +142,26 @@
 // browser doesn't keep it), after a reload, and from a code page opened some other way
 // (film.html#view); and "What this page keeps in your browser" and "Forget all of it", after
 // which the page is the default page as before, its prompts pinned.
+// And criticism (REVIVE;CRITIC, stages C0 to C3, reports/ext/critic/README.md, "For the
+// page"): CRITIC in the "Which extensions" panel's "criticism" group, never ticked; Ken's
+// two examples offered in the story panel; in the godmother's glass box in No Longer Kept
+// Apart, "Not this way: another way", "Too quick" and "Too slow", and the scene's own "Keep
+// two apart" and "Start far"; "Your criticism" and "Remake with my criticism", which remakes
+// Ken's 1978 film (at 4 frames a second) in the worker from his files, as
+// tools/check-critic.mjs's goldens have it: "too quick" 192, 116, 30, 183 and 90 frames,
+// the first two kept; then, from that film's own files, "too quick" taken back and "start
+// far" added, 25, 177 and 85; his footnote (Cinderella not meeting the Prince until the
+// third scene) 111, with Kept Apart to Justice planned again and kept; and "not this way"
+// on the godmother, 23, 178 and 100; each beside the film it was remade from, with "What
+// your criticism changed"; a version-3 film file; "Your films" after a reload; and a film
+// kept without its working files made again from the start, said so.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
 // godmother transforming Cinderella in color: before, as they touch, and after; and "Your
-// films" (at a phone's width too), two of them side by side, and the place put back.
+// films" (at a phone's width too), two of them side by side, and the place put back; and
+// the criticism buttons, "Your criticism" (at a phone's width too), a remade film beside
+// Ken's with "What your criticism changed", and his footnote's.
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -290,7 +305,7 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [138, 48, 48, 16, 16, 116];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile"];
 // (the claude.ai copy's page script is packed, tools/build-film-app.mjs PAGE_LOADER: the
 // hook goes at its end, unpacked and packed again)
 const hooked = (html) => {
@@ -2525,6 +2540,134 @@ try {
     const fromLink = await js(`({ href: location.pathname + location.hash, where: (document.querySelector("#side .where") || {}).innerText || "", who: (document.querySelector("#side .who") || {}).innerText || "" })`);
     check(pass1Link === "film.html#view" && fromLink.href === "/app/film.html" && fromLink.where === remade.after.where && fromLink.who === remade.after.who,
       `"Back to the film" from a page opened some other way opens film.html#view, which puts back where this tab last was: ${fromLink.who} · ${fromLink.where}`);
+  }
+
+  // Criticism on the page (REVIVE;CRITIC, stages C0 to C3; reports/ext/critic/README.md,
+  // "For the page"): Ken's 1978 film at 4 frames a second, criticized where the reasons
+  // are and remade in the page's worker from the files his film was made with, each as
+  // tools/check-critic.mjs's goldens have it (reports/ext/critic/<example>/summary.json),
+  // beside it with "What your criticism changed"; a remade film criticized again (one
+  // criticism taken back, another added) and remade from its own files; Ken's two Cinderella
+  // examples offered in the story panel ("Try criticizing"), his footnote's (p. 64) made;
+  // "not this way" in the godmother's "Why this way"; a version-3 film file and "Your films"
+  // after a reload; a film kept without its working files made again from the start, said
+  // so; and the "Which extensions" panel's "criticism" group, CRITIC never ticked.
+  {
+    await toCheckPage();
+    await js(`document.querySelector('#rate [data-rate="4"]').click()`);
+    await sleep(300);
+    const critPanel = await js(`(() => { const t = window.__check; const div = document.createElement("div"); div.innerHTML = t.extensionsPanel(); const g = [...div.querySelectorAll(".ext-group")].find((x) => /^Criticism/.test(x.querySelector(".label").textContent)); return { group: g ? g.innerText : "", ticks: [...div.querySelectorAll("input[data-ext]")].map((x) => x.dataset.ext).join() }; })()`);
+    check(/Your criticism \(CRITIC\)\. on demand/.test(critPanel.group) && !critPanel.ticks.includes("critic") && /never ticked/.test(critPanel.group),
+      `"Which extensions" lists CRITIC in a "criticism" group, loaded on demand, with no tick of its own (ticks: ${critPanel.ticks})`);
+    const remakeDone = async (label) => {
+      const t0 = Date.now();
+      for (let k = 0; k < 900 && await js(`(() => { const r = window.__check.RUNS[1]; return !r || !r.status || r.status.running; })()`); k++) await sleep(1000);
+      await sleep(800);
+      await js(`document.querySelectorAll("#side .crit-changed details").forEach((d) => { d.open = true; })`);
+      await sleep(100);
+      const made = await js(`(() => { const t = window.__check, r = t.RUNS[1]; return { frames: r.scenes.map((s) => s && s.film ? s.film.frames.length : null), how: r.remade ? r.remade.scenes.map((s) => s.how) : null, error: r.status.error || null, files: !!r.raw.files, criticism: (r.criticism || []).map((c) => c.kind), pair: t.state.pair.join(), view: String(t.state.view), side: document.getElementById("side").innerText }; })()`);
+      console.log(`      (${label}: ${Math.round((Date.now() - t0) / 1000)} s)`);
+      return made;
+    };
+    const story0 = await js(`document.getElementById("side").innerText`);
+    check(/Try criticizing the film as Ken suggested: No Longer Kept Apart is too quick \(p\. 69\) · the fairy godmother should start far from Cinderella \(p\. 69\) · Cinderella is not to meet the Prince until the third scene \(p\. 64\)/.test(story0),
+      "the story panel offers Ken's two examples to try: No Longer Kept Apart too quick, the fairy godmother starting far, and Cinderella not meeting the Prince until the third scene");
+    // the godmother in No Longer Kept Apart: "Not this way" and "Too quick"
+    await js(`(() => { const t = window.__check; t.goScene(2, 2.0); t.select({ run: 0, char: "fairy-godmother" }); })()`);
+    await sleep(400);
+    const buttons = await js(`(() => { const s = document.getElementById("side"); return { way: [...s.querySelectorAll(".why-act .crit-btn")].map((b) => b.textContent), timeline: [...s.querySelectorAll(".timeline .crit-btn")].map((b) => b.textContent), scene: s.querySelector(".crit-scene") ? s.querySelector(".crit-scene").innerText : "" }; })()`);
+    check(buttons.way.join() === "Not this way: another way,Too quick,Too slow" && buttons.timeline.join() === "Too quick,Too slow" && /Criticize No Longer Kept Apart as a whole/.test(buttons.scene),
+      `the godmother's glass box: "Why this way" with ${buttons.way[0]}, "Why so long" and the timeline's part with Too quick and Too slow, and "Criticize No Longer Kept Apart as a whole"`);
+    await shot("20-criticism-buttons.png");
+    await js(`[...document.querySelectorAll("#side .why-act .crit-btn")].find((b) => b.textContent === "Too quick").click()`);
+    await sleep(300);
+    const listed = await js(`(document.getElementById("crit") || {}).innerText || ""`);
+    check(/No Longer Kept Apart: too quick, the part where the fairy godmother undoes what happened in Kept Apart/.test(listed) && /not yet heeded/.test(listed) && /Take it back/.test(listed) && /Ani will plan No Longer Kept Apart, The Meeting and Justice again, and film again those whose plan changes; The Introduction and Kept Apart are kept as they were/.test(listed),
+      `"Too quick" goes into "Your criticism", in plain words, with "Take it back" and what a remake will do: ${(listed.match(/Ani will plan[^.]*\./) || [""])[0]}`);
+    await shot("21-your-criticism.png");
+    await phone("21b-your-criticism-phone.png", `document.getElementById("crit")`);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const quick = await remakeDone("No Longer Kept Apart too quick");
+    // nlka-too-quick: 30, 183, 90, the Introduction and Kept Apart kept
+    check(!quick.error && quick.frames.join() === "192,116,30,183,90" && quick.how.join() === "kept,kept,refilmed,refilmed,refilmed" && quick.files && quick.pair === "ken,cur" && quick.view === "both"
+      && /What your criticism changed\s+Your version was remade from Ken's 1978 film \(on the left\) with your criticism\./i.test(quick.side) && /Met No Longer Kept Apart: too quick/i.test(quick.side) && /Ani gave it 5\.97 s instead of 3\.98 s, the walks slowed to fit \(stretched by 1\.5\)/.test(quick.side),
+      `"Remake with my criticism" remakes Ken's film in the worker from his files, as reports/ext/critic/nlka-too-quick has it (${quick.frames.join(", ")} frames; ${quick.how.join(", ")}), beside his, with "What your criticism changed": met, 5.97 s instead of 3.98`);
+    await shot("22-criticism-side-by-side.png");
+    // the remade film, alone: its glass box, then "too quick" taken back and "start far" added
+    await js(`(() => { const t = window.__check; t.setView(1); t.goScene(2, 2.0); t.select({ run: 1, char: "fairy-godmother" }); })()`);
+    await sleep(400);
+    const here = await js(`(document.querySelector("#side .crit-here") || {}).innerText || ""`);
+    check(/What your criticism did here \(1\)\s+You said this part was too quick: Ani gave it 5\.97 s instead of 3\.98 s/.test(here), `the remade film's glass box says "What your criticism did here": ${here.split("\n")[1] || ""}`);
+    await js(`window.__check.select(null)`);
+    await sleep(300);
+    await js(`[...document.querySelectorAll("#crit button")].find((b) => b.textContent === "Take it back").click()`);
+    await sleep(200);
+    await js(`(() => { document.querySelector("#side .crit-scene").open = true; document.querySelector("#side .crit-far .crit-btn").click(); })()`);
+    await sleep(300);
+    const again = await js(`(document.getElementById("crit") || {}).innerText || ""`);
+    check(/No Longer Kept Apart: the fairy godmother starts far from Cinderella\s*\(you said “Have the fairy godmother start far from Cinderella”\)\s*not yet heeded/.test(again) && /taken back: the remake makes the film without it/.test(again),
+      `on the remade film, "too quick" taken back and "Start far" (offered: she starts where Kept Apart left her, though she had no part in it) added`);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const far = await remakeDone("from the remade film: start far, too quick taken back");
+    // nlka-start-far: 25, 177, 85
+    check(!far.error && far.frames.join() === "192,116,25,177,85" && far.how.join() === "kept,kept,refilmed,refilmed,refilmed" && /^lib:/.test(far.pair) && /Taken back No Longer Kept Apart: too quick/i.test(far.side) && /Met No Longer Kept Apart: the fairy godmother starts far from Cinderella/i.test(far.side) && /The fairy godmother was placed off the stage, far from Cinderella, because you asked/.test(far.side),
+      `a remade film criticized again and remade from its own files, as reports/ext/critic/nlka-start-far has it (${far.frames.join(", ")}), beside the film it was remade from: "too quick" taken back, "start far" met`);
+    // a version-3 film file, and "Your films" after a reload
+    const filed = await js(`(async () => { const t = window.__check; const text = await (await t.filmFile(t.RUNS[1])).text(); const outer = JSON.parse(text); const d = await t.readFilmFile(text); return { version: outer.version, outer: (outer.criticism || []).map((c) => c.kind).join(), inner: (d.criticism || []).map((c) => c.kind).join(), files: Object.keys(d.files || {}).length, from: d.remadeFrom ? d.remadeFrom.title : null }; })()`);
+    check(filed.version === 3 && filed.outer === "start-far" && filed.inner === "start-far" && filed.files >= 16 && /^Cinderella, as Ken told it, with your criticism: No Longer Kept Apart too quick$/.test(filed.from),
+      `a film remade with criticism is saved as a version-3 film file, with its criticism (outside and in), its ${filed.files} working files and the film it was remade from, and read back`);
+    await send("Page.reload");
+    for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring`).catch(() => false)); k++) await sleep(200);
+    await sleep(800);
+    const listedFilms = await js(`(async () => { const t = window.__check; await t.library.ready; return t.library.films.filter((f) => f.remadeFrom).map((f) => \`\${f.title} | \${f.criticism || 0} | \${f.remadeFrom.ken ? "ken" : f.remadeFrom.title}\`); })()`);
+    check(listedFilms.length >= 2 && listedFilms.some((x) => / \| 1 \| ken$/.test(x)) && listedFilms.some((x) => /^Cinderella, as Ken told it, with your criticism: The fairy godmother starting far\b.* \| 1 \| Cinderella, as Ken told it, with your criticism: No Longer Kept Apart too quick$/.test(x)),
+      `after a reload "Your films" has each remade film, with its criticism and the film it was remade from: ${listedFilms.join("; ")}`);
+    // Ken's footnote (p. 64), from "Try criticizing"
+    await toCheckPage();
+    await js(`(() => { const t = window.__check; t.setView(0); t.goScene(0, 0); t.select(null); })()`);
+    await sleep(300);
+    await js(`[...document.querySelectorAll("#side .crit-try button")].find((b) => /third scene/.test(b.textContent)).click()`);
+    await sleep(300);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const apart = await remakeDone("Ken's footnote, Cinderella and the Prince kept apart");
+    // intro-apart: 111, and Kept Apart to Justice planned again and kept
+    check(!apart.error && apart.frames.join() === "111,116,17,179,84" && apart.how.join() === "refilmed,unchanged,unchanged,unchanged,unchanged"
+      && /Met Keep Cinderella and the Prince apart in The Introduction and Kept Apart \(you said “Cinderella is not to meet the Prince until the third scene”\)/i.test(apart.side)
+      && /No other way to establish what Cinderella is like \(good, friendly, hard working, shy\) was left: the ways Ani knew all bring Cinderella to the Prince/.test(apart.side)
+      && /In Kept Apart they come no closer than 0\.345 of the screen \(frame 72\)/.test(apart.side) && /planned again: the same program, so its film is kept/.test(apart.side),
+      `Ken's footnote, "Cinderella is not to meet the Prince until the third scene", as reports/ext/critic/intro-apart has it (${apart.frames.join(", ")}; ${apart.how.join(", ")}): her friendliness can't be shown, and Kept Apart on are planned again and kept, the two never closer than 0.345 of the screen`);
+    await js(`(() => { const d = [...document.querySelectorAll("#side .crit-changed details")][0]; if (d) d.open = true; })()`);
+    await sleep(200);
+    await shot("23-criticism-footnote.png");
+    // "not this way" in the godmother's "Why this way"
+    await js(`(() => { const t = window.__check; t.setView(0); t.goScene(2, 2.0); t.select({ run: 0, char: "fairy-godmother" }); })()`);
+    await sleep(400);
+    await js(`[...document.querySelectorAll("#side .why-act .crit-btn")].find((b) => b.textContent === "Not this way: another way").click()`);
+    await sleep(300);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const veto = await remakeDone("not this way, the godmother's goes-to-and-accompanys");
+    await js(`(() => { const t = window.__check; t.goScene(2, 1.0); t.select({ run: 1, char: "fairy-godmother" }); const d = [...document.querySelectorAll("#side details")].find((x) => /How Ani chose this/.test(x.querySelector("summary").textContent)); if (d) d.open = true; })()`);
+    await sleep(400);
+    const vetoed = await js(`(() => { const s = document.getElementById("side"); return { here: (s.querySelector(".crit-here") || {}).innerText || "", card: (s.querySelector(".method.vetoed") || {}).innerText || "", struck: !!s.querySelector(".method.vetoed s") }; })()`);
+    // nlka-veto: 23, 178, 100
+    check(!veto.error && veto.frames.join() === "192,116,23,178,100" && /Ani set aside “the fairy godmother goes to Cinderella and accompanies her”, vetoed by you, and chose among the ways left/.test(vetoed.here) && /^Vetoed by you/i.test(vetoed.card) && vetoed.struck,
+      `"Not this way", as reports/ext/critic/nlka-veto has it (${veto.frames.join(", ")}): the godmother's way is struck through in "How Ani chose this", vetoed by you, and the glass box says what Ani did`);
+    // a film kept without its working files is made again from the start, and says so
+    const scratch = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const d = JSON.parse(JSON.stringify(t.filmData(t.RUNS[1])));
+      delete d.files;
+      const run = t.runFromData(d);
+      t.criticize(run, { kind: "start-far", scene: "no-longer-kept-apart", who: "fairy-godmother", from: "cinderella", said: null });
+      t.startRemake(run);
+      let what = "";
+      for (let k = 0; k < 100 && !/saved before Ani kept its working files/.test(what); k++) { await wait(100); what = (t.RUNS[1].status || {}).what || ""; }
+      t.stopRun({ quiet: true });
+      return what;
+    })()`);
+    check(/^This film was saved before Ani kept its working files, so it is made again from the start/.test(scratch), `a film kept without its working files is made again from the start, and the page says so: "${scratch}"`);
+    await js(`document.querySelector('#rate [data-rate="24"]').click()`);
+    await sleep(200);
   }
 
   // what the page keeps in the browser, and "Forget all of it"

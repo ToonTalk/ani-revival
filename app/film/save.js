@@ -231,7 +231,12 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true
 // so the film is drawn with them when it is opened again), and, with CHANGE, Ani's fresh
 // look after each scene that changes someone (changes; each later scene's glass box has
 // what it made so), so the film opens again with "How she has changed". Both are read;
-// version 1 means Ani as in 1978. Either may also keep what the page tidied in the
+// version 1 means Ani as in 1978. A film remade with the reader's criticism is version 3
+// (REVIVE;CRITIC: app/film/criticism.js), which keeps the record of criticism it was made
+// with, inside and, for a reader, outside; a page before it refuses one ("made by a newer
+// page") rather than drop the criticism. Any film may keep its working files, which a remake
+// with criticism is made from, and a remade one the film it was remade from and how each
+// scene was made again. Either may also keep what the page tidied in the
 // description first, and the story as told (madeFrom).
 // Outside the gzip, for a person or a program reading the file: what film it is, the story
 // as told in English and the model that put it into Ken's notation (when it came from
@@ -241,7 +246,7 @@ const FILM_FORMAT = "ani-film";
 const FILM_HOME = "https://toontalk.github.io/ani/";
 async function filmFile(run) {
   const made = (run.status && run.status.made) || new Date().toISOString();
-  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
+  const inner = JSON.stringify({ cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made, seconds: run.status && run.status.seconds, ...version2(run), ...version3(run), ...madeFrom(run) });
   const title = storyTitle(run), told = run.told || {};
   const outer = {
     format: FILM_FORMAT, version: runVersion(run),
@@ -251,6 +256,7 @@ async function filmFile(run) {
     lisp: run.cindy,
     ...(told.provider ? { model: told.model, provider: told.provider } : {}),
     extensions: runExtensions(run),
+    ...(runVersion(run) === 3 ? { criticism: run.criticism.map((c) => ({ ...c })) } : {}),
     date: made,
     gzip: await deflate(inner),
   };
@@ -260,11 +266,13 @@ async function readFilmFile(text) {
   let outer;
   try { outer = JSON.parse(text); } catch { throw new Error("That isn't a film file (it isn't JSON)."); }
   if (!outer || outer.format !== FILM_FORMAT || typeof outer.gzip !== "string") throw new Error("That isn't one of Ani's film files.");
-  if (outer.version !== 1 && outer.version !== 2) throw new Error("That film file was made by a newer page than this one.");
+  if (![1, 2, 3].includes(outer.version)) throw new Error("That film file was made by a newer page than this one.");
   const d = JSON.parse(await inflate(outer.gzip));
   if (typeof d.cindy !== "string" || !Array.isArray(d.scenes)) throw new Error("That film file is damaged.");
-  d.extensions = outer.version === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-  if (outer.version !== 2) { delete d.appearances; delete d.changes; }
+  d.v = outer.version;
+  d.extensions = outer.version >= 2 && Array.isArray(d.extensions) ? d.extensions : [];
+  if (outer.version === 1) { delete d.appearances; delete d.changes; }
+  if (outer.version !== 3) delete d.criticism;
   return d;
 }
 // A film file opened becomes the reader's version, and goes into "Your films" too (once:
