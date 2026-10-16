@@ -33,6 +33,22 @@ export function film1978(root = process.cwd()) {
   return film(root, "reports/pass2", "reports/pass2", "reports/film", []);
 }
 
+// At 24 frames a second, as the film was shot: the glass boxes and films of
+// reports/film/24fps (tools/check-1978.mjs --fps 24 holds the pipeline to them), and the
+// files the run wrote, which check-1978 doesn't keep, as tools/check-critic.mjs --fps 24
+// --make-base made them and checked the run's films against those goldens:
+// reports/ext/critic/24fps/base-files.json.
+export const BASE_24 = "reports/ext/critic/24fps/base-files.json";
+export function film1978at24(root = process.cwd()) {
+  const read = (p) => readFileSync(join(root, p), "utf8");
+  const pass1 = JSON.parse(read("app/data/pass1.json"));
+  return {
+    choices: pass1.choicePoints.length, choicePoints: pass1.choicePoints,
+    scenes: SCENES.map((id) => ({ id, film: JSON.parse(read(`reports/film/24fps/${id}.film.json`)), glass: JSON.parse(read(`reports/film/24fps/${id}.glass.json`)) })),
+    files: JSON.parse(read(BASE_24)),
+  };
+}
+
 // with: "know" (KNOW, with MEND) or "slips" (SLIPS, with KNOW and MEND)
 export function filmWith(with_, root = process.cwd()) {
   const dir = `reports/ext/${with_}`;

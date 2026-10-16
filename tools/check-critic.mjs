@@ -30,17 +30,28 @@
 // it, or the outcome says why not; and the goldens: summary.json (the record, what was
 // remade, and src/pipeline.js criticismChanges), and for each scene planned again its
 // glass box, and for each filmed again its film and program.
-// Usage: node tools/check-critic.mjs [example ...] [--save]
+// Usage: node tools/check-critic.mjs [example ...] [--save] [--fps 24 [--make-base]]
 //   --save   write the goldens instead of comparing them (after the other checks)
+//   --fps 24 Ken's two examples (nlka-too-quick, nlka-start-far, nlka-both and
+//            intro-apart) at 24 frames a second, as the film was shot, from the film
+//            at 24 (tools/critic-base.mjs film1978at24), against reports/ext/critic/24fps/
+//   --make-base  with --fps 24, first make the whole film at 24 frames a second, check
+//            its frames and events against reports/film/24fps, and keep its files as
+//            reports/ext/critic/24fps/base-files.json (about 15 minutes)
 // Prints each check with ok or FAIL; exits non-zero if any fails. 35 to 55 minutes.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { remakeFilm, criticismChanges, contactsIn, closestApproach, taskDescription, whyTheyAct, SCENES, EXTENSIONS } from "../src/pipeline.js";
-import { film1978, filmWith } from "./critic-base.mjs";
+import { film1978, film1978at24, filmWith, BASE_24 } from "./critic-base.mjs";
+import { makeFilm } from "../src/pipeline.js";
 
 const args = process.argv.slice(2);
 const save = args.includes("--save");
-const only = args.filter((a) => !a.startsWith("--"));
+const fpsAt = args.indexOf("--fps");
+const fps = fpsAt >= 0 ? Number(args[fpsAt + 1]) : 4;
+if (fps !== 4 && fps !== 24) throw new Error("--fps is 4 (the default) or 24");
+const frameCap = fps === 24 ? 6000 : 1000;
+const only = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--fps");
 // the stages built: C1 with REVIVE;CRITIC, C2 with CRITPC, C3 with CRITSC
 const criticFiles = EXTENSIONS.find((e) => e.id === "critic").files;
 const BUILT = { C1: true, C2: criticFiles.includes("critpc"), C3: criticFiles.includes("critsc") };
@@ -74,18 +85,19 @@ const together = (scene, a, b) => contactsIn(scene.glass).filter((c) => [c.a, c.
 
 const EXAMPLES = [
   {
-    name: "nlka-too-quick", stages: "C2", base: "1978", record: [PACE],
+    name: "nlka-too-quick", fps24: true, stages: "C2", base: "1978", record: [PACE],
     check(run, ch, prev) {
       expectEqual("remade from No Longer Kept Apart, the two before kept", howOf(run), { introduction: "kept", "kept-apart": "kept", "no-longer-kept-apart": "refilmed", meeting: "refilmed", justice: "refilmed" });
       const t = taskOf(sceneOf(run, "no-longer-kept-apart"), NLKA);
-      check("the godmother's part given half as long again, within its allocated time", Math.abs(Number(t.variables["running-time"]) - 1.5 * 3.98) < 0.01 ? null : `running time ${t.variables["running-time"]}`);
+      const was = Number(taskOf(sceneOf(prev, "no-longer-kept-apart"), NLKA).variables["running-time"]);
+      check(`the godmother's part given half as long again (${was} seconds), within its allocated time`, Math.abs(Number(t.variables["running-time"]) - 1.5 * was) < 0.01 ? null : `running time ${t.variables["running-time"]}`);
       expectEqual("its walks stretched by SCENE as it stretches every part", sceneOf(run, "no-longer-kept-apart").glass.subscenes[0].variables["stretched-by"], "1.5");
       expectEqual("met", outcome(ch, "c1"), "met");
       check("longer than 1978's", frames(run, "no-longer-kept-apart") > frames(prev, "no-longer-kept-apart") ? null : "not longer");
     },
   },
   {
-    name: "nlka-start-far", stages: "C3", base: "1978", record: [{ ...FAR, id: "c1" }],
+    name: "nlka-start-far", fps24: true, stages: "C3", base: "1978", record: [{ ...FAR, id: "c1" }],
     check(run, ch) {
       expectEqual("remade from No Longer Kept Apart", howOf(run)["no-longer-kept-apart"], "refilmed");
       const scene = sceneOf(run, "no-longer-kept-apart");
@@ -97,7 +109,7 @@ const EXAMPLES = [
     },
   },
   {
-    name: "nlka-both", stages: "C2 C3", base: "1978", record: [PACE, FAR],
+    name: "nlka-both", fps24: true, stages: "C2 C3", base: "1978", record: [PACE, FAR],
     check(run, ch, prev) {
       const scene = sceneOf(run, "no-longer-kept-apart");
       firstSeenOffThePicture(scene.film, "fairy-godmother");
@@ -106,13 +118,20 @@ const EXAMPLES = [
     },
   },
   {
-    name: "intro-apart", stages: "C3", base: "1978", record: [APART],
+    name: "intro-apart", fps24: true, stages: "C3", base: "1978", record: [APART],
     check(run, ch) {
       expectEqual("the Introduction planned and filmed again; Kept Apart on planned again and kept, unless necessary no other parts of the film", howOf(run), { introduction: "refilmed", "kept-apart": "unchanged", "no-longer-kept-apart": "unchanged", meeting: "unchanged", justice: "unchanged" });
       const t = taskOf(sceneOf(run, "introduction"), FRIENDLY);
       expectEqual("with Ken's knowledge, nothing else to establish Cinderella's personality: cant-do", t.variables.status, "cant-do");
       check("both of Ken's ways set aside, as prerequisites not met that name the criticism", (t.variables["rejected-suggestions"].match(/kept-apart-by-you cinderella prince c1/g) || []).length === 2 ? null : t.variables["rejected-suggestions"].slice(0, 300));
-      keptApart(run, ch, ["introduction", "kept-apart"]);
+      if (fps === 4) keptApart(run, ch, ["introduction", "kept-apart"]);
+      else {
+        // at 24 frames a second Kept Apart, 1978's own film, has the guard's prisoner
+        // escape to within 0.308 of the Prince (README.md): partly met
+        keptApart(run, ch, ["introduction"]);
+        keptApart(run, ch, ["kept-apart"], { plan: true });
+        nearByEscape(run, ch, "kept-apart", 0.3);
+      }
     },
   },
   {
@@ -276,17 +295,30 @@ function firstDifference(a, b) {
 }
 
 const t0 = Date.now();
+if (fps === 24 && args.includes("--make-base")) {
+  // the whole film at 24 frames a second, its files kept, held to reports/film/24fps
+  const t = Date.now();
+  const made = makeFilm(makeProjectFileSystem(), { fps: 24, frames: frameCap, keepFiles: true });
+  for (const s of made.scenes) {
+    const golden = JSON.parse(read(`reports/film/24fps/${s.id}.film.json`));
+    check(`the film at 24: ${s.id}'s ${s.film.frames.length} frames and its events as reports/film/24fps`, JSON.stringify(s.film.frames) === JSON.stringify(golden.frames) && JSON.stringify(s.film.events) === JSON.stringify(golden.events) ? null : "they differ");
+  }
+  mkdirSync("reports/ext/critic/24fps", { recursive: true });
+  writeFileSync(BASE_24, `${JSON.stringify(made.files, null, 1)}\n`);
+  console.log(`saved  ${BASE_24} (${((Date.now() - t) / 1000).toFixed(0)} s)`);
+}
 const bases = {};
-const baseOf = (b) => (bases[b] ||= b === "1978" ? film1978() : filmWith(b));
+const baseOf = (b) => (bases[b] ||= fps === 24 ? film1978at24() : b === "1978" ? film1978() : filmWith(b));
 for (const ex of EXAMPLES) {
   if (only.length && !only.includes(ex.name)) continue;
   if (!ex.stages.split(" ").every((st) => BUILT[st])) continue;
+  if (fps === 24 && !ex.fps24) continue;
   console.log(`\n${ex.name}`);
   const previous = baseOf(ex.base);
   const t = Date.now();
   let run;
   try {
-    run = remakeFilm(makeProjectFileSystem(), { previous, criticism: ex.record });
+    run = remakeFilm(makeProjectFileSystem(), { previous, criticism: ex.record, fps, frames: frameCap });
   } catch (e) {
     check(`${ex.name}: remade`, `stopped: ${e.message}`);
     continue;
@@ -306,7 +338,7 @@ for (const ex of EXAMPLES) {
   for (const c of changes.criticism) check(`${c.id} (${c.words}): ${c.outcome}`, c.outcome === "not-reached" ? "no note: never heeded" : null);
   ex.check(run, changes, previous);
   // the goldens
-  const dir = `reports/ext/critic/${ex.name}`;
+  const dir = `reports/ext/critic/${fps === 24 ? "24fps/" : ""}${ex.name}`;
   if (save) mkdirSync(dir, { recursive: true });
   golden(dir, "summary.json", JSON.stringify({ base: ex.base, record: ex.record, remade: run.remade, changes }, null, 1) + "\n");
   run.scenes.forEach((s, k) => {
