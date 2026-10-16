@@ -2370,11 +2370,38 @@ try {
     await js(`(() => { const s = document.querySelector('select.which-film[data-slot="0"]'); s.value = "lib:" + ${JSON.stringify(lib.slips.id)}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
     await sleep(600);
     const two = await js(panelNow);
-    const played = await js(`(async () => { const wait = (ms) => new Promise((r) => setTimeout(r, ms)); window.__check.goScene(1, 0); document.getElementById("play").click(); await wait(1500); document.getElementById("play").click(); await wait(100); return { label: document.getElementById("frame-label").innerText, captions: [0, 1].map((r) => document.getElementById("caption-" + r).innerText.split("\\n")[0]) }; })()`);
-    check(two.view === "both" && two.pair === `lib:${lib.slips.id},lib:${lib.detail.id}` && two.head === "Two films of one description" && /Left, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND, KNOW and SLIPS\), at 4 frames a second\./.test(two.side) && /Right, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND and DETAIL\), at 4 frames a second\./.test(two.side)
-      && /Not at all: both were told the same film description\./.test(two.side) && /They were made differently: the left with some of the revival's extensions \(MEND, KNOW and SLIPS\), the right with some of the revival's extensions \(MEND and DETAIL\)\./.test(two.side) && /In pass 1, \d+ of Ani's \d+ choices of how they move came out differently on the right/.test(two.side) && /The Introduction\nLeft\n\d+ s in \d+ parts?: [^]*\nRight\n\d+ s in \d+ parts?:/.test(two.side)
-      && /^Left · Scene 1 · The Introduction/.test(two.captions[0]) && /^Right · Scene 1 · The Introduction/.test(two.captions[1]) && /^Left · Scene 2 · Kept Apart/.test(played.captions[0]) && /^Right · Scene 2 · Kept Apart/.test(played.captions[1]) && /^1\.\d \//.test(played.label),
-      `two of "Your films" side by side (the left chosen over its screen), playing together, and what differs between them: ${(two.side.match(/They were made differently[^\n]*/) || [""])[0]} ${(two.side.match(/In pass 1, [^\n]*/) || [""])[0]}`);
+    // played together: from the start of Kept Apart, paused first; if the browser here runs no
+    // animation frames (late in a long check it has been seen not to), stepped forward instead
+    const played = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms)), play = document.getElementById("play");
+      const wasPlaying = t.state.playing;
+      if (t.state.playing) play.click();
+      t.goScene(1, 0);
+      let ticks = 0, on = true;
+      const count = () => { if (!on) return; ticks++; requestAnimationFrame(count); };
+      requestAnimationFrame(count);
+      play.click();
+      for (let k = 0; k < 30 && t.state.time < 1.2; k++) await wait(100);
+      on = false;
+      if (t.state.playing) play.click();
+      let how = "played";
+      if (t.state.time < 1) { how = "stepped"; for (let k = 0; k < 6; k++) document.getElementById("fwd").click(); }
+      await wait(100);
+      return { how, wasPlaying, ticks, time: +t.state.time.toFixed(2), label: document.getElementById("frame-label").innerText, captions: [0, 1].map((r) => document.getElementById("caption-" + r).innerText.split("\\n")[0]) };
+    })()`);
+    // each part of it by name, so that a failure says which
+    const twoOk = {
+      pair: two.view === "both" && two.pair === `lib:${lib.slips.id},lib:${lib.detail.id}`, head: two.head === "Two films of one description",
+      left: /Left, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND, KNOW and SLIPS\), at 4 frames a second\./.test(two.side),
+      right: /Right, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND and DETAIL\), at 4 frames a second\./.test(two.side),
+      story: /Not at all: both were told the same film description\./.test(two.side), made: /They were made differently: the left with some of the revival's extensions \(MEND, KNOW and SLIPS\), the right with some of the revival's extensions \(MEND and DETAIL\)\./.test(two.side),
+      choices: /In pass 1, \d+ of Ani's \d+ choices of how they move came out differently on the right/.test(two.side), scenes: /The Introduction\nLeft\n\d+ s in \d+ parts?: [^]*\nRight\n\d+ s in \d+ parts?:/.test(two.side),
+      captions: /^Left · Scene 1 · The Introduction/.test(two.captions[0]) && /^Right · Scene 1 · The Introduction/.test(two.captions[1]),
+      played: /^Left · (Scene 2 · )?Kept Apart/.test(played.captions[0]) && /^Right · (Scene 2 · )?Kept Apart/.test(played.captions[1]) && /^1\.\d \//.test(played.label) && played.time >= 1,
+    };
+    const twoFailed = Object.keys(twoOk).filter((k) => !twoOk[k]);
+    check(!twoFailed.length,
+      `two of "Your films" side by side (the left chosen over its screen), playing together, and what differs between them: ${(two.side.match(/They were made differently[^\n]*/) || [""])[0]} ${(two.side.match(/In pass 1, [^\n]*/) || [""])[0]} (${played.how} to ${played.label}${played.how === "stepped" ? `: no animation frames ran here, ${played.ticks} in 3 s` : ""})${twoFailed.length ? ` (not: ${twoFailed.join(", ")}; ${JSON.stringify({ captions: two.captions.map((c) => c.split("\n")[0]), played })})` : ""}`);
     await js(`document.getElementById("stage").scrollIntoView({ block: "start" })`);
     await shot("18-side-by-side-two-films.png");
     // two different stories: said plainly, and not compared scene by scene
@@ -2539,8 +2566,9 @@ try {
     && forgot.more === "../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
     && JSON.stringify(forgot.prompts1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(forgot.promptsRevival) === JSON.stringify(PROMPT_REVIVAL_SHA),
     `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts as pinned (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);
-  // back to the 1978 film at 4 frames a second, and the switch's extensions, for what follows
-  await js(`(() => { document.querySelector('#rate [data-rate="4"]').click(); localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);
+  // back to the switch's extensions, for what follows
+  // (the 1978 film is at 24 frames a second again, as before this section)
+  await js(`(() => { localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);
 
   // the prompt in 1978 mode is as it was
   const prompts1978 = await js(`(async () => {
