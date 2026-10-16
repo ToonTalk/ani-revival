@@ -9,6 +9,10 @@ The four designs it combines, each with its review:
 - [Item (4), a bigger and better knowledge base: REVIVE;MEND, REVIVE;SLIPS and REVIVE;KNOW, written in Ani's own Lisp and switchable](design-knowledge-and-repairs.md)
 - [Mini-Ani: Ani's society of experts as an Agent Kit example, filmed in Logo](design-mini-ani.md)
 
+And one since, built in stages C0 to C3 on 16 October ("Criticism (CRITIC)", below):
+
+- [Ani responds to criticism of its films (thesis Chapter X.D, "Critics and Criticism"), as the switchable REVIVE;CRITIC extension](design-criticism.md)
+
 ## How the work is organized
 
 All new behavior is Lisp inside Ani, written in your idioms, in switchable files under `src/director/revive/`. Ani's own choice points, methods and records do the reasoning, so the existing glass box can explain the results. All four designs rejected a JavaScript layer wrapped around Ani, because the glass box would then explain our code instead of Ani's. The Agent Kit's mini-Ani is a separate teaching miniature and shares no code with the revival.
@@ -419,6 +423,31 @@ Ken tested the live film page with the four extensions on his Cinderella and his
 - *As built:* SEEN's two plans for each such character, waiting-to-wander and wandering-while-changes-run, are run from the part's initial actions, not among its movements, so that the part ends when its changes do and your Director's stopping of a film as a feeling's part ends (stage 6's finding 7) comes at the tick it did; Director reads what moves her from the plans it runs; she walks as MEND9's wander walks, each walk with dynamics of its own; the film waits for a wander while her changes run. Your Cinderella with SEEN alone: the Introduction, Kept Apart and No Longer Kept Apart frame for frame as in 1978, the Meeting with the two wandering after they meet (204 frames at 4 a second, 179 in 1978; 1,051 at 24, as in 1978), Justice from where the Meeting now leaves them (148, 84; 970, 458). With the page's set and SEEN: 222, 116, 19, 200 and 128 frames at 4 a second (the four's 222, 116, 19, 175 and 92).
 - *On the page* (15 October, the "Ken's testing on the page" commits): the switch turns on SEEN with the four (MEND, KNOW, APPEAR, CHANGE and SEEN); the film opens in color, a visitor's choice of TV kept; the character panel says why she does this, this way and for this long (Ken's scene's length, the task's share, Ani's estimate, the part's stretch, the step's stops and frames), what keeps a part going while she stands by, and where no one moves, why (your Director's repeats unwinding said as yours, as recommended); each scene's parts and steps are listed, each opening its explanation; "Cinderella beautified" is a toggle; the status line says the frame each filming has reached, that Chrome paused the tab (the time not counted), and, after minutes with nothing from Ani, offers Stop; any other set of ticks is "some of the revival's extensions (MEND, KNOW and SLIPS)"; the claude.ai copy needs no eval. Measured in headless Chrome with the page's set: your Cinderella in 2:24 at 4 frames a second and the beautified preset in 4:45; at 24, 13:44 and 26:33, on a machine busy with other work. The earlier Chrome test's 16 to 20 minutes (a shy Prince with the beautified scene, at 4 frames a second) were on a machine as busy: Node took 25 minutes over the same story then.
 - *Questions for Ken* (`reports/ext/seen/README.md`): SEEN switched on with the four, or opt-in; Cinderella and the Prince wandering apart after they meet (they could wander together); a feeling that outlasts an activity of the same part (Kind Again, 1.25 seconds still); your Director's repeats unwinding a tick a run (2.5 seconds still after the ten hits at 4 frames a second), to be said on the page or corrected in SLIPS.
+
+## Criticism (CRITIC), 16 October: stages C0 to C3
+
+The design is [design-criticism.md](design-criticism.md) (thesis Section D, "Critics and Criticism", AI-TR-540 pp. 189-191); Ken said "go ahead with the plan". REVIVE;CRITIC is a switchable extension of a new kind, loaded on demand: the pipeline loads it, with MEND, into every job of a film that has criticism, and never otherwise; the switch never turns it on. What it did to Ken's Cinderella, and what the page needs, is [reports/ext/critic/README.md](../ext/critic/README.md).
+
+- **C0, the plumbing.** The record of criticism is kept with the film (`run.criticism`), written before each job as KEN1;FILM CRITIC and read into `:critic-record`; `src/pipeline.js` has the record's API (`addCriticism`, `removeCriticism`, `checkCriticism`, `criticismWords`), `remakeFilmSteps` (from the first scene criticized on; a scene whose program comes out byte for byte as before keeps its film; the scenes before kept), `makeFilmSteps keepFiles` (`filesOf`), `glass.criticism` and `criticismChanges`. CHANGE's holding code moved unchanged into REVIVE;HOLD, which CHANGE and CRITIC share, with `hold-all-but-choice-points` for C6. `check-change` unchanged.
+- **C1, "not this way, another way"**, at both of CHOMET's levels (`get-display-method-suggestions`, `get-convey-method-suggestions`), by Ken's `reject-suggestion` with the reason `(vetoed-by-you c1)`.
+- **C2, too quick, too slow**, by `ideal-time-for-task`: a factor of 1.5, within the task's allocated time and SCENE's 8 and 1/8.
+- **C3, keep two apart and start far.** The contact table is read from the code by `tools/critic-contacts.mjs` (walks to contact and walks together, DISPLY's and the revival's), and a way that would bring the two together is set aside as a prerequisite not met; start far wraps PLACE's three placings.
+- **Ken's two examples, end to end** (`tools/check-critic.mjs`, `npm run test:critic`, goldens at 4 frames a second): No Longer Kept Apart given more time (17 frames to 30), the godmother starting far (25, first seen off the picture, walking on), both (38, 9.5 seconds, still under the scene's 10); the Introduction redone so that Cinderella doesn't meet the Prince until the third scene: with Ken's knowledge her friendliness can't be shown (cant-do) and the Introduction is 111 frames (192), Kept Apart to Justice planned again and kept, byte for byte; with KNOW and SLIPS she helps and follows her stepmother instead. Found: the plan holds them apart, but in Kept Apart's film they come within 0.055 of the screen, the Prince starting where Ken's save-positions put a character never shown (the center) and the guard's prisoner escaping towards him; partly met, and said so.
+- Not built: C4 (the language-model box), C5 (as if a distance or time were known, self-criticism), C6 (pass-1 criticism and holding a scene's other parts), and the page (the page agent's).
+
+## Questions for Ken (criticism, 16 October)
+
+Each is the revival's choice, pending Ken, as the design recommended; say if you would have it otherwise.
+
+1. **A criticism of pass 1's choices holds everyone else** (design question 1), when C6 builds it: the revival's choice, pending Ken.
+2. **A veto names the method's first word, in the task where it was given** (question 2): the revival's choice, pending Ken.
+3. **One "too quick" is a factor of 1.5, compounding, bounded by the task's allocated time and SCENE's 8 and 1/8** (question 3): the revival's choice, pending Ken. In Kept Apart one "too slow" is already held at the least the story gives the guarding.
+4. **A criticism is per film, never carried into Ani's knowledge** (question 8): the revival's choice, pending Ken.
+5. **CRITIC is loaded on demand, with MEND, for any film including "Ani as in 1978"** (question 11): the revival's choice, pending Ken. For a new story made as in 1978, the scenes remade are then planned with MEND's repairs.
+6. **CHOMET's redistribution (stage 7's question 2) is left unsettled** (question 10): the revival's choice, pending Ken; No Longer Kept Apart's "too quick" golden would change with it.
+7. **Internal self-criticism is left out** (question 9): the revival's choice, pending Ken.
+8. **Keep apart counts walks to contact and walks together**, read from Ken's code; a walk towards the other's vicinity that isn't to contact (the guard's prisoner escaping towards the Prince) is not, and the film is measured instead: the revival's choice, pending Ken. Counting it would set aside stands-guard, Kept Apart's own way of showing that the stepmother prevents their meeting.
+9. **Start far acts in all three of PLACE's placings**, not only place-medium-distance-apart as the design had it: the revival's choice, pending Ken.
 
 ## The questions as they were put
 

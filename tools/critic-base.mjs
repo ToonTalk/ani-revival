@@ -1,8 +1,8 @@
 // Ken's Cinderella as Ani made it, at 4 frames a second, as a run that can be remade
 // with criticism (src/pipeline.js remakeFilmSteps), built from the goldens rather than
 // made again. As in 1978 (film1978): its files are those tools/check-1978.mjs holds the
-// pipeline to (KEN;CP 30 as reports/pass1-choices.txt; each scene's program, summary,
-// printout and POSIT file as reports/pass2/ has them), its glass boxes
+// pipeline to (KEN;CP 30 as reports/pass1-choices.txt; each scene's program, summary and
+// POSIT file as reports/pass2/ has them, as filesOf keeps them), its glass boxes
 // reports/pass2/<scene>.glass.json, its films reports/film/<scene>.film.json and its
 // choice points app/data/pass1.json's. With extensions whose goldens tools/check-ext.mjs
 // keeps (filmWith: KNOW's in reports/ext/know, SLIPS's in reports/ext/slips), the scenes'
@@ -18,7 +18,7 @@ function film(root, filesDir, glassDir, filmDir, extensions) {
   const files = { "KEN;CP 30": read("reports/pass1-choices.txt") };
   for (const f of readdirSync(join(root, filesDir)).sort()) {
     const m = /^(ken1?)-([a-z0-9]+)\.([a-z0-9]+)$/.exec(f);
-    if (m) files[`${m[1].toUpperCase()};${m[2].toUpperCase()} ${m[3].toUpperCase()}`] = read(`${filesDir}/${f}`);
+    if (m && m[3] !== "print") files[`${m[1].toUpperCase()};${m[2].toUpperCase()} ${m[3].toUpperCase()}`] = read(`${filesDir}/${f}`);
   }
   const pass1 = JSON.parse(read("app/data/pass1.json"));
   return {

@@ -132,7 +132,7 @@ function expectedWraps() {
     "get-display-method-suggestions": ids(has("critsc") && "critsc", "critic"),
     "get-convey-method-suggestions": ids(has("critsc") && "critsc", "critic"),
     ...(has("critpc") ? { "ideal-time-for-task": ids("critpc") } : {}),
-    ...(has("critsc") ? { "place-medium-distance-apart": ids("critsc") } : {}),
+    ...(has("critsc") ? { "place-small-distance-apart": ids("critsc"), "place-medium-distance-apart": ids("critsc"), "place-large-distance-apart": ids("critsc") } : {}),
   };
 }
 

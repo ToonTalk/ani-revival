@@ -143,7 +143,7 @@ export const EXTENSIONS = [
     label: "Your criticism",
     group: "criticism",
     onDemand: true,
-    files: ["wrap", "hold", "critic", "critpc"],
+    files: ["wrap", "hold", "critic", "critpc", "critsc"],
     // "start far from" places with PLACE's large-distance-and-offstage, which Ken never
     // defined and REVIVE;MEND19 does (Ken's decision 11 of the design, pending)
     requires: ["mend"],
@@ -1997,17 +1997,20 @@ export function taskDescription(task) {
   return i > 0 ? printForm(t[i + 1]) : null;
 }
 
-// The files a run wrote (the Lisp's own, the film description a run was given, and those
-// a remake kept), as { "DIR;FN1 FN2": text }: KEN;CP 30, each scene's program, KEN1;<fn1>
-// MINI and PRINT, KEN1;<movie> POSIT, and with CHANGE the BECOME files. Kept with a run
-// (makeFilmSteps keepFiles), a film can be remade from any scene (remakeFilmSteps).
-// KEN1;FILM CRITIC is not among them: the run keeps the record itself.
+// The files a run wrote that a later job reads (the Lisp's own, the film description a
+// run was given, and those a remake kept), as { "DIR;FN1 FN2": text }: KEN;CP 30, each
+// scene's program (kept to tell whether a scene planned again comes out the same),
+// KEN1;<fn1> MINI (a later scene's from-scene reads it), KEN1;<movie> POSIT (the next
+// scene starts from it), and with CHANGE the BECOME files. Kept with a run (makeFilmSteps
+// keepFiles), a film can be remade from any scene (remakeFilmSteps): Ken's Cinderella's
+// come to about 116,000 characters. Not the printouts (KEN1;<fn1> PRINT, which no job
+// reads, 160,000 more), nor KEN1;FILM CRITIC: the run keeps the record itself.
 const KEPT_ORIGINS = new Set(["written", "changed", "kept"]);
 export function filesOf(fs) {
   const out = {};
   for (const [dir, d] of fs.dirs) {
     for (const [fn1, versions] of d) {
-      for (const [fn2, e] of versions) if (KEPT_ORIGINS.has(e.origin)) out[`${dir};${fn1} ${fn2}`] = fs.textOf(e);
+      for (const [fn2, e] of versions) if (KEPT_ORIGINS.has(e.origin) && fn2 !== "PRINT") out[`${dir};${fn1} ${fn2}`] = fs.textOf(e);
     }
   }
   return out;
@@ -2169,12 +2172,21 @@ export function remakeFilm(fs, options = {}) {
 //              heeded-criticism: and unmet-criticism: notes of that id (glassBox's
 //              criticism, with the scene); outcome "met" (heeded, nothing unmet),
 //              "partly" (some unmet, or a pace held at its bound), "not-met" (only
-//              unmet) or "not-reached" (no note: nothing it names was planned, as a
-//              start-far of a character who never comes on); cantDo, the tasks of its
+//              unmet, or for keep-apart a walk or a film that still brings them
+//              within Ken's small distance) or "not-reached" (no note: nothing it names
+//              was planned, as a start-far of a character who never comes on); cantDo,
+//              the tasks of its
 //              scenes Ani could not do once it heeded it and could before, or that
 //              weren't there before (task description and scene);
 //              contacts, for keep-apart, any walk that still brings the two together
-//              (contactsIn), which should be none
+//              (contactsIn), which should be none; and closest, for each of its scenes
+//              filmed, how close the two came on the picture (closestApproach: { scene,
+//              distance, frame }, distance null if never on it together), which Ken's
+//              post-condition wants no less than his small distance, .33 of the screen
+//              (place.45:103-105): the plan can hold them apart and the film still bring
+//              them close, where they start close (the Meeting) or a walk that isn't
+//              to contact goes towards the other (the guard's prisoner escaping towards
+//              the one she is kept from, disply.311:465-473)
 export function criticismChanges(previous, remade) {
   const num = (x) => (x === undefined || x === null || x === "nil" ? null : Number(x));
   const taskState = (t) => ({ choice: t.variables["current-choice"] || "nil", status: t.variables.status || null, runningTime: num(t.variables["running-time"]) });
@@ -2212,6 +2224,7 @@ export function criticismChanges(previous, remade) {
     const notes = [];
     const cantDo = [];
     let contacts = [];
+    const closest = [];
     for (const s of remade.scenes || []) {
       if (!s.glass) continue;
       for (const n of s.glass.criticism || []) if (n.id === item.id) notes.push({ scene: s.id, ...n });
@@ -2220,12 +2233,16 @@ export function criticismChanges(previous, remade) {
       const b = before.get(s.id);
       const was = new Set(((b && b.glass && b.glass.tasks) || []).filter((t) => t.variables.status === "cant-do").map(taskDescription));
       for (const t of s.glass.tasks) if (t.variables.status === "cant-do" && !was.has(taskDescription(t))) cantDo.push({ scene: s.id, task: taskDescription(t) });
-      if (item.kind === "keep-apart") contacts = contacts.concat(contactsIn(s.glass).filter((c) => item.between.includes(c.a) && item.between.includes(c.b)).map((c) => ({ scene: s.id, ...c })));
+      if (item.kind === "keep-apart") {
+        contacts = contacts.concat(contactsIn(s.glass).filter((c) => item.between.includes(c.a) && item.between.includes(c.b)).map((c) => ({ scene: s.id, ...c })));
+        if (s.film) closest.push({ scene: s.id, ...(closestApproach(s.film, item.between[0], item.between[1]) || { distance: null, frame: null }) });
+      }
     }
     const heeded = notes.filter((n) => n.heeded), unmet = notes.filter((n) => !n.heeded);
     const held = heeded.some((n) => /held-to/.test(n.because || ""));
-    const outcome = !notes.length ? "not-reached" : !heeded.length ? "not-met" : unmet.length || held || contacts.length ? "partly" : "met";
-    return { id: item.id, item, words: criticismWords(item), outcome, notes, cantDo, ...(item.kind === "keep-apart" ? { contacts } : {}) };
+    const near = closest.some((c) => c.distance !== null && c.distance < SMALL_DISTANCE);
+    const outcome = !notes.length ? "not-reached" : !heeded.length ? "not-met" : unmet.length || held || contacts.length || near ? "partly" : "met";
+    return { id: item.id, item, words: criticismWords(item), outcome, notes, cantDo, ...(item.kind === "keep-apart" ? { contacts, closest } : {}) };
   });
   return { scenes, criticism };
 }
@@ -2256,6 +2273,7 @@ export function contactsIn(glass) {
 // distances (xy-positions, the turtle's coordinates over its size, dichar.103:17-19,
 // 69-75; Ken's small distance is under .33, place.45:103-105), or null if they were never
 // on the picture together. The turtle's size is taken from the picture, 1000 high.
+export const SMALL_DISTANCE = 0.33; // Ken's small-distance?, place.45:103-105
 export function closestApproach(f, a, b) {
   const size = [(1000 * f.picture.width) / f.picture.height, 1000];
   let best = null;

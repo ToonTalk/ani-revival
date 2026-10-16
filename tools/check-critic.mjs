@@ -13,7 +13,9 @@
 //                        "Cinderella is not to meet the Prince until the third scene"
 //                        (C3), with Ken's knowledge
 //   intro-apart-slips    the same, with KNOW and SLIPS, where Ani picks "something else
-//                        to establish Cinderella's personality"
+//                        to establish Cinderella's personality"; the plan holds them
+//                        apart and the film of Kept Apart does not (README.md)
+//   intro-apart-slips-far  and the Prince starting far from Cinderella in Kept Apart too
 //   nlka-veto            "not this way": goes-to-and-accompanys vetoed in No Longer Kept
 //                        Apart (C1, how it is shown)
 //   intro-convey-veto    "show something else": accompanys vetoed in establishing
@@ -33,7 +35,7 @@
 // Prints each check with ok or FAIL; exits non-zero if any fails. About fifteen minutes.
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { remakeFilm, criticismChanges, contactsIn, closestApproach, taskDescription, SCENES, EXTENSIONS } from "../src/pipeline.js";
+import { remakeFilm, criticismChanges, contactsIn, closestApproach, taskDescription, whyTheyAct, SCENES, EXTENSIONS } from "../src/pipeline.js";
 import { film1978, filmWith } from "./critic-base.mjs";
 
 const args = process.argv.slice(2);
@@ -122,7 +124,30 @@ const EXAMPLES = [
       check("Ani picks something else to establish Cinderella's personality: she helps her stepmother", /\(helps-along cinderella step-mother/.test(chosen) ? null : chosen.slice(0, 300));
       check("and follows her", /\(follows-behind cinderella step-mother/.test(chosen) ? null : "no follows-behind");
       check("the personality task is not cant-do", t.variables.status !== "cant-do" ? null : "cant-do");
-      keptApart(run, ch, ["introduction", "kept-apart"]);
+      keptApart(run, ch, ["introduction"]);
+      // Kept Apart: the plan holds them apart, the film does not (README.md): the Prince,
+      // never on the stage in the Introduction now, starts Kept Apart at the center,
+      // where Ken's save-positions put him (aninit.65:158-173), near enough that there is
+      // no cut, and Cinderella, the guard's prisoner, escapes towards him
+      // (plan-stands-guard-cycle, disply.311:465-473) before the stepmother stops her
+      keptApart(run, ch, ["kept-apart"], { plan: true });
+      nearByEscape(run, ch, "kept-apart", 0);
+      const prince = sceneOf(run, "kept-apart").glass.subscenes[0].variables["(location-of prince)"] || "";
+      check("the Prince starts Kept Apart where the Introduction's POSIT file put him, never on the stage there", /ended up here in introduction/.test(prince) && !sceneOf(run, "introduction").film.frames.some((f) => f.segs.prince) ? null : prince);
+    },
+  },
+  {
+    name: "intro-apart-slips-far", stages: "C3", base: "slips",
+    record: [APART, { id: "c2", kind: "start-far", scene: "kept-apart", who: "prince", from: "cinderella", ...you("Have the Prince start far from Cinderella in Kept Apart") }],
+    check(run, ch) {
+      const where = sceneOf(run, "kept-apart").glass.subscenes[0].variables["(location-of prince)"] || "";
+      check("the Prince placed far from Cinderella and off the stage, by PLACE", /offstage/.test(where) ? null : where);
+      keptApart(run, ch, ["introduction"]);
+      keptApart(run, ch, ["kept-apart"], { plan: true });
+      // started far, they come less close, but the guard's prisoner still escapes towards
+      // him: the start-far met, the keep-apart partly
+      nearByEscape(run, ch, "kept-apart", 0.2);
+      expectEqual("start far met, keep apart partly", [outcome(ch, "c1"), outcome(ch, "c2")], ["partly", "met"]);
     },
   },
   {
@@ -177,12 +202,21 @@ const EXAMPLES = [
   },
   {
     name: "meeting-apart", stages: "C3", base: "1978", record: [{ id: "c1", kind: "keep-apart", scenes: ["meeting"], between: ["cinderella", "prince"], ...you("Keep Cinderella and the Prince apart in the Meeting") }],
-    check(run, ch) {
+    check(run, ch, prev) {
       const meeting = sceneOf(run, "meeting");
-      const cant = meeting.glass.tasks.filter((t) => t.variables.status === "cant-do").map(taskDescription);
-      check("most of the Meeting can't be made without bringing them together", cant.length >= 3 ? null : `cant-do: ${cant.join(", ")}`);
+      // its parts: the convey tasks of 1978's Meeting, each gone or cant-do now, or made
+      const parts = sceneOf(prev, "meeting").glass.tasks.filter((t) => t.variables.parent === "convey-task").map(taskDescription);
+      const now = new Map(meeting.glass.tasks.map((t) => [taskDescription(t), t.variables.status || "made"]));
+      const lost = parts.filter((d) => !now.has(d) || now.get(d) === "cant-do");
+      check(`most of the Meeting can't be made without bringing them together: ${lost.length} of its ${parts.length} parts`, lost.length * 2 > parts.length ? null : `lost only ${lost.join(", ")}`);
       check("the film is made", meeting.film && meeting.film.frames.length ? null : "no film");
-      keptApart(run, ch, ["meeting"]);
+      keptApart(run, ch, ["meeting"], { plan: true });
+      // they start the Meeting together, where No Longer Kept Apart left them, and nothing
+      // in Ani moves two apart: partly met
+      const near = ch.criticism[0].closest[0];
+      const first = sceneOf(prev, "no-longer-kept-apart").film;
+      const atEnd = closestApproach({ ...first, frames: first.frames.slice(-1) }, "cinderella", "prince");
+      check(`they start the Meeting together (${near.distance}), as No Longer Kept Apart left them (${atEnd && atEnd.distance}): partly met`, near.distance < 0.33 && atEnd && atEnd.distance < 0.33 && ch.criticism[0].outcome === "partly" ? null : JSON.stringify({ near, atEnd, outcome: ch.criticism[0].outcome }));
     },
   },
 ];
@@ -193,19 +227,32 @@ function firstSeenOffThePicture(f, who) {
   check(`${who.replace(/-/g, " ")} first seen off the picture (frame ${k}), walking on`, k >= 0 && !f.frames[k].segs[who] ? null : k < 0 ? "never seen" : "on the picture at once");
 }
 
-// In the scenes kept apart: no walk of their plans brings the two together, and in the
-// films they never come within Ken's small distance (place.45:103-105) while both are
-// on the picture.
-function keptApart(run, ch, scenes) {
+// In the scenes kept apart: no walk of their plans brings the two together, and (unless
+// plan, the plan alone) in the films they never come within Ken's small distance
+// (place.45:103-105) while both are on the picture.
+function keptApart(run, ch, scenes, { plan = false } = {}) {
   for (const id of scenes) {
     const s = sceneOf(run, id);
     const walks = together(s, "cinderella", "prince");
     check(`${id}: no walk of the plan brings Cinderella and the Prince together`, walks.length ? JSON.stringify(walks) : null);
+    if (plan) continue;
     const near = closestApproach(s.film, "cinderella", "prince");
     check(`${id}: in the film they never come within Ken's small distance (.33 of the screen)${near ? `; closest ${near.distance}, frame ${near.frame}` : "; never on the picture together"}`, near && near.distance < 0.33 ? `${near.distance} at frame ${near.frame}` : null);
   }
   const c = ch.criticism.find((x) => x.item.kind === "keep-apart");
   check("no contacts left (criticismChanges)", c.contacts.length ? JSON.stringify(c.contacts) : null);
+}
+
+// In a scene kept apart whose film still brings them within Ken's small distance: how
+// close (at least atLeast), when, that Cinderella was then escaping the guard towards the
+// Prince (the guarding's prisoner-escapes, disply.311:465-473), and that the outcome
+// says so (partly).
+function nearByEscape(run, ch, id, atLeast) {
+  const s = sceneOf(run, id);
+  const near = ch.criticism[0].closest.find((c) => c.scene === id);
+  const acts = whyTheyAct(s.glass, s.film).activities.filter((a) => a.characters.includes("cinderella") && a.film && a.film.spans.some((sp) => sp.begin <= near.frame && sp.end >= near.frame));
+  check(`${id}: the film brings them within Ken's small distance, ${near.distance} at frame ${near.frame}, as Cinderella escapes the guard towards him: partly met`,
+    near.distance !== null && near.distance < 0.33 && near.distance >= atLeast && acts.some((a) => /^\(activity-of prisoner-escapes/.test(a.plan)) && ch.criticism[0].outcome === "partly" ? null : JSON.stringify({ near, acts: acts.map((a) => a.plan), outcome: ch.criticism[0].outcome }));
 }
 
 const FILE_KEY = (run, scene) => {
