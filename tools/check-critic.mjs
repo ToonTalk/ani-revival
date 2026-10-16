@@ -156,7 +156,7 @@ const EXAMPLES = [
   },
   {
     name: "ka-too-slow", stages: "C2", base: "1978", record: [{ id: "c1", kind: "pace", scene: "kept-apart", tasks: [GUARD], direction: "too-slow", times: 1, ...you("Too slow") }],
-    check(run, ch) {
+    check(run, ch, prev) {
       const t = taskOf(sceneOf(run, "kept-apart"), GUARD);
       const [lo] = t.variables["allocated-time"].slice(1, -1).split(" ").map(Number);
       expectEqual("the guarding shortened, to the least its allocated time allows", Number(t.variables["running-time"]), lo);
@@ -166,6 +166,13 @@ const EXAMPLES = [
       const t3 = taskOf(sceneOf(thrice, "kept-apart"), GUARD);
       expectEqual("said three times, no shorter", Number(t3.variables["running-time"]), lo);
       expectEqual("three times: partly met, held at the bound again", outcome(criticismChanges(run, thrice), "c1"), "partly");
+      // a part that already takes the least time the story gives it: not met
+      const prince = "(accompanys prince cinderella)";
+      const atBound = remakeFilm(makeProjectFileSystem(), { previous: prev, criticism: [{ id: "c1", kind: "pace", scene: "meeting", tasks: [prince], direction: "too-slow", times: 1, ...you("Too slow") }] });
+      const changes = criticismChanges(prev, atBound);
+      expectEqual("the Meeting's Prince accompanying Cinderella, at its least already: not met", outcome(changes, "c1"), "not-met");
+      check("and its note says it was held to the time the story gives it", /held-to \(allocated-time/.test(changes.criticism[0].notes.map((n) => n.because).join(" ")) ? null : JSON.stringify(changes.criticism[0].notes));
+      expectEqual("the Meeting planned again, the same program, its film kept", howOf(atBound).meeting, "unchanged");
     },
   },
   {

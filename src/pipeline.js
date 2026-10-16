@@ -143,7 +143,7 @@ export const EXTENSIONS = [
     label: "Your criticism",
     group: "criticism",
     onDemand: true,
-    files: ["wrap", "hold", "critic"],
+    files: ["wrap", "hold", "critic", "critpc"],
     // "start far from" places with PLACE's large-distance-and-offstage, which Ken never
     // defined and REVIVE;MEND19 does (Ken's decision 11 of the design, pending)
     requires: ["mend"],
