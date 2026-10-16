@@ -9,10 +9,11 @@
 // a remake with an empty record keeping every scene it plans again.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { makeProjectFileSystem } from "../src/its/node-fs.js";
+import { readFileSync } from "node:fs";
+import { makeProjectFileSystem, mountRunOutputs } from "../src/its/node-fs.js";
 import {
   EXTENSIONS, extensionsFor, boot, withCritic, criticismToLisp, checkRecord, addCriticism, removeCriticism, criticismWords, paceFactor,
-  remakeFilm, filesOf, taskDescription, criticismChanges, contactsIn,
+  remakeFilm, filesOf, taskDescription, criticismChanges, contactsIn, pass2,
 } from "../src/pipeline.js";
 import { choicesOfText, choicesOfItsFile, compareChoices } from "../tools/choices.mjs";
 import { film1978 } from "../tools/critic-base.mjs";
@@ -120,18 +121,44 @@ test("the record: checked, written as Lisp without the words said, added to and 
   for (const c of RECORD) assert.equal(typeof criticismWords(c), "string");
 });
 
+// Each of Ken's functions CRITIC's files wrap, with the ids of its wrappers, newest
+// first, as the registry's files have them.
+function expectedWraps() {
+  const files = EXTENSIONS.find((x) => x.id === "critic").files;
+  const has = (f) => files.includes(f);
+  const ids = (...xs) => `(${xs.filter(Boolean).join(" ")})`;
+  return {
+    "record-choice": ids("hold"),
+    "get-display-method-suggestions": ids(has("critsc") && "critsc", "critic"),
+    "get-convey-method-suggestions": ids(has("critsc") && "critsc", "critic"),
+    ...(has("critpc") ? { "ideal-time-for-task": ids("critpc") } : {}),
+    ...(has("critsc") ? { "place-medium-distance-apart": ids("critsc") } : {}),
+  };
+}
+
 test("the wrappers: installed once each, in their files' hooks; Ken's functions alone without CRITIC", () => {
   const L = boot(makeProjectFileSystem(), { criticism: RECORD });
   const run = runner(L);
-  for (const f of ["choose", "chomet"]) run(`(load '|ken;${f} >|)`);
-  assert.equal(wraps(run, "record-choice"), "(hold)");
-  for (const f of ["choose", "chomet"]) run(`(load '|ken;${f} >|)`);
-  for (const f of ["hold", "critic"]) run(`(load '|revive;${f} >|)`);
-  assert.equal(wraps(run, "record-choice"), "(hold)");
+  const kens = ["choose", "chomet", "place"];
+  for (const f of kens) run(`(load '|ken;${f} >|)`);
+  for (const [f, w] of Object.entries(expectedWraps())) assert.equal(wraps(run, f), w, f);
+  // Ken's files loaded again, and CRITIC's: each wrapped once still
+  for (const f of kens) run(`(load '|ken;${f} >|)`);
+  for (const f of EXTENSIONS.find((x) => x.id === "critic").files) if (f !== "wrap") run(`(load '|revive;${f} >|)`);
+  for (const [f, w] of Object.entries(expectedWraps())) assert.equal(wraps(run, f), w, `${f}, loaded again`);
   assert.equal(run("(length :critic-record)"), "4", "loaded again, the record is kept");
   const plain = runner(boot(makeProjectFileSystem()));
-  for (const f of ["choose", "chomet"]) plain(`(load '|ken;${f} >|)`);
-  assert.equal(wraps(plain, "record-choice"), "nil");
+  for (const f of kens) plain(`(load '|ken;${f} >|)`);
+  for (const f of Object.keys(expectedWraps())) assert.equal(wraps(plain, f), "nil", f);
+});
+
+test("with a record that criticizes another scene, every wrapper passes through: No Longer Kept Apart planned as in 1978", () => {
+  const fs = makeProjectFileSystem();
+  mountRunOutputs(fs, "reports/pass2", ["KEN;NO LONGER", "KEN1;NO MINI", "KEN1;NO PRINT"]);
+  const elsewhere = RECORD.map((c) => (c.kind === "keep-apart" ? { ...c, scenes: ["introduction"] } : { ...c, scene: "meeting" }));
+  const { glass } = pass2(fs, "no-longer-kept-apart", { criticism: elsewhere });
+  assert.equal(JSON.stringify(glass, null, 1), readFileSync("reports/pass2/no-longer-kept-apart.glass.json", "utf8"));
+  assert.equal(fs.textOf(fs.find({ dir: "KEN", fn1: "NO", fn2: "LONGER" })), readFileSync("reports/pass2/ken-no.longer", "utf8"));
 });
 
 test("REVIVE;HOLD: with every choice held, pass 1 makes CP 29's choices; holding none but one frees that one", () => {

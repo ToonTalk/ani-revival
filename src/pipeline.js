@@ -2171,7 +2171,8 @@ export function remakeFilm(fs, options = {}) {
 //              "partly" (some unmet, or a pace held at its bound), "not-met" (only
 //              unmet) or "not-reached" (no note: nothing it names was planned, as a
 //              start-far of a character who never comes on); cantDo, the tasks of its
-//              scenes Ani could not do once it heeded it (task description and scene);
+//              scenes Ani could not do once it heeded it and could before, or that
+//              weren't there before (task description and scene);
 //              contacts, for keep-apart, any walk that still brings the two together
 //              (contactsIn), which should be none
 export function criticismChanges(previous, remade) {
@@ -2215,7 +2216,10 @@ export function criticismChanges(previous, remade) {
       if (!s.glass) continue;
       for (const n of s.glass.criticism || []) if (n.id === item.id) notes.push({ scene: s.id, ...n });
       if (!criticismScenes(item).includes(s.id)) continue;
-      for (const t of s.glass.tasks) if (t.variables.status === "cant-do") cantDo.push({ scene: s.id, task: taskDescription(t) });
+      // those Ani could do before (or that weren't there)
+      const b = before.get(s.id);
+      const was = new Set(((b && b.glass && b.glass.tasks) || []).filter((t) => t.variables.status === "cant-do").map(taskDescription));
+      for (const t of s.glass.tasks) if (t.variables.status === "cant-do" && !was.has(taskDescription(t))) cantDo.push({ scene: s.id, task: taskDescription(t) });
       if (item.kind === "keep-apart") contacts = contacts.concat(contactsIn(s.glass).filter((c) => item.between.includes(c.a) && item.between.includes(c.b)).map((c) => ({ scene: s.id, ...c })));
     }
     const heeded = notes.filter((n) => n.heeded), unmet = notes.filter((n) => !n.heeded);

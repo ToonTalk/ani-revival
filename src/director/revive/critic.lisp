@@ -107,3 +107,76 @@
        (or (member actor :critic-noted) (setq :critic-noted (cons actor :critic-noted)))
        actor))
 
+;;; ------------------------------------------------- 1. another way: a veto (Ken's (1))
+;;;
+;;; "If one says that a particular activity in a subscene was poorly chosen then Ani
+;;; could redo that subscene selecting any reasonable alternatives to that activity",
+;;; by "removing those alternatives that were vetoed by the user" (p. 190 and its
+;;; footnote). CHOMET chooses a task's methods from two lists (choose-methods-for-task,
+;;; chomet.123:200-203): its display suggestions, how it is shown
+;;; (get-display-method-suggestions, chomet.123:205-207), and, for an establish task,
+;;; its related convey suggestions, what is shown (get-convey-method-suggestions,
+;;; chomet.123:213-214; choose-a-few-convey-methods, chomet.123:474). Each list is
+;;; wrapped, and a suggestion whose method a criticism of the task vetoes is set aside
+;;; by Ken's own reject-suggestion (chomet.123:305-310), with the reason
+;;;   (vetoed-by-you c1)
+;;; so that it is in the task's rejected-suggestions beside Ken's reasons. CHOMET then
+;;; chooses among what is left as ever, and when nothing is left Ken's own path takes
+;;; over (approve-or-remake-tasks-choices, chomet.123:9-36): a suggestion set aside for
+;;; its time may be brought back (resurect-bad-time-fits, chomet.123:187), and failing
+;;; that the task is cant-do. A vetoed one is never brought back, since its reason is no
+;;; time's. CHOMET's unchoose memorizes the set-aside suggestions back before it chooses
+;;; again (scene.9:318-330), and the wrapper sets them aside again.
+;;;
+;;; What a veto names (the revival's choice, pending Ken: design question 2): the
+;;; method's name, its first word (goes-to-and-accompanys, accompanys), as Ken's footnote
+;;; vetoes "alternatives", not argument lists; in the task it was given in, not the
+;;; scene or the film, since a veto that spread to other tasks would be the user
+;;; arranging the film rather than criticizing a choice.
+
+;; The method of a display suggestion, (goes-to-and-accompanys fairy-godmother ...),
+;; and of a related convey suggestion, (accompanys cinderella prince): the value of the
+;; suggestion's value, as choose-a-display-method and choose-a-few-convey-methods read
+;; them (chomet.123:226, 517).
+(defun critic-display-method-of (suggestion)
+  (get (get suggestion 'value) 'value))
+
+(defun critic-convey-method-of (related-suggestion)
+  (get (get (get related-suggestion 'main-suggestion) 'value) 'value))
+
+;; The criticism of the task that vetoes the method at the level, or nil.
+(defun critic-vetoing (task level method)
+  (do ((c (critic-for-task 'another-way task) (rest c)))
+      ((null c) nil)
+      (and (eq (get (first c) 'level) level)
+	   (not (atom method))
+	   (eq (get (first c) 'vetoes) (first method))
+	   (return (first c)))))
+
+;; The suggestions with those the record vetoes for the task set aside, Ken's
+;; reject-suggestion giving the reason, and the veto noted on the task.
+(defun critic-without-vetoed (suggestions task level method-of)
+  (do ((s suggestions (rest s))
+       (kept nil))
+      ((null s) (reverse kept))
+      (let ((c (critic-vetoing task level (funcall method-of (first s)))))
+	   (cond (c (reject-suggestion task (first s) (list 'vetoed-by-you (get c 'id)))
+		    (critic-heeded task c 'another-way (funcall method-of (first s)) 'set-aside
+				   (list 'vetoed-by-you level)))
+		 (t (setq kept (cons (first s) kept)))))))
+
+(defun get-display-method-suggestions-heeding-criticism (task)
+  (let ((suggestions (funcall (revival-wrapped 'get-display-method-suggestions 'critic) task)))
+       (cond ((null :critic-record) suggestions)
+	     (t (critic-without-vetoed suggestions task 'display 'critic-display-method-of)))))
+
+(defun get-convey-method-suggestions-heeding-criticism (task)
+  (let ((suggestions (funcall (revival-wrapped 'get-convey-method-suggestions 'critic) task)))
+       (cond ((null :critic-record) suggestions)
+	     (t (critic-without-vetoed suggestions task 'convey 'critic-convey-method-of)))))
+
+(+after-load '|ken;chomet >|
+  '(progn (revival-wrap 'get-display-method-suggestions 'critic
+			'get-display-method-suggestions-heeding-criticism)
+	  (revival-wrap 'get-convey-method-suggestions 'critic
+			'get-convey-method-suggestions-heeding-criticism)))
