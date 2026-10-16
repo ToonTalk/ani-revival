@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A guide for teachers · Ani's Cinderella</title>
+<meta name="description" content="Session plans, printable activity cards, discussion questions and practical notes for using Ani's Cinderella in classrooms, libraries and university courses.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0c0b'/%3E%3Cpath d='M32 10.5 L45.2 51.2 L10.6 26 L53.4 26 L18.8 51.2 Z' fill='none' stroke='%235be06f' stroke-width='5.2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<style>
+/* The film page's look (app/film.template.html): its fonts, its color tokens, its light
+   and dark themes, its labels and its details; with tables for plans and cards to print. */
+:root {
+  --paper: #f3f5f2; --sheet: #ffffff; --ink: #1c2320; --muted: #5b6661; --rule: #d5dbd6;
+  --accent: #1f5a8e; --accent-soft: #e2ebf3; --chosen: #2b7a49; --chosen-soft: #e3f1e7;
+  --rejected: #a3433a; --rejected-soft: #f6e4e1; --screen: #0a0c0b; --screen-edge: #2c3330;
+  --ours: #7a4a92; --ours-soft: #f2eaf6;
+  --display: "Spectral", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+    --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
+    --screen: #000000; --screen-edge: #313a36;
+    --ours: #c49ad8; --ours-soft: #241b2a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+  --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
+  --screen: #000000; --screen-edge: #313a36;
+  --ours: #c49ad8; --ours-soft: #241b2a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.6 var(--body);
+  padding-inline: max(16px, 3vw); padding-block: 24px 56px;
+}
+.wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; line-height: 1.25; }
+h3 { font-size: 1.12rem; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.ui { font-weight: 600; }
+q { quotes: "“" "”" "‘" "’"; }
+cite { font-style: normal; color: var(--muted); }
+ul.list, ol.list { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 70ch; }
+
+header { display: grid; gap: 10px; }
+header .intro { color: var(--muted); font-size: 1.06rem; max-width: 66ch; }
+nav.site, nav.toc { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.site a, nav.toc a {
+  border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px;
+  padding: 3px 12px; font-size: 0.88rem; text-decoration: none; color: var(--ink);
+}
+nav.site a:hover, nav.toc a:hover { border-color: var(--accent); color: var(--accent); }
+nav.site a.here { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+nav.toc { gap: 4px 6px; }
+nav.toc a { font-size: 0.82rem; padding: 2px 10px; background: transparent; }
+
+section { display: grid; gap: 14px; }
+section > p, .prose { max-width: 70ch; }
+.prose { display: grid; gap: 10px; }
+.section-head { display: grid; gap: 6px; border-top: 1px solid var(--rule); padding-top: 22px; }
+.section-head p { color: var(--muted); max-width: 66ch; }
+
+/* at a glance */
+.glance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.glance > div { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; align-content: start; }
+.glance dt { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.glance dd { margin: 0; font-size: 0.95rem; }
+@media (max-width: 720px) { .glance { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .glance { grid-template-columns: minmax(0, 1fr); } }
+
+/* learning goals */
+.goals { display: grid; gap: 8px; }
+
+/* details, as on the film page */
+details { border-top: 1px solid var(--rule); padding-top: 8px; }
+details > summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: baseline; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--muted); font-size: 0.8em; transition: transform .15s; display: inline-block; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > .body { display: grid; gap: 8px; padding: 8px 0 2px 16px; }
+details.goal { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; }
+details.goal > .body { padding-left: 16px; }
+details.plain { border-top: 0; padding-top: 0; }
+details.plain > summary { font-weight: 500; color: var(--accent); }
+
+/* tables: session plans and model options */
+.table-wrap { overflow-x: auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.t { white-space: nowrap; font-family: var(--mono); font-size: 0.82rem; color: var(--muted); padding-top: 10px; }
+/* on a phone, each row of a plan becomes a small block */
+@media (max-width: 600px) {
+  table.stack thead { display: none; }
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+  table.stack tr { border-bottom: 1px solid var(--rule); padding: 8px 0; }
+  table.stack tr:last-child { border-bottom: 0; }
+  table.stack td { border: 0; padding: 2px 12px; }
+  table.stack td:empty { display: none; }
+  table.stack td[data-h]::before { content: attr(data-h) ": "; font-weight: 600; color: var(--muted); font-size: 0.8rem; }
+}
+
+.plan { display: grid; gap: 10px; }
+.plan h3 { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.plan h3 .muted { font-family: var(--body); font-weight: 400; font-size: 0.9rem; }
+
+/* the activity cards */
+.cards { display: grid; gap: 14px; }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 18px; display: grid; gap: 8px; min-width: 0; }
+.card.start { border-left: 4px solid var(--chosen); }
+.card.further { border-left: 4px solid var(--accent); }
+.card.hard { border-left: 4px solid var(--rejected); }
+.card-head { display: grid; grid-template-columns: minmax(26px, max-content) minmax(0, 1fr); gap: 2px 10px; align-items: start; }
+.card .n { display: inline-grid; place-items: center; min-width: 26px; padding: 0 7px; height: 26px; border-radius: 50%; color: var(--sheet); font-weight: 600; font-size: 0.84rem; margin-top: 1px; }
+.card.start .n { background: var(--chosen); }
+.card.further .n { background: var(--accent); }
+.card.hard .n { background: var(--rejected); }
+.card-head .meta { grid-column: 2; color: var(--muted); font-size: 0.84rem; }
+.card .row { display: grid; grid-template-columns: 7.2em minmax(0, 1fr); gap: 8px; align-items: baseline; font-size: 0.95rem; }
+.card .row > .label { padding-top: 1px; }
+.card ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+@media (max-width: 520px) { .card .row { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+.print-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.btn { border: 1px solid var(--ink); background: var(--ink); color: var(--paper); border-radius: 8px; min-height: 34px; padding: 4px 14px; font: inherit; font-size: 0.92rem; cursor: pointer; }
+.btn:hover { opacity: 0.9; }
+
+.callout { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; max-width: 74ch; }
+.callout.warn { background: var(--rejected-soft); }
+.checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 74ch; }
+.checklist li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; }
+.checklist li::before { content: ""; width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; margin-top: 5px; }
+
+.questions { display: grid; gap: 8px; }
+.q { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: 10px 14px; }
+.q > summary { font-family: var(--display); font-size: 1.06rem; font-weight: 600; }
+.quotes { display: grid; gap: 12px; }
+blockquote { margin: 0; border-left: 3px solid var(--rule); padding: 2px 0 2px 12px; font-family: var(--display); font-style: italic; font-size: 1.05rem; max-width: 70ch; }
+blockquote cite { display: block; font-family: var(--body); font-style: normal; font-size: 0.84rem; }
+
+footer { color: var(--muted); font-size: 0.86rem; display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 16px; }
+
+/* printing: light colors, no navigation, each card and table row whole, every details
+   opened first; "Print the activity cards" prints the cards alone, one after another */
+@media print {
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) {
+    --paper: #ffffff; --sheet: #ffffff; --ink: #000000; --muted: #444444; --rule: #bbbbbb;
+    --accent: #1f5a8e; --accent-soft: #eef3f8; --chosen: #2b7a49; --chosen-soft: #eef6f0; --rejected: #a3433a; --rejected-soft: #faefed;
+    color-scheme: light;
+  }
+  body { padding: 0; font-size: 10.5pt; }
+  nav.site, nav.toc, .no-print { display: none !important; }
+  .wrap { max-width: none; gap: 16px; }
+  .card, .callout, .q, .goal, blockquote, tr, .glance > div { break-inside: avoid; }
+  .section-head, h2, h3 { break-after: avoid; }
+  details > summary::before { content: none; }
+  details { border-top: 0; }
+  a { color: inherit; text-decoration: none; }
+  .table-wrap { overflow: visible; }
+  .card .n { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body.cards-only .wrap > *:not(#cards) { display: none !important; }
+  body.cards-only #cards > .section-head, body.cards-only #cards > .print-bar { display: none !important; }
+  body.cards-only .card { margin-bottom: 4mm; }
+}
+@page { margin: 14mm 12mm; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
+    <h1>A guide for teachers</h1>
+    <p class="intro">On <a href="index.html">Ani's Cinderella</a>, learners watch a film made in 1978 by an AI program, ask any character why it does what it does, change the story, and compare Ani's way of thinking with today's language models. This guide has session plans, printable activity cards, discussion questions and practical notes for classrooms, libraries and university courses.</p>
+    <nav class="site" aria-label="The site">
+      <a href="index.html">The film</a>
+      <a href="students.html">For students</a>
+      <a href="teachers.html" class="here" aria-current="page">For teachers</a>
+      <a href="making-of.html">How Ani was brought back</a>
+    </nav>
+  </header>
+
+  <nav class="toc" aria-label="On this page">
+    <span class="label" style="align-self:center;margin-right:4px">On this page</span>
+    <a href="#glance">At a glance</a>
+    <a href="#learn">What students learn</a>
+    <a href="#ages">Ages</a>
+    <a href="#setup">Before the session</a>
+    <a href="#plans">Session plans</a>
+    <a href="#cards">Activity cards</a>
+    <a href="#discuss">Discussion</a>
+    <a href="#assess">Assessment</a>
+    <a href="#trouble">Troubleshooting</a>
+    <a href="#privacy">Safety and privacy</a>
+    <a href="#reading">Background reading</a>
+  </nav>
+
+  <section id="glance" aria-labelledby="glance-h">
+    <h2 id="glance-h">At a glance</h2>
+    <div class="prose">
+      <p>Ani is the program in Ken Kahn's MIT thesis (1979). Given a short description of a story, it reasons its way to an animated film of moving shapes, and records why it made every choice. The film page runs Ken's 1978 program again, in the browser, so learners can question it, change the story and see what Ani does.</p>
+    </div>
+    <dl class="glance">
+      <div><dt>Ages</dt><dd>10 and up with an adult nearby; 13 and up on their own; university.</dd></div>
+      <div><dt>Time</dt><dd>One 45 to 60 minute workshop, or 90 minutes, or three shorter sessions.</dd></div>
+      <div><dt>Equipment</dt><dd>Laptops or desktops with Chrome, one for every two or three learners; a projector helps.</dd></div>
+      <div><dt>Internet</dt><dd>To load the page. After that, only for a language model with a key.</dd></div>
+      <div><dt>Cost</dt><dd>Free, unless you use Claude, ChatGPT or Gemini with a paid key.</dd></div>
+      <div><dt>Programming</dt><dd>None needed. Ken's notation is there for those who want it.</dd></div>
+    </dl>
+    <p>The <a href="students.html">guide for students</a> has the same activities, numbered the same way, written for learners, with the answers behind <span class="ui">What to look for</span>.</p>
+  </section>
+
+  <section id="learn" aria-labelledby="learn-h">
+    <div class="section-head">
+      <h2 id="learn-h">What students will learn</h2>
+    </div>
+    <div class="goals">
+      <details class="goal"><summary>A piece of AI history</summary><div class="body">
+        <p>How AI was done at the MIT AI Lab in the 1970s: knowledge written by hand, reasoning with symbols, programs built from “actors” that send each other messages. The page runs Ani's actual 1978 code, recovered from the lab's backup tapes, on a MacLisp interpreter rebuilt for the revival: not an imitation of it.</p>
+      </div></details>
+      <details class="goal"><summary>Two kinds of AI, side by side</summary><div class="body">
+        <p>Ani reasons from knowledge Ken wrote by hand; a language model writes from patterns learned from vast amounts of text. On this page they work together (a model can turn a story into Ani's notation, and Ani does the rest), so students meet both in one task and can see what each is good and bad at.</p>
+      </div></details>
+      <details class="goal"><summary>How a program can explain itself</summary><div class="body">
+        <p>Ken called Ani a “glass box”. Every choice comes with its reasons: the chain from an action up to what the story asked for, the alternatives weighed and their scores, the suggestions kept and set aside, down to the line of code. Students learn what makes an explanation checkable, and how that differs from a model explaining itself after the fact.</p>
+      </div></details>
+      <details class="goal"><summary>Debugging and testing</summary><div class="body">
+        <p>Predict, run, compare. Change one word and see what changes; find where Ani stops on a new story, read why, and see what the revival's repairs do about it. These are the habits of anyone who builds or tests software, and of scientists running experiments.</p>
+      </div></details>
+      <details class="goal"><summary>Narrative and character</summary><div class="body">
+        <p>Ani's characters never speak. Personality, feelings and relationships are shown only by how shapes move: fast or slow, straight or curvy, toward someone or away. Students see what a story needs to say, and what a storyteller (or a program) has to invent.</p>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="ages" aria-labelledby="ages-h">
+    <div class="section-head">
+      <h2 id="ages-h">Ages and what they need</h2>
+      <p>No programming is needed. Knowing the Cinderella story helps. Some of the page's text is dense, written for adults: the first line or two of each panel are the important part, and the rest is there on a click.</p>
+    </div>
+    <div class="table-wrap">
+      <table class="stack">
+        <thead><tr><th>Who</th><th>Suggested activities</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td data-h="Who"><b>10 to 12</b></td><td data-h="Activities">Start here, cards 1 to 6, in pairs</td><td data-h="Notes">An adult reads the first lines of the side panel aloud with them. Skip the Lisp. Card 5 (a kind stepmother) is the highlight.</td></tr>
+          <tr><td data-h="Who"><b>13 to 16</b></td><td data-h="Activities">All of Start here; most of Going further</td><td data-h="Notes">Hard challenges for keen students. A new story with a model (card 8) works well as a whole-class activity.</td></tr>
+          <tr><td data-h="Who"><b>16 and up, and university</b></td><td data-h="Activities">Everything, with the thesis and the code pages</td><td data-h="Notes">Good for courses on AI history, knowledge representation, explainable AI, or computational creativity.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="setup" aria-labelledby="setup-h">
+    <div class="section-head">
+      <h2 id="setup-h">Before the session</h2>
+    </div>
+    <ul class="checklist">
+      <li><span><b>Chrome on a laptop or desktop.</b> Open <a href="index.html">the film page</a> on each computer before learners arrive. Phones can watch the film and ask why; making films is best on a computer.</span></li>
+      <li><span><b>Make one film yourself.</b> <span class="ui">Change the story</span>, <span class="ui">A kind stepmother</span>, <span class="ui">Make the film</span>: at 4 frames a second it takes two to three minutes on a recent computer (about five with Ken's beautified scene, about a quarter of an hour at 24). Keep the tab in front: Chrome slows tabs in the background.</span></li>
+      <li><span><b>Decide whether to use a language model.</b> You don't need one: everything except <span class="ui">Tell Ani a new story</span> works without. If you do, choose from the table below and try it beforehand.</span></li>
+      <li><span><b>Print the activity cards</b> (button below), or share the <a href="students.html">guide for students</a>.</span></li>
+    </ul>
+
+    <h3>Language models: your options</h3>
+    <div class="table-wrap">
+      <table class="stack">
+        <thead><tr><th>Option</th><th>Cost</th><th>What leaves the computer</th><th>Good for</th></tr></thead>
+        <tbody>
+          <tr><td data-h="Option"><b>Gemini Nano</b>, built into Chrome</td><td data-h="Cost">Free</td><td data-h="What leaves">Nothing</td><td data-h="Good for">Children's workshops. It needs desktop Chrome on a computer that can run it, and the first use downloads the model (a few gigabytes), so do that before the session on each computer. Its drafts are rougher.</td></tr>
+          <tr><td data-h="Option"><b>Claude, ChatGPT or Gemini</b> with an API key</td><td data-h="Cost">Paid by whoever owns the key</td><td data-h="What leaves">The story and Ani's instructions, sent from the page straight to that company</td><td data-h="Good for">The best drafts. Run it on the teacher's computer, on the projector.</td></tr>
+          <tr><td data-h="Option"><b>The claude.ai copy</b> of the page</td><td data-h="Cost">Each person's own claude.ai account</td><td data-h="What leaves">The story, to Anthropic through claude.ai</td><td data-h="Good for">Adults who already use claude.ai, such as university students: no key at all.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <details>
+      <summary>Keys in a classroom</summary>
+      <div class="body">
+        <p>An API key works like a password, and whoever has it can spend money on its owner's account.</p>
+        <ul class="list">
+          <li>Use your own key, with a spending limit set at the provider.</li>
+          <li>Type it yourself, on a computer you control. Never have students type real keys, and never show a key on a screen, a slide or a board.</li>
+          <li>On shared computers, leave <span class="ui">Remember keys in this browser</span> unticked. The key is then kept only in that tab, and is gone when the tab closes.</li>
+          <li>Run <span class="ui">Tell Ani a new story</span> as a whole-group activity: the class writes the story, you press the button.</li>
+          <li>If anyone else may have seen the key, delete it at the provider afterwards and make a new one.</li>
+        </ul>
+      </div>
+    </details>
+    <details>
+      <summary>Using the claude.ai copy</summary>
+      <div class="body">
+        <p>The site has a copy of the page made to run inside claude.ai: <a href="ani-cinderella-claude-artifact.html">ani-cinderella-claude-artifact.html</a>. Upload it to a claude.ai chat and ask Claude to copy it, exactly as it is, into an HTML artifact. There, <span class="ui">Tell Ani a new story</span> offers Claude on the viewer's own claude.ai account, with no key (claude.ai asks the first time), and Gemini Nano.</p>
+        <p>claude.ai accounts are for adults, so this is not the route for children's workshops.</p>
+      </div>
+    </details>
+    <details>
+      <summary>Poor Wi-Fi, or none</summary>
+      <div class="body">
+        <p>The page carries everything it needs. Once it has loaded, watching the film, asking why and making films all happen in the browser, with no internet. You can also save the page (<span class="ui">Ctrl+S</span>, “Webpage, HTML only”) and open the saved file later; save <a href="pass1.html">Ani's Choice Points</a> and <a href="source.html">Ani's Code</a> in the same folder if you want their links to work. Without the internet the page uses plain fonts, and only Gemini Nano, once downloaded, can tell new stories.</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="plans" aria-labelledby="plans-h">
+    <div class="section-head">
+      <h2 id="plans-h">Session plans</h2>
+      <p>Card numbers refer to the activity cards below and in the students' guide. Films take a few minutes to make, so start one, then do something else while Ani works.</p>
+    </div>
+
+    <div class="plan">
+      <h3>One workshop <span class="muted">45 to 60 minutes · ages 10 and up · a library, club or class</span></h3>
+      <div class="table-wrap">
+        <table class="stack">
+          <thead><tr><th>Time</th><th>What happens</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="t" data-h="Time">0–5</td><td data-h="What"><b>Hook.</b> Play The Introduction on the projector without explaining anything. Ask: who's the villain? How can you tell?</td><td data-h="Notes">Movement alone tells them a lot.</td></tr>
+            <tr><td class="t" data-h="Time">5–10</td><td data-h="What"><b>Reveal.</b> A program made this in 1978, from a short description. Show <span class="ui">What Ani was told</span>.</td><td data-h="Notes">Ani isn't a chatbot: it reasons from knowledge Ken wrote, and records why.</td></tr>
+            <tr><td class="t" data-h="Time">10–20</td><td data-h="What"><b>Pairs:</b> cards 1, 2 and 3.</td><td data-h="Notes">Card 3 is the “aha”: the description never says “push”.</td></tr>
+            <tr><td class="t" data-h="Time">20–25</td><td data-h="What"><b>Predict.</b> What will a kind stepmother change? Write predictions on the board, then start card 5 on the projector computer (or on every computer).</td><td data-h="Notes">At 4 a second, two to three minutes. Keep the tab in front.</td></tr>
+            <tr><td class="t" data-h="Time">25–35</td><td data-h="What">While Ani works: card 4. Then watch the two films side by side and check the predictions.</td><td data-h="Notes">The kind stepmother still stands guard in Kept Apart. Ask why.</td></tr>
+            <tr><td class="t" data-h="Time">35–45</td><td data-h="What">Card 6, then the discussion: <q>Ani explains every choice. Can a chatbot?</q></td><td data-h="Notes">See the discussion questions below.</td></tr>
+            <tr><td class="t" data-h="Time">45–55</td><td data-h="What"><b>Optional:</b> tell Ani a new story together (card 8) on the projector.</td><td data-h="Notes">Gemini Nano, or your key on your computer.</td></tr>
+            <tr><td class="t" data-h="Time">55–60</td><td data-h="What"><b>Exit:</b> each person finishes the sentence <q>Ani knew … but didn't know …</q></td><td data-h="Notes"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="plan">
+      <h3>A longer version <span class="muted">90 minutes, or three sessions of about 30 minutes</span></h3>
+      <div class="table-wrap">
+        <table class="stack">
+          <thead><tr><th>Part</th><th>Activities</th><th>Outcome</th></tr></thead>
+          <tbody>
+            <tr><td data-h="Part"><b>1. Watch and ask why</b></td><td data-h="Activities">Cards 1 to 4; the words to know at the end of the students' guide</td><td data-h="Outcome">Students can find and explain one of Ani's choices from the glass box.</td></tr>
+            <tr><td data-h="Part"><b>2. Change the story</b></td><td data-h="Activities">Cards 5, 6, 7, 12 and 13; start one film at the beginning so it is ready halfway through</td><td data-h="Outcome">Students predict the effect of a change, test it, and explain the differences.</td></tr>
+            <tr><td data-h="Part"><b>3. New stories and today's AI</b></td><td data-h="Activities">Cards 8 to 11; one hard challenge; discussion; a short write-up</td><td data-h="Outcome">Students compare what the language model and Ani each did, and where and why Ani stopped.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="plan">
+      <h3>A university seminar <span class="muted">one or two meetings</span></h3>
+      <ul class="list">
+        <li><b>Before:</b> read the thesis's introduction (pp. 11–23, including Ken's walk through the choice of the stepmother's speed) and its discussion of creativity (pp. 205–212).</li>
+        <li><b>In class:</b> cards 3, 9, 10 and 13, then hard challenges A and C in pairs.</li>
+        <li><b>Discuss:</b> symbolic AI and language models; what counts as an explanation; who is the author of a generated film.</li>
+        <li><b>After:</b> a short essay, or a proposal for one piece of knowledge Ani lacks (see Assessment).</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="cards" aria-labelledby="cards-h">
+    <div class="section-head">
+      <h2 id="cards-h">Activity cards</h2>
+      <p>Each card says what students do, what they should find, and what to watch for. The students' guide has the same activities in learners' words.</p>
+    </div>
+    <div class="print-bar no-print">
+      <button type="button" class="btn" id="print-cards">Print the activity cards</button>
+      <span class="muted" style="font-size:.88rem">To print the whole guide, use your browser's Print.</span>
+    </div>
+    <div class="cards">
+
+      <article class="card start">
+        <div class="card-head"><span class="n">1</span><h3>Meet the cast</h3><span class="meta">Start here · 5 minutes · any computer</span></div>
+        <div class="row"><span class="label">Students do</span><p>Watch The Introduction without reading anything, then describe each character from how it moves.</p></div>
+        <div class="row"><span class="label">They find</span><p>The square (the stepmother) rushes at the star (Cinderella) and shoves it, five times, then chases and hits it; at the end the star and the triangle (the Prince) travel together. Personality and relationships come across without a word.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>Students reading the side panel first. Ask them to just watch.</p></div>
+      </article>
+
+      <article class="card start">
+        <div class="card-head"><span class="n">2</span><h3>What was Ani told?</h3><span class="meta">Start here · 5 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Read <span class="ui">What Ani was told</span>, then <span class="ui">Show it as Ani read it</span>. Name three things the film shows that the description doesn't mention.</p></div>
+        <div class="row"><span class="label">They find</span><p>The description has the characters' words, how they feel about each other, and five scenes, each with tasks and a mood, rhythm and length. It never says where anyone stands, how fast they go or what they do: Ani decides all of that.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>The Lisp can put younger learners off. It's optional.</p></div>
+      </article>
+
+      <article class="card start">
+        <div class="card-head"><span class="n">3</span><h3>Ask the stepmother why</h3><span class="meta">Start here · 10 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Pause The Introduction while the square pushes the star, click the square and open <span class="ui">Why</span>.</p></div>
+        <div class="row"><span class="label">They find</span><p>The chain of reasons: she pushes Cinderella around to establish that she dominates and hates her, <q>as the film description asks</q>. The word “push” is nowhere in the description: pushing is Ani's way of showing that relationship. <span class="ui">Why so long</span>: the push repeats five times because Ken's code for it says so, and the scene is meant to be long, 30 to 75 seconds.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>Clicks that miss the shape. The ◂ and ▸ buttons step one frame at a time.</p></div>
+      </article>
+
+      <article class="card start">
+        <div class="card-head"><span class="n">4</span><h3>A moment when no one moves</h3><span class="meta">Start here · 10 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Find the stillness near the end of The Meeting, at 24 a second, or the slanted <q>no one moves</q> line in <span class="ui">The Meeting, part by part</span>. Click it, and open <span class="ui">Why no one moves</span>.</p></div>
+        <div class="row"><span class="label">They find</span><p>About six seconds where nothing moves. The last part is only feelings (Cinderella and the Prince are very happy); Ani shows feelings by changing how characters move, but no one is moving, so nothing shows. Ken's thesis says such changes <q>cannot stand alone</q> (p. 125). With the revival's extensions (SEEN), the two wander about instead.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>At 4 a second the pause is under two seconds and easy to miss: use 24.</p></div>
+      </article>
+
+      <article class="card start">
+        <div class="card-head"><span class="n">5</span><h3>Make the stepmother kind</h3><span class="meta">Start here · 15 minutes, 2 to 3 of them waiting</span></div>
+        <div class="row"><span class="label">Students do</span><p>Write down three predictions. <span class="ui">Change the story</span>, <span class="ui">A kind stepmother</span>, <span class="ui">Make the film</span>; then watch side by side.</p></div>
+        <div class="row"><span class="label">They find</span><p>Made by Ani as in 1978, 21 of the 102 choices of how the characters move come out differently (the stepmother is slower and less deliberate, and now likes others). In The Introduction she no longer pushes and hits Cinderella; she goes to her and keeps her company. But in Kept Apart she still stands guard: the scene's tasks, which weren't changed, say she prevents the meeting. Character words change how characters move; the plot lives in the scenes. (At 4 a second, the fairy godmother also stands guard in No Longer Kept Apart, keeping the stepmother away.)</p></div>
+        <div class="row"><span class="label">Watch for</span><p>Tabs left in the background: Chrome slows them. Give waiting students card 4 or 6 to do.</p></div>
+      </article>
+
+      <article class="card start">
+        <div class="card-head"><span class="n">6</span><h3>Find a word Ani doesn't know</h3><span class="meta">Start here · 10 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Open <span class="ui">Change the story</span> and read the notes under the word lists before changing anything.</p></div>
+        <div class="row"><span class="label">They find</span><p>Ken's own story has the fairy godmother <q>is protective of</q> Cinderella; Ani knows only “is protective to”, so the word is remembered but suggests nothing. And “strong”, a word for personality, is given as the Prince's looks. Neither stopped Ani in 1978.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>A good bridge to discussion: should a program stop when it meets something it doesn't understand, or carry on quietly?</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">7</span><h3>Why is the Prince in the first scene?</h3><span class="meta">Going further · 10 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Click the triangle at the end of The Introduction (the description of that scene names only Cinderella and the stepmother), then Cinderella, and open <span class="ui">Why</span>.</p></div>
+        <div class="row"><span class="label">They find</span><p>Cinderella goes to the Prince and goes along with him <q>to establish what Cinderella is like</q>. To show a trait, Ani may need someone to show it with, and brings them in.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>A chance to talk about inference: Ani adds what the description implies but never says.</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">8</span><h3>Tell Ani a new story</h3><span class="meta">Going further · 20 minutes · needs a language model</span></div>
+        <div class="row"><span class="label">Students do</span><p><span class="ui">Tell Ani a new story</span>; a ready-made story (<span class="ui">Red Riding Hood</span>, <span class="ui">The Tortoise and the Hare</span>, <span class="ui">Beauty and the Beast</span>) or their own; <span class="ui">Write the film description</span>; read the result before making the film.</p></div>
+        <div class="row"><span class="label">They find</span><p>The description in plain words; notes where the page tidied it; any problems Ani's checks found, with a button to ask the model to fix them; and differences from the story they told. Ani can show only what characters are like, how they feel and what they do to each other, so talking, objects and places have to become chases, guarding, rescues and feelings.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>Models inventing characters, or making a prize or a place into a character. That is worth discussing, not just fixing. Simple stories of a few characters who love, hate, chase, guard and rescue work best.</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">9</span><h3>Where Ani stops, and why</h3><span class="meta">Going further · 15 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Make a new story with <span class="ui">Ani as in 1978</span>. If it stops, read <span class="ui">Where Ani as in 1978 stopped</span> and <span class="ui">What Lisp said</span>; then <span class="ui">Make it again with the revival's extensions</span>.</p></div>
+        <div class="row"><span class="label">They find</span><p>A plain-English reason for each stop, with the 1978 program's own message. For example, a tortoise-and-hare story stopped because nothing suggested how active the hare should be, so pass 1 gave up on it and pass 2 couldn't go on. Made again, the side panel says what each repair did.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>Students treating a stop as the page breaking. It is Ani as Ken left it, meeting a story he never gave it.</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">10</span><h3>Ani as in 1978, or with the revival's extensions</h3><span class="meta">Going further · 15 minutes, about 3 of them waiting</span></div>
+        <div class="row"><span class="label">Students do</span><p>Make Ken's story, unchanged, with <span class="ui">Ani with the revival's extensions</span>; read <span class="ui">Which extensions</span>; compare with Ken's film.</p></div>
+        <div class="row"><span class="label">They find</span><p>None of the 102 choices of how they move change, but Ani now draws the characters itself (at the time of writing, Cinderella as a small purple hexagon and the Prince as a large red circle, for example) and says why. The Introduction gains new parts (Cinderella helps the Prince along, and follows her stepmother), and at the end of The Meeting the two wander instead of standing still.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>The question underneath: if new code is written in Ken's style from his own ideas, whose program is it?</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">11</span><h3>The scene Ken left out</h3><span class="meta">Going further · 15 minutes, about 5 of them waiting</span></div>
+        <div class="row"><span class="label">Students do</span><p><span class="ui">Change the story</span>, <span class="ui">Cinderella beautified</span>, make the film; watch the new scene; click Cinderella in the scenes after it.</p></div>
+        <div class="row"><span class="label">They find</span><p>Ken wrote this scene in 1978 and left it commented out. Made with the extensions, the fairy godmother goes to Cinderella and transforms her at once (she is magical: the revival's rule); then Ani takes a fresh look at Cinderella <q>as if the character were brand new</q> (thesis p. 168), and the side panel says how she has changed.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>It needs the extensions; the page switches to them for this scene.</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">12</span><h3>Two films of one story</h3><span class="meta">Going further · 10 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Watch a scene at 24 a second, then at 4, and find differences; then compare a film of their own with Ken's, side by side.</p></div>
+        <div class="row"><span class="label">They find</span><p>The two rates are two different runs: even The Introduction is filmed differently (about 38 seconds at 24, about 48 at 4), and each later scene is planned from where the last one's filming left the characters. 24 is the rate of Ken's camera; 4, of his TV previews and the flipbook in his thesis.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>A good moment to ask what “the” film is, when one program and one story give two.</p></div>
+      </article>
+
+      <article class="card further">
+        <div class="card-head"><span class="n">13</span><h3>Inside a choice point</h3><span class="meta">Going further · 15 minutes</span></div>
+        <div class="row"><span class="label">Students do</span><p>Open <a href="pass1.html">Ani's Choice Points</a>, read the stepmother's speed (<span class="ui">As the thesis tells it</span>), then explore others.</p></div>
+        <div class="row"><span class="label">They find</span><p>The stepmother's speed (high) was decided at attempt 825 of 836, after 10 postponements. The four characters' speeds wait on one another until the film's focus breaks the deadlock. Ken walks through this choice on pp. 20–23 of his thesis.</p></div>
+        <div class="row"><span class="label">Watch for</span><p>The table is dense. Point students at one cell at a time.</p></div>
+      </article>
+
+      <article class="card hard">
+        <div class="card-head"><span class="n">A–E</span><h3>The hard challenges</h3><span class="meta">Hard · 20 to 45 minutes each · keen students, older students</span></div>
+        <div class="row"><span class="label">Why hard</span><p>Each depends on what Ani actually does, which is found only by running it, so a frontier AI model asked the same question usually gets it wrong too. Have students record a prediction before they check, and let them compare a chatbot's predictions with theirs.</p></div>
+        <ul>
+          <li><b>A. Predict before you look</b> (a shy Prince): score their predictions of the Prince's nine ways of moving against <span class="ui">How Ani's choices changed</span>.</li>
+          <li><b>B. Make it happen</b>: change words until the film meets a target (the Prince slower than Cinderella; a mean stepmother who never touches Cinderella in The Introduction). Some targets may be impossible; accept a well-evidenced argument that one is.</li>
+          <li><b>C. Explain a curve</b>: a chain of “because”s from Ken's words to Cinderella's curving path. Expect: high curvature, suggested because she is graceful and good (the opposite of evil) and by the film's variety and energy; a “low” from the film's low flashiness was set aside. The stepmother's path curves little.</li>
+          <li><b>D. A part that takes no time</b>: part 4 of The Introduction, “Cinderella helps the Prince”, lasts 0 seconds, because the 1978 Ani had no way to show helping; with the extensions (KNOW) it has one.</li>
+          <li><b>E. A story the 1978 Ani can film</b>: two or three characters, at least two scenes, no stop. It usually takes several tries; the notes on each stop are the learning.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="discuss" aria-labelledby="discuss-h">
+    <div class="section-head">
+      <h2 id="discuss-h">Discussion questions</h2>
+      <p>Each opens on a click to what to listen for.</p>
+    </div>
+    <div class="questions">
+      <details class="q"><summary>Ani explains every choice. Can a language model?</summary><div class="body">
+        <p>Listen for the difference between a record of the reasons a program actually used and a plausible explanation written afterward. Ani's reasons can be checked against its code; a model's explanation of itself is more text it generated. But Ani's explanations are only as good as Ken's rules, and a model can explain many things Ani never could.</p>
+      </div></details>
+      <details class="q"><summary>What does it mean that Ani can't show winning?</summary><div class="body">
+        <p>The page tells the language model that Ani <q>can't show places, objects, races, winning or speech</q>, so a win becomes the winner's joy and pride and the loser's shame. Ken's thesis says Ani <q>cannot handle very concrete expressions such as “a glass slipper”</q> (p. 19). Listen for: Ani knows characters, feelings, relationships and movement, nothing else; winning needs a race, rules and a finish line. What would Ani need to know to show it?</p>
+      </div></details>
+      <details class="q"><summary>Who made the Cinderella film: Ani, or Ken?</summary><div class="body">
+        <p>Ken asked it himself: <q>who really made the Cinderella film — Ani or me?</q> (p. 207). His answer is that it is a matter of degree: how many levels of reasoning, how many choices, how much knowledge. Extend it: who made a film from a student's story, told by a language model, planned by Ani, with repairs written in 2026?</p>
+      </div></details>
+      <details class="q"><summary>Is Ani creative?</summary><div class="body">
+        <p>Ken lists the objections, among them <q>Ani only does what it's told, humans only sometimes do</q> (p. 209), and then argues against them: Ani has rules for when to follow, change or reject its own suggestions, and breaks them often (pp. 210–211). Students can find examples in the glass box: suggestions <span class="ui">set aside</span>.</p>
+      </div></details>
+      <details class="q"><summary>The kind stepmother still keeps Cinderella from the Prince. Bug, or feature?</summary><div class="body">
+        <p>Listen for the idea that the description has two parts, the characters and the scenes, and that changing one doesn't rewrite the other. Is a stepmother who is kind but still stands guard a contradiction, or a more interesting character?</p>
+      </div></details>
+      <details class="q"><summary>Ani stops when it meets something it can't handle; a language model always writes something. Which would you rather have?</summary><div class="body">
+        <p>Listen for: it depends what's at stake. A stop is honest but unhelpful; a confident answer is helpful but can be wrong. Ani also carries on quietly in places (the word it doesn't know in Ken's own story): is that better or worse than stopping?</p>
+      </div></details>
+      <details class="q"><summary>Is a film made with the revival's extensions still Ken's Ani's film?</summary><div class="body">
+        <p>The extensions are new Lisp, written in Ken's style from ideas in his thesis, in files of their own. Ken's 1978 film is always shown as it was made. Is a repaired Ani the same program? (A version of the Ship of Theseus.)</p>
+      </div></details>
+      <details class="q"><summary>Ani's knowledge was written by one person. A language model's comes from millions. What follows?</summary><div class="body">
+        <p>Listen for bias (whose ideas of “evil” or “graceful”?), for mistakes and who can find and fix them, and for who is responsible for what the program does.</p>
+      </div></details>
+    </div>
+
+    <h3>Quotes worth discussing</h3>
+    <div class="quotes">
+      <blockquote>Ani is built upon the principle that as few decisions as possible be determined arbitrarily.<cite>Ken Kahn, AI-TR-540, p. 22</cite></blockquote>
+      <blockquote>Difficult choices are postponed to be resumed when more of the film has been determined.<cite>p. 2</cite></blockquote>
+      <blockquote>The essence of animation is change.<cite>p. 168</cite></blockquote>
+      <blockquote>Ani is a creative entity that is a “glass box” that we can look inside …<cite>p. 208</cite></blockquote>
+      <blockquote>… one can learn much from a relatively simple model of a complex process because of its very simplicity.<cite>p. 13</cite></blockquote>
+    </div>
+  </section>
+
+  <section id="assess" aria-labelledby="assess-h">
+    <div class="section-head">
+      <h2 id="assess-h">Assessment ideas</h2>
+    </div>
+    <ul class="list">
+      <li><b>Prediction log.</b> Predict, run, score, and explain one prediction that was wrong, using the glass box.</li>
+      <li><b>Explain a choice.</b> A paragraph explaining one of Ani's choices with evidence: the chain under <span class="ui">Why</span>, the suggestions kept and set aside, the code it points to.</li>
+      <li><b>Bug report.</b> A story where Ani as in 1978 stopped: what happened, where, why, and what the repair did.</li>
+      <li><b>Design proposal.</b> One piece of knowledge Ani lacks (a way to show winning, say): which words, what they would suggest, and how it would look in movement.</li>
+      <li><b>Compare explanations.</b> Ask a chatbot why the stepmother pushes Cinderella, then compare its answer with Ani's glass box. Which can be checked, and how?</li>
+    </ul>
+    <div class="table-wrap">
+      <table class="stack">
+        <thead><tr><th>Level</th><th>What it looks like</th></tr></thead>
+        <tbody>
+          <tr><td data-h="Level"><b>Describes</b></td><td data-h="Looks like">Says what happens in the film, or what changed.</td></tr>
+          <tr><td data-h="Level"><b>Explains with evidence</b></td><td data-h="Looks like">Says why, quoting Ani's reasons from the page.</td></tr>
+          <tr><td data-h="Level"><b>Explains and generalizes</b></td><td data-h="Looks like">Uses the evidence to say something about how Ani works, what it knows, or how it differs from people or from language models.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="trouble" aria-labelledby="trouble-h">
+    <div class="section-head">
+      <h2 id="trouble-h">Troubleshooting</h2>
+    </div>
+    <div class="questions">
+      <details class="q"><summary>A film is taking a long time</summary><div class="body">
+        <p>Keep its tab in front: Chrome slows tabs in the background, and the status line above the film says when Chrome has paused it. At 4 frames a second a film takes two to three minutes on a recent computer, about five with Ken's beautified scene, and about a quarter of an hour at 24. Each scene plays as soon as it is filmed. <span class="ui">Stop</span>, beside the status line, ends the run.</p>
+      </div></details>
+      <details class="q"><summary>Ani stopped</summary><div class="body">
+        <p>That is Ani as Ken left it, meeting a story he never gave it. The side panel says where and why, in plain words, with what Lisp said a click away. <span class="ui">Make it again with the revival's extensions</span> usually gets further. Stops make good discussion (card 9).</p>
+      </div></details>
+      <details class="q"><summary>The model invented characters, or changed the story</summary><div class="body">
+        <p>Read the plain-words summary before making the film. Ask the model to fix the problems the page lists, try a stronger model, or open the description in the editor (<span class="ui">Look it over, then make the film</span>) and change it there. Small models such as Gemini Nano write rougher drafts. Short, simple stories work best.</p>
+      </div></details>
+      <details class="q"><summary>Gemini Nano isn't offered, or is downloading</summary><div class="body">
+        <p>It is built into recent desktop Chrome, on computers that can run it, and downloads the first time it is used (a few gigabytes). If it isn't offered, that computer or browser can't run it; use a key on the teacher's computer instead.</p>
+      </div></details>
+      <details class="q"><summary>The key doesn't work</summary><div class="body">
+        <p>Check that the key is for the provider chosen (Claude needs an Anthropic key, ChatGPT an OpenAI key, Gemini a Google AI key), that the account has credit, and that the model chosen is available to it. The page shows the provider's message.</p>
+      </div></details>
+      <details class="q"><summary>The characters look different in a new film</summary><div class="body">
+        <p>Made with the revival's extensions, Ani chooses each character's shape, size and colors itself (APPEAR), and the side panel says why. Ken's 1978 film is always drawn as Ken drew it.</p>
+      </div></details>
+      <details class="q"><summary>A film made earlier has gone</summary><div class="body">
+        <p>The page keeps films in the browser that made them. A private or guest window, a different computer, or clearing the browser's data loses them. To keep a film, use <span class="ui">Save</span>: a film file opens on the page again later, with all of Ani's reasons; a video plays anywhere.</p>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="privacy" aria-labelledby="privacy-h">
+    <div class="section-head">
+      <h2 id="privacy-h">Safety and privacy</h2>
+    </div>
+    <div class="prose">
+      <p><b>What the page keeps.</b> In the browser on that computer only: settings (the frame rate, TV or color, which Ani and which extensions, which model), the story being told, the description being edited, and the films made there, so they are still there after a reload. API keys are kept only if <span class="ui">Remember keys in this browser</span> is ticked. Nothing is kept on a server. On shared computers, a Chrome guest window forgets everything when it closes; otherwise clear the site's data afterwards.</p>
+      <p><b>What leaves the computer.</b> Nothing about the stories, unless someone:</p>
+      <ul class="list">
+        <li>uses Claude, ChatGPT or Gemini with a key: the story and Ani's instructions go from the page straight to that company, under its terms (Gemini Nano runs on the computer, and nothing leaves it);</li>
+        <li>chooses <span class="ui">Send this story to Ken</span>, which the site offers for a story of one's own, where Ani stopped on it and in the Save panel: the page shows exactly what will be sent (the story, the description, the model, where Ani stopped, nothing about the person) and sends it only on <span class="ui">Send it</span>.</li>
+      </ul>
+      <p>Loading the site fetches its fonts from Google Fonts. And on the site, if something goes wrong in the page, an error report goes to Ken through Sentry, an error-reporting service, so that he can fix it, without any story, key or personal data, as the film page's footer says.</p>
+      <p><b>Children.</b> Ask them not to put real names, addresses or other personal details into stories. Model providers' terms have age limits and claude.ai accounts are for adults, so with children use Gemini Nano or your own key on your own computer.</p>
+      <p><b>Content.</b> Ani's films are abstract shapes; in Ken's Cinderella the stepmother pushes and hits Cinderella, shown as shapes bumping. Language models can write unexpected things; the page shows the description in plain words before Ani films it.</p>
+    </div>
+  </section>
+
+  <section id="reading" aria-labelledby="reading-h">
+    <div class="section-head">
+      <h2 id="reading-h">Background reading</h2>
+    </div>
+    <ul class="list">
+      <li>Kenneth M. Kahn, <i>Creation of Computer Animation from Story Descriptions</i>, MIT AI Lab Technical Report AI-TR-540, August 1979: his PhD thesis. Places to start: the introduction and the stepmother's speed (pp. 11–23); feelings that <q>cannot stand alone</q> (pp. 125–126); characters who change (pp. 168–169); Ani and creativity (pp. 205–212); the Cinderella film description (Appendix I).</li>
+      <li><a href="making-of.html">How Ani was brought back</a>: recovering the 1978 code from the MIT tapes and running it again.</li>
+      <li><a href="pass1.html">Ani's Choice Points</a>, the 102 decisions of pass 1, and <a href="source.html">Ani's Code</a>, with every name linked to its definition.</li>
+      <li>Kenneth M. Kahn, <a href="https://dspace.mit.edu/entities/publication/c9fbfdd3-d7b8-4e09-adea-2e837c51fdff"><i>Director Guide</i></a>, MIT AI Memo 482, June 1978: the language that animated the film.</li>
+      <li><a href="students.html">A guide for students</a>: the same activities, for learners.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p><a href="index.html">The film</a> · <a href="students.html">A guide for students</a> · <a href="making-of.html">How Ani was brought back</a> · <a href="pass1.html">Ani's Choice Points</a> · <a href="source.html">Ani's Code</a></p>
+    <p>Ani is the program in Ken Kahn's MIT thesis, <i>Creation of Computer Animation from Story Descriptions</i> (AI-TR-540, 1979). Page numbers in this guide are that thesis's.</p>
+  </footer>
+</div>
+<script>
+// Printing: open every details first, so the printed page has them, and close them again
+// afterwards. "Print the activity cards" prints the cards alone.
+addEventListener("beforeprint", () => { document.querySelectorAll("details:not([open])").forEach((d) => { d.dataset.printOpened = ""; d.open = true; }); });
+addEventListener("afterprint", () => {
+  document.querySelectorAll("details[data-print-opened]").forEach((d) => { d.open = false; delete d.dataset.printOpened; });
+  document.body.classList.remove("cards-only");
+});
+document.getElementById("print-cards").addEventListener("click", () => { document.body.classList.add("cards-only"); print(); });
+</script>
+</body>
+</html>

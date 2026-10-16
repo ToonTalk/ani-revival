@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A guide for students · Ani's Cinderella</title>
+<meta name="description" content="How to watch Ani's Cinderella, ask a character why, change the story and tell Ani a new one: activities from easy to hard.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0c0b'/%3E%3Cpath d='M32 10.5 L45.2 51.2 L10.6 26 L53.4 26 L18.8 51.2 Z' fill='none' stroke='%235be06f' stroke-width='5.2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<style>
+/* The film page's look (app/film.template.html): its fonts, its color tokens, its light
+   and dark themes, its labels and its details. A guide is a column to read, with cards. */
+:root {
+  --paper: #f3f5f2; --sheet: #ffffff; --ink: #1c2320; --muted: #5b6661; --rule: #d5dbd6;
+  --accent: #1f5a8e; --accent-soft: #e2ebf3; --chosen: #2b7a49; --chosen-soft: #e3f1e7;
+  --rejected: #a3433a; --rejected-soft: #f6e4e1; --screen: #0a0c0b; --screen-edge: #2c3330;
+  --cinderella: #23893c; --stepmother: #bf3a2c; --godmother: #c8641a; --prince: #a68200;
+  --ours: #7a4a92; --ours-soft: #f2eaf6;
+  --display: "Spectral", Georgia, "Times New Roman", serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+    --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
+    --screen: #000000; --screen-edge: #313a36;
+    --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+    --ours: #c49ad8; --ours-soft: #241b2a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1110; --sheet: #141a18; --ink: #e5eae7; --muted: #95a19b; --rule: #29312e;
+  --accent: #84b4e2; --accent-soft: #1b2733; --chosen: #6cc38c; --chosen-soft: #17281e; --rejected: #ec8a80; --rejected-soft: #2c1a18;
+  --screen: #000000; --screen-edge: #313a36;
+  --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a;
+  --ours: #c49ad8; --ours-soft: #241b2a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 16px/1.6 var(--body);
+  padding-inline: max(16px, 3vw); padding-block: 24px 56px;
+}
+.wrap { max-width: 860px; margin: 0 auto; display: grid; gap: 30px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(1.9rem, 1.4rem + 1.8vw, 2.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: 1.45rem; line-height: 1.25; }
+h3 { font-size: 1.12rem; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 2px; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.ui { font-weight: 600; white-space: nowrap; }
+q { quotes: "“" "”" "‘" "’"; }
+cite { font-style: normal; color: var(--muted); }
+
+header { display: grid; gap: 10px; }
+header .intro { color: var(--muted); font-size: 1.06rem; max-width: 64ch; }
+nav.site, nav.toc { display: flex; flex-wrap: wrap; gap: 6px; }
+nav.site a, nav.toc a {
+  border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px;
+  padding: 3px 12px; font-size: 0.88rem; text-decoration: none; color: var(--ink);
+}
+nav.site a:hover, nav.toc a:hover { border-color: var(--accent); color: var(--accent); }
+nav.site a.here { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+nav.toc { gap: 4px 6px; }
+nav.toc a { font-size: 0.82rem; padding: 2px 10px; background: transparent; }
+
+section { display: grid; gap: 14px; }
+section > p, .prose { max-width: 68ch; }
+.prose { display: grid; gap: 10px; }
+.section-head { display: grid; gap: 6px; border-top: 1px solid var(--rule); padding-top: 22px; }
+.section-head p { color: var(--muted); max-width: 64ch; }
+.level { display: inline-block; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; padding: 1px 10px; }
+.level.start { background: var(--chosen-soft); color: var(--chosen); }
+.level.further { background: var(--accent-soft); color: var(--accent); }
+.level.hard { background: var(--rejected-soft); color: var(--rejected); }
+
+/* the cast, as the film's key draws it */
+.cast { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.cast li { background: var(--screen); border-radius: 12px; padding: 12px 8px 10px; display: grid; justify-items: center; gap: 6px; box-shadow: inset 0 0 0 1px var(--screen-edge); }
+.cast svg { width: 54px; height: 54px; }
+.cast span { color: #e5eae7; font-size: 0.86rem; text-align: center; line-height: 1.3; }
+.cast span b { display: block; font-weight: 600; }
+@media (max-width: 520px) { .cast { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.figcap { color: var(--muted); font-size: 0.88rem; }
+
+/* the page map */
+.map { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 14px; display: grid; gap: 14px; }
+.map svg { width: 100%; height: auto; display: block; }
+.keys { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.keys li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: start; }
+.keys .n, .card .n {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); color: var(--sheet); font-weight: 600; font-size: 0.84rem; font-variant-numeric: tabular-nums;
+}
+
+/* details, as on the film page */
+details { border-top: 1px solid var(--rule); padding-top: 8px; }
+details > summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: baseline; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--muted); font-size: 0.8em; transition: transform .15s; display: inline-block; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > .body { display: grid; gap: 8px; padding: 8px 0 2px 16px; }
+details.plain { border-top: 0; padding-top: 0; }
+details.plain > summary { font-weight: 500; color: var(--accent); }
+
+/* the activity cards */
+.cards { display: grid; gap: 14px; }
+.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
+.card.start { border-left: 4px solid var(--chosen); }
+.card.further { border-left: 4px solid var(--accent); }
+.card.hard { border-left: 4px solid var(--rejected); }
+.card-head { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 4px 10px; align-items: start; }
+.card-head .n { margin-top: 1px; }
+.card.further .n { background: var(--accent); }
+.card.start .n { background: var(--chosen); }
+.card.hard .n { background: var(--rejected); }
+.card-head .meta { grid-column: 2; color: var(--muted); font-size: 0.84rem; }
+.card .row { display: grid; grid-template-columns: 4.6em minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.card .row > .label { padding-top: 1px; }
+.card .think p { font-weight: 500; }
+.card ol, .card ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+@media (max-width: 480px) { .card .row { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+.callout { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 6px; }
+.callout.warn { background: var(--rejected-soft); }
+blockquote { margin: 0; border-left: 3px solid var(--rule); padding: 2px 0 2px 12px; font-family: var(--display); font-style: italic; font-size: 1.05rem; }
+blockquote cite { display: block; font-family: var(--body); font-style: normal; font-size: 0.84rem; }
+
+dl.words { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 10px 16px; }
+dl.words dt { font-weight: 600; }
+dl.words dd { margin: 0; }
+@media (max-width: 560px) { dl.words { grid-template-columns: minmax(0, 1fr); gap: 2px; } dl.words dd { margin-bottom: 10px; } }
+
+footer { color: var(--muted); font-size: 0.86rem; display: grid; gap: 8px; border-top: 1px solid var(--rule); padding-top: 16px; }
+
+/* printing: light colors, no navigation, each card whole; every details is opened first */
+@media print {
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) {
+    --paper: #ffffff; --sheet: #ffffff; --ink: #000000; --muted: #444444; --rule: #bbbbbb;
+    --accent: #1f5a8e; --accent-soft: #eef3f8; --chosen: #2b7a49; --chosen-soft: #eef6f0; --rejected: #a3433a; --rejected-soft: #faefed;
+    color-scheme: light;
+  }
+  body { padding: 0; font-size: 11pt; }
+  nav.site, nav.toc, .no-print { display: none !important; }
+  .wrap { max-width: none; gap: 18px; }
+  .card, .map, .callout, dl.words > *, blockquote { break-inside: avoid; }
+  .section-head { break-after: avoid; }
+  h2, h3 { break-after: avoid; }
+  details > summary::before { content: none; }
+  details { border-top: 0; }
+  a { color: inherit; text-decoration: none; }
+  .cast li { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@page { margin: 16mm 14mm; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
+    <h1>A guide for students</h1>
+    <p class="intro">Ani's Cinderella is a film made in 1978 by a computer program that can tell you why it did everything it did. This guide shows you how to watch it, how to ask a character why, and how to change the story and see what Ani does then.</p>
+    <nav class="site" aria-label="The site">
+      <a href="index.html">The film</a>
+      <a href="students.html" class="here" aria-current="page">For students</a>
+      <a href="teachers.html">For teachers</a>
+      <a href="making-of.html">How Ani was brought back</a>
+    </nav>
+  </header>
+
+  <nav class="toc" aria-label="On this page">
+    <span class="label" style="align-self:center;margin-right:4px">On this page</span>
+    <a href="#what">What Ani is</a>
+    <a href="#map">Finding your way</a>
+    <a href="#start">Start here</a>
+    <a href="#further">Going further</a>
+    <a href="#hard">Hard challenges</a>
+    <a href="#words">Words to know</a>
+  </nav>
+
+  <section id="what" aria-labelledby="what-h">
+    <h2 id="what-h">What Ani is</h2>
+    <div class="prose">
+      <p>Ani is a computer program Ken Kahn wrote at MIT in 1978, for his PhD thesis. You give it a short description of a story: who the characters are, how they feel about each other, and what each scene should show. Ani decides everything else (how each character moves, where it stands, what it does and for how long) and makes an animated film in which every character is a simple shape.</p>
+      <p>Ani doesn't learn from examples, the way today's AI chatbots learn from enormous amounts of writing. It reasons, using knowledge Ken wrote down by hand, and it records the reason for every choice. That is why you can click a character and ask it why.</p>
+    </div>
+    <ul class="cast" aria-label="The cast of Ken's 1978 film">
+      <li><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6 L47.3 53 L7.3 24 L56.7 24 L16.7 53 Z" fill="none" stroke="#55cf6c" stroke-width="3" stroke-linejoin="round"/></svg><span><b>Cinderella</b>a star</span></li>
+      <li><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="10" width="44" height="44" fill="none" stroke="#ff6f5f" stroke-width="3"/><rect x="19" y="19" width="26" height="26" fill="none" stroke="#ff6f5f" stroke-width="2"/></svg><span><b>The stepmother</b>a square</span></li>
+      <li><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="22" fill="none" stroke="#ff9d4f" stroke-width="3"/></svg><span><b>The fairy godmother</b>a circle</span></li>
+      <li><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 9 L56 53 L8 53 Z" fill="none" stroke="#f0d04a" stroke-width="3" stroke-linejoin="round"/></svg><span><b>The Prince</b>a triangle</span></li>
+    </ul>
+    <p class="figcap">The cast of Ken's film, as the key under the film shows them. In films made with the revival's extensions, Ani chooses each character's shape, size and colors itself, so they can look different.</p>
+    <details>
+      <summary>Where the name comes from</summary>
+      <div class="body"><p>Ken's thesis says that “Ani” is <q>a nickname animators have for animation</q> <cite>(Kahn, AI-TR-540, 1979, p. 11)</cite>.</p></div>
+    </details>
+    <details>
+      <summary>How is Ani different from ChatGPT, Claude or Gemini?</summary>
+      <div class="body">
+        <p>A language model such as Claude, ChatGPT or Gemini learned patterns from a vast amount of writing. Nobody wrote its rules one by one, and when it explains itself, the explanation is more writing it produced, not a record of what happened inside it.</p>
+        <p>Ani is the other way round: a person wrote every piece of its knowledge, there is far less of it, and each choice is stored with its reasons, which you can follow all the way down to Ken's code. On this page the two kinds of AI can work together: a language model can put a story of yours into Ani's words, and Ani does all the rest.</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="map" aria-labelledby="map-h">
+    <div class="section-head">
+      <h2 id="map-h">Finding your way around the film page</h2>
+      <p>Open <a href="index.html">the film page</a> in Chrome on a laptop or desktop computer. This is what you will find there.</p>
+    </div>
+    <div class="map">
+      <svg viewBox="0 0 480 300" role="img" aria-label="A sketch of the film page: scene buttons over the screen, play controls and the caption under it, and the side panel at the right, with numbered parts.">
+        <rect x="1" y="1" width="478" height="298" rx="12" fill="var(--paper)" stroke="var(--rule)"/>
+        <rect x="16" y="14" width="120" height="7" rx="3" fill="var(--rule)"/>
+        <rect x="16" y="26" width="200" height="10" rx="4" fill="var(--muted)" opacity=".5"/>
+        <g fill="var(--sheet)" stroke="var(--rule)">
+          <rect x="16" y="48" width="46" height="14" rx="7" fill="var(--ink)" stroke="var(--ink)"/>
+          <rect x="66" y="48" width="38" height="14" rx="7"/><rect x="108" y="48" width="52" height="14" rx="7"/><rect x="164" y="48" width="42" height="14" rx="7"/><rect x="210" y="48" width="32" height="14" rx="7"/>
+        </g>
+        <rect x="16" y="70" width="282" height="150" rx="10" fill="var(--screen)" stroke="var(--screen-edge)"/>
+        <path d="M150 106 L159.4 134.9 L134.8 117 L165.2 117 L140.6 134.9 Z" fill="none" stroke="#55cf6c" stroke-width="2" stroke-linejoin="round"/>
+        <rect x="104" y="112" width="22" height="22" fill="none" stroke="#ff6f5f" stroke-width="2"/>
+        <rect x="110" y="118" width="10" height="10" fill="none" stroke="#ff6f5f" stroke-width="1.5"/>
+        <rect x="16" y="228" width="30" height="14" rx="4" fill="var(--ink)"/>
+        <g fill="var(--sheet)" stroke="var(--rule)"><rect x="50" y="228" width="14" height="14" rx="3"/><rect x="68" y="228" width="14" height="14" rx="3"/></g>
+        <rect x="88" y="232" width="110" height="6" rx="3" fill="var(--rule)"/>
+        <rect x="204" y="228" width="94" height="14" rx="4" fill="var(--accent-soft)" stroke="var(--rule)"/>
+        <rect x="16" y="252" width="230" height="6" rx="3" fill="var(--muted)" opacity=".55"/>
+        <rect x="16" y="264" width="270" height="6" rx="3" fill="var(--muted)" opacity=".35"/>
+        <rect x="16" y="276" width="200" height="6" rx="3" fill="var(--muted)" opacity=".35"/>
+        <rect x="314" y="48" width="150" height="238" rx="10" fill="var(--sheet)" stroke="var(--rule)"/>
+        <rect x="326" y="60" width="80" height="9" rx="4" fill="var(--ink)" opacity=".75"/>
+        <rect x="326" y="78" width="120" height="5" rx="2.5" fill="var(--muted)" opacity=".45"/>
+        <rect x="326" y="94" width="58" height="16" rx="4" fill="var(--ink)"/>
+        <rect x="388" y="94" width="64" height="16" rx="4" fill="var(--sheet)" stroke="var(--rule)"/>
+        <g fill="var(--muted)" opacity=".35"><rect x="326" y="122" width="126" height="5" rx="2.5"/><rect x="326" y="134" width="110" height="5" rx="2.5"/><rect x="326" y="146" width="120" height="5" rx="2.5"/><rect x="326" y="166" width="126" height="5" rx="2.5"/><rect x="326" y="178" width="96" height="5" rx="2.5"/><rect x="326" y="198" width="126" height="22" rx="4"/><rect x="326" y="226" width="126" height="22" rx="4"/><rect x="326" y="254" width="126" height="22" rx="4"/></g>
+        <g font-family="Public Sans, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="var(--sheet)">
+          <circle cx="258" cy="55" r="12.5" fill="var(--accent)"/><text x="258" y="60">1</text>
+          <circle cx="280" cy="88" r="12.5" fill="var(--accent)"/><text x="280" y="93">2</text>
+          <circle cx="31" cy="208" r="12.5" fill="var(--accent)"/><text x="31" y="213">3</text>
+          <circle cx="251" cy="212" r="12.5" fill="var(--accent)"/><text x="251" y="217">4</text>
+          <circle cx="268" cy="266" r="12.5" fill="var(--accent)"/><text x="268" y="271">5</text>
+          <circle cx="452" cy="66" r="12.5" fill="var(--accent)"/><text x="452" y="71">6</text>
+          <circle cx="389" cy="126" r="12.5" fill="var(--accent)"/><text x="389" y="131">7</text>
+        </g>
+      </svg>
+      <ol class="keys">
+        <li><span class="n">1</span><span><b>The scenes.</b> Five buttons, from <span class="ui">The Introduction</span> to <span class="ui">Justice</span>.</span></li>
+        <li><span class="n">2</span><span><b>The screen.</b> Click any shape to ask that character why it is doing what it does.</span></li>
+        <li><span class="n">3</span><span><b>Play</b>, then <b>◂ ▸</b> to go back or forward one frame (one picture), and the bar to jump anywhere in the scene.</span></li>
+        <li><span class="n">4</span><span><b>24 a second or 4 a second</b>, two runs of the film: as Ken's camera shot it, and as his TV previews ran. <b>TV or Color</b> changes the picture. <b>Save</b> makes a video, or a film file you can open here again.</span></li>
+        <li><span class="n">5</span><span><b>The caption.</b> What is happening now, and what it is meant to show.</span></li>
+        <li><span class="n">6</span><span><b>The side panel.</b> At first it shows <span class="ui">What Ani was told</span>. After you click a character, it shows that character's reasons; <span class="ui">Back</span> returns.</span></li>
+        <li><span class="n">7</span><span><b>Change the story</b> and <b>Tell Ani a new story</b>: have Ani make a film again.</span></li>
+      </ol>
+    </div>
+    <details>
+      <summary>What the side panel shows after you click a character</summary>
+      <div class="body">
+        <p>The first lines say what the character is doing and which part of Ani's plan it belongs to. Under them, <span class="ui">Why this way</span> and <span class="ui">Why so long</span>. The rest opens on a click:</p>
+        <ul>
+          <li><b>Why</b>: a chain of reasons, from the action up to what the film description asked for.</li>
+          <li><b>How Ani chose this</b>: the ways of showing it that Ani considered, and how each one scored.</li>
+          <li><b>The plan, in Ani's words</b>: the little program Ani wrote for this step.</li>
+          <li><b>How she moves</b> (or he): speed, curvature of the path and more, each with a <span class="ui">why?</span> that opens the choice behind it.</li>
+          <li><b>Where she started this part</b>, <b>the scene, part by part</b>, and <b>Ani's own records</b>.</li>
+        </ul>
+        <p>A <span class="ui">code</span> link opens the code that made the choice. Words with a dotted underline are the page's plain-English readings; click one to see Ani's own words.</p>
+      </div>
+    </details>
+  </section>
+
+  <section id="start" aria-labelledby="start-h">
+    <div class="section-head">
+      <p><span class="level start">Start here</span></p>
+      <h2 id="start-h">Watch, ask why, change a word</h2>
+      <p>Do these in order, on your own or with a partner. Each has something to try and a question to think about. Try before you open <span class="ui">What to look for</span>.</p>
+    </div>
+    <div class="cards">
+
+      <article class="card start" id="a1">
+        <div class="card-head"><span class="n">1</span><h3>Meet the cast</h3><span class="meta">5 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Press <span class="ui">Play</span> and watch The Introduction (about 40 seconds). Don't read anything yet: just watch.</p></div>
+        <div class="row think"><span class="label">Think</span><p>From the way they move, who is in charge? Who would you want as a friend? How can you tell, when nobody says a word?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The key under the film says who is who: Cinderella is the star, the stepmother the square, the fairy godmother the circle and the Prince the triangle.</p>
+          <p>The square rushes at the star and shoves it, again and again, then chases it and hits it. Near the end the star goes over to the triangle and the two travel together. Everything you learn comes from movement: how fast, how straight or curvy, how bouncy, and who goes toward whom.</p>
+        </div></details>
+      </article>
+
+      <article class="card start" id="a2">
+        <div class="card-head"><span class="n">2</span><h3>What was Ani told?</h3><span class="meta">5 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Read <span class="ui">What Ani was told</span> in the side panel. Then press <span class="ui">Show it as Ani read it</span> to see the same thing in Ken's own notation.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Name three things the film shows that the description never mentions. Who decided them?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The description gives each character a few words (Cinderella is beautiful, shabby, good, friendly, hard working and shy), says how they feel about each other (<q>The stepmother dominates and hates Cinderella</q>), and lists five scenes. Each scene has a few tasks, such as <q>Establish that Cinderella is a little happy</q>, and a mood, a rhythm and a length.</p>
+          <p>It never says where anyone stands, how fast anyone goes, or what they do to each other. Ani decided all of that. Ken's notation is written in Lisp, a programming language much used in AI research in the 1970s.</p>
+        </div></details>
+      </article>
+
+      <article class="card start" id="a3">
+        <div class="card-head"><span class="n">3</span><h3>Ask the stepmother why</h3><span class="meta">10 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Play The Introduction and pause while the square is pushing the star. Click the square.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Ken's description never uses the word “push”. So why does the stepmother push Cinderella around?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The first line says what she is doing. Open <span class="ui">Why</span>: it climbs from the action to its reason: to convey that the stepmother pushes Cinderella around, in order to establish that the stepmother dominates and hates Cinderella, <q>as the film description asks</q>. Pushing is Ani's idea: its way of showing that relationship.</p>
+          <p><span class="ui">Why so long</span> explains the timing. The push happens five times because Ken's code for pushing someone around repeats it five times, and the scene is meant to be long.</p>
+        </div></details>
+        <details class="plain"><summary>Stuck?</summary><div class="body">
+          <p>Click right on the shape. If the panel talks about someone else, press <span class="ui">Back</span> and try again. The <span class="ui">◂</span> and <span class="ui">▸</span> buttons move one frame at a time, which makes it easier to stop at the right moment.</p>
+        </div></details>
+      </article>
+
+      <article class="card start" id="a4">
+        <div class="card-head"><span class="n">4</span><h3>A moment when no one moves</h3><span class="meta">10 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Choose The Meeting, with <span class="ui">24 a second</span>. Near the end everyone stops for several seconds. Find that moment and click a character. Or open <span class="ui">The Meeting, part by part</span> at the bottom of the side panel and click the slanted line that says <q>no one moves</q>.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Is the stillness a mistake, or did Ani mean it? How would you fix it?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The last part of The Meeting is only about feelings: Cinderella and the Prince are very happy. Ani shows a feeling by changing how a character moves (a happy character moves faster and bouncier), but here nobody has anywhere to go, so the change can't be seen. Open <span class="ui">Why no one moves</span>: it also explains why the pause lasts longer than Ani planned.</p>
+          <p>Ken knew about this: his thesis says such changes <q>cannot stand alone</q> <cite>(p. 125)</cite>. One of the revival's extensions, SEEN, has the two wander about while their happiness shows.</p>
+        </div></details>
+      </article>
+
+      <article class="card start" id="a5">
+        <div class="card-head"><span class="n">5</span><h3>Make the stepmother kind</h3><span class="meta">15 minutes, with 2 or 3 minutes of waiting</span></div>
+        <div class="row"><span class="label">Try</span><p>First, write down three things you think will change. Then press <span class="ui">Change the story</span>, choose <span class="ui">A kind stepmother</span> and press <span class="ui">Make the film</span>. Keep this tab in front while Ani works. When it's done, watch the two films side by side.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Which of your predictions came true? Why does the kind stepmother still keep Cinderella away from the Prince in Kept Apart?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The side panel lists what you changed and <span class="ui">How Ani's choices changed</span>. Made by Ani as in 1978, 21 of Ani's 102 choices about how the characters move come out differently: the stepmother is slower and less deliberate, for example.</p>
+          <p>In The Introduction she no longer pushes and hits Cinderella; she goes to her and keeps her company. But Ken's description of Kept Apart says the stepmother prevents Cinderella from meeting the Prince, and you didn't change the scenes. Words about a character change how it moves and how Ani shows its feelings; the plot lives in the scenes.</p>
+        </div></details>
+      </article>
+
+      <article class="card start" id="a6">
+        <div class="card-head"><span class="n">6</span><h3>Find a word Ani doesn't know</h3><span class="meta">10 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Press <span class="ui">Change the story</span> and, before changing anything, read the notes under the word lists. Then open one of the <span class="ui">+ add</span> lists.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Ken's own 1978 story uses a word Ani doesn't know, and Ani never complained. Why might a program carry on quietly? When is that a good idea, and when is it dangerous?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The fairy godmother <q>is protective of</q> Cinderella, but Ani knows only “is protective to”, so the word is remembered but suggests nothing: it has no effect on the film. Another note says “strong” is a word for personality, given here as the Prince's looks.</p>
+          <p>In the lists, shaded words have suggestions of their own in Ani's code; slanted ones Ani knows only as the opposite of another word, or close to one, like “lazy”, the opposite of “hard working”.</p>
+        </div></details>
+      </article>
+    </div>
+  </section>
+
+  <section id="further" aria-labelledby="further-h">
+    <div class="section-head">
+      <p><span class="level further">Going further</span></p>
+      <h2 id="further-h">Look deeper, tell new stories, compare</h2>
+      <p>These take longer and ask you to put clues together. Some make a new film, which takes a few minutes: start it, keep the tab in front, and talk about your predictions while you wait.</p>
+    </div>
+    <div class="cards">
+
+      <article class="card further" id="a7">
+        <div class="card-head"><span class="n">7</span><h3>Why is the Prince in the first scene?</h3><span class="meta">10 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Ken's description of The Introduction only mentions Cinderella and the stepmother. Play to the end of the scene, where the triangle arrives, and click it. Then click Cinderella.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Why did Ani bring the Prince into the first scene? Could it have chosen someone else?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>Open <span class="ui">Why</span>: Cinderella goes to the Prince and goes along with him <q>to establish what Cinderella is like (good, friendly, hard working, shy)</q>. To show what someone is like, Ani sometimes needs a second character to do it with. Look at how Cinderella feels about each of the others in <span class="ui">What Ani was told</span>, and open <span class="ui">How Ani chose this</span>.</p>
+        </div></details>
+      </article>
+
+      <article class="card further" id="a8">
+        <div class="card-head"><span class="n">8</span><h3>Tell Ani a new story</h3><span class="meta">20 minutes · needs a language model</span></div>
+        <div class="row"><span class="label">Try</span><p>Press <span class="ui">Tell Ani a new story</span>. Use the model your teacher has set up (or Gemini Nano, if your computer has it), choose <span class="ui">Red Riding Hood</span> or write a few sentences of your own, and press <span class="ui">Write the film description</span>. Read what comes back before you make the film.</p></div>
+        <div class="row think"><span class="label">Think</span><p>What did the model leave out of your story? What did it add that you never said?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The page shows the model's description in plain words: the characters, how they feel about each other, and the scenes. It says where it tidied the description, and lists any problems Ani's checks found, with a button to ask the model to fix them. <span class="ui">Look it over, then make the film</span> (or <span class="ui">Open it in the editor</span>) lets you check and change it before Ani starts.</p>
+          <p>Ani can only show what characters are like, how they feel and what they do to each other, by how they move. So a story about talking, objects or places has to become chases, guarding, rescues and feelings. Models sometimes add characters, or change the story to fit.</p>
+        </div></details>
+        <p class="callout warn"><span><b>Keys are your teacher's job.</b> Claude, ChatGPT and Gemini need a key, which works like a password and costs money to use. Only your teacher should type one in.</span></p>
+      </article>
+
+      <article class="card further" id="a9">
+        <div class="card-head"><span class="n">9</span><h3>Where Ani stops, and why</h3><span class="meta">15 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Make a new story with <span class="ui">Ani as in 1978</span> chosen. If Ani stops, read <span class="ui">Where Ani as in 1978 stopped</span> and open <span class="ui">What Lisp said</span>. Then press <span class="ui">Make it again with the revival's extensions</span>.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Ken never gave Ani a story like yours. Is a stop a crash, or is Ani being honest about what it can't do?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>Each stop is explained in a plain sentence, with the 1978 program's own message under it. One tortoise-and-hare story, for example, stopped because nothing in the hare's description suggested how active he should be: Ani gave up on that choice in pass 1, and pass 2 couldn't work without it.</p>
+          <p>Made again with the extensions, the side panel says, one sentence each, what each repair did, with a link to its code.</p>
+        </div></details>
+      </article>
+
+      <article class="card further" id="a10">
+        <div class="card-head"><span class="n">10</span><h3>Ani as in 1978, or with the revival's extensions</h3><span class="meta">15 minutes, with about 3 minutes of waiting</span></div>
+        <div class="row"><span class="label">Try</span><p>Press <span class="ui">Change the story</span>, change nothing, choose <span class="ui">Ani with the revival's extensions</span> and make the film. Open <span class="ui">Which extensions</span> to read what each one does. Watch it beside Ken's film.</p></div>
+        <div class="row think"><span class="label">Think</span><p>The extensions are new code, written in 2026 in Ken's style, from ideas in his thesis. Is a film made with them still Ken's Ani's film?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>Ani now chooses how each character looks (its size, shape and colors), so the cast is drawn differently: <span class="ui">How Ani drew them</span> in the side panel says how, and <span class="ui">why?</span>. Under <span class="ui">Scene by scene</span>, The Introduction has new parts: Cinderella helps the Prince along, and follows her stepmother. (Hard challenge D asks why the 1978 Ani didn't.) At the end of The Meeting, Cinderella and the Prince wander about instead of standing still.</p>
+          <p>Ken's own 1978 film never changes: it is always shown as it was made.</p>
+        </div></details>
+      </article>
+
+      <article class="card further" id="a11">
+        <div class="card-head"><span class="n">11</span><h3>The scene Ken left out</h3><span class="meta">15 minutes, with about 5 minutes of waiting</span></div>
+        <div class="row"><span class="label">Try</span><p>Press <span class="ui">Change the story</span> and choose <span class="ui">Cinderella beautified</span>. Make the film, watch the new scene, then click Cinderella in the scenes after it.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Ken wrote this scene in 1978 but left it out of his film. Why couldn't the Ani of 1978 make it?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The fairy godmother goes to Cinderella and, as they touch, Cinderella changes at once (because the fairy godmother is magical; that rule is the revival's). After the scene Ani takes a fresh look at Cinderella <q>as if the character were brand new</q>, as Ken's thesis put it <cite>(p. 168)</cite>, and the side panel has <span class="ui">How she has changed</span>.</p>
+          <p>In 1978 Ani could change where a character was and how it moved, to show a feeling, but not who the character was.</p>
+        </div></details>
+      </article>
+
+      <article class="card further" id="a12">
+        <div class="card-head"><span class="n">12</span><h3>Two films of one story</h3><span class="meta">10 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Watch Kept Apart at <span class="ui">24 a second</span>, then at <span class="ui">4 a second</span>. Find something that is different.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Same program, same story. Why are the two films different?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>Even The Introduction, which Ani plans the same way both times, is filmed differently: compare the times beside the bar. And Ani plans each scene from wherever the last scene's filming left the characters, so from Kept Apart on, the plans differ too.</p>
+          <p>24 a second is how Ken's camera shot the film. 4 a second is how his TV previews ran, and the run printed as a flipbook in the corners of his thesis's pages.</p>
+        </div></details>
+      </article>
+
+      <article class="card further" id="a13">
+        <div class="card-head"><span class="n">13</span><h3>Inside a choice point</h3><span class="meta">15 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Open <a href="pass1.html">Ani's Choice Points</a>. It starts with the stepmother's speed. Read <span class="ui">As the thesis tells it</span>, then pick another choice from the table.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Ani often puts off a choice until it knows more. What would happen if every choice waited for the others?</p></div>
+        <details><summary>What to look for</summary><div class="body">
+          <p>The stepmother's speed was decided at attempt 825 of 836, after 10 postponements. All four speeds wait on one another, until the film's focus (Cinderella matters most) breaks the deadlock: Cinderella's speed is decided from her own description.</p>
+          <blockquote>Difficult choices are postponed to be resumed when more of the film has been determined.<cite>Ken Kahn, AI-TR-540, p. 2</cite></blockquote>
+        </div></details>
+      </article>
+    </div>
+  </section>
+
+  <section id="hard" aria-labelledby="hard-h">
+    <div class="section-head">
+      <p><span class="level hard">Hard challenges</span></p>
+      <h2 id="hard-h">Hard on purpose</h2>
+      <p>The answers depend on what Ani actually does, which you can only find out by trying, so a strong AI chatbot will usually get these wrong too. Work in a pair, write your prediction down first, then check it on the page.</p>
+    </div>
+    <div class="cards">
+
+      <article class="card hard" id="h1">
+        <div class="card-head"><span class="n">A</span><h3>Predict before you look</h3><span class="meta">30 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p><span class="ui">A shy Prince</span> makes him good and shy, no longer stubborn and determined. Before making it, predict which of the Prince's ways of moving will change, and which way: his speed, activity, rhythm, acceleration, repetitiveness, deliberateness, and the length, curvature and jaggedness of his path. Then make the film and check <span class="ui">How Ani's choices changed</span>. Score a point for each one you got right, including those you said wouldn't change.</p></div>
+        <div class="row think"><span class="label">Think</span><p>What did Ani know that you didn't? Ask an AI chatbot to make the same predictions, and compare scores.</p></div>
+        <details><summary>Why it's hard</summary><div class="body">
+          <p>Each choice gathers suggestions from many places: the character's words, how it compares with the others, and the style of the whole film. They often disagree, and Ani has rules for settling conflicts and for putting choices off. Click <span class="ui">why?</span> beside a changed choice to see what decided it.</p>
+        </div></details>
+      </article>
+
+      <article class="card hard" id="h2">
+        <div class="card-head"><span class="n">B</span><h3>Make it happen</h3><span class="meta">30 minutes or more</span></div>
+        <div class="row"><span class="label">Try</span><p>Pick a target, then change Ken's story, using only the words in the editor's lists, until Ani's film does it:</p></div>
+        <ul>
+          <li>the Prince moves more slowly than Cinderella;</li>
+          <li>the stepmother stays mean, but never touches Cinderella in The Introduction;</li>
+          <li>a target of your own, written down before you start.</li>
+        </ul>
+        <div class="row think"><span class="label">Think</span><p>How many tries did it take? What did the tries that failed teach you about Ani's knowledge? Some targets may be impossible with the words Ani knows; if you think one is, explain why, using the side panel's reasons.</p></div>
+        <details><summary>Tips</summary><div class="body">
+          <p>Change one thing at a time and keep notes, or you won't know which change did what. Check speeds by clicking a character and opening <span class="ui">How he moves</span>, or in <span class="ui">How Ani's choices changed</span>. Making films at 4 a second is quicker.</p>
+        </div></details>
+      </article>
+
+      <article class="card hard" id="h3">
+        <div class="card-head"><span class="n">C</span><h3>Explain a curve</h3><span class="meta">20 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Click Cinderella while she walks and open <span class="ui">How she moves</span>. Find <span class="ui">Curvature of the path</span> and follow <span class="ui">why high?</span>, and if you like <span class="ui">See every step of this choice</span>. Then do the same for the stepmother.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Write a chain of “because”s, from words in Ken's description to the curve you see on the screen. Why is the stepmother's path straighter?</p></div>
+        <details><summary>Tips</summary><div class="body">
+          <p>Ani kept some suggestions and set others aside. Note which words suggested what, how strongly, and what happened to the suggestions that lost.</p>
+        </div></details>
+      </article>
+
+      <article class="card hard" id="h4">
+        <div class="card-head"><span class="n">D</span><h3>A part that takes no time</h3><span class="meta">20 minutes</span></div>
+        <div class="row"><span class="label">Try</span><p>Open <span class="ui">The Introduction, part by part</span> in the side panel of Ken's film. One part lasts 0 seconds. Which one?</p></div>
+        <div class="row think"><span class="label">Think</span><p>Why would Ani plan a part and then give it no time at all? What would Ani need to know to show it?</p></div>
+        <details><summary>Check your answer</summary><div class="body">
+          <p>Part 4, “Cinderella helps the Prince”, lasts 0 s: in 1978 Ani had no way of showing helping. Ken's thesis names “helps” among the words that could be added to Ani <cite>(p. 19)</cite>, but he never added it. Now make Ken's story with the revival's extensions (KNOW adds a way of showing it) and look at The Introduction again.</p>
+        </div></details>
+      </article>
+
+      <article class="card hard" id="h5">
+        <div class="card-head"><span class="n">E</span><h3>A story the 1978 Ani can film</h3><span class="meta">45 minutes or more</span></div>
+        <div class="row"><span class="label">Try</span><p>Write a story of your own, with two or three characters and at least two scenes, that <span class="ui">Ani as in 1978</span> films all the way to the end. Start from Ken's description under <span class="ui">Ani's version</span> in <span class="ui">Change the story</span>, or from a language model's draft, and change it until no scene stops.</p></div>
+        <div class="row think"><span class="label">Think</span><p>Which of your tries stopped, and why? What did Ken's Ani take for granted that your story didn't give it?</p></div>
+        <details><summary>Tips</summary><div class="body">
+          <p>The page warns about some problems before you press <span class="ui">Make the film</span>; others only show up when Ani runs. After each try, read <span class="ui">Where Ani as in 1978 stopped</span>. Change one thing at a time, and make films at 4 a second: a stop usually comes long before the film would be finished.</p>
+        </div></details>
+      </article>
+    </div>
+  </section>
+
+  <section id="words" aria-labelledby="words-h">
+    <div class="section-head"><h2 id="words-h">Words to know</h2></div>
+    <dl class="words">
+      <dt>Film description</dt><dd>What Ani is told: the characters, how they feel about each other, and the scenes. Ken wrote Cinderella's in his own notation, a kind of Lisp.</dd>
+      <dt>Pass 1</dt><dd>Ani's first pass over the story, before any scene: how each character moves in general (its speed, how curvy its path is, and so on) and how the characters compare. For Cinderella that is 102 choices.</dd>
+      <dt>Pass 2</dt><dd>Ani's second pass, scene by scene: what each character does, where it starts, in what order and for how long. It ends with a small program for each scene, which Director runs.</dd>
+      <dt>Choice point</dt><dd>One decision Ani has to make, such as the stepmother's speed. It collects suggestions, settles conflicts between them, can put itself off until more is known, and records why it chose what it did.</dd>
+      <dt>Director</dt><dd>The programming language Ken made for animation, in which each character is an “actor” that is sent messages. It runs Ani's programs and draws every frame.</dd>
+      <dt>Glass box</dt><dd>A program you can look inside to see why it did what it did: the opposite of a black box. Ken called Ani a <q>“glass box” that we can look inside</q> <cite>(p. 208)</cite>.</dd>
+      <dt>Extension</dt><dd>Something this revival added to Ani in 2026, written in Ken's style in files of its own, which you can switch on or off: MEND (repairs for new stories), KNOW (more knowledge), APPEAR (how characters look), CHANGE (characters who change) and SEEN (changes seen when no one has anything to do); and two you tick yourself, SLIPS (corrections of slips in Ken's files) and DETAIL (a few of the thesis's details).</dd>
+      <dt>Language model</dt><dd>Today's AI, such as Claude, ChatGPT and Gemini, which learned from enormous amounts of writing. On this page it only turns your story into a film description; Ani does the rest.</dd>
+      <dt>Frame</dt><dd>One picture of the film. Ken's camera took 24 a second; his TV previews showed 4 a second.</dd>
+    </dl>
+  </section>
+
+  <footer>
+    <p><a href="index.html">The film</a> · <a href="teachers.html">A guide for teachers</a> · <a href="making-of.html">How Ani was brought back</a> · <a href="pass1.html">Ani's Choice Points</a> · <a href="source.html">Ani's Code</a></p>
+    <p>Ani is the program in Ken Kahn's MIT thesis, <i>Creation of Computer Animation from Story Descriptions</i> (AI-TR-540, 1979). Page numbers in this guide are that thesis's.</p>
+  </footer>
+</div>
+<script>
+// Printing: open every "What to look for" first, so the printed cards have them, and
+// close them again afterwards.
+addEventListener("beforeprint", () => { document.querySelectorAll("details:not([open])").forEach((d) => { d.dataset.printOpened = ""; d.open = true; }); });
+addEventListener("afterprint", () => { document.querySelectorAll("details[data-print-opened]").forEach((d) => { d.open = false; delete d.dataset.printOpened; }); });
+</script>
+</body>
+</html>
