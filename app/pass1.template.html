@@ -168,7 +168,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 80ch; display: grid
   <header>
     <span class="label">Ani · pass 1 · Cinderella</span>
     <h1>Ani's Choice Points</h1>
-    <p class="intro">In 1978 Ani, the program from Ken Kahn's MIT thesis, decided how each character in its Cinderella film should move: how fast, how actively, how directly, and how each compares with the others. These are its 102 decisions, rerun from its original code on a revived Director. Pick any one to see why Ani made it, attempt by attempt. <a href="film.html">Back to the film</a>.</p>
+    <p class="intro">In 1978 Ani, the program from Ken Kahn's MIT thesis, decided how each character in its Cinderella film should move: how fast, how actively, how directly, and how each compares with the others. These are its 102 decisions, rerun from its original code on a revived Director. Pick any one to see why Ani made it, attempt by attempt. <a href="film.html#view" class="back-to-film">Back to the film</a>.</p>
     <div class="facts" id="facts"></div>
   </header>
 
@@ -202,6 +202,7 @@ footer { color: var(--muted); font-size: 0.85rem; max-width: 80ch; display: grid
 </div>
 
 <script type="application/json" id="pass1-data">/*PASS1-DATA*/</script>
+<script>/*BACK-TO-FILM*/</script>
 <script>
 "use strict";
 const DATA = JSON.parse(document.getElementById("pass1-data").textContent);
@@ -427,7 +428,7 @@ const THESIS_STEPMOTHER = `<div class="thesis"><span class="label">As the thesis
 function show(p, push = true) {
   for (const b of document.querySelectorAll(".cell")) b.setAttribute("aria-pressed", String(b.dataset.key === p.key));
   selected = p;
-  if (push) { try { history.replaceState(null, "", "#" + slug(p)); } catch (e) { /* not allowed here */ } }
+  if (push) { try { history.replaceState(history.state, "", "#" + slug(p)); } catch (e) { /* not allowed here */ } }
   const verdict = valueText(p.currentChoice);
   const verdictLine = p.absolute ? "" : `<p class="sentence">${esc(relSentence(p, p.currentChoice))}.</p>`;
   const same = p.cp29 !== undefined && p.cp29 === lisp(p.currentChoice);

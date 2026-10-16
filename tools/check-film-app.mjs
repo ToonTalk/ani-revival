@@ -127,10 +127,26 @@
 // reached, that Chrome paused the tab (frozen here for eight seconds, the time not counted),
 // and, after minutes with nothing from Ani, offers Stop; and the claude.ai copy starts
 // where eval is refused, Ani's runtime too.
+// And Ken's testing of 16 October (2): every film made is kept in "Your films" (IndexedDB),
+// and is there after a reload, with its title, date, frames a second, how it was made and
+// its size, and a film kept the old way (localStorage) is taken in, once; any two films side
+// by side, each chosen from a list over its screen: 1978 beside one of "Your films", two of
+// them (what differs between them and Ani's choices, scene by scene, each screen's caption
+// tagged Left or Right, playing together) and two different stories (said plainly, and not
+// compared scene by scene); a film renamed (kept after a reload), saved as a film file,
+// opened as the reader's version and deleted (after the page asks; gone after a reload);
+// the place put back after a code link and "Back to the film" (the stepmother clicked at
+// frame 30 of Kept Apart, side by side: the same films, scene, frame, character, panel,
+// details and scroll), as the browser kept the page (its back-forward cache, pageshow
+// persisted) and with the page made again (film.nobf.html has an unload handler, so the
+// browser doesn't keep it), after a reload, and from a code page opened some other way
+// (film.html#view); and "What this page keeps in your browser" and "Forget all of it", after
+// which the page is the default page as before, its prompts pinned.
 // Usage: node tools/check-film-app.mjs [--shots <dir>]   (about an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
-// godmother transforming Cinderella in color: before, as they touch, and after.
+// godmother transforming Cinderella in color: before, as they touch, and after; and "Your
+// films" (at a phone's width too), two of them side by side, and the place put back.
 //
 // It serves the project on a free port itself, and drives Chrome over the DevTools
 // protocol with Node's own WebSocket; Chrome's profile goes in the system's temp
@@ -272,7 +288,7 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [138, 48, 48, 16, 16, 116];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view"];
 // (the claude.ai copy's page script is packed, tools/build-film-app.mjs PAGE_LOADER: the
 // hook goes at its end, unpacked and packed again)
 const hooked = (html) => {
@@ -298,6 +314,12 @@ const server = createServer(async (req, res) => {
   }
   if (at === "app/film.check.html") {
     res.writeHead(200, { "content-type": "text/html" }).end(hooked(filmPage()));
+    return;
+  }
+  // the same, with an unload handler, so that the browser doesn't keep it in its back-forward
+  // cache: coming back to it, it is made again from what it kept in the tab
+  if (at === "app/film.nobf.html") {
+    res.writeHead(200, { "content-type": "text/html" }).end(hooked(filmPage()).replace("<head>", '<head>\n<script>addEventListener("unload", () => {});</script>'));
     return;
   }
   if (at === "artifact/claude.check.html") {
@@ -739,6 +761,47 @@ try {
   await open();
   await sleep(1500);
   check(/5 of 5 scenes filmed/.test(await js(`document.getElementById("run-status").innerText`)), "the new film comes back after a reload");
+
+  // "Your films" (Ken's testing (2), 16 October: "Is there a way to access previously made
+  // films without saving them?"): the film just made is kept in this browser's library
+  // (IndexedDB), and is there after the reload, with its title, when it was made, its frames
+  // a second, how it was made and its size; and a film kept as the page kept its last one
+  // before (localStorage, ani-cinderella:run:v1) is taken into the library, once, and comes
+  // back as the reader's version
+  const kept1 = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-films").click();
+    await wait(200);
+    const side = document.getElementById("side");
+    return { button: document.getElementById("open-films").innerText, panel: side.querySelector("h2").innerText, items: [...side.querySelectorAll(".films > li")].map((li) => li.innerText.replace(/\\s+/g, " ")), old: localStorage.getItem("ani-cinderella:run:v1") };
+  })()`);
+  check(kept1.button === "Your films (1)" && kept1.panel === "Your films" && kept1.items.length === 1 && /^Cinderella: the stepmother pretty, kind and good; the stepmother loves and is helpful/.test(kept1.items[0]) && /your version now/.test(kept1.items[0]) && /· 4 frames a second · by Ani as in 1978 · 5 scenes · \d+(\.\d)? [KM]B/.test(kept1.items[0]) && kept1.old === null,
+    `the film made is kept in "Your films" (IndexedDB), and is there after a reload, with its title, date, frames a second, how it was made and its size: ${kept1.items[0] || "none"}`);
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check && !!window.__check.library.ready").catch(() => false)); k++) await sleep(200);
+  const takenIn = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    await t.library.ready;
+    for (let k = 0; k < 50 && !t.RUNS[1]; k++) await wait(100);
+    const data = t.filmData(t.RUNS[1]);
+    // kept for the checks of "Your films" below (a film file's inside, as the library keeps it)
+    sessionStorage.setItem("ani-check-kind", await t.deflate(JSON.stringify(data)));
+    // as the page kept the last film before "Your films", and with the library empty
+    localStorage.setItem("ani-cinderella:run:v1", await t.deflate(JSON.stringify(data)));
+    await t.deleteFilm(t.library.films[0].id);
+    return t.library.films.length;
+  })()`);
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check && !!window.__check.library.ready").catch(() => false)); k++) await sleep(200);
+  const tookIn = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    await t.library.ready;
+    for (let k = 0; k < 50 && !t.RUNS[1]; k++) await wait(100);
+    await wait(300);
+    return { films: t.library.films.map((f) => f.title), old: localStorage.getItem("ani-cinderella:run:v1"), status: document.getElementById("run-status").innerText, current: !!t.RUNS[1] && t.RUNS[1].libId === (t.library.films[0] || {}).id };
+  })()`);
+  check(takenIn === 0 && tookIn.films.length === 1 && /^Cinderella: the stepmother pretty/.test(tookIn.films[0]) && tookIn.old === null && tookIn.current && /5 of 5 scenes filmed/.test(tookIn.status),
+    `a film kept the old way (localStorage) is taken into "Your films", once, and comes back as the reader's version: ${tookIn.status}`);
 
   // a new story: the model's reply is stood in for (test/stories/red-riding-hood.lisp),
   // so nothing leaves the page; this checks drafting, the checks and the editor
@@ -1644,7 +1707,9 @@ try {
     if (!got) return { saved: false };
     const text = await (await fetch(got.href)).text();
     sessionStorage.setItem("ani-check-film", text);
+    // a fresh page: no film kept in this browser ("Your films", and the old way)
     localStorage.removeItem("ani-cinderella:run:v1");
+    await new Promise((resolve) => { const req = indexedDB.deleteDatabase("ani-cinderella"); req.onsuccess = req.onerror = resolve; setTimeout(resolve, 5000); });
     const o = JSON.parse(text);
     return { saved: true, name: got.name, version: o.version, kb: Math.round(text.length / 1024), fields: Object.keys(o).join(), about: o.about, title: o.title, lisp: (o.lisp || "").startsWith(";; -*-lisp-*-") && (o.lisp || "").includes("(define cinderella character"), story: o.story, extensions: (o.extensions || []).join(), date: o.date, readable: text.split("\\n").length > 5 };
   })()`);
@@ -2252,6 +2317,228 @@ try {
     `with DETAIL, "How he has changed" says Director's walk reads deliberateness and the best-when scores the tendencies, where it said "Director doesn't use these, as in 1978": ${(changeDetail.body.match(/The best-when scores[^.]*\)/) || [""])[0]}`);
   // back to the switch's two settings, for what follows
   await js(`(() => { localStorage.removeItem("ani-cinderella:extensions:v1"); localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);
+
+  // Ken's testing on the page (2), 16 October: "Your films", any two films side by side,
+  // the place put back on coming back from the code, and what the page keeps in the browser.
+  // Two more films go into "Your films" as the page's worker makes them: a story of MEND's
+  // (test/stories/stress/far-and-offstage.lisp, made here in Node) and the kind stepmother
+  // made above (kept in this tab); Ken's Cinderella with SLIPS and with DETAIL, made above,
+  // are there already
+  const toCheckPage = async (page = "film.check.html") => {
+    await send("Page.navigate", { url: `${base}/app/${page}` });
+    for (let k = 0; k < 75 && !(await js("!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring").catch(() => false)); k++) await sleep(200);
+    await js(`(async () => { await window.__check.library.ready; for (let k = 0; k < 30 && !window.__check.RUNS[1]; k++) await new Promise((r) => setTimeout(r, 100)); })()`);
+    await sleep(300);
+  };
+  await toCheckPage();
+  const put = await js(`(async () => {
+    const t = window.__check;
+    const far = JSON.parse(${JSON.stringify(JSON.stringify(NEWER["far-and-offstage"]))});
+    const run = t.makeRun({ label: "x", short: "x", cindy: far.story, choicePoints: far.choicePoints, scenes: far.scenes, extensions: far.extensions, repairs: far.repairs, appearances: far.appearances });
+    run.status = { running: false, made: new Date(Date.now() - 60000).toISOString(), seconds: 9 };
+    const a = await t.keepFilm(run);
+    const b = await t.keepFilm(t.runFromData(JSON.parse(await t.inflate(sessionStorage.getItem("ani-check-kind")))));
+    return [a.kept, b.kept];
+  })()`);
+  await toCheckPage();
+  const lib = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-films").click();
+    await wait(200);
+    const films = t.library.films.map((f) => ({ id: f.id, title: f.title, ext: f.extensions.join() }));
+    const pick = (re, ext) => films.find((f) => re.test(f.title) && (!ext || f.ext.split(",").includes(ext)));
+    return { films, kind: pick(/^Cinderella: the stepmother pretty/), far: pick(/^Far/), detail: pick(/^Cinderella, as Ken told it$/, "detail"), slips: pick(/^Cinderella, as Ken told it$/, "slips"), current: t.RUNS[1] && t.RUNS[1].libId, button: document.getElementById("open-films").innerText,
+      first: (document.querySelector("#side .films > li") || {}).innerText || "" };
+  })()`);
+  check(put.every(Boolean) && lib.kind && lib.far && lib.detail && lib.slips && lib.current === lib.kind.id && lib.films[0].id === lib.kind.id && /your version now/.test(lib.first) && lib.button === `Your films (${lib.films.length})`,
+    `"Your films" lists every film kept, the newest first, the reader's version marked (${lib.films.length}: ${lib.films.map((f) => f.title).join(" | ")})`);
+  await shot("17-your-films.png");
+  await phone("17b-your-films-phone.png", `document.querySelector("#side .films")`);
+  if (lib.kind && lib.far && lib.detail && lib.slips) {
+    const filmItem = (id) => `document.querySelector('#side [data-film="' + ${JSON.stringify(id)} + '"]')`;
+    const panelNow = `(() => { const side = document.getElementById("side"), t = window.__check; return { pair: t.state.pair.join(), view: String(t.state.view), head: side.querySelector("h2").innerText, side: side.innerText, captions: [0, 1].map((r) => document.getElementById("caption-" + r).innerText), selects: [...document.querySelectorAll("select.which-film")].map((s) => s.value + "=" + s.selectedOptions[0].text), scenes: [...document.querySelectorAll("#scenes button")].map((b) => b.innerText).join(", "), label: document.getElementById("frame-label").innerText }; })()`;
+    // Ken's 1978 film beside one of "Your films": its "on the right"
+    await js(`${filmItem(lib.detail.id)}.querySelector('[data-film-act="right"]').click()`);
+    await sleep(500);
+    const kenBeside = await js(panelNow);
+    check(kenBeside.view === "both" && kenBeside.pair === `ken,lib:${lib.detail.id}` && kenBeside.head === "Two films of one story" && /On the right: Cinderella, as Ken told it, one of your films/.test(kenBeside.side) && /Nothing: this is Ken's story\./.test(kenBeside.side) && /Made with some of the revival's extensions \(MEND and DETAIL\)\./.test(kenBeside.side) && /How Ani's choices changed/i.test(kenBeside.side) && /\n1978\n[^]*\nYours\n/.test(kenBeside.side)
+      && /^1978 · Scene 1 · The Introduction/.test(kenBeside.captions[0]) && /^Yours · Scene 1 · The Introduction/.test(kenBeside.captions[1]) && kenBeside.selects[0] === "ken=Ani's 1978 film" && kenBeside.selects[1].startsWith(`lib:${lib.detail.id}=Cinderella, as Ken told it · `),
+      `1978 beside one of "Your films" (from its "on the right"): what was changed of Ken's story and of Ani's choices, scene by scene, each screen's caption tagged (${kenBeside.selects.join(" | ")})`);
+    // two of "Your films", the left chosen from the list over its screen
+    await js(`(() => { const s = document.querySelector('select.which-film[data-slot="0"]'); s.value = "lib:" + ${JSON.stringify(lib.slips.id)}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+    await sleep(600);
+    const two = await js(panelNow);
+    const played = await js(`(async () => { const wait = (ms) => new Promise((r) => setTimeout(r, ms)); window.__check.goScene(1, 0); document.getElementById("play").click(); await wait(1500); document.getElementById("play").click(); await wait(100); return { label: document.getElementById("frame-label").innerText, captions: [0, 1].map((r) => document.getElementById("caption-" + r).innerText.split("\\n")[0]) }; })()`);
+    check(two.view === "both" && two.pair === `lib:${lib.slips.id},lib:${lib.detail.id}` && two.head === "Two films of one description" && /Left, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND, KNOW and SLIPS\), at 4 frames a second\./.test(two.side) && /Right, Cinderella, as Ken told it \([^)]*\): Ken's story, as he told it\. Made with some of the revival's extensions \(MEND and DETAIL\), at 4 frames a second\./.test(two.side)
+      && /Not at all: both were told the same film description\./.test(two.side) && /They were made differently: the left with some of the revival's extensions \(MEND, KNOW and SLIPS\), the right with some of the revival's extensions \(MEND and DETAIL\)\./.test(two.side) && /In pass 1, \d+ of Ani's \d+ choices of how they move came out differently on the right/.test(two.side) && /The Introduction\nLeft\n\d+ s in \d+ parts?: [^]*\nRight\n\d+ s in \d+ parts?:/.test(two.side)
+      && /^Left · Scene 1 · The Introduction/.test(two.captions[0]) && /^Right · Scene 1 · The Introduction/.test(two.captions[1]) && /^Left · Scene 2 · Kept Apart/.test(played.captions[0]) && /^Right · Scene 2 · Kept Apart/.test(played.captions[1]) && /^1\.\d \//.test(played.label),
+      `two of "Your films" side by side (the left chosen over its screen), playing together, and what differs between them: ${(two.side.match(/They were made differently[^\n]*/) || [""])[0]} ${(two.side.match(/In pass 1, [^\n]*/) || [""])[0]}`);
+    await js(`document.getElementById("stage").scrollIntoView({ block: "start" })`);
+    await shot("18-side-by-side-two-films.png");
+    // two different stories: said plainly, and not compared scene by scene
+    await js(`(() => { window.__check.goScene(0, 0); const s = document.querySelector('select.which-film[data-slot="1"]'); s.value = "lib:" + ${JSON.stringify(lib.far.id)}; s.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+    await sleep(600);
+    const apart = await js(panelNow);
+    check(apart.head === "Two different stories" && /These are two different stories, so they can't be compared scene by scene: Cinderella, with Cinderella, the stepmother, the fairy godmother and the Prince in 5 scenes, and [^,]+, with [^.]+ in \d scenes?\. Each screen plays its own film/.test(apart.side) && /^Scene 1, Scene 2/.test(apart.scenes) && /^Left · Scene 1 · The Introduction/.test(apart.captions[0]) && /^Right · Scene 1 · /.test(apart.captions[1]) && /\nScene 2\nLeft\nKept Apart: [^\n]*\nRight\n—\n/.test(apart.side),
+      `two different stories side by side are said to be, plainly, and each plays its own scenes (${apart.scenes})`);
+    // rename, which stays after a reload and shows over the screen; save as a film file; open;
+    // delete, which stays deleted
+    await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById("open-films").click();
+      await wait(200);
+      ${filmItem(lib.far.id)}.querySelector('[data-film-act="rename"]').click();
+      await wait(50);
+      const input = ${filmItem(lib.far.id)}.querySelector(".film-rename input");
+      input.value = "  A film far off the stage  ";
+      input.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+      await wait(400);
+    })()`);
+    const renamed = await js(`({ item: ${filmItem(lib.far.id)}.querySelector(".film-title").innerText, option: [...document.querySelectorAll('select.which-film[data-slot="1"] option')].map((o) => o.text).find((x) => /far off/.test(x)) || "" })`);
+    await toCheckPage();
+    const renamedKept = await js(`window.__check.library.films.find((f) => f.id === ${JSON.stringify(lib.far.id)}).title + " " + window.__check.library.films.find((f) => f.id === ${JSON.stringify(lib.far.id)}).renamed`);
+    const saved = await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById("open-films").click();
+      await wait(200);
+      const orig = HTMLAnchorElement.prototype.click;
+      let got = null;
+      HTMLAnchorElement.prototype.click = function () { if (this.download) got = { name: this.download, href: this.href }; else orig.call(this); };
+      try {
+        ${filmItem(lib.far.id)}.querySelector('[data-film-act="save"]').click();
+        for (let k = 0; k < 100 && !got; k++) await wait(100);
+      } finally { HTMLAnchorElement.prototype.click = orig; }
+      if (!got) return { saved: false };
+      const o = JSON.parse(await (await fetch(got.href)).text());
+      return { saved: true, name: got.name, format: o.format, version: o.version, lisp: o.lisp, extensions: o.extensions.join() };
+    })()`);
+    check(renamed.item === "A film far off the stage" && /^A film far off the stage · /.test(renamed.option) && renamedKept === "A film far off the stage true" && saved.saved && saved.name === "ani-a-film-far-off-the-stage.json" && saved.format === "ani-film" && saved.lisp === NEWER["far-and-offstage"].story && saved.extensions === "mend",
+      `a film renamed keeps its name after a reload, over its screen too (${renamed.option}), and is saved as a film file from the list (${saved.name})`);
+    const opened = await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      ${filmItem(lib.detail.id)}.querySelector('[data-film-act="open"]').click();
+      await wait(800);
+      return { status: document.getElementById("run-status").innerText, current: window.__check.RUNS[1].libId, view: String(window.__check.state.view), pair: window.__check.state.pair.join() };
+    })()`);
+    check(opened.current === lib.detail.id && /^Your version, with some of the revival's extensions \(MEND and DETAIL\): 5 of 5 scenes filmed/.test(opened.status) && opened.view === "both" && opened.pair === "ken,cur",
+      `one of "Your films" opened becomes the reader's version, beside Ken's: ${opened.status}`);
+    const deleted = await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms)), t = window.__check;
+      document.getElementById("open-films").click();
+      await wait(200);
+      const n = t.library.films.length;
+      ${filmItem(lib.far.id)}.querySelector('[data-film-act="delete"]').click();
+      await wait(50);
+      const asked = ${filmItem(lib.far.id)}.querySelector(".film-confirm").innerText;
+      ${filmItem(lib.far.id)}.querySelector('[data-delete="yes"]').click();
+      await wait(500);
+      return { n, now: t.library.films.length, asked, listed: !!document.querySelector('#side [data-film="' + ${JSON.stringify(lib.far.id)} + '"]') };
+    })()`);
+    await toCheckPage();
+    const stillGone = await js(`!window.__check.library.films.some((f) => f.id === ${JSON.stringify(lib.far.id)})`);
+    check(/^Delete “A film far off the stage” from this browser\? It can't be undone/.test(deleted.asked) && deleted.now === deleted.n - 1 && !deleted.listed && stillGone,
+      `a film deleted, after the page asks, is gone from the list, and stays gone after a reload (${deleted.n} films, then ${deleted.now})`);
+
+    // the place put back (Ken: "it was showing the state of the app after a refresh"): the
+    // stepmother clicked in the reader's version at frame 30 of Kept Apart, side by side with
+    // Ken's, "How Ani chose this" opened and the panel scrolled; then a code link, and "Back
+    // to the film": as the browser kept the page (its back-forward cache), and with the page
+    // made again from what it kept in this tab (a page with an unload handler, which the
+    // browser doesn't keep); and a reload; and "Back to the film" from a code page opened
+    // some other way, which opens film.html#view
+    const inspect = `(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      t.setView("both");
+      t.goScene(1, 30 / 4 + 1e-4);
+      t.select({ run: 1, char: "step-mother" });
+      await wait(200);
+      const d = [...document.querySelectorAll("#side details")].find((x) => /How Ani chose this/.test(x.querySelector("summary").textContent));
+      if (d) d.open = true;
+      await wait(100);
+      document.getElementById("side").scrollTop = 120;
+      await wait(700);
+      window.__keptWhole = true;
+    })()`;
+    const placeNow = `(() => { const t = window.__check, side = document.getElementById("side"); return { view: String(t.state.view), pair: t.state.pair.join(), scene: t.state.scene, label: document.getElementById("frame-label").innerText, where: (side.querySelector(".where") || {}).innerText || "", who: (side.querySelector(".who") || {}).innerText || "", panel: t.state.panel, open: [...side.querySelectorAll("details")].filter((d) => d.open).map((d) => d.querySelector("summary").textContent.trim()).join(" | "), scroll: side.scrollTop, whole: !!window.__keptWhole, nav: performance.getEntriesByType("navigation")[0].type }; })()`;
+    const viaCode = async (page) => {
+      await toCheckPage(page);
+      await js(inspect);
+      const before = await js(placeNow);
+      const link = await js(`(() => { const a = document.querySelector('#side a[href*="source.html"]'); if (!a) return ""; a.click(); return a.getAttribute("href"); })()`);
+      for (let k = 0; k < 50 && !(await js(`/source\\.html$/.test(location.pathname) && !!document.querySelector(".code .l")`).catch(() => false)); k++) await sleep(200);
+      const there = await js("location.pathname + location.hash").catch(() => "");
+      await js(`document.querySelector("a.back-to-film").click()`);
+      for (let k = 0; k < 75 && !(await js(`!!window.__check && !window.__check.view.restoring && /film/.test(location.pathname)`).catch(() => false)); k++) await sleep(200);
+      await sleep(800);
+      return { before, link, there, after: await js(placeNow) };
+    };
+    const samePlace = (a, b) => a.view === b.view && a.pair === b.pair && a.scene === b.scene && a.label === b.label && a.where === b.where && a.who === b.who && a.panel === b.panel && a.open === b.open && Math.abs(a.scroll - b.scroll) <= 2;
+    const kept = await viaCode("film.check.html");
+    check(kept.link && /source\.html$/.test(kept.there.split("#")[0]) && samePlace(kept.before, kept.after) && /Kept Apart · part \d+ of \d+ · frame 30 of/.test(kept.after.where) && kept.after.panel === "why",
+      `a code link from the stepmother's glass box, then "Back to the film": the same films, scene, frame, character, panel, details and scroll (${kept.after.whole ? "kept whole by the browser's back-forward cache, pageshow persisted" : `made again, ${kept.after.nav}`}): ${kept.after.who} · ${kept.after.where} · ${kept.after.open}`);
+    const remade = await viaCode("film.nobf.html");
+    check(remade.link && samePlace(remade.before, remade.after) && !remade.after.whole && remade.after.nav === "back_forward",
+      `and with the page made again (no back-forward cache), put back from what it kept in this tab: ${remade.after.who} · ${remade.after.where} · ${remade.after.open} · scrolled ${remade.after.scroll}`);
+    await shot("19-context-restored.png");
+    await send("Page.reload");
+    for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring && !!window.__check.state.selected`).catch(() => false)); k++) await sleep(200);
+    await sleep(800);
+    const reloaded = await js(placeNow);
+    check(samePlace(remade.after, reloaded) && reloaded.nav === "reload", `and after a reload: ${reloaded.who} · ${reloaded.where}`);
+    await send("Page.navigate", { url: "about:blank" });
+    await sleep(300);
+    await send("Page.navigate", { url: `${base}/app/pass1.html` });
+    for (let k = 0; k < 50 && !(await js(`!!document.querySelector("a.back-to-film") && !!document.querySelector(".cell")`).catch(() => false)); k++) await sleep(200);
+    const pass1Link = await js(`document.querySelector("a.back-to-film").getAttribute("href")`);
+    await js(`document.querySelector("a.back-to-film").click()`);
+    for (let k = 0; k < 75 && !(await js(`/film\\.html$/.test(location.pathname) && document.getElementById("side").innerText.includes("The stepmother")`).catch(() => false)); k++) await sleep(200);
+    await sleep(800);
+    const fromLink = await js(`({ href: location.pathname + location.hash, where: (document.querySelector("#side .where") || {}).innerText || "", who: (document.querySelector("#side .who") || {}).innerText || "" })`);
+    check(pass1Link === "film.html#view" && fromLink.href === "/app/film.html" && fromLink.where === remade.after.where && fromLink.who === remade.after.who,
+      `"Back to the film" from a page opened some other way opens film.html#view, which puts back where this tab last was: ${fromLink.who} · ${fromLink.where}`);
+  }
+
+  // what the page keeps in the browser, and "Forget all of it"
+  await toCheckPage();
+  const keptNote = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const closed = !document.getElementById("kept-note").open;
+    document.getElementById("kept-note").open = true;
+    await wait(200);
+    const text = document.getElementById("kept-body").innerText;
+    const keys = (s) => { const out = []; for (let k = 0; k < s.length; k++) if (s.key(k).startsWith("ani-cinderella:")) out.push(s.key(k)); return out; };
+    const before = { local: keys(localStorage), session: keys(sessionStorage), films: window.__check.library.films.length };
+    document.getElementById("kept-forget").click();
+    await wait(100);
+    const asked = document.getElementById("kept-confirm").innerText;
+    sessionStorage.setItem("ani-check-before", JSON.stringify(before));
+    return { closed, text, before, asked };
+  })()`);
+  check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes your films: Ani as in 1978, or with the revival's extensions \(ani-cinderella:mode:v1, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
+    && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Your films: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes your ${keptNote.before.films} films? and everything listed above`).test(keptNote.asked),
+    `"What this page keeps in your browser" (closed at first) says what is kept where: ${keptNote.before.local.length} keys in localStorage, ${keptNote.before.films} films in IndexedDB, ${keptNote.before.session.length} in sessionStorage; "Forget all of it" asks first`);
+  await js(`document.getElementById("kept-yes").click()`);
+  await sleep(1500);
+  for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && window.__check.library.state === "ready"`).catch(() => false)); k++) await sleep(200);
+  await sleep(500);
+  const forgot = await js(`(async () => {
+    const t = window.__check, before = JSON.parse(sessionStorage.getItem("ani-check-before"));
+    const hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const local = []; for (let k = 0; k < localStorage.length; k++) if (localStorage.key(k).startsWith("ani-cinderella:")) local.push(localStorage.key(k));
+    const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)};
+    return { local, session: before.session.filter((k) => !/:last$/.test(k) && sessionStorage.getItem(k) !== null), films: t.library.films.length, runbar: document.getElementById("runbar").hidden, view: String(t.state.view), panel: t.state.panel, side: document.querySelector("#side h2").innerText, caption: document.getElementById("caption-0").innerText,
+      picture: document.getElementById("mode-color").getAttribute("aria-pressed"), rate: (document.querySelector('#rate [aria-pressed="true"]') || {}).textContent || "", more: [...document.querySelectorAll(".more-pages a")].map((a) => a.getAttribute("href") + "=" + a.textContent).join(", "), note: !document.getElementById("kept-note").open,
+      prompts1978: [await hex(t.storyPrompt(STORY, { extensions: [] })), await hex(t.storyPrompt(STORY, { extensions: [], format: "json" }))],
+      promptsRevival: [await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)} })), await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)}, format: "json" })), await hex(JSON.stringify(t.storySchema(${JSON.stringify(REVIVAL)})))] };
+  })()`);
+  check(!forgot.local.length && !forgot.session.length && forgot.films === 0 && forgot.runbar,
+    `"Forget all of it" clears everything the page kept (localStorage, sessionStorage and its IndexedDB films), and the page starts afresh${forgot.local.length || forgot.session.length ? `: left ${[...forgot.local, ...forgot.session].join(", ")}` : ""}`);
+  check(forgot.view === "0" && forgot.panel === "story" && forgot.side === "What Ani was told" && /The stepmother pushes Cinderella around/.test(forgot.caption) && forgot.picture === "true" && forgot.rate === "24 a second" && forgot.note
+    && forgot.more === "../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
+    && JSON.stringify(forgot.prompts1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(forgot.promptsRevival) === JSON.stringify(PROMPT_REVIVAL_SHA),
+    `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts pinned as before (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);
+  // back to the 1978 film at 4 frames a second, and the switch's extensions, for what follows
+  await js(`(() => { document.querySelector('#rate [data-rate="4"]').click(); localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);
 
   // the prompt in 1978 mode is as it was
   const prompts1978 = await js(`(async () => {

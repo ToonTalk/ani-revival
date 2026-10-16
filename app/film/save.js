@@ -92,7 +92,7 @@ function videoPlan(runs, sceneIndexes, rate, titles = true) {
 // steps are said by the part's look changes), so they are worked out once (memo).
 function subtitleAt(run, k, item, memo) {
   const sc = run.scenes[item.i];
-  const tag = memo.both ? `${run.short} · ` : "";
+  const tag = memo.both ? `${memo.runs ? pairShort(memo.runs, k) : run.short} · ` : "";
   if (item.title) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: "" };
   if (!ready(sc)) return { part: `${tag}${sc ? sc.title : `Scene ${item.i + 1}`}`, text: sc ? "Ani stopped while making this scene." : "No such scene in this version." };
   const f = Math.min(sc.last, Math.floor(item.t * fpsOf(sc) + 1e-6));
@@ -151,7 +151,7 @@ function drawVideoFrame(ctx, runs, item, scale, { subtitles = false, memo = null
 const vttTime = (sec) => { const ms = Math.round(sec * 1000); const p = (n, d = 2) => String(n).padStart(d, "0"); return `${p(Math.floor(ms / 3600000))}:${p(Math.floor(ms / 60000) % 60)}:${p(Math.floor(ms / 1000) % 60)}.${p(ms % 1000, 3)}`; };
 function makeSubtitles(runs, sceneIndexes, titles) {
   const rate = videoRate(runs, sceneIndexes);
-  const memo = Object.assign(new Map(), { both: runs.length > 1 });
+  const memo = Object.assign(new Map(), { both: runs.length > 1, runs });
   const cues = [];
   videoPlan(runs, sceneIndexes, rate, titles).forEach((item, n) => {
     const text = runs.map((run, k) => { const s = subtitleAt(run, k, item, memo); return s.text ? `${s.part}\n${s.text}` : s.part; }).join("\n");
@@ -172,7 +172,7 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true
   const ctx = canvas.getContext("2d");
   const rate = videoRate(runs, sceneIndexes);
   const plan = videoPlan(runs, sceneIndexes, rate, titles);
-  const draw = { subtitles, memo: Object.assign(new Map(), { both: runs.length > 1 }) };
+  const draw = { subtitles, memo: Object.assign(new Map(), { both: runs.length > 1, runs }) };
   const frameUs = Math.round(1e6 / rate);
   const config = { codec: "vp8", width: canvas.width, height: canvas.height, bitrate: rate > 4 ? 4000000 : 2500000, framerate: rate };
   const webCodecs = typeof VideoEncoder !== "undefined" && typeof VideoFrame !== "undefined" && (await VideoEncoder.isConfigSupported(config).catch(() => ({}))).supported;
@@ -267,17 +267,15 @@ async function readFilmFile(text) {
   if (outer.version !== 2) { delete d.appearances; delete d.changes; }
   return d;
 }
+// A film file opened becomes the reader's version, and goes into "Your films" too (once:
+// opened again, it is the film kept already).
 async function openFilm(d, name) {
   stopRun({ quiet: true });
-  const extensions = d.extensions || [];
-  const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.appearances || null, changes: d.changes || null, tidied: d.tidied, told: d.told });
-  run.status = { running: false, made: d.made, seconds: d.seconds, restored: true, file: name };
-  RUNS[1] = run;
-  saveRun(run);
-  state.selected = null;
-  state.scene = 0;
-  state.time = 0;
-  setView(sameStory(RUNS[0], run) ? "both" : 1);
+  const run = runFromData(d);
+  run.status.file = name;
+  showAsCurrent(run);
+  await library.ready;
+  saveRun(run, { file: name });
 }
 function chooseFilmFile() {
   // made afresh and never put in the page: the only file picker that opens everywhere
@@ -325,9 +323,12 @@ function toggleSavePanel(force) {
 }
 function renderSavePanel() {
   const panel = document.getElementById("save-panel");
-  const runs = shown().map((r) => RUNS[r]).filter(Boolean);
+  const runs = shown().map(screenRun).filter(Boolean);
   const both = runs.length > 1;
   const mine = RUNS[1];
+  // the reader's films on the screens, each as a film file (with Ken's alone, their version)
+  const files = state.view === 0 ? (mine ? [mine] : []) : [...new Set(runs.filter((r) => r !== RUNS[0]))];
+  const fileLabel = (run, k) => (run === mine ? "Your version" : files.length > 1 ? `The film on the ${runs.indexOf(run) ? "right" : "left"}` : `“${run.label.length > 40 ? run.label.slice(0, 38) + "…" : run.label}”`);
   const sc = runs[0].scenes[state.scene];
   const { titles, subtitles } = videoOptions;
   panel.innerHTML = `
@@ -335,7 +336,7 @@ function renderSavePanel() {
     <div class="save-options">
       <button type="button" class="btn" data-save="scene">${both ? "This scene of both films" : "This scene"}, as a video</button>
       <button type="button" class="btn" data-save="film">${both ? "Both whole films, side by side" : "The whole film"}, as a video</button>
-      ${mine ? `<button type="button" class="btn" data-save="file">Your version, as a film file</button>` : ""}
+      ${files.map((run, k) => `<button type="button" class="btn" data-save="file" data-file="${k}">${esc(fileLabel(run, k))}, as a film file</button>`).join("")}
       <button type="button" class="btn" data-save="open">Open a saved film…</button>
     </div>
     <div class="save-settings">
@@ -346,18 +347,18 @@ function renderSavePanel() {
     <p class="note">Videos are WebM, at ${videoRate(runs, [state.scene])} frames a second, ${state.color ? "in color" : "in black and white"} as the screen shows it now, ${titles ? "with a title before each scene" : "with no titles"}${subtitles ? `, and with subtitles under ${both ? "each film" : "the picture"}: the scene, the part, and what Ani shows and why, as the caption says it. The .vtt file has them timed to the whole ${both ? "films" : "film"}, for a video player` : ""}. A film file keeps everything: open it here later to watch it with all of Ani's reasons.</p>
     <p class="note" id="save-status" aria-live="polite"></p>
     ${mine ? sendStoryButton(mine) : ""}`;
-  panel.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => saveAction(b.dataset.save, runs, sc)));
+  panel.querySelectorAll("[data-save]").forEach((b) => b.addEventListener("click", () => saveAction(b.dataset.save, runs, sc, files[Number(b.dataset.file)] || mine)));
   panel.querySelectorAll("[data-video]").forEach((b) => b.addEventListener("change", () => {
     videoOptions[b.dataset.video] = b.checked;
     store.set(VIDEO_KEY, JSON.stringify(videoOptions));
     renderSavePanel();
   }));
 }
-async function saveAction(what, runs, sc) {
+async function saveAction(what, runs, sc, film = RUNS[1]) {
   if (what === "open") return chooseFilmFile();
   if (saving) { saving.abort(); return; }
   if (what === "file") {
-    const run = RUNS[1];
+    const run = film;
     setSaveStatus("Packing the film…");
     setSaveStatus(await saveFile(await filmFile(run), `ani-${slug(storyTitle(run))}.json`));
     return;

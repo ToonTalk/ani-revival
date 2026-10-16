@@ -342,6 +342,33 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .chg .v { white-space: normal; }
 .chg .grp td { color: var(--muted); font-size: 0.78rem; padding-top: 10px; }
 
+/* which film each screen shows, side by side: any two of Ken's, yours and your films */
+.screen-fig { grid-template-columns: minmax(0, 1fr); }
+.which { min-width: 0; }
+.which-film {
+  font: inherit; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 2px 4px; width: 100%; min-width: 0; text-overflow: ellipsis; cursor: pointer;
+}
+/* your films: every film made here, kept in this browser */
+.films { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.films > li { border: 1px solid var(--rule); border-radius: 10px; padding: 9px 12px; display: grid; gap: 4px; background: var(--paper); }
+.films > li.current { border-color: var(--accent); }
+.films .film-title { font-family: var(--display); font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
+.films details { border-top: 0; padding-top: 0; }
+.films details > summary { font-weight: 400; font-size: 0.86rem; color: var(--muted); }
+.film-actions { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: baseline; font-size: 0.88rem; }
+.film-actions .linkish { font-size: 0.86rem; }
+.film-actions .linkish:disabled { color: var(--muted); cursor: not-allowed; text-decoration: none; }
+.film-rename { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.film-rename input { flex: 1 1 14em; font: inherit; font-size: 0.92rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 4px 8px; }
+.film-confirm, .kept-confirm { display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--rejected-soft); font-size: 0.88rem; }
+.btn.danger { border-color: var(--rejected); color: var(--rejected); }
+.dropped { border-left: 3px solid var(--rejected); padding-left: 10px; }
+/* what this page keeps in your browser */
+.kept-note { max-width: 78ch; }
+.kept-note > summary { font-weight: 500; }
+.kept-note ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.kept-note .kept-where { color: var(--ink); font-weight: 600; font-size: 0.84rem; }
 footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
@@ -361,6 +388,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
     </div>
     <span class="status" id="run-status"></span>
     <button type="button" class="linkish" id="run-stop" hidden>Stop</button>
+    <button type="button" class="linkish" id="open-films">Your films</button>
   </div>
 
   <main class="stage" id="stage">
@@ -404,6 +432,8 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
     <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani herself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
+    <p class="more-pages">More about Ani: <a href="making-of.html">How this was made</a> · <a href="students.html">A guide for students</a> · <a href="teachers.html">A guide for teachers</a>.</p>
+    <details class="kept-note" id="kept-note"><summary>What this page keeps in your browser</summary><div class="body" id="kept-body"></div></details>
     <p class="reporting" hidden>When something on this page goes wrong, the error is reported to Ken so that he can fix it, without any story, key or personal data.</p>
   </footer>
 </div>
@@ -786,9 +816,12 @@ function icon(c, size = 16, run = R) {
 
 // A run: the film description Ani was told, pass 1's choice points, and each scene's
 // plan (its glass box) and film. RUNS[0] is the 1978 film; RUNS[1], once made, is the
-// reader's version. R is the run being explained: the plain-English readings below
-// read its story and its scenes.
+// reader's version (the film being made, or the last made or opened). LIB_RUNS has the
+// films of "Your films" (app/film/library.js) put on a screen beside another, by their id
+// there. R is the run being explained: the plain-English readings below read its story
+// and its scenes.
 const RUNS = [];
+const LIB_RUNS = new Map();
 let R = null;
 function using(run, f) {
   const keep = R;
@@ -1124,6 +1157,10 @@ const CODE = DATA.code;
 const CODE_SITE = /*CODE-SITE*/"";
 const codeLink = (file, line, label = "code") => (file && line && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${file}-${line}" title="${esc(`${file}, line ${line}`)}">${label}</a>` : "");
 if (CODE_SITE) document.querySelectorAll(".code-pages a").forEach((a) => { if (CODE_SITE === "none") a.closest(".code-pages").hidden = true; else a.href = CODE_SITE + a.getAttribute("href"); });
+// The site's pages about Ani (site/pages/, which tools/build-site.mjs puts beside the film
+// page): linked as they are on the site, at ../site/pages/ in app/film.html, and in the
+// claude.ai copy at the site, or left out with the code pages.
+if (CODE_SITE) document.querySelectorAll(".more-pages a").forEach((a) => { if (CODE_SITE === "none") a.closest(".more-pages").hidden = true; else a.href = CODE_SITE + a.getAttribute("href").split("/").pop(); });
 function methodCode(m, which = "define") {
   if (!Array.isArray(m)) return "";
   if (m[0] === "method:") { const v = kv(m, "value"); return Array.isArray(v) ? codeLink(CODE.convey.file, CODE.convey.verbs[v[0]]) : ""; }
@@ -3890,10 +3927,41 @@ function choicePoint(char, element) { return R.cp.get(show(["choice-point-of", c
 // The picture opens in color (Ken, 15 October), unless this browser keeps a visitor's
 // choice of TV (black and white, as Ken's TV previews ran).
 const COLOR_KEY = "ani-cinderella:picture:v1";
-const state = { view: 0, scene: 0, time: 0, playing: false, color: store.get(COLOR_KEY) !== "tv", selected: null, panel: "story", raf: null, speed: 1, cpOpen: null };
+// view: 0, Ken's 1978 film on the left screen; 1, the reader's version on the right one;
+// "both", the films of pair side by side, each "ken", "cur" (the reader's version, RUNS[1])
+// or "lib:<id>" (one of "Your films"), Ken's beside the reader's unless the reader chose
+// others (Ken, 16 October: "Should be able to play any 2 generated films side by side").
+// selected: the character clicked, { run: the screen (0 or 1), char, plan, of: the run
+// shown there when it was clicked }.
+const state = { view: 0, pair: ["ken", "cur"], scene: 0, time: 0, playing: false, color: store.get(COLOR_KEY) !== "tv", selected: null, panel: "story", raf: null, speed: 1, cpOpen: null };
+// where the visitor is on the page, kept in this tab (app/film/view.js)
+const view = { id: null, timer: null, restoring: false, forgetting: false, box: null, lost: false };
 const scene = () => R.scenes[state.scene];
 const shown = () => (state.view === "both" ? [0, 1] : [state.view]);
-const sceneOf = (r) => (RUNS[r] ? RUNS[r].scenes[state.scene] : null);
+// the film a pair's entry names, if the page has it
+function filmRun(ref) {
+  if (ref === "ken") return RUNS[0];
+  if (ref === "cur") return RUNS[1] || null;
+  const id = String(ref || "").replace(/^lib:/, "");
+  if (RUNS[1] && RUNS[1].libId === id) return RUNS[1];
+  return LIB_RUNS.get(id) || null;
+}
+// the film on screen r (0, the left; 1, the right)
+const screenRun = (r) => (state.view === "both" ? filmRun(state.pair[r]) : r === 0 ? RUNS[0] : RUNS[1]) || null;
+// the screen showing a run (the one clicked, if both show it)
+const slotOf = (run) => (state.selected && screenRun(state.selected.run) === run ? state.selected.run : shown().find((r) => screenRun(r) === run) ?? 0);
+// a character clicked on a screen still showing the film it was clicked in
+const selectionValid = () => !!state.selected && shown().includes(state.selected.run) && screenRun(state.selected.run) === state.selected.of;
+// What a screen's film is called beside the other's, in captions, subtitles and "what
+// changed": 1978 and Yours, as Ken's and the reader's always were; two of the reader's own,
+// Left and Right.
+function pairShort(runs, k) {
+  if (runs.length < 2) return runs[k] === RUNS[0] ? "1978" : "Yours";
+  if (runs[k] === RUNS[0]) return "1978";
+  return runs.includes(RUNS[0]) ? "Yours" : k ? "Right" : "Left";
+}
+const screenShort = (r) => pairShort([0, 1].map(screenRun), r);
+const sceneOf = (r) => { const run = screenRun(r); return run ? run.scenes[state.scene] : null; };
 const ready = (sc) => !!sc && !sc.error && sc.film.frames.length > 0;
 // Each film has its own rate (4 frames a second unless it says otherwise); the screens
 // show the frame each film had reached at the same moment.
@@ -3929,9 +3997,47 @@ function layout() {
     FIGS[r].fig.hidden = !on;
     FIGS[r].caption.hidden = !on;
   }
-  FIGS[1].fig.querySelector(".which").textContent = RUNS[1] ? RUNS[1].label : "Your version";
+  renderWhich();
   sizeCanvases();
 }
+// Side by side, each screen's film is chosen from a list over it: Ken's, yours, and each
+// of your films.
+function renderWhich() {
+  if (state.view === "both") for (const r of [0, 1]) {
+    const which = FIGS[r].fig.querySelector(".which");
+    which.innerHTML = `<select class="which-film" data-slot="${r}" aria-label="The film on the ${r ? "right" : "left"}" title="Choose the film on this screen">${filmOptions(state.pair[r])}</select>`;
+  }
+  else {
+    FIGS[0].fig.querySelector(".which").textContent = RUNS[0].label;
+    FIGS[1].fig.querySelector(".which").textContent = RUNS[1] ? RUNS[1].label : "Your version";
+  }
+}
+// The films a screen can show: Ken's, the reader's version, and each of their films
+// kept in this browser (app/film/library.js), newest first.
+function filmOptions(ref) {
+  const cur = RUNS[1];
+  const opts = [["ken", RUNS[0].label]];
+  if (cur) opts.push(["cur", cur.status && cur.status.running ? `${cur.label} (being made)` : cur.libId ? `${cur.label}: ${libraryTitle(cur.libId)}` : cur.label]);
+  // each of your films by its title (cut short), when it was made, and how
+  const how = (f) => `${f.extensions && f.extensions.length ? f.extensions.map((x) => x.toUpperCase()).join(", ") : "Ani as in 1978"}${f.fps === 24 ? ", 24 a second" : ""}`;
+  for (const f of libraryFilms()) if (!(cur && cur.libId === f.id)) opts.push([`lib:${f.id}`, `${f.title.length > 46 ? `${f.title.slice(0, 44)}…` : f.title} · ${shortDate(f.made)} · ${how(f)}`]);
+  const at = filmRun(ref) === cur && cur ? "cur" : ref;
+  return opts.map(([v, label]) => `<option value="${esc(v)}"${v === at ? " selected" : ""}>${esc(label.length > 90 ? label.slice(0, 88) + "…" : label)}</option>`).join("");
+}
+document.getElementById("screens").addEventListener("change", (e) => {
+  const sel = e.target.closest && e.target.closest("select.which-film");
+  if (sel) setPair(Number(sel.dataset.slot), sel.value);
+});
+// Put a film on one screen, the other keeping its own, side by side.
+async function setPair(r, ref) {
+  if (/^lib:/.test(ref) && !(await libraryRun(ref.slice(4)))) { layout(); return; }
+  const pair = state.view === "both" ? [...state.pair] : ["ken", "cur"];
+  pair[r] = ref;
+  state.pair = pair;
+  setView("both");
+}
+// a date as the films' lists say it: "16 Oct 2026, 10:42"
+const shortDate = (iso) => { const d = iso ? new Date(iso) : null; return d && !isNaN(d) ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "undated"; };
 function sizeCanvases() {
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   for (const r of shown()) {
@@ -3984,8 +4090,8 @@ function drawScreen(r) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.setTransform(sx, 0, 0, sy, 0, 0);
   const sc = sceneOf(r);
-  if (!ready(sc)) { screenMessage(ctx, messageFor(RUNS[r], sc)); return; }
-  drawFrame(ctx, RUNS[r], sc, frameIn(sc), { color: state.color, selected: state.selected && state.selected.run === r ? state.selected.char : null });
+  if (!ready(sc)) { screenMessage(ctx, messageFor(screenRun(r), sc)); return; }
+  drawFrame(ctx, screenRun(r), sc, frameIn(sc), { color: state.color, selected: state.selected && state.selected.run === r ? state.selected.char : null });
 }
 // One frame of a scene, in picture dots (the caller has set the scale and the background).
 function drawFrame(ctx, run, sc, f, { color = false, selected = null } = {}) {
@@ -4073,7 +4179,7 @@ function hit(r, px, py) {
   if (!ready(sc)) return null;
   const fr = sc.film.frames[frameIn(sc)];
   let best = null, bestD = 14;
-  for (const c of RUNS[r].cast) {
+  for (const c of screenRun(r).cast) {
     const seg = fr.segs[c];
     if (!seg) continue;
     for (let k = 0; k < seg.length; k += 4) {
@@ -4174,9 +4280,10 @@ function taskOfActivity(act) {
 
 function caption(r) {
   const el = FIGS[r].caption;
-  const run = RUNS[r];
+  const run = screenRun(r);
   const sc = sceneOf(r);
-  const tag = state.view === "both" ? `${esc(run.short)} · ` : "";
+  if (!run) { el.innerHTML = ""; return; }
+  const tag = state.view === "both" ? `${esc(screenShort(r))} · ` : "";
   if (!ready(sc)) {
     const id = run.sceneIds[state.scene];
     const stopped = sc ? `Ani stopped while making this scene. ${whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
@@ -4333,11 +4440,11 @@ function storyPanel() {
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
     <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
-    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button></div>
+    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
-    ${ready(scene()) ? timelineBox(RUNS.indexOf(run), scene()) : ""}
+    ${ready(scene()) ? timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
   side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), 0)));
   side.querySelector("#open-editor").addEventListener("click", openEditor);
@@ -4823,7 +4930,7 @@ function stillBox(run, sc, f) {
 // The scene, part by part: each part's frames and what it is for, and each step in it (its
 // frames, who, what), each opening its explanation; and where no one moves, why.
 function timelineBox(r, sc, char = null) {
-  const run = RUNS[r];
+  const run = screenRun(r);
   const w = whyOf(run, sc);
   if (!w || !w.parts.length) return "";
   const f = frameIn(sc);
@@ -4994,7 +5101,7 @@ function whyPanel(char) {
     const vars = Object.entries(a.variables).filter(([key]) => key !== "name").map(([key, val]) => `(set your ${key} to ${val})`).join("\n");
     return `<p class="label">${esc(n)}</p><pre class="lisp">${esc(vars)}</pre>`;
   }).join("");
-  sections += timelineBox(RUNS.indexOf(R), s, char);
+  sections += timelineBox(slotOf(R), s, char);
   sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
   side.innerHTML = head + lead + stillBox(R, s, f) + whyBox + fixSection + sections;
   if (/[?&]open(&|$)/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
@@ -5641,7 +5748,9 @@ function tidyNote(fixes, lead = "The page tidied the description") {
 function storyChanges(a, b, textA, textB, { takeOut = false } = {}) {
   const out = [];
   const diff = (x, y) => [y.filter((w) => !x.includes(w)), x.filter((w) => !y.includes(w))];
-  for (const c of CAST) {
+  // Ken's four first, then the characters of two versions of another story
+  const others = [...new Set([...Object.keys(a.characters), ...Object.keys(b.characters)])].filter((c) => !CAST.includes(c));
+  for (const c of [...CAST, ...others]) {
     const x = a.characters[c], y = b.characters[c];
     if (!x || !y) { if (x || y) out.push(`${esc(cap(who(c)))} is ${y ? "new" : "gone"}.`); continue; }
     const bits = [];
@@ -5967,6 +6076,8 @@ self.onmessage = function (e) {
   }
 };`;
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
+// the screens showing a run's scene before it is made (what they say changes as Ani goes on)
+const unmadeShown = (run) => shown().filter((r) => screenRun(r) === run && !ready(sceneOf(r)));
 // How long each step took for Ken's story, in seconds: the progress bar's estimate; and,
 // with CHANGE, Ani's fresh look and the full recompute before a scene that changes someone.
 // Each scene's is [pass 2, filming at 4 frames a second, filming at 24]. Measured on 15
@@ -6060,6 +6171,8 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
   RUNS[1] = run;
   state.selected = null;
   state.panel = "compare";
+  state.pair = ["ken", "cur"];
+  view.lost = false;
   // a changed Cinderella is shown beside Ken's; a new story on its own
   try { setView(sameStory(RUNS[0], run) ? "both" : 1); } catch (e) { console.error(e); }
   try {
@@ -6092,7 +6205,7 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
     return;
   }
   clearInterval(ani.tick);
-  ani.tick = setInterval(() => { if (run.status.running) { updateRunbar(); updateProgress(); if (!ready(sceneOf(1))) draw(); } }, 1000);
+  ani.tick = setInterval(() => { if (run.status.running) { updateRunbar(); updateProgress(); if (unmadeShown(run).length) draw(); } }, 1000);
   updateRunbar();
 }
 // Ani's runtime on the page itself: a classic script put on the page with its text (and
@@ -6156,7 +6269,8 @@ function onWorker(run, m) {
     Object.assign(run.status, { step: m.step, what, scene: m.scene, stepStarted: Date.now(), stepPaused: 0, frame: null });
     updateRunbar();
     updateProgress();
-    if (!ready(sceneOf(1))) { draw(); caption(1); }
+    const unmade = unmadeShown(run);
+    if (unmade.length) { draw(); unmade.forEach(caption); }
   } else if (m.type === "pass1") {
     setChoicePoints(run, m.choicePoints);
     if (m.repairs && m.repairs.length) run.raw.repairs = m.repairs; // the notes the revival's repairs left in pass 1
@@ -6186,7 +6300,8 @@ function finishRun(run, { error = null, stopped = false, typed = null }) {
   if (ani.worker) { ani.worker.terminate(); ani.worker = null; }
   clearInterval(ani.tick);
   Object.assign(run.status, { running: false, error, typed, stopped, seconds: runTime(run.status) / 1000, made: new Date().toISOString() });
-  if (!error && !stopped) saveRun(run);
+  // kept in "Your films", a film stopped part way too, if it has a scene to watch
+  if (!error && (!stopped || run.scenes.some(ready))) saveRun(run);
   updateRunbar();
   render();
   if (state.panel === "compare") comparePanel();
@@ -6198,37 +6313,78 @@ function stopRun({ quiet = false } = {}) {
   if (quiet) { if (ani.worker) { ani.worker.terminate(); ani.worker = null; } clearInterval(ani.tick); run.status.running = false; return; }
   finishRun(run, { stopped: true });
 }
-// The last version made is kept in this browser, so it survives a reload: as version 1,
-// or, made with the revival's extensions or with Ani's looks, as version 2, which records
-// the extensions, the notes their repairs left in pass 1, and how Ani chose each look
-// (version 1 was always by Ani as in 1978), and, with CHANGE, Ani's fresh look after each
-// scene that changes someone (changes). Each scene keeps its own looks, in its glass box
-// and its film, and what it made so of the changes before it (glass.becomes).
+// Each film made is kept in this browser, in "Your films" (app/film/library.js, IndexedDB),
+// so it survives a reload, as a film file keeps it: as version 1, or, made with the
+// revival's extensions or with Ani's looks, as version 2, which records the extensions,
+// the notes their repairs left in pass 1, and how Ani chose each look (version 1 was always
+// by Ani as in 1978), and, with CHANGE, Ani's fresh look after each scene that changes
+// someone (changes). Each scene keeps its own looks, in its glass box and its film, and what
+// it made so of the changes before it (glass.becomes). Where this browser won't keep a
+// library, the last film made is kept as before, in localStorage (RUN_KEY), which the
+// library takes in once it can.
 const runVersion = (run) => (runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
 // what the page tidied first, and the story as told, in either version (a reader that
 // doesn't know them leaves them be)
 const madeFrom = (run) => ({ ...(run.tidied && run.tidied.length ? { tidied: run.tidied } : {}), ...(run.told ? { told: run.told } : {}) });
 const version2 = (run) => (runVersion(run) === 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
-async function saveRun(run) {
-  try {
-    const json = JSON.stringify({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status.made, seconds: run.status.seconds, ...version2(run), ...madeFrom(run) });
-    run.status.kept = store.set(RUN_KEY, await deflate(json));
-  } catch { run.status.kept = false; }
-  updateRunbar();
+// a film as it is kept, and as a film file has it inside
+const filmData = (run) => ({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status && run.status.made, seconds: run.status && run.status.seconds, ...version2(run), ...madeFrom(run) });
+// A film kept as it was read back (from "Your films", a film file or RUN_KEY): version 1 is
+// Ani as in 1978, with no looks or changes of hers.
+function runFromData(d, { label = null, short = "Yours" } = {}) {
+  const v2 = d.v !== 1;
+  const extensions = v2 && Array.isArray(d.extensions) ? d.extensions : [];
+  const run = makeRun({ label: label || yoursLabel(extensions), short, cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: v2 ? d.appearances || null : null, changes: v2 ? d.changes || null : null, tidied: d.tidied, told: d.told });
+  run.fps = fpsOf(run.scenes.find(ready));
+  run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
+  return run;
 }
+async function saveRun(run, { file = null } = {}) {
+  let r;
+  try { r = await keepFilm(run, { file }); } catch (e) { console.error(e); r = { kept: false }; }
+  if (r.fallback) {
+    // no library here: the last film, in localStorage, as before
+    try { r.kept = store.set(RUN_KEY, await deflate(JSON.stringify(filmData(run)))); } catch { r.kept = false; }
+  }
+  Object.assign(run.status, { kept: r.kept, dropped: r.dropped || [], room: r.room || null });
+  if (r.id) run.libId = r.id;
+  updateRunbar();
+  filmsChanged();
+}
+// On opening the page with no saved place to go back to: the newest of "Your films" as the
+// reader's version, as the last film made always came back.
 async function restoreRun() {
-  const b64 = store.get(RUN_KEY);
-  if (!b64 || RUNS[1]) return;
-  try {
-    const d = JSON.parse(await inflate(b64));
-    if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes)) return;
-    const extensions = d.v === 2 && Array.isArray(d.extensions) ? d.extensions : [];
-    const run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: d.cindy, choicePoints: d.choicePoints || [], scenes: d.scenes, extensions, repairs: d.repairs, appearances: d.v === 2 ? d.appearances : null, changes: d.v === 2 ? d.changes : null, tidied: d.tidied, told: d.told });
-    run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
+  await library.ready;
+  if (RUNS[1]) return;
+  if (library.state === "ready") {
+    const newest = libraryFilms()[0];
+    const run = newest ? await libraryRun(newest.id, { current: true }) : null;
+    if (!run || RUNS[1]) return;
     RUNS[1] = run;
     updateRunbar();
-    if (state.panel === "story") storyPanel();
+    if (state.panel === "story") renderSide();
+    return;
+  }
+  const b64 = store.get(RUN_KEY);
+  if (!b64) return;
+  try {
+    const d = JSON.parse(await inflate(b64));
+    if ((d.v !== 1 && d.v !== 2) || typeof d.cindy !== "string" || !Array.isArray(d.scenes) || RUNS[1]) return;
+    RUNS[1] = runFromData(d);
+    updateRunbar();
+    if (state.panel === "story") renderSide();
   } catch { /* an old or damaged copy: ignore it */ }
+}
+// The reader's version is now this film (made, opened from a file or from "Your films"):
+// shown from its start, a changed Cinderella beside Ken's, a new story on its own.
+function showAsCurrent(run) {
+  RUNS[1] = run;
+  state.selected = null;
+  state.scene = 0;
+  state.time = 0;
+  state.pair = ["ken", "cur"];
+  view.lost = false;
+  setView(sameStory(RUNS[0], run) ? "both" : 1);
 }
 
 // ---------------------------------------------------------------- the two films
@@ -6238,6 +6394,8 @@ function updateRunbar() {
   const bar = document.getElementById("runbar");
   const run = RUNS[1];
   bar.hidden = !run;
+  const films = libraryFilms().length;
+  document.getElementById("open-films").textContent = films ? `Your films (${films})` : "Your films";
   if (!run) return;
   bar.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(String(state.view) === b.dataset.view)));
   const st = run.status || {};
@@ -6251,13 +6409,13 @@ function updateRunbar() {
   } else if (st.error) {
     status.innerHTML = `<span class="stopped">Ani stopped in pass 1: ${unmark(whyStopped(run, st.error, st.typed).text)}</span>${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}`;
   } else if (st.stopped) {
-    status.textContent = `Stopped after ${clock(st.seconds * 1000)}, with ${filmed} of ${run.sceneIds.length} scenes filmed.`;
+    status.textContent = `Stopped after ${clock(st.seconds * 1000)}, with ${filmed} of ${run.sceneIds.length} scenes filmed.${filmed ? keptWords(run) : ""}`;
     document.title = PAGE_TITLE;
   } else {
     document.title = PAGE_TITLE;
     const failed = run.scenes.filter((s) => s && s.error).length;
     const when = st.made ? new Date(st.made).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
-    status.textContent = `${run.label}: ${filmed} of ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"} filmed${failed ? `, ${failed} stopped` : ""}${st.seconds ? `, in ${clock(st.seconds * 1000)}` : ""}${st.restored && when ? ` (made ${when})` : ""}.${st.kept === false ? " This browser couldn't keep it." : ""}`;
+    status.textContent = `${run.label}: ${filmed} of ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"} filmed${failed ? `, ${failed} stopped` : ""}${st.seconds ? `, in ${clock(st.seconds * 1000)}` : ""}${st.restored && when ? ` (made ${when})` : ""}.${keptWords(run)}`;
     if (mendable(run)) status.insertAdjacentHTML("beforeend", ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>`);
   }
   document.getElementById("run-stop").hidden = !st.running;
@@ -6283,78 +6441,27 @@ function shownIn(run, sc) {
     return [...new Set(out)];
   });
 }
-function comparePanel() {
-  const side = document.getElementById("side");
-  const a = RUNS[0], b = RUNS[1];
-  if (!b) { state.panel = "story"; renderSide(); return; }
-  const st = b.status || {};
-  const other = !sameStory(a, b);
-  // Ken's cast, and his scenes with others added (his beautified scene put back): it can't
-  // be shown beside his, scene by scene, but it is his story changed
-  const kenPlus = other && [...a.cast].sort().join() === [...b.cast].sort().join() && a.sceneIds.every((id) => b.sceneIds.includes(id));
-  const changes = other && !kenPlus
-    ? [`A new story: ${esc(words(b.cast.map((c) => meet(b.story, c).the)))}, in ${b.sceneIds.length} scene${b.sceneIds.length === 1 ? "" : "s"} (${esc(words(b.sceneIds.map((id) => b.titles[id])))}).`]
-    : storyChanges(a.story, b.story, a.cindy, b.cindy, { takeOut: !st.running });
-  // pass 1: the choices that differ (of how they move: the looks Ani chose with APPEAR
-  // have no 1978 choice to differ from, Ken drew them himself, so they are listed apart)
-  const moving = b.choicePoints.filter((cp) => !isAppearance(cp.name[2]));
-  const diffs = [];
-  let relative = 0;
-  for (const cp of moving) {
-    const old = a.cp.get(show(cp.name));
-    if (old && show(old.currentChoice) === show(cp.currentChoice)) continue;
-    if (cp.name[0] !== "choice-point-of") { relative++; continue; }
-    diffs.push(cp);
-  }
-  const valueOf = (v) => (Array.isArray(v) ? (v[0] === "not" ? `not ${v[1]}` : v.join(" ")) : String(v));
-  // what the revival's repairs did in pass 1 (MEND8's empty comparisons)
-  // (SLIPS3's, on a friendly character's tendencies, each open its choice point)
-  const pass1Fixes = repairItems(b, b.raw.repairs).map((x) => { const a = parse(x.actor); return x.what === "friendly-attraction" && Array.isArray(a) ? { ...x, why: `${a[1]}|${a[2]}` } : x; });
-  const cpRows = diffs.map((cp) => {
-    const [, char, el] = cp.name;
-    const old = a.cp.get(show(cp.name));
-    return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(valueOf(cp.currentChoice))}</b> <span class="was">(was ${esc(old ? valueOf(old.currentChoice) : "—")})</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
-  }).join("");
-  const len = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
-  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : other ? "no actions; Ani changes how they move" : "—"; };
-  const yoursOf = (y) => {
-    const fixed = ready(y) ? repairItems(b, sceneNotes(y), y).length : 0;
-    const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">hadn't ended after ${CAP_WORDS}</span>` : "";
-    return ready(y) ? `${len(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}${capped}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : st.running ? "not made yet" : "not made";
-  };
-  // what the story asks of a scene, in plain words (as the story panel's scene cards say it)
-  const told = (run, id) => using(run, () => asOf(id, () => {
-    const t = run.story.scenes[id];
-    const tasks = t ? tasksOf(t.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))) : [];
-    return tasks.length ? esc(tasks.join("; ")) : "—";
-  }));
-  const scenes = other
-    ? b.sceneIds.map((id, i) => {
-      const y = b.scenes[i];
-      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">Scene ${i + 1}: ${esc(b.titles[id])}</span>
-      <span class="vs"><span>Asked</span><span>${told(b, id)}</span><span>Made</span><span>${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}</span></span></button>`;
-    }).join("")
-    : [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
-      const x = a.scenes[i], y = b.scenes[i];
-      const id = a.sceneIds[i] || b.sceneIds[i];
-      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${esc(a.titles[id] || b.titles[id])}</span>
-      <span class="vs"><span>1978</span><span>${a.sceneIds[i] ? `${len(x)}: ${lines(a, x)}` : "—"}</span><span>Yours</span><span>${b.sceneIds[i] ? `${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}` : "—"}</span></span></button>`;
-    }).join("");
-  side.innerHTML = `
-    <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">Change the story again</button></div>
-    ${st.running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
-    ${st.running ? "" : stopBox(b)}
-    <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${st.running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
-    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
-      ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
-      : `<p class="note">${st.running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
-    ${optInSummary(b)}
-    ${drawnList(b)}
-    <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
-    <p class="note">${other ? `Click a character to see why Ani made it do what it does. Ken's Cinderella is a different story, so it isn't shown beside yours; the buttons over the screen show it.` : "Click a character on either screen to see why Ani made it do what it does."}</p>`;
-  updateProgress();
-  side.querySelector("#cmp-edit").addEventListener("click", openEditor);
-  side.querySelector("#cmp-stop")?.addEventListener("click", () => stopRun());
+// The two films "what changed" compares: side by side, the screens' (in their order);
+// otherwise Ken's and the reader's version.
+const comparePair = () => (state.view === "both" ? [screenRun(0), screenRun(1)] : [RUNS[0], RUNS[1]]);
+// how a scene went: its length and parts
+const sceneLen = (sc) => (ready(sc) ? `${Math.round(sc.film.frames.length / fpsOf(sc))} s in ${sc.subscenes.length} part${sc.subscenes.length > 1 ? "s" : ""}` : "");
+// how a film was made: "by Ani as in 1978, at 4 frames a second"
+const madeFacts = (run) => `${madeWith(run)}, at ${run.fps || fpsOf(run.scenes.find(ready))} frames a second`;
+// a choice of pass 1, as the compare panel says it
+const choiceValue = (v) => (Array.isArray(v) ? (v[0] === "not" ? `not ${v[1]}` : v.join(" ")) : String(v));
+const sameCast = (a, b) => !!a && !!b && [...a.cast].sort().join() === [...b.cast].sort().join();
+// What made one of the reader's films, in plain words: the story as told (and to which
+// model), Ken's story with what was changed, or a new story's cast and scenes.
+function toldWords(run) {
+  const told = run.told && run.told.story ? `told as “${esc(run.told.story)}”${run.told.model ? ` (to ${esc(run.told.model)}${run.told.provider ? `, ${esc(run.told.provider)}` : ""})` : ""}` : "";
+  if (!sameCast(RUNS[0], run)) return `${told ? `${cap(told)}: ` : ""}a story of ${esc(words(run.cast.map((c) => meet(run.story, c).the)))}, in ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"} (${esc(words(run.sceneIds.map((id) => run.titles[id])))}).`;
+  const changes = storyChanges(RUNS[0].story, run.story, DATA.cindy, run.cindy);
+  return `${told ? `${cap(told)}: ` : ""}${changes.length ? `Ken's story changed: ${changes.map((c) => c.replace(/\.$/, "")).join("; ")}.` : "Ken's story, as he told it."}`;
+}
+// "why?" beside a choice, "why?" beside a look, and the scene cards, in a compare panel
+// about film b
+function wireCompare(side, b) {
   side.querySelectorAll(".scene-card").forEach((el) => el.addEventListener("click", () => goScene(Number(el.dataset.scene), 0)));
   side.querySelectorAll("[data-cmp-cp]").forEach((el) => el.addEventListener("click", (ev) => {
     ev.preventDefault(); // (one in a note's summary opens the box, not the note)
@@ -6371,6 +6478,153 @@ function comparePanel() {
     wireLooks(box, b, "#cmp-look-box");
     if (!again) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }));
+}
+// Ken's 1978 film beside one of the reader's (the reader's version, made or being made, or
+// one of their films): what they changed of his story and of Ani's choices, scene by scene,
+// each film's row as the screens have them; or, in the reader's version alone, their own
+// story.
+function comparePanel() {
+  const side = document.getElementById("side");
+  const [left, right] = comparePair();
+  if (!left || !right) { state.panel = "story"; renderSide(); return; }
+  if (left === right || (left !== RUNS[0] && right !== RUNS[0])) { pairPanel(left, right); return; }
+  const a = RUNS[0], b = left === RUNS[0] ? right : left;
+  const kenLeft = left === RUNS[0];
+  const st = b.status || {};
+  const running = b === RUNS[1] && !!st.running;
+  const other = !sameStory(a, b);
+  // side by side with Ken's, two different stories are said to be
+  const apart = other && state.view === "both";
+  // Ken's cast, and his scenes with others added (his beautified scene put back): it can't
+  // be shown beside his, scene by scene, but it is his story changed
+  const kenPlus = other && [...a.cast].sort().join() === [...b.cast].sort().join() && a.sceneIds.every((id) => b.sceneIds.includes(id));
+  const changes = other && !kenPlus
+    ? [`A new story: ${esc(words(b.cast.map((c) => meet(b.story, c).the)))}, in ${b.sceneIds.length} scene${b.sceneIds.length === 1 ? "" : "s"} (${esc(words(b.sceneIds.map((id) => b.titles[id])))}).`]
+    : storyChanges(a.story, b.story, a.cindy, b.cindy, { takeOut: !running });
+  // pass 1: the choices that differ (of how they move: the looks Ani chose with APPEAR
+  // have no 1978 choice to differ from, Ken drew them himself, so they are listed apart)
+  const moving = b.choicePoints.filter((cp) => !isAppearance(cp.name[2]));
+  const diffs = [];
+  let relative = 0;
+  for (const cp of moving) {
+    const old = a.cp.get(show(cp.name));
+    if (old && show(old.currentChoice) === show(cp.currentChoice)) continue;
+    if (cp.name[0] !== "choice-point-of") { relative++; continue; }
+    diffs.push(cp);
+  }
+  // what the revival's repairs did in pass 1 (MEND8's empty comparisons)
+  // (SLIPS3's, on a friendly character's tendencies, each open its choice point)
+  const pass1Fixes = repairItems(b, b.raw.repairs).map((x) => { const a = parse(x.actor); return x.what === "friendly-attraction" && Array.isArray(a) ? { ...x, why: `${a[1]}|${a[2]}` } : x; });
+  const cpRows = diffs.map((cp) => {
+    const [, char, el] = cp.name;
+    const old = a.cp.get(show(cp.name));
+    return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(choiceValue(cp.currentChoice))}</b> <span class="was">(was ${esc(old ? choiceValue(old.currentChoice) : "—")})</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
+  }).join("");
+  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : other ? "no actions; Ani changes how they move" : "—"; };
+  const yoursOf = (y) => {
+    const fixed = ready(y) ? repairItems(b, sceneNotes(y), y).length : 0;
+    const capped = ready(y) && y.film.frames.length > CAP_SECONDS * fpsOf(y) ? `, <span class="stopped">hadn't ended after ${CAP_WORDS}</span>` : "";
+    return ready(y) ? `${sceneLen(y)}${fixed > 0 ? `, <span class="made-with">${fixed} repair${fixed === 1 ? "" : "s"}</span>` : ""}${capped}` : y && y.error ? `<span class="stopped">Ani stopped</span>` : running ? "not made yet" : "not made";
+  };
+  // what the story asks of a scene, in plain words (as the story panel's scene cards say it)
+  const told = (run, id) => using(run, () => asOf(id, () => {
+    const t = run.story.scenes[id];
+    const tasks = t ? tasksOf(t.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))) : [];
+    return tasks.length ? esc(tasks.join("; ")) : "—";
+  }));
+  // each film's row of a scene, in the screens' order
+  const inOrder = (ken, mine) => (kenLeft ? ken + mine : mine + ken);
+  const scenes = other
+    ? b.sceneIds.map((id, i) => {
+      const y = b.scenes[i];
+      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">Scene ${i + 1}: ${esc(b.titles[id])}</span>
+      <span class="vs"><span>Asked</span><span>${told(b, id)}</span><span>Made</span><span>${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}</span>${apart ? `<span>1978</span><span>${a.sceneIds[i] ? `${esc(a.titles[a.sceneIds[i]])}, ${sceneLen(a.scenes[i])}` : "—"}</span>` : ""}</span></button>`;
+    }).join("")
+    : [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => {
+      const x = a.scenes[i], y = b.scenes[i];
+      const id = a.sceneIds[i] || b.sceneIds[i];
+      return `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${esc(a.titles[id] || b.titles[id])}</span>
+      <span class="vs">${inOrder(`<span>1978</span><span>${a.sceneIds[i] ? `${sceneLen(x)}: ${lines(a, x)}` : "—"}</span>`, `<span>Yours</span><span>${b.sceneIds[i] ? `${yoursOf(y)}${ready(y) ? `: ${lines(b, y)}` : ""}` : "—"}</span>`)}</span></button>`;
+    }).join("");
+  const mine = b === RUNS[1];
+  side.innerHTML = `
+    <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
+    ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
+    ${running ? "" : stopBox(b)}
+    ${mine ? "" : `<p class="note">${kenLeft ? "On the right" : "On the left"}: ${esc(b.label)}, one of your films${b.status && b.status.made ? `, made ${esc(shortDate(b.status.made))}` : ""}.</p>`}
+    ${apart && !kenPlus ? `<p class="note">These are two different stories, so they can't be compared scene by scene: Ken's Cinderella, with his four characters in five scenes, and ${esc(storyTitle(b))}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>` : ""}
+    <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
+    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
+      ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
+      : `<p class="note">${running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
+    ${optInSummary(b)}
+    ${drawnList(b)}
+    <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>
+    <p class="note">${other && !apart ? `Click a character to see why Ani made it do what it does. Ken's Cinderella is a different story, so it isn't shown beside yours; the buttons over the screen show it.` : "Click a character on either screen to see why Ani made it do what it does."}</p>`;
+  updateProgress();
+  side.querySelector("#cmp-edit").addEventListener("click", () => (mine ? openEditor() : editStoryOf(b)));
+  side.querySelector("#cmp-stop")?.addEventListener("click", () => stopRun());
+  wireCompare(side, b);
+}
+// Two of the reader's films side by side (or one film on both screens): what each was
+// told and how it was made; for two versions of one story, how the right one's story and
+// Ani's choices differ from the left's, scene by scene; two different stories are said to
+// be, plainly, and listed scene by scene, each its own.
+function pairPanel(a, b) {
+  const side = document.getElementById("side");
+  const [na, nb] = [pairShort([a, b], 0), pairShort([a, b], 1)];
+  const lines = (run, sc) => { const l = shownIn(run, sc); return l.length ? esc(l.join("; ")) : "no actions; Ani changes how they move"; };
+  const made = (run, sc) => (ready(sc) ? `${sceneLen(sc)}: ${lines(run, sc)}` : sc && sc.error ? `<span class="stopped">Ani stopped</span>` : run.status && run.status.running ? "not made yet" : "not made");
+  const card = (i, title, rows) => `<button type="button" class="scene-card cmp-scene" data-scene="${i}" aria-current="${i === state.scene}"><span class="t">${title}</span><span class="vs">${rows.map(([n, text]) => `<span>${esc(n)}</span><span>${text}</span>`).join("")}</span></button>`;
+  const end = `<p class="note">Click a character on either screen to see why Ani made it do what it does.</p>`;
+  if (a === b) {
+    side.innerHTML = `<div class="side-head"><h2>One film on both screens</h2></div>
+      <p class="note">Both screens show ${esc(a.label)}, ${esc(madeFacts(a))}. Choose another film for either screen from the list over it.</p>
+      <div class="scene-list"><p class="label">Scene by scene</p>${a.sceneIds.map((id, i) => card(i, `Scene ${i + 1}: ${esc(a.titles[id])}`, [["Made", made(a, a.scenes[i])]])).join("")}</div>${end}`;
+    wireCompare(side, b);
+    return;
+  }
+  // the same story (same characters and scenes), or versions of one (the same characters,
+  // a scene put in or left out), or two different stories
+  const same = sameStory(a, b), versions = sameCast(a, b);
+  const each = [[na, a], [nb, b]].map(([n, run]) => `<li><b>${esc(n)}</b>, ${esc(run.label)}${run.status && run.status.made ? ` (${esc(shortDate(run.status.made))})` : ""}: ${run === RUNS[0] ? "Ken's film description, as he told it." : toldWords(run)} <span class="note${runExtensions(run).length ? " made-with" : ""}">Made ${esc(madeFacts(run))}.</span></li>`).join("");
+  let body = "", scenes;
+  if (versions) {
+    const changes = storyChanges(a.story, b.story, a.cindy, b.cindy);
+    // how they were made, where that differs
+    const fa = a.fps || fpsOf(a.scenes.find(ready)), fb = b.fps || fpsOf(b.scenes.find(ready));
+    const how = [!sameIds(runExtensions(a), runExtensions(b)) ? `the left ${madeWith(a)}, the right ${madeWith(b)}` : "", fa !== fb ? `the left at ${fa} frames a second, the right at ${fb}` : ""].filter(Boolean);
+    const moving = b.choicePoints.filter((cp) => !isAppearance(cp.name[2]));
+    const diffs = [];
+    let relative = 0;
+    for (const cp of moving) {
+      const old = a.cp.get(show(cp.name));
+      if (old && show(old.currentChoice) === show(cp.currentChoice)) continue;
+      if (cp.name[0] !== "choice-point-of") { relative++; continue; }
+      diffs.push(cp);
+    }
+    const cpRows = diffs.map((cp) => {
+      const [, char, el] = cp.name;
+      const old = a.cp.get(show(cp.name));
+      return `<li>${esc(cap(who(char)))}'s ${esc(elementName(el))}: <b>${esc(choiceValue(cp.currentChoice))}</b> on the right <span class="was">(${esc(old ? choiceValue(old.currentChoice) : "—")} on the left)</span> <button type="button" class="linkish" data-cmp-cp="${esc(char)}|${esc(el)}">why?</button></li>`;
+    }).join("");
+    body = `<div><p class="label">How the right one's story differs from the left's</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Not at all: both were told the same film description.</p>`}${how.length ? `<p class="note">They were made differently: ${esc(how.join("; "))}.</p>` : ""}</div>
+      <div><p class="label">How Ani's choices differ</p>${moving.length && a.choicePoints.length ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently on the right${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>` : `<p class="note">Pass 1 didn't finish for ${moving.length ? "the left one" : "the right one"}.</p>`}</div>`;
+    if (!same) body += `<p class="note">Their scenes differ, so each screen plays its own: the first scene of one beside the first of the other, and so on.</p>`;
+    scenes = same ? a.sceneIds.map((id, i) => card(i, esc(a.titles[id]), [[na, made(a, a.scenes[i])], [nb, made(b, b.scenes[i])]])).join("") : null;
+  } else {
+    const story = (run) => `${run === RUNS[0] ? "Ken's Cinderella" : esc(storyTitle(run))}, with ${esc(words(run.cast.map((c) => meet(run.story, c).the)))} in ${run.sceneIds.length} scene${run.sceneIds.length === 1 ? "" : "s"}`;
+    body = `<p class="note">These are two different stories, so they can't be compared scene by scene: ${story(a)}, and ${story(b)}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>`;
+  }
+  if (!scenes) {
+    scenes = [...Array(Math.max(a.sceneIds.length, b.sceneIds.length)).keys()].map((i) => card(i, `Scene ${i + 1}`, [[na, a.sceneIds[i] ? `${esc(a.titles[a.sceneIds[i]])}: ${made(a, a.scenes[i])}` : "—"], [nb, b.sceneIds[i] ? `${esc(b.titles[b.sceneIds[i]])}: ${made(b, b.scenes[i])}` : "—"]])).join("");
+  }
+  side.innerHTML = `
+    <div class="side-head"><h2>${same && a.cindy === b.cindy ? "Two films of one description" : versions ? "Two versions of one story" : "Two different stories"}</h2></div>
+    <div><p class="label">What each was told</p><ul class="changes">${each}</ul></div>
+    ${body}
+    <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>${end}`;
+  wireCompare(side, b);
 }
 // Who the story changed, and how they move after (REVIVE;CHANGE), a sentence each.
 const changeLines = (run) => using(run, () => run.sceneIds.flatMap((id, i) => {
@@ -6399,14 +6653,26 @@ function drawnList(run) {
 
 let lastPanel = null;
 function renderSide() {
-  // a different panel starts at its top
-  const key = `${state.panel} ${state.selected ? state.selected.run + state.selected.char : ""}`;
-  if (key !== lastPanel) { document.getElementById("side").scrollTop = 0; lastPanel = key; }
-  if (state.panel === "why" && state.selected) return using(RUNS[state.selected.run], () => whyPanel(state.selected.char));
+  // a different panel starts at its top, and its first look; the same one drawn again (at
+  // another frame, say) keeps the details the visitor opened or closed, and its scroll (a
+  // "why?" box opened in it closes, as it always did)
+  const side = document.getElementById("side");
+  const key = `${state.panel} ${state.selected ? state.selected.run + state.selected.char : ""} ${state.view} ${state.pair.join()}`;
+  const again = key === lastPanel;
+  const keep = again ? { details: detailsOf(side), scroll: side.scrollTop } : null;
+  if (!again) { side.scrollTop = 0; lastPanel = key; }
+  view.box = null;
+  sidePanel();
+  if (keep) { applyDetails(side, keep.details); side.scrollTop = keep.scroll; }
+  scheduleSave();
+}
+function sidePanel() {
+  if (state.panel === "why" && state.selected && screenRun(state.selected.run)) return using(screenRun(state.selected.run), () => whyPanel(state.selected.char));
   if (state.panel === "edit") return editorPanel();
   if (state.panel === "tell") return tellerPanel();
+  if (state.panel === "films") return filmsPanel();
   if (state.panel === "compare") return comparePanel();
-  return using(RUNS[state.view === 1 ? 1 : 0], storyPanel);
+  return using(screenRun(state.view === 1 ? 1 : 0) || RUNS[0], storyPanel);
 }
 // A new story (not Cinderella, changed or not) has its own panel, whichever screens show.
 const newStoryShown = () => !!RUNS[1] && !sameStory(RUNS[0], RUNS[1]) && state.view !== 0;
@@ -6421,10 +6687,11 @@ function render() {
   scrub.value = String(Math.min(state.time, total));
   document.getElementById("frame-label").textContent = `${state.time.toFixed(1)} / ${total.toFixed(1)} s`;
   for (const r of shown()) caption(r);
+  scheduleSave();
 }
 // The scene buttons: the scenes of the film shown, or numbers for two different stories.
 function renderSceneButtons() {
-  const runs = shown().map((r) => RUNS[r]).filter(Boolean);
+  const runs = shown().map(screenRun).filter(Boolean);
   const count = Math.max(...runs.map((r) => r.sceneIds.length));
   const same = runs.length < 2 || sameStory(runs[0], runs[1]);
   const titles = [...Array(count).keys()].map((i) => (same ? runs[0].titles[runs[0].sceneIds[i]] : `Scene ${i + 1}`));
@@ -6433,15 +6700,17 @@ function renderSceneButtons() {
   el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
   // each character as it is drawn: "Cinderella: star", or, where the two films draw it
   // differently (one made with Ani's looks), "Cinderella: star in 1978, circle in yours"
+  // (two of the reader's films: "on the left", "on the right")
   const cast = [];
   for (const run of runs) for (const c of run.cast) { const x = cast.find((y) => y[0] === c); if (x) x[1].push(run); else cast.push([c, [run]]); }
+  const inWhich = (r) => { const k = runs.indexOf(r), n = pairShort(runs, k); return n === "1978" ? "in 1978" : n === "Yours" ? "in yours" : `on the ${n.toLowerCase()}`; };
   document.getElementById("legend").innerHTML = cast.map(([c, rs]) => {
     const differ = rs.length > 1 && rs[0].shapes[c] !== rs[1].shapes[c];
-    const shapes = differ ? rs.map((r) => `${shapeName(r.shapes[c])} in ${r === RUNS[0] ? "1978" : "yours"}`).join(", ") : shapeName(rs[0].shapes[c]);
+    const shapes = differ ? rs.map((r) => `${shapeName(r.shapes[c])} ${inWhich(r)}`).join(", ") : shapeName(rs[0].shapes[c]);
     return `<span>${differ ? rs.map((r) => icon(c, 16, r)).join("") : icon(c, 16, rs[0])}${esc(meet(rs[0].story, c).name)}: ${esc(shapes)}</span>`;
   }).join("");
 }
-const sceneCount = () => Math.max(...shown().map((r) => (RUNS[r] ? RUNS[r].sceneIds.length : 0)));
+const sceneCount = () => Math.max(...shown().map((r) => (screenRun(r) ? screenRun(r).sceneIds.length : 0)));
 function goScene(i, time = 0) {
   state.scene = Math.max(0, Math.min(i, sceneCount() - 1));
   state.time = time;
@@ -6449,25 +6718,31 @@ function goScene(i, time = 0) {
   drawBands();
   render();
   if (!document.getElementById("save-panel").hidden) renderSavePanel();
-  if (state.panel === "edit" || state.panel === "tell") return;
+  if (state.panel === "edit" || state.panel === "tell" || state.panel === "films") return;
   if (state.panel === "why" && state.selected && !ready(sceneOf(state.selected.run))) { state.selected = null; state.panel = defaultPanel(); }
   renderSide();
 }
 function select(sel, { scroll = true, panel = null } = {}) {
+  if (sel && !sel.of) sel.of = screenRun(sel.run);
   state.selected = sel;
   state.panel = panel || (sel ? "why" : defaultPanel());
   if (sel) pause();
   renderSide();
   draw();
   // on a narrow screen the panel is below the film
-  if ((sel || panel === "edit") && scroll && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
+  if ((sel || panel === "edit" || panel === "films") && scroll && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
     document.getElementById("side").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
 function setView(view) {
   state.view = view === "both" || view === 1 ? view : 0;
   if (state.view !== "both" && !RUNS[state.view]) state.view = 0;
-  if (state.selected && !shown().includes(state.selected.run)) state.selected = null;
+  // side by side, a film the page no longer has gives way to Ken's, or the reader's
+  if (state.view === "both") {
+    state.pair = state.pair.map((ref, r) => (filmRun(ref) ? ref : r ? "cur" : "ken"));
+    if (!screenRun(0) || !screenRun(1)) state.view = 0;
+  }
+  if (state.selected && !selectionValid()) state.selected = null;
   if (state.panel !== "edit" && state.panel !== "why" && state.panel !== "tell") state.panel = defaultPanel();
   if (state.panel === "why" && !state.selected) state.panel = defaultPanel();
   layout();
@@ -6493,6 +6768,7 @@ function play() {
   if (state.time >= maxTime() && state.scene === sceneCount() - 1) goScene(0, 0);
   state.playing = true;
   document.getElementById("play").textContent = "Pause";
+  scheduleSave();
   let last = performance.now();
   let drawn = shownFrames();
   const loop = (now) => {
@@ -6514,6 +6790,7 @@ function pause() {
   state.playing = false;
   cancelAnimationFrame(state.raf);
   document.getElementById("play").textContent = "Play";
+  scheduleSave();
 }
 // The 1978 film at 4 or 24 frames a second.
 function setRate(rate) {
@@ -6522,7 +6799,7 @@ function setRate(rate) {
   store.set(RATE_KEY, String(rate));
   const t = state.time;
   RUNS[0] = kenRun(rate);
-  if (state.selected && state.selected.run === 0) state.selected = null;
+  if (state.selected && !selectionValid()) state.selected = null;
   if (state.panel === "why" && !state.selected) state.panel = defaultPanel();
   document.querySelectorAll("#rate button").forEach((b) => b.setAttribute("aria-pressed", String(Number(b.dataset.rate) === rate)));
   renderSceneButtons();
@@ -6538,6 +6815,7 @@ function setColor(color, { remember = true } = {}) {
   document.getElementById("mode-color").setAttribute("aria-pressed", String(color));
   draw();
   for (const r of shown()) caption(r); // a film made with Ani's looks says whose colors they are
+  scheduleSave();
 }
 
 document.getElementById("play").addEventListener("click", () => (state.playing ? pause() : play()));
@@ -6553,6 +6831,8 @@ document.getElementById("mode-bw").addEventListener("click", () => setColor(fals
 document.getElementById("mode-color").addEventListener("click", () => setColor(true));
 document.querySelectorAll("#runbar [data-view]").forEach((b) => b.addEventListener("click", () => setView(b.dataset.view === "both" ? "both" : Number(b.dataset.view))));
 document.getElementById("run-stop").addEventListener("click", () => stopRun());
+document.getElementById("open-films").addEventListener("click", () => openFilms());
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest("[data-open-films]")) openFilms(); });
 document.getElementById("save").addEventListener("click", () => toggleSavePanel());
 FIGS.forEach(({ canvas }, r) => {
   canvas.addEventListener("click", (ev) => { const [x, y] = pointer(canvas, ev); const c = hit(r, x, y); select(c ? { run: r, char: c } : null); });
@@ -6597,7 +6877,13 @@ document.addEventListener("drop", async (e) => {
 
 layout();
 renderSceneButtons();
-if (!fromHash()) goScene(0, 0.25);
-restoreRun();
+// On a reload, or coming back to the page, it is put back as the visitor left it
+// (app/film/view.js), Ken's film and theirs as they were; else a link may name a moment of
+// the 1978 film; else it opens on the 1978 film, with the newest of "Your films" as theirs.
+const goBack = savedView();
+if (goBack) view.restoring = true; // (nothing kept until it is back)
+if (goBack || !fromHash()) goScene(0, 0.25);
+library.ready = startLibrary();
+(goBack ? library.ready.then(() => restoreView(goBack)) : restoreRun()).catch((e) => console.error(e)).finally(() => { view.restoring = false; });
 probeModels();
 </script>

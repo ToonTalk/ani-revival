@@ -11,7 +11,8 @@ import { fullPage } from "./page-shell.mjs";
 export function buildGlassBox(root = ".", { contentOnly = null, data = `${root}/app/data/pass1.json`, out = `${root}/app/pass1.html` } = {}) {
   const template = readFileSync(`${root}/app/pass1.template.html`, "utf8");
   const json = readFileSync(data, "utf8").replace(/</g, "\\u003c");
-  const content = template.replace("/*PASS1-DATA*/", () => json);
+  // "Back to the film", back to the film page as it was left (app/back-to-film.js)
+  const content = template.replace("/*PASS1-DATA*/", () => json).replace("/*BACK-TO-FILM*/", () => readFileSync(`${root}/app/back-to-film.js`, "utf8"));
   if (contentOnly) {
     writeFileSync(contentOnly, content);
     return contentOnly;

@@ -82,7 +82,8 @@ export function buildSourceApp(root = ".", { contentOnly = null } = {}) {
   };
   const packed = gzipSync(Buffer.from(JSON.stringify(data), "utf8"), { level: 9 }).toString("base64");
   const template = readFileSync(`${root}/app/source.template.html`, "utf8");
-  const content = template.replace("/*SOURCE-DATA*/", () => packed);
+  // "Back to the film", back to the film page as it was left (app/back-to-film.js)
+  const content = template.replace("/*SOURCE-DATA*/", () => packed).replace("/*BACK-TO-FILM*/", () => readFileSync(`${root}/app/back-to-film.js`, "utf8"));
   if (contentOnly) {
     writeFileSync(contentOnly, content);
     return contentOnly;

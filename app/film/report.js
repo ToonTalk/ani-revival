@@ -52,7 +52,10 @@ function secrets({ stories = true } = {}) {
         try { leaves(JSON.parse(v)); } catch { /* not JSON */ }
       }
     } catch { /* no storage */ }
-    const texts = [teller.story, editor.text, teller.draft && teller.draft.text, teller.draft && teller.draft.reply, ...RUNS.slice(1).flatMap((r) => (r ? [r.cindy, r.told && r.told.story] : []))];
+    // (and every film kept in "Your films", as far as the page has read it: its story as
+    // told, what Ani was told, and the description of each one on a screen)
+    const texts = [teller.story, editor.text, teller.draft && teller.draft.text, teller.draft && teller.draft.reply, ...[...RUNS.slice(1), ...LIB_RUNS.values()].flatMap((r) => (r ? [r.cindy, r.told && r.told.story] : [])),
+      ...library.films.flatMap((f) => [f.title, f.told && f.told.story, ...(f.about || [])])];
     for (const t of texts.filter(Boolean)) { add(t, 1); for (const piece of String(t).split(/\n|(?<=[.!?;])\s+/)) add(piece, 12); }
   }
   return [...out].sort((a, b) => b.length - a.length);

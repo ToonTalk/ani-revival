@@ -15,8 +15,10 @@
 // characters, denser than base64), so the page works opened directly, served, or
 // published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/llm.js (telling Ani a new story),
-// app/film/json.js (the JSON way of telling it), app/film/save.js (saving films) and
-// app/film/report.js (reporting errors, and stories sent, to Ken, where
+// app/film/json.js (the JSON way of telling it), app/film/save.js (saving films),
+// app/film/library.js ("Your films", every film made kept in the browser, and what the
+// page keeps there), app/film/view.js (where the visitor is, put back on coming back to
+// the page) and app/film/report.js (reporting errors, and stories sent, to Ken, where
 // tools/build-site.mjs gives the site's page a DSN) put in at /*FILM-PARTS*/, and
 // src/pipeline.js's own functions for renaming a story's names that clash with Ani's
 // (storyOutline, storyRenames, renameStoryNames) at /*STORY-NAMES*/, with the names
@@ -459,6 +461,8 @@ const SCENES = [
 ];
 
 export const sizes = {};
+// the links to the site's pages about Ani (site/pages/), as the template has them
+export const MORE_PAGES = /href="((?:making-of|students|teachers)\.html)"/g;
 export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = null, site = "" } = {}) {
   const fs = makeProjectFileSystem(root);
   const cindy = fs.textOf(fs.find({ dir: "KEN", fn1: "CINDY", fn2: "46" }));
@@ -512,7 +516,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "json.js", "save.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
   for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
@@ -559,7 +563,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     writeFileSync(claudeArtifact, page);
     return claudeArtifact;
   }
-  writeFileSync(`${root}/app/film.html`, page);
+  // the site's pages about Ani are beside the film page on the site (tools/build-site.mjs),
+  // and in site/pages/ here
+  writeFileSync(`${root}/app/film.html`, page.replace(MORE_PAGES, (m, name) => `href="../site/pages/${name}"`));
   return `${root}/app/film.html`;
 }
 
