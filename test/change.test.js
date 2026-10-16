@@ -38,7 +38,7 @@ const tasksOf = (run, scene) => run(`(mapcar (function (lambda (x) (ask ,x recal
 
 test("the registry: CHANGE leaves Ken's Cinderella alone and has steps of its own for a scene; it needs MEND", () => {
   const e = EXTENSIONS.find((x) => x.id === "change");
-  assert.deepEqual(e.files, ["wrap", "change", "chshow"]);
+  assert.deepEqual(e.files, ["wrap", "hold", "change", "chshow"]);
   assert.equal(e.changes1978, false);
   assert.equal(e.sceneSteps, true);
   // a change is shown by MEND9's wander and MEND6's bring-on (REVIVE;CHSHOW)
@@ -67,12 +67,12 @@ test("each hook is installed once, though REVIVE;CHANGE is loaded again; in 1978
   const { run } = pass1Ready(["change"], null);
   run("(load '|ken;choose >|)");
   assert.equal(wraps(run, "process-task-description"), "(change)");
-  assert.equal(wraps(run, "record-choice"), "(change)");
+  assert.equal(wraps(run, "record-choice"), "(hold)");
   assert.notEqual(run("(actor-of 'description-change dont-autoload)"), "nil");
   run("(load '|revive;change >|)");
   run("(load '|revive;change >|)");
   assert.equal(wraps(run, "process-task-description"), "(change)");
-  assert.equal(wraps(run, "record-choice"), "(change)");
+  assert.equal(wraps(run, "record-choice"), "(hold)");
   const plain = pass1Ready([], null);
   plain.run("(load '|ken;choose >|)");
   assert.equal(wraps(plain.run, "process-task-description"), "nil");

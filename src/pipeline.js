@@ -74,7 +74,7 @@ export const EXTENSIONS = [
     id: "change",
     label: "Characters who change",
     group: "knowledge",
-    files: ["wrap", "change", "chshow"],
+    files: ["wrap", "hold", "change", "chshow"],
     // a change is shown by her wandering, as MEND9's wander-around wanders, and the one
     // it changes is brought on by MEND6's bring-on; a change story is a new story, which
     // needs MEND's repairs anyway
@@ -134,6 +134,22 @@ export const EXTENSIONS = [
     changes1978: true,
     note: "A few of the low-level details the thesis names as left undone (pp. 183-187, \"Attending to Myriad Details\"), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, how often, how quickly and how far it changes direction (f), a deliberate character going in longer arcs with smaller jags; its tendencies towards friends, enemies and strangers feed the best-when scores of the ways of showing that take it to another or away (c); and a scene's rhythm, fast, slow or changing, suggests changes of speed, as an emotional state does (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not, Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker. Each leaves a note where it acted.",
   },
+  {
+    // A user's criticism of a film (reports/chapter-x/design-criticism.md). onDemand: not
+    // one the switch or the panel turns on; the pipeline loads it, with MEND, into every
+    // job of a film that has criticism (boot's criticism), and never otherwise. With an
+    // empty record it changes nothing (tools/check-1978.mjs --extensions critic).
+    id: "critic",
+    label: "Your criticism",
+    group: "criticism",
+    onDemand: true,
+    files: ["wrap", "hold", "critic"],
+    // "start far from" places with PLACE's large-distance-and-offstage, which Ken never
+    // defined and REVIVE;MEND19 does (Ken's decision 11 of the design, pending)
+    requires: ["mend"],
+    changes1978: false,
+    note: "Ani heeds a record of your criticism of a film, kept with the film, as Ken's Section D proposes (thesis pp. 189-191: \"Ani should be extended to accept criticism of the films and their justification\"): a way of showing or of conveying vetoed in a task, which Ani sets aside and chooses among what is left (\"removing those alternatives that were vetoed by the user\"); a part too quick or too slow, whose time Ani stretches or shrinks by half again, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside as a prerequisite not met; and a character who starts far from another, placed far off and off the stage. The film is made again from the first scene criticized; a later scene whose plan comes out the same keeps its film. Each heeded criticism leaves a note where it acted, and nothing of it becomes Ani's knowledge.",
+  },
 ];
 
 // The appearance elements REVIVE;APPEAR defines, and their relative elements: a
@@ -183,8 +199,12 @@ function noting(L) {
 }
 
 // A fresh Lisp with Director and the 1978 conventions loaded, as Ken's saved jobs had,
-// and any of the revival's extensions asked for.
-export function boot(fs, { backtrace = false, extensions = [] } = {}) {
+// and any of the revival's extensions asked for. With criticism, a record of a user's
+// criticism of the film (checkCriticism's items; none, or an empty record, as without),
+// REVIVE;CRITIC is loaded too, with what it requires, and the record is written to the
+// file system as KEN1;FILM CRITIC (criticismToLisp) and read into :critic-record.
+export function boot(fs, { backtrace = false, extensions = [], criticism = null } = {}) {
+  const heeding = Boolean(criticism && criticism.length);
   const L = createLisp({ fs });
   L.formStack = backtrace ? [] : null;
   L.backtraceDepth = 4000;
@@ -198,9 +218,16 @@ export function boot(fs, { backtrace = false, extensions = [] } = {}) {
   L.evalString("(setq :print-load-messages nil)");
   L.evalString("(director '(ani direct))");
   L.evalString("(load '|revive;bridge >|)");
-  loadExtensions(L, extensions);
+  loadExtensions(L, heeding ? withCritic(extensions) : extensions);
+  if (heeding) {
+    fs.addFile("KEN1", "FILM", "CRITIC", { text: criticismToLisp(criticism), origin: "criticism" });
+    L.evalString("(load-criticism '((ken1) film critic))");
+  }
   return L;
 }
+
+// The extensions a job of a film with criticism loads: the film's own, and CRITIC.
+export const withCritic = (extensions = []) => (extensions.includes("critic") ? extensions : [...extensions, "critic"]);
 
 // ---------------------------------------------------------------- pass 1
 
@@ -213,8 +240,8 @@ export function boot(fs, { backtrace = false, extensions = [] } = {}) {
 // (src/glassbox-pass1.js collectAppearances). setup, if given, is called with the Lisp
 // once it has booted, before DATEST loads (tools/check-appear.mjs leaves out some of
 // APPEAR's knowledge with it).
-export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null } = {}) {
-  const L = boot(fs, { backtrace, extensions });
+export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism });
   if (setup) setup(L);
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
@@ -383,8 +410,8 @@ export function changeRecord(look, recompute, planScene) {
 // left it (the scene, its tasks with the methods suggested, rejected and scored, its
 // subscenes, activities and special dynamics), each as its variables and the items it
 // memorized, printed as Lisp; and, if the revival's repairs left notes, those.
-export function pass2(fs, scene, { backtrace = false, setup = null, plan = null, extensions = [], becomes = null } = {}) {
-  const L = boot(fs, { backtrace, extensions });
+export function pass2(fs, scene, { backtrace = false, setup = null, plan = null, extensions = [], becomes = null, criticism = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism });
   L.evalString("(cs)"); // Ken's Director was saved with the TV started; pass 2 measures places on it
   L.evalString("(load '|ken;run >|)");
   // what RUN is to do before it plans the scene (its to-do-before-running, run.65:48)
@@ -479,7 +506,47 @@ export function glassBox(L, scene) {
   // same reason
   const wanders = collectWanders(glass);
   if (wanders.length) glass.wanders = wanders;
+  // what the user's criticism did (REVIVE;CRITIC's heeded-criticism: and
+  // unmet-criticism: notes), only if it did anything, for the same reason
+  const criticism = criticismNotes(L, glass);
+  if (criticism.length) glass.criticism = criticism;
   return glass;
+}
+
+// The notes REVIVE;CRITIC left where a criticism was heeded, or could not be,
+//   (heeded-criticism: id C what W was X now Y because R)
+//   (unmet-criticism: id C what W was X because R)
+// as { actor, id, heeded, what, was, now?, because, note }: heeded true or false, what
+// the kind of criticism (another-way, pace, keep-apart, start-far), was, now and because
+// printed as Lisp, and note the whole item. Those of the glass box's actors, then of any
+// other actor CRITIC noted (:critic-noted), each actor once, each note once. Looked up
+// without interning anything unless REVIVE;CRITIC is loaded.
+export function criticismNotes(L, glass) {
+  const noted = L.obarray.find(":CRITIC-NOTED");
+  if (!noted || noted.value === UNBOUND) return [];
+  const lisp = (x) => L.print(x).toLowerCase();
+  const out = [];
+  const seen = new Set();
+  const add = (actor, items) => {
+    if (seen.has(actor)) return;
+    seen.add(actor);
+    for (const note of items) {
+      const heeded = note.startsWith("(heeded-criticism: ");
+      if (!heeded && !note.startsWith("(unmet-criticism: ")) continue;
+      const form = readForms(note)[0];
+      const get = (k) => { const i = form.indexOf(k); return i > 0 ? printForm(form[i + 1]) : null; };
+      out.push({ actor, id: get("id"), heeded, what: get("what"), was: get("was"), ...(heeded ? { now: get("now") } : {}), because: get("because"), note });
+    }
+  };
+  for (const a of [glass.scene, ...glass.tasks, ...glass.subscenes, ...glass.plans, ...glass.dynamics, glass.choices]) add(a.name, a.items);
+  if (noted.value instanceof Cons) {
+    for (const x of L.toArray(noted.value).reverse()) {
+      if (x === L.NIL || seen.has(lisp(x))) continue;
+      L.intern("*GB-ACTOR*").value = x;
+      add(lisp(x), L.toArray(L.evalString("(ask ,*gb-actor* collect items)")).map(lisp));
+    }
+  }
+  return out;
 }
 
 // The wanders REVIVE;SEEN planned in the scene, from the memo each wandering plan keeps,
@@ -892,8 +959,8 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
 // setup, if given, is called with the Lisp once it has booted, before ANINIT loads, as
 // pass 1's and pass 2's are (tools/check-slips.mjs makes SLIPS's corrections one at a
 // time with it).
-export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null } = {}) {
-  const L = boot(fs, { backtrace, extensions });
+export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null, criticism = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism });
   if (setup) setup(L);
   L.evalString("(cs)");
   L.evalString("(load '|ken;aninit >|)");
@@ -1681,8 +1748,15 @@ export function makeFilm(fs, options = {}) {
 // the BECOME files this run's fresh looks wrote in the scenes before it.
 // onFrame(scene, frame), if given, is called as each frame is filmed (film's onClick),
 // frame counted from 0, so that a page can say how far the filming has got.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null } = {}) {
+// criticism, a record of a user's criticism (checkCriticism's items), is heeded in every
+// job (boot's criticism) and kept as the result's criticism; remakeFilmSteps, which
+// remakes a film from the first scene criticized, makes a film so when the film to remake
+// kept no files. keepFiles: the result's files are the text of every file the run wrote
+// (filesOf), which remakeFilmSteps remakes it from.
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null, criticism = null, keepFiles = false } = {}) {
   extensionsFor(extensions); // an unknown one stops the run before it starts
+  if (criticism && criticism.length) checkRecord(criticism);
+  const heed = criticism && criticism.length ? { criticism } : {};
   const change = extensionsFor(extensions).some((e) => e.sceneSteps);
   let plan = null;
   let renames = [];
@@ -1704,7 +1778,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
   const order = scenes ? scenes.map(renamed) : plan ? plan.scenes.map((s) => s.id) : SCENES;
   progress("pass1", choosesLooks(extensions) ? "Pass 1: choosing how each character moves and looks" : "Pass 1: choosing how each character moves");
   yield;
-  const p1 = pass1(fs, { extensions });
+  const p1 = pass1(fs, { extensions, ...heed });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
   if (renames.length) out.renames = renames; // [{ kind, from, to }]: the scenes and characters renamed
   if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
@@ -1741,10 +1815,10 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     try {
       progress("pass2", `Pass 2: planning ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { glass } = pass2(fs, scene, { plan, extensions, ...(planned ? { becomes: earlier } : {}) });
+      const { glass } = pass2(fs, scene, { plan, extensions, ...(planned ? { becomes: earlier } : {}), ...heed });
       progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { film: f } = film(fs, scene, { plan, frames, fps, extensions, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}) });
+      const { film: f } = film(fs, scene, { plan, frames, fps, extensions, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
       done = { id: scene, film: f, glass };
     } catch (e) {
       if (!keepGoing) throw e;
@@ -1753,5 +1827,439 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     out.scenes.push(done);
     onScene(done);
   }
+  if (heed.criticism) out.criticism = heed.criticism;
+  if (keepFiles) out.files = filesOf(fs);
   return out;
+}
+
+// ---------------------------------------------------------------- criticism
+
+// A user's criticism of a film (reports/chapter-x/design-criticism.md; thesis Chapter
+// X.D, "Critics and Criticism", AI-TR-540 pp. 189-191), heeded by REVIVE;CRITIC. The
+// record is kept with the film (run.criticism), never in its description, as a list of
+// items, each an object:
+//   common       id ("c1", unique in the record), kind, by ("you"; Ani's own, "ani",
+//                is for stage C5), said (the user's words, or null; the page's, not Ani's)
+//   another-way  scene, task (the task's description, printed as Lisp: taskDescription),
+//                level ("display": how it is shown, a display method; "convey": what is
+//                shown, a convey method of an establish task), vetoes (the method's name,
+//                its first word: goes-to-and-accompanys, accompanys)
+//   pace         scene, tasks (the part's tasks' descriptions), direction ("too-quick"
+//                or "too-slow"), times (how many times said, 1 or more; each is a factor
+//                of PACE_FACTOR, compounding: addCriticism keeps one item a part)
+//   keep-apart   scenes (one or more), between ([a, b], two characters)
+//   start-far    scene, who, from (two characters): who starts far from from
+// The Lisp sees it as KEN1;FILM CRITIC (criticismToLisp), without the words said.
+export const CRITICISM_KINDS = ["another-way", "pace", "keep-apart", "start-far"];
+// One "too quick" is half as long again (the revival's choice, pending Ken: design
+// question 3), compounding; within the part's allocated time and SCENE's stretch of 8
+// and 1/8 (REVIVE;CRITPC).
+export const PACE_FACTOR = 1.5;
+
+const isName = (x) => typeof x === "string" && /^[a-z0-9][a-z0-9+*:.?!-]*$/.test(x);
+function isForm(x) {
+  if (typeof x !== "string") return false;
+  try {
+    const f = readForms(x);
+    return f.length === 1 && Array.isArray(f[0]);
+  } catch {
+    return false;
+  }
+}
+// A task's description as the record keeps it: printed as Lisp, lower case, single spaced.
+const normalForm = (x) => printForm(readForms(String(x))[0]);
+
+// An item checked (as the record keeps it, above); an error says what is wrong.
+export function checkCriticism(item) {
+  const bad = (why) => { throw new Error(`criticism${item && typeof item.id === "string" ? ` ${item.id}` : ""}: ${why}`); };
+  if (!item || typeof item !== "object" || Array.isArray(item)) bad("is not an object");
+  if (!/^c[0-9]+$/.test(String(item.id))) bad("its id must be c1, c2, ...");
+  if (!CRITICISM_KINDS.includes(item.kind)) bad(`no such kind ${JSON.stringify(item.kind)}; known: ${CRITICISM_KINDS.join(", ")}`);
+  if (item.by !== undefined && item.by !== "you" && item.by !== "ani") bad("by is you or ani");
+  if (item.said !== undefined && item.said !== null && typeof item.said !== "string") bad("said is words or null");
+  const two = (a, b, what) => { if (!isName(a) || !isName(b) || a === b) bad(`${what} must be two different characters`); };
+  if (item.kind === "another-way") {
+    if (!isName(item.scene)) bad("needs its scene");
+    if (!isForm(item.task)) bad("needs its task, the task's description as Lisp");
+    if (item.level !== "display" && item.level !== "convey") bad("level is display or convey");
+    if (!isName(item.vetoes)) bad("vetoes names a method by its first word");
+  } else if (item.kind === "pace") {
+    if (!isName(item.scene)) bad("needs its scene");
+    if (!Array.isArray(item.tasks) || !item.tasks.length || !item.tasks.every(isForm)) bad("needs its part's tasks, each a description as Lisp");
+    if (item.direction !== "too-quick" && item.direction !== "too-slow") bad("direction is too-quick or too-slow");
+    if (!Number.isInteger(item.times) || item.times < 1) bad("times is how many times it was said, 1 or more");
+  } else if (item.kind === "keep-apart") {
+    if (!Array.isArray(item.scenes) || !item.scenes.length || !item.scenes.every(isName)) bad("needs its scenes");
+    if (!Array.isArray(item.between) || item.between.length !== 2) bad("between is two characters");
+    two(item.between[0], item.between[1], "between");
+  } else if (item.kind === "start-far") {
+    if (!isName(item.scene)) bad("needs its scene");
+    two(item.who, item.from, "who and from");
+  }
+  return item;
+}
+
+// A record checked: a list of items, each id once.
+export function checkRecord(record) {
+  if (!Array.isArray(record)) throw new Error("a criticism record is a list of criticisms");
+  const ids = new Set();
+  for (const c of record) {
+    checkCriticism(c);
+    if (ids.has(c.id)) throw new Error(`criticism ${c.id}: its id is used twice`);
+    ids.add(c.id);
+  }
+  return record;
+}
+
+// The factor a pace criticism stretches its part's time by: 1.5 for each "too quick",
+// 1/1.5 for each "too slow".
+export function paceFactor(item) {
+  const f = PACE_FACTOR ** item.times;
+  return item.direction === "too-quick" ? f : 1 / f;
+}
+
+// The scenes an item criticizes.
+export function criticismScenes(item) {
+  return item.kind === "keep-apart" ? [...item.scenes] : [item.scene];
+}
+
+// The record as KEN1;FILM CRITIC: a comment, then one (criticism: ...) form an item,
+// which REVIVE;CRITIC's load-criticism reads into :critic-record. The words said are
+// left out: they are the user's, for the page, and MacLisp's reader here has no strings.
+export function criticismToLisp(record) {
+  checkRecord(record);
+  const lines = [";;; KEN1;FILM CRITIC: the user's criticism of this film, for REVIVE;CRITIC (src/pipeline.js criticismToLisp)"];
+  for (const c of record) {
+    const parts = [`id ${c.id}`, `kind ${c.kind}`];
+    if (c.kind === "another-way") parts.push(`scene ${c.scene}`, `task ${normalForm(c.task)}`, `level ${c.level}`, `vetoes ${c.vetoes}`);
+    if (c.kind === "pace") parts.push(`scene ${c.scene}`, `tasks (${c.tasks.map(normalForm).join(" ")})`, `direction ${c.direction}`, `factor ${lispFloat(paceFactor(c))}`);
+    if (c.kind === "keep-apart") parts.push(`scenes (${c.scenes.join(" ")})`, `between (${c.between.join(" ")})`);
+    if (c.kind === "start-far") parts.push(`scene ${c.scene}`, `who ${c.who}`, `from ${c.from}`);
+    parts.push(`by ${c.by || "you"}`);
+    lines.push(`(criticism: ${parts.join(" ")})`);
+  }
+  return lines.join("\n") + "\n";
+}
+const lispFloat = (x) => (Number.isInteger(x) ? x.toFixed(1) : String(x));
+
+// The record with an item added: { record, item }, the record a new list and item the
+// one it keeps (null if the item cancelled one). An item without an id is given the next
+// (c1, c2, ...); by is "you" unless given. A pace criticism of a part already criticized
+// so compounds: the same direction says it once more (times + 1), the other once less,
+// and none left takes the item out. A criticism the record already has is not added
+// again (item is the one there).
+export function addCriticism(record = [], item) {
+  checkRecord(record);
+  const next = `c${1 + Math.max(0, ...record.map((c) => Number(c.id.slice(1))))}`;
+  const c = { ...item, id: item.id || next, by: item.by || "you" };
+  if (c.said === undefined) c.said = null;
+  if (c.kind === "another-way") c.task = isForm(c.task) ? normalForm(c.task) : c.task;
+  if (c.kind === "pace") {
+    c.tasks = Array.isArray(c.tasks) ? c.tasks.map((t) => (isForm(t) ? normalForm(t) : t)) : c.tasks;
+    if (c.times === undefined) c.times = 1;
+  }
+  checkCriticism(c);
+  if (record.some((x) => x.id === c.id)) throw new Error(`criticism ${c.id}: the record has one with that id`);
+  const sameSet = (a, b) => a.length === b.length && [...a].sort().join("\n") === [...b].sort().join("\n");
+  const same = (x) => x.kind === c.kind && (
+    (c.kind === "another-way" && x.scene === c.scene && x.task === c.task && x.level === c.level && x.vetoes === c.vetoes)
+    || (c.kind === "pace" && x.scene === c.scene && sameSet(x.tasks, c.tasks))
+    || (c.kind === "keep-apart" && sameSet(x.scenes, c.scenes) && sameSet(x.between, c.between))
+    || (c.kind === "start-far" && x.scene === c.scene && x.who === c.who && x.from === c.from));
+  const there = record.find(same);
+  if (!there) return { record: [...record, c], item: c };
+  if (c.kind !== "pace") return { record: [...record], item: there };
+  const times = there.direction === c.direction ? there.times + c.times : there.times - c.times;
+  if (times === 0) return { record: record.filter((x) => x !== there), item: null };
+  const merged = times > 0 ? { ...there, times, said: c.said ?? there.said } : { ...there, direction: c.direction, times: -times, said: c.said ?? there.said };
+  return { record: record.map((x) => (x === there ? merged : x)), item: merged };
+}
+
+// The record without the item of that id.
+export function removeCriticism(record = [], id) {
+  return checkRecord(record).filter((c) => c.id !== id);
+}
+
+// An item in plain words, with the record's names (the page words them its own way).
+export function criticismWords(item) {
+  const name = (x) => String(x).replace(/-/g, " ");
+  if (item.kind === "another-way") return `${name(item.scene)}: not this way, another way than ${name(item.vetoes)}${item.level === "convey" ? " (what is shown)" : ""}`;
+  if (item.kind === "pace") return `${name(item.scene)}: this part is ${item.direction === "too-quick" ? "too quick" : "too slow"}${item.times > 1 ? ` (said ${item.times} times)` : ""}`;
+  if (item.kind === "keep-apart") return `keep ${name(item.between[0])} and ${name(item.between[1])} apart in ${item.scenes.map(name).join(" and ")}`;
+  return `${name(item.scene)}: ${name(item.who)} starts far from ${name(item.from)}`;
+}
+
+// A glass box task's description, as a criticism names the task: "(personality
+// cinderella)", from its (task: description d ...).
+export function taskDescription(task) {
+  const t = readForms(String(task.variables.task || ""))[0];
+  const i = Array.isArray(t) ? t.indexOf("description") : -1;
+  return i > 0 ? printForm(t[i + 1]) : null;
+}
+
+// The files a run wrote (the Lisp's own, the film description a run was given, and those
+// a remake kept), as { "DIR;FN1 FN2": text }: KEN;CP 30, each scene's program, KEN1;<fn1>
+// MINI and PRINT, KEN1;<movie> POSIT, and with CHANGE the BECOME files. Kept with a run
+// (makeFilmSteps keepFiles), a film can be remade from any scene (remakeFilmSteps).
+// KEN1;FILM CRITIC is not among them: the run keeps the record itself.
+const KEPT_ORIGINS = new Set(["written", "changed", "kept"]);
+export function filesOf(fs) {
+  const out = {};
+  for (const [dir, d] of fs.dirs) {
+    for (const [fn1, versions] of d) {
+      for (const [fn2, e] of versions) if (KEPT_ORIGINS.has(e.origin)) out[`${dir};${fn1} ${fn2}`] = fs.textOf(e);
+    }
+  }
+  return out;
+}
+
+function mountFiles(fs, files) {
+  for (const [key, text] of Object.entries(files)) {
+    const m = /^([A-Z0-9]+);(\S+) (\S+)$/.exec(key);
+    if (!m) throw new Error(`a kept file named ${key}, not DIR;FN1 FN2`);
+    fs.addFile(m[1], m[2], m[3], { text, origin: "kept" });
+  }
+}
+
+// A scene's own files, each { dir, fn1, fn2 }: its program, summary, printout and POSIT.
+function sceneFiles(scene, plan) {
+  const s = plan ? plan.scenes.find((x) => x.id === scene) : null;
+  const [fn1, fn2, movie] = s ? [...s.file, s.movie] : KEN_SCENE_FILES[scene] || [];
+  if (!fn1) throw new Error(`no files known for the scene ${scene}`);
+  const up = (x) => String(x).toUpperCase().slice(0, 6);
+  return {
+    program: { dir: "KEN", fn1: up(fn1), fn2: up(fn2) }, mini: { dir: "KEN1", fn1: up(fn1), fn2: "MINI" },
+    print: { dir: "KEN1", fn1: up(fn1), fn2: "PRINT" }, posit: { dir: "KEN1", fn1: up(movie), fn2: "POSIT" },
+  };
+}
+const keyOf = (n) => `${n.dir};${n.fn1} ${n.fn2}`;
+
+// Remake a film with criticism: what makeFilmSteps made (previous, with its files,
+// makeFilmSteps keepFiles) made again from the first scene criticized on, heeding the
+// record (criticism, the whole record: what was criticized before and still is, and
+// anything new; none, to make it again without). A generator, as makeFilmSteps, with its
+// callbacks and onKept(scene, how). Pass 1 is not run again (no criticism of pass 1's
+// choices before stage C6): the film's KEN;CP is mounted with its other files. Then
+//   - each scene before from (by default the first scene criticized, by this record or
+//     the one previous was made with, so that a criticism taken out is made again) is
+//     kept as it was: its glass box, its film, its files (onKept(scene, "before"));
+//   - each scene from it on is planned again (pass 2, heeding the record); if its program
+//     comes out byte for byte as before, its film is kept too, since Director's film is a
+//     function of the program alone (film()), and where the film left the characters
+//     (onKept(scene, "unchanged")); otherwise it is filmed.
+// CHANGE's fresh looks are pass 1's, which no criticism here reaches: each is kept as
+// previous made it. extensions: the film's own (by default previous.extensions); a
+// record that isn't empty adds CRITIC and what it requires to every job. fps and frames
+// as the film was made (a film made at another rate is filmed again). A film kept with no
+// files (made before they were kept) is made again from the start (makeFilmSteps, with
+// description if it was a new story's). Returns what makeFilmSteps returns, with
+// criticism (the record, if not empty), files (unless keepFiles is false), and
+//   remade  { from, fromScratch?, scenes: [{ id, how }] }, how "kept" (before from),
+//           "unchanged" (planned again, the same program, the film kept), "refilmed"
+//           or "failed" (with keepGoing).
+export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, extensions = null, description = null, progress = () => {}, keepGoing = false, frames = 1000, fps = 4, onPass1 = () => {}, onScene = () => {}, onKept = () => {}, onChange = () => {}, onFrame = null, keepFiles = true } = {}) {
+  if (!previous || !Array.isArray(previous.scenes)) throw new Error("remakeFilmSteps needs the film to remake (previous), as makeFilmSteps returned it");
+  const record = checkRecord(criticism || []);
+  const base = extensions || previous.extensions || [];
+  extensionsFor(base);
+  const heed = record.length ? { criticism: record } : {};
+  const order = previous.scenes.map((s) => s.id);
+  const criticized = [...record, ...(previous.criticism || [])].flatMap(criticismScenes).map((s) => order.indexOf(s)).filter((k) => k >= 0);
+  const startAt = from !== null ? order.indexOf(from) : Math.min(order.length, ...criticized);
+  if (startAt < 0) throw new Error(`the film has no scene ${from}`);
+  if (!previous.files) {
+    progress("remake", "This film was saved before Ani kept its working files, so it is made again from the start");
+    yield;
+    const out = yield* makeFilmSteps(fs, { progress, keepGoing, frames, fps, extensions: base, description, onPass1, onScene, onChange, onFrame, criticism: record, keepFiles });
+    out.remade = { from: order[0] || null, fromScratch: true, scenes: out.scenes.map((s) => ({ id: s.id, how: s.error ? "failed" : "refilmed" })) };
+    return out;
+  }
+  mountFiles(fs, previous.files);
+  // the film description it was made from: a new story's (the changed KEN;CINDY it
+  // kept, renamed as makeFilmSteps renamed it), else the one on fs, as makeFilmSteps
+  const change = extensionsFor(base).some((e) => e.sceneSteps);
+  const cindyKey = Object.keys(previous.files).find((k) => /^KEN;CINDY \d+$/.test(k));
+  let plan = null;
+  if (cindyKey) plan = storyPlan(storyOutline(previous.files[cindyKey]), { looks: choosesLooks(base), ...(change ? { change } : {}) });
+  else if (change) {
+    const cindy = fs.find({ dir: "KEN", fn1: "CINDY", fn2: ">" });
+    const outline = cindy ? storyOutline(fs.textOf(cindy)) : null;
+    if (outline && Object.keys(outline.changes).length) plan = storyPlan(outline, { looks: choosesLooks(base), change });
+  }
+  const out = { choices: previous.choices, choicePoints: previous.choicePoints, scenes: [] };
+  if (previous.renames) out.renames = previous.renames;
+  if (base.length) out.extensions = extensionsFor(base).map((e) => e.id);
+  if (previous.repairs) out.repairs = previous.repairs;
+  if (previous.appearances) out.appearances = previous.appearances;
+  onPass1({ choices: out.choices, choicePoints: out.choicePoints, ...(out.repairs ? { repairs: out.repairs } : {}), ...(out.appearances ? { appearances: out.appearances } : {}) });
+  const how = [];
+  const became = [];
+  for (const [k, prev] of previous.scenes.entries()) {
+    const scene = prev.id;
+    const planned = change && plan ? plan.scenes.find((s) => s.id === scene) : null;
+    const earlier = [...became];
+    if (planned && planned.changes) {
+      // the fresh look as previous made it (pass 1's, which no criticism here reaches)
+      const record1 = previous.changes && previous.changes[scene];
+      if (record1) (out.changes ||= {})[scene] = record1;
+      if (record1 && !record1.error && fs.find({ dir: "KEN1", fn1: planned.become.toUpperCase(), fn2: "BECOME" })) became.push(planned.become);
+      if (record1 && k >= startAt) onChange(scene, record1);
+    }
+    if (k < startAt) {
+      out.scenes.push(prev);
+      how.push({ id: scene, how: "kept" });
+      onKept(scene, "before");
+      onScene(prev);
+      continue;
+    }
+    const files = sceneFiles(scene, plan);
+    const old = Object.fromEntries(Object.entries(files).map(([w, n]) => [w, previous.files[keyOf(n)] ?? null]));
+    // planned afresh: RUN appends to a summary that is there (run.65:89-93)
+    for (const n of Object.values(files)) fs.delete(n);
+    let done;
+    try {
+      progress("pass2", `Pass 2: planning ${scene.replace(/-/g, " ")} again`, scene);
+      yield;
+      const { glass } = pass2(fs, scene, { plan, extensions: base, ...(planned ? { becomes: earlier } : {}), ...heed });
+      const program = fs.find(files.program);
+      const sameRate = prev.film && (prev.film.fps || 4) === fps;
+      if (sameRate && !prev.error && old.program !== null && old.posit !== null && program && fs.textOf(program) === old.program) {
+        // the same program films the same: the film is kept, and where it left them
+        fs.addFile(files.posit.dir, files.posit.fn1, files.posit.fn2, { text: old.posit, origin: "kept" });
+        done = { id: scene, film: prev.film, glass };
+        how.push({ id: scene, how: "unchanged" });
+        onKept(scene, "unchanged");
+      } else {
+        progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
+        yield;
+        const { film: f } = film(fs, scene, { plan, frames, fps, extensions: base, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
+        done = { id: scene, film: f, glass };
+        how.push({ id: scene, how: "refilmed" });
+      }
+    } catch (e) {
+      if (!keepGoing) throw e;
+      done = { id: scene, error: String((e && e.message) || e) };
+      how.push({ id: scene, how: "failed" });
+    }
+    out.scenes.push(done);
+    onScene(done);
+  }
+  if (heed.criticism) out.criticism = record;
+  out.remade = { from: order[startAt] || null, scenes: how };
+  if (keepFiles) out.files = filesOf(fs);
+  return out;
+}
+
+// The same, run to the end.
+export function remakeFilm(fs, options = {}) {
+  const steps = remakeFilmSteps(fs, options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+
+// What a remake changed, for the page's "What your criticism changed" (design section 7):
+//   scenes     [{ id, how, frames: { before, after }, runningTime: { before, after },
+//              tasks }]: how as remade.scenes has it; tasks, those whose choice, status
+//              or running time differ, matched by description (and, for a description
+//              met twice, in order), each { description, before, after }, each side
+//              { choice, status, runningTime } or null (the task not there)
+//   criticism  [{ id, item, words, outcome, notes, cantDo, contacts? }]: notes, the
+//              heeded-criticism: and unmet-criticism: notes of that id (glassBox's
+//              criticism, with the scene); outcome "met" (heeded, nothing unmet),
+//              "partly" (some unmet, or a pace held at its bound), "not-met" (only
+//              unmet) or "not-reached" (no note: nothing it names was planned, as a
+//              start-far of a character who never comes on); cantDo, the tasks of its
+//              scenes Ani could not do once it heeded it (task description and scene);
+//              contacts, for keep-apart, any walk that still brings the two together
+//              (contactsIn), which should be none
+export function criticismChanges(previous, remade) {
+  const num = (x) => (x === undefined || x === null || x === "nil" ? null : Number(x));
+  const taskState = (t) => ({ choice: t.variables["current-choice"] || "nil", status: t.variables.status || null, runningTime: num(t.variables["running-time"]) });
+  const byId = (run) => new Map((run.scenes || []).map((s) => [s.id, s]));
+  const before = byId(previous);
+  const how = new Map(((remade.remade && remade.remade.scenes) || []).map((s) => [s.id, s.how]));
+  const scenes = (remade.scenes || []).map((s) => {
+    const b = before.get(s.id) || {};
+    const tasksOf = (glass) => {
+      const m = new Map();
+      for (const t of (glass && glass.tasks) || []) {
+        const d = taskDescription(t);
+        if (!m.has(d)) m.set(d, []);
+        m.get(d).push(taskState(t));
+      }
+      return m;
+    };
+    const tb = tasksOf(b.glass), ta = tasksOf(s.glass);
+    const tasks = [];
+    for (const d of new Set([...tb.keys(), ...ta.keys()])) {
+      const xs = tb.get(d) || [], ys = ta.get(d) || [];
+      for (let i = 0; i < Math.max(xs.length, ys.length); i++) {
+        const x = xs[i] || null, y = ys[i] || null;
+        if (JSON.stringify(x) !== JSON.stringify(y)) tasks.push({ description: d, before: x, after: y });
+      }
+    }
+    return {
+      id: s.id, how: how.get(s.id) || null,
+      frames: { before: b.film ? b.film.frames.length : null, after: s.film ? s.film.frames.length : null },
+      runningTime: { before: b.glass ? num(b.glass.scene.variables["running-time"]) : null, after: s.glass ? num(s.glass.scene.variables["running-time"]) : null },
+      tasks,
+    };
+  });
+  const criticism = (remade.criticism || []).map((item) => {
+    const notes = [];
+    const cantDo = [];
+    let contacts = [];
+    for (const s of remade.scenes || []) {
+      if (!s.glass) continue;
+      for (const n of s.glass.criticism || []) if (n.id === item.id) notes.push({ scene: s.id, ...n });
+      if (!criticismScenes(item).includes(s.id)) continue;
+      for (const t of s.glass.tasks) if (t.variables.status === "cant-do") cantDo.push({ scene: s.id, task: taskDescription(t) });
+      if (item.kind === "keep-apart") contacts = contacts.concat(contactsIn(s.glass).filter((c) => item.between.includes(c.a) && item.between.includes(c.b)).map((c) => ({ scene: s.id, ...c })));
+    }
+    const heeded = notes.filter((n) => n.heeded), unmet = notes.filter((n) => !n.heeded);
+    const held = heeded.some((n) => /held-to/.test(n.because || ""));
+    const outcome = !notes.length ? "not-reached" : !heeded.length ? "not-met" : unmet.length || held || contacts.length ? "partly" : "met";
+    return { id: item.id, item, words: criticismWords(item), outcome, notes, cantDo, ...(item.kind === "keep-apart" ? { contacts } : {}) };
+  });
+  return { scenes, criticism };
+}
+
+// The walks of a scene's plan that bring two characters together, from each subscene's
+// (actions-of c) in its glass box (PLACE's move-character and move-characters,
+// place.45:151-216): a walk of a to (contact-with b by a), or of a with b. Each
+// { subscene, a, b, how: "contact" | "together", plan }.
+export function contactsIn(glass) {
+  const out = [];
+  for (const s of glass.subscenes || []) {
+    for (const [k, v] of Object.entries(s.variables)) {
+      if (!k.startsWith("(actions-of ")) continue;
+      const actions = readForms(v)[0];
+      for (const a of Array.isArray(actions) ? actions : []) {
+        if (!Array.isArray(a) || a[0] !== "walk" || a[1] !== "of") continue;
+        const plan = a.indexOf("called") > 0 ? printForm(a[a.indexOf("called") + 1]) : null;
+        if (a[3] === "with") out.push({ subscene: s.name, a: a[2], b: a[4], how: "together", plan });
+        else if (a[3] === "to" && Array.isArray(a[4]) && a[4][0] === "contact-with") out.push({ subscene: s.name, a: a[2], b: a[4][1], how: "contact", plan });
+      }
+    }
+  }
+  return out;
+}
+
+// How close two characters came in a film while both were on the picture (shown, with
+// lines on it): { distance, frame } in fractions of the screen as PLACE measures
+// distances (xy-positions, the turtle's coordinates over its size, dichar.103:17-19,
+// 69-75; Ken's small distance is under .33, place.45:103-105), or null if they were never
+// on the picture together. The turtle's size is taken from the picture, 1000 high.
+export function closestApproach(f, a, b) {
+  const size = [(1000 * f.picture.width) / f.picture.height, 1000];
+  let best = null;
+  f.frames.forEach((fr, i) => {
+    const x = fr.chars[a], y = fr.chars[b];
+    if (!x || !y || !x.visible || !y.visible || !x.state || !y.state || !fr.segs[a] || !fr.segs[b]) return;
+    const d = Math.hypot((x.state[0] - y.state[0]) / size[0], (x.state[1] - y.state[1]) / size[1]);
+    if (!best || d < best.distance) best = { distance: Math.round(d * 1000) / 1000, frame: i };
+  });
+  return best;
 }

@@ -368,27 +368,6 @@
 	     (changes-of-earlier-scenes))
        choices))
 
-;; The choices an answers file sets: each (define name parent ... (set your
-;; current-choice to value) ...) gives (name value).
-(defun answers-in-file (file-name)
-  (let ((file (open file-name 'in))
-	(end (list 'end-of-file)))
-       (do ((form (read file end) (read file end))
-	    (answers nil))
-	   ((eq form end) (close file) (reverse answers))
-	   (let ((value (current-choice-set-by form)))
-		(and value (setq answers (cons (list (second form) (first value)) answers)))))))
-
-(defun current-choice-set-by (form)
-  (and (not (atom form))
-       (eq (first form) 'define)
-       (do ((s (rest (rest (rest form))) (rest s)))
-	   ((null s) nil)
-	   (and (not (atom (first s)))
-		(eq (first (first s)) 'set)
-		(eq (third (first s)) 'current-choice)
-		(return (last (first s)))))))
-
 ;; choices with name's value replaced, a relative choice point's under either of its
 ;; names (cpoint.87:98-104).
 (defun with-choice (choices name value)
@@ -397,12 +376,6 @@
 	     (others nil (cond ((same-choice-point? (first (first c)) name) others)
 			       (t (cons (first c) others)))))
 	    ((null c) (reverse others)))))
-
-(defun same-choice-point? (name1 name2)
-  (or (equal name1 name2)
-      (and (not (atom name1))
-	   (eq (first name1) 'relative-choice-point-of)
-	   (equal name2 (list (first name1) (reverse (second name1)) (third name1))))))
 
 ;; Is the choice point one of the character's? (choice-point-of c e), and a relative
 ;; one between c and another, (relative-choice-point-of (c x) e) or (x c).
@@ -414,61 +387,9 @@
 	      (or (memq (first (second choice-point)) characters)
 		  (memq (second (second choice-point)) characters))))))
 
-;; The choices held while Ani chooses again, and the choices as they were.
-(or (boundp ':change-held) (setq :change-held nil))
-(or (boundp ':change-as-they-were) (setq :change-as-they-were nil))
-(or (boundp ':change-held-against) (setq :change-held-against nil))
-
-(defun hold-everyone-but (characters answers-file)
-  (setq :change-as-they-were (choices-as-they-were answers-file))
-  (setq :change-held
-	(mapcan (function
-		 (lambda (choice)
-			 (and (not (choice-point-of-any? (first choice) characters))
-			      (list choice))))
-		(append :change-as-they-were nil)))
-  (setq :change-held-against nil))
-
-;; The value held for a choice point, as (value), or nil: a relative choice point held
-;; under its other name has the value as that name reads it, as the relative choice
-;; point answers yield current choice for (cpoint.87:106-114).
-(defun held-value-of (choice-point)
-  (do ((c :change-held (rest c)))
-      ((null c) nil)
-      (cond ((equal (first (first c)) choice-point) (return (rest (first c))))
-	    ((same-choice-point? (first (first c)) choice-point)
-	     (return (list (as-the-other-name-reads (second (first c)))))))))
-
-(defun as-the-other-name-reads (value)
-  (cond ((memq value '(same-as different-from)) value)
-	(t (ask ,value recall your negative))))
-
-;; CHOOSE's record-choice (choose.198:596-603), where every choice Ani makes is made:
-;; while a fresh look holds the others, a choice of theirs that would come out
-;; differently is made as it was, its winning suggestion saying so,
-;;   (suggestion: element (prince deliberateness) value medium strength medium
-;;		 source (held-as-it-was would-have-chosen high from ...))
-;; and noted in :change-held-against for the glass box. The choice is counted as the
-;; held value, as record-choice counts every choice (glosug.41:77-84 reads the counts).
-;; With nothing held, in every other job, Ken's record-choice does it all.
-(defun record-choice-holding-the-others (choice-point suggestion)
-  (let ((held (and :change-held (held-value-of choice-point))))
-       (cond ((or (null held) (equal (first held) (get suggestion 'value)))
-	      (funcall (revival-wrapped 'record-choice 'change) choice-point suggestion))
-	     (t (setq :change-held-against
-		      (cons (list choice-point (first held) (get suggestion 'value))
-			    :change-held-against))
-		(funcall (revival-wrapped 'record-choice 'change)
-			 choice-point
-			 '(suggestion: element ,(get suggestion 'element)
-				       value ,(first held)
-				       strength ,(get suggestion 'strength)
-				       source (held-as-it-was
-					       would-have-chosen ,(get suggestion 'value)
-					       from ,(get suggestion 'source))))))))
-
-(+after-load '|ken;choose >|
-  '(revival-wrap 'record-choice 'change 'record-choice-holding-the-others))
+;; Holding choices while Ani chooses again (hold-everyone-but, held-value-of and
+;; record-choice-holding-the-others, with answers-in-file and same-choice-point?) is
+;; REVIVE;HOLD's, which CHANGE and CRITIC share; HOLD loads before this file.
 
 ;; The fresh look after a scene that changes someone: the film description as of the
 ;; scene; the earlier scenes' BECOME files, for who they had become; every choice but
