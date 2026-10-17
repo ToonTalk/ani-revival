@@ -915,17 +915,19 @@ export function legitimacyQuestion(word) {
 // little story"), for src/pipeline.js rehearse: "first-one" and "second-one", the scene
 // "rehearsal". The piece's word is given to the first; a way of showing a word towards an
 // enemy has the second hate the first, towards a friend love it, towards a stranger
-// nothing between them. Returns { text, scene, first, second }.
-export function rehearsalStory(piece) {
+// nothing between them. type: the word's type (personality, physical or movement), for a
+// piece that adds to a word (a word piece has its own; personality by default). Returns
+// { text, scene, first, second }.
+export function rehearsalStory(piece, { type = null } = {}) {
   const first = "first-one", second = "second-one";
   const desc = { [first]: { personality: "good" }, [second]: { personality: "good" } };
   const rel = {}; // `${a} ${b}` -> words
   let task;
   switch (piece.kind) {
     case "word": case "suggests": case "looks": case "shows": {
-      const type = piece.type || "personality";
-      desc[first] = { [type]: piece.word };
-      if (type !== "personality") desc[first].personality = "good";
+      const kind = piece.type || (WORD_TYPES[type] ? type : "personality");
+      desc[first] = { [kind]: piece.word };
+      if (kind !== "personality") desc[first].personality = "good";
       if (piece.kind === "shows" && piece.who === "enemy") rel[`${second} ${first}`] = "hates";
       if (piece.kind === "shows" && piece.who === "friend") rel[`${first} ${second}`] = "loves";
       task = `(establish (personality ${first}))`;

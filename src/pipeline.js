@@ -2711,7 +2711,17 @@ export function checkKnowledge(fs, notebooks, { extensions = [], characters = []
 // never-reached; "used": won or combined), or { piece, story, error } if Ani stopped.
 export function rehearse(fs, piece, notebooks, { extensions = [] } = {}) {
   const t0 = Date.now();
-  const story = rehearsalStory(piece);
+  // the type of the word a piece adds to, as Ani knows it with the notebooks
+  let type = null;
+  if (["suggests", "looks", "shows"].includes(piece.kind) && /^[a-z][a-z-]*$/.test(String(piece.word))) {
+    try {
+      const L = boot(fs, { extensions, knowledge: notebooks });
+      L.evalString("(load '|ken;dscrp >|)");
+      const t = L.print(L.evalString(`(and (exists? '${piece.word}) (ask ${piece.word} recall your type))`)).toLowerCase();
+      if (["personality", "physical", "movement"].includes(t)) type = t;
+    } catch { /* the rehearsal says why it stops */ }
+  }
+  const story = rehearsalStory(piece, { type });
   try {
     const { text } = storyWithoutClashes(fs, story.text, { extensions, knowledge: notebooks });
     const versions = fs.dirs.get("KEN")?.get("CINDY");
@@ -2778,9 +2788,10 @@ const SET_ASIDE = {
 function passOnePlaces(choicePoints, element, matches, { relative = false } = {}) {
   const places = [];
   for (const cp of choicePoints || []) {
-    if (cp.element !== element) continue;
+    // a relative choice point's element is (relative-speed a b), its elementName relative-speed
+    if ((cp.elementName || cp.element) !== element) continue;
     if (relative !== (Array.isArray(cp.name) && cp.name[0] === "relative-choice-point-of")) continue;
-    const ours = (s) => s && s.element === element && matches(s);
+    const ours = (s) => s && (Array.isArray(s.element) ? s.element[0] : s.element) === element && matches(s);
     const conflicts = (cp.conflictsResolved || []).filter((c) => {
       const i = c.indexOf("offenders");
       return i > 0 && (c[i + 1] || []).some((o) => ours(suggestionOf(o)));
@@ -2840,10 +2851,14 @@ const forWho = (task) => { const t = readForms(String(task.variables.task || "")
 //   never-reached  no choice or task met it, with why: "no character in this story is
 //                  grumpy", "no scene shows what a grumpy character is like", "no scene asks
 //                  Ani to show helping", "Ani isn't choosing looks (APPEAR is off)" ...
-// A place is a choice point ({ choicePoint, character, state, value, against?, reason? })
-// or a task ({ scene, task, description, character, state, chosen, verb?, way?, reason?,
-// scores? }). unread: true on a won or combined piece whose element nothing that draws the
-// film reads (ELEMENT_USE). Also { notebooks: [{ n, title }] }.
+// A place is a choice point ({ choicePoint, character, state, value, against?, reason?,
+// reasonWords? }), a task ({ scene, task, description, character, state, chosen?, verb?,
+// way?, reason?, reasonWords?, scores? }), for a feeling one of its changes in a task
+// ({ scene, task, description, character, element, change, state, against?, reason? }), or
+// for a linked word a way of showing it borrowed with KNOW ({ scene, task, borrowed: true,
+// way, state }). A word with no link that a character has is won with no places and a
+// note. unread: true on a won or combined piece whose element nothing that draws the film
+// reads (ELEMENT_USE). Also { notebooks: [{ n, title }] }.
 export function yourKnowledgeDid(run, { index = null, extensions = null } = {}) {
   const notebooks = run.knowledge || [];
   index = index || yoursIndex(notebooks);
@@ -2869,7 +2884,7 @@ export function yourKnowledgeDid(run, { index = null, extensions = null } = {}) 
           // suggestions that reached a character through the piece's link
           const linked = new Set([p.like, p.opposite].filter(Boolean));
           const viaLink = (s) => originsOf(s.source).some((o) => o.how !== "own" && ((o.via === p.word && linked.has(o.origin)) || (o.origin === p.word && linked.has(o.via))));
-          for (const element of new Set(cps.map((cp) => cp.element))) {
+          for (const element of new Set(cps.map((cp) => cp.elementName || cp.element))) {
             places.push(...passOnePlaces(cps, element, viaLink), ...passOnePlaces(cps, element, viaLink, { relative: true }));
           }
           // and, with KNOW, the ways of showing the word borrowed from its neighbors
@@ -2943,13 +2958,23 @@ export function yourKnowledgeDid(run, { index = null, extensions = null } = {}) 
             const cant = task.variables.status === "cant-do";
             const place = { scene, task: task.name, description: shown(d), character: forWho(task), chosen: chosen.map(shown) };
             if (p.kind === "way") {
-              const offered = (task.items || []).some((x) => x.startsWith("(suggestion: ") && x.includes(`source (yours ${verb})`) && x.includes(`(${p.way} `));
-              if (!offered) continue;
+              const ours = (x) => x.includes(`source (yours ${verb})`) && x.includes(`(${p.way} `);
+              const offered = (task.items || []).some((x) => x.startsWith("(suggestion: ") && ours(x));
+              // set aside before scoring by CHOMET's reject-suggestion (chomet.123:283-309): kept
+              // in the task's rejected-suggestions with Ken's reason
+              const rejected = readForms(String(task.variables["rejected-suggestions"] || "nil"))[0];
+              const setAside = (Array.isArray(rejected) ? rejected : []).find((x) => Array.isArray(x) && ours(printForm(x)));
+              if (!offered && !setAside) continue;
               place.way = p.way;
               place.state = head === p.way ? "won" : "lost";
               if (place.state === "lost") {
-                place.reason = cant ? "cant-do" : "another-way";
-                place.reasonWords = cant ? "Ani couldn't do this task at all" : `set aside: CHOMET scored ${head ? head.replace(/-/g, " ") : "another way"} higher`;
+                const why = setAside ? setAside[setAside.indexOf("reason") + 1] : null;
+                place.reason = setAside ? "set-aside" : cant ? "cant-do" : "another-way";
+                const head0 = Array.isArray(why) ? why[0] : why;
+                const plain = { "too-much-time:": "it would take more time than the part has to fill", "need-more-time:": "it needs more time than the part has", "more-time-needed:": "it needs more time than the part has", "prerequisites-not-met": "what it needs first isn't so" }[head0] || printForm(why);
+                place.reasonWords = setAside ? `set aside before scoring: ${plain} (CHOMET's reject-suggestion, chomet.123:283-309)${head ? `; Ani chose ${head.replace(/-/g, " ")}` : ""}`
+                  : cant ? "Ani couldn't do this task at all" : `set aside: CHOMET scored ${head ? head.replace(/-/g, " ") : "another way"} higher`;
+                if (setAside) place.setAsideFor = printForm(why);
                 place.scores = task.variables.scores || null;
               }
             } else {

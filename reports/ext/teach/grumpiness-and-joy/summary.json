@@ -1,0 +1,140 @@
+{
+ "example": "grumpiness-and-joy",
+ "story": "test/teach/grumpiness-and-joy.lisp",
+ "notebooks": [
+  "grumpiness"
+ ],
+ "extensions": [
+  "mend",
+  "know"
+ ],
+ "choices": 33,
+ "choiceValues": {
+  "[\"relative-choice-point-of\",[\"troll\",\"goat\"],\"relative-path-jaggedness\"]": "different-from",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-speed\"]": "less-than",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-activity-level\"]": "less-than",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-rhythmic-level\"]": "different-from",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-acceleration\"]": "less-than",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-repetiveness\"]": "different-from",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-deliberateness\"]": "different-from",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-path-length\"]": "different-from",
+  "[\"relative-choice-point-of\",[\"goat\",\"troll\"],\"relative-path-curvature\"]": "different-from",
+  "[\"choice-point-of\",\"goat\",\"attraction-towards-strangers\"]": [
+   "negative",
+   "high"
+  ],
+  "[\"choice-point-of\",\"goat\",\"attraction-towards-enemies\"]": [
+   "negative",
+   "medium"
+  ],
+  "[\"choice-point-of\",\"goat\",\"attraction-towards-friends\"]": [
+   "positive",
+   "high"
+  ],
+  "[\"choice-point-of\",\"goat\",\"speed\"]": "low",
+  "[\"choice-point-of\",\"goat\",\"activity-level\"]": "medium",
+  "[\"choice-point-of\",\"goat\",\"rhythmic-level\"]": "high",
+  "[\"choice-point-of\",\"goat\",\"acceleration\"]": "low",
+  "[\"choice-point-of\",\"goat\",\"repetiveness\"]": "medium",
+  "[\"choice-point-of\",\"goat\",\"deliberateness\"]": "low",
+  "[\"choice-point-of\",\"goat\",\"path-length\"]": "long",
+  "[\"choice-point-of\",\"goat\",\"path-curvature\"]": "high",
+  "[\"choice-point-of\",\"goat\",\"path-jaggedness\"]": "low",
+  "[\"choice-point-of\",\"troll\",\"attraction-towards-strangers\"]": [
+   "negative",
+   "medium"
+  ],
+  "[\"choice-point-of\",\"troll\",\"attraction-towards-enemies\"]": [
+   "negative",
+   "high"
+  ],
+  "[\"choice-point-of\",\"troll\",\"attraction-towards-friends\"]": [
+   "positive",
+   "low"
+  ],
+  "[\"choice-point-of\",\"troll\",\"speed\"]": "high",
+  "[\"choice-point-of\",\"troll\",\"activity-level\"]": "high",
+  "[\"choice-point-of\",\"troll\",\"rhythmic-level\"]": "medium",
+  "[\"choice-point-of\",\"troll\",\"acceleration\"]": "high",
+  "[\"choice-point-of\",\"troll\",\"repetiveness\"]": "low",
+  "[\"choice-point-of\",\"troll\",\"deliberateness\"]": "high",
+  "[\"choice-point-of\",\"troll\",\"path-length\"]": "medium",
+  "[\"choice-point-of\",\"troll\",\"path-curvature\"]": "medium",
+  "[\"choice-point-of\",\"troll\",\"path-jaggedness\"]": "medium"
+ },
+ "scenes": [
+  {
+   "id": "on-the-bridge",
+   "frames": 126,
+   "framesHash": "sqhh77",
+   "events": [
+    [
+     0,
+     "(beginning-of on-the-bridge)"
+    ],
+    [
+     0,
+     "(beginning-of (subscene-of on-the-bridge 1))"
+    ],
+    [
+     0,
+     "(beginning-of (activity-of wander-around 2))"
+    ],
+    [
+     124,
+     "(end-of (activity-of wander-around 2))"
+    ],
+    [
+     124,
+     "(end-of (subscene-of on-the-bridge 1))"
+    ]
+   ],
+   "tasks": [
+    [
+     "establish-task-1",
+     "(task: description (emotional-state troll (and (joy (positive medium)) (grumpiness (positive medium)))) for-who troll source initial-description)",
+     "((change-to: element (troll path-curvature) new-value high speed high) (change-to: element (troll path-length) new-value long speed high) (change: element (troll acceleration) amount (positive medium) speed medium) (change: element (troll rhythmic-level) amount (positive medium) speed medium) (change: element (troll activity-level) amount (positive medium) speed medium) (change: element (troll path-jaggedness) amount (positive medium) speed medium))",
+     null,
+     "60.0"
+    ]
+   ]
+  }
+ ],
+ "did": [
+  {
+   "notebook": 1,
+   "piece": "k1",
+   "kind": "feeling",
+   "state": "won",
+   "places": [
+    {
+     "scene": "on-the-bridge",
+     "task": "establish-task-1",
+     "description": "(emotional-state troll (and (joy (positive medium)) (grumpiness (positive medium))))",
+     "character": "troll",
+     "element": "speed",
+     "change": "down",
+     "state": "lost",
+     "reason": "conflict",
+     "against": [
+      {
+       "value": "(method: type display-value-change value (change: element (troll speed) amount (positive medium) speed medium))",
+       "strength": "high",
+       "source": "joy"
+      }
+     ],
+     "reasonWords": "cancelled: joy changes speed the other way, and Ken's CHOMET rejects conflicting changes rather than choose between them (\"hopefully all conflicting ones are so noted for now rather than resolving them I'll reject\", chomet.123:464)"
+    },
+    {
+     "scene": "on-the-bridge",
+     "task": "establish-task-1",
+     "description": "(emotional-state troll (and (joy (positive medium)) (grumpiness (positive medium))))",
+     "character": "troll",
+     "element": "path-jaggedness",
+     "change": "up",
+     "state": "won"
+    }
+   ]
+  }
+ ]
+}

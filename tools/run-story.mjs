@@ -7,7 +7,8 @@
 // Pass 1's choices that pass 2 can't use as they are, (not X) and none, are listed, and
 // apart from them those it never reads (a none on an attraction).
 // Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 1000] [--fps 4]
-//                                  [--scenes s1,s2] [--out file.json] [--no-backtrace]
+//                                  [--scenes s1,s2] [--knowledge f.json[,g.json]] [--out file.json]
+//                                  [--no-backtrace]
 //   --extensions  the revival's extensions to load (src/pipeline.js EXTENSIONS); none
 //                 by default, which is Ani as in 1978
 //   --frames      the most frames a scene is filmed for: 1,000, as the page films at 4
@@ -15,6 +16,10 @@
 //                 stopped, (m 1000)
 //   --scenes      make these scenes, and the scenes before them, since each starts where
 //                 the one before it ended (pass 1 always runs)
+//   --knowledge   a learner's notebooks (src/teach.js; reports/ext/teach/notebooks/), each a
+//                 .ani-knowledge.json file, to make the film with (Teach Ani: REVIVE;TEACH is
+//                 loaded into every step, each notebook as YOURS;N1 KNOW, ...); what the
+//                 knowledge did is said after the scenes (src/pipeline.js yourKnowledgeDid)
 //   --out         also write what happened as JSON
 //   --no-backtrace  a step that fails is not run again for its backtrace
 // A failed step is run again, on the same files, with Lisp's backtrace on (makeFilm runs
@@ -24,16 +29,16 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { makeFilmSteps, storyOutline, storyPlan, storyWithoutClashes, pass1, pass2, film, isAppearanceChoice, choosesLooks } from "../src/pipeline.js";
+import { makeFilmSteps, storyOutline, storyPlan, storyWithoutClashes, pass1, pass2, film, isAppearanceChoice, choosesLooks, yourKnowledgeDid } from "../src/pipeline.js";
 import { Lisp } from "../src/maclisp/index.js";
 import { printString } from "../src/maclisp/printer.js";
 
 const args = process.argv.slice(2);
-const valued = new Set(["--extensions", "--frames", "--fps", "--scenes", "--out"]);
+const valued = new Set(["--extensions", "--frames", "--fps", "--scenes", "--out", "--knowledge"]);
 const opt = (name, dflt) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : dflt; };
 const storyPath = args.find((a, i) => !a.startsWith("--") && !valued.has(args[i - 1]));
 if (!storyPath) {
-  console.log("Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 1000] [--fps 4] [--scenes s1,s2] [--out file.json] [--no-backtrace]");
+  console.log("Usage: node tools/run-story.mjs <story.lisp> [--extensions a,b] [--frames 1000] [--fps 4] [--scenes s1,s2] [--knowledge f.json[,g.json]] [--out file.json] [--no-backtrace]");
   process.exit(2);
 }
 const list = (s) => (s ? s.split(",").map((x) => x.trim()).filter(Boolean) : []);
@@ -43,13 +48,16 @@ const fps = Number(opt("--fps", 4));
 const only = list(opt("--scenes", ""));
 const outPath = opt("--out", null);
 const backtraces = !args.includes("--no-backtrace");
+// a learner's notebooks (Teach Ani), or none
+const knowledge = list(opt("--knowledge", "")).map((f) => JSON.parse(readFileSync(f, "utf8")));
+const taught = knowledge.length ? { knowledge } : {};
 
 // the page's editor gives Ani lines ending in LF; a scene or character named as
 // something of Ani's is renamed, as makeFilmSteps renames it (src/pipeline.js
 // storyWithoutClashes), so that a failed step run again here is the same step
 const root = fileURLToPath(new URL("..", import.meta.url));
 const fs = makeProjectFileSystem(root);
-const { text: description, renames } = storyWithoutClashes(fs, readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n"), { extensions });
+const { text: description, renames } = storyWithoutClashes(fs, readFileSync(storyPath, "utf8").replace(/\r\n/g, "\n"), { extensions, ...taught });
 // as makeFilmSteps makes it, for running a failed step again
 const plan = storyPlan(storyOutline(description), { looks: choosesLooks(extensions), change: extensions.includes("change") });
 
@@ -169,7 +177,7 @@ if (making && making.length > asked.length) {
 }
 
 const steps = makeFilmSteps(fs, {
-  description, keepGoing: true, frames, fps, extensions,
+  description, keepGoing: true, frames, fps, extensions, ...taught,
   scenes: making,
   progress: (step, what, scene) => {
     at = { step, scene: scene || null, t0: step === "film" ? at.t0 : Date.now() }; // a scene's time is its pass 2's and its filming's
@@ -237,7 +245,7 @@ const steps = makeFilmSteps(fs, {
         r.knockOn = "an earlier scene failed, so a file this one starts from (POSIT or MINI) was never written";
         console.log(`  (${r.knockOn})`);
       } else {
-        const opts = { plan, extensions, backtrace: true };
+        const opts = { plan, extensions, backtrace: true, ...taught };
         r.backtrace = backtraceOf(() => (at.step === "film" ? film(fs, s.id, { ...opts, frames, fps }) : pass2(fs, s.id, opts)));
         printFailure(r);
       }
@@ -295,8 +303,12 @@ function lookWords(looks) {
 }
 
 const t0 = Date.now();
+let made = null;
 try {
-  for (;;) if (steps.next().done) break;
+  for (;;) {
+    const step = steps.next();
+    if (step.done) { made = step.value; break; }
+  }
 } catch (e) {
   // pass 1 isn't covered by keepGoing: without its choices there is nothing to plan
   // (and an unknown extension stops the run before pass 1)
@@ -304,7 +316,7 @@ try {
   console.log(`FAILED ${where}: ${(e && e.message) || e}`);
   const r = { ok: false, seconds: seconds(at.t0), error: String((e && e.message) || e), typed: at.step ? typed() : [] };
   if (at.step === "pass1") {
-    r.backtrace = backtraceOf(() => pass1(fs, { extensions, backtrace: true }));
+    r.backtrace = backtraceOf(() => pass1(fs, { extensions, backtrace: true, ...taught }));
     result.pass1 = r;
   } else if (at.step) {
     result.scenes.push({ id: at.scene, failedIn: at.step, ...r });
@@ -312,6 +324,16 @@ try {
     result.pass1 = r;
   }
   printFailure(r);
+}
+// what the learner's knowledge did (Teach Ani)
+if (made && knowledge.length) {
+  const did = yourKnowledgeDid(made);
+  result.knowledge = did;
+  console.log("\nwhat your knowledge did:");
+  for (const p of did.pieces) {
+    const where = p.places.filter((x) => x.state === p.state).map((x) => (x.choicePoint ? JSON.stringify(x.choicePoint) : `${x.scene} ${x.task}${x.element ? ` ${x.element}` : ""}`) + (x.reasonWords ? `: ${x.reasonWords}` : "")).slice(0, 3);
+    console.log(`  ${p.title} ${p.piece} (${p.kind}) ${p.state}${p.why ? `: ${p.why}` : ""}${p.note ? `: ${p.note}` : ""}${where.length ? `\n      ${where.join("\n      ")}` : ""}`);
+  }
 }
 const failed = (result.pass1 && !result.pass1.ok ? 1 : 0) + result.scenes.filter((s) => !s.ok).length + (result.changes || []).filter((c) => !c.ok).length;
 const capped = result.scenes.filter((s) => s.capped).length;
