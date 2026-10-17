@@ -99,6 +99,9 @@
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
 //            from 1978's positions doesn't depend on the frame rate and is left to the
 //            check at 4). About 15 minutes.
+//   --knowledge f  a learner's notebook (or a list of them) to make every film with
+//            (src/pipeline.js boot's knowledge; TEACH is added): an empty one,
+//            reports/ext/teach/empty.ani-knowledge.json, must change nothing
 //   --save   write the chained film's files to reports/ext/<ids>/ (or its 24fps/)
 //            instead of comparing them (and pass 1's KEN;CP 30 and appearances, or
 //            KNOW's pass 2 from 1978's positions), after checking the rest
@@ -110,7 +113,10 @@ import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] || "" : null; };
-const chosen = extensionsFor((opt("--extensions") || "appear").split(",").filter(Boolean));
+// a learner's knowledge (TEACH), from a notebook file or a list of notebooks
+const knowledgeAt = opt("--knowledge");
+const knowledge = knowledgeAt ? [JSON.parse(readFileSync(knowledgeAt, "utf8"))].flat() : null;
+const chosen = extensionsFor([...(opt("--extensions") || "appear").split(",").filter(Boolean), ...(knowledge ? ["teach"] : [])]);
 const extensions = chosen.map((e) => e.id);
 if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.join(", ")} changes Ken's Cinderella: tools/check-1978.mjs --extensions ${extensions.join(",")} checks it`);
 // what this check knows each should make: APPEAR's, KNOW's, SLIPS's (with KNOW),
@@ -267,8 +273,8 @@ function durationGuard(fs, first, what) {
     }
     return out;
   };
-  const with_ = first || run(`kept-apart: filming ${what}, with its look changes`, () => film(fsWith(program), "kept-apart", { extensions, fps, frames }).film).value;
-  const w = run(`kept-apart: filming ${what}, without its look changes`, () => film(fsWith(withoutLookChanges(program)), "kept-apart", { extensions, fps, frames }).film);
+  const with_ = first || run(`kept-apart: filming ${what}, with its look changes`, () => film(fsWith(program), "kept-apart", { extensions, fps, frames, knowledge }).film).value;
+  const w = run(`kept-apart: filming ${what}, without its look changes`, () => film(fsWith(withoutLookChanges(program)), "kept-apart", { extensions, fps, frames, knowledge }).film);
   const without = w.value;
   const endOf = (f) => (f.events.find((e) => e[1] === "(end-of (subscene-of kept-apart 3))") || [null])[0];
   check(`kept-apart ${what}: ${changes} look change${changes === 1 ? "" : "s"} in the program; the joy subscene ends on frame ${endOf(with_)} with them, ${endOf(without)} without (${fps} frames a second)`,
@@ -281,7 +287,7 @@ console.log(`Ani with the extensions ${extensions.join(", ")}, against 1978 and 
 
 // ---------------------------------------------------------------- pass 1
 const fs1 = makeProjectFileSystem();
-const p1 = run("pass 1", () => pass1(fs1, { extensions }));
+const p1 = run("pass 1", () => pass1(fs1, { extensions, knowledge }));
 const cp = textIn(fs1, "KEN", "CP", "30");
 if (kind === "know") {
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
@@ -363,7 +369,7 @@ if (fps === 4 && kind === "appear") {
   for (const scene of SCENES) {
     const [fn1, fn2] = FILE_NAMES[scene].split(" ");
     const lower = fn1.toLowerCase();
-    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
+    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions, knowledge }));
     const program = textIn(fs2, "KEN", fn1, fn2);
     check(`${scene}: KEN;${fn1} ${fn2}, without its looks and look changes, as 1978's (reports/pass2)`, same(withoutLookChanges(withoutLooks(program)), read(`reports/pass2/ken-${lower}.${fn2.toLowerCase()}`)), p2.seconds);
     // what was taken off is exactly the take-look forms, one for each character, as
@@ -397,8 +403,8 @@ function storyGuard(file) {
   const fs5 = makeProjectFileSystem();
   fs5.addFile("KEN", "CINDY", "47", { text, origin: file });
   const r = run(`${file}: pass 1 and ${s.id}'s pass 2`, () => {
-    pass1(fs5, { extensions });
-    return pass2(fs5, s.id, { plan, extensions }).glass;
+    pass1(fs5, { extensions, knowledge });
+    return pass2(fs5, s.id, { plan, extensions, knowledge }).glass;
   });
   const program = textIn(fs5, "KEN", fn1, fn2);
   const filmOf = (text2) => {
@@ -406,7 +412,7 @@ function storyGuard(file) {
     f.addFile("KEN", "CINDY", "47", { text, origin: file });
     f.addFile("KEN", "CP", "30", { text: textIn(fs5, "KEN", "CP", "30"), origin: "the story's pass 1" });
     f.addFile("KEN", fn1, fn2, { text: text2, origin: "the story's pass 2" });
-    return film(f, s.id, { plan, extensions, frames: 1000, fps: 4 }).film;
+    return film(f, s.id, { plan, extensions, frames: 1000, fps: 4, knowledge }).film;
   };
   const a = run(`${s.id}: filming with its look changes`, () => filmOf(program));
   const b = run(`${s.id}: filming without them`, () => filmOf(withoutLookChanges(program)));
@@ -430,7 +436,7 @@ if (fps === 4 && kind === "know") {
   for (const scene of SCENES) {
     const [fn1, fn2] = FILE_NAMES[scene].split(" ");
     const lower = fn1.toLowerCase();
-    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
+    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions, knowledge }));
     const files = [
       [`KEN;${fn1} ${fn2}`, `ken-${lower}.${fn2.toLowerCase()}`, textIn(fs2, "KEN", fn1, fn2)],
       [`KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs2, "KEN1", fn1, "MINI")],
@@ -477,7 +483,7 @@ if (fps === 4 && (kind === "slips" || kind === "detail" || kind === "seen" || ki
   for (const scene of SCENES) {
     const [fn1, fn2] = FILE_NAMES[scene].split(" ");
     const lower = fn1.toLowerCase();
-    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions }));
+    const p2 = run(`${scene}: pass 2 from 1978's positions`, () => pass2(fs2, scene, { extensions, knowledge }));
     const files = [
       [`KEN;${fn1} ${fn2}`, `ken-${lower}.${fn2.toLowerCase()}`, textIn(fs2, "KEN", fn1, fn2)],
       [`KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs2, "KEN1", fn1, "MINI")],
@@ -505,13 +511,13 @@ if (!quick) {
   for (const scene of SCENES) {
     const [fn1, fn2] = FILE_NAMES[scene].split(" ");
     const lower = fn1.toLowerCase();
-    const p2 = run(`${scene}: pass 2, chained`, () => pass2(fs3, scene, { extensions }));
+    const p2 = run(`${scene}: pass 2, chained`, () => pass2(fs3, scene, { extensions, knowledge }));
     console.log(`       (${p2.seconds.toFixed(1)}s)`);
     golden(`${scene}: KEN;${fn1} ${fn2}`, `ken-${lower}.${fn2.toLowerCase()}`, textIn(fs3, "KEN", fn1, fn2));
     golden(`${scene}: KEN1;${fn1} MINI`, `ken1-${lower}.mini`, textIn(fs3, "KEN1", fn1, "MINI"));
     golden(`${scene}: KEN1;${fn1} PRINT`, `ken1-${lower}.print`, textIn(fs3, "KEN1", fn1, "PRINT"));
     golden(`${scene}: the glass box`, `${scene}.glass.json`, JSON.stringify(p2.value.glass, null, 1));
-    const f = run(`${scene}: filming, chained`, () => film(fs3, scene, { extensions, fps, frames }));
+    const f = run(`${scene}: filming, chained`, () => film(fs3, scene, { extensions, fps, frames, knowledge }));
     const ours = f.value.film;
     console.log(`       (${f.seconds.toFixed(1)}s) ${ours.frames.length} frames, ${ours.events.length} events${ours.looks ? `, ${ours.looks.length} looks` : ""}`);
     golden(`${scene}: the film`, `${scene}.film.json`, JSON.stringify(ours));

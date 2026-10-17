@@ -29,6 +29,10 @@
 //                 files are not reports/pass2's, and only its glass box is checked. About
 //                 15 minutes, for occasional use.
 //   --save-loads  with no extensions, write reports/loaded-files.json from this run
+//   --knowledge f a learner's notebook (or a list of them) to make the film with
+//                 (src/pipeline.js boot's knowledge; TEACH is added to the extensions):
+//                 an empty one, reports/ext/teach/empty.ani-knowledge.json, must change
+//                 nothing, its YOURS;N1 KNOW counted among the extensions' files
 // Prints each check with ok or FAIL and its time; exits non-zero if any fails.
 import { readFileSync, readdirSync, writeFileSync, existsSync, mkdtempSync, openSync, closeSync, rmSync } from "node:fs";
 import { spawn } from "node:child_process";
@@ -42,6 +46,10 @@ import { choicesOfText, choicesOfItsFile, compareChoices } from "./choices.mjs";
 const args = process.argv.slice(2);
 const opt = (name) => { const i = args.indexOf(name); return i >= 0 ? args[i + 1] || "" : null; };
 const chosen = extensionsFor((opt("--extensions") || "").split(",").filter(Boolean));
+// a learner's knowledge (TEACH), from a notebook file or a list of notebooks
+const knowledgeAt = opt("--knowledge");
+const knowledge = knowledgeAt ? [JSON.parse(readFileSync(knowledgeAt, "utf8"))].flat() : null;
+if (knowledge && !chosen.some((e) => e.id === "teach")) chosen.push(...extensionsFor([...chosen.map((e) => e.id), "teach"]).filter((e) => !chosen.includes(e)));
 const extensions = chosen.map((e) => e.id);
 const quick = args.includes("--quick");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
@@ -53,6 +61,8 @@ const saveLoads = args.includes("--save-loads");
 if (saveLoads && (extensions.length || fps !== 4)) throw new Error("--save-loads records 1978 mode at 4 frames a second: run it with no extensions and no --fps");
 for (const e of chosen.filter((e) => e.changes1978)) console.log(`note: ${e.id} is meant to change Ken's Cinderella, so this check should fail with it`);
 const extensionFiles = new Set(chosen.flatMap((e) => e.files).map((f) => `REVIVE;${f.toUpperCase()}`));
+// and each notebook's file, YOURS;N1 KNOW, ...
+for (const [k] of (knowledge || []).entries()) extensionFiles.add(`YOURS;N${k + 1}`);
 
 const read = (path) => readFileSync(path, "utf8");
 const t0 = Date.now();
@@ -158,11 +168,11 @@ function finish() {
   process.exit(failures ? 1 : 0);
 }
 
-console.log(`Ani as in 1978${extensions.length ? `, with the extensions ${extensions.join(", ")} (REVIVE;${[...extensionFiles].map((f) => f.slice(7)).join(", REVIVE;")})` : ""}${quick ? ", without filming" : fps === 24 ? ", filmed at 24 frames a second" : ""}\n`);
+console.log(`Ani as in 1978${extensions.length ? `, with the extensions ${extensions.join(", ")} (${[...extensionFiles].join(", ")})` : ""}${knowledge ? `, and the knowledge in ${knowledgeAt}` : ""}${quick ? ", without filming" : fps === 24 ? ", filmed at 24 frames a second" : ""}\n`);
 
 // ---------------------------------------------------------------- pass 1
 job = "pass1";
-const p1 = run("pass 1", () => pass1(fs, { extensions }));
+const p1 = run("pass 1", () => pass1(fs, { extensions, knowledge }));
 {
   const cp = textIn(fs, "KEN", "CP", "30");
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
@@ -196,7 +206,7 @@ for (const scene of SCENES) {
   const [fn1, fn2] = FILE_NAMES[scene].split(" ");
   const lower = fn1.toLowerCase();
   job = `pass2 ${scene}`;
-  const p2 = run(`${scene}: pass 2`, () => pass2(fs, scene, { extensions }));
+  const p2 = run(`${scene}: pass 2`, () => pass2(fs, scene, { extensions, knowledge }));
   if (fps === 4) {
     check(`${scene}: pass 2's KEN;${fn1} ${fn2} as reports/pass2`, same(textIn(fs, "KEN", fn1, fn2), read(`reports/pass2/ken-${lower}.${fn2.toLowerCase()}`)), p2.seconds);
     check(`${scene}: pass 2's KEN1;${fn1} MINI as reports/pass2`, same(textIn(fs, "KEN1", fn1, "MINI"), read(`reports/pass2/ken1-${lower}.mini`)));
@@ -214,7 +224,7 @@ for (const scene of SCENES) {
   }
 
   job = `film ${scene}`;
-  const f = run(`${scene}: filming`, () => film(fs, scene, { extensions, fps, frames }));
+  const f = run(`${scene}: filming`, () => film(fs, scene, { extensions, fps, frames, knowledge }));
   const goldenPath = `${fps === 24 ? "reports/film/24fps" : "reports/film"}/${scene}.film.json`;
   const golden = JSON.parse(read(goldenPath));
   const ours = f.value.film;

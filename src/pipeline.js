@@ -25,6 +25,7 @@ import { Cons, UNBOUND } from "./maclisp/types.js";
 import { pictureArea } from "./tv/canvas.js";
 import { UNIT_BIT } from "./tv/turtle.js";
 import { collectChoicePoints, collectAppearances, collectLooks, toJSON, plistGet } from "./glassbox-pass1.js";
+import { notebookToLisp, checkNotebook, yoursIndex, rehearsalStory, pieceWords, MAX_NOTEBOOKS } from "./teach.js";
 
 export const SCENES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"];
 // RUN's file names for each scene: the program is KEN;<fn1> <fn2>, the summary
@@ -167,6 +168,25 @@ export const EXTENSIONS = [
     changes1978: false,
     note: "Ani heeds a record of your criticism of a film, kept with the film, as Ken's Section D proposes (thesis pp. 189-191: \"Ani should be extended to accept criticism of the films and their justification\"): a way of showing or of conveying vetoed in a task, which Ani sets aside and chooses among what is left (\"removing those alternatives that were vetoed by the user\"); a part too quick or too slow, whose time Ani stretches or shrinks by half again, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside as a prerequisite not met; and a character who starts far from another, placed far off and off the stage. The film is made again from the first scene criticized; a later scene whose plan comes out the same keeps its film. Each heeded criticism leaves a note where it acted, and nothing of it becomes Ani's knowledge.",
   },
+  {
+    // A learner's own knowledge (reports/chapter-x/design-teaching.md, "Teach Ani";
+    // reports/ext/teach/README.md). onDemand, as CRITIC: never in the switch's set; the
+    // pipeline loads it, with MEND, into every job of a film made with a learner's
+    // notebooks (boot's knowledge), each notebook written as YOURS;N1 KNOW, N2 ... by
+    // src/teach.js notebookToLisp and loaded after the extensions. With no notebook, or an
+    // empty one, it changes nothing (tools/check-1978.mjs --extensions teach).
+    id: "teach",
+    label: "Your knowledge",
+    group: "yours",
+    onDemand: true,
+    files: ["wrap", "teach"],
+    // a learner's knowledge is soon used in new stories, which need MEND's repairs, and a
+    // learner's feeling meets joy through MEND7's repaired combine (cosug.215:449-477);
+    // not KNOW: a piece that needs KNOW says so (src/teach.js checkNotebook)
+    requires: ["mend"],
+    changes1978: false,
+    note: "Knowledge you taught Ani on this page (Teach Ani), in Ken's notation, each piece with your reason: words, what they suggest, relationships and how they are shown, other ways of showing a verb, feelings, and verbs that are a kind of one of Ani's. Ken planned for a learner to \"change the system's vocabulary\" and \"see the knowledge of something actually accomplish something complex\" (\"Three Interactions between AI and Education\", 1977, p. 428; AI-TR-540 pp. 149-150). It only adds to Ani's knowledge, never removes or weakens Ken's. Loaded only into a film you make with your knowledge; Ani as in 1978, and Ken's film, never change.",
+  },
 ];
 
 // The appearance elements REVIVE;APPEAR defines, and their relative elements: a
@@ -219,9 +239,15 @@ function noting(L) {
 // and any of the revival's extensions asked for. With criticism, a record of a user's
 // criticism of the film (checkCriticism's items; none, or an empty record, as without),
 // REVIVE;CRITIC is loaded too, with what it requires, and the record is written to the
-// file system as KEN1;FILM CRITIC (criticismToLisp) and read into :critic-record.
-export function boot(fs, { backtrace = false, extensions = [], criticism = null } = {}) {
+// file system as KEN1;FILM CRITIC (criticismToLisp) and read into :critic-record. With
+// knowledge, a list of a learner's notebooks (src/teach.js; none, as without; an empty
+// notebook, one with no pieces, still loads), REVIVE;TEACH is loaded too, with what it
+// requires, and each notebook is written as YOURS;N1 KNOW, N2 ... (notebookToLisp, with
+// the extensions it is loaded with) and loaded after the extensions, before the record.
+export function boot(fs, { backtrace = false, extensions = [], criticism = null, knowledge = null } = {}) {
   const heeding = Boolean(criticism && criticism.length);
+  const taught = Boolean(knowledge && knowledge.length);
+  if (taught) extensions = withTeach(extensions);
   const L = createLisp({ fs });
   L.formStack = backtrace ? [] : null;
   L.backtraceDepth = 4000;
@@ -236,6 +262,13 @@ export function boot(fs, { backtrace = false, extensions = [], criticism = null 
   L.evalString("(director '(ani direct))");
   L.evalString("(load '|revive;bridge >|)");
   loadExtensions(L, heeding ? withCritic(extensions) : extensions);
+  if (taught) {
+    const loaded = extensionsFor(heeding ? withCritic(extensions) : extensions).map((e) => e.id);
+    knowledge.forEach((notebook, k) => {
+      fs.addFile("YOURS", `N${k + 1}`, "KNOW", { text: notebookToLisp(notebook, { n: k + 1, extensions: loaded }), origin: "knowledge" });
+      L.evalString(`(load-your-knowledge '((yours) n${k + 1} know))`);
+    });
+  }
   if (heeding) {
     fs.addFile("KEN1", "FILM", "CRITIC", { text: criticismToLisp(criticism), origin: "criticism" });
     L.evalString("(load-criticism '((ken1) film critic))");
@@ -245,6 +278,9 @@ export function boot(fs, { backtrace = false, extensions = [], criticism = null 
 
 // The extensions a job of a film with criticism loads: the film's own, and CRITIC.
 export const withCritic = (extensions = []) => (extensions.includes("critic") ? extensions : [...extensions, "critic"]);
+// The extensions a job of a film made with a learner's knowledge loads: the film's own,
+// and TEACH.
+export const withTeach = (extensions = []) => (extensions.includes("teach") ? extensions : [...extensions, "teach"]);
 
 // ---------------------------------------------------------------- pass 1
 
@@ -257,8 +293,8 @@ export const withCritic = (extensions = []) => (extensions.includes("critic") ? 
 // (src/glassbox-pass1.js collectAppearances). setup, if given, is called with the Lisp
 // once it has booted, before DATEST loads (tools/check-appear.mjs leaves out some of
 // APPEAR's knowledge with it).
-export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null } = {}) {
-  const L = boot(fs, { backtrace, extensions, criticism });
+export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null, knowledge = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism, knowledge });
   if (setup) setup(L);
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
@@ -341,9 +377,9 @@ const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(na
 // { before, after, changed }, each as lookOf gives it (values then has the elements of a
 // look too, use "looks"); held: each other choice the fresh look held that would have
 // come out differently, { choicePoint, heldAt, wouldHaveChosen }.
-export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
+export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions: withChange(extensions) });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge });
   const lisp = (x) => L.print(x).toLowerCase();
   L.evalString("(load '|ken;datest >|)");
   const definitions = L.toArray(L.evalString(`(take-a-fresh-look '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} '((ken1) ${s.become} become) ${afterZ(extensions)})`));
@@ -392,9 +428,9 @@ function looksOf(L, oldLook, newLook) {
   return { before, after, changed };
 }
 
-export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false } = {}) {
+export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions: withChange(extensions) });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge });
   L.evalString("(load '|ken;datest >|)");
   const differences = L.toArray(L.evalString(`(recompute-everyone-as-of '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} ${afterZ(extensions)})`)).map((x) => {
     const [choicePoint, before, after] = L.toArray(x).map((y) => toJSON(L, y));
@@ -427,8 +463,8 @@ export function changeRecord(look, recompute, planScene) {
 // left it (the scene, its tasks with the methods suggested, rejected and scored, its
 // subscenes, activities and special dynamics), each as its variables and the items it
 // memorized, printed as Lisp; and, if the revival's repairs left notes, those.
-export function pass2(fs, scene, { backtrace = false, setup = null, plan = null, extensions = [], becomes = null, criticism = null } = {}) {
-  const L = boot(fs, { backtrace, extensions, criticism });
+export function pass2(fs, scene, { backtrace = false, setup = null, plan = null, extensions = [], becomes = null, criticism = null, knowledge = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism, knowledge });
   L.evalString("(cs)"); // Ken's Director was saved with the TV started; pass 2 measures places on it
   L.evalString("(load '|ken;run >|)");
   // what RUN is to do before it plans the scene (its to-do-before-running, run.65:48)
@@ -976,8 +1012,8 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
 // setup, if given, is called with the Lisp once it has booted, before ANINIT loads, as
 // pass 1's and pass 2's are (tools/check-slips.mjs makes SLIPS's corrections one at a
 // time with it).
-export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null, criticism = null } = {}) {
-  const L = boot(fs, { backtrace, extensions, criticism });
+export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null, criticism = null, knowledge = null } = {}) {
+  const L = boot(fs, { backtrace, extensions, criticism, knowledge });
   if (setup) setup(L);
   L.evalString("(cs)");
   L.evalString("(load '|ken;aninit >|)");
@@ -1589,10 +1625,13 @@ export function storyPlan(outline, { looks = false, change = false } = {}) {
 // The names a story may not use, lower case, for a Lisp booted with these extensions;
 // made once for each set of extensions.
 const namesTaken = new Map();
-export function aniNames(fs, { extensions = [] } = {}) {
-  const key = extensionsFor(extensions).map((e) => e.id).join(",");
+// With knowledge (a learner's notebooks, boot's), a learner's words are Ani's names too,
+// so that a story's scene called grumpy is renamed.
+export function aniNames(fs, { extensions = [], knowledge = null } = {}) {
+  const taught = knowledge && knowledge.length ? knowledge : null;
+  const key = extensionsFor(extensions).map((e) => e.id).join(",") + (taught ? ` ${JSON.stringify(taught.map((nb) => notebookToLisp(nb, { extensions })))}` : "");
   if (namesTaken.has(key)) return namesTaken.get(key);
-  const L = boot(fs, { extensions });
+  const L = boot(fs, { extensions, ...(taught ? { knowledge: taught } : {}) });
   L.evalString("(load '|ken;dscrp >|)");
   L.evalString("(load '|ken;relate >|)");
   const indicator = (name) => L.obarray.find(name);
@@ -1726,8 +1765,8 @@ export function renameStoryNames(text, renames) {
 }
 
 // The story with any clashing names renamed, and the renames made.
-export function storyWithoutClashes(fs, text, { extensions = [] } = {}) {
-  const renames = storyRenames(storyOutline(text), aniNames(fs, { extensions }));
+export function storyWithoutClashes(fs, text, { extensions = [], knowledge = null } = {}) {
+  const renames = storyRenames(storyOutline(text), aniNames(fs, { extensions, knowledge }));
   return { text: renameStoryNames(text, renames), renames };
 }
 
@@ -1770,16 +1809,27 @@ export function makeFilm(fs, options = {}) {
 // remakes a film from the first scene criticized, makes a film so when the film to remake
 // kept no files. keepFiles: the result's files are the text of every file the run wrote
 // (filesOf), which remakeFilmSteps remakes it from.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null, criticism = null, keepFiles = false } = {}) {
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null, criticism = null, knowledge = null, keepFiles = false } = {}) {
   extensionsFor(extensions); // an unknown one stops the run before it starts
   if (criticism && criticism.length) checkRecord(criticism);
-  const heed = criticism && criticism.length ? { criticism } : {};
+  if (knowledge && knowledge.length > MAX_NOTEBOOKS) throw new Error(`a film is made with up to ${MAX_NOTEBOOKS} notebooks of knowledge, not ${knowledge.length}`);
+  // a film is never made with a notebook Ani refuses (src/teach.js checkNotebook, with
+  // Ani's names: a word taught again would be defined again, replacing Ani's)
+  if (knowledge && knowledge.length) {
+    const taken = aniNames(fs, { extensions });
+    knowledge.forEach((nb, k) => {
+      const r = checkNotebook(nb, { extensions: extensionsFor(withTeach(extensions)).map((e) => e.id), taken, others: knowledge.slice(0, k) });
+      if (!r.ok) throw new Error(`Ani refuses the notebook ${JSON.stringify((nb && nb.title) || `notebook ${k + 1}`)}: ${r.refused.map((x) => `${x.piece ? `${x.piece}: ` : ""}${x.says}`).join(" ")}`);
+    });
+  }
+  // the learner's knowledge, heeded in every job, as the criticism is
+  const heed = { ...(criticism && criticism.length ? { criticism } : {}), ...(knowledge && knowledge.length ? { knowledge } : {}) };
   const change = extensionsFor(extensions).some((e) => e.sceneSteps);
   let plan = null;
   let renames = [];
   if (description !== null) {
     // a scene or character named as something of Ani's is renamed (storyWithoutClashes)
-    ({ text: description, renames } = storyWithoutClashes(fs, description, { extensions }));
+    ({ text: description, renames } = storyWithoutClashes(fs, description, { extensions, ...(heed.knowledge ? { knowledge: heed.knowledge } : {}) }));
     const versions = fs.dirs.get("KEN")?.get("CINDY");
     const top = versions ? Math.max(0, ...[...versions.keys()].filter((k) => /^\d+$/.test(k)).map(Number)) : 0;
     fs.addFile("KEN", "CINDY", String(top + 1), { text: description, origin: "changed" });
@@ -1814,10 +1864,10 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
       try {
         progress("fresh-look", `Pass 1 again: a fresh look at ${who}, who change${changing.length > 1 ? "" : "s"} in ${scene.replace(/-/g, " ")}`, scene);
         yield;
-        const look = freshLook(fs, scene, { plan, extensions, becomes: earlier });
+        const look = freshLook(fs, scene, { plan, extensions, becomes: earlier, ...(heed.knowledge ? { knowledge: heed.knowledge } : {}) });
         progress("recompute", `Pass 1 again, to compare: everyone chosen afresh as of ${scene.replace(/-/g, " ")}`, scene);
         yield;
-        const recompute = recomputeEveryone(fs, scene, { plan, extensions, becomes: earlier });
+        const recompute = recomputeEveryone(fs, scene, { plan, extensions, becomes: earlier, ...(heed.knowledge ? { knowledge: heed.knowledge } : {}) });
         const record = changeRecord(look, recompute, planned);
         (out.changes ||= {})[scene] = record;
         became.push(planned.become);
@@ -1845,6 +1895,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
     onScene(done);
   }
   if (heed.criticism) out.criticism = heed.criticism;
+  if (heed.knowledge) out.knowledge = heed.knowledge; // the notebooks it was made with, as they were
   if (keepFiles) out.files = filesOf(fs);
   return out;
 }
@@ -2153,7 +2204,10 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   const record = checkRecord(criticism || []);
   const base = extensions || previous.extensions || [];
   extensionsFor(base);
-  const heed = record.length ? { criticism: record } : {};
+  // a film made with a learner's knowledge is remade with it, as it was (its pass 1 is
+  // kept, so other knowledge would be another film: makeFilmSteps with knowledge)
+  const knowledge = previous.knowledge && previous.knowledge.length ? previous.knowledge : null;
+  const heed = { ...(record.length ? { criticism: record } : {}), ...(knowledge ? { knowledge } : {}) };
   const order = previous.scenes.map((s) => s.id);
   for (const c of record) for (const s of criticismScenes(c)) if (!order.includes(s)) throw new Error(`criticism ${c.id}: the film has no scene ${s}`);
   // the film's rate and cap, unless asked otherwise
@@ -2169,7 +2223,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   if (!previous.files) {
     progress("remake", "This film was saved before Ani kept its working files, so it is made again from the start");
     yield;
-    const out = yield* makeFilmSteps(fs, { progress, keepGoing, frames, fps, extensions: base, description, onPass1, onScene, onChange, onFrame, criticism: record, keepFiles });
+    const out = yield* makeFilmSteps(fs, { progress, keepGoing, frames, fps, extensions: base, description, onPass1, onScene, onChange, onFrame, criticism: record, knowledge, keepFiles });
     out.remade = { from: order[0] || null, fromScratch: true, scenes: out.scenes.map((s) => ({ id: s.id, how: s.error ? "failed" : "refilmed" })) };
     return out;
   }
@@ -2252,6 +2306,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
     onScene(done);
   }
   if (heed.criticism) out.criticism = record;
+  if (knowledge) out.knowledge = knowledge;
   out.remade = { from: order[startAt] || null, ...(stopped ? { stopped } : {}), scenes: how };
   if (keepFiles) out.files = filesOf(fs);
   return out;
@@ -2465,4 +2520,516 @@ export function closestApproach(f, a, b) {
     if (!best || d < best.distance) best = { distance: Math.round(d * 1000) / 1000, frame: i };
   });
   return best;
+}
+
+// ---------------------------------------------------------------- your knowledge (TEACH)
+
+// A learner's knowledge (reports/chapter-x/design-teaching.md; reports/ext/teach/README.md):
+// notebooks of pieces (src/teach.js), loaded by REVIVE;TEACH into every job of a film made
+// with them (boot's knowledge, makeFilmSteps's knowledge). Here: Ani's own check of a
+// notebook (the trial job), a rehearsal of a piece on a little story, what the knowledge
+// did in a film, and what it changed against the film made without it.
+
+// The Ken files a notebook's pieces extend, and PREREQ, which the trial job has Ani read.
+const TEACH_FILES = ["dscrp", "relate", "convey", "emote", "sugcon", "prereq"];
+// The kind of word an actor is, by its parent.
+const KIND_OF_PARENT = {
+  "personality-character-descriptor": "personality", "physical-character-descriptor": "physical", "movement-character-descriptor": "movement",
+  "odds+ends-character-descriptor": "role", "affection-relationship-descriptor": "relationship", "domination-relationship-descriptor": "relationship",
+  "relationship-descriptor": "relationship",
+};
+
+// The questions REVIVE;TEACH's check-your-knowledge is asked for notebooks: one for each
+// word, relationship, verb and feeling a piece teaches, adds to or links to.
+function knowledgeQuestions(notebooks) {
+  const q = new Map();
+  const ask = (what, name) => { if (typeof name === "string" && /^[a-z][a-z0-9+-]*$/.test(name) && !q.has(name)) q.set(name, what); };
+  for (const nb of notebooks) {
+    for (const p of (nb && nb.pieces) || []) {
+      if (!p) continue;
+      if (p.kind === "word" || p.kind === "suggests" || p.kind === "looks" || p.kind === "shows") ask("word", p.word);
+      if (p.kind === "relationship" || p.kind === "relationship-shows" || p.kind === "relationship-suggests") ask("relationship", p.word);
+      if (p.kind === "word" || p.kind === "relationship") { ask(p.kind, p.like); ask(p.kind, p.opposite); }
+      if (p.kind === "feeling") ask("feeling", p.word);
+      if (p.kind === "verb") { ask("verb", p.word); ask("verb", p.kindOf); }
+      if (p.kind === "way" || p.kind === "shows" || p.kind === "relationship-shows") ask("verb", p.verb);
+    }
+  }
+  return q;
+}
+
+// check-your-knowledge's answers, by name: { what, exists, parent, type, neighbors,
+// opposites, suggestions, shows, relative }, each list's items printed as Lisp.
+function askKnowledge(L, questions) {
+  const out = {};
+  if (!questions.size) return out;
+  const lisp = (x) => L.print(x).toLowerCase();
+  const answers = L.evalString(`(check-your-knowledge '(${[...questions].map(([name, what]) => `(${what} ${name})`).join(" ")}))`);
+  for (const a of L.toArray(answers)) {
+    const [what, name, ...rest] = L.toArray(a);
+    const entry = { what: lisp(what) };
+    for (let k = 0; k + 1 < rest.length; k += 2) {
+      const key = lisp(rest[k]), v = rest[k + 1];
+      entry[key] = key === "exists" ? v !== L.NIL : v === L.NIL ? (["parent", "type"].includes(key) ? null : []) : key === "parent" || key === "type" ? lisp(v) : L.toArray(v).map(lisp);
+    }
+    out[lisp(name)] = entry;
+  }
+  return out;
+}
+
+// Ani's own check of notebooks, the trial job (design section 5): a Lisp booted with the
+// film's extensions and TEACH (and, for the vocabulary the checks need, one without the
+// notebooks) reads DSCRP, RELATE, CONVEY, EMOTE, SUGCON and PREREQ, and is asked
+// (check-your-knowledge) what it now knows of every word the notebooks teach, add to or
+// link to. Besides src/teach.js checkNotebook's checks (with Ani's vocabulary and names),
+// it refuses a name Lisp defines a function by, a Lisp break while the notebooks load
+// (lisp-break, with what Lisp said), a piece Ani doesn't hear once loaded (not-heard), a
+// word of Ani's that has lost a suggestion (lost-suggestions: a define of an existing
+// word, which the generator never writes, would do it), and links that leave a word both
+// close to and the opposite of another (contradiction). extensions: the film's;
+// characters: the story's characters (Ken's four are always refused as words). Returns
+//   { ok, seconds, notebooks: [{ title, ok, refused, warnings, pieces: { [id]: { heard,
+//     spread?: { neighbors, opposites }, says? } } }], words: { [name]: what Ani knows of
+//     it once the notebooks are loaded (askKnowledge's) }, stopped?: { notebook, error } }
+// spread: what Ken's spreading of links added for a word or relationship piece, beyond the
+// link it wrote, with says, the page's sentence ("Because Ken's Ani spreads links, grumpy is
+// now also close to cruel.").
+export function checkKnowledge(fs, notebooks, { extensions = [], characters = [] } = {}) {
+  const t0 = Date.now();
+  const loaded = extensionsFor(withTeach(extensions)).map((e) => e.id);
+  const questions = knowledgeQuestions(notebooks);
+  // Ani without the notebooks: the vocabulary, and what Ani's own words suggest
+  const B = boot(fs, { extensions: withTeach(extensions) });
+  for (const f of TEACH_FILES) B.evalString(`(load '|ken;${f} >|)`);
+  const before = askKnowledge(B, questions);
+  const vocabulary = {};
+  for (const [name, a] of Object.entries(before)) {
+    if (a.exists && KIND_OF_PARENT[a.parent]) vocabulary[name] = { kind: KIND_OF_PARENT[a.parent], neighbors: a.neighbors || [], opposites: a.opposites || [] };
+  }
+  const lispFunction = (name) => B.evalString(`(getl '${name} '(expr fexpr subr lsubr macro array))`) !== B.NIL;
+  const taken = aniNames(fs, { extensions });
+  const results = notebooks.map((nb, k) => {
+    const r = checkNotebook(nb, { extensions: loaded, vocabulary, taken, others: notebooks.slice(0, k), characters });
+    for (const p of (nb && nb.pieces) || []) {
+      const name = p && ["word", "relationship", "feeling", "verb"].includes(p.kind) ? p.word : null;
+      if (name && /^[a-z][a-z-]*$/.test(name) && !r.refused.some((x) => x.piece === p.id && x.code === "lisp-name") && lispFunction(name)) r.refused.push({ piece: p.id, code: "lisp-name", says: `"${name}" is the name of a function Lisp or Ani has, so Ani can't take it as a word.` });
+    }
+    return { title: (nb && nb.title) || `notebook ${k + 1}`, ...r, pieces: {} };
+  });
+  // the trial job: Ani with the notebooks
+  let after = null, stopped = null;
+  try {
+    const T = boot(fs, { extensions, knowledge: notebooks });
+    for (const f of TEACH_FILES) T.evalString(`(load '|ken;${f} >|)`);
+    after = askKnowledge(T, questions);
+  } catch (e) {
+    // which notebook: the first whose loading, with those before it, stops Ani
+    let at = notebooks.length - 1;
+    for (let k = 0; k < notebooks.length; k++) {
+      try {
+        const T = boot(fs, { extensions, knowledge: notebooks.slice(0, k + 1) });
+        for (const f of TEACH_FILES) T.evalString(`(load '|ken;${f} >|)`);
+      } catch { at = k; break; }
+    }
+    stopped = { notebook: at, error: String((e && e.message) || e) };
+    results[at].refused.push({ piece: null, code: "lisp-break", says: `Ani stopped while reading this notebook. What Lisp said: ${stopped.error}` });
+  }
+  if (after) {
+    const has = (list, ...parts) => (list || []).some((x) => parts.every((p) => x.includes(p)));
+    notebooks.forEach((nb, k) => {
+      const r = results[k];
+      for (const p of (nb && nb.pieces) || []) {
+        if (!p || !p.id) continue;
+        const a = after[p.word] || {};
+        let heard = true;
+        const out = {};
+        switch (p.kind) {
+          case "word":
+          case "relationship": {
+            heard = Boolean(a.exists) && a.type === p.type;
+            const near = (a.neighbors || []).filter((x) => x !== p.like), far = (a.opposites || []).filter((x) => x !== p.opposite);
+            if (p.like) heard = heard && (a.neighbors || []).includes(p.like);
+            if (p.opposite) heard = heard && (a.opposites || []).includes(p.opposite);
+            if (near.length || far.length) {
+              out.spread = { neighbors: near, opposites: far };
+              out.says = `Because Ken's Ani spreads links (char.2:111-131), "${p.word}" is now also ${[near.length ? `close to ${near.join(", ")}` : "", far.length ? `the opposite of ${far.join(", ")}` : ""].filter(Boolean).join(", and ")}.`;
+            }
+            break;
+          }
+          case "suggests":
+          case "looks":
+            heard = has(a.suggestions, `element ${p.element} value ${p.value} strength ${p.strength} source ${p.word}`);
+            break;
+          case "shows":
+            heard = has(a.shows, `(${({ enemy: "enemy-of", friend: "friend-of", stranger: "stranger-of" })[p.who]} your-a nil)`, `(${p.verb} your-a `, `strength ${p.strength} source ${p.word}`);
+            break;
+          case "relationship-shows":
+            heard = has(a.shows, `value (${p.verb} your-a your-b)`, `strength ${p.strength} source ${p.word}`);
+            break;
+          case "relationship-suggests":
+            heard = has(a.relative, `element (relative-${p.element} your-a your-b) value ${p.comparison} strength ${p.strength} source ${p.word}`);
+            break;
+          case "way":
+            heard = has((after[p.verb] || {}).shows, `(${p.way} `, `strength ${p.strength} source (yours ${p.verb})`);
+            break;
+          case "feeling":
+            heard = Boolean(a.exists) && (a.shows || []).length >= (p.changes || []).length;
+            break;
+          case "verb":
+            heard = Boolean(a.exists) && a.parent === p.kindOf && ((p.showAs || "parent") !== "parent" || (a.shows || []).length > 0);
+            break;
+        }
+        out.heard = heard;
+        r.pieces[p.id] = out;
+        if (!heard && !stopped && !r.refused.some((x) => x.piece === p.id)) r.refused.push({ piece: p.id, code: "not-heard", says: "Ani read this piece but doesn't hear it, so it would do nothing." });
+      }
+      // Ani's words keep everything they suggested: only adding
+      for (const [name, b] of Object.entries(before)) {
+        if (!b.exists || !(nb.pieces || []).some((p) => p && (p.word === name || p.verb === name))) continue;
+        const lost = ["suggestions", "shows", "relative"].flatMap((key) => (b[key] || []).filter((x) => !((after[name] || {})[key] || []).includes(x)));
+        if (lost.length) r.refused.push({ piece: null, code: "lost-suggestions", says: `After this notebook, Ani's "${name}" no longer has ${lost.length} of its own suggestions (the first: ${lost[0]}): knowledge is only added, never taken away.` });
+      }
+      // links, as Ani spread them
+      for (const p of (nb && nb.pieces) || []) {
+        if (!p || (p.kind !== "word" && p.kind !== "relationship")) continue;
+        const a = after[p.word] || {};
+        const both = (a.neighbors || []).filter((x) => (a.opposites || []).includes(x));
+        if (both.length && !r.refused.some((x) => x.code === "contradiction")) r.refused.push({ piece: p.id, code: "contradiction", says: `Because Ani spreads links (char.2:111-131), "${p.word}" is both close to and the opposite of ${both.join(", ")}.` });
+      }
+    });
+  }
+  for (const r of results) r.ok = r.refused.length === 0;
+  return { ok: results.every((r) => r.ok), seconds: (Date.now() - t0) / 1000, notebooks: results, words: after || {}, ...(stopped ? { stopped } : {}) };
+}
+
+// A rehearsal of a piece (design section 5, "Try it on a little story"): src/teach.js
+// rehearsalStory's two-character, one-scene story, through pass 1 and the scene's pass 2
+// (not filmed), with the notebooks (the piece's among them) and the film's extensions,
+// on fs (which gets the story as the next KEN;CINDY, as makeFilmSteps does; give it a file
+// system of its own). Returns { piece, story, outcome, seconds, choicePoints, glass }, the
+// outcome yourKnowledgeDid's for that piece ("Ani heard it": a state other than
+// never-reached; "used": won or combined), or { piece, story, error } if Ani stopped.
+export function rehearse(fs, piece, notebooks, { extensions = [] } = {}) {
+  const t0 = Date.now();
+  const story = rehearsalStory(piece);
+  try {
+    const { text } = storyWithoutClashes(fs, story.text, { extensions, knowledge: notebooks });
+    const versions = fs.dirs.get("KEN")?.get("CINDY");
+    const top = versions ? Math.max(0, ...[...versions.keys()].filter((k) => /^\d+$/.test(k)).map(Number)) : 0;
+    fs.addFile("KEN", "CINDY", String(top + 1), { text, origin: "changed" });
+    const plan = storyPlan(storyOutline(text), { looks: choosesLooks(extensions) });
+    const p1 = pass1(fs, { extensions, knowledge: notebooks });
+    const { glass } = pass2(fs, story.scene, { plan, extensions, knowledge: notebooks });
+    const run = { choicePoints: p1.choicePoints, scenes: [{ id: story.scene, glass }], extensions: extensionsFor(extensions).map((e) => e.id), knowledge: notebooks };
+    const did = yourKnowledgeDid(run);
+    const k = notebooks.findIndex((nb) => (nb.pieces || []).includes(piece));
+    const outcome = did.pieces.find((x) => x.piece === piece.id && (k < 0 || x.notebook === k + 1)) || null;
+    return { piece: piece.id, story: story.text, outcome, seconds: (Date.now() - t0) / 1000, choicePoints: p1.choicePoints, glass };
+  } catch (e) {
+    return { piece: piece.id, story: story.text, error: String((e && e.message) || e), seconds: (Date.now() - t0) / 1000 };
+  }
+}
+
+// ---- reading what Ani did
+
+// A suggestion as the glass boxes keep it, (suggestion: element e value v strength s
+// source src), as { element, value, strength, source }, each a form readForms reads (a
+// string or a list); null if it isn't one.
+function suggestionOf(x) {
+  const s = typeof x === "string" ? readForms(x)[0] : x;
+  if (!Array.isArray(s) || s[0] !== "suggestion:") return null;
+  const get = (k) => { const i = s.indexOf(k); return i > 0 ? s[i + 1] : null; };
+  return { element: get("element"), value: get("value"), strength: get("strength"), source: get("source") };
+}
+// Where a suggestion's source says it came from: [{ origin, via, how }], how "own" (the
+// character's word itself), "neighbor" or "opposite" ((neighbor-of via origin): the
+// character's word via, the suggestion its neighbor origin's), through (and ...).
+function originsOf(source) {
+  if (typeof source === "string") return [{ origin: source, via: source, how: "own" }];
+  if (!Array.isArray(source)) return [];
+  if (source[0] === "and") return source.slice(1).flatMap(originsOf);
+  if ((source[0] === "neighbor-of" || source[0] === "opposite-of") && typeof source[1] === "string" && typeof source[2] === "string") {
+    return [{ origin: source[2], via: source[1], how: source[0] === "neighbor-of" ? "neighbor" : "opposite" }];
+  }
+  return [];
+}
+const shown = (x) => (x === null || x === undefined ? null : printForm(x));
+// The verb a convey method's value conveys: (pushes a b), or (bind (...) (chases a `other)).
+function verbOfMethod(method) {
+  if (!Array.isArray(method)) return null;
+  const i = method.indexOf("value");
+  let v = i > 0 ? method[i + 1] : null;
+  if (Array.isArray(v) && v[0] === "bind") v = v[v.length - 1];
+  return Array.isArray(v) ? v[0] : null;
+}
+// The plain words of a reason pass 1 set a suggestion aside for (choose.198).
+const SET_ASIDE = {
+  "much-less-strongly-suggested": "much less strongly suggested",
+  "not-compatible-with-others": "not compatible with the others",
+  "less-strongly-suggested": "less strongly suggested",
+};
+
+// The places in pass 1 a suggestion of a piece reached: for each choice point of element
+// (absolute, or relative with relative true) where a suggestion that matches did, { choicePoint,
+// character, state, value (Ani's choice), against? [{ value, source }], reason? }:
+//   won       kept (in the choice point's memory), perhaps against others it beat
+//   combined  in a conflict pass 1 compromised on: met in the middle (against)
+//   lost      set aside (rejectedSuggestions), with Ken's reason and what was kept
+function passOnePlaces(choicePoints, element, matches, { relative = false } = {}) {
+  const places = [];
+  for (const cp of choicePoints || []) {
+    if (cp.element !== element) continue;
+    if (relative !== (Array.isArray(cp.name) && cp.name[0] === "relative-choice-point-of")) continue;
+    const ours = (s) => s && s.element === element && matches(s);
+    const conflicts = (cp.conflictsResolved || []).filter((c) => {
+      const i = c.indexOf("offenders");
+      return i > 0 && (c[i + 1] || []).some((o) => ours(suggestionOf(o)));
+    });
+    const rejected = (cp.rejectedSuggestions || []).filter((r) => { const i = r.indexOf("suggestion"); return i > 0 && ours(suggestionOf(r[i + 1])); });
+    const kept = (cp.memory || []).some((m) => ours(suggestionOf(m)));
+    if (!conflicts.length && !rejected.length && !kept) continue;
+    const others = (c) => { const i = c.indexOf("offenders"); return (c[i + 1] || []).map(suggestionOf).filter((o) => o && !ours(o)).map((o) => ({ value: shown(o.value), strength: o.strength, source: shown(o.source) })); };
+    const how = (c) => c[c.indexOf("how-resolved") + 1];
+    const place = { choicePoint: cp.name, character: Array.isArray(cp.name[1]) ? cp.name[1] : cp.thing || cp.name[1], value: shown(cp.currentChoice) };
+    if (rejected.length) {
+      const reason = rejected[0][rejected[0].indexOf("reason") + 1];
+      const c = conflicts.find((x) => how(x) === reason) || conflicts[0];
+      places.push({ ...place, state: "lost", reason, reasonWords: SET_ASIDE[reason] || String(reason).replace(/-/g, " "), against: c ? others(c) : [] });
+    } else if (conflicts.some((c) => how(c) === "compromised")) {
+      places.push({ ...place, state: "combined", against: others(conflicts.find((c) => how(c) === "compromised")) });
+    } else {
+      places.push({ ...place, state: "won", ...(conflicts.length ? { against: conflicts.flatMap(others), reason: how(conflicts[0]), reasonWords: `the others set aside: ${SET_ASIDE[how(conflicts[0])] || String(how(conflicts[0])).replace(/-/g, " ")}` } : {}) });
+    }
+  }
+  return places;
+}
+
+// A task's suggestions as SUGEST memorized them on an establish task, (related-suggestions:
+// main-suggestion s relationship r others (s ...)), each { suggestion, relationship }.
+function relatedSuggestions(task) {
+  const out = [];
+  for (const item of task.items || []) {
+    if (!item.startsWith("(related-suggestions: ")) continue;
+    const r = readForms(item)[0];
+    const get = (k) => { const i = r.indexOf(k); return i > 0 ? r[i + 1] : null; };
+    const relationship = get("relationship");
+    out.push({ suggestion: suggestionOf(get("main-suggestion")), relationship, main: true });
+    for (const o of get("others") || []) out.push({ suggestion: suggestionOf(o), relationship, main: false });
+  }
+  return out;
+}
+const currentChoice = (task) => { const c = readForms(String(task.variables["current-choice"] || "nil"))[0]; return Array.isArray(c) ? c : []; };
+const descriptionOf = (task) => { const t = readForms(String(task.variables.task || ""))[0]; const i = Array.isArray(t) ? t.indexOf("description") : -1; return i > 0 ? t[i + 1] : null; };
+const forWho = (task) => { const t = readForms(String(task.variables.task || ""))[0]; const i = Array.isArray(t) ? t.indexOf("for-who") : -1; return i > 0 ? shown(t[i + 1]) : null; };
+
+// What a learner's knowledge did in a film (makeFilmSteps's result made with knowledge, or
+// any run with choicePoints and scenes' glass boxes), for the glass box's "What your
+// knowledge did here" and the pair panel's "What your knowledge did": for each piece of
+// each notebook (index: yoursIndex of the notebooks, by default run.knowledge's),
+//   { notebook, title, piece, kind, words (src/teach.js pieceWords), because, state,
+//     places: [...], why? }
+// state, the best of its places', in this order:
+//   won            used, and Ani's choice is what it said (or its way was chosen)
+//   combined       used, met in the middle with another suggestion
+//   lost           used and set aside, each place naming what won and why: in pass 1 Ken's
+//                  reason (much less strongly suggested ...); in pass 2, CHOMET keeping only
+//                  ways two of a character's words suggest at once
+//                  (eliminate-not-related-suggestions, chomet.123:588-596), a better-scoring
+//                  way (its scores), a task Ani couldn't do, or conflicting changes rejected
+//                  (chomet.123:464)
+//   never-reached  no choice or task met it, with why: "no character in this story is
+//                  grumpy", "no scene shows what a grumpy character is like", "no scene asks
+//                  Ani to show helping", "Ani isn't choosing looks (APPEAR is off)" ...
+// A place is a choice point ({ choicePoint, character, state, value, against?, reason? })
+// or a task ({ scene, task, description, character, state, chosen, verb?, way?, reason?,
+// scores? }). unread: true on a won or combined piece whose element nothing that draws the
+// film reads (ELEMENT_USE). Also { notebooks: [{ n, title }] }.
+export function yourKnowledgeDid(run, { index = null, extensions = null } = {}) {
+  const notebooks = run.knowledge || [];
+  index = index || yoursIndex(notebooks);
+  extensions = extensions || run.extensions || [];
+  const cps = run.choicePoints || [];
+  const scenes = (run.scenes || []).filter((s) => s.glass);
+  const tasks = scenes.flatMap((s) => s.glass.tasks.map((t) => ({ scene: s.id, glass: s.glass, task: t })));
+  const learners = new Set(Object.keys(index.words));
+  // whether any character is described with word (any suggestion of pass 1 names it)
+  const described = (w) => cps.some((cp) => [...(cp.memory || []), ...(cp.conflictsResolved || []).flatMap((c) => c[c.indexOf("offenders") + 1] || []), ...(cp.rejectedSuggestions || []).map((r) => r[r.indexOf("suggestion") + 1])]
+    .some((s) => { const x = suggestionOf(s); return x && originsOf(x.source).some((o) => o.via === w || o.origin === w); }))
+    || tasks.some(({ task }) => relatedSuggestions(task).some((r) => r.suggestion && originsOf(r.suggestion.source).some((o) => o.via === w || o.origin === w)));
+  const best = (places) => ["won", "combined", "lost"].find((s) => places.some((p) => p.state === s)) || "never-reached";
+  const pieces = [];
+  notebooks.forEach((nb, k) => {
+    for (const p of (nb && nb.pieces) || []) {
+      const base = { notebook: k + 1, title: index.notebooks[k] ? index.notebooks[k].title : nb.title, piece: p.id, kind: p.kind, words: pieceWords(p), because: String(p.because || "").replace(/\s+/g, " ").trim() };
+      let places = [], why = null;
+      const theirs = !learners.has(p.word); // a piece added to a word of Ani's
+      switch (p.kind) {
+        case "word":
+        case "relationship": {
+          // suggestions that reached a character through the piece's link
+          const linked = new Set([p.like, p.opposite].filter(Boolean));
+          const viaLink = (s) => originsOf(s.source).some((o) => o.how !== "own" && ((o.via === p.word && linked.has(o.origin)) || (o.origin === p.word && linked.has(o.via))));
+          for (const element of new Set(cps.map((cp) => cp.element))) {
+            places.push(...passOnePlaces(cps, element, viaLink), ...passOnePlaces(cps, element, viaLink, { relative: true }));
+          }
+          // and, with KNOW, the ways of showing the word borrowed from its neighbors
+          for (const s of scenes) {
+            for (const b of s.glass.borrowed || []) {
+              if (b.word !== p.word || !linked.has(b.neighbor)) continue;
+              places.push({ scene: s.id, task: b.task, character: null, state: b.chosen ? "won" : "lost", borrowed: true, way: b.way, ...(b.chosen ? {} : { reason: "not-chosen" }) });
+            }
+          }
+          if (!places.length && !p.like && !p.opposite && described(p.word)) {
+            // a word with no link: Ani knows it, and what it suggests is its other pieces'
+            pieces.push({ ...base, state: "won", places: [], note: `a character of this story is ${p.word}: what the word suggests is in its other pieces` });
+            continue;
+          }
+          if (!places.length) why = !described(p.word) ? `no character in this story is ${p.word}` : `nothing ${p.like || p.opposite} suggests reached a choice of this story`;
+          break;
+        }
+        case "suggests":
+        case "looks": {
+          const matches = (s) => originsOf(s.source).some((o) => (o.origin === p.word) && (!theirs || (o.how === "own" && shown(s.value) === p.value && s.strength === p.strength)));
+          places = passOnePlaces(cps, p.element, matches);
+          if (!places.length) {
+            why = p.kind === "looks" && !cps.some((cp) => cp.parent === "appearance-choice-point") ? "Ani isn't choosing looks (APPEAR is off)"
+              : !described(p.word) ? `no character in this story is ${p.word}` : `no choice of ${p.element.replace(/-/g, " ")} heard it`;
+          }
+          if (p.kind === "suggests" && places.some((x) => x.state !== "lost") && elementUse(p.element, extensions) === "none") base.unread = true;
+          break;
+        }
+        case "relationship-suggests": {
+          const matches = (s) => originsOf(s.source).some((o) => o.origin === p.word) && (!theirs || shown(s.value) === p.comparison);
+          places = passOnePlaces(cps, `relative-${p.element}`, matches, { relative: true });
+          if (!places.length) why = `no two characters of this story are ${p.word.replace(/-/g, " ")} each other, or nothing compared their ${p.element.replace(/-/g, " ")}`;
+          break;
+        }
+        case "shows":
+        case "relationship-shows": {
+          for (const { scene, task } of tasks) {
+            if (task.variables.parent !== "establish-task") continue;
+            const ours = relatedSuggestions(task).filter((r) => r.suggestion && originsOf(r.suggestion.source).some((o) => o.origin === p.word) && verbOfMethod(r.suggestion.value) === p.verb
+              && (!theirs || r.suggestion.strength === p.strength));
+            if (!ours.length) continue;
+            const chosen = currentChoice(task).map(verbOfMethod);
+            const won = chosen.includes(p.verb);
+            const place = { scene, task: task.name, description: shown(descriptionOf(task)), character: forWho(task), state: won ? "won" : "lost", chosen: chosen.filter(Boolean), verb: p.verb };
+            if (!won) {
+              const unique = ours.every((r) => r.relationship === "unique");
+              const others = relatedSuggestions(task).filter((r) => r.main && r.suggestion && r.relationship === "identical").map((r) => verbOfMethod(r.suggestion.value));
+              place.reason = unique && others.length ? "not-related" : chosen.length ? "another-way" : "nothing-chosen";
+              place.reasonWords = place.reason === "not-related"
+                ? `set aside: Ani prefers a way of showing that two of the words suggest at once (${others.join(", ")}), and only yours suggested ${p.verb} (Ken's CHOMET, eliminate-not-related-suggestions, chomet.123:588-596)`
+                : place.reason === "another-way" ? `set aside: Ani chose ${chosen.filter(Boolean).join(" and ")}` : "Ani chose no way of showing it";
+            }
+            places.push(place);
+          }
+          if (!places.length) {
+            why = p.kind === "shows"
+              ? (!described(p.word) ? `no character in this story is ${p.word}` : `no scene shows what a ${p.word} character is like`)
+              : `no scene shows a relationship that is ${p.word.replace(/-/g, " ")}`;
+          }
+          break;
+        }
+        case "way":
+        case "verb": {
+          const verb = p.kind === "way" ? p.verb : p.word;
+          for (const { scene, task } of tasks) {
+            if (task.variables.parent !== "convey-task") continue;
+            const d = descriptionOf(task);
+            if (!Array.isArray(d) || d[0] !== verb) continue;
+            const chosen = currentChoice(task);
+            const head = Array.isArray(chosen[0]) ? chosen[0][0] : null;
+            const cant = task.variables.status === "cant-do";
+            const place = { scene, task: task.name, description: shown(d), character: forWho(task), chosen: chosen.map(shown) };
+            if (p.kind === "way") {
+              const offered = (task.items || []).some((x) => x.startsWith("(suggestion: ") && x.includes(`source (yours ${verb})`) && x.includes(`(${p.way} `));
+              if (!offered) continue;
+              place.way = p.way;
+              place.state = head === p.way ? "won" : "lost";
+              if (place.state === "lost") {
+                place.reason = cant ? "cant-do" : "another-way";
+                place.reasonWords = cant ? "Ani couldn't do this task at all" : `set aside: CHOMET scored ${head ? head.replace(/-/g, " ") : "another way"} higher`;
+                place.scores = task.variables.scores || null;
+              }
+            } else {
+              place.state = cant || !chosen.length ? "lost" : "won";
+              if (place.state === "lost") {
+                const rejected = (task.items || []).filter((x) => x.startsWith("(rejected-suggestion: "));
+                place.reason = "cant-do";
+                place.reasonWords = `Ani couldn't show it${rejected.length ? ` (${rejected.map((x) => readForms(x)[0][2]).join(", ")})` : ""}`;
+              }
+            }
+            places.push(place);
+          }
+          if (!places.length) why = `no scene asks Ani to show ${verb.replace(/-/g, " ")}`;
+          break;
+        }
+        case "feeling": {
+          // one place for each change of the feeling, in each task that establishes it
+          const changeOf = (m) => {
+            if (!Array.isArray(m) || (m[0] !== "change:" && m[0] !== "change-to:")) return null;
+            const get = (k) => { const i = m.indexOf(k); return i > 0 ? m[i + 1] : null; };
+            const element = Array.isArray(get("element")) ? get("element")[1] : null;
+            return { element, change: m[0] === "change:" ? (Array.isArray(get("amount")) ? { positive: "up", negative: "down" }[get("amount")[0]] : null) : ({ high: "curved", low: "straight" }[get("new-value")] && element === "path-curvature" ? { high: "curved", low: "straight" }[get("new-value")] : get("new-value")) };
+          };
+          for (const { scene, task } of tasks) {
+            if (task.variables.parent !== "establish-task") continue;
+            const d = descriptionOf(task);
+            if (!Array.isArray(d) || d[0] !== "emotional-state" || !JSON.stringify(d[2]).includes(`"${p.word}"`)) continue;
+            const made = currentChoice(task).map(changeOf).filter(Boolean);
+            // CHOMET's conflicts among the task's changes, (conflict: type different-signs
+            // element-involved (display amount) offenders (s ...)) (chomet.123:440-472)
+            const conflicts = (task.items || []).filter((x) => x.startsWith("(conflict: ")).map((x) => {
+              const c = readForms(x)[0];
+              const i = c.indexOf("offenders");
+              return { type: c[c.indexOf("type") + 1], offenders: (i > 0 ? c[i + 1] : []).map(suggestionOf).filter(Boolean) };
+            });
+            for (const c of p.changes || []) {
+              const place = { scene, task: task.name, description: shown(d), character: shown(d[1]), element: c.element, change: c.change };
+              const conflict = conflicts.find((x) => x.offenders.some((o) => o.source === p.word && JSON.stringify(o.value).includes(`"${c.element}"]`)));
+              if (made.some((m) => m.element === c.element && m.change === c.change)) place.state = "won";
+              else if (conflict) {
+                const others = conflict.offenders.filter((o) => o.source !== p.word);
+                Object.assign(place, { state: "lost", reason: "conflict", against: others.map((o) => ({ value: shown(o.value), strength: o.strength, source: shown(o.source) })),
+                  reasonWords: `cancelled: ${others.map((o) => shown(o.source)).join(" and ")} changes ${c.element.replace(/-/g, " ")} the other way, and Ken's CHOMET rejects conflicting changes rather than choose between them ("hopefully all conflicting ones are so noted for now rather than resolving them I'll reject", chomet.123:464)` });
+              } else Object.assign(place, { state: "lost", reason: "not-chosen", reasonWords: "this change wasn't made" });
+              places.push(place);
+            }
+          }
+          if (!places.length) why = `no scene shows a character feeling ${p.word}`;
+          break;
+        }
+      }
+      pieces.push({ ...base, state: best(places), places, ...(why && !places.length ? { why } : {}) });
+    }
+  });
+  return { notebooks: index.notebooks.map(({ n, title }) => ({ n, title })), pieces };
+}
+
+// What a learner's knowledge changed (design section 8, the pair panel's "What your
+// knowledge did"): before, the film made without it, after, the same story made with it
+// (makeFilmSteps with knowledge; after.knowledge the notebooks), both as makeFilmSteps
+// returns them:
+//   pass1   { total, changed: [{ choicePoint, before, after, source, pieces }] } every
+//           choice whose value differs, source the kept suggestion's source (printed as
+//           Lisp) and pieces the ids ("n1 k2") of the pieces whose places include it
+//   scenes  [{ id, frames: { before, after }, runningTime: { before, after }, tasks }] as
+//           criticismChanges has them: tasks whose choice, status or running time differ
+//   pieces  yourKnowledgeDid(after)'s pieces
+export function knowledgeChanges(before, after, { index = null } = {}) {
+  const did = yourKnowledgeDid(after, { index });
+  const key = (n) => JSON.stringify(n);
+  const was = new Map((before.choicePoints || []).map((cp) => [key(cp.name), cp]));
+  const changed = [];
+  for (const cp of after.choicePoints || []) {
+    const b = was.get(key(cp.name));
+    if (b && key(b.currentChoice) === key(cp.currentChoice)) continue;
+    const kept = (cp.memory || []).map(suggestionOf).find((s) => s);
+    const pieces = did.pieces.filter((x) => x.places.some((pl) => pl.choicePoint && key(pl.choicePoint) === key(cp.name))).map((x) => `n${x.notebook} ${x.piece}`);
+    changed.push({ choicePoint: cp.name, before: b ? b.currentChoice : null, after: cp.currentChoice, source: kept ? shown(kept.source) : null, pieces });
+  }
+  const remade = { scenes: after.scenes, remade: { scenes: (after.scenes || []).map((s) => ({ id: s.id, how: s.error ? "failed" : "refilmed" })) } };
+  const { scenes } = criticismChanges(before, remade);
+  return { pass1: { total: (after.choicePoints || []).length, changed }, scenes: scenes.map(({ how, ...s }) => s), pieces: did.pieces };
 }
