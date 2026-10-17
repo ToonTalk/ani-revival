@@ -2583,7 +2583,7 @@ try {
     await js(`[...document.querySelectorAll("#side .why-act .crit-btn")].find((b) => b.textContent === "Too quick").click()`);
     await sleep(300);
     const listed = await js(`(document.getElementById("crit") || {}).innerText || ""`);
-    check(/No Longer Kept Apart: too quick, the part where the fairy godmother undoes what happened in Kept Apart/.test(listed) && /not yet heeded/.test(listed) && /Take it back/.test(listed) && /Ani will plan No Longer Kept Apart, The Meeting and Justice again, and film again those whose plan changes; The Introduction and Kept Apart are kept as they were/.test(listed),
+    check(/No Longer Kept Apart: too quick, the part where the fairy godmother undoes what happened in Kept Apart/.test(listed) && /not yet heeded/.test(listed) && /Take it back/.test(listed) && /Ani will plan No Longer Kept Apart, the Meeting and Justice again, and film again those whose plan changes; the Introduction and Kept Apart are kept as they were/.test(listed),
       `"Too quick" goes into "Your criticism", in plain words, with "Take it back" and what a remake will do: ${(listed.match(/Ani will plan[^.]*\./) || [""])[0]}`);
     await shot("21-your-criticism.png");
     await phone("21b-your-criticism-phone.png", `document.getElementById("crit")`);
@@ -2591,7 +2591,7 @@ try {
     const quick = await remakeDone("No Longer Kept Apart too quick");
     // nlka-too-quick: 30, 183, 90, the Introduction and Kept Apart kept
     check(!quick.error && quick.frames.join() === "192,116,30,183,90" && quick.how.join() === "kept,kept,refilmed,refilmed,refilmed" && quick.files && quick.pair === "ken,cur" && quick.view === "both"
-      && /What your criticism changed\s+Your version was remade from Ken's 1978 film \(on the left\) with your criticism\./i.test(quick.side) && /Met No Longer Kept Apart: too quick/i.test(quick.side) && /Ani gave it 5\.97 s instead of 3\.98 s, the walks slowed to fit \(stretched by 1\.5\)/.test(quick.side),
+      && /What your criticism changed\s+Your version was remade from Ken's 1978 film \(on the left\) with your criticism\./i.test(quick.side) && /Met No Longer Kept Apart: too quick/i.test(quick.side) && /Ani gave it 5\.97 s instead of 3\.98 s, the walks slowed to fit \(stretched by 1\.5, where they were 1\)/.test(quick.side),
       `"Remake with my criticism" remakes Ken's film in the worker from his files, as reports/ext/critic/nlka-too-quick has it (${quick.frames.join(", ")} frames; ${quick.how.join(", ")}), beside his, with "What your criticism changed": met, 5.97 s instead of 3.98`);
     await shot("22-criticism-side-by-side.png");
     // the remade film, alone: its glass box, then "too quick" taken back and "start far" added
@@ -2631,12 +2631,13 @@ try {
     await sleep(300);
     await js(`document.querySelector("#crit .crit-go").click()`);
     const apart = await remakeDone("Ken's footnote, Cinderella and the Prince kept apart");
-    // intro-apart: 111, and Kept Apart to Justice planned again and kept
-    check(!apart.error && apart.frames.join() === "111,116,17,179,84" && apart.how.join() === "refilmed,unchanged,unchanged,unchanged,unchanged"
-      && /Met Keep Cinderella and the Prince apart in The Introduction and Kept Apart \(you said “Cinderella is not to meet the Prince until the third scene”\)/i.test(apart.side)
-      && /No other way to establish what Cinderella is like \(good, friendly, hard working, shy\) was left: the ways Ani knew all bring Cinderella to the Prince/.test(apart.side)
+    // intro-apart: 151, and Kept Apart to Justice planned again and kept; with Ken's
+    // knowledge Ani picks helping the Prince, which it has no way to show
+    check(!apart.error && apart.frames.join() === "151,116,17,179,84" && apart.how.join() === "refilmed,unchanged,unchanged,unchanged,unchanged"
+      && /Met Keep Cinderella and the Prince apart in the Introduction and Kept Apart \(you said “Cinderella is not to meet the Prince until the third scene”\)/i.test(apart.side)
+      && /To establish what Cinderella is like \(good, friendly, hard working, shy\), Ani now shows only that Cinderella helps the Prince, which it has no way to show \(as in 1978\), so none of it is on the screen/.test(apart.side)
       && /In Kept Apart they come no closer than 0\.345 of the screen \(frame 72\)/.test(apart.side) && /planned again: the same program, so its film is kept/.test(apart.side),
-      `Ken's footnote, "Cinderella is not to meet the Prince until the third scene", as reports/ext/critic/intro-apart has it (${apart.frames.join(", ")}; ${apart.how.join(", ")}): her friendliness can't be shown, and Kept Apart on are planned again and kept, the two never closer than 0.345 of the screen`);
+      `Ken's footnote, "Cinderella is not to meet the Prince until the third scene", as reports/ext/critic/intro-apart has it (${apart.frames.join(", ")}; ${apart.how.join(", ")}): her friendliness is shown by helping the Prince, which Ani as in 1978 can't show, and Kept Apart on are planned again and kept, the two never closer than 0.345 of the screen`);
     await js(`(() => { const d = [...document.querySelectorAll("#side .crit-changed details")][0]; if (d) d.open = true; })()`);
     await sleep(200);
     await shot("23-criticism-footnote.png");
@@ -2653,6 +2654,22 @@ try {
     // nlka-veto: 23, 178, 100
     check(!veto.error && veto.frames.join() === "192,116,23,178,100" && /Ani set aside “the fairy godmother goes to Cinderella and accompanies her”, vetoed by you, and chose among the ways left/.test(vetoed.here) && /^Vetoed by you/i.test(vetoed.card) && vetoed.struck,
       `"Not this way", as reports/ext/critic/nlka-veto has it (${veto.frames.join(", ")}): the godmother's way is struck through in "How Ani chose this", vetoed by you, and the glass box says what Ani did`);
+    // "not this way" on the stepmother's guarding in Kept Apart: offered with a caution, and
+    // when Ani stops in Ken's unfinished chases-to, the film kept as it was from there and
+    // the criticism "couldn't be made", said in plain words (reports/ext/critic/ka-veto-guard)
+    await toCheckPage();
+    await js(`(() => { const t = window.__check; t.setView(0); t.goScene(1, 6.0); t.select({ run: 0, char: "step-mother" }); })()`);
+    await sleep(400);
+    const guard = await js(`(() => { const s = document.getElementById("side"); return { buttons: [...s.querySelectorAll(".why-act .crit-btn")].map((b) => b.textContent), caution: (s.querySelector(".why-act .crit-caution") || {}).innerText || "" }; })()`);
+    check(guard.buttons.includes("Not this way: another way") && /The only other way Ani has here is a chase \(Ken's chases-to\)/.test(guard.caution),
+      `the stepmother's guarding in Kept Apart offers "Not this way" with a caution that the chase left would stop Ani: ${guard.caution.slice(0, 120)}`);
+    await js(`[...document.querySelectorAll("#side .why-act .crit-btn")].find((b) => b.textContent === "Not this way: another way").click()`);
+    await sleep(300);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const stoppedRemake = await remakeDone("not this way, the stepmother's guarding: Ani stops");
+    check(!stoppedRemake.error && stoppedRemake.frames.join() === "192,116,17,179,84" && stoppedRemake.how.join() === "kept,stopped,after-stop,after-stop,after-stop"
+      && /Couldn't be made Kept Apart: not/i.test(stoppedRemake.side) && /Ken's chases-to can't yet place the two/.test(stoppedRemake.side) && /kept as the film remade from had them/.test(stoppedRemake.side),
+      `where Ani stops (Ken's chases-to, disply.311:95-111) the remake keeps the film as it was from that scene on (${stoppedRemake.frames.join(", ")}; ${stoppedRemake.how.join(", ")}) and says the criticism couldn't be made, and why`);
     // a film kept without its working files is made again from the start, and says so
     const scratch = await js(`(async () => {
       const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));

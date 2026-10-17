@@ -340,11 +340,11 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .crit-outcome { border-left: 3px solid var(--rule); padding-left: 10px; }
 .crit-outcome.met { border-left-color: var(--chosen); }
 .crit-outcome.partly { border-left-color: var(--godmother); }
-.crit-outcome.not-met, .crit-outcome.not-reached { border-left-color: var(--rejected); }
+.crit-outcome.not-met, .crit-outcome.not-reached, .crit-outcome.stopped { border-left-color: var(--rejected); }
 .crit-verdict { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-right: 4px; }
 .crit-outcome.met .crit-verdict { color: var(--chosen); }
 .crit-outcome.partly .crit-verdict { color: var(--godmother); }
-.crit-outcome.not-met .crit-verdict, .crit-outcome.not-reached .crit-verdict { color: var(--rejected); }
+.crit-outcome.not-met .crit-verdict, .crit-outcome.not-reached .crit-verdict, .crit-outcome.stopped .crit-verdict { color: var(--rejected); }
 .crit-why { margin: 4px 0 0; padding-left: 16px; display: grid; gap: 3px; font-size: 0.88rem; }
 
 /* how Ani chose a character's look (REVIVE;APPEAR) */
@@ -1179,10 +1179,10 @@ function rejectText(r) {
     const d = Number(kv(r, "ideal-difference")), w = Number(kv(r, "will-accept"));
     return `it doesn't fit the time: it would end ${Math.abs(d).toFixed(1)} s ${d < 0 ? "too soon" : "too late"} (Ani accepts ${Math.abs(w).toFixed(1)})`;
   }
-  if (Array.isArray(r) && r[0] === "too-little-time:") {
-    const d = Number(kv(r, "ideal-difference"));
-    return `it doesn't fit the time (off by ${Math.abs(d).toFixed(1)} s)`;
-  }
+  // prerequisites not met, more time needed (Ken's need-more-time:, chomet.123:413), or no
+  // way to run it (REVIVE;MEND14), in words
+  const said = rejectWords(r);
+  if (said) return said;
   return REJECT[r] || esc(plain(show(r)));
 }
 
@@ -1288,7 +1288,12 @@ const modeExtensions = () => [...CHOSEN];
 WORDS = vocabularyFor(modeExtensions());
 const runExtensions = (run) => (run && run.extensions) || [];
 // (a film remade with the reader's criticism says so: REVIVE;CRITIC, with MEND, was loaded for it)
-const madeWith = (run) => `${runExtensions(run).length ? `with ${extensionsName(runExtensions(run))}` : "by Ani as in 1978"}${run && run.criticism && run.criticism.length ? ", heeding your criticism" : ""}`;
+// (a film remade with criticism was made with MEND too, which CRITIC needs and loads)
+const madeWith = (run) => {
+  const ext = runExtensions(run), crit = !!(run && run.criticism && run.criticism.length);
+  const mend = crit && !ext.includes("mend") ? "the revival's repairs (MEND), which your criticism loads" : "";
+  return `${ext.length ? `with ${extensionsName(ext)}${mend ? ` and ${mend}` : ""}` : `by Ani as in 1978${mend ? ` with ${mend}` : ""}`}${crit ? ", heeding your criticism" : ""}`;
+};
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
 // whether the extensions ticked change what Ken's own story makes (APPEAR does: Ani draws
 // his cast; KNOW, SLIPS and DETAIL change what his characters do)
@@ -1411,8 +1416,8 @@ const REVIVE_TEXT = {
   dttend: "(c) The tendencies as best-when clauses: drawn-to, a prerequisite written as PREREQ's are, met if a character's tendency towards what the other is to it (friend, enemy or stranger, by Ken's own tests) is positive, not met if negative; on the ways of showing that take one character to another, or away (as Ken gives a method a clause, convey.64:29-33).",
   hold: "Holding Ani's pass-1 choices while it chooses again, every choice point but those it is to choose afresh kept at the value it had (Ken's decision 1 for changes): CHANGE's fresh look uses it, and CRITIC will.",
   critic: "The record of your criticism, read from the film's own file (KEN1;FILM CRITIC), and “not this way, another way”: a way of showing vetoed in a task, how it is shown (a display method) or what is shown (a convey method of an establish task), set aside by Ken's own reject-suggestion with the reason “vetoed by you”, so that CHOMET chooses among what is left, and when nothing is left Ken's own path takes over.",
-  critpc: "Too quick, too slow: the part's time half as long again for each “too quick”, a third shorter for each “too slow”, by Ken's ideal-time-for-task, within the time the story gives the part and SCENE's own stretch of 8 and 1/8; SCENE then stretches or shrinks its walks to fit.",
-  critsc: "Keep two apart in a scene: every way of showing that would bring the two together (a walk to touch the other, or the two walking together, read from the code of each way, DISPLY's and the revival's) set aside as a prerequisite not met; and start far from: in the scene's first part that places the two, the one who starts where an earlier scene left her placed far off and off the stage by Ken's place-large-distance-apart (with MEND19's far place).",
+  critpc: "Too quick, too slow: the part's time half as long again for each “too quick”, a third shorter for each “too slow”, applied to the time Ken's code ends up giving it (his ideal-time-for-task, or his fitting of the whole scene to its length, adjust-task-lengths, which works from his own times), within the time the story gives the part and SCENE's own stretch of 8 and 1/8; SCENE then stretches or shrinks its walks to fit.",
+  critsc: "Keep two apart in a scene: every way of showing that would bring the two together (a walk to touch the other, or the two walking together, read from the code of each way, DISPLY's and the revival's) set aside as a prerequisite not met; and start far from: where the scene places the two and the one to start far is still where an earlier scene left her, with no part yet in the scene, she is placed far off and off the stage by Ken's place-large-distance-apart (with MEND19's far place).",
   dtrhym: "B.2 (a) A scene's rhythm as changes of speed, made with DISPLY's change:, as joy's are: fast and slow a quarter faster or slower at medium speed in each part, a changing rhythm its first value in the first part and its last in the last, for each character who does something there; normal changes nothing.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
@@ -1738,7 +1743,7 @@ function changesText(made) {
 // (x.why, "cinderella|attraction-towards-friends": a choice point of pass 1 the compare
 // panel opens)
 function repairList(items) {
-  return `<ul class="fixes">${items.map((x) => `<li><details><summary><span>${x.html} ${repairCode(x.what)}${x.why ? ` <button type="button" class="linkish" data-cmp-cp="${esc(x.why)}">why?</button>` : ""}</span></summary><div class="body"><p class="note">Ani's own record of it, on ${esc(x.actor)}:</p><pre class="lisp">${esc(x.raw.map((n) => pretty(parse(n))).join("\n"))}</pre></div></details></li>`).join("")}</ul>`;
+  return `<ul class="fixes">${items.map((x) => `<li><details><summary><span>${x.html} ${repairCode(x.what)}${x.why ? ` <button type="button" class="linkish" data-cmp-cp="${esc(x.why)}">why?</button>` : ""}</span></summary><div class="body"><p class="note">Ani's own record of it, on ${esc(/^\(subscene-of [^ ()]+ \d+\)$/.test(String(x.actor)) ? `part ${String(x.actor).match(/(\d+)\)$/)[1]} of the scene` : plain(String(x.actor)))}:</p><pre class="lisp">${esc(x.raw.map((n) => pretty(parse(n))).join("\n"))}</pre></div></details></li>`).join("")}</ul>`;
 }
 
 // ---- the corrections of slips (SLIPS) and the details (DETAIL), in the glass box
@@ -2291,6 +2296,8 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if ((x = m.match(/\(CHANGE \((.+?) IS NOT A CHARACTER OF THE STORY/i))) return { text: `A change in the story is of ${esc(plain(x[1].toLowerCase()))}, who isn't one of its characters, and Ani stopped there: a change is of a character the story defines, or of how one feels about another.`, repair: null };
   if (/CHANGE(-TO)?:-PACKAGE/i.test(m)) return { text: "Two feelings asked for changes in the same way of moving, and COSUG's combine, which reads an older format, stopped on them.", repair: "hand it the changes where it reads them" };
   // REVIVE;MEND16 and MEND17
+  // Ken's unfinished branch of chases-to (disply.311:95-111), which a veto can reach
+  if (/CANT-HANDLE-YET-IN-CHASES-TO-INTIAL-LOCS/i.test(m)) return { text: "Ani chose to have one character chase another, and Ken's chases-to can't yet place the two when where they run to has a place and one of them has none (after a cut, say): a case he left unfinished, his break “can't handle yet in chases-to initial locations” (disply.311:95-111).", repair: null };
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
   if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few it takes, and Ken never wrote what it does then (explore-method-suggestions).", repair: "keep the strongest few" };
   // REVIVE;MEND18: a scene whose only task is a relationship Ani shows by one thing the
@@ -2375,15 +2382,18 @@ function stopsOf(run) {
 // The error and what Lisp typed last, as Lisp said them.
 const lispSaid = (error, typed) => [...(typed || []).filter((l) => !/^--- type \(\?\) for help/.test(l)), String(error || "")].filter(Boolean).join("\n");
 // Would the revival's repairs go on where this run, by Ani as in 1978, stopped?
-const mendable = (run) => !!run && !runExtensions(run).length && SWITCHED.includes("mend") && !(run.status && run.status.running) && stopsOf(run).some((s) => s.repair);
+// (not a film made with criticism, whose jobs loaded MEND already)
+const mendable = (run) => !!run && !runExtensions(run).length && !(run.criticism && run.criticism.length) && SWITCHED.includes("mend") && !(run.status && run.status.running) && stopsOf(run).some((s) => s.repair);
 // Where a run stopped, and for a run by Ani as in 1978 that stopped where the revival's
 // repairs go on, the button that makes it again with them.
 function stopBox(run) {
   const list = stopsOf(run);
   if (!list.length) return "";
   const ours = runExtensions(run).length;
-  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}${s.lisp ? `<details class="said"><summary>What Lisp said</summary><pre class="lisp">${esc(s.lisp)}</pre></details>` : ""}</li>`).join("");
-  return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : "Where Ani as in 1978 stopped"}</p><ul>${items}</ul>
+  // a film made with criticism: its jobs loaded MEND, the revival's repairs, as well
+  const crit = !!(run.criticism && run.criticism.length);
+  const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours && !crit ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}${s.lisp ? `<details class="said"><summary>What Lisp said</summary><pre class="lisp">${esc(s.lisp)}</pre></details>` : ""}</li>`).join("");
+  return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : crit ? "Where Ani stopped, as in 1978 with the revival's repairs (MEND), which your criticism loads" : "Where Ani as in 1978 stopped"}</p><ul>${items}</ul>
     ${mendable(run) ? `<div class="actions"><button type="button" class="btn revival" data-remake>Make it again with ${esc(REVIVAL)}</button></div>` : ""}${sendStoryButton(run)}</div>`;
 }
 function remakeWithRepairs(run) {
@@ -4729,7 +4739,7 @@ const AniWhy = (() => {
 // for app/film/criticism.js.
 const AniCritic = (() => {
 /*CRITICISM*/
-  return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
+  return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, taskSource, sourceNeeded, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
 })();
 const WHY_OF = new WeakMap();
 function whyOf(run, sc) {
@@ -4815,7 +4825,7 @@ function stopWords(stops, k, char) {
       : s.kind === "when-plan-ended" ? `when ${para(`“${esc(ACTIVITY[(parse(s.plan) || [])[1]] || plain(s.plan))}”`, s.plan)} ends`
       : s.kind === "when-changes-ended" ? `when ${theirs(char)} changes end`
       : s.kind === "after-a-hit" ? "after the hit"
-      : s.kind === "after-turning" ? `once ${k.she} ${agree(k, "has", "have")} turned${s.degrees ? ` ${s.degrees} degrees` : ""}`
+      : s.kind === "after-turning" ? `once ${k.she} ${agree(k, "has", "have")} turned${s.degrees ? ` ${+Number(s.degrees).toFixed(1)} degrees` : ""}`
       : s.kind === "when-nothing-else-moves-her" ? `once nothing else moves ${k.her}`
       : "as its plan says";
     if (!out.includes(t)) out.push(t);
@@ -4870,7 +4880,7 @@ function timingSteps(run, sc, w, a, char) {
   const steps = [];
   const { says, bounds, film } = sceneLengthWords(run, sc, w);
   steps.push(`${says}${bounds ? `: ${bounds}${film ? `, its share of the film's ${film} by the scenes' lengths` : ""} (${kenAt("scene.9:346-357")})` : ""}.`);
-  if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${task.allocatedTime[0]} to ${task.allocatedTime[1]} seconds,` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
+  if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${sec(task.allocatedTime[0])} to ${sec(task.allocatedTime[1])},` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
   const heeded = task ? critTiming(run, sc, task.name) : "";
   if (heeded) steps.push(heeded);
   if (a.estimate) steps.push(`Its estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; it planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to its best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
@@ -6145,7 +6155,7 @@ self.onmessage = function (e) {
     if (e.data.remake) {
       options.previous = e.data.remake.previous;
       options.criticism = e.data.remake.criticism;
-      options.onKept = function (scene, how) { post({ type: "kept", scene: scene, how: how }); };
+      options.onKept = function (scene, how, error) { post({ type: "kept", scene: scene, how: how, error: error || null, typed: how === "stopped" ? typed() : null }); };
     }
     var made = e.data.remake ? AniRuntime.remakeFilm(fs, options) : AniRuntime.makeFilm(fs, options);
     post({ type: "done", renames: (made && made.renames) || null, files: (made && made.files) || null, remade: (made && made.remade) || null });
@@ -6332,7 +6342,7 @@ async function runInPage(run, description, remake = null) {
       onFrame: (scene, frame) => { if (frame % 10 === 0) post({ type: "frame", scene, frame }); },
     };
     steps = remake
-      ? AniRuntime.remakeFilmSteps(fs, { ...options, previous: remake.previous, criticism: remake.criticism, onKept: (scene, how) => post({ type: "kept", scene, how }) })
+      ? AniRuntime.remakeFilmSteps(fs, { ...options, previous: remake.previous, criticism: remake.criticism, onKept: (scene, how, error) => post({ type: "kept", scene, how, error: error || null, typed: how === "stopped" ? typed() : null }) })
       : AniRuntime.makeFilmSteps(fs, options);
   } catch (e) { failed(e); return; }
   for (;;) {
@@ -6378,6 +6388,8 @@ function onWorker(run, m) {
   } else if (m.type === "kept") {
     // a scene a remake kept: before the first scene criticized, or planned again the same
     (run.keptHow ||= {})[m.scene] = m.how;
+    // where Ani stopped, the film remade from kept from there on: what Lisp typed last, to say why
+    if (m.how === "stopped" && m.typed) (run.stoppedTyped ||= {})[m.scene] = m.typed;
     if (state.panel === "compare") comparePanel();
   } else if (m.type === "done") {
     // the film's working files, which a remake with criticism is made from, and how a remake
