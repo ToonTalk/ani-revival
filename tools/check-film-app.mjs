@@ -2663,12 +2663,13 @@ try {
       const had = !!run.raw.files;
       t.startRemake(run);
       const seen = [];
-      for (let k = 0; k < 150 && !seen.some((w) => /saved before Ani kept its working files/.test(w)); k++) { await wait(100); const w = t.RUNS[1] === run ? "(not started)" : (t.RUNS[1].status || {}).what || ""; if (seen[seen.length - 1] !== w) seen.push(w); }
+      for (let k = 0; k < 150 && !seen.some((w) => /^Pass 1/.test(w)); k++) { await wait(100); const w = t.RUNS[1] === run ? "(not started)" : (t.RUNS[1].status || {}).what || ""; if (seen[seen.length - 1] !== w) seen.push(w); }
+      const said = document.getElementById("run-status").innerText;
       const remaking = t.RUNS[1].remaking;
       t.stopRun({ quiet: true });
-      return { had, seen, remaking };
+      return { had, seen, remaking, said };
     })()`);
-    check(!scratch.had && scratch.remaking && scratch.remaking.fromScratch && scratch.seen.some((w) => /^This film was saved before Ani kept its working files, so it is made again from the start/.test(w)), `a film kept without its working files is made again from the start, and the page says so: ${JSON.stringify(scratch.seen)}`);
+    check(!scratch.had && scratch.remaking && scratch.remaking.fromScratch && /This film was saved before Ani kept its working files, so it is made again from the start: Pass 1/.test(scratch.said), `a film kept without its working files is made again from the start, and the status line says so throughout: "${scratch.said}"`);
     await js(`document.querySelector('#rate [data-rate="24"]').click()`);
     await sleep(200);
   }

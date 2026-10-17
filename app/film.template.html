@@ -6196,9 +6196,10 @@ const runTime = (st) => Date.now() - st.started - (st.paused || 0);
 // (Ken's testing, 15 October: a frozen background tab stopped the worker while the line
 // still said "Filming ...")
 const SILENT_MS = 5 * 60000;
+// (a remake of a film kept without its working files says so all the way through)
 function runWords(st) {
   const frame = st.step === "film" && st.frameScene === st.scene && Number.isFinite(st.frame) ? ` · frame ${st.frame}` : "";
-  return `${st.what || ""}${frame} · ${clock(runTime(st))}`;
+  return `${st.scratch ? `${st.scratch}: ` : ""}${st.what || ""}${frame} · ${clock(runTime(st))}`;
 }
 function runNotes(st) {
   const out = [];
@@ -6253,7 +6254,7 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
     run = makeRun({ label: yoursLabel(extensions), short: "Yours", cindy: description, extensions, tidied: [...(tidied || []), ...tidy.fixes], told });
   }
   run.fps = fps;
-  run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: remake ? "pass2" : "pass1", what: "Getting Ani ready", scene: null, heard: Date.now() };
+  run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: remake ? "pass2" : "pass1", what: "Getting Ani ready", scene: null, heard: Date.now(), ...(remake && run.remaking && run.remaking.fromScratch ? { scratch: "This film was saved before Ani kept its working files, so it is made again from the start" } : {}) };
   RUNS[1] = run;
   state.selected = null;
   state.panel = "compare";
