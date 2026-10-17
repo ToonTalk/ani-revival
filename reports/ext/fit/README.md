@@ -164,7 +164,7 @@ GPT-6.1 Sol's fifteen JSON trial stories (`reports/llm-trials/2026-10-13 gpt-6.1
 | the-ugly-duckling | lonely-winter | 25.71 | 51.43 | 17 | 17 |
 
 
-The stress stories (`test/stories/stress/README.md`, "FIT in the page's set"): STRESS
+The stress stories (`test/stories/stress/README.md`, "FIT in the page's set"): with the page's set and FIT, and with all seven, 108 of their 114 entries differ from before FIT, each with FIT's notes, most scenes held to their least from far short of it; every story films every scene in both modes, none at the cap. pushed-around's Introduction, past the cap with FIT as first made, is 206 frames; detail-tendency, at the cap with the page's set before FIT, is 255.
 
 ## The glass box
 
@@ -197,5 +197,5 @@ The stress stories (`test/stories/stress/README.md`, "FIT in the page's set"): S
 1. **Past its most.** A scene whose tasks can't fill its least within their most is filled anyway, the part's longest task taking the rest and SCENE stretching it (No Longer Kept Apart: 6.95 seconds within its most, 10 past it; in a story it can be far past it: GPT-6.1 Sol's Jack's Pursuit, a chase of 1.21 seconds held to 24, stretched by 19.8, where your SCENE warns past 8). Recommended: as now, the scene's length being the user's; say if a task should stop at its most, the scene short.
 2. **The stretch taken twice: settled** by your decision 13, corrected with FIT as S16: the godmother brings Cinderella to the Prince.
 3. **Kept Apart's guard.** As first made, it ran on, slowing, to frame 154 at 4 frames a second; with S8 it keeps its pace and ends before the feelings (frame 106; 108 with the page's set), and with SEEN the two wander until their feelings end.
-4. **The stress story past the cap: settled** by decision 13 (S8 on with FIT). STRESS4
+4. **The stress story past the cap: settled** by decision 13 (S8 on with FIT): pushed-around's Introduction with the page's set is 206 frames.
 

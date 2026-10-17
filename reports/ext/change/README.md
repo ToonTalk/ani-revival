@@ -125,7 +125,7 @@ Each story is made as the film page makes it: change-of-heart and socializing wi
 |---|---|---|
 | change-of-heart | At Home 108, Change of Heart 62 (52 before the review of stage 6), Kind Again 29 | At Home 769, Change of Heart 422 (395), Kind Again 167 |
 | socializing | The Wallflower 69, Learning to Socialize 72 (68), The Dance 59 (64) | The Wallflower 414, Learning to Socialize 406 (406), The Dance 544 (543) |
-| beautified-film | Introduction 263, Kept Apart 116, Cinderella Beautified 138, No Longer Kept Apart 45, Meeting 188, Justice 142 (since Ken's decision of 16 October, with FIT, "With FIT" below; with SEEN, 171, 116, 137, 18, 190 and 155; before, 20, 193 and 90 for the last three) | Introduction 1,433, Kept Apart 701, Cinderella Beautified 824, No Longer Kept Apart 275, Meeting 1,063, Justice 951 (with FIT; with SEEN, 950, 701, 820, 76, 1,052 and 942; before, 116, 920 and 420 for the last three) |
+| beautified-film | Introduction 266, Kept Apart 120, Cinderella Beautified 138, No Longer Kept Apart 34, Meeting 186, Justice 107 (since Ken's decisions of 16 and 17 October, with FIT, "With FIT" below; with FIT as first made 263, 116, 138, 45, 188 and 142; with SEEN, 171, 116, 137, 18, 190 and 155; before, 20, 193 and 90 for the last three) | Introduction 1,536, Kept Apart 724, Cinderella Beautified 824, No Longer Kept Apart 158, Meeting 1,051, Justice 799 (with FIT; as first made 1,433, 701, 824, 275, 1,063 and 951; with SEEN, 950, 701, 820, 76, 1,052 and 942; before, 116, 920 and 420 for the last three) |
 
 **With APPEAR's colors and look changes (stage 5, 14 October).** The stories' goldens were made again when APPEAR came to choose colors and change looks (`reports/ext/appear/README.md`). Every frame and event of all six scenes was as it was. What changed: each program's take-look forms carry the character's `look-color`; each joy task has one more method, a `look-change:` of its character's color intensity, by the joy's amount at its speed, and its subscene one more change, `(gradually change look by ...)`; the summaries list those methods, and the glass boxes them and their `lookChanges`; each film's `looks` has each character's color, and its changes. And again on 14 October, for Ken's decision 11 (his uniqueness rule for hues): the stepmother blue and the fairy godmother orange where they were orange and purple.
 
@@ -411,6 +411,17 @@ By Ken's decision of 16 October the page's switch turns on FIT too (`reports/ext
 | Justice | 142 | 155 | 951 | 942 | planned as before; it starts from where the Meeting now leaves them |
 
 `moves-differently.json` (No Longer Kept Apart planned again without learning who Cinderella has become) changes with the scene. The page's beautified preset films in these frames (FIT's README, "For the page").
+
+**Since Ken's decision 13 (17 October)** FIT also takes a stretched walk's stretch once (S16) and has S8 (a character's dynamics take their parent's factors once), and, with SEEN, a repeat that now keeps its pace is waited for before a feeling's characters wander (`reports/ext/fit/README.md`). The beautified film is now 266, 120, 138, 34, 186 and 107 frames at 4 a second, and 1,536, 724, 824, 158, 1,051 and 799 at 24 (the table above is FIT as first made):
+
+| Scene | 4 a second | 24 a second | Why, beside the table above |
+|---|---|---|---|
+| Introduction | 266 | 1,536 | the stepmother's pushing (part 2), sped up to fit its time, takes its speed-up once (S16) and no longer speeds up push by push (S8); Cinderella still helps the Prince (part 5) |
+| Kept Apart | 120 | 724 | the guard's walks take their stretch once and keep their pace (S16, S8), and the guard ends before the feelings, which Cinderella and the stepmother then wander through (SEEN, with S8) |
+| Cinderella Beautified | 138 | 824 | as with FIT first made: held to 24 seconds |
+| No Longer Kept Apart | 34 | 158 | held to 8 seconds; the godmother's accompanying takes its stretch (2.01) once, and brings Cinderella within 66 dots of the Prince (53 at 24), ending when the godmother is at his place, sooner than planned |
+| Meeting | 186 | 1,051 | planned as before; starts elsewhere, its stretched walks taking the stretch once |
+| Justice | 107 | 799 | planned as before; starts elsewhere, its stretched walks taking the stretch once (Cinderella's and the Prince's, slowed by a half, at 0.35, not 0.175) |
 
 ## For the page: why they act as they do
 
