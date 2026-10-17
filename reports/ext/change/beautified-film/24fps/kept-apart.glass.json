@@ -137,7 +137,7 @@
     "scene": "kept-apart",
     "convey-tasks": "(convey-task-2)",
     "(time-estimates-for (stands-guard step-mother cinderella (away-from (vicinity-of cinderella) (vicinity-of prince))))": "(time-estimates: ideal 14.357143 most 61.107143 least 3.2239643)",
-    "(distance-between (vicinity-of cinderella) (vicinity-of prince))": "(xy-distance 0.000024436 0.000076504)",
+    "(distance-between (vicinity-of cinderella) (vicinity-of prince))": "(xy-distance -0.000108998 0.000506812)",
     "(location-of cinderella)": "(place: where (small-way-from (vicinity-of cinderella) (vicinity-of prince)) why (and move-character (so that (move-small-part-towards cinderella prince))) status symbolic)",
     "parasites": "((subscene-of kept-apart 3))",
     "running-time": "28.220086",
@@ -178,7 +178,7 @@
     "(time-estimates-for (change: element (step-mother path-jaggedness) amount (negative medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
     "(time-estimates-for (look-change: element (step-mother color-intensity) amount (positive medium) speed medium))": "(time-estimates: ideal 1.1157178 least 0.22314355 most 5.5785888)",
     "stretched-by": "0.0",
-    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of kept-apart 3))) (ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of kept-apart 3))))",
+    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of kept-apart 3))) (ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of kept-apart 3))) (run (activity-of waiting-to-wander 1) then see if everybody is done) (run (activity-of wandering-while-changes-run 1) then see if everybody is done) (run (activity-of waiting-to-wander 2) then see if everybody is done) (run (activity-of wandering-while-changes-run 2) then see if everybody is done))",
     "(changes-for step-mother)": "((gradually change look by 1.25 factor for color-intensity at medium speed) (gradually change by 0.8 factor for path-jaggedness at medium speed) (gradually change by 1.25 factor for deliberateness at medium speed) (gradually change by 1.25 factor for activity-level at medium speed) (gradually change by 1.25 factor for speed at medium speed) (gradually change by 1.25 factor for rhythmic-level at medium speed) (gradually change by 1.25 factor for acceleration at medium speed) (gradually change by 2.0 factor for path-length at high speed) (gradually change by 4.0 factor for path-curvature at high speed))",
     "(changes-for cinderella)": "((gradually change look by 0.66666667 factor for color-intensity at high speed) (gradually change by 0.66666667 factor for activity-level at high speed) (gradually change by 0.66666667 factor for speed at high speed) (gradually change by 0.66666667 factor for rhythmic-level at high speed) (gradually change by 0.66666667 factor for acceleration at high speed) (gradually change by 2.0 factor for path-length at low speed) (gradually change by 0.25 factor for path-curvature at low speed))",
     "begin-time": "(after (beginning-of (subscene-of kept-apart 2)) 14.357143)",
@@ -187,9 +187,14 @@
     "(location-of step-mother)": "(place: where (small-way-from-plus-size (vicinity-of cinderella) (current-goal-of cinderella) cinderella) why (and move-character (must-stand-guard cinderella (away-from (vicinity-of cinderella) (vicinity-of prince)))) status symbolic)",
     "(location-of prince)": "(place: where (xy-position 0.375 0.375) why (and move-character (so that (move-small-part-towards cinderella prince))) status (placed by (subscene-of kept-apart 1)))",
     "(distance-between (vicinity-of step-mother) (vicinity-of cinderella))": "(screen-fraction 0.25)",
+    "plans": "((activity-of wandering-while-changes-run 2) (activity-of waiting-to-wander 2) (activity-of wandering-while-changes-run 1) (activity-of waiting-to-wander 1))",
+    "movements": "((and))",
     "running-time": "13.862944"
    },
-   "items": []
+   "items": [
+    "(revival-repair: what nothing-to-do was (stands-still cinderella) now (wander-while-changes-run cinderella) because (so that the changes are apparent thesis 126))",
+    "(revival-repair: what nothing-to-do was (stands-still step-mother) now (wander-while-changes-run step-mother) because (so that the changes are apparent thesis 126))"
+   ]
   }
  ],
  "plans": [
@@ -258,6 +263,54 @@
     "plans": "((sequence: (ask prince set your special-dynamics to |(special-dynamics-of prince in (subscene-of kept-apart 2))-13|) (ask prince initialize your curvature-sign towards (far-from-both (vicinity-of prince) (vicinity-of cinderella))) (ask (activity-of make-guarding-more-interesting 2) cause (prince) to gradually go in arc careful of collisions to (far-from-both (vicinity-of prince) (vicinity-of cinderella)) as stationary-target stopping if (move-only-original-distance (quote (subscene-of kept-apart 2))))))"
    },
    "items": []
+  },
+  {
+   "name": "(activity-of wandering-while-changes-run 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of wandering-while-changes-run 2)",
+    "begin-time": "(after (end-of (activity-of waiting-to-wander 2)) 0.0)",
+    "subscene": "(subscene-of kept-apart 3)",
+    "plans": "((ask (activity-of wandering-while-changes-run 2) wander cinderella while changes run in (subscene-of kept-apart 3)))"
+   },
+   "items": [
+    "(wanders: character cinderella while (changes-for cinderella) in (subscene-of kept-apart 3) after (activity-of waiting-to-wander 2) once-nothing-moves-her-in ((subscene-of kept-apart 3) (subscene-of kept-apart 2)) because (so that the changes are apparent thesis 126))"
+   ]
+  },
+  {
+   "name": "(activity-of waiting-to-wander 2)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of waiting-to-wander 2)",
+    "begin-time": "(after (beginning-of (subscene-of kept-apart 3)) 0.0)",
+    "subscene": "(subscene-of kept-apart 3)",
+    "plans": "((ask (activity-of waiting-to-wander 2) wait until cinderella is moved by nothing in ((subscene-of kept-apart 3) (subscene-of kept-apart 2)) or (subscene-of kept-apart 3) changes end))"
+   },
+   "items": []
+  },
+  {
+   "name": "(activity-of wandering-while-changes-run 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of wandering-while-changes-run 1)",
+    "begin-time": "(after (end-of (activity-of waiting-to-wander 1)) 0.0)",
+    "subscene": "(subscene-of kept-apart 3)",
+    "plans": "((ask (activity-of wandering-while-changes-run 1) wander step-mother while changes run in (subscene-of kept-apart 3)))"
+   },
+   "items": [
+    "(wanders: character step-mother while (changes-for step-mother) in (subscene-of kept-apart 3) after (activity-of waiting-to-wander 1) once-nothing-moves-her-in ((subscene-of kept-apart 3) (subscene-of kept-apart 2)) because (so that the changes are apparent thesis 126))"
+   ]
+  },
+  {
+   "name": "(activity-of waiting-to-wander 1)",
+   "variables": {
+    "parent": "plan",
+    "name": "(activity-of waiting-to-wander 1)",
+    "begin-time": "(after (beginning-of (subscene-of kept-apart 3)) 0.0)",
+    "subscene": "(subscene-of kept-apart 3)",
+    "plans": "((ask (activity-of waiting-to-wander 1) wait until step-mother is moved by nothing in ((subscene-of kept-apart 3) (subscene-of kept-apart 2)) or (subscene-of kept-apart 3) changes end))"
+   },
+   "items": []
   }
  ],
  "dynamics": [
@@ -301,7 +354,8 @@
    "variables": {
     "parent": "|(special-dynamics-of cinderella in (subscene-of kept-apart 2))-12|",
     "name": "|(special-dynamics-of cinderella in (subscene-of kept-apart 2))-12-2|",
-    "(speed factor)": "0.35663572"
+    "(speed factor)": "0.35663572",
+    "(speed from-parent)": "0.71327145"
    },
    "items": []
   },
@@ -310,7 +364,8 @@
    "variables": {
     "parent": "|(special-dynamics-of cinderella in (subscene-of kept-apart 2))-12|",
     "name": "|(special-dynamics-of cinderella in (subscene-of kept-apart 2))-12-1|",
-    "(speed factor)": "0.47789187"
+    "(speed factor)": "0.47789187",
+    "(speed from-parent)": "0.71327145"
    },
    "items": []
   },
@@ -376,7 +431,8 @@
    "variables": {
     "parent": "(special-dynamics-of cinderella in (subscene-of kept-apart 1))",
     "name": "|(special-dynamics-of cinderella in (subscene-of kept-apart 1))-7|",
-    "(speed factor)": "2.0"
+    "(speed factor)": "2.0",
+    "(speed from-parent)": "2.0"
    },
    "items": []
   },
@@ -404,7 +460,8 @@
    "variables": {
     "parent": "|(special-dynamics-of step-mother in (subscene-of kept-apart 2))-11|",
     "name": "|(special-dynamics-of step-mother in (subscene-of kept-apart 2))-11-2|",
-    "(speed factor)": "1.1412343"
+    "(speed factor)": "1.1412343",
+    "(speed from-parent)": "0.71327145"
    },
    "items": []
   },
@@ -413,7 +470,8 @@
    "variables": {
     "parent": "|(special-dynamics-of step-mother in (subscene-of kept-apart 2))-11|",
     "name": "|(special-dynamics-of step-mother in (subscene-of kept-apart 2))-11-1|",
-    "(speed factor)": "0.99858003"
+    "(speed factor)": "0.99858003",
+    "(speed from-parent)": "0.71327145"
    },
    "items": []
   },
@@ -580,6 +638,16 @@
   },
   "items": []
  },
+ "repairs": [
+  {
+   "actor": "(subscene-of kept-apart 3)",
+   "note": "(revival-repair: what nothing-to-do was (stands-still cinderella) now (wander-while-changes-run cinderella) because (so that the changes are apparent thesis 126))"
+  },
+  {
+   "actor": "(subscene-of kept-apart 3)",
+   "note": "(revival-repair: what nothing-to-do was (stands-still step-mother) now (wander-while-changes-run step-mother) because (so that the changes are apparent thesis 126))"
+  }
+ ],
  "looks": [
   {
    "character": "cinderella",
@@ -658,6 +726,30 @@
    "amount": "(negative high)",
    "speed": "high",
    "feeling": "(joy (negative high))"
+  }
+ ],
+ "wanders": [
+  {
+   "character": "cinderella",
+   "plan": "(activity-of wandering-while-changes-run 2)",
+   "waiting": "(activity-of waiting-to-wander 2)",
+   "subscene": "(subscene-of kept-apart 3)",
+   "watched": [
+    "(subscene-of kept-apart 3)",
+    "(subscene-of kept-apart 2)"
+   ],
+   "because": "(so that the changes are apparent thesis 126)"
+  },
+  {
+   "character": "step-mother",
+   "plan": "(activity-of wandering-while-changes-run 1)",
+   "waiting": "(activity-of waiting-to-wander 1)",
+   "subscene": "(subscene-of kept-apart 3)",
+   "watched": [
+    "(subscene-of kept-apart 3)",
+    "(subscene-of kept-apart 2)"
+   ],
+   "because": "(so that the changes are apparent thesis 126)"
   }
  ]
 }
