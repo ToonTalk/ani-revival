@@ -510,9 +510,12 @@ function critNoteSentence(run, sc, n, { withSaid = true } = {}) {
     const s1 = part && part.stretchedBy, s0 = s1 && n.heeded ? (s1 * Number(was)) / Number(now) : null;
     const fmt = (x) => +x.toFixed(2);
     const stretched = s1 && s0 && Math.abs(s1 - s0) > 0.005 ? `, the walks ${s1 > s0 ? "slowed" : "sped up"} to fit (stretched by ${fmt(s1)}, where they were ${fmt(s0)})` : "";
-    const bound = held ? (held[0] === "allocated-time" ? `${secondsSpan(held[1], held[2])}, the time your story gives this part` : `SCENE's own limit: a part's walks are stretched no more than ${Number(held[1]) > 1 ? "8 times" : "to an eighth of"} Ani's ideal for them`) : "";
-    const byStory = held && held[0] === "allocated-time";
-    const after = adjusted ? ` Ken's SCENE had first fitted the whole scene to its length (adjust-task-lengths, chomet.123:140-185), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.` : "";
+    // held-to (length-bounds l m): with FIT, the scene kept within the time its length gives it
+    const bound = held ? (held[0] === "allocated-time" ? `${secondsSpan(held[1], held[2])}, the time your story gives this part` : held[0] === "length-bounds" ? `${secondsSpan(held[1], held[2])}, the time your story gives this scene, which the revival holds it to` : `SCENE's own limit: a part's walks are stretched no more than ${Number(held[1]) > 1 ? "8 times" : "to an eighth of"} Ani's ideal for them`) : "";
+    const byStory = held && (held[0] === "allocated-time" || held[0] === "length-bounds");
+    // the scene's adjustment was FIT's hold of the scene's time (its scene-time-kept note), or Ken's
+    const fitted = [...(sc.glass.repairs || []), ...((sc.film && sc.film.repairs) || [])].some((r) => /what scene-time-kept /.test(r.note));
+    const after = adjusted ? (fitted ? ` The revival had first held the scene to the time its length gives it (FIT, Ken's decision of 16 October), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.` : ` Ken's SCENE had first fitted the whole scene to its length (adjust-task-lengths, chomet.123:140-185), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.`) : "";
     if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${quick && byStory ? longerButton(run, sc.id) : ""}`;
     return `You said this part was too ${quick ? "quick" : "slow"}: Ani gave it ${sec(Number(now))} instead of ${sec(Number(was))}${stretched}${held ? `; held to ${esc(bound)}${quick && byStory ? ": this part already takes all the time your story gives the scene" : ""}` : ""}.${after}${said}${held && quick && byStory ? longerButton(run, sc.id) : ""}`;
   }

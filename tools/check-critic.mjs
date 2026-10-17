@@ -43,6 +43,14 @@
 //   meeting-far          Cinderella to start far from the Prince in the Meeting, where she
 //                        is on the stage already when they are placed: not heeded, said so,
 //                        not met (M5)
+// and CRITIC with FIT (REVIVE;FIT, Ken's decisions of 16 and 17 October), from Ken's
+// Cinderella made with FIT (reports/ext/fit), where No Longer Kept Apart is held to its
+// least, 10 seconds:
+//   nlka-too-quick-fit   "too quick" on the godmother's part: paced from the 10 seconds FIT
+//                        gave it, 15, within the scene's 10 to 25: met
+//   nlka-too-slow-fit    "too slow" on it: the scene already at its least, the pace keeps it
+//                        within its length-bounds, as FIT does: not met, held to them, and
+//                        the scene kept
 // For each, besides its own checks: the scenes before the first criticized are kept,
 // not planned again; every scene from it on is planned again, and one whose program is
 // unchanged keeps its film; the record's every criticism leaves a note where Ani heeded
@@ -80,6 +88,7 @@ const GUARD = "(prevents step-mother (meets cinderella prince))";
 const FRIENDLY = "(personality cinderella)";
 const you = (said) => ({ by: "you", said });
 const PACE = { id: "c1", kind: "pace", scene: "no-longer-kept-apart", tasks: [NLKA], direction: "too-quick", times: 1, ...you("Too quick: allocate more time for this scene") };
+const SLOW = { ...PACE, direction: "too-slow", ...you("Too slow") };
 const FAR = { id: "c2", kind: "start-far", scene: "no-longer-kept-apart", who: "fairy-godmother", from: "cinderella", ...you("Have the fairy godmother start far from Cinderella") };
 const APART = { id: "c1", kind: "keep-apart", scenes: ["introduction", "kept-apart"], between: ["cinderella", "prince"], ...you("Cinderella is not to meet the Prince until the third scene") };
 
@@ -338,6 +347,35 @@ const EXAMPLES = [
     },
   },
   {
+    // FIT holds No Longer Kept Apart to its least, 10 seconds (its task 3.98, its most 6.95,
+    // the part stretched by 2.51); the pace works from the time FIT gave the task, as from
+    // Ken's own adjustment, within the task's allocated time and the scene's length-bounds
+    name: "nlka-too-quick-fit", stages: "C2", base: "fit", record: [PACE],
+    check(run, ch, prev) {
+      expectEqual("remade from No Longer Kept Apart, the two before kept", howOf(run), { introduction: "kept", "kept-apart": "kept", "no-longer-kept-apart": "refilmed", meeting: "refilmed", justice: "refilmed" });
+      const scene = sceneOf(run, "no-longer-kept-apart");
+      const t = taskOf(scene, NLKA);
+      const was = Number(taskOf(sceneOf(prev, "no-longer-kept-apart"), NLKA).variables["running-time"]);
+      check(`FIT's film gives the godmother's part the scene's least (${was} seconds)`, was === 10 ? null : `${was}`);
+      check("the pace makes it half as long again, 15 seconds, within the scene's 10 to 25", Math.abs(Number(t.variables["running-time"]) - 15) < 0.01 && Number(scene.glass.scene.variables["running-time"]) === 15 ? null : `running time ${t.variables["running-time"]}, the scene's ${scene.glass.scene.variables["running-time"]}`);
+      const note = (ch.criticism[0].notes.find((n) => n.heeded) || {}).because || "";
+      check("paced on the time FIT's hold of the scene gave it (after the scene's adjustment, 4.03 from Ken's 5.97)", /^\(too-quick 1\.5 after \(scene-adjusted 4\.03/.test(note) ? null : note);
+      check("FIT's own note kept: the scene held to 10 seconds before the pace", (scene.glass.repairs || []).some((r) => /what scene-time-kept was \(planned 5\.97\) now 10\.0 /.test(r.note)) ? null : "no scene-time-kept note");
+      expectEqual("met", outcome(ch, "c1"), "met");
+      check("longer than FIT's film", frames(run, "no-longer-kept-apart") > frames(prev, "no-longer-kept-apart") ? null : "not longer");
+    },
+  },
+  {
+    name: "nlka-too-slow-fit", stages: "C2", base: "fit", record: [SLOW],
+    check(run, ch) {
+      const scene = sceneOf(run, "no-longer-kept-apart");
+      expectEqual("the godmother's part kept at the scene's least, 10 seconds", taskOf(scene, NLKA).variables["running-time"], "10.0");
+      expectEqual("not heeded, held to the scene's length-bounds", ch.criticism[0].notes.map((n) => [n.heeded, n.because]), [[false, "(too-slow 0.66666667 held-to (length-bounds 10.0 25.0) after (scene-adjusted 6.0802))"]]);
+      expectEqual("not met", outcome(ch, "c1"), "not-met");
+      expectEqual("No Longer Kept Apart planned again, the same program: its film kept, and the rest", howOf(run), { introduction: "kept", "kept-apart": "kept", "no-longer-kept-apart": "unchanged", meeting: "unchanged", justice: "unchanged" });
+    },
+  },
+  {
     name: "meeting-far", stages: "C3", base: "1978", record: [{ id: "c1", kind: "start-far", scene: "meeting", who: "cinderella", from: "prince", ...you("Have Cinderella start far from the Prince") }],
     check(run, ch) {
       const notes = ch.criticism[0].notes;
@@ -377,7 +415,11 @@ function keptApart(run, ch, scenes, { plan = false } = {}) {
 function nearByEscape(run, ch, id, atLeast) {
   const s = sceneOf(run, id);
   const near = ch.criticism[0].closest.find((c) => c.scene === id);
-  const acts = whyTheyAct(s.glass, s.film).activities.filter((a) => a.characters.includes("cinderella") && a.film && a.film.spans.some((sp) => sp.begin <= near.frame && sp.end >= near.frame));
+  // her escape running then, or just ended (within half a second): with FIT's S8 and S16
+  // in SLIPS the guard keeps her pace, and in intro-apart-slips Cinderella's first escape
+  // ends at frame 13, the Prince, walking across as the guard's "more interesting" walk,
+  // passing her at 14 (README.md)
+  const acts = whyTheyAct(s.glass, s.film).activities.filter((a) => a.characters.includes("cinderella") && a.film && a.film.spans.some((sp) => sp.begin <= near.frame && sp.end >= near.frame - Math.round(fps / 2)));
   check(`${id}: the film brings them within Ken's small distance, ${near.distance} at frame ${near.frame}, as Cinderella escapes the guard towards him: partly met`,
     near.distance !== null && near.distance < 0.33 && near.distance >= atLeast && acts.some((a) => /^\(activity-of prisoner-escapes/.test(a.plan)) && ch.criticism[0].outcome === "partly" ? null : JSON.stringify({ near, acts: acts.map((a) => a.plan), outcome: ch.criticism[0].outcome }));
 }

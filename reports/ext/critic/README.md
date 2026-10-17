@@ -65,18 +65,20 @@ The criticism: keep Cinderella and the Prince apart in the Introduction and Kept
 |---|---|---|---|---|---|
 | 1978 | 192 frames | 116 | 17 | 179 | 84 |
 | `intro-apart`, with your knowledge | 151 | 116, planned again, kept | 17, kept | 179, kept | 84, kept |
-| KNOW and SLIPS, as `check-ext` makes it | 230 | 107 | 17 | 175 | 84 |
-| `intro-apart-slips`, with KNOW and SLIPS | 209 | 116 | 10 | 180 | 96 |
-| `intro-apart-slips-far`, and the Prince starts far from Cinderella in Kept Apart | 209 | 121 | 18 | 173 | 96 |
+| KNOW and SLIPS (and so FIT), as `check-ext` makes it | 250 | 122 | 34 | 185 | 73 |
+| `intro-apart-slips`, with KNOW and SLIPS | 222 | 98 | 20 | 192 | 74 |
+| `intro-apart-slips-far`, and the Prince starts far from Cinderella in Kept Apart | 222 | 114 | 33 | 183 | 85 |
+
+(Before FIT, 17 October: SLIPS' film 230, 107, 17, 175 and 84; `intro-apart-slips` 209, 116, 10, 180 and 96; `-far` 209, 121, 18, 173 and 96. "CRITIC with FIT", below, says what changed.)
 
 - **With your knowledge**, establishing Cinderella's personality (friendly) had the two convey suggestions friendly makes: accompanying and helping the Prince. Accompanying brings her to him (goes-to-and-accompanys), so it is set aside, `prerequisites-not-met ((kept-apart-by-you cinderella prince c1))`. Helping, which 1978 has no way of showing, brings no one together in a film made with your knowledge alone (only KNOW's helps-along would), so Ani picks it, "something else to establish Cinderella's personality", as your footnote says, and can't show it, as in 1978: the helping task is `cant-do`, your warning "can't do", and takes no time, as it did. The accompanying part goes, and the Introduction is 151 frames (192), as with "show something else" on accompanying (`intro-convey-veto`). Kept Apart to Justice are planned again and come out byte for byte as before, programs, films and POSIT files: Kept Apart begins with a cut that places everyone afresh. So "unless necessary no other parts of the film" holds exactly: only the Introduction is filmed again. In the films they are never on the picture together in the Introduction, and in Kept Apart never closer than 0.345 of the screen (your small distance is under .33, `place.45:103-105`). Met. At 24 frames a second the same: the Introduction 667 frames (917), the rest kept; but Kept Apart, your 1978 film at 24 itself, has Cinderella, the guard's prisoner, escape to within 0.308 of the Prince at frame 436 (below), so the outcome there is "partly". (Until the review of 17 October the contact table counted KNOW's way of helping in every film, so helping was set aside too, the establishing itself was `cant-do`, and the Introduction was 111 frames.)
 - **With KNOW and SLIPS**, Ani picks "something else to establish Cinderella's personality": she **helps her stepmother** (`helps-along cinderella step-mother`, SLIPS' S1 letting good's helping find anyone, with KNOW's way of showing it), and **follows her** (KNOW's follows-behind, from Cinderella's relationship with her, as in KNOW's film). The Prince is never on the stage in the Introduction.
-- **But the film of Kept Apart brings them close.** The plan of every scene holds them apart: no walk to contact, and no walk of the two together. In Kept Apart's film, though, they come within 0.055 of the screen at frame 15. Why:
+- **But the film of Kept Apart brings them close.** The plan of every scene holds them apart: no walk to contact, and no walk of the two together. In Kept Apart's film, though, they come within 0.092 of the screen at frame 14 (0.055 at frame 15 before FIT). Why:
   - the Prince, never on the stage in the Introduction now, starts Kept Apart where the Introduction's POSIT file put him, the center (your `save-positions`, as with the fairy godmother above); 0.42 from Cinderella, so Kept Apart doesn't cut, where in 1978 (and with SLIPS) they started a small distance apart and it cut;
-  - then the stepmother stands guard, and your guarding has its prisoner escape towards what she is kept from (`plan-stands-guard-cycle`, `disply.311:465-473`: `(away-from (vicinity-of cinderella) (away-from (vicinity-of cinderella) (vicinity-of prince)))`, which Director goes to as the Prince's vicinity) until the guard stops her. That walk is to his vicinity, not to contact, so the contact table doesn't count it, and it is what Kept Apart is for: the stepmother prevents her meeting him.
+  - then the stepmother stands guard, and your guarding has its prisoner escape towards what she is kept from (`plan-stands-guard-cycle`, `disply.311:465-473`: `(away-from (vicinity-of cinderella) (away-from (vicinity-of cinderella) (vicinity-of prince)))`, which Director goes to as the Prince's vicinity) until the guard stops her. That walk is to his vicinity, not to contact, so the contact table doesn't count it, and it is what Kept Apart is for: the stepmother prevents her meeting him. (With FIT her first escape ends at frame 13, and the Prince, walking across as the guard's "more interesting" walk, passes her at 14.)
   
   So the outcome is "partly met": the check reads the film (`criticismChanges` `closest`), as the design asked. Not counting that walk is the revival's choice (8, below), not something built into Ani; the page says so.
-- **And with the Prince starting far too** (`intro-apart-slips-far`, a second criticism a user would add on seeing that): PLACE places him off the stage, far from Cinderella, and they come less close, 0.249 of the screen at frame 81, again as she escapes the guard towards him. Start far met, keep apart partly.
+- **And with the Prince starting far too** (`intro-apart-slips-far`, a second criticism a user would add on seeing that): PLACE places him off the stage, far from Cinderella, and they come less close, 0.245 of the screen at frame 60 (0.249 at frame 81 before FIT), again as she escapes the guard towards him. Start far met, keep apart partly.
 
 ## The other examples
 
@@ -102,7 +104,7 @@ An adversarial review of C0 to C3 found cases where Ani or the verdict went wron
 | `nlka-joy-far` | your story with Cinderella's joy after the undoing (`(sequence: (convey (undoes fairy-godmother ...)) (establish (emotional-state cinderella (joy (positive high)))))`), made to No Longer Kept Apart; then the godmother to start far from Cinderella | the joy's part is only a feeling, so your SCENE extends the part before to show it, putting that part back as it was and running its ways again (`extend-last-actions-of`, `scene.9:224-240`); start far is heeded again in the part redone: she starts off the stage and walks on (49 frames, as long as without the criticism). Met |
 | `meeting-far` | Cinderella to start far from the Prince in the Meeting | she has had her part on the stage before they are placed together, so she isn't moved far off mid-scene: `(unmet-criticism: ... because (already-in-the-scene))`, the Meeting kept; not met |
 
-"Too quick" on No Longer Kept Apart's part was also tried on films made with KNOW, with SLIPS, with SEEN, and on your cinderella-beautified scene with MEND, KNOW and CHANGE. With KNOW, SLIPS and SEEN the godmother's part is 5.97 seconds, not 3.98, and runs 7 seconds in the film, not 3.75: met, the scene 30 frames each time (the Meeting and Justice 183 and 90 with KNOW, 175 and 80 with SLIPS, 208 and 116 with SEEN). In cinderella-beautified the godmother's transforming of Cinderella, 20.27 seconds, is held to 30, the most the story gives it (12 to 30): partly met, 124 frames, and the scenes after it filmed again.
+"Too quick" on No Longer Kept Apart's part was also tried (before FIT) on films made with KNOW, with SLIPS, with SEEN, and on your cinderella-beautified scene with MEND, KNOW and CHANGE. With KNOW, SLIPS and SEEN the godmother's part is 5.97 seconds, not 3.98, and runs 7 seconds in the film, not 3.75: met, the scene 30 frames each time (the Meeting and Justice 183 and 90 with KNOW, 175 and 80 with SLIPS, 208 and 116 with SEEN). In cinderella-beautified the godmother's transforming of Cinderella, 20.27 seconds, is held to 30, the most the story gives it (12 to 30): partly met, 124 frames, and the scenes after it filmed again.
 
 ## For the page
 
@@ -168,8 +170,8 @@ In `rejected-suggestions`, beside your reasons: `(vetoed-by-you c1)`, "vetoed by
 | `intro-apart` | 151, 116, 17, 179, 84 (all four kept) |
 | `intro-convey-veto` | 151, 116, 17, 179, 84 (all four kept) |
 | `intro-convey-veto-know` | 154, 116, 17, 179, 84 (kept; KNOW's 225, ...) |
-| `intro-apart-slips` | 209, 116, 10, 180, 96 (SLIPS' 230, 107, 17, 175, 84) |
-| `intro-apart-slips-far` | 209, 121, 18, 173, 96 |
+| `intro-apart-slips` | 222, 98, 20, 192, 74 (SLIPS' 250, 122, 34, 185, 73, with FIT) |
+| `intro-apart-slips-far` | 222, 114, 33, 183, 85 |
 | `ka-too-slow` | -, 110, 19, 175, 82 |
 | `meeting-apart` | -, -, -, 125, 112 |
 | `ka-veto-guard` | -, 116, 17, 179, 84 (Ani stops in Kept Apart: it and the rest kept) |
@@ -179,6 +181,8 @@ In `rejected-suggestions`, beside your reasons: `(vetoed-by-you c1)`, "vetoed by
 | `nlka-veto-none` | -, -, 2, 191, 90 |
 | `nlka-joy-far` (your story with the joy, made to No Longer Kept Apart) | -, -, 49 (49 without the criticism, the godmother beside Cinderella) |
 | `meeting-far` | -, -, -, 179, 84 (kept) |
+| `nlka-too-quick-fit` (from FIT's film: 192, 121, 35, 206, 66) | -, -, 50, 206, 66 |
+| `nlka-too-slow-fit` | -, -, 35, 206, 66 (all three planned again and kept) |
 
 At 24 frames a second, as the film was shot (`node tools/check-critic.mjs --fps 24`, goldens in `24fps/`, your two examples): the film at 24 made with its files kept (`24fps/base-files.json`, `--make-base`, its frames and events checked against `reports/film/24fps`), then each remade at 24:
 
@@ -191,6 +195,21 @@ At 24 frames a second, as the film was shot (`node tools/check-critic.mjs --fps 
 | `intro-apart` | 667, 701, 113, 1051, 458 (all four kept) |
 | `ka-apart-alone` | -, 701, 113, 1051, 458 (all kept) |
 
+## CRITIC with FIT (17 October)
+
+By your decisions of 16 and 17 October FIT (`reports/ext/fit/README.md`: a scene keeps the time its length gives it, a stretched walk takes its stretch once, a character's dynamics their parent's factors once) is on with the revival's extensions, the page's switch among them, and never in "Ani as in 1978".
+
+**A remake uses the film's own extensions, so a film made with FIT is remade with FIT.** `remakeFilmSteps` takes `previous.extensions` (with what they require: SLIPS brings FIT) and adds only CRITIC and MEND; a film made with the page's set is remade with the page's set, FIT among it, and a film made as in 1978 is remade as in 1978, with MEND, never FIT. That is as it should be: what is criticized is how Ani made that film, and a remake with other extensions would change scenes the criticism never touched (the remake would plan and film every scene again, `sameDirector`), and would remake a film made as in 1978 with corrections you decided are never to be in it. Every example from your 1978 film is as it was.
+
+**What changed.** `intro-apart-slips` and `intro-apart-slips-far` remake the film with KNOW and SLIPS, `reports/ext/slips`, which since your decision of 16 October is made with FIT (SLIPS requires it: `tools/critic-base.mjs filmWith("slips")` now lists it), so their goldens were saved again:
+- *The film remade from* is SLIPS' with FIT: 250, 122, 34, 185 and 73 frames (230, 107, 17, 175 and 84).
+- *`intro-apart-slips`*: 222, 98, 20, 192 and 74 (209, 116, 10, 180 and 96). The Introduction is planned as before (Cinderella helps and follows her stepmother, the Prince never on the stage); it is longer, its stretched walks taking their stretch once and the pushing no longer speeding up push by push (S16, S8). Kept Apart, planned 29.75 seconds, is held to 30 (`scene-time-kept`), the guard keeping her pace (S8) and ending sooner: 98 frames. No Longer Kept Apart, which starts where Kept Apart now leaves everyone, is held to its least, 10 seconds, and films in 20 frames (10), the accompanying ending sooner than planned. The Meeting and Justice start elsewhere. Kept apart: still partly met, at 0.092 of the screen at frame 14 (0.055 at frame 15): Cinderella's first escape towards the Prince ends at frame 13 and the Prince, walking across as the guard's "more interesting" walk, passes her at 14. `check-critic`'s test of that closest approach now takes her escape as running then or just ended (within half a second).
+- *`intro-apart-slips-far`*: 222, 114, 33, 183 and 85 (209, 121, 18, 173 and 96). The Prince placed far off and off the stage, walking on (start far met); they come within 0.245 of the screen at frame 60 (0.249 at 81), as she escapes towards him: keep apart partly.
+
+**"Too quick" in a FIT film** (`nlka-too-quick-fit`, from your Cinderella made with FIT, `reports/ext/fit`: 192, 121, 35, 206 and 66 frames). FIT holds No Longer Kept Apart to its least, 10 seconds; the pace then makes the godmother's part half as long again, **15 seconds**, within the task's allocated 3.92 to 18.92 and the scene's 10 to 25, the part stretched by 3.77 (2.51 with FIT alone): met, 50 frames (35), the Meeting and Justice 206 and 66. How the two wraps meet: CRITIC's are loaded after FIT's, so they are outside them. Your approve-or-remake-tasks-choices gives the task its ideal through ideal-time-for-task, which CRITIC paces, 3.98 to 5.97; FIT then holds the scene to its least, moving the task by your adjust-task-lengths, inside which CRITIC holds the pace off (so the adjustment works from your own times, 4.03 seconds, its most 6.95, and the part's stretch filling the rest, to 10); and CRITIC then paces the time the task ended up with, 10 to 15, as it paces after your own adjustment of a scene. The heeded note says so, `(too-quick 1.5 after (scene-adjusted 4.03))`, beside FIT's own `scene-time-kept` (planned 5.97, held to 10); the page says the revival had first held the scene to the time its length gives it (FIT), which gave the part 10 seconds.
+
+**Where they fought, and the fix.** "Too slow" on the same part paced FIT's 10 seconds down to 6.67, under the scene's least: CRITIC undid FIT's hold, and FIT's note still said 10. The pace is bounded by the story (the task's allocated time) so that a criticism never overrides the film description, and with FIT the scene's length-bounds are the story's too. So REVIVE;CRITPC now keeps the scene within its length-bounds when FIT keeps the scene's time (its piece s15 on): a pace moves the scene's time no further than its least ("too slow") or its most ("too quick"), and where that bound held it the note names it, `held-to (length-bounds 10.0 25.0)`. `nlka-too-slow-fit`: the part is already at the scene's least, so the criticism is not met, `(unmet-criticism: ... because (too-slow 0.66666667 held-to (length-bounds 10.0 25.0) after (scene-adjusted 6.0802)))`, and No Longer Kept Apart, the Meeting and Justice are planned again and kept; the page says "it already takes the least time your story gives it (10 to 25 s, the time your story gives this scene, which the revival holds it to)". Without FIT nothing changes (every other example's golden is as it was).
+
 ## The revival's choices, pending you
 
 Each is recorded in `reports/chapter-x/PLAN.md` for you to overrule:
@@ -200,7 +219,7 @@ Each is recorded in `reports/chapter-x/PLAN.md` for you to overrule:
 3. **A criticism is per film**: never carried into Ani's knowledge (question 8).
 4. **CRITIC is loaded on demand, with MEND, for any film including "Ani as in 1978"** (question 11). For your Cinderella MEND is byte for byte; for a new story made as in 1978, the scenes remade are planned with MEND's repairs.
 5. **Pass-1 criticism, when it comes (C6), holds everyone else** (question 1); HOLD's `hold-all-but-choice-points` is there, and with nothing freed gives CP 29.
-6. **CHOMET's redistribution (stage 7, question 2) left unsettled**: No Longer Kept Apart's "too quick" golden would change if you answered it.
+6. **CHOMET's redistribution (stage 7, question 2): settled by your decisions of 16 and 17 October**, as FIT, on with the revival's extensions and never in "Ani as in 1978". The examples made from your 1978 film are as they were (CRITIC loads MEND, never FIT); a film made with FIT is remade with it, and "too quick" paces from the time FIT keeps (below, "CRITIC with FIT").
 7. **Internal self-criticism left out** (question 9).
 8. **Keep-apart is a contact table read from your code**: walks to contact and walks together. A walk to someone's vicinity that isn't to contact (your guard's prisoner escaping towards the Prince) isn't counted, and the film's frames are checked instead (the outcome "partly"). Counting it would set aside stands-guard, and with it Kept Apart's own convey task ("the stepmother prevents Cinderella meeting the Prince"), when one asks for them to be kept apart there.
 9. **Start far acts in all three of PLACE's placings** (the design named place-medium-distance-apart), so that it reaches a pair placed a large or a small distance apart too (move-small-part-towards, follows-behind); and only where the one to start far is first placed in the scene, with no part in it yet.

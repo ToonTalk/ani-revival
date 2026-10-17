@@ -53,6 +53,19 @@
 ;;; adjustment when it was paced again after Ken's adjustment; and
 ;;;   (unmet-criticism: id c2 what pace was 3.98 because (too-quick 1.5 held-to ...))
 ;;; when the bound left nothing to do. The note's now is the time the task runs.
+;;;
+;;; With FIT (REVIVE;FIT, Ken's decision of 16 October), on with the revival's
+;;; extensions, a scene keeps the time its length gives it: once approve-or-remake-tasks-
+;;; choices has given the tasks their times, FIT holds a scene planned short of its least
+;;; (or past its most) to the bound, moving its tasks by Ken's adjust-task-lengths (with
+;;; the pace held off, as for Ken's own adjustment) and stretching its parts. The pace
+;;; then works from the time FIT left the task, as from Ken's adjustment ("too quick" on
+;;; No Longer Kept Apart's part, held by FIT to the scene's 10 seconds, makes it 15), and
+;;; it keeps the scene within its length-bounds, no further, as FIT does: a "too slow" on
+;;; a part of a scene FIT holds at its least is not met, held to the scene's
+;;; length-bounds, (held-to (length-bounds 10.0 25.0)); the scene's length in the story
+;;; is the user's to change. Without that bound the pace undid FIT's hold, No Longer Kept
+;;; Apart "too slow" coming out 6.67 seconds against its least of 10.
 
 (or (boundp ':critic-adjusting) (setq :critic-adjusting nil)) ;;inside adjust-task-lengths
 
@@ -64,13 +77,14 @@
 		  (memq (ask ,task recall your status) '(cant-do being-handled-by-convey-tasks)))
 	      time)
 	     (t (let ((c (first (critic-for-task 'pace task))))
-		     (cond (c (critic-paced task c time nil))
+		     (cond (c (critic-paced task c time nil nil))
 			   (t time)))))))
 
 ;; The time the criticism gives the task, from the time Ken's code gave it, bounded,
 ;; and the note of it; after, the scene's adjustment, if Ken's adjust-task-lengths gave
-;; it that time.
-(defun critic-paced (task c time after)
+;; it that time; room, with FIT, (least most r): the scene's length-bounds, and how far
+;; the scene's time can move towards the one the pace moves it to.
+(defun critic-paced (task c time after room)
   (let ((factor (float (get c 'factor)))
 	(bounds (ask ,task recall your allocated-time))
 	(ideal (critic-ideal-of task))
@@ -84,10 +98,18 @@
 				    (t (> (//$ ideal 8.0) bottom)))))
 		 (let ((most (cond ((and by-stretch (> factor 1.0)) (*$ 8.0 ideal)) (t top)))
 		       (least (cond ((and by-stretch (not (> factor 1.0))) (//$ ideal 8.0)) (t bottom))))
+		      ;;with FIT, the scene's length-bounds, where nearer
+		      (let ((by-scene (and room
+					   (cond ((> factor 1.0) (< (+$ (float time) (third room)) most))
+						 (t (> (-$ (float time) (third room)) least))))))
+			   (cond (by-scene (cond ((> factor 1.0) (setq most (+$ (float time) (third room))))
+						 (t (setq least (-$ (float time) (third room)))))))
 		      (let ((new (cond ((> factor 1.0) (max time (min wanted most)))
 				       (t (min time (max wanted least))))))
 			   (let ((because (append (list direction factor)
 						  (cond ((= new wanted) nil)
+							(by-scene
+							 (list 'held-to (list 'length-bounds (first room) (second room))))
 							(by-stretch
 							 (list 'held-to (list 'stretch (cond ((> factor 1.0) 8.0) (t .125)))))
 							(t (list 'held-to (cons 'allocated-time bounds))))
@@ -95,7 +117,7 @@
 				(putprop task new 'critic-paced-to)
 				(cond ((= new time) (critic-unmet task c 'pace time because))
 				      (t (critic-heeded task c 'pace time new because)))
-				new)))))))
+				new))))))))
 
 ;; The ideal of the task's ways of showing, as SCENE stretches a part by it
 ;; (maximum-ideal-time-of, scene.9:185-198), or nil if it has none.
@@ -130,7 +152,8 @@
 				 (memq (ask ,task recall your status) '(cant-do being-handled-by-convey-tasks))
 				 (let ((paced (get task 'critic-paced-to)))
 				      (and (numberp paced) (= paced time)))))
-			    (t (let ((new (critic-paced task c time (get scene 'critic-adjusted-by))))
+			    (t (let ((new (critic-paced task c time (get scene 'critic-adjusted-by)
+							(critic-scene-room scene (float (get c 'factor))))))
 				    (cond ((not (= new time))
 					   (ask ,task set your running-time to ,new)
 					   (let ((total (ask ,scene recall your running-time)))
@@ -138,6 +161,20 @@
 						     (ask ,scene set your running-time to
 							  ,(+$ (float total) (-$ new time)))))))))))))
 	(ask ,scene recall your tasks)))
+
+;; With FIT keeping the scene's time (REVIVE;FIT's keep-the-scene-time, its piece s15 on),
+;; (least most r): the scene's length-bounds and how far its time can move the way the
+;; pace moves it, up to its most for "too quick", down to its least for "too slow"; else
+;; nil, and the pace is bounded as without FIT.
+(defun critic-scene-room (scene factor)
+  (and (get 'keep-the-scene-time 'expr)
+       (fit-on? 's15)
+       (let (((least most) (ask ,scene recall your length-bounds))
+	     (total (ask ,scene recall your running-time)))
+	    (and (numberp least) (numberp most) (numberp total)
+		 (list least most
+		       (max 0.0 (cond ((> factor 1.0) (-$ (float most) (float total)))
+				      (t (-$ (float total) (float least))))))))))
 
 (+after-load '|ken;chomet >|
   '(progn (revival-wrap 'ideal-time-for-task 'critpc 'ideal-time-for-task-heeding-criticism)

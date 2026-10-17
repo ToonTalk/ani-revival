@@ -5,9 +5,10 @@
 // POSIT file as reports/pass2/ has them, as filesOf keeps them), its glass boxes
 // reports/pass2/<scene>.glass.json, its films reports/film/<scene>.film.json and its
 // choice points app/data/pass1.json's. With extensions whose goldens tools/check-ext.mjs
-// keeps (filmWith: KNOW's in reports/ext/know, SLIPS's in reports/ext/slips), the scenes'
-// files, glass boxes and films are those, and KEN;CP 30 is pass 1's as in 1978 (KNOW and
-// SLIPS choose as Ken's Cinderella did, which check-ext checks). tools/check-critic.mjs
+// keeps (filmWith: KNOW's in reports/ext/know, SLIPS's in reports/ext/slips, FIT's in
+// reports/ext/fit), the scenes' files, glass boxes and films are those, and KEN;CP 30 is
+// pass 1's as in 1978 (KNOW, SLIPS and FIT choose as Ken's Cinderella did, which
+// check-ext checks). tools/check-critic.mjs
 // and test/critic*.test.js remake them.
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -49,10 +50,11 @@ export function film1978at24(root = process.cwd()) {
   };
 }
 
-// with: "know" (KNOW, with MEND) or "slips" (SLIPS, with KNOW and MEND)
+// with: "know" (KNOW, with MEND), "slips" (SLIPS, with KNOW, FIT and MEND: SLIPS requires
+// FIT since Ken's decision of 16 October) or "fit" (FIT, with MEND: reports/ext/fit)
 export function filmWith(with_, root = process.cwd()) {
   const dir = `reports/ext/${with_}`;
-  const extensions = { know: ["mend", "know"], slips: ["mend", "know", "slips"] }[with_];
+  const extensions = { know: ["mend", "know"], slips: ["mend", "know", "fit", "slips"], fit: ["mend", "fit"] }[with_];
   if (!extensions) throw new Error(`no goldens of a whole film with ${with_} to remake`);
   return film(root, dir, dir, dir, extensions);
 }
