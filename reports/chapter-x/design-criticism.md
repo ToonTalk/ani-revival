@@ -79,7 +79,7 @@ The stages come to about 21 working days.
 
 ### 3. The criticism record
 
-**Recommendation: a new extension, REVIVE;CRITIC, loaded on demand.** It is loaded only into the jobs of a film that carries criticism, beside whatever extensions that film was made with (none, for a criticized "Ani as in 1978" film). It is not one of the switch's set, since without criticism it does nothing. The "Which extensions" panel lists it, ticked and greyed, on a film that has criticism: "Your criticism (CRITIC)". Its registry entry:
+**Recommendation: a new extension, REVIVE;CRITIC, loaded on demand.** It is loaded only into the jobs of a film that carries criticism, beside whatever extensions that film was made with (none, for a criticized "Ani as in 1978" film). It is not one of the switch's set, since without criticism it does nothing. The "Which extensions" panel lists it, ticked and greyed, on a film that has criticism: "Your criticism (CRITIC)". *As built:* the panel sets what the next film is made with, and that never includes CRITIC, so it lists CRITIC in a group of its own, never ticked; a film made with criticism says so where it says what it was made with. Its registry entry:
 
 ```js
 { id: "critic", label: "Your criticism", group: "criticism", files: ["wrap", "hold", "critic", "critpc", "critsc", "critpl", "critsf"],
@@ -114,6 +114,8 @@ The record is a list of JSON items kept on the run (`run.criticism`), which the 
 - **The record accumulates.** A remake of a remake carries every earlier criticism. A criticism can be withdrawn on the page, which makes the film again without it.
 - **Ani's own criticism** (kind 5) is in the same record with `by ani`, so the glass box can say "Ani criticized itself".
 - **Kept with the film.** `filmData` gains `criticism` and `remadeFrom` (the `print` of the film criticized), and `files`, the text of each intermediate file the remake reads: KEN;CP, each scene's program, MINI, PRINT and POSIT, and BECOME with CHANGE. That is 20–60 KB, which also makes a stored film remakeable from any scene. A film with criticism is film-file version 3 (save.js `runVersion`). Older pages refuse it with their own "made by a newer page" message (save.js:263) rather than silently dropping the criticism. Versions 1 and 2 are written exactly as now.
+
+  *As built (review of 17 October):* versions 1 and 2 are no longer written exactly as before. Every film the page makes keeps its working files, so that it can be remade with criticism later, and so a film file of version 1 or 2 now carries `files` (about 117,000 characters for Ken's Cinderella, some 9 KB of a film's gzip) and, for a film remade without criticism, `remadeFrom` and `remade`. Older pages ignore keys they don't know, so they still read these files. Version 3 is still the film with criticism.
 
 **Where each job reads it.** `boot()` gets a `criticism` option. When there are items, it writes KEN1;FILM CRITIC to the file system and evaluates `(load-criticism '((ken1) film critic))` after the extensions load. REVIVE;CRITIC defines `load-criticism`, which sets `:critic-record`. Each wrapper reads `:critic-record` and does nothing when it is nil.
 
@@ -572,7 +574,7 @@ Further findings:
 
 - **CHOMET's redistribution** moves allocated time in ways a veto can surprise (No Longer Kept Apart's (3.92 18.92) → (1.12 16.12)). The glass box must say "Ani moved this task's time to fit the way left", from `rejected-suggestions`' time reasons, or the remake looks arbitrary.
 - **The contact table** is a static reading of the code. The plan check after `run your methods` and Director's measured distance are the guards.
-- **Task identity by description** fails when a description occurs twice in one scene. The record then also carries the task's position among its scene's tasks with that description.
+- **Task identity by description** fails when a description occurs twice in one scene. The record then also carries the task's position among its scene's tasks with that description. *As built (17 October):* it carries the description of the task it came from instead (`source`, a pace's `sources`): a scene's list of tasks grows at the front as Ani chooses, so a task's position among those of its description can shift between the choosing and the glass box, where where it came from does not.
 - **Stored files** make version-3 films larger (20–60 KB). The library cap (40) and IndexedDB quota are unchanged. Measure.
 - **A pass-1 criticism replans all five scenes**: about 2 minutes at 4 frames a second in Node, much longer at 24 on the page. The byte-identical test spares unchanged scenes, but the Prince is in four of the five.
 - **Language models will propose criticisms of the wrong kind** (e.g. "make her sadder" as a pace). The check against the film and the user's confirmation of each pending item are the guards. Nothing a model says is applied unseen.
