@@ -161,16 +161,18 @@ test("Ken's Cinderella as in 1978 has still stretches: the Meeting's joys at 24 
 
 test("the revival's walks end on the picture, by the recorder's own segments (Ken's testing: Cinderella was on the picture)", () => {
   // the beautified scene: Cinderella's last walk of the transformation ends at frame 89 at
-  // Director's (-339.37, 195.05), which is on the picture, near its top left
+  // Director's (-339.37, 195.05), which is on the picture, near its top left (as Ken tested
+  // it; with FIT, since Ken's decisions of 16 and 17 October, at frame 95, at (-196.82,
+  // 176.71))
   const glass = json("reports/ext/change/beautified-film/cinderella-beautified.glass.json");
   const film = json("reports/ext/change/beautified-film/cinderella-beautified.film.json");
   assert.deepEqual(walksOffThePicture(glass, film, { fps: 4 }), []);
   // and a character none of whose lines reach the picture is off it
   const last = film.frames.length - 1;
-  const cut = { ...film, frames: film.frames.map((fr, i) => (i === 89 ? { ...fr, segs: { ...fr.segs, cinderella: undefined } } : fr)) };
+  const cut = { ...film, frames: film.frames.map((fr, i) => (i === 95 ? { ...fr, segs: { ...fr.segs, cinderella: undefined } } : fr)) };
   const off = walksOffThePicture(glass, cut, { fps: 4 });
-  assert.ok(off.some((w) => w.character === "cinderella" && w.frame === 89), JSON.stringify(off));
-  assert.ok(last > 89);
+  assert.ok(off.some((w) => w.character === "cinderella" && w.frame === 95), JSON.stringify(off));
+  assert.ok(last > 95);
 });
 
 test("why an activity lasts as long as it does: its task, method, estimate, part, stops and how it ended", () => {

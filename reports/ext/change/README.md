@@ -125,7 +125,7 @@ Each story is made as the film page makes it: change-of-heart and socializing wi
 |---|---|---|
 | change-of-heart | At Home 108, Change of Heart 62 (52 before the review of stage 6), Kind Again 29 | At Home 769, Change of Heart 422 (395), Kind Again 167 |
 | socializing | The Wallflower 69, Learning to Socialize 72 (68), The Dance 59 (64) | The Wallflower 414, Learning to Socialize 406 (406), The Dance 544 (543) |
-| beautified-film | Introduction 171, Kept Apart 116, Cinderella Beautified 137, No Longer Kept Apart 18, Meeting 190, Justice 155 (since Ken's testing, with SEEN; before, 20, 193 and 90 for the last three) | Introduction 950, Kept Apart 701, Cinderella Beautified 820, No Longer Kept Apart 76, Meeting 1,052, Justice 942 (before, 116, 920 and 420 for the last three) |
+| beautified-film | Introduction 266, Kept Apart 120, Cinderella Beautified 138, No Longer Kept Apart 34, Meeting 186, Justice 107 (since Ken's decisions of 16 and 17 October, with FIT, "With FIT" below; with FIT as first made 263, 116, 138, 45, 188 and 142; with SEEN, 171, 116, 137, 18, 190 and 155; before, 20, 193 and 90 for the last three) | Introduction 1,536, Kept Apart 724, Cinderella Beautified 824, No Longer Kept Apart 158, Meeting 1,051, Justice 799 (with FIT; as first made 1,433, 701, 824, 275, 1,063 and 951; with SEEN, 950, 701, 820, 76, 1,052 and 942; before, 116, 920 and 420 for the last three) |
 
 **With APPEAR's colors and look changes (stage 5, 14 October).** The stories' goldens were made again when APPEAR came to choose colors and change looks (`reports/ext/appear/README.md`). Every frame and event of all six scenes was as it was. What changed: each program's take-look forms carry the character's `look-color`; each joy task has one more method, a `look-change:` of its character's color intensity, by the joy's amount at its speed, and its subscene one more change, `(gradually change look by ...)`; the summaries list those methods, and the glass boxes them and their `lookChanges`; each film's `looks` has each character's color, and its changes. And again on 14 October, for Ken's decision 11 (his uniqueness rule for hues): the stepmother blue and the fairy godmother orange where they were orange and purple.
 
@@ -396,6 +396,32 @@ At 24 frames a second (`beautified-film/24fps/`), 950, 701, 820, 76, 1,052 and 9
 | Justice | 942 | 420 | it starts where the Meeting now leaves them, Cinderella near the middle, (0.03, 0.00), and the Prince at (-0.26, -0.27), where before they ended touching; Ani plans it as before, and Director takes about twice as long over their comings together and movings apart from there (as with SEEN alone, `reports/ext/seen/README.md`) |
 
 The glass box of Cinderella Beautified has `wanders` and two `nothing-to-do` notes, and its film `film-waited-for-wander` notes (at 4 frames a second, frames 92 and 109: the transformation's part ending at 91, and Cinderella's wander at 108, each asked Director to stop the film while a wander was still to show a change); the Meeting's, the same for Cinderella and the Prince. `tools/check-still.mjs` finds no still stretch in the beautified film at either rate but your Director's repeats unwinding at 4 frames a second (the Introduction's hits, the Meeting's turns).
+
+## With FIT (16 October)
+
+By Ken's decision of 16 October the page's switch turns on FIT too (`reports/ext/fit/README.md`: a scene keeps the time its length gives it, CHOMET's slips corrected, SLIPS' S15), so the beautified film is now made with the page's set and FIT (`check-change`'s `beautified-film`). Change of Heart and Learning to Socialize, made with MEND, APPEAR and CHANGE, are as they were. What changed, and why:
+
+| Scene | 4 a second | Before | 24 a second | Before | Why |
+|---|---|---|---|---|---|
+| Introduction | 263 | 171 | 1,433 | 950 | **Cinderella helps the Prince** (part 5, frames 126 to 226; 653 to 1,190 at 24). With KNOW her helping is shown by helps-along, whose ideal, 21.76 seconds, is more than the task's share of this six-scene film, 10; your time-fit-score-1 rejects it as `(need-more-time: ideal-difference 11.76 will-accept 0.324)`, and your resurect-bad-time-fits, looking for `more-time-needed:` (`chomet.123:193, 413`), never brought it back, so the task was "can't do" and its part took no time. FIT hears it (`need-more-time-heard`), the task is given 11.88 seconds more, and the scene, then 62.38 seconds against its most of 60, is held to 60, every part a little shorter (`scene-time-kept`) |
+| Kept Apart | 116 | 116 | 701 | 701 | as before, frame for frame: 29.75 seconds is within this film's 24 to 60 (its glass box differs only in a distance measured from where the Introduction now leaves Cinderella and the Prince) |
+| Cinderella Beautified | 138 | 137 | 824 | 820 | planned 23.74 seconds against its least of 24, held to 24 (`scene-time-kept`): the transformation's part stretched by 1.18, not 1.17 |
+| No Longer Kept Apart | 45 | 18 | 275 | 76 | planned 3.98 seconds against its least of 8 (8 to 20 in this film), held to 8 (`scene-time-kept`, `task-time-bound`: within its most, 6.95), the godmother's accompanying stretched by 2.01; as in Ken's five-scene film she accompanies Cinderella towards the Prince and stops short of him (178 dots at 4 a second), her stretched walk taking its stretch twice (FIT's README, decision 2) |
+| Meeting | 188 | 190 | 1,063 | 1,052 | planned as before; it starts from where No Longer Kept Apart now leaves them |
+| Justice | 142 | 155 | 951 | 942 | planned as before; it starts from where the Meeting now leaves them |
+
+`moves-differently.json` (No Longer Kept Apart planned again without learning who Cinderella has become) changes with the scene. The page's beautified preset films in these frames (FIT's README, "For the page").
+
+**Since Ken's decision 13 (17 October)** FIT also takes a stretched walk's stretch once (S16) and has S8 (a character's dynamics take their parent's factors once), and, with SEEN, a repeat that now keeps its pace is waited for before a feeling's characters wander (`reports/ext/fit/README.md`). The beautified film is now 266, 120, 138, 34, 186 and 107 frames at 4 a second, and 1,536, 724, 824, 158, 1,051 and 799 at 24 (the table above is FIT as first made):
+
+| Scene | 4 a second | 24 a second | Why, beside the table above |
+|---|---|---|---|
+| Introduction | 266 | 1,536 | the stepmother's pushing (part 2), sped up to fit its time, takes its speed-up once (S16) and no longer speeds up push by push (S8); Cinderella still helps the Prince (part 5) |
+| Kept Apart | 120 | 724 | the guard's walks take their stretch once and keep their pace (S16, S8), and the guard ends before the feelings, which Cinderella and the stepmother then wander through (SEEN, with S8) |
+| Cinderella Beautified | 138 | 824 | as with FIT first made: held to 24 seconds |
+| No Longer Kept Apart | 34 | 158 | held to 8 seconds; the godmother's accompanying takes its stretch (2.01) once, and brings Cinderella within 66 dots of the Prince (53 at 24), ending when the godmother is at his place, sooner than planned |
+| Meeting | 186 | 1,051 | planned as before; starts elsewhere, its stretched walks taking the stretch once |
+| Justice | 107 | 799 | planned as before; starts elsewhere, its stretched walks taking the stretch once (Cinderella's and the Prince's, slowed by a half, at 0.35, not 0.175) |
 
 ## For the page: why they act as they do
 

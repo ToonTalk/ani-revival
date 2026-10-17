@@ -76,12 +76,24 @@
 //     and in each scene no part of only changes in which no one moves for more than a
 //     second (src/pipeline.js whyTheyAct's stills, "only-changes"); reports/ext/seen/
 //     README.md says how and why the films differ from 1978's.
+// For FIT (--extensions fit, with MEND, which it requires), CHOMET's slips in dividing a
+// scene's time corrected (REVIVE;FIT, SLIPS' S15, Ken's decision of 16 October 2026), it
+// asserts:
+//   - pass 1 as for DETAIL: as 1978's, with no notes;
+//   - pass 2, scene by scene, each starting from where the 1978 film left the
+//     characters: the scenes FIT doesn't change there (FIT_CHANGES) as 1978's
+//     reports/pass2; Kept Apart (29.75 s planned, held to its least, 30), No Longer
+//     Kept Apart (3.98 s, held to 10), and the Meeting and Justice, whose stretched
+//     walks keep the parent's factor in them (S16, REVIVE;FITSTR), in
+//     reports/ext/fit/from-1978/;
+//   - the whole film, chained, as for APPEAR, against reports/ext/fit/ (or its 24fps/);
+//     reports/ext/fit/README.md says how and why the films differ from 1978's.
 // For each, in each scene of the chained film, every walk the revival planned ends with
 // its characters on the picture (src/pipeline.js walksOffThePicture: the film's segments
 // are the picture's own dots, and a character none of whose lines reach it has none).
 // The goldens are in reports/ext/<the ids of the extensions that change Cinderella>, but
 // SLIPS's in reports/ext/slips/ and DETAIL's in reports/ext/detail/.
-// Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail|seen] [--quick] [--fps 24] [--save]
+// Usage: node tools/check-ext.mjs [--extensions appear|know|slips|detail|seen|fit] [--quick] [--fps 24] [--save]
 //   --quick  skip the chained film (about three of its four minutes)
 //   --fps 24 film the chain at 24 frames a second, as the film page does by default,
 //            against reports/ext/<ids>/24fps instead (pass 1 is checked as at 4; pass 2
@@ -102,11 +114,11 @@ const chosen = extensionsFor((opt("--extensions") || "appear").split(",").filter
 const extensions = chosen.map((e) => e.id);
 if (!chosen.some((e) => e.changes1978)) throw new Error(`none of ${extensions.join(", ")} changes Ken's Cinderella: tools/check-1978.mjs --extensions ${extensions.join(",")} checks it`);
 // what this check knows each should make: APPEAR's, KNOW's, SLIPS's (with KNOW),
-// DETAIL's or SEEN's, one at a time
-const KINDS = ["appear", "know", "slips", "detail", "seen"];
-const asked = KINDS.filter((k) => extensions.includes(k) && !(k === "know" && extensions.includes("slips")));
+// DETAIL's, SEEN's or FIT's, one at a time (SLIPS requires KNOW and FIT)
+const KINDS = ["appear", "know", "slips", "detail", "seen", "fit"];
+const asked = KINDS.filter((k) => extensions.includes(k) && !((k === "know" || k === "fit") && extensions.includes("slips")));
 const kind = asked.length === 1 ? asked[0] : null;
-if (!kind) throw new Error("tools/check-ext.mjs knows what APPEAR should make, what KNOW should, what SLIPS should (with KNOW, which it requires), what DETAIL should and what SEEN should; give it --extensions with one of appear, know, slips, detail and seen");
+if (!kind) throw new Error("tools/check-ext.mjs knows what APPEAR should make, what KNOW should, what SLIPS should (with KNOW, which it requires), what DETAIL should, what SEEN should and what FIT should; give it --extensions with one of appear, know, slips, detail, seen and fit");
 const quick = args.includes("--quick");
 const save = args.includes("--save");
 const fps = opt("--fps") === null ? 4 : Number(opt("--fps"));
@@ -284,10 +296,10 @@ if (kind === "know") {
   check("pass 1: no repair notes", (p1.value.repairs || []).length ? `${p1.value.repairs.length}, the first ${JSON.stringify(p1.value.repairs[0])}` : null);
 }
 // SLIPS: pass 1 as 1978's, but for what three of Cinderella's choice points hear
-// (REVIVE;SLIPS3); DETAIL and SEEN: as 1978's
+// (REVIVE;SLIPS3); DETAIL, SEEN and FIT: as 1978's
 const TENDENCIES = ["attraction-towards-strangers", "attraction-towards-enemies", "attraction-towards-friends"];
 const SLIPS_PASS1 = TENDENCIES.map((e) => JSON.stringify(["choice-point-of", "cinderella", e]));
-if (kind === "slips" || kind === "detail" || kind === "seen") {
+if (kind === "slips" || kind === "detail" || kind === "seen" || kind === "fit") {
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
   const theirs = choicesOfItsFile("original/7005017/cp.29");
   const c = compareChoices(theirs, ours);
@@ -439,15 +451,20 @@ if (fps === 4 && kind === "know") {
   }
 }
 
-// For SLIPS, DETAIL and SEEN: each scene planned from where the 1978 film left the
+// For SLIPS, DETAIL, SEEN and FIT: each scene planned from where the 1978 film left the
 // characters. The scenes each changes have their files in <dir>/from-1978/; the others
 // are as the reference has them: for SLIPS, KNOW's (its from-1978/ for the scenes KNOW
-// changes, else 1978's reports/pass2), for DETAIL and SEEN 1978's.
-const SLIPS_CHANGES = ["introduction"]; // S1; the other corrections act in Director
+// changes, else 1978's reports/pass2), for DETAIL, SEEN and FIT 1978's.
+// SLIPS: S1, and FIT's S15 holding Kept Apart and No Longer Kept Apart to their least and
+// S16 keeping the parent's factor a stretched walk has in it, (speed from-parent), in the
+// Meeting's and Justice's programs; the other corrections act in Director
+const SLIPS_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"];
+// 29.75 s held to 30, and 3.98 to 10; and S16's (speed from-parent) in the Meeting and Justice
+const FIT_CHANGES = ["kept-apart", "no-longer-kept-apart", "meeting", "justice"];
 const DETAIL_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"]; // the tendencies' notes, and the rhythm's changes
 const SEEN_CHANGES = ["meeting"]; // the joys of its last part; Kept Apart's are carried by the standing guard, a repeat
-if (fps === 4 && (kind === "slips" || kind === "detail" || kind === "seen")) {
-  const changes = kind === "slips" ? SLIPS_CHANGES : kind === "seen" ? SEEN_CHANGES : DETAIL_CHANGES;
+if (fps === 4 && (kind === "slips" || kind === "detail" || kind === "seen" || kind === "fit")) {
+  const changes = kind === "slips" ? SLIPS_CHANGES : kind === "seen" ? SEEN_CHANGES : kind === "fit" ? FIT_CHANGES : DETAIL_CHANGES;
   const fs2 = makeProjectFileSystem();
   fs2.addFile("KEN", "CP", "30", { text: cp, origin: "pass 1 of this check" });
   for (const f of readdirSync("reports/pass2")) {
