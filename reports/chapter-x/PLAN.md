@@ -13,6 +13,10 @@ And one since, built in stages C0 to C3 on 16 October ("Criticism (CRITIC)", bel
 
 - [Ani responds to criticism of its films (thesis Chapter X.D, "Critics and Criticism"), as the switchable REVIVE;CRITIC extension](design-criticism.md)
 
+And one built on 17 October ("Teaching Ani (TEACH)", below):
+
+- [Teach Ani: a learner adds to Ani's knowledge (Ken's "Three Interactions between AI and Education", 1977, and AI-TR-540 pp. 149-150), as the learner's own knowledge, loaded by the switchable REVIVE;TEACH](design-teaching.md)
+
 ## How the work is organized
 
 All new behavior is Lisp inside Ani, written in your idioms, in switchable files under `src/director/revive/`. Ani's own choice points, methods and records do the reasoning, so the existing glass box can explain the results. All four designs rejected a JavaScript layer wrapped around Ani, because the glass box would then explain our code instead of Ani's. The Agent Kit's mini-Ani is a separate teaching miniature and shares no code with the revival.
@@ -468,6 +472,32 @@ Each is the revival's choice, pending Ken, as the design recommended; say if you
 10. **A part of tasks run in parallel is paced as a whole** (each of its tasks given its new time), where the design had only a task on its own (design section 4.1): the revival's choice, pending Ken.
 11. **A veto whose only way left would stop Ani is offered all the same, with a caution**, and a remake in which Ani stops keeps the film as it was from that scene on (review M1): the revival's choice, pending Ken. The other choice was not to offer it; the page can't know beforehand for certain whether Ken's chases-to will stop, since that depends on where PLACE has the characters when it runs.
 12. **A task named twice in a scene is told apart by the task it came from**, not by its position (design "Risks"): the revival's choice, pending Ken.
+
+## Teaching Ani (TEACH), 17 October
+
+The design is [design-teaching.md](design-teaching.md), from Ken's note on p. 7 of "Three Interactions between AI and Education" (1977, Machine Intelligence 8, p. 428, now in `sources/text/kahn-1977-three-interactions-MI8.txt`): "note the idea that a student might add to the system's knowledge. Perhaps we need an interface where that can be done with Ani." Ken said "yes queue it", with the design's recommended answers to its questions (below). REVIVE;TEACH is a switchable extension loaded on demand, as CRITIC is: the pipeline loads it, with MEND, into every job of a film made with a learner's notebooks, and never otherwise; the switch never turns it on. What it does, its examples and what the page needs are in [reports/ext/teach/README.md](../ext/teach/README.md).
+
+- **Built (the Lisp, pipeline and tools side of T0 to T4 and T7a).** A learner's notebook (JSON, each piece with its reason) is written by `src/teach.js` `notebookToLisp` as `YOURS;N1 KNOW` in Ken's notation, every line explained, and loaded after the extensions (`boot`'s `knowledge`; `makeFilmSteps`, `remakeFilmSteps`, `aniNames`, `storyWithoutClashes` and every step take it): a word like another or its opposite; what a word suggests for moving, looking (with APPEAR) and showing itself in pass 2; a relationship word, how it is shown and how its two compare; another way of showing a verb, by REVIVE;TEACH's `also-show`, one additive wrapper on SUGCON's `gather-convey-suggestions` (`sugcon.26:57`); a feeling in KNOWEM's form; and a verb that is a kind of one of Ani's. Ani's own check (`checkKnowledge`, the trial job, with `check-your-knowledge` in the Lisp), a rehearsal on a little story (`rehearse`), "What your knowledge did" (`yourKnowledgeDid`, `knowledgeChanges`) and the index for the glass box (`yoursIndex`, shaped as `DATA.know`).
+- **The design's probes, as examples** (`tools/check-teach.mjs`, goldens in `reports/ext/teach/`): "grumpy" unknown changes the stepmother (226 frames); "grumpy is like mean" gives Ken's film back frame for frame (every scene equal to KNOW's goldens, CP 29's 102 choices); "speed low, medium" makes her medium, the only choice to change (234); "helping can look like going along with" shows, with Ani as in 1978 and MEND, the helping 1978 canceled (192 to 229); "green is jealous" makes her green and jagged and her following is set aside by CHOMET's preference for a way two of her words suggest (222 to 235; with is-jealous-of alone she follows her, 220); a feeling whose speed goes down is rejected beside joy's going up, as KNOW's first pride (decision 9); "teases", a kind of chasing, is shown by chasing (11).
+- **The 1978 contract.** No notebook, nothing changes. With TEACH and an empty notebook Ani as in 1978 is byte for byte (`check-1978 --extensions teach --knowledge reports/ext/teach/empty.ani-knowledge.json`), and so are the extensions' goldens (`check-ext --knowledge ...`). Ani as in 1978, MEND alone, the default set's goldens, CRITIC and FIT are unchanged.
+- Not built: the page's side (the panel, forms, chips and badges, "Make it with my knowledge", the pair panel, the library's "knowledge" store, the film file's `knowledge` field), the plain-English path (T6), "A then B" verbs and ways built from walks (T7b), editing as Lisp (T8), and the guides' cards.
+
+## Questions for Ken (teaching, 17 October)
+
+Each is the design's recommended answer, which Ken's "yes queue it" took; each is the revival's choice, pending Ken; say if you would have it otherwise.
+
+1. **The name: "Teach Ani", and what is taught "your knowledge"** (design question 1): the revival's choice, pending Ken. The registry's label is "Your knowledge", its group "yours".
+2. **TEACH requires MEND only, not KNOW** (question 2): the revival's choice, pending Ken. A piece that needs KNOW (following; KNOW's ways helps-along, moves-away-from and follows-behind; KNOW's words) says so, and a learner's own way gives a verb a way without KNOW, so "your knowledge against Ken's alone" is a clean experiment (the helping example is Ani as in 1978 with MEND).
+3. **Learners may add to Ken's words** (a suggestion for shy, a way of showing for is-polite-to), only adding, never removing or weakening, marked as theirs (question 3): the revival's choice, pending Ken. The generator never writes a define of a word Ani knows (it would replace it), and Ani's check refuses a notebook after which one of Ani's words has lost a suggestion.
+4. **The legitimacy rule is a question, not a gate, with the reason required** (question 4): the revival's choice, pending Ken. Only a piece naming a story's character is refused, as criticism, not knowledge (5).
+5. **A piece that names a story's character is refused**: "That's about this film's step mother, not about any character. To change this film, criticize it (Your criticism)." The revival's choice, pending Ken.
+6. **A verb is a kind of one of Ani's, shown as that verb is or by the learner's ways; no "A then B", no way of showing built from walks** (question 5): the revival's choice, pending Ken. The probe's sequence of two verbs isn't followed by CONVEY (`no-idea-how-to-convey-method`); that would need the revival's mechanism, not Ken's.
+7. **The plain-English path: translation only, second to the forms, and later** (question 6): the revival's choice, pending Ken. Not built.
+8. **Sharing by file only**, no server or gallery (question 7): the revival's choice, pending Ken.
+9. **Up to four notebooks in one film**, refused if two teach the same word (question 9): the revival's choice, pending Ken.
+10. **No editing a notebook as Lisp yet** (question 8): the revival's choice, pending Ken.
+11. **Not in the Agent Kit's mini-Ani for now** (question 10): the revival's choice, pending Ken.
+12. **Your 1977 paper** (question 11) is in `sources/text/kahn-1977-three-interactions-MI8.txt`; the README quotes it from there, p. 428.
 
 ## The questions as they were put
 
