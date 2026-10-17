@@ -60,8 +60,12 @@
 ;;;           of its own, on with the revival's extensions (Ken's decision of 16
 ;;;           October 2026), which SLIPS requires; its pieces are turned off with
 ;;;           :slips-off as these are, (s15) all four.
+;;;   S16     REVIVE;FITSTR  a stretched walk takes its stretch once: PLACE writes the
+;;;           parent's speed factor into the walk's own, and Director's demon multiplies it
+;;;           in again (place.45:455-461, dichar.103:27-31). FIT's, with S8 (REVIVE;SLIPS8,
+;;;           above), by Ken's decision 13 (17 October): on with the revival's extensions.
 ;;; (S13 and S14 were added after the review of stage 7, as was S8's counting a change
-;;; once; S15 at Ken's request of 16 October.)
+;;; once; S15 at Ken's request of 16 October; S16 by his decision of 17 October.)
 ;;;
 ;;; What SLIPS leaves alone, and why (reports/ext/slips/README.md has each):
 ;;;   S4      CINDY's is-protective-of (cindy.46:38), which RELATE doesn't know, is a
@@ -98,7 +102,8 @@
 ;;;              change grows the dynamics of the subscene where her first change was,
 ;;;              which no longer move her. Left as it is: S13 carries each change into
 ;;;              the walks of its own part, so the walks it was to reach take it.
-;;;            - A walk made by multiply-dynamics-by-factor has its parent's speed factor
+;;;            - (Corrected since Ken's decision 13, as S16, above.)
+;;;              A walk made by multiply-dynamics-by-factor has its parent's speed factor
 ;;;              in its own already (place.45:455-460), and the demon multiplies it in
 ;;;              again the first time the walk is set (dichar.103:27-31): the guard's
 ;;;              walks in Kept Apart move at 0.71 squared of the speed DISPLY planned for

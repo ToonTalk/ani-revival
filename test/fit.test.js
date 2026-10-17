@@ -24,7 +24,7 @@ test("the registry: FIT is a repair, on with the revival's extensions, requiring
   assert.equal(fit.group, "repairs");
   assert.ok(!fit.optIn);
   assert.equal(fit.changes1978, true);
-  assert.deepEqual(fit.files, ["wrap", "fit"]);
+  assert.deepEqual(fit.files, ["wrap", "fit", "fitstr", "slips8"]);
   assert.deepEqual(extensionsFor(["fit"]).map((e) => e.id), ["mend", "fit"]);
   assert.deepEqual(extensionsFor(["slips"]).map((e) => e.id), ["mend", "know", "fit", "slips"]);
 });
@@ -82,6 +82,30 @@ test("a scene with no length-bounds (no task of it ever given a share of them) i
   run("(define t-scene something)");
   assert.equal(run("(keep-the-scene-time 't-scene)"), "nil");
   assert.equal(run("(ask t-scene recall your running-time)"), "nil");
+});
+
+test("S16: a walk multiply-dynamics-by-factor makes keeps its parent's factor, and Director's demon takes it once; Ken's twice", () => {
+  const made = (off) => {
+    const L = boot(makeProjectFileSystem(), { extensions: ["fit"] });
+    const run = (src) => L.print(L.evalString(src)).toLowerCase();
+    run(`(setq :slips-off ${off})`);
+    for (const f of ["interf", "place"]) run(`(load '|ken;${f} >|)`);
+    run("(define t-parent special-dynamics (set your (speed factor) to 0.5))");
+    run("(setq t-child (multiply-dynamics-by-factor 't-parent 0.8))");
+    const written = run("(list (ask ,t-child recall your (speed factor)) (ask ,t-child recall your (speed from-parent)))");
+    run("(ask ,t-child multiply each of your variables matching (? factor) by those in t-parent)");
+    return { run, written, set: run("(list (ask ,t-child recall your (speed factor)) (ask ,t-child recall your (speed from-parent)))") };
+  };
+  const fit = made("nil");
+  assert.equal(fit.run("(mapcar 'car (get 'multiply-dynamics-by-factor 'revival-wraps))"), "(fitstr)");
+  // pass 2 writes Ken's 0.8 of 0.5, and keeps the 0.5 written into it
+  assert.equal(fit.written, "(0.4 0.5)");
+  // Director's demon, the first time: 0.8 of the parent's 0.5, once
+  assert.equal(fit.set, "(0.4 nil)");
+  // turned off, Ken's: 0.4 times the parent's 0.5 again
+  const ken = made("'(s16)");
+  assert.equal(ken.written, "(0.4 nil)");
+  assert.equal(ken.set, "(0.2 nil)");
 });
 
 test("each piece is wrapped once CHOMET loads, after MEND11's adjust-task-lengths; as in 1978 none is", () => {

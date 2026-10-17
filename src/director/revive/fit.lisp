@@ -7,7 +7,10 @@
 ;;; 2026 ("let's not change the revival film when 'Ani as in 1978' is selected -
 ;;; otherwise go ahead"), settling the question left for him with SLIPS (PLAN.md, stage 7
 ;;; question 2). It is the correction SLIPS numbers S15 (reports/ext/slips/README.md),
-;;; and SLIPS requires it. It requires MEND, whose MEND11 it keeps (below).
+;;; and SLIPS requires it. It requires MEND, whose MEND11 it keeps (below). By Ken's
+;;; decision 13 (17 October) FIT also loads REVIVE;FITSTR (S16, a stretched walk takes
+;;; its stretch once) and REVIVE;SLIPS8 (S8), which keep what the scene's time is filled
+;;; with.
 ;;;
 ;;; Ken's plan. "Ani tries to constrain the film to be a (user) desired length. Ani must
 ;;; often arbitrate between the different activities by stretching or shortening them.

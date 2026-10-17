@@ -82,8 +82,10 @@
 //   - pass 1 as for DETAIL: as 1978's, with no notes;
 //   - pass 2, scene by scene, each starting from where the 1978 film left the
 //     characters: the scenes FIT doesn't change there (FIT_CHANGES) as 1978's
-//     reports/pass2; Kept Apart (29.75 s planned, held to its least, 30) and No Longer
-//     Kept Apart (3.98 s, held to 10) in reports/ext/fit/from-1978/;
+//     reports/pass2; Kept Apart (29.75 s planned, held to its least, 30), No Longer
+//     Kept Apart (3.98 s, held to 10), and the Meeting and Justice, whose stretched
+//     walks keep the parent's factor in them (S16, REVIVE;FITSTR), in
+//     reports/ext/fit/from-1978/;
 //   - the whole film, chained, as for APPEAR, against reports/ext/fit/ (or its 24fps/);
 //     reports/ext/fit/README.md says how and why the films differ from 1978's.
 // For each, in each scene of the chained film, every walk the revival planned ends with
@@ -453,10 +455,12 @@ if (fps === 4 && kind === "know") {
 // characters. The scenes each changes have their files in <dir>/from-1978/; the others
 // are as the reference has them: for SLIPS, KNOW's (its from-1978/ for the scenes KNOW
 // changes, else 1978's reports/pass2), for DETAIL, SEEN and FIT 1978's.
-// SLIPS: S1, and S15 (FIT's) holding Kept Apart and No Longer Kept Apart to their least;
-// the other corrections act in Director
-const SLIPS_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart"];
-const FIT_CHANGES = ["kept-apart", "no-longer-kept-apart"]; // 29.75 s held to 30, and 3.98 to 10
+// SLIPS: S1, and FIT's S15 holding Kept Apart and No Longer Kept Apart to their least and
+// S16 keeping the parent's factor a stretched walk has in it, (speed from-parent), in the
+// Meeting's and Justice's programs; the other corrections act in Director
+const SLIPS_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"];
+// 29.75 s held to 30, and 3.98 to 10; and S16's (speed from-parent) in the Meeting and Justice
+const FIT_CHANGES = ["kept-apart", "no-longer-kept-apart", "meeting", "justice"];
 const DETAIL_CHANGES = ["introduction", "kept-apart", "no-longer-kept-apart", "meeting", "justice"]; // the tendencies' notes, and the rhythm's changes
 const SEEN_CHANGES = ["meeting"]; // the joys of its last part; Kept Apart's are carried by the standing guard, a repeat
 if (fps === 4 && (kind === "slips" || kind === "detail" || kind === "seen" || kind === "fit")) {
