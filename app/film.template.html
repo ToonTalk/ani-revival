@@ -1240,9 +1240,11 @@ function taskCode(t) {
 // and CHANGE (MEND, the repairs; KNOW, knowledge Ken could have added; APPEAR, Ani
 // choosing how its characters look; and CHANGE, characters who change), and, since Ken's
 // testing of 15 October, SEEN (a character with only a change of feeling wanders, so that
-// the change is seen: reports/ext/seen/README.md, a repair he approved); SLIPS and DETAIL
+// the change is seen: reports/ext/seen/README.md, a repair he approved), and, by his
+// decisions of 16 and 17 October, FIT (a scene keeps the time its length gives it, and a
+// stretched walk takes its stretch once: reports/ext/fit/README.md); SLIPS and DETAIL
 // are opt-in (the registry's optIn), off unless a visitor ticks them in the "Which
-// extensions" panel. The panel ticks the switch's five too, in its two groups (the
+// extensions" panel. The panel ticks the switch's six too, in its two groups (the
 // registry's group): ticking one ticks those it requires, and unticking one unticks those
 // that require it, so that ticking SLIPS in 1978 mode makes Ken's Cinderella as
 // reports/ext/slips/ has it (with KNOW and MEND), and DETAIL as reports/ext/detail/ (with
@@ -1250,7 +1252,7 @@ function taskCode(t) {
 // made here.
 const EXTENSIONS = DATA.extensions || [];
 const extNamed = (id) => EXTENSIONS.find((e) => e.id === id);
-const SWITCHED = ["mend", "know", "appear", "change", "seen"].filter((id) => extNamed(id));
+const SWITCHED = ["mend", "know", "appear", "change", "seen", "fit"].filter((id) => extNamed(id));
 // the order a run's extensions are listed in: the switch's, then the opt-in ones
 const EXT_ORDER = [...SWITCHED, ...EXTENSIONS.map((e) => e.id).filter((id) => !SWITCHED.includes(id))];
 // ids with those they require, in EXT_ORDER; and ids without x and whatever requires it
@@ -1311,6 +1313,7 @@ const switchChanges1978 = () => MODE === "revival" && CHOSEN.some((id) => extNam
 const MODE_CLAUSE = {
   mend: "goes on where Ken's stopped on a new story", know: "knows words, relationships, ways of showing and feelings Ken could have added", appear: "chooses each character's size, shape and colors, which Ken chose himself", change: "shows a change a story makes in a character, and takes a fresh look at who they have become",
   seen: "has a character whose only part is a change of feeling wander about while it runs, so that it is seen",
+  fit: "keeps each scene to the time its length gives it, a walk taking its stretch once",
   slips: "corrects slips in Ken's files",
   detail: "attends to a few of the thesis's “myriad details”",
 };
@@ -1321,8 +1324,8 @@ function modeNote() {
   return `With ${extensionsName(CHOSEN)}, Ani ${clauseList(CHOSEN.map((id) => MODE_CLAUSE[id]).filter(Boolean))}; the glass box says where each one acted.${switchChanges1978() ? " Ken's own Cinderella comes out differently with them: make it as it is to see." : " Ken's Cinderella comes out exactly as in 1978 with them."}`;
 }
 // The switch, beside the frame rate of the films made here: "Ani as in 1978", "Ani with the
-// revival's extensions" (the switch's five, and any opt-in ones ticked too), or, when the
-// ticks are some of the five and not all, a third setting, pressed, that says which ("Some
+// revival's extensions" (the switch's six, and any opt-in ones ticked too), or, when the
+// ticks are some of the six and not all, a third setting, pressed, that says which ("Some
 // of them: MEND, KNOW and SLIPS"); clicking it opens "Which extensions".
 const modeState = () => (MODE === "1978" ? "1978" : SWITCHED.every((id) => CHOSEN.includes(id)) ? "revival" : "some");
 function modeSwitch() {
@@ -1331,7 +1334,7 @@ function modeSwitch() {
   const some = m === "some" ? `<button type="button" data-mode="some" aria-pressed="true" title="Some of the revival's extensions are ticked, not all of the switch's: open “Which extensions” to see them">Some of them: ${esc(words(CHOSEN.map((x) => x.toUpperCase())))}</button>` : "";
   return `<div class="seg mode" role="group" aria-label="Which Ani makes the film"><button type="button" data-mode="1978" aria-pressed="${m === "1978"}">Ani as in 1978</button><button type="button" data-mode="revival" aria-pressed="${m === "revival"}">Ani with ${esc(REVIVAL)}</button>${some}</div>`;
 }
-// "Ani with the revival's extensions" turns on the switch's five, keeping the opt-in ones
+// "Ani with the revival's extensions" turns on the switch's six, keeping the opt-in ones
 // ticked; "Ani as in 1978" turns everything off.
 function setMode(mode) {
   setChosen(mode === "revival" ? [...SWITCHED, ...CHOSEN] : []);
@@ -1370,7 +1373,8 @@ const EXTENSION_TEXT = {
   change: "A scene may change a character, as Ken wrote in a scene he left commented out (cindy.46:94-105): (change (personality step-mother (and evil mean)) (personality step-mother (and good kind))), alone or inside (causes prince ...). Ani then takes a fresh look at her “as if the character were brand new” (thesis p. 168): pass 1 again, with her new words, and everyone else's choices held as they were; with APPEAR, how she looks too. In the scene itself Ani shows the change (p. 169): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes, while Ani bridges the gap between how she moved and looked and how she will, gradually, since an abrupt change could be misread, or at once if the cause is magical (the revival's rule). From the next scene on she is described, moves and looks as she has become. Ken's Cinderella has no change, so it comes out exactly as in 1978; his own cinderella-beautified scene, put back as he wrote it, now plays (“Change the story” has it).",
   know: "Knowledge Ken could have added: the thesis says words such as “clever”, “fears” or “helps” could be (p. 19). More words for characters (gentle, nervous, cheerful, clever, brave, curious, playful, old, slow and their opposites, and timid, wicked and cruel, which borrow from shy, evil and mean); relationships (dislikes and fears, and ways of showing obedience, helpfulness, liking, protectiveness, gratitude and intolerance); three ways of showing (helping someone along, keeping away from someone, and following someone); and five feelings (pride, anticipation, loneliness, fear and anger). Each piece is written in the idiom of the file of Ken's it extends, with its evidence or the revival's reason, and the glass box marks what comes from it. Ken's Cinderella makes the same 102 choices in pass 1; in pass 2 Cinderella follows her stepmother and helps the Prince in the Introduction, where in 1978 Ani had no idea how, and the stepmother's pride makes her paths smoother in Kept Apart.",
   seen: "A feeling changes how a character moves (joy makes her faster and bouncier), but it “cannot stand alone” (thesis pp. 125-126): where a character has only a change of feeling in a part, Ken's SCENE stretches the activity before it to show the change, or, at the start of a scene, has her “wander around” “so that the changes are apparent”. In Director the stretched activity can end before the feeling does (a change at high speed runs four times as long as Ani planned), and she may have had no part in it, so everyone stood still while the feeling ran. With this repair, which Ken approved after testing this page, she wanders about in such a part once nothing else moves her, across the stage and back as SCENE's wander does, and stops when her changes end. In Ken's Cinderella, Cinderella and the Prince wander after they meet, at the end of the Meeting, while their joy runs, so Justice starts with them apart; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978.",
-  slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a character's dynamics take their parent's factors once, however often they are set, and a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion, by what Director measured: nearly four times as long at high speed, under a quarter at low), grows once a tick, takes as many steps as it counts, is counted once in a walk set again, and is carried forth into the walks of its part and of the part it extends; and the film waits for the activity a feeling's part extends. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; in Kept Apart the stepmother's guard no longer slows down cycle by cycle, and the feelings show on the guard's walks, Cinderella slower and straighter, the stepmother quicker and curving more (p. 66); and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and so MEND: ticking it ticks them.",
+  fit: "A scene's length (short, medium or long) gives it a least and a most time, and “Ani tries to constrain the film to be a (user) desired length” (thesis p. 126). But when a task's only way of showing didn't fit its share of the scene, Ken's code moved the task's time, judged the scene by a length the task would not have, and then gave the task its own ideal time, so No Longer Kept Apart ran 4 seconds against its own least of 10: “things happen too quickly and the fairy godmother just appears and is quickly gone” (p. 69). With these corrections, which Ken asked for on 16 and 17 October, a scene keeps the time its length gives it: once its tasks have their times, a scene shorter than its least (or longer than its most) has them moved to the bound, each within its own least and most where it can be, and its activities are stretched to fill it; a way of showing that needs more time is heard under the name Ken's scoring gives it; a walk stretched to fill a part takes the stretch once, where Ken's PLACE wrote it into the walk and his Director multiplied it in again; and a repeated walk takes its parent's speed once, not again each time it is set. In Ken's Cinderella the fairy godmother brings Cinderella to the Prince in No Longer Kept Apart's 10 seconds, Kept Apart takes its 30, the guard keeping her pace, and the stepmother's pushing in the Introduction no longer speeds up push by push. Never in “Ani as in 1978”: it needs MEND, and ticking it ticks MEND.",
+  slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion, by what Director measured: nearly four times as long at high speed, under a quarter at low), grows once a tick, takes as many steps as it counts, is counted once in a walk set again, and is carried forth into the walks of its part and of the part it extends; and the film waits for the activity a feeling's part extends. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; in Kept Apart the feelings show on the guard's walks, Cinderella slower and straighter, the stepmother quicker and curving more (p. 66); and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and FIT, whose corrections of how a scene's time is divided it began with: ticking it ticks them, and MEND.",
   critic: "Your criticism of a film, kept with the film, and heeded as Ken's thesis proposes (Chapter X, Section D, “Critics and Criticism”, pp. 189–191): a way of showing vetoed, which Ani sets aside and chooses among what is left; a part too quick or too slow, whose time Ani stretches by half again or shrinks by a third, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside; and one who starts far from another, placed far off and off the stage. It is never ticked: Ani loads it, with MEND, into every job of a film you have criticized (“Remake with my criticism”), whatever else the film was made with, and only then; a film with no criticism never loads it, and Ken's Cinderella with it loaded and nothing criticized comes out exactly as in 1978.",
   detail: "A few of the low-level details the thesis names as left undone (pp. 183-187, “Attending to Myriad Details”), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, a deliberate character going in longer arcs with smaller jags (X.B.3 (f)); its tendencies towards friends, enemies and strangers count in the best-when scores of the ways of showing that take it to another, or away (c); and a scene's rhythm, fast, slow or changing, speeds its characters up or slows them down a quarter, as a feeling would (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not; Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker; the tendencies decide nothing there. It needs MEND: ticking it ticks MEND.",
 };
@@ -1417,7 +1421,9 @@ const REVIVE_TEXT = {
   slips3: "S3: friendly's three tendencies, which Ken wrote for attraction-to-friends, -strangers and -enemies (dscrp.17:106-108), under the names pass 1's elements have, attraction-towards-friends and the rest (elemnt.1:101-105), so that pass 1 hears them.",
   slips6: "S6: a convey method's prerequisites read under 'prerequisites, where SUGCON keeps them, not 'prerequisite, where nothing is (chomet.123:559), so that a method whose prerequisite is not met is dropped.",
   slips7: "S7: MIDDLE asked whether it is less than (not bottom), the rank that reaches it, where Ken's receiver looked for (not low) (elemnt.1:165-171).",
-  slips8: "S8: a character's dynamics take their parent's factors once: Ken's demon multiplied them in again each time the same dynamics were set (dichar.103:27-31), so a guard's walk slowed, or a push sped up, cycle by cycle.",
+  slips8: "S8: a character's dynamics take their parent's factors once: Ken's demon multiplied them in again each time the same dynamics were set (dichar.103:27-31), so a guard's walk slowed, or a push sped up, cycle by cycle. FIT's since Ken's decision of 17 October, and SLIPS' too.",
+  fit: "S15, a scene keeps its time: once Ken's approve-or-remake-tasks-choices has given the tasks their times (chomet.123:9-74), a scene planned below its least (or above its most) has its tasks moved to the bound by his adjust-task-lengths, each within its least and most, what is left taken by each part's longest task, and SCENE's stretch filling the part (scene.9:159-183); a way of showing that needs more time is heard as need-more-time:, the name Ken's scoring writes (chomet.123:193, 413); a scene is moved towards its bounds, not away (chomet.123:61-64); and a task given its own least or most, not the other (chomet.123:118-184).",
+  fitstr: "S16, a walk SCENE stretches takes its stretch once: Ken's PLACE writes the part's speed into the new walk's own (place.45:455-461) and his Director's demon multiplies it in again (dichar.103:27-31), so the walk is kept the parent's factor written in, and Director divides it out before the demon multiplies it in; and S8's change counted once in Ken's own gradual change (dichar.103:102-121).",
   slip13: "S13: a change carried forth into the walks of its part and of the part it extends, through the dynamics each walk takes its factors from (dichar.103:112-115; scene.9:223-240), where Ken's grew only the part's own dynamics, which the walks of an extended activity don't descend from.",
   slip14: "S14: the film kept going while the part a feeling's part extends still runs, when the feeling's part ends first; Ken's Director stopped it there, the extended part never on its list of running parts (action.152:67-91).",
   slips9: "S9, S10 and S11, Director's gradual change as Ani plans it: over the ticks of DISPLY's estimate, where Ken's multiplied by the speed's weight that the estimate divides by (dichar.103:105-109, disply.311:1104-1106; a run confirmed it); growing a factor once a tick, where its two repeats could grow one twice (dichar.103:112-121); and taking every step it counts, where SOME's repeat does one fewer (some.666:444-450).",
@@ -1454,7 +1460,7 @@ function extensionsPanel() {
     const list = EXT_ORDER.map(extNamed).filter((e) => e && (e.group || "knowledge") === g);
     return list.length ? `<div class="ext-group"><p class="label">${esc(title)}</p><p class="note">${esc(about)}</p>${list.map(item).join("")}</div>` : "";
   }).join("");
-  const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how its characters look (APPEAR)"], ["change", "characters who change (CHANGE)"], ["seen", "changes seen when no one has anything to do (SEEN)"]];
+  const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how its characters look (APPEAR)"], ["change", "characters who change (CHANGE)"], ["seen", "changes seen when no one has anything to do (SEEN)"], ["fit", "scenes that keep their time (FIT)"]];
   const on = NAMED.filter(([id]) => SWITCHED.includes(id)).map(([, t]) => t);
   const count = ["no", "one", "two", "three", "four", "five", "six"][SWITCHED.length] || SWITCHED.length;
   const opt = EXTENSIONS.filter((e) => e.optIn).map((e) => ({ slips: "corrections of slips in Ken's files (SLIPS)", detail: "a few of the thesis's “myriad details” (DETAIL)" })[e.id] || `${e.label} (${e.id.toUpperCase()})`);
@@ -1478,7 +1484,7 @@ const repairCode = (what) => { const at = CODE.revive && CODE.revive.notes[what]
 // one for each change, each walk set again, each walker).
 // the elements Director reads in a walk (dichar.103:164-169), for SLIPS13's sentence (deliberateness only with DETAIL's walk)
 const DIRECTOR_READS = ["speed", "path-curvature", "path-length", "path-jaggedness"];
-const GROUPED = new Set(["carried-forth", "combined-changes", "is-not-in-the-scene", "factors-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency"]);
+const GROUPED = new Set(["carried-forth", "combined-changes", "is-not-in-the-scene", "factors-once", "stretch-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency"]);
 function repairItems(run, notes, sc = null) {
   const seen = new Set(), items = [];
   for (const r of notes || []) {
@@ -1781,7 +1787,12 @@ const optInNote = (r) => OPT_IN_IDS.includes(noteExtension(noteKind(r)));
 const OPT_SECTIONS = [
   ["slips", "corrections", "What the corrections of slips did here", "At each of these Ken's code did something other than what the code beside it, his comments or his thesis say it should: a slip. Each correction (SLIPS) is the revival's Lisp, quoting the line of his it corrects; open one for Ani's own record of it."],
   ["detail", "details-done", "What the details did here", "Ani as in 1978 left each of these undone (thesis pp. 183-187). Each detail (DETAIL) is the revival's reading of a sentence of the thesis, in its Lisp; open one for Ani's own record of it."],
+  // FIT (Ken's decisions of 16 and 17 October): on with the revival's extensions, never in
+  // Ani as in 1978; its notes said apart from the repairs, as corrections of Ken's timing
+  ["fit", "fitted", "What keeping the scene's time did here", "At each of these Ken's code divided a scene's time among its tasks, or stretched a walk, other than his code beside it, his comments or his thesis say it should; each correction (FIT, Ken's decisions of 16 and 17 October) is the revival's Lisp, quoting the line of his it corrects, on with the revival's extensions and never in Ani as in 1978. Open one for Ani's own record of it."],
 ];
+// the extensions whose notes have a section of their own in the glass box
+const SECTION_IDS = OPT_SECTIONS.map(([id]) => id);
 // Ken's line, cited as the page cites it ("dichar.103:27-31"), linked to his code
 const kenAt = (ref) => { const m = /^([a-z0-9]+\.\d+):(\d+)/.exec(ref); return m && CODE_SITE !== "none" ? `<a href="${CODE_SITE}source.html#${m[1]}-${m[2]}" title="Ken's code, ${esc(ref)}">${esc(ref)}</a>` : esc(ref); };
 const partOf = (actor) => { const a = parse(actor); return Array.isArray(a) && a[0] === "subscene-of" ? Number(a[2]) : null; };
@@ -1933,7 +1944,7 @@ function optInSentence({ actor, what, notes }, sc) {
       const each = walks.map((w) => `${who(w.c)}'s walk is set again ${w.n === 1 ? "once" : w.n === 2 ? "twice" : `${w.n} times`} as it repeats, and each time Ken's Director multiplied in its parent's factor again (${esc(words(w.factors.map(([e, v]) => `${elementWords(e)} ×${+v.toFixed(2)}`)))}), so that each cycle was ${w.f > 1 ? "faster" : "slower"} than the last`);
       // a change the walk grew that its parent's factor carries too (the review of stage 7, M1)
       const twice = notes.some((x) => lispList(kv(x, "because")).some((y) => Array.isArray(y) && y[0] === "a-change-taken-twice"));
-      return `${inPart(actor)}${m ? `, as ${methodText(m)}` : ""}, ${each.join("; ") || "a walk is set again as it repeats"}: Director is to “multiply each of your variables matching (? factor) by those in” the parent (${kenAt("dichar.103:27-31")}), once. SLIPS takes the parent's factor once, as the comment on carrying a change forth means (${kenAt("dichar.103:112-115")}).${twice ? ` And a change that grew the walk's own factor as ${walks.length === 1 ? meet(R.story, walks[0].c).she : "they"} walked, and its parent's too, would have been taken twice (${kenAt("dichar.103:110-121")}), each walk slower or quicker than the last; SLIPS takes it once.` : ""}`;
+      return `${inPart(actor)}${m ? `, as ${methodText(m)}` : ""}, ${each.join("; ") || "a walk is set again as it repeats"}: Director is to “multiply each of your variables matching (? factor) by those in” the parent (${kenAt("dichar.103:27-31")}), once. The revival takes the parent's factor once, as the comment on carrying a change forth means (${kenAt("dichar.103:112-115")}), by Ken's decision of 17 October (S8, with FIT).${twice ? ` And a change that grew the walk's own factor as ${walks.length === 1 ? meet(R.story, walks[0].c).she : "they"} walked, and its parent's too, would have been taken twice (${kenAt("dichar.103:110-121")}), each walk slower or quicker than the last; the revival takes it once.` : ""}`;
     }
     // S13 (REVIVE;SLIP13), on the part of the scene's dynamics, one note for each character and element
     case "carried-forth": {
@@ -1996,8 +2007,74 @@ function optInSentence({ actor, what, notes }, sc) {
       const n = partOf(actor);
       return `${esc(sc ? sc.title : "The scene")}'s rhythm is ${esc(rhythmWords(rhythm))}${where === "beginning" || where === "end" ? `: in part ${n}, as it ${where === "beginning" ? "begins" : "ends"},` : `, so in part ${n}`} ${who(cs)} ${up ? (many ? "speed up" : "speeds up") : (many ? "slow down" : "slows down")} a quarter, a change of speed at medium speed, as a feeling changes it (${kenAt("emote.9:19-24")}). Ken's CINDY gives a scene its rhythm, “relative to the film's rhythm” (${kenAt("cindy.46:61")}), and in 1978 nothing read it; the revival's reading of the thesis's wish that Ani's suggestive words have “the ability to suggest values and activities” (pp. 183-184, B.2 (a)).`;
     }
+    // FIT (REVIVE;FIT, S15): the scene held to its length's bounds, on the scene
+    case "scene-time-kept": {
+      const planned = Number(lispList(was)[1]);
+      const b = lispList(because), lb = lispList(b[0]);
+      const least = Number(lb[1]), most = Number(lb[2]);
+      const under = planned < least;
+      const tasks = b.slice(1).map((x) => { const y = lispList(x); return { name: y[0], was: Number(kv(y, "was")), now: Number(kv(y, "now")), most: Number(kv(y, "most")) }; });
+      const named = tasks.map((x) => ({ ...x, said: fitTaskWords(sc, x.name) })).filter((x) => x.said);
+      const shown = named.length > 3 ? [...named].sort((a, c) => Math.abs(c.now - c.was) - Math.abs(a.now - a.was)).slice(0, 3) : named;
+      return `${esc(sc ? sc.title : "This scene")} is to run ${+least.toFixed(2)} to ${+most.toFixed(2)} seconds, the time its length gives it, but Ani planned it at ${sec(planned)}, ${under ? "short of its least" : "past its most"}: Ken's CHOMET gives each task its own time within its share of the scene and, where a way of showing didn't fit, judged the scene by a length its tasks would not have (${kenAt("chomet.123:39-74")}), so nothing held the whole scene to its length. The revival holds a scene to its length's bounds once its tasks have their times (Ken's decision of 16 October), ${sec(Number(now))}${shown.length ? `: ${words(shown.map((x) => `${x.said}, ${sec(x.now)} where it was ${sec(x.was)}`))}${named.length > shown.length ? `, and ${NUMBER_WORDS[named.length - shown.length] || named.length - shown.length} more` : ""}` : ""}; SCENE stretches each part's ways of showing to fill its time (${kenAt("scene.9:159-183")}).`;
+    }
+    case "task-time-bound": {
+      const [, newTime, side, bound] = lispList(because);
+      const most = side === "most";
+      return `Holding the scene to its length, ${t ? fitTaskWords(sc, actor) : "this task"} would take ${sec(newTime)}, ${most ? "more than its most" : "less than its least"}, ${sec(bound)}. Ken's adjust-task-lengths gave a task above its most its least and one below its least its most (${kenAt("chomet.123:167-180")}), ${sec(was)} here; the revival gives it its ${most ? "most" : "least"}, ${sec(now)}, and the part's stretch takes the rest.`;
+    }
+    case "need-more-time-heard": {
+      const asked = lispList(lispList(because)[1]);
+      const diff = Number(kv(asked, "ideal-difference"));
+      const task = needMoreTimeTask(sc, diff);
+      return `${task ? `${cap(fitTaskWords(sc, task.name))} needs` : "A way of showing here needs"} ${sec(diff)} more than its share of the scene. Ken's scoring calls that need-more-time: (${kenAt("chomet.123:413")}), and his code that brings back a way of showing that needs more time looked for more-time-needed: (${kenAt("chomet.123:193")}), so in Ani as in 1978 it was given up, “can't do”; the revival hears it (Ken's decision of 16 October), and the task is given the time it asks for.`;
+    }
+    case "scene-time-sign": {
+      const [, length, , bound] = lispList(because);
+      return `Moving a scene's time when a way of showing didn't fit, Ken's redistribute-time-for-tasks adjusted a scene too short or too long further from its bounds (${kenAt("chomet.123:61-64")}): here it would have moved ${sec(length)} by ${sec(was)}; the revival moves it towards ${sec(bound)}, by ${sec(now)}.`;
+    }
+    // FIT's S16 (REVIVE;FITSTR), on Director's part: a stretched walk takes its stretch once
+    case "stretch-once": {
+      const by = new Map();
+      for (const n of notes) {
+        const b = lispList(kv(n, "because"));
+        const c = (String(b[2] || "").match(/special-dynamics-of ([a-z0-9+-]+) in/) || [])[1];
+        const f = Number(b[1]);
+        if (!c || !Number.isFinite(f)) continue;
+        const k = `${c} ${f}`;
+        if (!by.has(k)) by.set(k, { c, f, walks: 0 });
+        by.get(k).walks++;
+      }
+      const groups = [...by.values()];
+      const m = groups.length ? partMethod(sc, actor, groups[0].c) || partMethod(sc, actor, null) : null;
+      const factor = (x) => `×${+x.toFixed(2)}`;
+      const said = groups.map((g) => `${who(g.c)}'s walk${g.walks > 1 ? "s" : ""} took ${g.f < 1 ? "the slowing" : "the speeding up"} twice (${factor(g.f)} and ${factor(g.f)} again, ${factor(g.f * g.f)})`);
+      const f0 = groups.length ? groups[0].f : 1;
+      const all = groups.every((g) => g.f === f0);
+      return `${inPart(actor)}${m ? `, as ${methodText(m)}` : ""}, SCENE ${all ? `${f0 < 1 ? "slows" : "speeds up"} the part's walks (${factor(f0)})` : "stretches the part's walks"} to fill its time. Ken's PLACE writes that into each new walk's own speed (${kenAt("place.45:455-461")}), and his Director multiplied it in again the first time the walk was set (${kenAt("dichar.103:27-31")}), so ${words(said)}. The revival takes it once (Ken's decision of 17 October; S16, with FIT).`;
+    }
     default: return null;
   }
+}
+// FIT's notes name a task by its name in the glass box: what it shows, in words
+function fitTaskWords(sc, name) {
+  const t = sc && sc.glass ? sc.glass.tasks.find((x) => x.name === name) : null;
+  if (!t) return "";
+  const x = taskInfo(t), m = x.choice[0];
+  if (Array.isArray(m) && !["method:", "change:", "change-to:"].includes(m[0])) return `“${methodText(m)}”`;
+  return Array.isArray(x.description) ? `showing that ${about(x.description)}` : "";
+}
+// the task REVIVE;FIT heard ask for more time: its allocated time moved up by what it asked
+// for, a percent more (chomet.123:31-33)
+function needMoreTimeTask(sc, diff) {
+  if (!sc || !sc.glass || !Number.isFinite(diff)) return null;
+  const lb = lispList(parse((sc.glass.scene && sc.glass.scene.variables["length-bounds"]) || "nil"));
+  const most = Number(lb[lb.length - 1]);
+  for (const t of sc.glass.tasks) {
+    const a = lispList(parse(t.variables["allocated-time"] || "nil")), share = Number(t.variables.share);
+    if (a.length === 2 && Number.isFinite(most) && Number.isFinite(share) && Math.abs(Number(a[1]) - share * most - diff * 1.01) < 0.05) return t;
+  }
+  return null;
 }
 // What SLIPS and DETAIL changed in a film made with them, for the compare panel: the frames
 // of each scene beside 1978's, and a sentence for each correction and detail, where it
@@ -2019,7 +2096,7 @@ function optInSummary(run) {
     const e = extNamed(id);
     const needs = withRequired([id]).filter((x) => x !== id && x !== "mend");
     return `<div class="opt-summary"><p class="label">What ${esc(id.toUpperCase())} changed, and why</p>
-      <p class="note made-with">${esc(e.label)} (${esc(id.toUpperCase())}), opt-in. Frames at ${fpsOf(scenes[0] ? scenes[0].sc : null)} a second: ${frames.join(", ")}.${needs.length ? ` It needs ${esc(words(needs.map((x) => x.toUpperCase())))}, whose own differences from 1978 the glass box marks as the revival's knowledge.` : ""}</p>
+      <p class="note made-with">${esc(e.label)} (${esc(id.toUpperCase())}), opt-in. Frames at ${fpsOf(scenes[0] ? scenes[0].sc : null)} a second: ${frames.join(", ")}.${needs.length ? ` It needs ${esc(words(needs.map((x) => x.toUpperCase())))}, whose own differences from 1978 the glass box marks as ${needs.length > 1 ? "theirs" : needs[0] === "know" ? "the revival's knowledge" : "its own"}.` : ""}</p>
       ${items.length ? `<ul class="fixes">${items.map((x) => `<li>${x} ${fileLink(id)}</li>`).join("")}</ul>` : `<p class="note">It acted nowhere in this film.</p>`}</div>`;
   }).join(""));
 }
@@ -2122,6 +2199,26 @@ function detailSaid(run, scenes) {
     out.push(`A scene's rhythm speeds its characters up or slows them down a quarter, as a feeling would: ${byScene.join("; ")}. Ken's CINDY gives each scene its rhythm (${kenAt("cindy.46:61")}), and in 1978 nothing read it; the revival's reading of the thesis's wish that Ani's suggestive words could “suggest values and activities” (pp. 183-184, B.2 (a)).`);
   }
   return out;
+}
+// FIT's notes of the parts playing, a short line each, for the captions: each walker whose
+// walk takes its stretch (S16) or its parent's factor (S8) once. (A scene held to its time
+// is said in the glass box and in "How Ani timed it", not on every frame of its parts.)
+function fitLines(run, sc, subs) {
+  const notes = sceneNotes(sc).filter((r) => noteExtension(noteKind(r)) === "fit");
+  if (!notes.length) return [];
+  const out = [];
+  for (const sub of subs) {
+    const of = (k) => notes.filter((r) => r.actor === sub.name && noteKind(r) === k).map((r) => parse(r.note));
+    const walkers = (k, i) => [...new Set(of(k).map((n) => (String(lispList(kv(n, "because"))[i] || "").match(/special-dynamics-of ([a-z0-9+-]+) in/) || [])[1]).filter(Boolean))];
+    const once = walkers("stretch-once", 2);
+    if (once.length) out.push(`${cap(words(once.map((c) => `${who(c)}'s`)))} walk${once.length > 1 ? "s take their" : " takes its"} stretch once, as SCENE planned it (the revival's correction, FIT).`);
+    for (const n of of("factors-once")) {
+      const c = (String(lispList(kv(n, "because"))[1] || "").match(/special-dynamics-of ([a-z0-9+-]+) in/) || [])[1];
+      const f = Number((lispList(kv(n, "was"))[0] || [])[1]);
+      if (c) out.push(`${cap(who(c))}'s walk takes its parent's factor once, so each cycle is no ${f > 1 ? "faster" : "slower"} than the last (the revival's correction, FIT).`);
+    }
+  }
+  return [...new Set(out)];
 }
 // The opt-in extensions' notes of the parts playing, a short line each, for the captions:
 // what a correction or a detail does there as it plays.
@@ -4449,8 +4546,8 @@ function captionAt(run, i, f) {
     const idle = lookChanges.filter((x) => !x.shows).map((x) => x.does);
     if (shown.length) more.push(`${cap(words(shown))}${feel.length ? " too" : ""}${state.color || !lookChanges.some((x) => /colors/.test(x.does)) ? "" : " (colors show only in color mode)"}.`);
     if (idle.length) more.push(`${cap(words(idle))}.`);
-    // what SLIPS' corrections and DETAIL's details do in the parts playing
-    more.push(...optInLines(run, sc, subs));
+    // what SLIPS' corrections and DETAIL's details do in the parts playing, and FIT's
+    more.push(...optInLines(run, sc, subs), ...fitLines(run, sc, subs));
     // a change of who someone is (REVIVE;CHANGE) shown by another task of the scene: Ani's
     // fresh look takes all her changes in a scene together, and one task shows them
     // (REVIVE;CHSHOW's showing-task-of), so this one is "cant-do"
@@ -4893,6 +4990,8 @@ function timingSteps(run, sc, w, a, char) {
   if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${+Number(task.allocatedTime[0]).toFixed(2)} to ${+Number(task.allocatedTime[1]).toFixed(2)} seconds,` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
   const heeded = task ? critTiming(run, sc, task.name) : "";
   if (heeded) steps.push(heeded);
+  const fitted = task ? fitTiming(run, sc, task.name) : "";
+  if (fitted) steps.push(fitted);
   if (a.estimate) steps.push(`Its estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; it planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to its best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
   if (part) steps.push(partSteps(run, w, part));
   const stops = stopWords(a.stops, k, char);
@@ -4902,6 +5001,19 @@ function timingSteps(run, sc, w, a, char) {
   else if (runs.length > 1) steps.push(`In the film it ran ${runs.length} times: ${runs.map((r) => (r.begin === r.end ? `${r.begin}` : `${r.begin} to ${r.end}`)).join(", ")} (frames), ${sec(a.film.seconds)} in all.`);
   else steps.push("It didn't run in the film: the scene ended first.");
   return steps;
+}
+// FIT's step in "How Ani timed it": the scene held to its length's bounds, and this task's
+// time with it (scene-time-kept; task-time-bound, if it is held to its own most or least)
+function fitTiming(run, sc, name) {
+  const notes = sceneNotes(sc).map((r) => ({ actor: r.actor, n: parse(r.note) })).filter((x) => Array.isArray(x.n));
+  const kept = notes.find((x) => kv(x.n, "what") === "scene-time-kept");
+  const mine = kept ? lispList(kv(kept.n, "because")).slice(1).map(lispList).find((y) => y[0] === name) : null;
+  if (!mine) return "";
+  const lb = lispList(lispList(kv(kept.n, "because"))[0]);
+  const planned = Number(lispList(kv(kept.n, "was"))[1]), now = Number(kv(kept.n, "now"));
+  const bound = notes.find((x) => x.actor === name && kv(x.n, "what") === "task-time-bound");
+  const side = bound ? lispList(kv(bound.n, "because"))[2] : null;
+  return `The scene's tasks came to ${sec(planned)}, ${planned < Number(lb[1]) ? `short of its least, ${sec(lb[1])}` : `past its most, ${sec(lb[2])}`}; the revival holds a scene to the time its length gives it (FIT, Ken's decision of 16 October), ${sec(now)}, and this task's time went from ${sec(kv(mine, "was"))} to ${sec(kv(mine, "now"))}${side ? `; that is ${side === "most" ? "past" : "short of"} its ${side}, ${sec(kv(bound.n, "now"))}, so its way of showing is given that, and SCENE's stretch of the part takes the rest` : ""} (${kenAt("chomet.123:140-185")}).`;
 }
 // a part's running time: its own, stretched to fill it, or a part of only changes beside another
 function partSteps(run, w, part) {
@@ -5098,14 +5210,14 @@ function whyPanel(char) {
   let lead, whyBox = "", sections = "";
   // what the revival's repairs did in this scene (and in pass 1), those about this
   // character first; shown after Why, or first if there is no Why; and, apart, what SLIPS'
-  // corrections and DETAIL's details did
+  // corrections, DETAIL's details and FIT's corrections of the scene's time did
   const noted = repairsIn(R, s);
-  const fixes = noted.filter((x) => !OPT_IN_IDS.includes(noteExtension(x.what)));
+  const fixes = noted.filter((x) => !SECTION_IDS.includes(noteExtension(x.what)));
   const mentions = (x) => `${x.actor} ${x.raw.join(" ")}`.split(/[\s()]+/).includes(char);
   let fixSection = !fixes.length ? "" : `<details class="repairs"${fixes.length <= 4 ? " open" : ""}><summary>What the revival's repairs did here (${fixes.length})</summary><div class="body">
     ${repairList([...fixes.filter(mentions), ...fixes.filter((x) => !mentions(x))])}
     <p class="note">Ani as in 1978 would have stopped at each of these, or done otherwise. The repairs are the revival's Lisp, not Ken's; open one for Ani's own record of it.</p></div></details>`;
-  // SLIPS' and DETAIL's: those on this part, or on a task of the chain of what she does,
+  // SLIPS', DETAIL's and FIT's: those on this part, or on a task of the chain of what she does,
   // first, then those about her, then the rest
   const focus = new Set(main ? [main.name] : []);
   for (let x = acts[0] ? taskOfActivity(acts[0]) : null, guard = 0; x && guard < 6; guard++) { focus.add(x.name); x = x.source && x.source !== "initial-description" ? taskByName(x.source) : null; }

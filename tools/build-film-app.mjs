@@ -445,7 +445,7 @@ function whyFunctions(root) {
   const cases = [
     ...SCENES.map(([id]) => [`reports/pass2/${id}.glass.json`, `reports/film/${id}.film.json`, []]),
     ...SCENES.map(([id]) => [`reports/film/24fps/${id}.glass.json`, `reports/film/24fps/${id}.film.json`, []]),
-    ["reports/ext/change/beautified-film/cinderella-beautified.glass.json", "reports/ext/change/beautified-film/cinderella-beautified.film.json", ["mend", "know", "appear", "change", "seen"]],
+    ["reports/ext/change/beautified-film/cinderella-beautified.glass.json", "reports/ext/change/beautified-film/cinderella-beautified.film.json", ["mend", "know", "appear", "change", "seen", "fit"]],
   ].filter(([g, f]) => existsSync(`${root}/${g}`) && existsSync(`${root}/${f}`));
   for (const [g, f, extensions] of cases) {
     const glass = json(g), film = json(f);
