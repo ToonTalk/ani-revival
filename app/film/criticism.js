@@ -260,7 +260,7 @@ function critPaceButtons(run, sc, w, part, { short = false } = {}) {
   const sources = tasks.map((t) => { const g = sc.glass.tasks.find((x) => x.name === t.name); return g ? AniCritic.sourceNeeded(g, sc.glass) : null; });
   const most = tasks.every((t) => t.allocatedTime && t.runningTime >= t.allocatedTime[1] - 0.005);
   const least = tasks.every((t) => t.allocatedTime && t.runningTime <= t.allocatedTime[0] + 0.005);
-  const span = tasks[0].allocatedTime ? `${sec(tasks[0].allocatedTime[0])} to ${sec(tasks[0].allocatedTime[1])}` : "";
+  const span = tasks[0].allocatedTime ? secondsSpan(tasks[0].allocatedTime[0], tasks[0].allocatedTime[1]) : "";
   const item = (direction, said) => ({ kind: "pace", scene: sc.id, tasks: tasksOf, ...(sources.some(Boolean) ? { sources } : {}), direction, said });
   // the story's time for the part, whatever Ani estimated for its ways (which "Why so long" gives)
   const allOf = `This part already takes all the time your story gives it, ${esc(span)}, whatever Ani's own estimate`;
@@ -481,6 +481,8 @@ function startRemake(orig) {
 
 // ---- the glass box: what the criticism did here
 
+// "6 to 15 seconds", "4.29 to 10.71 seconds"
+const secondsSpan = (a, b) => `${+Number(a).toFixed(2)} to ${+Number(b).toFixed(2)} seconds`;
 const nForm = (x) => (x === null || x === undefined ? null : parse(x));
 // One note of CRITIC's in a sentence (HTML): where a criticism was heeded, or couldn't be.
 function critNoteSentence(run, sc, n, { withSaid = true } = {}) {
@@ -508,7 +510,7 @@ function critNoteSentence(run, sc, n, { withSaid = true } = {}) {
     const s1 = part && part.stretchedBy, s0 = s1 && n.heeded ? (s1 * Number(was)) / Number(now) : null;
     const fmt = (x) => +x.toFixed(2);
     const stretched = s1 && s0 && Math.abs(s1 - s0) > 0.005 ? `, the walks ${s1 > s0 ? "slowed" : "sped up"} to fit (stretched by ${fmt(s1)}, where they were ${fmt(s0)})` : "";
-    const bound = held ? (held[0] === "allocated-time" ? `${sec(held[1])} to ${sec(held[2])}, the time your story gives this part` : `SCENE's own limit: a part's walks are stretched no more than ${Number(held[1]) > 1 ? "8 times" : "to an eighth of"} Ani's ideal for them`) : "";
+    const bound = held ? (held[0] === "allocated-time" ? `${secondsSpan(held[1], held[2])}, the time your story gives this part` : `SCENE's own limit: a part's walks are stretched no more than ${Number(held[1]) > 1 ? "8 times" : "to an eighth of"} Ani's ideal for them`) : "";
     const byStory = held && held[0] === "allocated-time";
     const after = adjusted ? ` Ken's SCENE had first fitted the whole scene to its length (adjust-task-lengths, chomet.123:140-185), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.` : "";
     if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${quick && byStory ? longerButton(run, sc.id) : ""}`;

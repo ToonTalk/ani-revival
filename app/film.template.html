@@ -970,7 +970,17 @@ function place(p) {
     case "between": return `between ${near(a)} and ${near(b)}`;
     case "symbolic-position": return a === "dont-know-enuf" ? "somewhere still to be worked out" : place(a);
     case "move-from-xy-position": return place(a);
-    default: return esc(show(p));
+    // PLACE's and INTERF's other places
+    case "a-small-distance-away-from": return `a little way from ${near(a)}, away from ${near(b)}`;
+    case "a-small-distance-away-from-and-towards-center": return `a little way from ${near(a)}, away from ${near(b)} and towards the middle of the stage`;
+    case "position-between-1": return `a place between ${near(a)} and ${near(b)}`;
+    case "large-distance-and-offstage": return `off the stage, far from ${near(a)}`;
+    case "large-distance": return `far from ${near(a)}`;
+    case "medium-distance": return `a medium distance from ${near(a)}`;
+    case "medium-distance-and-offstage": return `off the stage, a medium distance from ${near(a)}`;
+    case "small-distance": return `near ${near(a)}`;
+    // any other: its words, without the Lisp's brackets
+    default: return esc(plain(show(p).replace(/[()]/g, " ").replace(/\s+/g, " ").trim()));
   }
 }
 // why a place was chosen
@@ -1018,7 +1028,7 @@ function methodText(m, bare = false) {
     case "pushes-around": return `${who(a)} pushes ${who(b)} around`;
     case "chases-to": return Array.isArray(c) && /offstage/.test(c[0]) ? `${who(a)} chases ${who(b)} off the stage` : `${who(a)} chases ${who(b)}`;
     case "chases": return `${who(a)} chases ${who(b)}`;
-    case "move-to-and-hits": return `${who(a)} goes to ${who(b)} and hits ${CHARS[b] ? CHARS[b].her : "them"}`;
+    case "move-to-and-hits": case "goes-to-and-hits": return `${who(a)} goes to ${who(b)} and hits ${CHARS[b] ? CHARS[b].her : "them"}`;
     case "goes-to-and-accompanys": case "goes-to-and-accompanies": return `${who(a)} goes to ${who(b)} and accompanies ${CHARS[b] ? CHARS[b].her : "them"}`;
     case "move-small-part-towards": return `${who(a)} moves a small part of the way towards ${Array.isArray(b) ? who(b[1]) : who(b)}`;
     case "stands-guard": return Array.isArray(c) && c[0] === "away-from" && Array.isArray(c[2]) && c[2][0] === "vicinity-of"
@@ -4793,7 +4803,7 @@ function sceneLengthWords(run, sc, w) {
   const b = w.scene.lengthBounds;
   const film = filmLength(run);
   const says = set ? `${whose} says (set your length to ${esc(show(set))})` : `${whose} gives no length, so it is medium, SCENE's default (${kenAt("scene.9:8-10")})`;
-  return { says, bounds: b ? `${b[0]} to ${b[1]} seconds` : null, film };
+  return { says, bounds: b ? `${+Number(b[0]).toFixed(2)} to ${+Number(b[1]).toFixed(2)} seconds` : null, film };
 }
 // a way of showing in quotes, "the fairy godmother goes to Cinderella and transforms her"
 const wayQ = (m) => { const f = typeof m === "string" ? parse(m) : m; return Array.isArray(f) ? `“${methodText(f)}”` : "it"; };
@@ -4846,7 +4856,7 @@ function changeLine(form, extensions) {
   const el = forAt >= 0 ? f[forAt + 1] : null;
   const factor = by >= 0 ? Number(f[by + 1]) : NaN;
   const look = f.includes("look");
-  const what = !el ? esc(show(f)) : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
+  const what = !el ? (look || /(shape|color|hue)/.test(show(f)) ? "change of look" : "change") : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
   return { what, ani: t.aniSeconds, director: t.directorSeconds };
 }
 // Why this way and not another: the task's ways CHOMET weighed (chomet.123:216-255), each
@@ -4880,7 +4890,7 @@ function timingSteps(run, sc, w, a, char) {
   const steps = [];
   const { says, bounds, film } = sceneLengthWords(run, sc, w);
   steps.push(`${says}${bounds ? `: ${bounds}${film ? `, its share of the film's ${film} by the scenes' lengths` : ""} (${kenAt("scene.9:346-357")})` : ""}.`);
-  if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${sec(task.allocatedTime[0])} to ${sec(task.allocatedTime[1])},` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
+  if (task && task.share !== null) steps.push(`Ani gave ${fracWords(task.share)} of the scene${task.allocatedTime ? `, ${+Number(task.allocatedTime[0]).toFixed(2)} to ${+Number(task.allocatedTime[1]).toFixed(2)} seconds,` : ""} to ${ti ? taskText(ti.kind, ti.description).replace(/^to (convey|establish)/, (m, v) => `${v}ing`) : "the task"}, by its order of tasks (${kenAt("scene.9:332-344")}).`);
   const heeded = task ? critTiming(run, sc, task.name) : "";
   if (heeded) steps.push(heeded);
   if (a.estimate) steps.push(`Its estimate for ${wayQ(a.method)} is ${sec(a.estimate.ideal)} at best, ${sec(a.estimate.least)} at least and ${sec(a.estimate.most)} at most${task && task.runningTime !== null ? `; it planned ${sec(task.runningTime)} for it${Math.abs(task.runningTime - a.estimate.ideal) > 0.01 ? ", the nearest to its best within the task's time" : ""} (${kenAt("chomet.123:95-139")})` : ""}.`);
