@@ -1,5 +1,5 @@
 ;;; -*-lisp-*-
-;;; REVIVE;HOLD: holding Ani's pass-1 choices while she chooses again.
+;;; REVIVE;HOLD: holding Ani's pass-1 choices while it chooses again.
 ;;;
 ;;; This file is ours, not Ken's. It was REVIVE;CHANGE's (stage 2, the fresh look: Ken's
 ;;; decision of 9 October, "Ani rederives only the changed character, with everyone

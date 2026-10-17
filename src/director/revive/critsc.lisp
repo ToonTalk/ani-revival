@@ -41,14 +41,16 @@
 ;;; place.45:116-150). PLACE's three ways of placing two characters, a small, a medium
 ;;; and a large distance apart (place.45:9-53), with which the ways of showing place
 ;;; their two (goes-to-and-accompanys a medium distance, move-small-part-towards a large
-;;; one, KNOW's follows-behind a small one), are wrapped: in the first part of the
-;;; criticized scene where the two are placed, and only while the one to start far is
-;;; where an earlier scene left her (or nowhere), that place is forgotten and Ken's
+;;; one, KNOW's follows-behind a small one), are wrapped: where the two are placed in
+;;; the criticized scene and the one to start far is still where an earlier scene left
+;;; her (or nowhere), with no part yet in this scene, that place is forgotten in the part
+;;; (after Ken's own test for a cut, which his placers make first) and Ken's
 ;;; place-large-distance-apart (place.45:25-39) places her, far off and off the stage
 ;;; where PLACE asks for (large-distance-and-offstage ...), which REVIVE;MEND19 defines
 ;;; (Ken never did). The subscene notes
 ;;;   (heeded-criticism: id c4 what start-far was (xy-position 0.0 0.0) now <her place>
 ;;;		       because (far-from cinderella not place-medium-distance-apart))
+;;; and where it can't be heeded, or needn't be, it says so (below, "Where it acts").
 
 ;;; ------------------------------------------------- the contact table
 
@@ -56,7 +58,9 @@
 ;;; Each display method's run receiver, (method pair ...), a pair the two of its arguments it
 ;;; brings together (1 its first argument, (place n) the character of its n-th, a place);
 ;;; a method with none brings no two together. Then each verb of CONVEY's (and the
-;;; revival's) whose every way of showing brings the same two of its characters together.
+;;; revival's) whose every way of showing brings the same two of its characters together,
+;;; (verb pair ... by way ...), with its ways of showing: a verb counts only in a job that
+;;; has one of them (helps, by KNOW's helps-along, not in a film made without KNOW).
 (setq :critic-display-contacts
       '(
 	(chases-to) ;;disply.311:48
@@ -83,23 +87,35 @@
 	(move-to (1 (place 2))))) ;;REVIVE;MEND5:89; REVIVE;MEND5:119
 (setq :critic-convey-contacts
       '(
-	(meets (1 2)) ;;move-to convey.64:76
-	(pushes (1 2)) ;;pushes-around convey.64:86
-	(hurts (1 2)) ;;move-to-and-hits convey.64:95
-	(accompanys (1 2)) ;;goes-to-and-accompanys convey.64:120
-	(helps (1 2)) ;;helps-along REVIVE;KNOWCV:25
-	(follows (1 2)))) ;;follows-behind REVIVE;KNOWCV:45
+	(meets (1 2) by move-to) ;;move-to convey.64:76
+	(pushes (1 2) by pushes-around) ;;pushes-around convey.64:86
+	(hurts (1 2) by move-to-and-hits) ;;move-to-and-hits convey.64:95
+	(accompanys (1 2) by goes-to-and-accompanys) ;;goes-to-and-accompanys convey.64:120
+	(helps (1 2) by helps-along) ;;helps-along REVIVE;KNOWCV:25
+	(follows (1 2) by follows-behind))) ;;follows-behind REVIVE;KNOWCV:45
 ;;; ---- the end of the contact table
 
 ;; Whether the method's form brings a and b together, by the table: one of its pairs is
 ;; a and b, either way round, each a position of the form or (place n), a character
-;; in the place at n.
+;; in the place at n. A verb's entry ends with by and its ways of showing, and counts
+;; only if this job has one of them (an actor of that name; KNOW's helps-along, say, is
+;; none in a film made without KNOW, where Ani has no way of showing helping at all).
 (defun critic-together? (form a b table)
-  (do ((p (rest (assq (first form) table)) (rest p)))
-      ((null p) nil)
-      (and (or (and (critic-is? form (first (first p)) a) (critic-is? form (second (first p)) b))
-	       (and (critic-is? form (first (first p)) b) (critic-is? form (second (first p)) a)))
-	   (return t))))
+  (let ((entry (assq (first form) table)))
+       (and (critic-shown-here? (rest (memq 'by entry)))
+	    (do ((p (rest entry) (rest p)))
+		((or (null p) (eq (first p) 'by)) nil)
+		(and (or (and (critic-is? form (first (first p)) a) (critic-is? form (second (first p)) b))
+			 (and (critic-is? form (first (first p)) b) (critic-is? form (second (first p)) a)))
+		     (return t))))))
+
+;; Whether this job has one of a verb's ways of showing (true of a display method's
+;; entry, which names none).
+(defun critic-shown-here? (ways)
+  (or (null ways)
+      (do ((w ways (rest w)))
+	  ((null w) nil)
+	  (and (get (first w) 'actor) (return t)))))
 
 (defun critic-is? (form position character)
   (cond ((numberp position) (eq (nth position form) character))
@@ -157,46 +173,100 @@
 			'get-convey-method-suggestions-keeping-apart)))
 
 ;;; ------------------------------------------------- start far
+;;;
+;;; Where it acts: where the one to start far is first placed in the scene, with the one
+;;; to start far from, and only while she is where an earlier scene left her (her place
+;;; "ended up here in" that scene, from its POSIT file) or nowhere, and has had no part
+;;; yet in this scene. In a later part, a subscene with no place of hers inherits the
+;;; last an earlier part had (Ken's location-package-of, interf.149:155-160); if she has
+;;; had no part before it, that is still where the earlier scene left her, and she is
+;;; taken as nowhere in this part (Ken's (place: where nowhere ...), as his cut-scene-here
+;;; leaves a character, place.45:313-328), so that PLACE places her. Where she has already
+;;; had a part in this scene (she is on the stage), placing her far would move her
+;;; mid-scene, so the criticism is not heeded there, and the subscene notes
+;;;   (unmet-criticism: id c4 what start-far was <her place> because (already-in-the-scene))
+;;; Where Ken's own placing places her afresh, far from the other, anyway (his
+;;; place-large-distance-apart, with her nowhere, or after a cut), it notes
+;;; (already-far place-large-distance-apart), and PLACE places her. Each is tested afresh
+;;; at each placing, so that a part SCENE redoes (extend-last-actions-of,
+;;; scene.9:224-240, which puts the subscene back as it was before it ran its methods,
+;;; her place and the note with it) is heeded again.
 
-(or (boundp ':critic-started-far) (setq :critic-started-far nil)) ;;the criticisms heeded
+;; The start-far criticisms of the subscene's scene for the two places, in the record's
+;; order: the one to start far in one place and the one to start far from in the other.
+(defun critic-start-far-for (subscene place-1 place-2)
+  (mapcan (function
+	   (lambda (c)
+		   (let ((who (get c 'who))
+			 (from (get c 'from)))
+			(and (or (and (critic-in? who place-1) (critic-in? from place-2))
+				 (and (critic-in? who place-2) (critic-in? from place-1)))
+			     (list c)))))
+	  (critic-for-scene 'start-far (ask ,subscene recall your scene))))
 
-;; The start-far criticism of the subscene's scene for the two places, not yet heeded,
-;; whose one to start far is where an earlier scene left her, or nowhere; or nil.
-(defun critic-starting-far (subscene place-1 place-2)
-  (do ((c (critic-for-scene 'start-far (ask ,subscene recall your scene)) (rest c)))
-      ((null c) nil)
-      (let ((who (get (first c) 'who))
-	    (from (get (first c) 'from)))
-	   (and (not (memq (get (first c) 'id) :critic-started-far))
-		(or (and (critic-in? who place-1) (critic-in? from place-2))
-		    (and (critic-in? who place-2) (critic-in? from place-1)))
-		(critic-left-by-an-earlier-scene? subscene who)
-		(return (first c))))))
+;; Whether a part of the subscene's scene has a note of the criticism's already.
+(defun critic-noted-in-scene? (subscene c)
+  (let ((id (get c 'id)))
+       (do ((s (ask ,(ask ,subscene recall your scene) recall your subscenes) (rest s)))
+	   ((null s) nil)
+	   (and (or (ask ,(first s) recall if any items match (heeded-criticism: id ,id what start-far %))
+		    (ask ,(first s) recall if any items match (unmet-criticism: id ,id what start-far %)))
+		(return t)))))
 
-;; Where the subscene has her: nowhere, or where an earlier scene's filming left her
-;; ((place: where ... why (ended up here in kept-apart) ...), from its POSIT file).
-(defun critic-left-by-an-earlier-scene? (subscene who)
-  (let ((why (get (ask ,subscene recall your (location-of ,who)) 'why)))
-       (or (null (ask ,subscene recall your (location-of ,who)))
+;; Whether she has had a part in an earlier part of the scene: an action of hers planned
+;; there (actions-of, which PLACE's move-character adds to, place.45:151-216).
+(defun critic-acted-before? (subscene who)
+  (do ((s (ask ,subscene recall your previous-subscene) (ask ,s recall your previous-subscene)))
+      ((null s) nil)
+      (and (ask ,s recall your (actions-of ,who)) (return t))))
+
+;; Whether PLACE has her where an earlier scene left her ((place: where ... why (ended up
+;; here in kept-apart) ...)), or nowhere.
+(defun critic-left-by-an-earlier-scene? (place)
+  (let ((why (get place 'why)))
+       (or (null place)
 	   (and (not (atom why)) (eq (first why) 'ended)))))
 
 ;; PLACE's placing of two, as placer (place-small-, place-medium- or
-;; place-large-distance-apart) would place them, unless a start-far criticism applies:
-;; then where an earlier scene left the one to start far is forgotten, and Ken's
-;; place-large-distance-apart places her (through its own wrapper, which passes through,
-;; the criticism being heeded).
+;; place-large-distance-apart) would place them, unless a start-far criticism of theirs
+;; applies here: then where an earlier scene left the one to start far is forgotten in
+;; this part, and Ken's place-large-distance-apart places her.
 (defun critic-place (placer action place-1 place-2 cut-distances subscene)
-  (let ((c (and :critic-record (critic-starting-far subscene place-1 place-2))))
+  (do ((cs (and :critic-record (critic-start-far-for subscene place-1 place-2)) (rest cs))
+       (c nil))
+      ((or c (null cs))
        (cond ((null c)
 	      (funcall (revival-wrapped placer 'critsc) action place-1 place-2 cut-distances subscene))
-	     (t (let ((who (get c 'who)))
-		     (let ((was (get (ask ,subscene recall your (location-of ,who)) 'where)))
-			  (setq :critic-started-far (cons (get c 'id) :critic-started-far))
-			  (ask ,subscene forget your (location-of ,who))
-			  (prog1 (place-large-distance-apart action place-1 place-2 cut-distances subscene)
-				 (critic-heeded subscene c 'start-far was
-						(get (ask ,subscene recall your (location-of ,who)) 'where)
-						(list 'far-from (get c 'from) 'not placer))))))))))
+	     (t (critic-place-far c placer action place-1 place-2 cut-distances subscene))))
+      (let ((who (get (first cs) 'who)))
+	   (let ((place (location-package-of who subscene)))
+		(cond ((critic-noted-in-scene? subscene (first cs))) ;;heeded, or noted, already
+		      ((or (critic-acted-before? subscene who)
+			   (not (critic-left-by-an-earlier-scene? place)))
+		       (critic-unmet subscene (first cs) 'start-far (get place 'where)
+				     '(already-in-the-scene)))
+		      (t (setq c (first cs))))))))
+
+(defun critic-place-far (c placer action place-1 place-2 cut-distances subscene)
+  (let ((who (get c 'who)))
+       (let ((was (get (location-package-of who subscene) 'where)))
+	    ;;as Ken's placers do first: cut, if where the two are calls for one
+	    ;;(cut-if-distance-known-to-be, place.45:80-92)
+	    (cut-if-distance-known-to-be cut-distances place-1 place-2 subscene)
+	    (cond ((and (eq placer 'place-large-distance-apart)
+			(or (null was) (eq (ask ,subscene recall your transition-type) 'cut)))
+		   ;;Ken's own placer places her afresh, far from the other
+		   (critic-unmet subscene c 'start-far was (list 'already-far placer))
+		   (funcall (revival-wrapped placer 'critsc) action place-1 place-2 cut-distances subscene))
+		  (t (ask ,subscene forget your (location-of ,who))
+		     (and (location-package-of who subscene) ;;an earlier part's: nowhere in this one
+			  (ask ,subscene set your (location-of ,who) to
+			       (place: where nowhere why (start-far ,(get c 'id)) status undone)))
+		     (prog1 (funcall (revival-wrapped 'place-large-distance-apart 'critsc)
+				     action place-1 place-2 cut-distances subscene)
+			    (critic-heeded subscene c 'start-far was
+					   (get (ask ,subscene recall your (location-of ,who)) 'where)
+					   (list 'far-from (get c 'from) 'not placer))))))))
 
 (defun place-small-distance-apart-heeding-criticism (action place-1 place-2 cut-distances subscene)
   (critic-place 'place-small-distance-apart action place-1 place-2 cut-distances subscene))

@@ -119,6 +119,22 @@ test("the record: checked, written as Lisp without the words said, added to and 
   r = removeCriticism(r, "c1");
   assert.deepEqual(r.map((c) => c.id), ["c2"]);
   for (const c of RECORD) assert.equal(typeof criticismWords(c), "string");
+
+  // a task named by its description and, where its scene has two of that description, the
+  // description of the task it came from (source; a pace's sources, one for each task)
+  const dance = { kind: "another-way", scene: "the-dance", task: "(accompanys cinderella prince)", source: "(personality  cinderella)", level: "display", vetoes: "goes-to-and-accompanys" };
+  ({ item } = addCriticism([], dance));
+  assert.equal(item.source, "(personality cinderella)");
+  assert.match(criticismToLisp([item]), /task \(accompanys cinderella prince\) source \(personality cinderella\) level display/);
+  const other = addCriticism([item], { ...dance, source: "(relationship (relationship-of cinderella prince))" });
+  assert.equal(other.record.length, 2, "a veto of the other task of that description is another criticism");
+  const paced = { kind: "pace", scene: "the-dance", tasks: ["(accompanys cinderella prince)"], sources: ["initial-description"], direction: "too-quick" };
+  assert.match(criticismToLisp([addCriticism([], paced).item]), /tasks \(\(accompanys cinderella prince\)\) sources \(initial-description\) direction/);
+  assert.equal(addCriticism([], { ...paced, sources: [null] }).item.sources, undefined, "no source where none is needed");
+  assert.throws(() => checkRecord([{ ...dance, id: "c1", source: "(personality" }]), /source is/);
+  // a part has one pace item: two that name the same task are refused
+  assert.throws(() => checkRecord([RECORD[1], { ...RECORD[1], id: "c9", direction: "too-slow", times: 1 }]), /already says how quick that part is/);
+  assert.throws(() => addCriticism([RECORD[1]], { ...RECORD[1], id: undefined, tasks: [NLKA_TASK, "(alone cinderella prince)"] }), /already says how quick/);
 });
 
 // Each of Ken's functions CRITIC's files wrap, with the ids of its wrappers, newest
@@ -131,7 +147,7 @@ function expectedWraps() {
     "record-choice": ids("hold"),
     "get-display-method-suggestions": ids(has("critsc") && "critsc", "critic"),
     "get-convey-method-suggestions": ids(has("critsc") && "critsc", "critic"),
-    ...(has("critpc") ? { "ideal-time-for-task": ids("critpc") } : {}),
+    ...(has("critpc") ? { "ideal-time-for-task": ids("critpc"), "adjust-task-lengths": ids("critpc", "mend11"), "approve-or-remake-tasks-choices": ids("critpc") } : {}),
     ...(has("critsc") ? { "place-small-distance-apart": ids("critsc"), "place-medium-distance-apart": ids("critsc"), "place-large-distance-apart": ids("critsc") } : {}),
   };
 }

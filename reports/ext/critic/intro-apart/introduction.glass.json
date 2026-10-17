@@ -5,17 +5,32 @@
    "parent": "scene",
    "name": "introduction",
    "establish-tasks": "(establish-task-6 establish-task-5 establish-task-4 establish-task-3 establish-task-2 establish-task-1)",
-   "task-ordering": "(and establish-task-1 establish-task-2 establish-task-4 establish-task-6 (sequence: convey-task-8 convey-task-9 convey-task-10))",
+   "task-ordering": "(and establish-task-6 establish-task-4 establish-task-2 (sequence: convey-task-8 convey-task-9 convey-task-10 convey-task-11))",
    "rhythm": "normal",
    "length": "long",
-   "subscenes": "((subscene-of introduction 1) (subscene-of introduction 2) (subscene-of introduction 3))",
-   "convey-tasks": "(convey-task-10 convey-task-9 convey-task-8)",
+   "subscenes": "((subscene-of introduction 1) (subscene-of introduction 2) (subscene-of introduction 3) (subscene-of introduction 4))",
+   "convey-tasks": "(convey-task-11 convey-task-10 convey-task-9 convey-task-8)",
    "length-bounds": "(30.0 75.0)",
-   "running-time": "35.993175"
+   "running-time": "33.493175"
   },
   "items": []
  },
  "tasks": [
+  {
+   "name": "convey-task-11",
+   "variables": {
+    "parent": "convey-task",
+    "name": "convey-task-11",
+    "task": "(task: description (helps cinderella prince) for-who cinderella source establish-task-1)",
+    "scene": "introduction",
+    "subscene": "(subscene-of introduction 4)",
+    "share": "0.25",
+    "current-choice": "nil",
+    "status": "cant-do",
+    "running-time": "0.0"
+   },
+   "items": []
+  },
   {
    "name": "convey-task-10",
    "variables": {
@@ -24,12 +39,12 @@
     "task": "(task: description (hurts step-mother cinderella) for-who step-mother source establish-task-3)",
     "scene": "introduction",
     "subscene": "(subscene-of introduction 3)",
-    "share": "0.33333333",
+    "share": "0.25",
     "special-dynamics-packages": "nil",
-    "allocated-time": "(10.0 25.0)",
+    "allocated-time": "(7.5 18.75)",
     "scores": "((scores: suggestion (suggestion: element (convey (hurts step-mother cinderella)) value (method: type display value (move-to-and-hits step-mother cinderella)) strength high source hurts) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
     "current-choice": "((move-to-and-hits step-mother cinderella))",
-    "running-time": "10.0"
+    "running-time": "7.5"
    },
    "items": [
     "(suggestion: element (convey (hurts step-mother cinderella)) value (method: type display value (move-to-and-hits step-mother cinderella)) strength high source hurts)"
@@ -43,9 +58,9 @@
     "task": "(task: description (chases step-mother cinderella) for-who step-mother source establish-task-3)",
     "scene": "introduction",
     "subscene": "(subscene-of introduction 2)",
-    "share": "0.33333333",
+    "share": "0.25",
     "special-dynamics-packages": "nil",
-    "allocated-time": "(1.4597286 16.459729)",
+    "allocated-time": "(1.4847286 12.734729)",
     "scores": "((scores: suggestion (suggestion: element (convey (chases step-mother cinderella)) value (method: type display value (chases-to step-mother cinderella (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.25))) strength high source chases) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
     "current-choice": "((chases-to step-mother cinderella (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.25)))",
     "running-time": "1.5442857"
@@ -62,9 +77,9 @@
     "task": "(task: description (pushes step-mother cinderella) for-who step-mother source establish-task-5)",
     "scene": "introduction",
     "subscene": "(subscene-of introduction 1)",
-    "share": "0.33333333",
+    "share": "0.25",
     "special-dynamics-packages": "nil",
-    "allocated-time": "(10.0 25.0)",
+    "allocated-time": "(7.5 18.75)",
     "scores": "((scores: suggestion (suggestion: element (convey (pushes step-mother cinderella)) value (method: type display value (pushes-around step-mother cinderella)) strength high source pushes) strength 50 prerequisite 50 best-when 50 time-fit 50 originality 50 variety 50))",
     "current-choice": "((pushes-around step-mother cinderella))",
     "running-time": "24.448889"
@@ -172,14 +187,14 @@
     "scene": "introduction",
     "share": "1.0",
     "subscene": "(subscene-of introduction 1)",
-    "current-choice": "nil",
-    "rejected-suggestions": "((rejected-suggestion: reason (prerequisites-not-met ((kept-apart-by-you cinderella prince c1))) suggestion (related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (helps cinderella prince)) strength high source friendly) relationship unique others nil)) (rejected-suggestion: reason (prerequisites-not-met ((kept-apart-by-you cinderella prince c1))) suggestion (related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (accompanys cinderella prince)) strength medium source friendly) relationship unique others nil)))",
-    "status": "cant-do",
-    "running-time": "0.0"
+    "current-choice": "((method: type convey value (helps cinderella prince)))",
+    "rejected-suggestions": "((rejected-suggestion: reason (prerequisites-not-met ((kept-apart-by-you cinderella prince c1))) suggestion (related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (accompanys cinderella prince)) strength medium source friendly) relationship unique others nil)))",
+    "status": "being-handled-by-convey-tasks",
+    "convey-tasks": "((convey (helps cinderella prince)))"
    },
    "items": [
-    "(heeded-criticism: id c1 what keep-apart was (helps cinderella prince) now set-aside because (brings-together cinderella prince convey))",
-    "(heeded-criticism: id c1 what keep-apart was (accompanys cinderella prince) now set-aside because (brings-together cinderella prince convey))"
+    "(heeded-criticism: id c1 what keep-apart was (accompanys cinderella prince) now set-aside because (brings-together cinderella prince convey))",
+    "(related-suggestions: main-suggestion (suggestion: element (establish cinderella friendly) value (method: type convey value (helps cinderella prince)) strength high source friendly) relationship unique others nil)"
    ]
   }
  ],
@@ -190,16 +205,16 @@
     "parent": "subscene",
     "name": "(subscene-of introduction 1)",
     "scene": "introduction",
-    "establish-tasks": "(establish-task-6 establish-task-4 establish-task-2 establish-task-1)",
+    "establish-tasks": "(establish-task-2 establish-task-4 establish-task-6)",
     "convey-tasks": "(convey-task-8)",
-    "(time-estimates-for (change: element (cinderella acceleration) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
-    "(time-estimates-for (change: element (cinderella rhythmic-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
-    "(time-estimates-for (change: element (cinderella speed) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
-    "(time-estimates-for (change: element (cinderella activity-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
     "(time-estimates-for (change: element (step-mother acceleration) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
     "(time-estimates-for (change: element (step-mother rhythmic-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
     "(time-estimates-for (change: element (step-mother speed) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
     "(time-estimates-for (change: element (step-mother activity-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella acceleration) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella rhythmic-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella speed) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
+    "(time-estimates-for (change: element (cinderella activity-level) amount (positive low) speed low))": "(time-estimates: ideal 1.1778304 least 0.23556607 most 5.8891518)",
     "(time-estimates-for (pushes-around step-mother cinderella))": "(time-estimates: ideal 24.448889 most 106.52 least 2.95212)",
     "stretched-by": "1.0",
     "transition-type": "cut",
@@ -210,9 +225,9 @@
     "(actions-of step-mother)": "((walk of step-mother with cinderella to (distance-towards-from (vicinity-of step-mother) (vicinity-of cinderella) 0.134) as stationary-target careful of collisions starting at (after (end-of (activity-of pusher-comes-in-contact 1)) 0.05) using |(special-dynamics-of step-mother in (subscene-of introduction 1))-13-2| called (activity-of moving-together 1) stopping if (stop-when-there (quote (subscene-of introduction 1)))) (walk of step-mother to (contact-with cinderella by step-mother) as moving-target regardless of collisions starting at 0.5 using |(special-dynamics-of step-mother in (subscene-of introduction 1))-13-1| called (activity-of pusher-comes-in-contact 1) stopping if (stop-when-there (quote (subscene-of introduction 1)))))",
     "(actions-of cinderella)": "((walk of cinderella to (a-small-distance-away-from-and-towards-center (vicinity-of cinderella) (vicinity-of step-mother)) as stationary-target careful of collisions starting at (after (end-of (activity-of pushee-coasts 1)) 0.0) using |(special-dynamics-of cinderella in (subscene-of introduction 1))-14| called (activity-of pushee-moves-away 1) stopping if (stop-when-there (quote (subscene-of introduction 1)))) (walk of cinderella to (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.1) as stationary-target careful of collisions starting at (after (end-of (activity-of moving-together 1)) 0.05) using |(special-dynamics-of step-mother in (subscene-of introduction 1))-13-3| called (activity-of pushee-coasts 1) stopping if (stop-when-there (quote (subscene-of introduction 1)))))",
     "movements": "((repeat 5 (and (activity-of pusher-comes-in-contact 1) (activity-of moving-together 1) (activity-of pushee-coasts 1) (activity-of pushee-moves-away 1))))",
-    "initial-actions": "((ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of introduction 1))) (ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of introduction 1))))",
-    "(changes-for step-mother)": "((gradually change by 1.125 factor for activity-level at low speed) (gradually change by 1.125 factor for speed at low speed) (gradually change by 1.125 factor for rhythmic-level at low speed) (gradually change by 1.125 factor for acceleration at low speed))",
+    "initial-actions": "((ask step-mother to set your special-dynamics to (special-dynamics-of step-mother in (subscene-of introduction 1))) (ask cinderella to set your special-dynamics to (special-dynamics-of cinderella in (subscene-of introduction 1))))",
     "(changes-for cinderella)": "((gradually change by 1.125 factor for activity-level at low speed) (gradually change by 1.125 factor for speed at low speed) (gradually change by 1.125 factor for rhythmic-level at low speed) (gradually change by 1.125 factor for acceleration at low speed))",
+    "(changes-for step-mother)": "((gradually change by 1.125 factor for activity-level at low speed) (gradually change by 1.125 factor for speed at low speed) (gradually change by 1.125 factor for rhythmic-level at low speed) (gradually change by 1.125 factor for acceleration at low speed))",
     "special-dynamics": "(|(special-dynamics-of step-mother in (subscene-of introduction 1))-13-3| |(special-dynamics-of cinderella in (subscene-of introduction 1))-14| |(special-dynamics-of step-mother in (subscene-of introduction 1))-13-1| |(special-dynamics-of step-mother in (subscene-of introduction 1))-13-2|)",
     "plans": "((activity-of pushee-coasts 1) (activity-of pushee-moves-away 1) (activity-of pusher-comes-in-contact 1) (activity-of moving-together 1))",
     "running-time": "24.448889"
@@ -230,14 +245,14 @@
     "(location-of step-mother)": "(place: where (symbolic-position (move-from-xy-position (vicinity-of step-mother) (vicinity-of cinderella) 0.134 keep-on-stage)) why (and move-character (so that (pushes-around step-mother cinderella))) status (placed by (subscene-of introduction 1)))",
     "(location-of cinderella)": "(place: where (symbolic-position dont-know-enuf) why (and move-character (so that (pushes-around step-mother cinderella))) status (placed by (subscene-of introduction 1)))",
     "(distance-between (vicinity-of step-mother) (vicinity-of cinderella))": "(screen-fraction 0.3)",
-    "(step-mother acceleration)": "high",
-    "(step-mother rhythmic-level)": "medium",
-    "(step-mother speed)": "high",
-    "(step-mother activity-level)": "high",
     "(cinderella acceleration)": "low",
     "(cinderella rhythmic-level)": "high",
     "(cinderella speed)": "low",
     "(cinderella activity-level)": "high",
+    "(step-mother acceleration)": "high",
+    "(step-mother rhythmic-level)": "medium",
+    "(step-mother speed)": "high",
+    "(step-mother activity-level)": "high",
     "stretched-by": "1.0",
     "(actions-of cinderella)": "((walk of cinderella to (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.25) as moving-target careful of collisions starting at 0.0 using |(special-dynamics-of cinderella in (subscene-of introduction 2))-15| called (activity-of chasee-runs-away 1) stopping if (move-only-original-distance (quote (subscene-of introduction 2)))))",
     "(actions-of step-mother)": "((walk of step-mother to (small-way-from-plus-size (vicinity-of cinderella) (vicinity-of step-mother) cinderella) as moving-target regardless of collisions starting at (after (beginning-of (activity-of chasee-runs-away 1)) 0.5) using |(special-dynamics-of step-mother in (subscene-of introduction 2))-16| called (activity-of chaser-pursues 1) stopping if (stop-when-there-then (quote (subscene-of introduction 2)) (stop-plan (quote (activity-of chasee-runs-away 1))))))",
@@ -259,13 +274,26 @@
     "(location-of cinderella)": "(place: where (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.25) why (and move-character (and move-character (so that (pushes-around step-mother cinderella)))) status symbolic)",
     "(location-of step-mother)": "(place: where (small-way-from-plus-size (vicinity-of cinderella) (vicinity-of step-mother) cinderella) why (and move-character (and move-character (so that (pushes-around step-mother cinderella)))) status symbolic)",
     "(distance-between (vicinity-of cinderella) (vicinity-of step-mother))": "(screen-fraction 0.2)",
-    "stretched-by": "1.3661202",
+    "stretched-by": "1.0245902",
     "(actions-of step-mother)": "((hit cinderella by step-mother using |(special-dynamics-of step-mother in (subscene-of introduction 3))-17| called (activity-of hitting-other 1)) (walk of step-mother to (contact-with cinderella by step-mother) as moving-target regardless of collisions starting at 0.0 using |(special-dynamics-of step-mother in (subscene-of introduction 3))-17| called (activity-of goes-to-to-hit 1) stopping if (stop-when-there (quote (subscene-of introduction 3)))))",
-    "movements": "((sequence: (activity-of goes-to-to-hit 1) (repeat 12 (activity-of hitting-other 1))))",
-    "(distance-between (vicinity-of step-mother) (vicinity-of cinderella))": "(screen-fraction 0.15)",
+    "movements": "((sequence: (activity-of goes-to-to-hit 1) (repeat 10 (activity-of hitting-other 1))))",
     "special-dynamics": "(|(special-dynamics-of step-mother in (subscene-of introduction 3))-17|)",
     "plans": "((activity-of goes-to-to-hit 1) (activity-of hitting-other 1))",
-    "running-time": "10.0"
+    "running-time": "7.5"
+   },
+   "items": []
+  },
+  {
+   "name": "(subscene-of introduction 4)",
+   "variables": {
+    "parent": "subscene",
+    "name": "(subscene-of introduction 4)",
+    "scene": "introduction",
+    "convey-tasks": "(convey-task-11)",
+    "(location-of step-mother)": "(place: where (contact-with cinderella by step-mother) why (and move-character (and move-character (and move-character (so that (pushes-around step-mother cinderella))))) status symbolic)",
+    "(distance-between (vicinity-of step-mother) (vicinity-of cinderella))": "(screen-fraction 0.15)",
+    "stretched-by": "0.0",
+    "running-time": "0.0"
    },
    "items": []
   }
@@ -621,7 +649,7 @@
    "variables": {
     "parent": "(special-dynamics-of step-mother in (subscene-of introduction 3))",
     "name": "|(special-dynamics-of step-mother in (subscene-of introduction 3))-17|",
-    "(speed factor)": "0.85556999"
+    "(speed factor)": "0.98792712"
    },
    "items": []
   },
@@ -650,6 +678,7 @@
   "variables": {
    "parent": "something",
    "name": "(choices-made-in introduction)",
+   "(helps cinderella prince)": "nil",
    "(hurts step-mother cinderella)": "((move-to-and-hits step-mother cinderella))",
    "(chases step-mother cinderella)": "((chases-to step-mother cinderella (distance-away-from (vicinity-of cinderella) (vicinity-of step-mother) 0.25)))",
    "(pushes step-mother cinderella)": "((pushes-around step-mother cinderella))",
@@ -658,21 +687,11 @@
    "(emotional-state step-mother (joy (positive low)))": "((change: element (step-mother acceleration) amount (positive low) speed low) (change: element (step-mother rhythmic-level) amount (positive low) speed low) (change: element (step-mother speed) amount (positive low) speed low) (change: element (step-mother activity-level) amount (positive low) speed low))",
    "(personality step-mother)": "((method: type convey value (hurts step-mother cinderella)) (method: type convey value (chases step-mother cinderella)))",
    "(emotional-state cinderella (joy (positive low)))": "((change: element (cinderella acceleration) amount (positive low) speed low) (change: element (cinderella rhythmic-level) amount (positive low) speed low) (change: element (cinderella speed) amount (positive low) speed low) (change: element (cinderella activity-level) amount (positive low) speed low))",
-   "(personality cinderella)": "nil"
+   "(personality cinderella)": "((method: type convey value (helps cinderella prince)))"
   },
   "items": []
  },
  "criticism": [
-  {
-   "actor": "establish-task-1",
-   "id": "c1",
-   "heeded": true,
-   "what": "keep-apart",
-   "was": "(helps cinderella prince)",
-   "now": "set-aside",
-   "because": "(brings-together cinderella prince convey)",
-   "note": "(heeded-criticism: id c1 what keep-apart was (helps cinderella prince) now set-aside because (brings-together cinderella prince convey))"
-  },
   {
    "actor": "establish-task-1",
    "id": "c1",

@@ -216,7 +216,7 @@ export function conveyContacts(files = sources(), display = displayContacts(file
       const pairs = pairsOf(w).filter((p) => p[0] && p[1]).map((p) => p.map((a) => a.replace(/^!?,/, "")).sort().join(" "));
       common = common === null ? new Set(pairs) : new Set([...common].filter((p) => pairs.includes(p)));
     }
-    out.push({ verb: v.verb, ways: v.ways.map((w) => `${w.form[0]} ${w.at}`), together: [...(common || [])] });
+    out.push({ verb: v.verb, ways: v.ways.map((w) => `${w.form[0]} ${w.at}`), methods: [...new Set(v.ways.map((w) => w.form[0]))], together: [...(common || [])] });
   }
   return out;
 }
@@ -252,7 +252,9 @@ export function contactTable() {
     ";;; Each display method's run receiver, (method pair ...), a pair the two of its arguments it",
     ";;; brings together (1 its first argument, (place n) the character of its n-th, a place);",
     ";;; a method with none brings no two together. Then each verb of CONVEY's (and the",
-    ";;; revival's) whose every way of showing brings the same two of its characters together.",
+    ";;; revival's) whose every way of showing brings the same two of its characters together,",
+    ";;; (verb pair ... by way ...), with its ways of showing: a verb counts only in a job that",
+    ";;; has one of them (helps, by KNOW's helps-along, not in a film made without KNOW).",
     "(setq :critic-display-contacts",
     "      '("];
   display.forEach((e, k) => {
@@ -266,7 +268,7 @@ export function contactTable() {
     const pos = positions.get(v.verb);
     // the variables of each pair, as the receivers named them, read back to positions
     const pairs = v.together.map((p) => `(${p.split(" ").map((name) => pos.get(name)).sort((a, b) => a - b).join(" ")})`).join(" ");
-    lines.push(`\t(${v.verb} ${pairs})${k === verbs.length - 1 ? "))" : ""} ;;${v.ways.join("; ")}`);
+    lines.push(`\t(${v.verb} ${pairs} by ${v.methods.join(" ")})${k === verbs.length - 1 ? "))" : ""} ;;${v.ways.join("; ")}`);
   });
   if (!verbs.length) lines.push("\t))");
   lines.push(END);

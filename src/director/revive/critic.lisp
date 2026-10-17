@@ -61,6 +61,35 @@
 (defun critic-description-of (task)
   (get (ask ,task recall your task) 'description))
 
+;; A task named by a criticism: by its description and, where the scene has more than
+;; one task of that description, by the description of the task it came from as well
+;; (its (task: ... source s), the establish task whose convey method it shows, or
+;; initial-description), the record's source (sources, in a pace's, one for each of its
+;; tasks, nil where one is enough). Two tasks of a scene can share a description (in
+;; reports/ext/change/socializing's the-dance, Cinderella accompanies the Prince once for
+;; her personality and once for their relationship), and a criticism of one is not of the
+;; other. (The design had the task's place among those of its description; the scene's
+;; list of tasks grows at the front as Ani chooses, so the place can shift where the
+;; source does not.)
+(defun critic-source-of (task)
+  (let ((source (get (ask ,task recall your task) 'source)))
+       (cond ((or (null source) (eq source 'initial-description)) source)
+	     ((atom source) (critic-description-of source))
+	     (t source))))
+
+(defun critic-names-task? (c task description)
+  (cond ((get c 'task)
+	 (and (equal (get c 'task) description)
+	      (or (null (get c 'source)) (equal (get c 'source) (critic-source-of task)))))
+	((get c 'tasks)
+	 (do ((d (get c 'tasks) (rest d))
+	      (s (get c 'sources) (rest s)))
+	     ((null d) nil)
+	     (and (equal (first d) description)
+		  (or (null (first s)) (equal (first s) (critic-source-of task)))
+		  (return t))))
+	(t t)))
+
 ;; The criticisms of a kind that apply to a task: of its scene (scene, or one of
 ;; scenes), and of it (task, or one of tasks), if they name a task. In the record's
 ;; order.
@@ -71,9 +100,7 @@
 		(lambda (c)
 			(and (eq (get c 'kind) kind)
 			     (or (eq (get c 'scene) scene) (memq scene (get c 'scenes)))
-			     (or (and (null (get c 'task)) (null (get c 'tasks)))
-				 (equal (get c 'task) description)
-				 (member description (get c 'tasks)))
+			     (critic-names-task? c task description)
 			     (list c))))
 	       :critic-record)))
 
@@ -123,9 +150,12 @@
 ;;; so that it is in the task's rejected-suggestions beside Ken's reasons. CHOMET then
 ;;; chooses among what is left as ever, and when nothing is left Ken's own path takes
 ;;; over (approve-or-remake-tasks-choices, chomet.123:9-36): a suggestion set aside for
-;;; its time may be brought back (resurect-bad-time-fits, chomet.123:187), and failing
-;;; that the task is cant-do. A vetoed one is never brought back, since its reason is no
-;;; time's. CHOMET's unchoose memorizes the set-aside suggestions back before it chooses
+;;; taking too much time may be brought back (resurect-bad-time-fits, chomet.123:187),
+;;; and failing that the task is cant-do. (resurect-bad-time-fits looks for the reasons
+;;; too-much-time: and more-time-needed:, but Ken's time-fit-score writes need-more-time:,
+;;; chomet.123:413, so a suggestion set aside for needing more time is never brought
+;;; back: a slip of Ken's, left as it is here.) A vetoed one is never brought back, since
+;;; its reason is no time's. CHOMET's unchoose memorizes the set-aside suggestions back before it chooses
 ;;; again (scene.9:318-330), and the wrapper sets them aside again.
 ;;;
 ;;; What a veto names (the revival's choice, pending Ken: design question 2): the
