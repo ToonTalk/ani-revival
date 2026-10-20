@@ -278,7 +278,9 @@ function withTaskIn(text, story, id, task) {
   }
   if (end < 0) return null;
   const form = block.slice(i, end + 1);
-  const lead = "\n" + " ".repeat(Math.max(0, i - block.lastIndexOf("\n", i) - 1) + 5);
+  // under the (and ...)'s last task, as it is indented (tabs and all); or under its first
+  const last = block.lastIndexOf("\n", end), first = block.lastIndexOf("\n", i) + 1;
+  const lead = "\n" + (last > i ? block.slice(last + 1).match(/^[\t ]*/)[0] : block.slice(first, i).replace(/[^\t]/g, " ") + "     ");
   const put = /^\(and\s/.test(form) ? `${form.slice(0, -1)}${lead}${task})` : `(and ${form}${lead}${task})`;
   return text.slice(0, sc.span.start) + block.slice(0, i) + put + block.slice(end + 1) + text.slice(sc.span.end);
 }

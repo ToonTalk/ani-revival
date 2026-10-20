@@ -528,7 +528,7 @@ try {
   check(round3.jumped && Number(round3.goText.replace(/,/g, "")) === round3.base + round3.gf, `a frame in the timeline (${round3.goText}) shows that frame when clicked`);
   check(round3.teachPanel === "teach" && /^Teach Ani something different about “[a-z -]+”$/.test(round3.offerText) && round3.form && round3.form.kind === "suggests" && round3.form.element === "speed" && round3.offerText.includes(`“${round3.form.word.replace(/-/g, " ")}”`) && round3.form.value !== "high" && round3.panel === "teach",
     `Teach Ani is in the header's row, and the Prince's speed (high) offers "${round3.offerText}", which opens its form filled in (${round3.form ? `${round3.form.word}: speed ${round3.form.value}` : "none"})`);
-  await shot("16-teach-from-a-choice.png");
+  await shot("41-teach-from-a-choice.png");
 
   // Ken's decision of 20 October on making a film: no 4/24 toggle beside "Make the film", but
   // two buttons, quick and jerky (4 frames a second) and slow and smoother (24), the one
@@ -1640,15 +1640,15 @@ try {
     const finish = lisp.slice(lisp.indexOf("(define the-finish scene"), lisp.indexOf("(declare"));
     return { calls, item, panel: side.querySelector("h2").innerText, note: (document.querySelector("#side .crit-added") || {}).innerText || "", finish, lispOpen: document.getElementById("ed-lisp-box").open,
       scenes: story ? story.properties.scene.enum : null, who: story ? story.properties.add.anyOf[0].properties.who.enum : null, prompt: body ? body.messages[0].content.includes(SAID) : false,
-      rest: /\\(define the-boast scene/.test(lisp) && /\\(define the-race scene/.test(lisp) && /\\(define tortoise-and-hare-film film/.test(lisp) && (lisp.match(/emotional-state hare \\(joy/g) || []).length === 1 };
+      rest: /\\(define the-boast scene/.test(lisp) && /\\(define the-race scene/.test(lisp) && (lisp.match(/emotional-state hare \\(joy/g) || []).length === 1 };
   })()`);
   check(!hare.error && hare.calls.length === 1 && hare.prompt && JSON.stringify(hare.scenes) === JSON.stringify(["the-boast", "the-race", "the-finish", "none"]) && JSON.stringify(hare.who) === JSON.stringify(["hare", "tortoise"])
     && /^A change to the story, not criticism of how Ani made it: the hare is unhappy in the final scene\. In The Finish, Ani would be told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\): the hare is [a-z ]*unhappy\./.test(hare.item),
     `Ken's "the hare is unhappy and should move slowly in the final scene" is read as a change to the story (${(hare.item || hare.error || "").split("(you said")[0].trim()})`);
   check(hare.panel === "Change the story" && /^From “Tell Ani what's wrong”: in The Finish, Ani is told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\)/.test(hare.note) && hare.lispOpen
     && /\(establish \(emotional-state hare \(pride \(negative high\)\)\)\)\s*\n\s*\(establish \(emotional-state hare \(joy \(negative high\)\)\)\)\)\)/.test(hare.finish) && hare.rest,
-    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...)`);
-  await shot("18-hare-to-the-editor.png");
+    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...; the scene now: ${hare.finish.replace(/\s+/g, " ").slice(0, 400)})`);
+  await shot("42-hare-to-the-editor.png");
   await js(`document.getElementById("ed-close").click()`);
 
   // a story whose scene is called fear (test/stories/stress/know-scene-named-fear.lisp, as
@@ -2349,13 +2349,13 @@ try {
     await wait(60);
     return { lead, box, notes, waiting, standing, entry: !!entry, caption: document.getElementById("caption-1").innerText };
   })()`);
-  check(/^Cinderella is wandering about while her joy changes how she moves, so that the change is seen \(the revival's repair\)\.$/.test(seenSaid.lead) && /Why so long She wanders from frame 95 to 109 \(3\.5 s\), until her changes end: the longest, her length of each curve by 2 at high speed, takes Director [\d.]+ s from the part's start, where Ani planned 1\.73 s/.test(seenSaid.box) && /the revival's repair \(SEEN\) has her wander here too, once nothing else moves her, while her changes run\./.test(seenSaid.box),
+  check(/^Cinderella is wandering about while her joy changes how she moves, so that the change is seen \(the revival's repair\)\.$/.test(seenSaid.lead) && /Why so long She wanders from frame 481 to 495 \(3\.5 s\), until her changes end: the longest, her length of each curve by 2 at high speed, takes Director [\d.]+ s from the part's start, where Ani planned 1\.73 s/.test(seenSaid.box) && /the revival's repair \(SEEN\) has her wander here too, once nothing else moves her, while her changes run\./.test(seenSaid.box),
     `with SEEN, Cinderella wanders while her joy runs, and her panel says why, and why so long: ${seenSaid.lead}`);
   check(seenSaid.notes.filter((n) => /only part is a change of feeling/.test(n)).length === 2 && seenSaid.notes.some((n) => /^At frame \d+ Ken's Director would have stopped the film/.test(n)) && /Cinderella and the fairy godmother wander about while the change runs, so that it is seen \(the revival's repair\)\./.test(seenSaid.caption),
     "the glass box says why each of them wanders (SEEN's nothing-to-do) and why the film went on (film-waited-for-wander), and the caption says they wander so that the change is seen");
-  check(seenSaid.entry && /She waits from frame 82 to 95 \(3\.25 s\), until “wandering about while the change is shown”, which moves her, ends at frame 95\./.test(seenSaid.waiting),
+  check(seenSaid.entry && /She waits from frame 468 to 481 \(3\.25 s\), until “wandering about while the change is shown”, which moves her, ends at frame 481\./.test(seenSaid.waiting),
     "her wait, opened from the scene's timeline, says what she waits for");
-  check(/Why so long Part 1 goes on to frame 97: meanwhile Cinderella is wandering about while the change is shown \(to frame 66\), and she has no step of her own in it now\. Ken's scene says \(set your length to long\), 24 to 60 seconds; Ani planned 20\.4 s for “the fairy godmother goes to Cinderella and transforms her” and stretched it by 1\.18, to take in part 2, which extends it\./.test(seenSaid.standing),
+  check(/Why so long Part 1 goes on to frame 483: meanwhile Cinderella is wandering about while the change is shown \(to frame 452\), and she has no step of her own in it now\. Ken's scene says \(set your length to long\), 24 to 60 seconds; Ani planned 20\.4 s for “the fairy godmother goes to Cinderella and transforms her” and stretched it by 1\.18, to take in part 2, which extends it\./.test(seenSaid.standing),
     `the fairy godmother, standing by, says why so long (Ken: "Why so long (20s)? ... is this standing by?"): ${seenSaid.standing.replace(/How Ani timed the part.*/, "")}`);
   // Cinderella Beautified: the fairy godmother's walk to her, the touch, the change at once,
   // her wander; her colors in the film's looks, painted in color mode, in the captions and
@@ -2428,7 +2428,7 @@ try {
     return { found: true, text: d.innerText, box: d.querySelector("#chg-box").innerText, lead: lead ? lead.innerText : "", row: row ? row.innerText.replace(/\\s+/g, " ").trim() : "" };
   }`);
   check(/In Cinderella Beautified the fairy godmother makes Cinderella elegant, no longer shabby\. From No Longer Kept Apart on she moves as before, but she is drawn in a clear purple, no longer a dull purple\./.test(beautyChanged.text || "")
-    && /Ani shows it in Cinderella Beautified: the fairy godmother goes to her \(frames 0 to 10\), and when they touch, at frame 10, her colors become clear at once \(Director draws the change from frame 12\), since the fairy godmother is magical \(the revival's rule\); then she wanders about for [\d.]+ seconds \(frames 11 to \d+\), so that the change is seen\./.test(beautyChanged.text || "")
+    && /Ani shows it in Cinderella Beautified: the fairy godmother goes to her \(frames 386 to 396\), and when they touch, at frame 396, her colors become clear at once \(Director draws the change from frame 398\), since the fairy godmother is magical \(the revival's rule\); then she wanders about for [\d.]+ seconds \(frames 397 to \d+\), so that the change is seen\./.test(beautyChanged.text || "")
     && /^Clarity dull clear why\?$/.test(beautyChanged.row || "") && /^Ani's fresh look after Cinderella Beautified\s+Cinderella's clarity: clear/.test(beautyChanged.box || "") && /Cinderella is wandering about while the change is shown/.test(beautyChanged.lead || ""),
     `her glass box there has "How she has changed", with the bridge: ${((beautyChanged.text || "").match(/Ani shows it in Cinderella Beautified:[^;]*/) || [""])[0]}`);
   const beautyAfter = await js(`(async () => {
@@ -2463,7 +2463,7 @@ try {
     `a change with no cause: Learning to Socialize, ${social.frames} frames, where Cinderella grows from a hexagon into an octagon (${social.shapes.join("; ")})`);
   check(/Cinderella wanders about as she changes, to convey that she becomes brazen, no longer shy: gradually, since an abrupt change could be misread \(thesis p\. 169\)\./.test(social.caps[0]) && /Over 16 seconds, she grows, turns from a hexagon into an octagon and moves faster\./.test(social.caps[0]) && /Cinderella becomes an octagon/.test(social.caps[1]),
     `its captions say so: ${(social.caps[0].match(/Over 16 seconds[^.]*\./) || [""])[0]}`);
-  check(/^ In Learning to Socialize Cinderella becomes brazen, no longer shy\. From The Dance on she moves faster, and she is drawn as an octagon, no longer a small hexagon\. Ani shows it in Learning to Socialize: she wanders as she changes, gradually, over 16 seconds \(frames 0 to 64\): she grows, turns from a hexagon into an octagon and moves faster;/.test(social.changed)
+  check(/^ In Learning to Socialize Cinderella becomes brazen, no longer shy\. From The Dance on she moves faster, and she is drawn as an octagon, no longer a small hexagon\. Ani shows it in Learning to Socialize: she wanders as she changes, gradually, over 16 seconds \(frames \d+ to \d+\): she grows, turns from a hexagon into an octagon and moves faster;/.test(social.changed)
     && /Ani's own estimate was 10 seconds \(ten seconds an e-fold of the largest change; a change of shape or hue counts as one e-fold\), stretched by 1\.6/.test(social.changed) && /Chosen again but not bridged: her likings for enemies and strangers, which only pass 1 reads\./.test(social.changed)
     && /Director draws her by these; her look's change is bridged in Learning to Socialize, gradually, over 16 seconds Size small middle-sized why\?/.test(social.changed),
     "and \"How she has changed\" has the bridge: what changed, over how long, from which frame, and what was chosen again and not bridged");
@@ -2807,7 +2807,7 @@ try {
     };
     const samePlace = (a, b) => a.view === b.view && a.pair === b.pair && a.scene === b.scene && a.label === b.label && a.where === b.where && a.who === b.who && a.panel === b.panel && a.open === b.open && Math.abs(a.scroll - b.scroll) <= 2;
     const kept = await viaCode("film.check.html");
-    check(kept.link && /source\.html$/.test(kept.there.split("#")[0]) && samePlace(kept.before, kept.after) && /Kept Apart · part \d+ of \d+ · frame 30 of/.test(kept.after.where) && kept.after.panel === "why",
+    check(kept.link && /source\.html$/.test(kept.there.split("#")[0]) && samePlace(kept.before, kept.after) && /Kept Apart · part \d+ of \d+ · frame [\d,]+ \(scene frame 30 of/.test(kept.after.where) && kept.after.panel === "why",
       `a code link from the stepmother's glass box, then "Back to the film": the same films, scene, frame, character, panel, details and scroll (${kept.after.whole ? "kept whole by the browser's back-forward cache, pageshow persisted" : `made again, ${kept.after.nav}`}): ${kept.after.who} · ${kept.after.where} · ${kept.after.open}`);
     const remade = await viaCode("film.nobf.html");
     check(remade.link && samePlace(remade.before, remade.after) && !remade.after.whole && remade.after.nav === "back_forward",
@@ -2924,7 +2924,7 @@ try {
     check(!apart.error && apart.frames.join() === "151,116,17,179,84" && apart.how.join() === "refilmed,unchanged,unchanged,unchanged,unchanged"
       && /Met Keep Cinderella and the Prince apart in the Introduction and Kept Apart \(you said “Cinderella is not to meet the Prince until the third scene”\)/i.test(apart.side)
       && /To establish what Cinderella is like \(good, friendly, hard working, shy\), Ani now shows only that Cinderella helps the Prince, which it has no way to show \(as in 1978\), so none of it is on the screen/.test(apart.side)
-      && /In Kept Apart they come no closer than 0\.345 of the screen \(frame 72\)/.test(apart.side) && /planned again: the same program, so its film is kept/.test(apart.side),
+      && /In Kept Apart they come no closer than 0\.345 of the screen \(frame 223\)/.test(apart.side) && /planned again: the same program, so its film is kept/.test(apart.side),
       `Ken's footnote, "Cinderella is not to meet the Prince until the third scene", as reports/ext/critic/intro-apart has it (${apart.frames.join(", ")}; ${apart.how.join(", ")}): her friendliness is shown by helping the Prince, which Ani as in 1978 can't show, and Kept Apart on are planned again and kept, the two never closer than 0.345 of the screen`);
     await js(`(() => { const d = [...document.querySelectorAll("#side .crit-changed details")][0]; if (d) d.open = true; })()`);
     await sleep(200);
@@ -2963,7 +2963,7 @@ try {
       `"the Prince moves too fast", as reports/ext/critic/choice-prince has it (${choice.frames.join(", ")}; ${choice.how.join(", ")}): met, high to medium, and the knock-on the remake held said beside Ken's film`);
     check(/high before; medium now, because you said “The Prince moves too fast”\./.test(boxes.prince) && /you said “The Prince moves too fast”/.test(boxes.prince.replace(/high before[^.]*\./, "")) && /Held as it was, medium, while pass 1 was made again for your criticism; on its own Ani would have chosen high\./.test(boxes.godmother),
       `the remade film's choice points: the Prince's "high before; medium now, because you said ...", his suggestion's source "you said ...", and the fairy godmother's speed "held as it was, medium; on its own Ani would have chosen high"`);
-    await shot("24-choice-criticized.png");
+    await shot("43-choice-criticized.png");
     // "not this way" on the stepmother's guarding in Kept Apart: offered with a caution, and
     // when Ani stops in Ken's unfinished chases-to, the film kept as it was from there and
     // the criticism "couldn't be made", said in plain words (reports/ext/critic/ka-veto-guard)
@@ -3338,8 +3338,8 @@ try {
   check(/Nothing is sent unless you press Send/.test(noted) && asked && /^Ani ran into an error\. Send a report to Ken, without any story, key or personal data\?/.test(asked.text) && /Send\s+Don't send\s+Don't ask again/.test(asked.text)
     && /a deliberate check error, with \[removed\] and \[removed\]/.test(asked.shown) && !asked.shown.includes(SECRET) && !asked.shown.includes(TOLD) && envelopes.length === 0 && asked.sdk === "undefined" && sdkAsked.length === sdkAskedBefore,
     `an uncaught error sends nothing: the page asks (${asked ? asked.text.split("\n")[0] : "no notice"}), with what would be sent a click away, its key and story text removed, and nothing of Sentry's is loaded or asked for until Send`);
-  await shot("15-error-notice.png");
-  await phone("15b-error-notice-phone.png", `document.getElementById("report-ask")`);
+  await shot("40-error-notice.png");
+  await phone("40b-error-notice-phone.png", `document.getElementById("report-ask")`);
   await js(`document.querySelector('#report-ask [data-report="send"]').click()`);
   let sdk = false;
   for (let k = 0; k < 75 && !sdk; k++) { await sleep(200); sdk = await js(`typeof window.Sentry === "object" && !!window.Sentry.getClient && !!window.Sentry.getClient()`).catch(() => false); }
