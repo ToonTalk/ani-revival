@@ -1645,9 +1645,9 @@ try {
   check(!hare.error && hare.calls.length === 1 && hare.prompt && JSON.stringify(hare.scenes) === JSON.stringify(["the-boast", "the-race", "the-finish", "none"]) && JSON.stringify(hare.who) === JSON.stringify(["hare", "tortoise"])
     && /^A change to the story, not criticism of how Ani made it: the hare is unhappy in the final scene\. In The Finish, Ani would be told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\): the hare is [a-z ]*unhappy\./.test(hare.item),
     `Ken's "the hare is unhappy and should move slowly in the final scene" is read as a change to the story (${(hare.item || hare.error || "").split("(you said")[0].trim()})`);
-  check(hare.panel === "Change the story" && /^From .Tell Ani what.s wrong.: in The Finish, Ani is told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\)/.test(hare.note) && hare.lispOpen
-    && /\(establish \(emotional-state hare \(pride \(negative high\)\)\)\)\s*\(establish \(emotional-state hare \(joy \(negative high\)\)\)\)\)\)/.test(hare.finish) && hare.rest,
-    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...${hare.panel === "Change the story" && hare.lispOpen && hare.rest ? "" : `; panel ${hare.panel}, Ani's version open ${hare.lispOpen}, the rest ${hare.rest}`}${/^From/.test(hare.note) ? "" : `; the note ${JSON.stringify(hare.note.slice(0, 120))}`}; the scene now: ${hare.finish.replace(/\s+/g, " ").slice(0, 400)})`);
+  const hareOk = { panel: hare.panel === "Change the story", note: /^From .Tell Ani what.s wrong.: in The Finish, Ani is told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\)/.test(hare.note), open: hare.lispOpen, finish: /\(establish\s+\(emotional-state hare \(pride \(negative high\)\)\)\)\s*\(establish \(emotional-state hare \(joy \(negative high\)\)\)\)\)\)/.test(hare.finish), rest: hare.rest };
+  check(Object.values(hareOk).every(Boolean),
+    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...${Object.values(hareOk).every(Boolean) ? "" : `; ${JSON.stringify(hareOk)} ${JSON.stringify(hare.note)} ${JSON.stringify(hare.finish)}`})`);
   await shot("42-hare-to-the-editor.png");
   await js(`document.getElementById("ed-close").click()`);
 

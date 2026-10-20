@@ -267,21 +267,22 @@ function withTaskIn(text, story, id, task) {
   const block = text.slice(sc.span.start, sc.span.end);
   const at = block.indexOf("(process initial description");
   if (at < 0) return null;
-  let i = block.indexOf("(", at + 1), depth = 0, end = -1;
+  let i = block.indexOf("(", at + 1), depth = 0, end = -1, lastChild = -1;
   if (i < 0) return null;
   for (let k = i; k < block.length; k++) {
     const c = block[k];
     if (c === ";") { const nl = block.indexOf("\n", k); k = nl < 0 ? block.length : nl; continue; }
     if (c === "|") { const bar = block.indexOf("|", k + 1); k = bar < 0 ? block.length : bar; continue; }
-    if (c === "(") depth++;
+    if (c === "(") { if (depth === 1) lastChild = k; depth++; }
     else if (c === ")" && --depth === 0) { end = k; break; }
   }
   if (end < 0) return null;
   const form = block.slice(i, end + 1);
-  // under the (and ...)'s last task, as it is indented (tabs and all); or under its first
-  const last = block.lastIndexOf("\n", end), first = block.lastIndexOf("\n", i) + 1;
-  const lead = "\n" + (last > i ? block.slice(last + 1).match(/^[\t ]*/)[0] : block.slice(first, i).replace(/[^\t]/g, " ") + "     ");
-  const put = /^\(and\s/.test(form) ? `${form.slice(0, -1)}${lead}${task})` : `(and ${form}${lead}${task})`;
+  // under the (and ...)'s last task, as it is laid out (tabs and all)
+  const and = /^\(and\s/.test(block.slice(i, end + 1));
+  const at_ = and && lastChild > 0 ? lastChild : i + 5, line = block.lastIndexOf("\n", at_) + 1;
+  const lead = "\n" + block.slice(line, at_).replace(/[^\t ]/g, " ");
+  const put = and ? `${form.slice(0, -1)}${lead}${task})` : `(and ${form}${lead}${task})`;
   return text.slice(0, sc.span.start) + block.slice(0, i) + put + block.slice(end + 1) + text.slice(sc.span.end);
 }
 // The editor, with the story changed, for the visitor to look over and make: made as the
