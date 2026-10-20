@@ -5517,6 +5517,13 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
       for (const w of ws) {
         // pass 2 asks a personality word for its suggestions (sugest.123:54-66); a word for
         // looks or moves Ani doesn't know suggests nothing, and it goes on
+        // a word of the reader's notebooks (Teach Ani): Ani knows it only in a film made with them
+        if (W[w] && W[w].yours) {
+          const yours = `“${esc(plain(w))}” (${esc(nameOf(story, name))}) is your word, from “${esc(W[w].notebook)}”: Ani knows it in a film you make with your knowledge (Make it with my knowledge)`;
+          if (slot === "personality") stops.push({ as1978: `${yours}; made without it, Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.`, mended: `${yours}; made without it, the revival's repairs leave it out.` });
+          else notes.push(`${yours}; made without it, it suggests nothing.`);
+          continue;
+        }
         if (!W[w] && slot === "personality") stops.push({
           as1978: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}), and Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.${!extensions.includes("know") && vocabularyFor(["know"])[w] ? ` It is one of the words the revival's knowledge (KNOW) adds; make it with the revival's extensions, and Ani knows it.` : " Use one of its words, or make it with the revival's repairs, which leave the word out."}`,
           mended: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}); the revival's repairs leave it out.`,
@@ -5568,7 +5575,8 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
 // as in 1978 can't show and the revival's repairs can; with the revival's knowledge
 // (KNOW), helping, keeping away and following, and its feelings.
 const LEVEL_WORDS = ["low", "medium", "high"];
-const feelingsFor = (extensions = []) => ["joy", "pride", ...(extensions.includes("know") && KNOWN ? Object.keys(KNOWN.feelings) : [])];
+// (and the feelings of the reader's notebooks in use, Teach Ani, for a film made with them)
+const feelingsFor = (extensions = []) => ["joy", "pride", ...(extensions.includes("know") && KNOWN ? Object.keys(KNOWN.feelings) : []), ...TEACHING.notebooks.filter((n) => n.used).flatMap((n) => n.pieces.filter((p) => p.kind === "feeling").map((p) => p.word))];
 const knowVerbs = (extensions = []) => (extensions.includes("know") && KNOWN ? Object.keys(KNOWN.verbs) : []);
 // A feeling Ani reads, (joy (positive low)): positive or negative, and low, medium or high;
 // with KNOW, its feelings (and pride, which it defines) take a plain level too, (fear

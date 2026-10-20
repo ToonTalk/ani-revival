@@ -117,7 +117,7 @@ function storyPrompt(story, { compact = false, extensions = [], format = "lisp" 
   const knowTasks = knowVerbs_.map((v) => L(`  (convey (${v} X Y)) for ${KNOW_TASK[v] || v}`, `  {"kind": "${v}", "who": X, "whom": Y} for ${KNOW_TASK[v] || v}`)).join("\n");
   // the ways of showing KNOW gives relationships (likes, is-obedient-to, ...), from its index
   const shownBy = {};
-  if (know) for (const k of DATA.know.knowledge) if (k.element === "establish" && (vocabularyFor(extensions)[k.source] || {}).kind === "relationship") (shownBy[k.verb] ||= []).push(k.source);
+  if (know) for (const k of DATA.know.knowledge) if (k.element === "establish" && (aniVocabulary(extensions)[k.source] || {}).kind === "relationship") (shownBy[k.verb] ||= []).push(k.source);
   for (const [w, x] of Object.entries(DATA.know ? DATA.know.words : {})) if (know && x.kind === "relationship" && x.borrows) for (const n of x.borrows) for (const v of Object.keys(shownBy)) if (shownBy[v].includes(n) && !shownBy[v].includes(w)) shownBy[v].push(w);
   const KNOW_SHOW = { follows: "following the other", helps: "helping the other", avoids: "keeping away from the other", accompanys: "going along with the other" };
   const relShown = Object.entries(shownBy).map(([v, ws]) => `${words(ws)} by ${KNOW_SHOW[v] || v}`);

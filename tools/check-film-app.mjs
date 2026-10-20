@@ -164,7 +164,13 @@
 // the stepmother who repents 169, 62 and 121, and Nano's six scenes 224, 212, 66, 17, 17
 // and 113; FIT's notes in a glass box section of their own, its captions, and the step it
 // adds to "How Ani timed it".
-// Usage: node tools/check-film-app.mjs [--shots <dir>]   (about an hour)
+// And Teach Ani (REVIVE;TEACH; reports/ext/teach/README.md, "For the page"): with no notebook
+// the page as it was, its prompts pinned; the forms, a refusal, Ani's check, notebooks as
+// files, the design's examples made in the page's worker in the frames Node makes them,
+// "What your knowledge did", the glass box's badges and a version-3 film file (see the
+// section below).
+// Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach]   (about an hour)
+//   --only teach  only the first checks and Teach Ani's (about a quarter of an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
 // godmother transforming Cinderella in color: before, as they touch, and after; and "Your
@@ -182,7 +188,7 @@ import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { storyWithoutClashes, makeFilm, pass1 } from "../src/pipeline.js";
+import { storyWithoutClashes, makeFilm, pass1, checkKnowledge } from "../src/pipeline.js";
 import { withPageScript, PAGE_SCRIPT_ID } from "./build-film-app.mjs";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3,
@@ -245,6 +251,8 @@ const PROMPT_1978_SHA = ["635256ea2e8d8d3320ff4742d6b92c3198b49510759818dcbe1ff7
 const CHROME = process.env.CHROME || "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
+const onlyAt = process.argv.indexOf("--only");
+const ONLY_TEACH = onlyAt > 0 && process.argv[onlyAt + 1] === "teach";
 if (shots) mkdirSync(shots, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -320,7 +328,7 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [223, 211, 65, 16, 16, 112];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming"];
+const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema"];
 // (the claude.ai copy's page script is packed, tools/build-film-app.mjs PAGE_LOADER: the
 // hook goes at its end, unpacked and packed again)
 const hooked = (html) => {
@@ -655,6 +663,14 @@ try {
     return out.join(" ") + " | " + document.getElementById("caption-0").innerText;
   })()`);
   const shipped = await film1978();
+  const toCheckPage = async (page = "film.check.html") => {
+    await send("Page.navigate", { url: `${base}/app/${page}` });
+    for (let k = 0; k < 75 && !(await js("!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring").catch(() => false)); k++) await sleep(200);
+    await js(`(async () => { await window.__check.library.ready; for (let k = 0; k < 30 && !window.__check.RUNS[1]; k++) await new Promise((r) => setTimeout(r, 100)); })()`);
+    await sleep(300);
+  };
+  // (with --only teach, on to Teach Ani's checks)
+  if (!ONLY_TEACH) {
 
   // the switch for the films made here: "Ani as in 1978" at first, kept in this browser
   const pressed = () => js(`[...document.querySelectorAll("#side [data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join()`);
@@ -2242,7 +2258,7 @@ try {
   })()`);
   check(optDefault.first.pressed === "1978" && optDefault.first.ticks === "" && optDefault.first.ext === "" && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978 ",
     `the default page is as before: the switch opens on "Ani as in 1978" with nothing ticked, and "Ani with the revival's extensions" ticks ${optDefault.on.ext} and nothing more, keeping only the switch in this browser`);
-  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, fit+, slips- opt-in; Criticism: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
+  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, fit+, slips- opt-in; Criticism: ; Yours: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
     `"Which extensions" has the registry's two groups, each extension with its tick and its sentence, SLIPS and DETAIL opt-in and unticked: ${optDefault.groups}`);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   check(same(optDefault.prompts.page, PROMPT_REVIVAL_SHA) && same(optDefault.prompts.all, optDefault.prompts.page) && same(optDefault.prompts.slips, optDefault.prompts.mendKnow) && same(optDefault.prompts.detail, optDefault.prompts.mend) && optDefault.tidy === 0,
@@ -2379,12 +2395,6 @@ try {
   // (test/stories/stress/far-and-offstage.lisp, made here in Node) and the kind stepmother
   // made above (kept in this tab); Ken's Cinderella with SLIPS and with DETAIL, made above,
   // are there already
-  const toCheckPage = async (page = "film.check.html") => {
-    await send("Page.navigate", { url: `${base}/app/${page}` });
-    for (let k = 0; k < 75 && !(await js("!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring").catch(() => false)); k++) await sleep(200);
-    await js(`(async () => { await window.__check.library.ready; for (let k = 0; k < 30 && !window.__check.RUNS[1]; k++) await new Promise((r) => setTimeout(r, 100)); })()`);
-    await sleep(300);
-  };
   await toCheckPage();
   const put = await js(`(async () => {
     const t = window.__check;
@@ -2728,6 +2738,269 @@ try {
     await sleep(200);
   }
 
+  }
+  // Teach Ani on the page (REVIVE;TEACH; reports/chapter-x/design-teaching.md;
+  // reports/ext/teach/README.md, "For the page"). With no notebook, the page is as it was:
+  // "Which extensions" lists TEACH in a "Yours" group, never ticked, no word is the
+  // learner's, and the prompts are as pinned. The forms, one for each kind, with menus
+  // from Ani's vocabulary for the film's extensions, Ken's own entry beside each, the
+  // because required, and the Lisp it becomes with each part explained; refusals (a word
+  // Ani knows, a story's character, an element's name) in plain words, with "Add to Ani's
+  // word instead" and "Criticize this film instead"; "Check with Ani" (the trial job in a
+  // worker, as Node's checkKnowledge says) and "Try it on a little story"; a notebook saved
+  // as a file and opened from one (and dropped on the page), renamed, used (up to four)
+  // and deleted, kept after a reload. Then the design's examples made with their
+  // notebooks in the page's worker, the Introduction's frames as tools/check-teach.mjs's
+  // goldens have them (reports/ext/teach/<example>/summary.json): grumpy unknown 226,
+  // "grumpy is like mean" 225, "grumpy moves slowly" 234, "helping can look like going
+  // along with" 229 (192 in 1978), "jealous" 222 and then 235; each beside the film made
+  // without it, with "What your knowledge did" (won, combined, lost to pushing around,
+  // with CHOMET's reason); the glass box's "your knowledge" badges ("she is grumpy, which
+  // you taught Ani means much the same as mean") and "What your knowledge did here"; a
+  // version-3 film file with the knowledge; "Your films"; the extensions panel's TEACH
+  // ticked and greyed with the notebook's title; "Teach Ani instead" in criticism; and,
+  // with notebooks used, the prompts still as pinned.
+  {
+    await toCheckPage();
+    await js(`document.querySelector('#rate [data-rate="4"]').click()`);
+    await sleep(300);
+    // with no notebook, as before
+    const none = await js(`(async () => {
+      const t = window.__check, hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      const div = document.createElement("div"); div.innerHTML = t.extensionsPanel();
+      const g = [...div.querySelectorAll(".ext-group")].find((x) => /^Yours/.test(x.querySelector(".label").textContent));
+      const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)};
+      return { notebooks: t.TEACHING.notebooks.length, group: g ? g.textContent.replace(/\\s+/g, " ") : "", ticked: g ? !!g.querySelector("input:checked") : null, yours: Object.values(t.vocabularyFor(${JSON.stringify(REVIVAL)})).filter((w) => w.yours).length,
+        prompts: [await hex(t.storyPrompt(STORY, { extensions: [] })), await hex(t.storyPrompt(STORY, { extensions: [], format: "json" }))] };
+    })()`);
+    check(none.notebooks === 0 && /^Yours ?Knowledge you taught Ani \(Teach Ani\)[^]*Your knowledge \(TEACH\)\. on demand/.test(none.group) && none.ticked === false && none.yours === 0 && JSON.stringify(none.prompts) === JSON.stringify(PROMPT_1978_SHA),
+      `with no notebook the page is as it was: "Which extensions" lists TEACH in a "Yours" group, on demand and unticked; no word is the learner's; the prompts are as pinned`);
+    // the panel, beside "Change the story"
+    await js(`(() => { window.__check.select(null); document.getElementById("open-teach").click(); })()`);
+    await sleep(400);
+    const panel = await js(`document.getElementById("side").innerText`);
+    check(/^Teach Ani\s+Back\s+Teach Ani something it doesn't know\. Ani will use it in every film you make with your knowledge\./.test(panel) && /\+ Teach Ani…\s+A word like another\s+What a word suggests\s+A relationship\s+Another way of showing a verb\s+A feeling\s+A verb as a kind of another/i.test(panel) && /Try teaching: grumpy is like mean · grumpy moves slowly · helping can look like going along with · jealous/.test(panel) && /About teaching Ani/.test(panel),
+      `"Teach Ani" beside "Change the story": a sentence, "+ Teach Ani…" with six kinds in order of ease, "Try teaching" with the design's four examples, and "About teaching Ani"`);
+    const about = await js(`document.querySelector(".teach-about").textContent`);
+    check(/Three Interactions between AI and Education/.test(about) && /Machine Intelligence 8/.test(about) && /AI-TR-540, pp\. 149–150/.test(about) && await js(`!!document.querySelector('.teach-about a[href*="drive.google.com/file/d/1_C_ZzwWCpTOa3Zp8UHAKFuVUA2JxeSSX"]') && !!document.querySelector('.teach-about a[href*="6abb311d-b27d-4829-9fc2-46baf6491077"]')`),
+      `"About teaching Ani" cites Ken's 1977 paper (his copy) and AI-TR-540, pp. 149-150`);
+    // each kind's form, its menus from Ani's vocabulary (Ken's 1978 film: no KNOW, no APPEAR)
+    const forms = await js(`(async () => {
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const out = {};
+      for (const kind of ["word", "suggests", "relationship", "way", "feeling", "verb"]) {
+        document.querySelector('[data-teach-kind="' + kind + '"]').click();
+        await wait(150);
+        const f = document.getElementById("teach-form");
+        const opts = (field) => [...f.querySelectorAll('select[data-tf="' + field + '"] option')].map((o) => o.value).filter(Boolean);
+        out[kind] = { text: f.innerText, link: opts("link"), element: opts("element"), what: opts("what"), verb: opts("verb"), way: opts("way"), kindOf: opts("kindOf"), rows: opts("row-0-element") };
+        document.querySelector('[data-teach-kind="' + kind + '"]').click();
+        await wait(100);
+      }
+      return out;
+    })()`);
+    check(forms.word.link.includes("mean") && forms.word.link.includes("hard-working") && /Ken: “industrious” means much the same as “hard-working”/.test(forms.word.text)
+      && forms.suggests.element.length === 12 && forms.suggests.what.join() === "moves,shows" && /Ken: a shy character's speed is low, weakly\. \(dscrp\.17:64\)/.test(forms.suggests.text)
+      && forms.relationship.verb.join() === ",accompanys,chases,hurts,pushes,meets".slice(1) && /Ken: one who hates another shows it by keeping away from it/.test(forms.relationship.text)
+      && forms.way.way.join() === "goes-to-and-accompanys,chases-to,move-to-and-hits,pushes-around,move-to" && forms.feeling.rows.length === 7 && /Ken: joy makes/.test(forms.feeling.text)
+      && forms.verb.kindOf.join() === "accompanys,chases,hurts,pushes,meets" && /Ken: pushing is a kind of meeting/.test(forms.verb.text)
+      && Object.values(forms).every((f) => /Because:/.test(f.text) && /Would this be true of any/.test(f.text) && /See it as Ani reads it/.test(f.text)),
+      `each kind's form has menus from Ani's words and verbs for the film's extensions (Ken's 1978 film: no KNOW, so no following or helping; no APPEAR, so no looks), Ken's own entry beside it, the because, Ken's rule as a question, and the Lisp a click away`);
+    // "grumpy is like mean": the Lisp it becomes, each part explained; the because required
+    const set = (field, value) => js(`(() => { const el = document.querySelector('#teach-form [data-tf="${field}"]'); el.value = ${JSON.stringify(value)}; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); })()`);
+    await js(`document.querySelector('[data-teach-kind="word"]').click()`);
+    await sleep(150);
+    await set("word", "grumpy");
+    await sleep(150);
+    await set("link", "mean");
+    await sleep(150);
+    const noReason = await js(`(async () => { document.querySelector("[data-teach-add]").click(); await new Promise((r) => setTimeout(r, 200)); return { said: document.getElementById("teach-form-check").innerText, kept: window.__check.TEACHING.notebooks.length }; })()`);
+    await set("because", "a grumpy character is a mean one");
+    await sleep(150);
+    const preview = await js(`(() => { document.querySelector("#teach-form .teach-lisp").open = true; const pre = document.getElementById("teach-form-lisp"); return { text: pre.innerText, why: pre.querySelectorAll(".lisp-why").length, yours: pre.querySelectorAll(".lisp-yours").length, fresh: pre.querySelectorAll(".lisp-new").length, check: document.getElementById("teach-form-check").innerText }; })()`);
+    check(/^Say why: Ani keeps your reason with each piece/.test(noReason.said) && noReason.kept === 0 && /\(define grumpy personality-character-descriptor\)/.test(preview.text) && /\(ask mean add grumpy to your list of neighbors\)/.test(preview.text) && /;;yours k1: a grumpy character is a mean one/.test(preview.text) && preview.why >= 8 && preview.yours >= 2 && preview.fresh >= 2 && /Ani can take this\./.test(preview.check),
+      `a word like another: the because is required ("Say why"), and the form shows the Lisp it becomes, Ken's DSCRP form, each part explained (${preview.why} explaining lines), the reason on ";;yours" lines and the form's part marked`);
+    await js(`document.getElementById("teach-form").scrollIntoView({ block: "start" })`);
+    await shot("30-teach-form.png");
+    await phone("30b-teach-form-phone.png", `document.getElementById("teach-form")`);
+    // refusals, in plain words: a word Ani knows, a story's character, an element's name
+    const refusal = async (word) => { await set("word", word); await sleep(200); return js(`document.getElementById("teach-form").innerText`); };
+    const lazy = await refusal("lazy");
+    const speed = await refusal("speed");
+    const step = await refusal("step-mother");
+    const criticizeOffered = await js(`!!document.querySelector("[data-teach-criticize]")`);
+    check(/Ani already knows "lazy", the opposite of "hard-working": add to Ani's word instead of teaching it again, which would replace it\./.test(lazy) && /Add to Ani's word instead/.test(lazy) && /"step-mother" is a character of the story, not a word for characters\. To change how this film shows her, criticize it/.test(step) && /Criticize this film instead/.test(step) && /"speed" is the name of one of the things Ani chooses, or of a value/.test(speed),
+      `refused, in plain words: a word Ani knows ("Ani already knows "lazy"…", with "Add to Ani's word instead"), one of the story's characters ("…a character of the story, not a word for characters…", with "Criticize this film instead"), an element's name`);
+    await js(`document.querySelector("[data-teach-criticize]").click()`);
+    await sleep(300);
+    const criticized = await js(`({ panel: window.__check.state.panel, sel: window.__check.state.selected && window.__check.state.selected.char })`);
+    check(criticizeOffered && criticized.panel === "why" && criticized.sel === "step-mother", `"Criticize this film instead" opens the stepmother's glass box, where the film is criticized`);
+    await js(`window.__check.openTeach()`);
+    await sleep(200);
+    await set("word", "grumpy");
+    await sleep(150);
+    await set("link", "mean");
+    await set("because", "a grumpy character is a mean one");
+    await sleep(100);
+    await js(`document.querySelector("[data-teach-add]").click()`);
+    const checked = async () => { for (let k = 0; k < 120 && await js(`!!(window.__check.teachUi.checking)`); k++) await sleep(500); await sleep(200); return js(`document.getElementById("side").innerText`); };
+    const afterAdd = await checked();
+    console.log(`      (after "Add to Ani": ${afterAdd.split("\n").slice(0, 12).join(" | ").slice(0, 500)})`);
+    const node = checkKnowledge(makeProjectFileSystem(), [{ format: "ani-knowledge", version: 1, title: "My knowledge", pieces: [{ id: "k1", kind: "word", word: "grumpy", type: "personality", like: "mean", because: "a grumpy character is a mean one" }] }], { extensions: [] });
+    check(/Added to “My knowledge”: "grumpy" is a word for what a character is like inside, and means much the same as "mean"\./.test(afterAdd) && /Ani hears it/i.test(afterAdd) && /Ani read your knowledge with Ken's files and heard every piece \([\d.]+ s\)/.test(afterAdd) && node.ok && node.notebooks[0].pieces.k1.heard,
+      `"Add to Ani" keeps the piece in a notebook, and "Check with Ani" runs the trial job in a worker: heard, as Node's checkKnowledge says (${(afterAdd.match(/heard every piece \(([\d.]+) s\)/) || [])[1]} s)`);
+    await js(`document.querySelector('[data-teach-rehearse="k1"]').click()`);
+    for (let k = 0; k < 120 && await js(`/Trying it/.test(document.getElementById("side").innerText)`); k++) await sleep(500);
+    const rehearsed = await js(`(document.querySelector(".teach-rehearsal") || {}).innerText || ""`);
+    check(/^On a little story of two characters, one scene \(\d+ s\): Ani heard it/.test(rehearsed) || /^On a little story of two characters, one scene/.test(rehearsed), `"Try it on a little story": ${rehearsed}`);
+    // a notebook saved as a file and opened from one, and dropped on the page; renamed,
+    // used (up to four) and deleted; kept after a reload
+    const files = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const rec = t.TEACHING.notebooks[0];
+      const text = t.notebookFileText(rec), name = t.notebookFileName(rec);
+      const file = JSON.parse(text);
+      await t.openKnowledgeText(text, name);
+      await wait(300);
+      const opened = document.getElementById("side").innerText;
+      const dt = new DataTransfer();
+      dt.items.add(new File([text], "shared.ani-knowledge.json", { type: "application/json" }));
+      document.dispatchEvent(new DragEvent("drop", { dataTransfer: dt, bubbles: true, cancelable: true }));
+      await wait(1200);
+      return { name, format: file.format, version: file.version, pieces: file.pieces.length, lisp: /;;yours k1: a grumpy character is a mean one/.test(file.lisp || ""), opened, count: t.TEACHING.notebooks.length, titles: t.TEACHING.notebooks.map((n) => n.title), same: t.TEACHING.notebooks.every((n) => JSON.stringify(n.pieces) === JSON.stringify(rec.pieces)) };
+    })()`);
+    check(files.name === "my-knowledge.ani-knowledge.json" && files.format === "ani-knowledge" && files.version === 1 && files.pieces === 1 && files.lisp && /Opened my-knowledge\.ani-knowledge\.json: “My knowledge \(2\)”, 1 piece\./.test(files.opened) && files.count === 3 && files.same,
+      `"Save as a file" writes ${files.name} (the notebook, its Lisp beside it), and "Open a shared file" and a file dropped on the page open it as a notebook of its own: ${files.titles.join(", ")}`);
+    const books = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.querySelector(".teach-books").open = true;
+      const row = (k) => document.querySelectorAll(".teach-nb")[k];
+      row(1).querySelector('[data-teach-nb="rename"]').click();
+      await wait(150);
+      const input = document.querySelector("[data-teach-title]");
+      input.value = "A class dictionary";
+      document.querySelector('[data-teach-nb="rename-yes"]').click();
+      await wait(300);
+      // five notebooks: the fifth can't be used with four
+      for (let k = 0; k < 2; k++) { document.querySelector('[data-teach-nb="new"]').click(); await wait(250); }
+      document.querySelector(".teach-books").open = true;
+      for (const box of document.querySelectorAll("[data-teach-use]")) if (!box.checked && !box.disabled) { box.click(); await wait(250); }
+      document.querySelector(".teach-books").open = true;
+      const boxes = [...document.querySelectorAll("[data-teach-use]")].map((b) => (b.checked ? "used" : b.disabled ? "disabled" : "free"));
+      return { titles: t.TEACHING.notebooks.map((n) => n.title), boxes };
+    })()`);
+    // delete the last two (asked on the page first)
+    for (let k = 0; k < 2; k++) {
+      await js(`(async () => { const rows = document.querySelectorAll(".teach-nb"); rows[rows.length - 1].querySelector('[data-teach-nb="delete"]').click(); await new Promise((r) => setTimeout(r, 200)); document.querySelector('[data-teach-nb="delete-yes"]').click(); await new Promise((r) => setTimeout(r, 300)); document.querySelector(".teach-books").open = true; })()`);
+    }
+    await toCheckPage();
+    const kept = await js(`(async () => { const t = window.__check; for (let k = 0; k < 50 && !t.TEACHING.loaded; k++) await new Promise((r) => setTimeout(r, 100)); return t.TEACHING.notebooks.map((n) => n.title + (n.used ? "+" : "-")); })()`);
+    check(books.titles.includes("A class dictionary") && books.boxes.filter((b) => b === "used").length === 4 && books.boxes.includes("disabled") && kept.join() === "My knowledge+,A class dictionary+,My knowledge (3)+",
+      `notebooks renamed, used up to four (the fifth's tick disabled: ${books.boxes.join(", ")}), deleted after the page asks, and kept in this browser after a reload: ${kept.join(", ")}`);
+    // the design's examples, made in the page's worker at 4 frames a second, each stopped
+    // once its Introduction is filmed (the scene each changes), beside the film made without
+    const introOf = async (label) => {
+      const t0 = Date.now();
+      let f = null;
+      for (let k = 0; k < 600 && !f; k++) { await sleep(1000); f = await js(`(() => { const r = window.__check.RUNS[1]; return r && r.scenes[0] && r.scenes[0].film && r.scenes[0].film.frames.length ? r.scenes[0].film.frames.length : r && r.status && !r.status.running && r.status.error ? "error: " + r.status.error : null; })()`); }
+      await js(`window.__check.stopRun()`);
+      for (let k = 0; k < 30 && await js(`!!(window.__check.RUNS[1] && window.__check.RUNS[1].status.running)`); k++) await sleep(300);
+      await sleep(1200);
+      console.log(`      (${label}: ${Math.round((Date.now() - t0) / 1000)} s)`);
+      return f;
+    };
+    const example = (id) => js(`(async () => { await window.__check.openTeach(); await new Promise((r) => setTimeout(r, 200)); document.querySelector('[data-teach-example="${id}"]').click(); await new Promise((r) => setTimeout(r, 600)); })()`);
+    const press = (sel) => js(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true; })()`);
+    const did = () => js(`(() => { document.querySelectorAll("#side .teach-changed details").forEach((d) => { d.open = true; }); return (document.querySelector("#side .teach-changed") || {}).innerText || ""; })()`);
+    const GOLD = Object.fromEntries(["grumpy-unknown", "grumpy", "grumpy-slow", "helps-with", "jealous-unknown", "jealous"].map((id) => [id, JSON.parse(readFileSync(`reports/ext/teach/${id}/summary.json`, "utf8")).scenes.find((s) => s.id === "introduction").frames]));
+    // grumpy: unknown, then "grumpy is like mean"
+    await example("grumpy");
+    await press('[data-teach-example-make="grumpy"]');
+    const grumpyUnknown = await introOf("grumpy, a word Ani doesn't know");
+    await js(`window.__grumpyBefore = window.__check.RUNS[1]`);
+    const plainFilm = await js(`(() => { const r = window.__check.RUNS[1]; return { knowledge: !!r.knowledge, version: window.__check.filmData(r).v }; })()`);
+    await example("grumpy");
+    await press('[data-teach-example-with="grumpy"]');
+    const grumpy = await introOf("grumpy is like mean");
+    const grumpyDid = await did();
+    console.log(`      (what your knowledge did: ${grumpyDid.split("\n").slice(0, 4).join(" | ").slice(0, 400)})`);
+    // her glass box: the attraction to enemies mean decides, now (neighbor-of grumpy mean)
+    const badge = await js(`(() => {
+      const t = window.__check;
+      t.setView(1); t.goScene(0, 2); t.select({ run: 1, char: "step-mother" });
+      const box = t.using(t.RUNS[1], () => t.choicePointBox("step-mother", "attraction-towards-enemies"));
+      const here = (document.querySelector("#side .teach-here") || {}).innerText || "";
+      const el = document.getElementById("cp-box"); if (el) el.innerHTML = box;
+      if (el) { el.closest("details").open = true; el.scrollIntoView({ block: "center" }); }
+      const div = document.createElement("div"); div.innerHTML = box;
+      return { box: div.innerText, tags: div.querySelectorAll(".yours-tag").length, here };
+    })()`);
+    await sleep(300);
+    await shot("32-teach-badge.png");
+    check(grumpyUnknown === GOLD["grumpy-unknown"] && grumpy === GOLD.grumpy && !plainFilm.knowledge && plainFilm.version === 2 && /^What your knowledge did\s+Your version was made from “[^”]+” \(on the (left|right)\) again, with your knowledge: “Grumpy is like mean”\./i.test(grumpyDid) && /The Introduction: 226 frames, now 225\./.test(grumpyDid) && /Pass 1: 1 of Ani's 102 choices changed\./.test(grumpyDid) && /Won\s+"grumpy" is a word for what a character is like inside, and means much the same as "mean"\./i.test(grumpyDid),
+      `"grumpy is like mean", made in the page's worker as Node makes it: the Introduction ${grumpyUnknown} frames with grumpy unknown, ${grumpy} with the knowledge (goldens ${GOLD["grumpy-unknown"]} and ${GOLD.grumpy}); the film made without it is version 2, with no knowledge; "What your knowledge did" beside it says the word won`);
+    check(/she is grumpy, which you taught Ani means much the same as mean/.test(badge.box) && badge.tags >= 1 && /your knowledge: “a grumpy character is a mean one”/.test(badge.box) && /^What your knowledge did here \(\d+\)/.test(badge.here),
+      `the glass box's badges: her attraction to enemies "because she is grumpy, which you taught Ani means much the same as mean", marked "your knowledge" with the reason; and "What your knowledge did here"`);
+    // "grumpy moves slowly", beside the film where grumpy is unknown
+    await example("grumpy-slow");
+    await js(`(() => { const t = window.__check; const rec = t.TEACHING.notebooks.find((n) => n.example === "grumpy-slow"); t.makeWithKnowledge(window.__grumpyBefore, { notebooks: [rec] }); })()`);
+    const slow = await introOf("grumpy moves slowly");
+    const slowDid = await did();
+    check(slow === GOLD["grumpy-slow"] && /Combined\s+A grumpy character's speed is low, medium strongly\./i.test(slowDid) && /The stepmother's speed: medium: yours met high \(from she is (strong|grumpy[^)]*)\) in the middle/.test(slowDid),
+      `"grumpy moves slowly": the Introduction ${slow} frames (golden ${GOLD["grumpy-slow"]}); her speed combined, yours met strong's high in the middle: ${(slowDid.match(/Pass 1: [^\n]*/) || [""])[0]}`);
+    // "helping can look like going along with": Ken's film, Ani as in 1978 (with MEND)
+    await example("helps-with");
+    await press('[data-teach-example-with="helps-with"]');
+    const helps = await introOf("helping can look like going along with");
+    const helpsDid = await did();
+    check(helps === GOLD["helps-with"] && /made from Ken's 1978 film \(on the left\) again/.test(helpsDid) && /Won\s+Helping can also look like this/i.test(helpsDid) && /The Introduction: 192 frames, now 229\./.test(helpsDid) && /Cinderella helps the Prince: couldn't be done; now Cinderella goes to the Prince and accompanies him/.test(helpsDid),
+      `"helping can look like going along with", made from Ken's 1978 film: the Introduction ${helps} frames (golden ${GOLD["helps-with"]}), where 1978 has 192; the helping 1978 canceled is shown, said in "What your knowledge did"`);
+    // "jealous": unknown, then "green is jealous"
+    await example("jealous");
+    await press('[data-teach-example-make="jealous"]');
+    const jealousUnknown = await introOf("jealous, words Ani doesn't know");
+    await example("jealous");
+    await press('[data-teach-example-with="jealous"]');
+    const jealous = await introOf("green is jealous");
+    const jealousDid = await did();
+    await js(`(() => { const t = window.__check; t.select(null); t.goScene(0, 20); })()`);
+    await sleep(400);
+    await did();
+    await js(`document.querySelector("#side .teach-changed").scrollIntoView({ block: "start" })`);
+    await shot("31-teach-did.png");
+    check(jealousUnknown === GOLD["jealous-unknown"] && jealous === GOLD.jealous && /Won\s+A jealous character's hue is green, medium strongly\./i.test(jealousDid) && /Lost to pushing around\s+One who is jealous of another shows it by following it/i.test(jealousDid) && /Ani prefers a way of showing that two of the words suggest at once \(pushes\), and only yours suggested follows \(Ken's CHOMET, eliminate-not-related-suggestions, chomet\.123:588-596\)/.test(jealousDid) && /Pass 1: 2 of Ani's 156 choices changed\./.test(jealousDid) && /The Introduction: 222 frames, now 235\./.test(jealousDid),
+      `"jealous": the Introduction ${jealousUnknown} frames with the words unknown, ${jealous} with "green is jealous" (goldens ${GOLD["jealous-unknown"]} and ${GOLD.jealous}); "What your knowledge did": her hue won, her following lost to pushing around, with CHOMET's reason, and 2 of 156 choices changed`);
+    // a version-3 film file with the knowledge; "Your films"; the extensions panel; criticism's hand-off
+    const after = await js(`(async () => {
+      const t = window.__check;
+      const text = await (await t.filmFile(t.RUNS[1])).text();
+      const outer = JSON.parse(text), d = await t.readFilmFile(text);
+      const div = document.createElement("div"); div.innerHTML = t.extensionsPanel();
+      const g = [...div.querySelectorAll(".ext-group")].find((x) => /^Yours/.test(x.querySelector(".label").textContent));
+      const kept = t.library.films.filter((f) => f.knowledge).map((f) => f.knowledge.join());
+      const crit = document.createElement("div"); crit.innerHTML = t.critBox(t.RUNS[0]);
+      return { version: outer.version, outer: outer.knowledge, inner: (d.knowledge || []).map((n) => n.title + ":" + n.pieces.length), from: !!d.teachFrom, group: g ? g.textContent.replace(/\\s+/g, " ") : "", ticked: g ? !!g.querySelector("input:checked:disabled") : false, kept, crit: !!crit.querySelector("[data-teach-open]") };
+    })()`);
+    check(after.version === 3 && JSON.stringify(after.outer) === JSON.stringify([{ title: "Green is jealous", pieces: 5 }]) && after.inner.join() === "Green is jealous:5" && after.from && after.kept.includes("Green is jealous"),
+      `a film made with knowledge is saved as a version-3 film file, the notebook as it was inside (${after.inner.join()}) and its title outside, and is in "Your films" with it`);
+    check(/Your knowledge \(TEACH\): Green is jealous\./.test(after.group) && after.ticked && after.crit,
+      `"Which extensions" ticks TEACH, greyed, with the notebook used ("Your knowledge (TEACH): Green is jealous"); and criticism's "About" offers "Teach Ani instead"${after.ticked && after.crit ? "" : ` (ticked ${after.ticked}, offered ${after.crit})`}`);
+    await js(`(() => { const t = window.__check; const div = document.createElement("div"); div.innerHTML = t.critBox(t.RUNS[0]); document.body.append(div); div.querySelector("[data-teach-open]").click(); div.remove(); })()`);
+    await sleep(300);
+    const handed = await js(`window.__check.state.panel`);
+    // with notebooks used, the prompts are as pinned (a notebook never reaches a model)
+    const prompts = await js(`(async () => {
+      const t = window.__check, hex = async (s) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)};
+      return { used: t.TEACHING.notebooks.filter((n) => n.used).length, y1978: [await hex(t.storyPrompt(STORY, { extensions: [] })), await hex(t.storyPrompt(STORY, { extensions: [], format: "json" }))], revival: [await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)} })), await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)}, format: "json" })), await hex(JSON.stringify(t.storySchema(${JSON.stringify(REVIVAL)})))] };
+    })()`);
+    check(handed === "teach" && prompts.used >= 1 && JSON.stringify(prompts.y1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(prompts.revival) === JSON.stringify(PROMPT_REVIVAL_SHA),
+      `"Teach Ani instead" opens Teach Ani; and with ${prompts.used} notebooks used, the prompts and the schema are as pinned`);
+    await js(`document.querySelector('#rate [data-rate="24"]').click()`);
+    await sleep(200);
+  }
+
+  if (!ONLY_TEACH) {
   // what the page keeps in the browser, and "Forget all of it"
   await toCheckPage();
   const keptNote = await js(`(async () => {
@@ -2745,7 +3018,7 @@ try {
     return { closed, text, before, asked };
   })()`);
   check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes your films: Ani as in 1978, or with the revival's extensions \(ani-cinderella:mode:v1, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
-    && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Your films: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes your ${keptNote.before.films} films? and everything listed above`).test(keptNote.asked),
+    && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Your films: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes your ${keptNote.before.films} films?(, your \\d+ notebooks? of knowledge)? and everything listed above`).test(keptNote.asked),
     `"What this page keeps in your browser" (closed at first) says what is kept where: ${keptNote.before.local.length} keys in localStorage, ${keptNote.before.films} films in IndexedDB, ${keptNote.before.session.length} in sessionStorage; "Forget all of it" asks first`);
   await js(`document.getElementById("kept-yes").click()`);
   await sleep(1500);
@@ -2830,6 +3103,7 @@ try {
     for (let k = 0; k < 50 && !/^Sent\./.test(thanked); k++) { await sleep(200); thanked = await js(`document.querySelector("#save-panel .send-box").innerText`); }
     check(/This is everything that will be sent to Ken/.test(offer.shown) && /"title": "Cinderella"/.test(offer.shown) && /"lisp": ";; -\*-lisp-\*-/.test(offer.shown) && /"extensions": \[/.test(offer.shown) && /"stopped": \[\]/.test(offer.shown) && /"provider": "\(none\)"/.test(offer.shown), "\"Send this story to Ken\" shows exactly what will be sent: the story, the Lisp, the model and provider, the extensions and where Ani stopped");
     check(declined && /A story sent to Ken: Cinderella/.test(story) && /\(define cinderella character/.test(story) && /story\.json/.test(story) && !story.includes(SECRET) && /^Sent\./.test(thanked), `nothing is sent until the visitor confirms; then the story arrives, with its Lisp, and no key (${story.length} bytes)`);
+  }
   }
   // (the deliberate error the reporting check throws may be heard after it is set aside)
   const uncaught = errors.filter((e) => !/a deliberate check error/.test(e));

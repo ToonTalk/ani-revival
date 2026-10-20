@@ -16,9 +16,10 @@
 // revival's KNOW on, its words too, vocabularyFor), those of each kind first, then those
 // known only through another word. The prompt lists these; the schema also allows the
 // words Ken himself gave in each slot in CINDY (strong as the Prince's looks,
-// is-protective-of), as the example has them.
+// is-protective-of), as the example has them. (Ani's own words: a learner's, from Teach
+// Ani, never reach a model, so the prompts are as they were.)
 function slotWords(kind, extensions = []) {
-  const w = vocabularyFor(extensions);
+  const w = aniVocabulary(extensions);
   return [...Object.keys(w).filter((x) => w[x].kind === kind), ...Object.keys(w).filter((x) => !w[x].kind && w[x].kindByRelation === kind)];
 }
 function schemaWords(kind, extensions) {

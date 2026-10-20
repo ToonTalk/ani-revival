@@ -7563,6 +7563,13 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
       for (const w of ws) {
         // pass 2 asks a personality word for its suggestions (sugest.123:54-66); a word for
         // looks or moves Ani doesn't know suggests nothing, and it goes on
+        // a word of the reader's notebooks (Teach Ani): Ani knows it only in a film made with them
+        if (W[w] && W[w].yours) {
+          const yours = `“${esc(plain(w))}” (${esc(nameOf(story, name))}) is your word, from “${esc(W[w].notebook)}”: Ani knows it in a film you make with your knowledge (Make it with my knowledge)`;
+          if (slot === "personality") stops.push({ as1978: `${yours}; made without it, Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.`, mended: `${yours}; made without it, the revival's repairs leave it out.` });
+          else notes.push(`${yours}; made without it, it suggests nothing.`);
+          continue;
+        }
         if (!W[w] && slot === "personality") stops.push({
           as1978: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}), and Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.${!extensions.includes("know") && vocabularyFor(["know"])[w] ? ` It is one of the words the revival's knowledge (KNOW) adds; make it with the revival's extensions, and Ani knows it.` : " Use one of its words, or make it with the revival's repairs, which leave the word out."}`,
           mended: `Ani doesn't know “${esc(plain(w))}” (${esc(nameOf(story, name))}); the revival's repairs leave it out.`,
@@ -7614,7 +7621,8 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
 // as in 1978 can't show and the revival's repairs can; with the revival's knowledge
 // (KNOW), helping, keeping away and following, and its feelings.
 const LEVEL_WORDS = ["low", "medium", "high"];
-const feelingsFor = (extensions = []) => ["joy", "pride", ...(extensions.includes("know") && KNOWN ? Object.keys(KNOWN.feelings) : [])];
+// (and the feelings of the reader's notebooks in use, Teach Ani, for a film made with them)
+const feelingsFor = (extensions = []) => ["joy", "pride", ...(extensions.includes("know") && KNOWN ? Object.keys(KNOWN.feelings) : []), ...TEACHING.notebooks.filter((n) => n.used).flatMap((n) => n.pieces.filter((p) => p.kind === "feeling").map((p) => p.word))];
 const knowVerbs = (extensions = []) => (extensions.includes("know") && KNOWN ? Object.keys(KNOWN.verbs) : []);
 // A feeling Ani reads, (joy (positive low)): positive or negative, and low, medium or high;
 // with KNOW, its feelings (and pride, which it defines) take a plain level too, (fear
@@ -9616,7 +9624,7 @@ function storyPrompt(story, { compact = false, extensions = [], format = "lisp" 
   const knowTasks = knowVerbs_.map((v) => L(`  (convey (${v} X Y)) for ${KNOW_TASK[v] || v}`, `  {"kind": "${v}", "who": X, "whom": Y} for ${KNOW_TASK[v] || v}`)).join("\n");
   // the ways of showing KNOW gives relationships (likes, is-obedient-to, ...), from its index
   const shownBy = {};
-  if (know) for (const k of DATA.know.knowledge) if (k.element === "establish" && (vocabularyFor(extensions)[k.source] || {}).kind === "relationship") (shownBy[k.verb] ||= []).push(k.source);
+  if (know) for (const k of DATA.know.knowledge) if (k.element === "establish" && (aniVocabulary(extensions)[k.source] || {}).kind === "relationship") (shownBy[k.verb] ||= []).push(k.source);
   for (const [w, x] of Object.entries(DATA.know ? DATA.know.words : {})) if (know && x.kind === "relationship" && x.borrows) for (const n of x.borrows) for (const v of Object.keys(shownBy)) if (shownBy[v].includes(n) && !shownBy[v].includes(w)) shownBy[v].push(w);
   const KNOW_SHOW = { follows: "following the other", helps: "helping the other", avoids: "keeping away from the other", accompanys: "going along with the other" };
   const relShown = Object.entries(shownBy).map(([v, ws]) => `${words(ws)} by ${KNOW_SHOW[v] || v}`);
@@ -10169,9 +10177,10 @@ function showDraft(failure = null) {
 // revival's KNOW on, its words too, vocabularyFor), those of each kind first, then those
 // known only through another word. The prompt lists these; the schema also allows the
 // words Ken himself gave in each slot in CINDY (strong as the Prince's looks,
-// is-protective-of), as the example has them.
+// is-protective-of), as the example has them. (Ani's own words: a learner's, from Teach
+// Ani, never reach a model, so the prompts are as they were.)
 function slotWords(kind, extensions = []) {
-  const w = vocabularyFor(extensions);
+  const w = aniVocabulary(extensions);
   return [...Object.keys(w).filter((x) => w[x].kind === kind), ...Object.keys(w).filter((x) => !w[x].kind && w[x].kindByRelation === kind)];
 }
 function schemaWords(kind, extensions) {
@@ -12517,7 +12526,7 @@ function formFields(form) {
       const type = f.type;
       const known = f.word && W[f.word] ? W[f.word] : null;
       return `<p class="teach-row">Teach Ani a new word: ${wordInput("grumpy")}</p>
-        ${known ? `<p class="note teach-known">Ani already knows “${esc(plain(f.word))}”${relationNoteIn(W, f.word) ? `: ${esc(relationNoteIn(W, f.word))}` : ""}. <button type="button" class="linkish" data-teach-switch="suggests">Add to Ani's word instead</button> (teaching it again would replace it, and lose what Ani knows of it).</p>` : ""}
+        ${known ? `<p class="note teach-known"><button type="button" class="linkish" data-teach-switch="suggests">Add to Ani's word instead</button></p>` : ""}
         <p class="teach-row">It tells ${sel("type", Object.keys(AniTeach.WORD_TYPES), type, (t) => TYPE_WORDS[t], "What kind of word")}</p>
         <p class="teach-row">It means ${sel("rel", ["like", "opposite", "none"], f.rel, (r) => ({ like: "much the same as", opposite: "the opposite of", none: "(nothing else)" })[r], "How it is linked")} ${f.rel === "none" ? "" : wordSelect("link", type, f.link, { blank: "choose a word" })}</p>`;
     }
@@ -12670,7 +12679,6 @@ function teachPanel() {
     ${tryTeaching()}
     ${teachAboutBox()}`;
   side.querySelector("#teach-close").addEventListener("click", () => { teachUi.note = ""; select(null); });
-  teachUi.note = "";
   const h = side.querySelector(".teach-piece.highlight");
   if (h) h.scrollIntoView({ block: "nearest" });
 }
@@ -12850,6 +12858,7 @@ function makeWithKnowledge(before = teachBase(), { description = undefined, exte
   const cindy = description !== undefined ? description : ken ? DATA.cindy : before.cindy;
   const run = makeRun({ label: `${yoursLabel(ext)}, with your knowledge`, short: "Yours", cindy, extensions: ext, tidied: ken ? [] : before.tidied, told: ken ? null : before.told });
   run.knowledge = knowledge;
+  run.teachBefore = before; // (in this visit; teachFrom says which film it was, kept with it)
   run.teachFrom = { ken, fps: rate, id: ken ? null : before.libId || null, title: ken ? "Ani's 1978 film" : (before.libId && libraryTitle(before.libId)) || before.label, made: (before.status && before.status.made) || null, print: ken ? null : printOf(before) };
   if (state.panel === "teach") teachUi.note = "";
   startRun(description !== undefined ? cindy : ken ? null : before.cindy, rate, ext, { run, pair: [ref, "cur"] });
@@ -12868,6 +12877,7 @@ function makeEditorWithKnowledge() {
 function teachBeforeOf(b) {
   const r = b && b.teachFrom;
   if (!r) return null;
+  if (b.teachBefore && (b.teachBefore === RUNS[0] ? r.ken && runFps(RUNS[0]) === r.fps : [...LIB_RUNS.values(), RUNS[1]].includes(b.teachBefore))) return b.teachBefore;
   if (r.ken) return RUNS[0] && runFps(RUNS[0]) === r.fps ? RUNS[0] : null;
   for (const [id, x] of LIB_RUNS) if ((r.id && id === r.id) || (r.print && printOf(x) === r.print)) return x;
   return null;
@@ -13041,10 +13051,14 @@ const shortDay = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : d.to
 
 // ---- files
 
-async function saveNotebookFile(rec) {
+// The file: the notebook, with the Lisp it becomes beside it, for reading without the page.
+function notebookFileText(rec) {
   const nb = notebookOf(rec);
-  const file = { ...nb, lisp: AniTeach.notebookToLisp(nb, { n: 1, extensions: teachLoaded() }) };
-  return saveFile(new Blob([JSON.stringify(file, null, 1)], { type: "application/json" }), `${slug(rec.title).slice(0, 60).replace(/-$/, "") || "knowledge"}.ani-knowledge.json`);
+  return JSON.stringify({ ...nb, lisp: AniTeach.notebookToLisp(nb, { n: 1, extensions: teachLoaded() }) }, null, 1);
+}
+const notebookFileName = (rec) => `${slug(rec.title).slice(0, 60).replace(/-$/, "") || "knowledge"}.ani-knowledge.json`;
+async function saveNotebookFile(rec) {
+  return saveFile(new Blob([notebookFileText(rec)], { type: "application/json" }), notebookFileName(rec));
 }
 // A notebook read from a file (one saved by Teach Ani, with or without its Lisp): checked as
 // a notebook (src/teach.js), then added, under its own title.
@@ -13083,6 +13097,8 @@ function chooseKnowledgeFile() {
 async function teachAct(el) {
   const rec = openNotebook();
   const d = el.dataset;
+  // what the panel last said stays until the next thing done there
+  if (d.teachCheck === undefined && d.teachRehearse === undefined) teachUi.note = "";
   if (d.teachKind !== undefined) {
     teachUi.form = teachUi.form && teachUi.form.kind === d.teachKind ? null : newForm(d.teachKind);
     renderSide();
@@ -13139,12 +13155,13 @@ async function teachAct(el) {
 async function addFormToAni() {
   const form = teachUi.form;
   let rec = openNotebook();
-  if (!rec) { rec = newNotebookRecord(); TEACHING.notebooks.push(rec); teachUi.open = rec.id; }
-  const pieces = formPieces(form, rec);
+  const pieces = formPieces(form, rec || draftNotebook());
   if (!String(form.f.because || "").trim() || !pieces.length) { renderSide(); return; }
-  const c = pageCheck(rec, { pieces: [...rec.pieces, ...pieces] });
+  const c = pageCheck(rec || draftNotebook(), { pieces: [...(rec ? rec.pieces : []), ...pieces] });
   const ids = new Set(pieces.map((p) => p.id));
   if (c.refused.some((r) => ids.has(r.piece) || r.piece === null)) { renderSide(); return; }
+  // the first piece makes the first notebook
+  if (!rec) { rec = newNotebookRecord(); TEACHING.notebooks.push(rec); teachUi.open = rec.id; }
   rec.pieces.push(...pieces);
   teachUi.form = null;
   teachUi.highlight = pieces[0].id;

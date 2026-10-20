@@ -258,7 +258,7 @@ function formFields(form) {
       const type = f.type;
       const known = f.word && W[f.word] ? W[f.word] : null;
       return `<p class="teach-row">Teach Ani a new word: ${wordInput("grumpy")}</p>
-        ${known ? `<p class="note teach-known">Ani already knows “${esc(plain(f.word))}”${relationNoteIn(W, f.word) ? `: ${esc(relationNoteIn(W, f.word))}` : ""}. <button type="button" class="linkish" data-teach-switch="suggests">Add to Ani's word instead</button> (teaching it again would replace it, and lose what Ani knows of it).</p>` : ""}
+        ${known ? `<p class="note teach-known"><button type="button" class="linkish" data-teach-switch="suggests">Add to Ani's word instead</button></p>` : ""}
         <p class="teach-row">It tells ${sel("type", Object.keys(AniTeach.WORD_TYPES), type, (t) => TYPE_WORDS[t], "What kind of word")}</p>
         <p class="teach-row">It means ${sel("rel", ["like", "opposite", "none"], f.rel, (r) => ({ like: "much the same as", opposite: "the opposite of", none: "(nothing else)" })[r], "How it is linked")} ${f.rel === "none" ? "" : wordSelect("link", type, f.link, { blank: "choose a word" })}</p>`;
     }
@@ -411,7 +411,6 @@ function teachPanel() {
     ${tryTeaching()}
     ${teachAboutBox()}`;
   side.querySelector("#teach-close").addEventListener("click", () => { teachUi.note = ""; select(null); });
-  teachUi.note = "";
   const h = side.querySelector(".teach-piece.highlight");
   if (h) h.scrollIntoView({ block: "nearest" });
 }
@@ -591,6 +590,7 @@ function makeWithKnowledge(before = teachBase(), { description = undefined, exte
   const cindy = description !== undefined ? description : ken ? DATA.cindy : before.cindy;
   const run = makeRun({ label: `${yoursLabel(ext)}, with your knowledge`, short: "Yours", cindy, extensions: ext, tidied: ken ? [] : before.tidied, told: ken ? null : before.told });
   run.knowledge = knowledge;
+  run.teachBefore = before; // (in this visit; teachFrom says which film it was, kept with it)
   run.teachFrom = { ken, fps: rate, id: ken ? null : before.libId || null, title: ken ? "Ani's 1978 film" : (before.libId && libraryTitle(before.libId)) || before.label, made: (before.status && before.status.made) || null, print: ken ? null : printOf(before) };
   if (state.panel === "teach") teachUi.note = "";
   startRun(description !== undefined ? cindy : ken ? null : before.cindy, rate, ext, { run, pair: [ref, "cur"] });
@@ -609,6 +609,7 @@ function makeEditorWithKnowledge() {
 function teachBeforeOf(b) {
   const r = b && b.teachFrom;
   if (!r) return null;
+  if (b.teachBefore && (b.teachBefore === RUNS[0] ? r.ken && runFps(RUNS[0]) === r.fps : [...LIB_RUNS.values(), RUNS[1]].includes(b.teachBefore))) return b.teachBefore;
   if (r.ken) return RUNS[0] && runFps(RUNS[0]) === r.fps ? RUNS[0] : null;
   for (const [id, x] of LIB_RUNS) if ((r.id && id === r.id) || (r.print && printOf(x) === r.print)) return x;
   return null;
@@ -782,10 +783,14 @@ const shortDay = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : d.to
 
 // ---- files
 
-async function saveNotebookFile(rec) {
+// The file: the notebook, with the Lisp it becomes beside it, for reading without the page.
+function notebookFileText(rec) {
   const nb = notebookOf(rec);
-  const file = { ...nb, lisp: AniTeach.notebookToLisp(nb, { n: 1, extensions: teachLoaded() }) };
-  return saveFile(new Blob([JSON.stringify(file, null, 1)], { type: "application/json" }), `${slug(rec.title).slice(0, 60).replace(/-$/, "") || "knowledge"}.ani-knowledge.json`);
+  return JSON.stringify({ ...nb, lisp: AniTeach.notebookToLisp(nb, { n: 1, extensions: teachLoaded() }) }, null, 1);
+}
+const notebookFileName = (rec) => `${slug(rec.title).slice(0, 60).replace(/-$/, "") || "knowledge"}.ani-knowledge.json`;
+async function saveNotebookFile(rec) {
+  return saveFile(new Blob([notebookFileText(rec)], { type: "application/json" }), notebookFileName(rec));
 }
 // A notebook read from a file (one saved by Teach Ani, with or without its Lisp): checked as
 // a notebook (src/teach.js), then added, under its own title.
@@ -824,6 +829,8 @@ function chooseKnowledgeFile() {
 async function teachAct(el) {
   const rec = openNotebook();
   const d = el.dataset;
+  // what the panel last said stays until the next thing done there
+  if (d.teachCheck === undefined && d.teachRehearse === undefined) teachUi.note = "";
   if (d.teachKind !== undefined) {
     teachUi.form = teachUi.form && teachUi.form.kind === d.teachKind ? null : newForm(d.teachKind);
     renderSide();
@@ -880,12 +887,13 @@ async function teachAct(el) {
 async function addFormToAni() {
   const form = teachUi.form;
   let rec = openNotebook();
-  if (!rec) { rec = newNotebookRecord(); TEACHING.notebooks.push(rec); teachUi.open = rec.id; }
-  const pieces = formPieces(form, rec);
+  const pieces = formPieces(form, rec || draftNotebook());
   if (!String(form.f.because || "").trim() || !pieces.length) { renderSide(); return; }
-  const c = pageCheck(rec, { pieces: [...rec.pieces, ...pieces] });
+  const c = pageCheck(rec || draftNotebook(), { pieces: [...(rec ? rec.pieces : []), ...pieces] });
   const ids = new Set(pieces.map((p) => p.id));
   if (c.refused.some((r) => ids.has(r.piece) || r.piece === null)) { renderSide(); return; }
+  // the first piece makes the first notebook
+  if (!rec) { rec = newNotebookRecord(); TEACHING.notebooks.push(rec); teachUi.open = rec.id; }
   rec.pieces.push(...pieces);
   teachUi.form = null;
   teachUi.highlight = pieces[0].id;
