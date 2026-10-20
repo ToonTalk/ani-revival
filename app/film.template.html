@@ -6255,6 +6255,7 @@ const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 
 function openEditor() {
   editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
   editor.note = "";
+  editor.openLisp = false;
   select(null, { panel: "edit" });
 }
 // A text from anywhere but the reader's typing is tidied at once; what they type is
@@ -6299,8 +6300,7 @@ function editorPanel() {
     <div class="make-settings">${modeSwitch()}</div>
     <p class="note" id="ed-fps-note">Quickly is at 4 frames a second, as Ken's TV previews ran: jerky, and made in two or three minutes on a recent computer (five with Ken's beautified scene). Smoothly is at 24, as Ken's camera shot the film: about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is filmed.</p>
     ${SWITCHED.length ? `<p class="note mode-note">${esc(modeNote())}</p>${extensionsPanel()}` : ""}`;
-  editor.openLisp = false;
-  side.querySelector("#ed-close").addEventListener("click", () => { editor.note = ""; select(null); });
+  side.querySelector("#ed-close").addEventListener("click", () => { editor.note = ""; editor.openLisp = false; select(null); });
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];

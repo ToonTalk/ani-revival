@@ -1647,7 +1647,7 @@ try {
     `Ken's "the hare is unhappy and should move slowly in the final scene" is read as a change to the story (${(hare.item || hare.error || "").split("(you said")[0].trim()})`);
   check(hare.panel === "Change the story" && /^From “Tell Ani what's wrong”: in The Finish, Ani is told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\)/.test(hare.note) && hare.lispOpen
     && /\(establish \(emotional-state hare \(pride \(negative high\)\)\)\)\s*\n\s*\(establish \(emotional-state hare \(joy \(negative high\)\)\)\)\)\)/.test(hare.finish) && hare.rest,
-    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...; the scene now: ${hare.finish.replace(/\s+/g, " ").slice(0, 400)})`);
+    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...${hare.panel === "Change the story" && hare.lispOpen && hare.rest ? "" : `; panel ${hare.panel}, Ani's version open ${hare.lispOpen}, the rest ${hare.rest}`}; the scene now: ${hare.finish.replace(/\s+/g, " ").slice(0, 400)})`);
   await shot("42-hare-to-the-editor.png");
   await js(`document.getElementById("ed-close").click()`);
 
