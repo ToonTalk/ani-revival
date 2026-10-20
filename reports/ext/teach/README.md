@@ -1,6 +1,6 @@
 # Teach Ani: a learner adds to Ani's knowledge (TEACH)
 
-*17 October 2026, the Lisp, pipeline and tools side of `reports/chapter-x/design-teaching.md` (stages T0 to T4 and T7a, kinds 1 to 4 and a verb as a kind of another), at Ken's "yes queue it", with the design's recommended answers to its questions (the revival's choices, pending Ken: `reports/chapter-x/PLAN.md`, "Teaching Ani (TEACH)"). The page's side (the panel, the forms, "Make it with my knowledge", the badges) is for the page agent; "For the page" below is what it needs.*
+*17 October 2026, the Lisp, pipeline and tools side of `reports/chapter-x/design-teaching.md` (stages T0 to T4 and T7a, kinds 1 to 4 and a verb as a kind of another), at Ken's "yes queue it", with the design's recommended answers to its questions (the revival's choices, pending Ken: `reports/chapter-x/PLAN.md`, "Teaching Ani (TEACH)"). The page's side (the panel, the forms, "Make it with my knowledge", the badges) was built on 20 October from "For the page" below: `app/film/teach.js`, checked by `tools/check-film-app.mjs` (`--only teach`).*
 
 Your 1977 paper planned a system whose knowledge would be "as modular and simply represented as possible", so that "the child, with the help of the system, will be able to define new characters for the stories, change the system's vocabulary, add a reasonable default course of action and so on", and "actually see the knowledge of something actually accomplish something complex" ("Three Interactions between AI and Education", Machine Intelligence 8, p. 428; `sources/text/kahn-1977-three-interactions-MI8.txt`). AI-TR-540 says the same of Ani: "a student of animation could learn much by observing the effects of altering Ani's knowledge and rules" (pp. 149-150).
 
@@ -21,7 +21,7 @@ What one learner teaches is a **notebook** ("your knowledge"): a title and a lis
 | A feeling (4.4) | `feeling`: word, changes (speed, acceleration, how active, how rhythmic up or down; the path more or less jagged or curved; the path long or short, curved or straight) | KNOWEM's form after your joy, `(define grumpiness emotion (process suggestions (for (establish (emotional-state ?character (grumpiness {a-felt-level? ?level}))) '(method: type display-value-change value (change: ...)) strength 'medium) ...))`, KNOWEM's helpers or TEACH's copies of them when KNOW is off |
 | A verb that is a kind of one of Ani's (4.5a) | `verb`: word, `kindOf`, `showAs` ("parent", shown as that verb is; or "ways", only by the learner's ways) | `(define teases chases)` and a receiver that conveys it as the parent, `(method: type convey value (chases ,one ,other))`, as your prevents is shown by conveying undoes (`convey.64:167-179`) |
 
-Not built, by the revival's choices (pending you): "A then B" verbs and a way of showing built from walks (design 4.5, T7b), the plain-English path (section 11, T6), editing a notebook as Lisp (T8), and the page's side.
+Not built, by the revival's choices (pending you): "A then B" verbs and a way of showing built from walks (design 4.5, T7b), the plain-English path (section 11, T6), and editing a notebook as Lisp (T8).
 
 ## Ani's checks
 
