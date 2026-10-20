@@ -535,7 +535,9 @@ try {
   // pressed remembered; the player's 4/24 for his 1978 film is as it was
   const makeButtons = await js(`(async () => {
     const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
-    t.select(null, { panel: "edit" });
+    t.select(null);
+    await wait(200);
+    document.getElementById("open-editor").click();
     await wait(200);
     const side = document.getElementById("side");
     [...side.querySelectorAll("[data-preset]")].find((b) => b.textContent === "A shy Prince").click();
