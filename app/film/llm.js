@@ -340,7 +340,7 @@ const CALLS = {
     }, on ? { ...body, output_config: { ...body.output_config, format: { type: "json_schema", schema: schemaFor("anthropic", schema) } } } : body, signal));
     return (json.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n");
   },
-  async openai(turns, { signal, schema }) {
+  async openai(turns, { signal, schema, schemaName = "film_description" }) {
     const key = teller.keys.openai;
     if (!key) throw new Error("Add your OpenAI API key first.");
     const model = modelFor("openai");
@@ -353,7 +353,7 @@ const CALLS = {
         throw e;
       }
     };
-    const json = await shaped(schema, (on) => ask(on ? { response_format: { type: "json_schema", json_schema: { name: "film_description", strict: true, schema } } } : {}));
+    const json = await shaped(schema, (on) => ask(on ? { response_format: { type: "json_schema", json_schema: { name: schemaName, strict: true, schema } } } : {}));
     return String((((json.choices || [])[0] || {}).message || {}).content || "");
   },
   async gemini(turns, { signal, schema }) {

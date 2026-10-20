@@ -15,7 +15,8 @@
 // characters, denser than base64), so the page works opened directly, served, or
 // published as a claude.ai artifact (which can fetch nothing).
 // The page's script is the template's, with app/film/criticism.js (the reader's criticism of
-// a film, and remaking it with it), app/film/llm.js (telling Ani a new story),
+// a film, and remaking it with it), app/film/critique.js ("Tell Ani what's wrong", the
+// criticism in plain English that a language model reads), app/film/llm.js (telling Ani a new story),
 // app/film/json.js (the JSON way of telling it), app/film/save.js (saving films),
 // app/film/library.js ("Your films", every film made kept in the browser, and your notebooks
 // of knowledge beside them, and what the page keeps there), app/film/teach.js (Teach Ani),
@@ -555,12 +556,13 @@ ${pipelineSource(root, TEACH_FUNCTIONS)}`;
 // src/pipeline.js (the template's return at /*TEACH*/), taken from Ani's runtime, which
 // bundles both, run on the page as it loads (the template's teachRuntime), rather than
 // carried twice: the copy keeps under claude.ai's limit so. Each name must be one of theirs.
+// The criticism's helpers (/*CRITICISM*/, src/pipeline.js's own) are taken so too.
 const TEACH_MODULES = [TEACH_MODULE, PIPELINE_MODULE];
-function teachFromRuntime(template) {
-  const m = template.match(/\/\*TEACH\*\/\s*return \{ ([^}]*) \};/);
-  if (!m) throw new Error("the template's /*TEACH*/ should be followed by the names it returns");
+function teachFromRuntime(template, mark = "TEACH") {
+  const m = template.match(new RegExp(String.raw`/\*${mark}\*/\s*return \{ ([^}]*) \};`));
+  if (!m) throw new Error(`the template's /*${mark}*/ should be followed by the names it returns`);
   const names = m[1].split(",").map((x) => x.trim()).filter(Boolean);
-  for (const n of names) if (!TEACH_MODULES.some((mod) => n in mod)) throw new Error(`Ani's runtime has no ${n} for the claude.ai copy's Teach Ani`);
+  for (const n of names) if (!TEACH_MODULES.some((mod) => n in mod)) throw new Error(`Ani's runtime has no ${n} for the claude.ai copy's /*${mark}*/`);
   return `const { ${names.join(", ")} } = await teachRuntime();`;
 }
 
@@ -699,9 +701,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": claudeArtifact ? teachFromRuntime(template, "CRITICISM") : criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }

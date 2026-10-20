@@ -125,7 +125,8 @@ function remakePlan(run) {
   const k = critFrom(run);
   const again = run.sceneIds.slice(k).map((id) => midTitle(run, id));
   const kept = run.sceneIds.slice(0, k).map((id) => midTitle(run, id));
-  const slow = runFps(run) === 24 ? ` At 24 frames a second each scene filmed again takes minutes${run === RUNS[0] ? " (the 1978 film at 4 a second is quicker to try)" : ""}.` : "";
+  // (a remake is made at the film's own frames a second, never another's)
+  const slow = runFps(run) === 24 ? ` It is made at 24 frames a second, as this film was, and each scene filmed again takes minutes${run === RUNS[0] ? " (the 1978 film at 4 a second is quicker to try)" : ""}.` : " It is made at 4 frames a second, as this film was.";
   return `Ani will plan ${words(again)} again, and film again those whose plan changes${kept.length ? `; ${words(kept)} ${kept.length > 1 ? "are" : "is"} kept as ${kept.length > 1 ? "they were" : "it was"}, before the first scene criticized` : ""}.${slow}`;
 }
 
@@ -416,9 +417,11 @@ function critBox(run, { compact = false } = {}) {
   const note = critNote.run === run && critNote.text ? `<p class="note crit-added" aria-live="polite">${esc(critNote.text)}</p>` : "";
   if (critNote.run === run) critNote.text = "";
   const try_ = compact ? "" : tryCriticizing(run);
+  // and "Tell Ani what's wrong" (app/film/critique.js), at its foot
+  const tell = compact ? "" : critiqueBox(run);
   if (!record.length && !pending.length) {
     if (compact) return note ? `<div class="crit" id="crit">${note}</div>` : "";
-    return try_ || note ? `<div class="crit" id="crit"><p class="label">Your criticism</p>${note}${try_}${critAboutBox()}</div>` : "";
+    return try_ || note || tell ? `<div class="crit" id="crit"><p class="label">Your criticism</p>${note}${try_}${tell}${critAboutBox()}</div>` : "";
   }
   const rows = [];
   for (const c of pending) {
@@ -438,7 +441,7 @@ function critBox(run, { compact = false } = {}) {
   return `<div class="crit" id="crit"><p class="label">Your criticism${record.length ? " of this film" : ""}</p>${note}<ul class="crit-list">${rows.join("")}</ul>
     <p class="note">${esc(plan)}</p>
     <div class="actions"><button type="button" class="btn primary crit-go" data-crit-act="${go}"${!changed || busy || !remakeable(run) ? " disabled" : ""}${busy ? ' title="Ani is making a film; remake this one when it has finished, or stop it"' : ""}>Remake with my criticism</button></div>
-    ${compact ? "" : try_}${compact ? "" : critAboutBox()}</div>`;
+    ${compact ? "" : try_}${tell}${compact ? "" : critAboutBox()}</div>`;
 }
 // Where criticism comes from, a click away.
 const critAboutBox = () => `<details class="crit-about"><summary>About criticizing Ani's films</summary><div class="body"><p class="note">From ${critCite()}: the way Ken improved Ani, finding faulty reasoning and changing the program, “is a good one for constructing Ani but is not a reasonable method for a user trying to control Ani's decisions”; instead “Ani should be extended to accept criticism of the films and their justification.” The revival built his first three kinds: a way of showing vetoed (Ani sets it aside, “removing those alternatives that were vetoed by the user”), a part too quick or too slow (half as long again, or a third shorter, within the time the story gives the scene), and two characters kept apart in a scene, with his remedy of starting one far from another. ${fileLink("critic")}</p>
@@ -656,8 +659,8 @@ function critOutcome(run, sc0, c) {
     for (const x of c.closest || []) {
       const t = esc(midTitle(run, x.scene));
       if (x.distance === null) out.push(`In ${t} they are never on the picture together.`);
-      else if (x.distance < AniCritic.SMALL_DISTANCE) out.push(`But in the film of ${t} they come within ${x.distance} of the screen of each other (frame ${x.frame}), closer than Ken's small distance, a third of it (place.45:103-105). The plan holds them apart: no walk of one to the other, and no walk of the two together. What brings them close is where they start, or a walk towards the other's whereabouts that isn't to meet, such as the guard's prisoner escaping towards the one she is kept from; the revival's table of ways that bring two together counts walks to contact and walks together, not a walk towards the other's whereabouts (its choice, pending Ken).`);
-      else out.push(`In ${t} they come no closer than ${x.distance} of the screen (frame ${x.frame}), more than Ken's small distance, a third of it.`);
+      else if (x.distance < AniCritic.SMALL_DISTANCE) out.push(`But in the film of ${t} they come within ${x.distance} of the screen of each other (${frameAt(scOf(x.scene), x.frame)}), closer than Ken's small distance, a third of it (place.45:103-105). The plan holds them apart: no walk of one to the other, and no walk of the two together. What brings them close is where they start, or a walk towards the other's whereabouts that isn't to meet, such as the guard's prisoner escaping towards the one she is kept from; the revival's table of ways that bring two together counts walks to contact and walks together, not a walk towards the other's whereabouts (its choice, pending Ken).`);
+      else out.push(`In ${t} they come no closer than ${x.distance} of the screen (${frameAt(scOf(x.scene), x.frame)}), more than Ken's small distance, a third of it.`);
     }
     for (const x of c.contacts || []) out.push(`A walk in ${esc(midTitle(run, x.scene))} still brings them together (${esc(plain(String(x.plan || x.how)).replace(/[()]/g, ""))}), which the revival's table of such ways missed.`);
     // a scene the criticism empties: the design's sentence (section 8)
@@ -671,11 +674,11 @@ function critOutcome(run, sc0, c) {
     }
   }
   if (item.kind === "start-far" && c.start && c.start.frame !== null) {
-    if (c.start.walkedOn) out.push(`In the film ${who(item.who)} is first seen off the picture (frame ${c.start.frame}) and walks on.`);
+    if (c.start.walkedOn) out.push(`In the film ${who(item.who)} is first seen off the picture (${frameAt(scOf(item.scene), c.start.frame)}) and walks on.`);
     else if (!c.notes.length) {
       const sc = scOf(item.scene), with_ = sc && ready(sc) ? placedWith(run, sc, item.who) : [];
       out.push(`PLACE never placed ${who(item.who)} and ${who(item.from)} as a pair in ${esc(midTitle(run, item.scene))}${with_.length && !with_.includes(item.from) ? `: it places ${meet(run.story, item.who).her} with ${words(with_.map((x) => who(x)))} here` : ""}, so there was nothing to start far from; ${meet(run.story, item.who).she} is on the picture from frame ${c.start.frame}.`);
-    } else out.push(`In the film ${who(item.who)} is on the picture from the first (frame ${c.start.frame}).`);
+    } else out.push(`In the film ${who(item.who)} is on the picture from the first (${frameAt(scOf(item.scene), c.start.frame)}).`);
   }
   if (c.outcome === "not-reached") out.push(item.kind === "start-far" ? `${cap(who(item.who))} never comes on in ${esc(midTitle(run, item.scene))}, so there was nothing to place far off.`
     : item.kind === "another-way" ? `Ani didn't weigh ${esc(plain(item.vetoes))} for that part this time, so there was nothing to set aside.`

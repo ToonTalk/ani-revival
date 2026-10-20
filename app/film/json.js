@@ -54,13 +54,16 @@ function pairVerbs(extensions) {
 // The schema, as JSON Schema in the form OpenAI's strict mode asks for (every property
 // required, no others allowed, the root an object, no recursion, fewer than ten levels);
 // schemaFor() fits it to the other providers.
-function storySchema(extensions = []) {
-  const obj = (properties) => ({ type: "object", properties, required: Object.keys(properties), additionalProperties: false });
-  const one = (values) => ({ type: "string", enum: values });
-  const unset = (values) => ({ type: ["string", "null"], enum: [...values, null] }); // null: not set, as Ken left some
-  const list = (items, min = 1) => ({ type: "array", ...(min ? { minItems: min } : {}), items });
-  const str = { type: "string" };
-  const name = { type: "string", pattern: "^[a-z][a-z0-9-]*$" };
+const schemaParts = () => ({
+  obj: (properties) => ({ type: "object", properties, required: Object.keys(properties), additionalProperties: false }),
+  one: (values) => ({ type: "string", enum: values }),
+  list: (items, min = 1) => ({ type: "array", ...(min ? { minItems: min } : {}), items }),
+  str: { type: "string" },
+});
+// A task of a scene, as the schema has it, its characters named by name (any name, or, for
+// "Tell Ani what's wrong", one of the film's cast: app/film/critique.js).
+function storyTaskSchema(extensions, name) {
+  const { obj, one, list, str } = schemaParts();
   const pair = { ...list(name, 2), maxItems: 2 };
   const words = (kind, min = 1) => list(one(schemaWords(kind, extensions)), min);
   // a feeling, signed as Ani shows it: with KNOW, only joy negative (signedFeelings)
@@ -79,7 +82,14 @@ function storySchema(extensions = []) {
     obj({ kind: one(["change-relationship"]), who: name, whom: name, from: words("relationship"), to: words("relationship"), causedBy: str }),
   ];
   // what an undoes undoes: only what someone did, a convey task (the page's checks, checkTasks)
-  const task = { anyOf: [...tasks, obj({ kind: one(["undoes"]), who: name, scene: name, undone: { anyOf: tasks.slice(3) } }), ...changes] };
+  return { anyOf: [...tasks, obj({ kind: one(["undoes"]), who: name, scene: name, undone: { anyOf: tasks.slice(3) } }), ...changes] };
+}
+function storySchema(extensions = []) {
+  const { obj, one, list, str } = schemaParts();
+  const unset = (values) => ({ type: ["string", "null"], enum: [...values, null] }); // null: not set, as Ken left some
+  const name = { type: "string", pattern: "^[a-z][a-z0-9-]*$" };
+  const words = (kind, min = 1) => list(one(schemaWords(kind, extensions)), min);
+  const task = storyTaskSchema(extensions, name);
   return obj({
     characters: list(obj({ name, called: str, pronoun: one(["she", "he", "they"]), physical: words("physical"), personality: words("personality"), movement: words("movement", 0) })),
     main: name,
