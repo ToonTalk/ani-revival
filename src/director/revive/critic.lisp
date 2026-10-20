@@ -127,7 +127,7 @@
 
 (defun critic-note (actor head criticism what rest)
   (let ((id (get criticism 'id)))
-       (cond ((memq what '(pace start-far))
+       (cond ((memq what '(pace start-far choice))
 	      (ask ,actor forget items matching (heeded-criticism: id ,id what ,what %))
 	      (ask ,actor forget items matching (unmet-criticism: id ,id what ,what %))))
        (ask ,actor memorize (,head id ,id what ,what !,rest))
@@ -210,3 +210,114 @@
 			'get-display-method-suggestions-heeding-criticism)
 	  (revival-wrap 'get-convey-method-suggestions 'critic
 			'get-convey-method-suggestions-heeding-criticism)))
+
+;;; ------------------------------------------- 5. a pass-1 choice (the revival's extension)
+;;;
+;;; Not in Ken's Section D, which criticizes "the films and their justification": pass
+;;; 1's choices are part of the justification the glass box shows, and criticizing one
+;;; ("the Prince moves too fast") is the revival's extension of Ken's idea (design
+;;; section 4.6, stage C6). The criticism is a direction, never a value (the revival's
+;;; choice, pending Ken: design question 4), in Ken's own value language (cosug.215:302-
+;;; 307, 382-400): lower than the value the film had, (less-than high); higher,
+;;; (greater-than low); or not it, (not high). The record has it as
+;;;   (criticism: id c1 kind choice choice-point (choice-point-of prince speed)
+;;;		 direction lower was high value (less-than high) by you)
+;;; It is heard where Ken's code hears every other suggestion:
+;;;  - gathered with the choice point's absolute suggestions (CHOOSE's
+;;;    gather-suggestions-of-type, choose.198:135-163), the first of FILM's groups
+;;;    (film.17:47-56), as (suggestion: element speed value (less-than high) strength
+;;;    high source (criticism-by-you c1)), so that COSUG combines it like any other;
+;;;  - a conflict it is in resolved for it in Ken's stub try-to-resolve-using-criticism
+;;;    (choose.198:587-589, "nil ;;for now"), which his resolve-conflict already calls
+;;;    before previous choices and strengths (choose.198:327), by his own
+;;;    conflict-resolved (choose.198:542-569), the reason criticized-by-you;
+;;;  - Ken's rules can still refuse it: (less-than low), when the value is low already,
+;;;    is a value COSUG can't make (impossible-relative-value, cosug.215:318-327), and
+;;;    resolve-conflict rejects it as self-conflicting-suggestion (choose.198:319-322)
+;;;    before the stub is asked.
+;;; Where the choice is recorded (CHOOSE's record-choice, choose.198:596-603, where Ken's
+;;; comment says "at some point this should check for criticism before accepting
+;;; choice"), the choice point memorizes what came of it:
+;;;   (heeded-criticism: id c1 what choice was high now medium because (less-than high))
+;;;   (unmet-criticism: id c1 what choice was low because (self-conflicting-suggestion))
+;;; Everyone else is held as the film had them (REVIVE;HOLD's hold-all-but-choice-points,
+;;; called by the pipeline's pass 1 before (z)): only the criticized choice point is
+;;; chosen afresh (the revival's choice, pending Ken: design question 1, as Ken's
+;;; decision 1 for changes).
+
+;; The choice criticism of a choice point, or nil.
+(defun critic-of-choice-point (choice-point)
+  (do ((c :critic-record (rest c)))
+      ((null c) nil)
+      (and (eq (get (first c) 'kind) 'choice)
+	   (equal (get (first c) 'choice-point) choice-point)
+	   (return (first c)))))
+
+(defun critic-choice-suggestion? (suggestion)
+  (and (not (atom suggestion))
+       (eq (first suggestion) 'suggestion:)
+       (not (atom (get suggestion 'source)))
+       (eq (first (get suggestion 'source)) 'criticism-by-you)))
+
+(defun gather-suggestions-of-type-heeding-criticism (type choice-point)
+  (let ((found (funcall (revival-wrapped 'gather-suggestions-of-type 'critic) type choice-point))
+	(c (and :critic-record (eq type 'absolute-suggestions) (critic-of-choice-point choice-point))))
+       (cond ((or (null c) (and (not (atom found)) (eq (first found) 'postponed:))) found)
+	     (t (cons (list 'suggestion: 'element (ask ,choice-point recall your element-name)
+			    'value (get c 'value) 'strength 'high
+			    'source (list 'criticism-by-you (get c 'id)))
+		      found)))))
+
+;; Ken's stub, filled: a conflict one of whose two offenders is the criticism goes its way.
+(defun try-to-resolve-using-criticism-heeding-criticism (choice-point suggestions conflict)
+  (let ((offenders (get conflict 'offenders)))
+       (cond ((null :critic-record)
+	      (funcall (revival-wrapped 'try-to-resolve-using-criticism 'critic)
+		       choice-point suggestions conflict))
+	     ((not (= (length offenders) 2)) nil)
+	     ((critic-choice-suggestion? (first offenders))
+	      (conflict-resolved choice-point suggestions conflict
+				 (first offenders) (second offenders) 'criticized-by-you))
+	     ((critic-choice-suggestion? (second offenders))
+	      (conflict-resolved choice-point suggestions conflict
+				 (second offenders) (first offenders) 'criticized-by-you))
+	     (t (funcall (revival-wrapped 'try-to-resolve-using-criticism 'critic)
+			 choice-point suggestions conflict)))))
+
+;; Whether the value now is as the criticism asked: lower or higher than it was, by
+;; Ken's own relative values (as COSUG's possible-values-of asks them, cosug.215:
+;; 382-388), or not it.
+(defun critic-choice-met? (c now)
+  (let ((relation (first (get c 'value)))
+	(was (get c 'was)))
+       (cond ((equal now was) nil)
+	     ((eq relation 'not) t)
+	     ((atom now) (and (uncompiled-ask ,now are you ,relation ,was) t))
+	     (t nil))))
+
+;; Why the criticism was not met: the reason its suggestion was rejected for, from the
+;; choice point's rejected-suggestions, or (not-chosen) if it was combined away.
+(defun critic-choice-why-not (choice-point c)
+  (do ((r (ask ,choice-point recall your rejected-suggestions) (rest r)))
+      ((null r) '(not-chosen))
+      (and (not (atom (first r)))
+	   (critic-choice-suggestion? (get (first r) 'suggestion))
+	   (equal (get (get (first r) 'suggestion) 'source) (list 'criticism-by-you (get c 'id)))
+	   (return (list (get (first r) 'reason))))))
+
+(defun record-choice-heeding-criticism (choice-point suggestion)
+  (let ((chosen (funcall (revival-wrapped 'record-choice 'critic) choice-point suggestion))
+	(c (and :critic-record (critic-of-choice-point choice-point))))
+       (cond (c (let ((now (ask ,choice-point recall your current-choice)))
+		     (cond ((critic-choice-met? c now)
+			    (critic-heeded choice-point c 'choice (get c 'was) now (get c 'value)))
+			   (t (critic-unmet choice-point c 'choice (get c 'was)
+					    (critic-choice-why-not choice-point c)))))))
+       chosen))
+
+(+after-load '|ken;choose >|
+  '(progn (revival-wrap 'gather-suggestions-of-type 'critic
+			'gather-suggestions-of-type-heeding-criticism)
+	  (revival-wrap 'try-to-resolve-using-criticism 'critic
+			'try-to-resolve-using-criticism-heeding-criticism)
+	  (revival-wrap 'record-choice 'critic 'record-choice-heeding-criticism)))

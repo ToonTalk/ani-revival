@@ -137,6 +137,31 @@ test("the record: checked, written as Lisp without the words said, added to and 
   assert.throws(() => addCriticism([RECORD[1]], { ...RECORD[1], id: undefined, tasks: [NLKA_TASK, "(alone cinderella prince)"] }), /already says how quick/);
 });
 
+test("a criticism of a pass-1 choice: a direction from the film's value, for the whole film, one item a choice point", () => {
+  const fast = { kind: "choice", character: "prince", element: "speed", direction: "lower", was: "high", said: "The Prince moves too fast" };
+  let { record, item } = addCriticism([], fast);
+  assert.equal(item.id, "c1");
+  assert.equal(criticismWords(item), "prince moves too fast");
+  assert.match(criticismToLisp(record), /\(criticism: id c1 kind choice choice-point \(choice-point-of prince speed\) direction lower was high value \(less-than high\) by you\)/);
+  assert.match(criticismToLisp([{ ...item, direction: "higher", was: "low" }]), /value \(greater-than low\)/);
+  assert.match(criticismToLisp([{ ...item, direction: "not" }]), /value \(not high\)/);
+  assert.equal(criticismWords({ ...item, element: "path-curvature", direction: "higher" }), "prince moves in paths too straight");
+  assert.equal(criticismWords({ ...item, element: "acceleration" }), "prince has too much acceleration");
+  assert.equal(criticismWords({ ...item, direction: "not" }), "prince's speed: not high");
+  // never a value, and never per scene: a feeling of the scene's, a change to the story
+  assert.throws(() => checkRecord([{ ...item, direction: "medium" }]), /a direction, never a value/);
+  assert.throws(() => checkRecord([{ ...item, scene: "justice" }]), /change to the story: say how the character feels in that scene, in the editor/);
+  // said again from the film remade (now medium): the new item in the old one's place
+  ({ record, item } = addCriticism(record, { ...fast, was: "medium" }));
+  assert.deepEqual([record.length, item.id, item.was], [1, "c1", "medium"]);
+  assert.equal(addCriticism(record, { ...fast, was: "medium" }).record.length, 1, "the same criticism once");
+  assert.throws(() => checkRecord([item, { ...item, id: "c2" }]), /already criticizes that choice/);
+  // read into the Lisp
+  const run = runner(boot(makeProjectFileSystem(), { criticism: record }));
+  assert.equal(run("(get (critic-of-choice-point '(choice-point-of prince speed)) 'value)"), "(less-than medium)");
+  assert.equal(run("(critic-of-choice-point '(choice-point-of cinderella speed))"), "nil");
+});
+
 // Each of Ken's functions CRITIC's files wrap, with the ids of its wrappers, newest
 // first, as the registry's files have them.
 function expectedWraps() {
@@ -144,7 +169,9 @@ function expectedWraps() {
   const has = (f) => files.includes(f);
   const ids = (...xs) => `(${xs.filter(Boolean).join(" ")})`;
   return {
-    "record-choice": ids("hold"),
+    "record-choice": ids("critic", "hold"),
+    "gather-suggestions-of-type": ids("critic"),
+    "try-to-resolve-using-criticism": ids("critic"),
     "get-display-method-suggestions": ids(has("critsc") && "critsc", "critic"),
     "get-convey-method-suggestions": ids(has("critsc") && "critsc", "critic"),
     ...(has("critpc") ? { "ideal-time-for-task": ids("critpc"), "adjust-task-lengths": ids("critpc", "mend11"), "approve-or-remake-tasks-choices": ids("critpc") } : {}),
