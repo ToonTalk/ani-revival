@@ -165,7 +165,7 @@ async function restoreView(s) {
       const run = screenRun(sel.run);
       if (run && run.cast.includes(sel.char) && ready(sceneOf(sel.run))) state.selected = { run: sel.run, char: sel.char, plan: sel.plan || null, of: run };
     }
-    state.panel = ["story", "why", "edit", "tell", "compare", "films"].includes(s.panel) ? s.panel : defaultPanel();
+    state.panel = ["story", "why", "edit", "tell", "compare", "films", "teach"].includes(s.panel) ? s.panel : defaultPanel();
     if (state.panel === "why" && !state.selected) state.panel = defaultPanel();
     if (state.panel === "edit") editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
     lastPanel = null;

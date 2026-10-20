@@ -17,13 +17,20 @@
 // The page's script is the template's, with app/film/criticism.js (the reader's criticism of
 // a film, and remaking it with it), app/film/llm.js (telling Ani a new story),
 // app/film/json.js (the JSON way of telling it), app/film/save.js (saving films),
-// app/film/library.js ("Your films", every film made kept in the browser, and what the
-// page keeps there), app/film/view.js (where the visitor is, put back on coming back to
+// app/film/library.js ("Your films", every film made kept in the browser, and your notebooks
+// of knowledge beside them, and what the page keeps there), app/film/teach.js (Teach Ani),
+// app/film/view.js (where the visitor is, put back on coming back to
 // the page) and app/film/report.js (reporting errors, and stories sent, to Ken, where
 // tools/build-site.mjs gives the site's page a DSN) put in at /*FILM-PARTS*/, and
 // src/pipeline.js's own functions for renaming a story's names that clash with Ani's
 // (storyOutline, storyRenames, renameStoryNames) at /*STORY-NAMES*/, with the names
 // taken (aniNames) in its data.
+// Teach Ani (reports/chapter-x/design-teaching.md; reports/ext/teach/README.md, "For the
+// page"): src/teach.js itself, which needs no Lisp, and src/pipeline.js's own
+// yourKnowledgeDid and knowledgeChanges, as written there, at /*TEACH*/ for
+// app/film/teach.js (the panel, the forms, "Make it with my knowledge"), with the design's
+// examples (reports/ext/teach/notebooks/ and test/teach/) and Ken's own entries for the
+// forms' examples, read from his files, in its data (teach).
 // Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
@@ -40,7 +47,10 @@ import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames, whyTheyAct as whyTheyActOfPipeline, criticismChanges as criticismChangesOfPipeline, addCriticism as addCriticismOfPipeline, SMALL_DISTANCE } from "../src/pipeline.js";
+import { EXTENSIONS, KEN_LOOKS, APPEARANCE_ELEMENTS, aniNames, boot, storyOutline, storyRenames, renameStoryNames, whyTheyAct as whyTheyActOfPipeline, criticismChanges as criticismChangesOfPipeline, addCriticism as addCriticismOfPipeline, SMALL_DISTANCE, yourKnowledgeDid as yourKnowledgeDidOfPipeline, knowledgeChanges as knowledgeChangesOfPipeline } from "../src/pipeline.js";
+import { notebookToLisp as notebookToLispOfTeach } from "../src/teach.js";
+import * as TEACH_MODULE from "../src/teach.js";
+import * as PIPELINE_MODULE from "../src/pipeline.js";
 import { film1978, film1978at24, BASE_24 } from "./critic-base.mjs";
 import { decodeItsText } from "../src/its/text.js";
 import { definitions } from "./lisp-defs.mjs";
@@ -276,24 +286,36 @@ function stripChecked(js, what, ext) {
 // showed nothing at all there). tools/check-film-app.mjs hooks a check's functions into it
 // with withPageScript; test/page-script.test.js runs the loader on a packed block.
 export const PAGE_SCRIPT_ID = "page-script";
+// The claude.ai copy's style sheet goes packed too, in a block of its own (PAGE_STYLE_ID),
+// which the loader puts on the page first; until it has, the page is kept hidden, so that it
+// never shows unstyled.
+export const PAGE_STYLE_ID = "page-style";
 export const PAGE_LOADER = `
-const s = document.getElementById("${PAGE_SCRIPT_ID}").textContent.trim(), sp = s.indexOf(" "), n = Number(s.slice(0, sp));
 const T = [...Array(94)].map((_, k) => String.fromCharCode(33 + k)).filter((c) => c !== "<").join(""), digit = new Int16Array(128);
 for (let k = 0; k < 93; k++) digit[T.charCodeAt(k)] = k;
-const bytes = new Uint8Array(n);
-let acc = 0, bits = 0, o = 0;
-for (let i = sp + 1; i + 1 < s.length && o < n; i += 2) {
-  acc |= (digit[s.charCodeAt(i)] + 93 * digit[s.charCodeAt(i + 1)]) << bits;
-  bits += 13;
-  while (bits >= 8 && o < n) { bytes[o++] = acc & 255; acc >>>= 8; bits -= 8; }
+const text = async (block) => {
+  const s = block.textContent.trim(), sp = s.indexOf(" "), n = Number(s.slice(0, sp));
+  const bytes = new Uint8Array(n);
+  let acc = 0, bits = 0, o = 0;
+  for (let i = sp + 1; i + 1 < s.length && o < n; i += 2) {
+    acc |= (digit[s.charCodeAt(i)] + 93 * digit[s.charCodeAt(i + 1)]) << bits;
+    bits += 13;
+    while (bits >= 8 && o < n) { bytes[o++] = acc & 255; acc >>>= 8; bits -= 8; }
+  }
+  return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+};
+const css = document.getElementById("${PAGE_STYLE_ID}");
+if (css) {
+  const st = document.createElement("style");
+  st.textContent = await text(css);
+  document.head.append(st);
+  document.documentElement.classList.add("styled");
 }
-const js = await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
 const el = document.createElement("script");
 el.type = "module";
-el.textContent = js;
+el.textContent = await text(document.getElementById("${PAGE_SCRIPT_ID}"));
 document.body.append(el);
-`;
-// The claude.ai copy with its page script changed by f (the script's text, unpacked, to
+`;// The claude.ai copy with its page script changed by f (the script's text, unpacked, to
 // the text to pack again): for a check that hooks functions into it.
 export function withPageScript(html, f) {
   const open = `<script type="text/plain" id="${PAGE_SCRIPT_ID}">`;
@@ -499,6 +521,87 @@ return { criticismChanges, addCriticism };`)();
   return code;
 }
 
+// Teach Ani on the page (reports/ext/teach/README.md, "For the page"): src/teach.js as it
+// is (it needs no Lisp; its exports become the page's names, in their own scope), and
+// src/pipeline.js's yourKnowledgeDid and knowledgeChanges, as written there, with what they
+// need, for "What your knowledge did" and the glass box's "your knowledge" badges, put in
+// at /*TEACH*/. knowledgeChanges says what changed scene by scene with the page's own copy
+// of criticismChanges (AniCritic). The build checks that the page's copies say what
+// src/pipeline.js's say of Ken's 1978 film with each of the design's notebooks, and that
+// every notebook reads as the pipeline reads it.
+const TEACH_FUNCTIONS = ["readForms", "printForm", "extensionsFor", "ELEMENT_USE", "elementUse", "suggestionOf", "originsOf", "shown", "verbOfMethod", "SET_ASIDE", "passOnePlaces", "relatedSuggestions", "currentChoice", "descriptionOf", "forWho", "yourKnowledgeDid", "knowledgeChanges"];
+const TEACH_NAMES = ["NOTEBOOK_FORMAT", "NOTEBOOK_VERSION", "MAX_NOTEBOOKS", "MAX_NAME", "PIECE_KINDS", "WORD_TYPES", "RELATIONSHIP_TYPES", "STRENGTHS", "MOVEMENT_ELEMENTS", "HUES", "LOOK_ELEMENTS", "RELATIVE_ELEMENTS", "COMPARISONS", "VERBS", "WAYS", "WHO", "BEST_WHEN", "FEELING_CHANGES", "newName", "checkNotebook", "notebookLinks", "spreadNotebookLinks", "contradictions", "wellFormed", "notebookToLisp", "yoursIndex", "pieceWords", "legitimacyQuestion", "rehearsalStory", "yourKnowledgeDid", "knowledgeChanges"];
+function teachFunctions(root) {
+  const teach = readFileSync(`${root}/src/teach.js`, "utf8").replace(/\r\n?/g, "\n");
+  if (/^import /m.test(teach)) throw new Error("src/teach.js imports something, which the page's copy can't");
+  const code = `${teach.replace(/^export (?=function|const)/gm, "")}
+const criticismChanges = (before, after) => AniCritic.criticismChanges(before, after);
+${pipelineSource(root, TEACH_FUNCTIONS)}`;
+  const page = new Function("EXTENSIONS", "AniCritic", `${code}\nreturn { ${TEACH_NAMES.join(", ")} };`)(EXTENSIONS, { criticismChanges: criticismChangesOfPipeline });
+  for (const name of TEACH_NAMES) if (page[name] === undefined) throw new Error(`the page's copy of Teach Ani has no ${name}`);
+  const base = film1978(root);
+  const dir = `${root}/reports/ext/teach/notebooks`;
+  for (const f of readdirSync(dir).filter((x) => x.endsWith(".ani-knowledge.json"))) {
+    const nb = JSON.parse(readFileSync(`${dir}/${f}`, "utf8"));
+    const run = { choicePoints: base.choicePoints, scenes: base.scenes, extensions: ["mend", "know", "appear"], knowledge: [nb] };
+    if (JSON.stringify(page.yourKnowledgeDid(run)) !== JSON.stringify(yourKnowledgeDidOfPipeline(run))) throw new Error(`the page's copy of yourKnowledgeDid says otherwise of ${f} on Ken's film`);
+    if (JSON.stringify(page.knowledgeChanges(base, run)) !== JSON.stringify(knowledgeChangesOfPipeline(base, run))) throw new Error(`the page's copy of knowledgeChanges says otherwise of ${f} on Ken's film`);
+    if (page.notebookToLisp(nb, { n: 1, extensions: ["mend", "know", "teach"] }) !== notebookToLispOfTeach(nb, { n: 1, extensions: ["mend", "know", "teach"] })) throw new Error(`the page writes ${f} otherwise`);
+  }
+  return code;
+}
+
+// The claude.ai copy's Teach Ani: the names the page takes from src/teach.js and
+// src/pipeline.js (the template's return at /*TEACH*/), taken from Ani's runtime, which
+// bundles both, run on the page as it loads (the template's teachRuntime), rather than
+// carried twice: the copy keeps under claude.ai's limit so. Each name must be one of theirs.
+const TEACH_MODULES = [TEACH_MODULE, PIPELINE_MODULE];
+function teachFromRuntime(template) {
+  const m = template.match(/\/\*TEACH\*\/\s*return \{ ([^}]*) \};/);
+  if (!m) throw new Error("the template's /*TEACH*/ should be followed by the names it returns");
+  const names = m[1].split(",").map((x) => x.trim()).filter(Boolean);
+  for (const n of names) if (!TEACH_MODULES.some((mod) => n in mod)) throw new Error(`Ani's runtime has no ${n} for the claude.ai copy's Teach Ani`);
+  return `const { ${names.join(", ")} } = await teachRuntime();`;
+}
+
+// The design's examples, one click away on the page ("Try teaching", its section 12 and
+// reports/ext/teach/README.md's table): each notebook (reports/ext/teach/notebooks/), the
+// story it is tried on (test/teach/, or Ken's own), the extensions it is made with, and the
+// frames tools/check-teach.mjs's goldens have for the scene it changes (4 frames a
+// second), before and after; and Ken's own entries, as the forms' examples beside each
+// kind: for each element of how a character moves, the first of his words to suggest it
+// (DSCRP), with its line.
+const TEACH_EXAMPLES = [
+  { id: "grumpy", label: "grumpy is like mean", notebook: "grumpy", story: "test/teach/grumpy-cindy.lisp", extensions: ["mend", "know"], before: "grumpy-unknown", after: "grumpy" },
+  { id: "grumpy-slow", label: "grumpy moves slowly", notebook: "grumpy-slow", story: "test/teach/grumpy-cindy.lisp", extensions: ["mend", "know"], before: "grumpy-unknown", after: "grumpy-slow" },
+  { id: "helps-with", label: "helping can look like going along with", notebook: "helps-with", story: null, extensions: [], before: null, after: "helps-with" },
+  { id: "jealous", label: "jealous", notebook: "jealous", story: "test/teach/jealous-cindy.lisp", extensions: ["mend", "know", "appear"], before: "jealous-unknown", after: "jealous" },
+];
+function teachData(root) {
+  const read = (f) => readFileSync(`${root}/${f}`, "utf8").replace(/\r\n?/g, "\n");
+  const golden = (id) => (id && existsSync(`${root}/reports/ext/teach/${id}/summary.json`) ? JSON.parse(read(`reports/ext/teach/${id}/summary.json`)) : null);
+  const introduction = (g) => { const s = g && g.scenes.find((x) => x.id === "introduction"); return s ? s.frames : null; };
+  const stories = {};
+  const examples = TEACH_EXAMPLES.map((e) => {
+    if (e.story) stories[e.story] ||= read(e.story);
+    const after = golden(e.after);
+    if (!after) throw new Error(`reports/ext/teach/${e.after}/summary.json is missing`);
+    if (JSON.stringify(after.extensions) !== JSON.stringify(e.extensions.length ? e.extensions : ["mend"])) throw new Error(`the example ${e.id} is made with other extensions than reports/ext/teach/${e.after}`);
+    return { ...e, notebook: JSON.parse(read(`reports/ext/teach/notebooks/${e.notebook}.ani-knowledge.json`)), frames: { before: e.before ? introduction(golden(e.before)) : 192, after: introduction(after) } };
+  });
+  // Ken's words' suggestions for how a character moves (dscrp.17), the first for each element
+  const dscrp = decodeItsText(readFileSync(`${root}/original/7005017/dscrp.17`)).text.split("\n");
+  const suggests = {};
+  let word = null;
+  dscrp.forEach((l, i) => {
+    const d = l.match(/^\(define ([a-z+-]+) [a-z+-]+-descriptor/);
+    if (d) word = d[1];
+    const m = l.match(/^\s*\(for ([a-z-]+) (\([a-z ]+\)|[a-z]+) strength ([a-z]+)\)/);
+    if (m && word && !suggests[m[1]]) suggests[m[1]] = { word, value: m[2], strength: m[3], line: i + 1 };
+  });
+  return { examples, stories, ken: { suggests } };
+}
+
 // The files Ken's 1978 Cinderella was made with, as a remake reads them (tools/critic-base.mjs:
 // KEN;CP 30 and each scene's program, summary and POSIT file), so that the page can remake
 // his film with criticism from them rather than make it again first: at 4 frames a second,
@@ -573,6 +676,8 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     // the run that confirmed SLIPS' S9, the DICHAR/DISPLY speed inversion, which the page
     // shows where it says the inversion
     slipsSpeed: speedSummary(root),
+    // Teach Ani: the design's examples, and Ken's own entries for the forms
+    teach: teachData(root),
   };
   // a 24-frame scene's glass box is its 4-frame one but for where the scenes before it left
   // the characters: carried as the differences (jsonPatch), which the page applies
@@ -585,7 +690,8 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const packed = packText;
   // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last;
   // without its comments, as the claude.ai copy's script goes (stripChecked)
-  const runtime = stripChecked(bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js"], "AniRuntime", root), "Ani's runtime", ".cjs");
+  // (and src/teach.js's own names, which the claude.ai copy's Teach Ani takes from it)
+  const runtime = stripChecked(bundleModules(["src/pipeline.js", "src/its/bundle-fs.js", "src/maclisp/index.js", "src/teach.js"], "AniRuntime", root), "Ani's runtime", ".cjs");
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   sizes.lispComments = claudeArtifact ? stripReviveComments(bundle) : 0;
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
@@ -593,9 +699,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": criticFunctions(root) })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }
@@ -623,6 +729,13 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const loader = stripChecked(PAGE_LOADER, "the claude.ai copy's loader", ".mjs");
     sizes.script = packedScript.length;
     content = content.slice(0, a - open.length) + `<script type="text/plain" id="${PAGE_SCRIPT_ID}">${packedScript}</script>\n` + open + loader + content.slice(b);
+    // and its style sheet, packed in a block of its own (PAGE_STYLE_ID), which the loader puts
+    // on the page first; the page is hidden until it has
+    const so = content.indexOf("<style>"), sc = content.indexOf("</style>", so);
+    if (so < 0 || sc < 0 || content.indexOf("<style>", so + 1) >= 0) throw new Error("the page should have one style sheet");
+    const packedStyle = packText(content.slice(so + "<style>".length, sc));
+    sizes.style = packedStyle.length;
+    content = content.slice(0, so) + `<style>html:not(.styled) body { visibility: hidden; }</style>\n<script type="text/plain" id="${PAGE_STYLE_ID}">${packedStyle}</script>` + content.slice(sc + "</style>".length);
   }
   sizes.data = blocks["/*FILM-DATA*/"].length;
   sizes.runtime = blocks["/*ANI-RUNTIME*/"].length;
@@ -650,5 +763,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out, and the script packed in ${kb(sizes.script)}` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
+  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out, and the script packed in ${kb(sizes.script)}, the style sheet in ${kb(sizes.style)}` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
 }

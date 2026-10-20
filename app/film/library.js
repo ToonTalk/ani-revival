@@ -11,7 +11,13 @@
 // room, the oldest is let go (the oldest not renamed first, and never one on a screen), and
 // the page says which. Where this browser won't open IndexedDB, the last film made is kept
 // as before, in localStorage (RUN_KEY); the library takes in such a film once it can.
+// The reader's notebooks of knowledge (Teach Ani, app/film/teach.js) are kept beside the
+// films, in the store "knowledge" (the database's version 2; films kept at version 1 stay as
+// they are): each notebook's id, title, pieces, whether it is used, and when it was made and
+// changed; where IndexedDB is refused, in localStorage (KNOWLEDGE_KEY) instead.
 const LIBRARY_DB = "ani-cinderella";
+const LIBRARY_VERSION = 2;
+const KNOWLEDGE_KEY = "ani-cinderella:knowledge:v1";
 const LIBRARY_CAP = 40;
 // state: "opening", "ready", "unavailable" (no IndexedDB here) or "forgotten"; films: the
 // records, the newest first; dropped: the films let go for room on this visit
@@ -37,11 +43,12 @@ function openLibrary() {
     const done = (db) => { if (settled) { if (db) db.close(); return; } settled = true; resolve(db); };
     setTimeout(() => done(null), 5000);
     let req;
-    try { req = indexedDB.open(LIBRARY_DB, 1); } catch { done(null); return; }
+    try { req = indexedDB.open(LIBRARY_DB, LIBRARY_VERSION); } catch { done(null); return; }
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains("films")) db.createObjectStore("films", { keyPath: "id" });
       if (!db.objectStoreNames.contains("data")) db.createObjectStore("data");
+      if (!db.objectStoreNames.contains("knowledge")) db.createObjectStore("knowledge", { keyPath: "id" });
     };
     req.onsuccess = () => {
       const db = req.result;
@@ -86,6 +93,44 @@ async function takeInLastFilm() {
   try { localStorage.removeItem(RUN_KEY); } catch { /* nothing kept */ }
 }
 
+// ---- the reader's notebooks of knowledge (Teach Ani)
+
+// The notebooks kept, in the order they were made; those kept in localStorage while there
+// was no library are taken in once it opens.
+async function loadNotebooks() {
+  let local = [];
+  try { const v = JSON.parse(store.get(KNOWLEDGE_KEY) || "[]"); if (Array.isArray(v)) local = v.filter((n) => n && n.id && Array.isArray(n.pieces)); } catch { local = []; }
+  const db = await libraryDb();
+  if (!db) return local;
+  try {
+    if (local.length) {
+      const tx = db.transaction("knowledge", "readwrite");
+      for (const n of local) tx.objectStore("knowledge").put(n);
+      await idbDone(tx);
+      try { localStorage.removeItem(KNOWLEDGE_KEY); } catch { /* kept there too */ }
+    }
+    const all = await idbAsk(db.transaction("knowledge").objectStore("knowledge").getAll());
+    return all.sort((a, b) => String(a.made || "").localeCompare(String(b.made || "")));
+  } catch { return local; }
+}
+// One notebook kept (as it is now), or let go; where there is no library, all of them in
+// localStorage. Says whether it was kept.
+async function keepNotebook(rec) {
+  const db = await libraryDb();
+  const plainRec = JSON.parse(JSON.stringify(rec));
+  if (db) {
+    try { const tx = db.transaction("knowledge", "readwrite"); tx.objectStore("knowledge").put(plainRec); await idbDone(tx); return true; } catch { /* below */ }
+  }
+  return store.set(KNOWLEDGE_KEY, JSON.stringify(TEACHING.notebooks));
+}
+async function forgetNotebook(id) {
+  const db = await libraryDb();
+  if (db) {
+    try { const tx = db.transaction("knowledge", "readwrite"); tx.objectStore("knowledge").delete(id); await idbDone(tx); return true; } catch { /* below */ }
+  }
+  return store.set(KNOWLEDGE_KEY, JSON.stringify(TEACHING.notebooks));
+}
+
 // ---- keeping a film
 
 // Its title, as the list says it until the visitor renames it: a new story's, or Ken's
@@ -93,7 +138,7 @@ async function takeInLastFilm() {
 // A film remade with criticism adds it, a few words each ("..., with your criticism:
 // No Longer Kept Apart too quick").
 function filmTitle(run) {
-  const critic = run.criticism && run.criticism.length ? critTitle(run) : "";
+  const critic = `${run.criticism && run.criticism.length ? critTitle(run) : ""}${run.knowledge && run.knowledge.length ? `, with your knowledge: ${run.knowledge.map((n) => n.title).join(", ")}` : ""}`;
   const cut = (t) => (t.length > 90 ? `${t.slice(0, 88).replace(/[\s;,]+\S*$/, "")}…` : t);
   if (!sameCast(RUNS[0], run)) return cut(`${storyTitle(run)}${critic}`);
   const bits = changeBits(RUNS[0].story, run);
@@ -146,7 +191,8 @@ function printOf(run, data = null) {
   const made = data ? data.made : run.status && run.status.made;
   const frames = scenes.map((s) => (s.film && s.film.frames ? s.film.frames.length : -1)).join();
   const record = run.criticism && run.criticism.length ? `|${hashText(JSON.stringify(run.criticism))}` : "";
-  return `${made || ""}|${hashText(run.cindy)}|${runExtensions(run).join()}|${hashText(frames)}${record}`;
+  const knowledge = run.knowledge && run.knowledge.length ? `|k${hashText(JSON.stringify(run.knowledge))}` : "";
+  return `${made || ""}|${hashText(run.cindy)}|${runExtensions(run).join()}|${hashText(frames)}${record}${knowledge}`;
 }
 function filmMeta(run, data, size, file) {
   const told = run.told || null;
@@ -163,6 +209,8 @@ function filmMeta(run, data, size, file) {
     // a film remade with criticism (version 3): how many, and the film it was remade from
     ...(run.criticism && run.criticism.length ? { criticism: run.criticism.length } : {}),
     ...(run.remadeFrom ? { remadeFrom: { id: run.remadeFrom.id || null, title: run.remadeFrom.title || null, ken: !!run.remadeFrom.ken } } : {}),
+    // a film made with the reader's knowledge (version 3): the notebooks' titles
+    ...(run.knowledge && run.knowledge.length ? { knowledge: run.knowledge.map((n) => n.title) } : {}),
   };
 }
 // The film to let go for room: the oldest not on a screen, one renamed only after the rest.
@@ -296,7 +344,7 @@ const sizeWords = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${M
 function filmFacts(f) {
   const told = f.told && (f.told.model || f.told.provider) ? `written by ${[f.told.provider, f.told.model].filter(Boolean).join(", ")}` : "";
   const remade = f.remadeFrom ? `remade from ${f.remadeFrom.ken ? "Ken's 1978 film" : `“${f.remadeFrom.title || "another film"}”`} ${f.criticism ? `with your criticism (${f.criticism})` : "without criticism"}` : f.criticism ? `with your criticism (${f.criticism})` : "";
-  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", remade, told,
+  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", f.knowledge && f.knowledge.length ? `with your knowledge (${f.knowledge.join(", ")})` : "", remade, told,
     f.filmed < f.scenes ? `${f.filmed} of ${f.scenes} scenes${f.stopped ? ", stopped" : ""}` : `${f.scenes} scene${f.scenes === 1 ? "" : "s"}`, sizeWords(f.size || 0), f.file ? `opened from ${f.file}` : ""].filter(Boolean).join(" · ");
 }
 function setFilmsStatus(text) { const el = document.getElementById("films-status"); if (el) el.textContent = text; }
@@ -415,6 +463,7 @@ const KEPT_WHAT = () => [
   [KEYS_KEY, "Your API keys, only if you ticked “Remember keys in this browser”"],
   [VIDEO_KEY, "The video options: title cards and subtitles"],
   [RUN_KEY, "Your last film, where this browser won't keep a library of them"],
+  [KNOWLEDGE_KEY, "Your notebooks of knowledge (Teach Ani), where this browser won't keep a library"],
 ];
 const PAGE_PREFIX = "ani-cinderella:";
 function keysIn(storage) {
@@ -438,6 +487,7 @@ function renderKept() {
     ${localItems.length ? `<ul>${localItems.join("")}</ul>` : `<p>Nothing now.</p>`}
     <p class="kept-where">In IndexedDB (the database “${esc(LIBRARY_DB)}”), until you clear it</p>
     <p>${library.state === "unavailable" ? "Nothing: this browser won't let the page keep a library here." : films.length ? `Your films: ${films.length} film${films.length === 1 ? "" : "s"}, ${sizeWords(size)} (each with its title, what Ani was told, how it was made and when).` : "Nothing now (your films are kept here once you make one)."}</p>
+    ${library.state !== "unavailable" && TEACHING.notebooks.length ? `<p>Your knowledge: ${TEACHING.notebooks.length} notebook${TEACHING.notebooks.length === 1 ? "" : "s"} (Teach Ani), each with its title and pieces.</p>` : ""}
     <p class="kept-where">In sessionStorage, until this tab is closed</p>
     ${sessItems.length ? `<ul>${sessItems.join("")}</ul>` : `<p>Nothing now.</p>`}
     <p>Gemini Nano, if you have used it here, is kept by Chrome itself, not by this page.</p>
@@ -445,7 +495,8 @@ function renderKept() {
     <div class="kept-confirm" id="kept-confirm" hidden></div>`;
   body.querySelector("#kept-forget").addEventListener("click", () => {
     const box = body.querySelector("#kept-confirm");
-    box.innerHTML = `<p>This deletes ${films.length ? `your ${films.length} film${films.length === 1 ? "" : "s"} and ` : ""}everything listed above from this browser, and starts the page afresh. It can't be undone.</p><div class="actions"><button type="button" class="btn danger" id="kept-yes">Forget it all</button><button type="button" class="linkish" id="kept-no">Keep it</button></div>`;
+    const nbs = TEACHING.notebooks.length;
+    box.innerHTML = `<p>This deletes ${films.length ? `your ${films.length} film${films.length === 1 ? "" : "s"}${nbs ? ", " : " and "}` : ""}${nbs ? `your ${nbs} notebook${nbs === 1 ? "" : "s"} of knowledge and ` : ""}everything listed above from this browser, and starts the page afresh. It can't be undone.</p><div class="actions"><button type="button" class="btn danger" id="kept-yes">Forget it all</button><button type="button" class="linkish" id="kept-no">Keep it</button></div>`;
     box.hidden = false;
     box.querySelector("#kept-yes").addEventListener("click", () => forgetAll());
     box.querySelector("#kept-no").addEventListener("click", () => { box.hidden = true; });

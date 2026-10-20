@@ -442,7 +442,7 @@ function critBox(run, { compact = false } = {}) {
 }
 // Where criticism comes from, a click away.
 const critAboutBox = () => `<details class="crit-about"><summary>About criticizing Ani's films</summary><div class="body"><p class="note">From ${critCite()}: the way Ken improved Ani, finding faulty reasoning and changing the program, “is a good one for constructing Ani but is not a reasonable method for a user trying to control Ani's decisions”; instead “Ani should be extended to accept criticism of the films and their justification.” The revival built his first three kinds: a way of showing vetoed (Ani sets it aside, “removing those alternatives that were vetoed by the user”), a part too quick or too slow (half as long again, or a third shorter, within the time the story gives the scene), and two characters kept apart in a scene, with his remedy of starting one far from another. ${fileLink("critic")}</p>
-  <p class="note">Your criticism is kept with this film, not in its story and never in Ani's knowledge: a criticism is of how Ani made the film, not of what it is to show. Ani is remade from the first scene criticized; a later scene whose plan comes out the same keeps its film. That is the revival's stand-in, at the film's scale, for Ken's “unless necessary no other parts of the film” (p. 64), until Ani can hold a scene's other parts as they were (a later stage). If Ani stops on the way, the film is kept as it was from that scene on, and says why. Where Ani can't do what you ask, it says why; and of what it has no notion of, Ken wrote ${P191} (p. 191).</p></div></details>`;
+  <p class="note">Your criticism is kept with this film, not in its story and never in Ani's knowledge: a criticism is of how Ani made the film, not of what it is to show. Knowledge Ani lacks, true of any character in any story (“helping can look like going along with”), isn't a criticism of this film: <button type="button" class="linkish" data-teach-open="">Teach Ani instead</button>. Ani is remade from the first scene criticized; a later scene whose plan comes out the same keeps its film. That is the revival's stand-in, at the film's scale, for Ken's “unless necessary no other parts of the film” (p. 64), until Ani can hold a scene's other parts as they were (a later stage). If Ani stops on the way, the film is kept as it was from that scene on, and says why. Where Ani can't do what you ask, it says why; and of what it has no notion of, Ken wrote ${P191} (p. 191).</p></div></details>`;
 
 // The remake: a new film, the reader's version, made from the film's working files with
 // the record pending, beside the film it was remade from.
@@ -465,11 +465,14 @@ function startRemake(orig) {
     choices: orig.raw.choicePoints.length, choicePoints: orig.raw.choicePoints, scenes: orig.raw.scenes.map((s) => ({ id: s.id, ...(s.error ? { error: s.error } : { film: s.film, glass: s.glass }) })),
     ...(runExtensions(orig).length ? { extensions: runExtensions(orig) } : {}), criticism: critRecord(orig),
     ...(files ? { files } : {}), ...(orig.raw.changes ? { changes: orig.raw.changes } : {}), ...(orig.raw.repairs ? { repairs: orig.raw.repairs } : {}), ...(orig.raw.appearances ? { appearances: orig.raw.appearances } : {}),
+    // a film made with the reader's knowledge is remade with it, as it was (Teach Ani)
+    ...(orig.knowledge && orig.knowledge.length ? { knowledge: orig.knowledge } : {}),
   };
   const run = makeRun({ label: record.length ? `${yoursLabel(runExtensions(orig))}, remade with your criticism` : `${yoursLabel(runExtensions(orig))}, remade without criticism`, short: "Yours", cindy: orig.cindy, choicePoints: orig.raw.choicePoints, extensions: runExtensions(orig), repairs: orig.raw.repairs, appearances: orig.raw.appearances, changes: orig.raw.changes, tidied: orig.tidied, told: orig.told });
   run.fps = fps;
   run.criticism = record;
   run.pending = record.map((c) => ({ ...c }));
+  if (orig.knowledge && orig.knowledge.length) run.knowledge = orig.knowledge;
   run.remadeFrom = { ken, fps, id: ken ? null : orig.libId || null, title: ken ? "Ani's 1978 film" : (orig.libId && libraryTitle(orig.libId)) || orig.label, made: (orig.status && orig.status.made) || null, print: ken ? null : printOf(orig) };
   run.remaking = { from: files ? critFrom(orig, record) : 0, fromScratch: !files };
   run.keptHow = {};
@@ -544,7 +547,9 @@ function critCantDo(run, sc) {
     const verb = Array.isArray(i.description) ? i.description[0] : null;
     const hint = i.description && show(i.description) === "(personality cinderella)" && !ext.includes("slips") ? " With the revival's KNOW and SLIPS, Ani has Cinderella help her stepmother instead (the revival's trial of Ken's footnote)."
       : !ext.includes("know") && KNOWN && typeof verb === "string" && KNOWN.verbs[verb] ? ` With the revival's knowledge (KNOW), Ani would show ${esc(VERB_ING[verb] || plain(verb))} by ${esc(plain(KNOWN.verbs[verb].method))}.` : "";
-    return `No other way ${using(run, () => asOf(sc.id, () => taskText(i.kind, i.description)))} was left${why}; Ani has no other way to show this with what it knows, and leaves it (its own warning, “can't do”).${hint}`;
+    // what Ani lacks is knowledge, not a criticism of this film: Teach Ani a way of showing the verb
+    const teach = typeof verb === "string" && AniTeach.VERBS[verb] ? ` <button type="button" class="linkish" data-teach-open="${esc(JSON.stringify({ kind: "way", fields: { verb } }))}">Teach Ani instead</button>: another way of showing ${esc(VERB_ING[verb] || plain(verb))}, for every film you make with your knowledge.` : "";
+    return `No other way ${using(run, () => asOf(sc.id, () => taskText(i.kind, i.description)))} was left${why}; Ani has no other way to show this with what it knows, and leaves it (its own warning, “can't do”).${hint}${teach}`;
   });
 }
 // "What your criticism did here", in the glass box: this character's first.

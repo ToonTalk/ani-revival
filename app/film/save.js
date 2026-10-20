@@ -234,7 +234,9 @@ async function makeVideo(runs, sceneIndexes, onProgress, signal, { titles = true
 // version 1 means Ani as in 1978. A film remade with the reader's criticism is version 3
 // (REVIVE;CRITIC: app/film/criticism.js), which keeps the record of criticism it was made
 // with, inside and, for a reader, outside; a page before it refuses one ("made by a newer
-// page") rather than drop the criticism. Any film may keep its working files, which a remake
+// page") rather than drop the criticism. So is a film made with the reader's knowledge
+// (Teach Ani, app/film/teach.js), which keeps the notebooks it was made with, as they were
+// (knowledge, inside; their titles outside), and the film it was made beside (teachFrom). Any film may keep its working files, which a remake
 // with criticism is made from, and a remade one the film it was remade from and how each
 // scene was made again. Either may also keep what the page tidied in the
 // description first, and the story as told (madeFrom).
@@ -256,7 +258,9 @@ async function filmFile(run) {
     lisp: run.cindy,
     ...(told.provider ? { model: told.model, provider: told.provider } : {}),
     extensions: runExtensions(run),
-    ...(runVersion(run) === 3 ? { criticism: run.criticism.map((c) => ({ ...c })) } : {}),
+    ...(runVersion(run) === 3 && run.criticism && run.criticism.length ? { criticism: run.criticism.map((c) => ({ ...c })) } : {}),
+    // the notebooks of knowledge it was made with (Teach Ani), their titles and pieces
+    ...(run.knowledge && run.knowledge.length ? { knowledge: run.knowledge.map((n) => ({ title: n.title, pieces: n.pieces.length })) } : {}),
     date: made,
     gzip: await deflate(inner),
   };
@@ -272,7 +276,7 @@ async function readFilmFile(text) {
   d.v = outer.version;
   d.extensions = outer.version >= 2 && Array.isArray(d.extensions) ? d.extensions : [];
   if (outer.version === 1) { delete d.appearances; delete d.changes; }
-  if (outer.version !== 3) delete d.criticism;
+  if (outer.version !== 3) { delete d.criticism; delete d.knowledge; }
   return d;
 }
 // A film file opened becomes the reader's version, and goes into "Your films" too (once:

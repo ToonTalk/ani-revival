@@ -29,6 +29,8 @@
   --hexagon: #8a49b8;
   --ours: #7a4a92;
   --ours-soft: #f2eaf6;
+  --yours: #0e6e69;
+  --yours-soft: #e1f2f0;
   --display: "Spectral", Georgia, "Times New Roman", serif;
   --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -40,6 +42,7 @@
     --screen: #000000; --screen-edge: #313a36;
     --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a; --pentagon: #6db8ff; --hexagon: #d79bff;
     --ours: #c49ad8; --ours-soft: #241b2a;
+    --yours: #62cfc5; --yours-soft: #13282a;
     color-scheme: dark;
   }
 }
@@ -49,6 +52,7 @@
   --screen: #000000; --screen-edge: #313a36;
   --cinderella: #55cf6c; --stepmother: #ff6f5f; --godmother: #ff9d4f; --prince: #f0d04a; --pentagon: #6db8ff; --hexagon: #d79bff;
   --ours: #c49ad8; --ours-soft: #241b2a;
+  --yours: #62cfc5; --yours-soft: #13282a;
   color-scheme: dark;
 }
 
@@ -239,6 +243,7 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .chip.unknown { border-style: dashed; border-color: var(--rejected); color: var(--rejected); }
 .chip.fixed { padding-right: 10px; }
 .chip.ours { border-color: var(--ours); }
+.chip.yours { border-color: var(--yours); border-width: 2px; }
 .chip button { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 5px; line-height: 1.2; border-radius: 999px; font-size: 1rem; }
 .chip button:hover { color: var(--rejected); }
 .chips select { border: 1px dashed var(--rule); border-radius: 999px; background: var(--paper); padding: 2px 6px; font-size: 0.84rem; color: var(--muted); width: 7.5em; }
@@ -356,6 +361,54 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .looks .fix-line .evidence { color: var(--muted); font-size: 0.86rem; }
 .look-know { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; }
 .ours-tag { color: var(--ours); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+/* Teach Ani: a learner's own knowledge (app/film/teach.js) */
+.yours-tag { color: var(--yours); font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+.evidence .yours-tag + .linkish, .evidence [data-yours] { font-size: 0.8rem; }
+.teach-book, .teach-form, .teach-make, .teach-changed, .teach-example-card { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--yours); font-size: 0.92rem; }
+.teach-form, .teach-example-card { background: var(--yours-soft); }
+.teach-book-head b { font-size: 1rem; }
+.teach-pieces { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.teach-piece { display: grid; gap: 2px; }
+.teach-piece.highlight { outline: 2px solid var(--yours); outline-offset: 3px; border-radius: 4px; }
+.teach-because { color: var(--muted); font-size: 0.86rem; font-style: italic; }
+.teach-piece-acts { font-size: 0.84rem; }
+.teach-piece-acts .linkish { font-size: 0.84rem; }
+.teach-state { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.teach-state.yes, .ok-line { color: var(--chosen); }
+.teach-state.no { color: var(--rejected); }
+.teach-add { display: grid; gap: 6px; }
+.teach-kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.teach-kind { border: 1px solid var(--yours); background: var(--sheet); color: var(--yours); border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 0.86rem; cursor: pointer; }
+.teach-kind[aria-pressed="true"] { background: var(--yours); color: var(--sheet); }
+.teach-row { margin: 0; line-height: 2; }
+.teach-row select, .teach-row input[type="text"] { font: inherit; font-size: 0.9rem; max-width: 100%; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: 1px 4px; }
+.teach-because input { width: min(100%, 28em); }
+.teach-change { white-space: nowrap; }
+.teach-example p { margin: 0; }
+.ken-example { font-size: 0.88rem; }
+.label-inline { font-weight: 600; }
+.teach-legit { font-style: italic; }
+.teach-lisp-text .lisp-why { color: var(--muted); }
+.teach-lisp-text .lisp-yours { color: var(--yours); font-weight: 600; }
+.teach-lisp-text .lisp-new { background: var(--yours-soft); }
+.teach-check { border-left: 3px solid var(--chosen); padding-left: 10px; }
+.teach-check.no { border-left-color: var(--rejected); }
+.teach-check p { margin: 0; }
+.teach-nbs { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.teach-nb { display: grid; gap: 4px; border-left: 3px solid var(--rule); padding-left: 10px; }
+.teach-nb.current { border-left-color: var(--yours); }
+.teach-use { font-size: 0.84rem; color: var(--muted); }
+.teach-use input { accent-color: var(--yours); }
+.teach-did { border-left: 3px solid var(--rule); padding-left: 10px; }
+.teach-did.won { border-left-color: var(--chosen); }
+.teach-did.combined { border-left-color: var(--yours); }
+.teach-did.lost { border-left-color: var(--rejected); }
+.teach-did.won .crit-verdict { color: var(--chosen); }
+.teach-did.combined .crit-verdict { color: var(--yours); }
+.teach-did.lost .crit-verdict { color: var(--rejected); }
+.teach-did.never-reached .crit-verdict { color: var(--muted); }
+.teach-example-card ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.btn.yours { border-color: var(--yours); color: var(--yours); background: var(--yours-soft); font-weight: 600; height: auto; min-height: 34px; padding: 4px 12px; }
 .ken-1978 { border-left: 3px solid var(--rule); padding-left: 10px; font-size: 0.9rem; }
 /* Ani's colors in an icon, toned for the theme as Ken's are (icon(), inkStyle) */
 .ani-ink { --ani-ink: var(--ani-light); }
@@ -553,9 +606,26 @@ for (const s of [...DATA.scenes, ...(DATA.scenes24 || [])]) s.film = unpackFilm(
 // (RELATE's kinds of relationship word, affection-relationship-descriptor and the like, are
 // kinds, not words a story gives.)
 let KNOW_VOCABULARY = null;
-function vocabularyFor(extensions = []) {
+function aniVocabulary(extensions = []) {
   if (!(extensions.includes("know") && DATA.know && DATA.know.vocabulary)) return DATA.words;
   return (KNOW_VOCABULARY ||= Object.fromEntries(Object.entries(DATA.know.vocabulary).filter(([w]) => !/-descriptor$/.test(w))));
+}
+// The learner's notebooks of knowledge (Teach Ani, app/film/teach.js), read from this
+// browser once the library opens: their words are the editor's too, outlined as theirs,
+// when a notebook is used (ticked "use").
+const TEACHING = { notebooks: [], loaded: false };
+function vocabularyFor(extensions = []) {
+  const ani = aniVocabulary(extensions);
+  const used = TEACHING.notebooks.filter((n) => n.used);
+  if (!used.length) return ani;
+  const mine = {};
+  for (const n of used) for (const p of n.pieces) {
+    if ((p.kind === "word" || p.kind === "relationship") && !ani[p.word] && !mine[p.word]) {
+      const link = p.like || p.opposite;
+      mine[p.word] = { kind: p.kind === "word" ? p.type : "relationship", yours: true, notebook: n.title, ...(p.like ? { neighbors: [p.like] } : {}), ...(p.opposite ? { opposites: [p.opposite] } : {}), suggests: !!link || n.pieces.some((q) => q.word === p.word && q.kind !== p.kind) };
+    }
+  }
+  return { ...ani, ...mine };
 }
 let WORDS = DATA.words;
 const TITLES = Object.fromEntries(DATA.scenes.map((s) => [s.id, s.title]));
@@ -1302,9 +1372,11 @@ const runExtensions = (run) => (run && run.extensions) || [];
 // (a film remade with the reader's criticism says so: REVIVE;CRITIC, with MEND, was loaded for it)
 // (a film remade with criticism was made with MEND too, which CRITIC needs and loads)
 const madeWith = (run) => {
-  const ext = runExtensions(run), crit = !!(run && run.criticism && run.criticism.length);
-  const mend = crit && !ext.includes("mend") ? "the revival's repairs (MEND), which your criticism loads" : "";
-  return `${ext.length ? `with ${extensionsName(ext)}${mend ? ` and ${mend}` : ""}` : `by Ani as in 1978${mend ? ` with ${mend}` : ""}`}${crit ? ", heeding your criticism" : ""}`;
+  const ext = runExtensions(run), crit = !!(run && run.criticism && run.criticism.length), taught = !!(run && run.knowledge && run.knowledge.length);
+  // (and one made with the reader's knowledge, which loads REVIVE;TEACH with MEND: Teach Ani)
+  const mend = (crit || taught) && !ext.includes("mend") ? `the revival's repairs (MEND), which your ${crit ? "criticism" : "knowledge"} loads` : "";
+  const know = run && run.knowledge && run.knowledge.length ? `, with your knowledge (${words(run.knowledge.map((n) => `“${n.title}”`))})` : "";
+  return `${ext.length ? `with ${extensionsName(ext)}${mend ? ` and ${mend}` : ""}` : `by Ani as in 1978${mend ? ` with ${mend}` : ""}`}${crit ? ", heeding your criticism" : ""}${know}`;
 };
 const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
 // whether the extensions ticked change what Ken's own story makes (APPEAR does: Ani draws
@@ -1446,13 +1518,16 @@ const EXT_GROUPS = [
   ["repairs", "Repairs", "Where Ken's files stop on a story he never gave Ani, or slip."],
   // the registry's onDemand ones: loaded for a film that needs them, never ticked
   ["criticism", "Criticism", "Ani heeding your criticism of a film, as Ken's thesis proposes (Chapter X, Section D, pp. 189–191): never ticked here, but loaded, with MEND, into every job of a film you have criticized, and only then."],
+  ["yours", "Yours", "Knowledge you taught Ani (Teach Ani), as Ken's 1977 paper proposed: never ticked here, but loaded, with MEND, into every job of a film you make with your knowledge, and only then."],
 ];
 function extensionsPanel() {
   if (!SWITCHED.length) return "";
   const item = (e) => {
     const files = e.files.map((name) => `<li><b>${esc(name.toUpperCase())}</b> ${esc(REVIVE_TEXT[name] || (reviveFile(name) || {}).title || "")} ${fileLink(name)}</li>`).join("");
     // one loaded on demand (CRITIC) has no tick of its own: it is never chosen here
-    const tick = e.onDemand ? `<span class="ext-tick"><input type="checkbox" disabled aria-label="Loaded on demand, never ticked"> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</span> <span class="opt-in">on demand</span>` : `<label class="ext-tick"><input type="checkbox" data-ext="${esc(e.id)}"${CHOSEN.includes(e.id) ? " checked" : ""}> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</label>${e.optIn ? ` <span class="opt-in">opt-in</span>` : ""}`;
+    // TEACH is ticked, greyed, while notebooks are used, with their titles
+    const titles = e.id === "teach" ? TEACHING.notebooks.filter((n) => n.used).map((n) => n.title) : [];
+    const tick = e.onDemand ? `<span class="ext-tick"><input type="checkbox" disabled${titles.length ? " checked" : ""} aria-label="Loaded on demand, never ticked"> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())})${titles.length ? `: ${esc(words(titles))}` : ""}.</span> <span class="opt-in">on demand</span>` : `<label class="ext-tick"><input type="checkbox" data-ext="${esc(e.id)}"${CHOSEN.includes(e.id) ? " checked" : ""}> <b>${esc(e.label)}</b> (${esc(e.id.toUpperCase())}).</label>${e.optIn ? ` <span class="opt-in">opt-in</span>` : ""}`;
     return `<div class="ext"><p>${tick} ${esc(EXTENSION_TEXT[e.id] || e.note)}</p>
       <details><summary>What each of its ${e.files.length} files does</summary><ul class="ext-files">${files}</ul></details></div>`;
   };
@@ -3220,6 +3295,7 @@ function looksBody(run, c, boxId, sc = null) {
     ${changes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
     ${experts ? `<p class="note">${experts} ${fileLink("shapes")}</p>` : ""}
     ${notes.map((n) => `<p class="fix-line">${n}</p>`).join("")}
+    ${teachLooks(run, c)}
     <p class="ken-1978">${ken1978Note(run, c)}</p>`;
 }
 // After a change that chose her look again (REVIVE;CHANGE with APPEAR), how she is drawn:
@@ -3249,6 +3325,8 @@ function evidenceText(ev) {
   if (ev.why) return `<span class="ours-tag">the revival's</span>: ${linkAitr(esc(ev.why))}`;
   if (ev.thesis) return `<q>${esc(ev.text)}</q> (thesis, p. ${esc(ev.thesis)})`;
   if (ev.code) { const [file, line] = String(ev.code).split(":"); return `<q>${esc(ev.text)}</q> (Ken's code, ${esc(ev.code)}) ${codeLink(file, Number(line))}`; }
+  // a look the reader taught Ani (Teach Ani): (yours n1 k3 |reason|)
+  if (ev.other) { const m = /^\(yours n(\d+) (k\d+)/i.exec(ev.other); const y = m && yoursOf(R); const e = y && y.knowledge.find((x) => x.notebook === Number(m[1]) && x.piece === m[2].toLowerCase()); if (e) return yoursBadge(e); }
   return "";
 }
 function sourceLine(run, c, el, s, chosen) {
@@ -4610,7 +4688,7 @@ function storyPanel() {
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
     <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
-    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
+    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
     ${critBox(run)}
     <div class="people">${people}</div>
     <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
@@ -4712,7 +4790,7 @@ function sourceText(c, s, from = null) {
   const k = meet(R.story, c), ws = [], rels = new Map(), out = new Set(), stand = new Set();
   for (const x of Array.isArray(s) && s[0] === "and" ? s.slice(1) : [s]) {
     if (!Array.isArray(x)) ws.push(esc(plain(x)));
-    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") ws.push(esc(wordWords({ word: x[1], via: [x[0], x[2]] })));
+    else if (x[0] === "opposite-of" || x[0] === "neighbor-of") ws.push(esc(yoursWordWords(R, x) || wordWords({ word: x[1], via: [x[0], x[2]] })));
     else if (x.length === 2 && x[1] === "level") out.add(`the film's ${esc(plain(x[0]))} is ${esc(R.story.levels[x[0]] || "unknown")}`);
     else if (x[0] === "relative-choice-point-of") {
       const cp = (from && from.cp(x)) || cpNamed(R, x);
@@ -4741,7 +4819,8 @@ function choicePointBox(char, el, from = null) {
   // a suggestion from one of the revival's words (REVIVE;KNOWDS) is marked so
   // friendly's tendencies, which pass 1 hears with SLIPS (S3), are marked so
   const heard = (s) => (runExtensions(R).includes("slips") && /^attraction-towards-/.test(el) && /\bfriendly\b/.test(show(kv(s, "source"))) ? ` <span class="ours-tag">friendly's, heard with SLIPS</span> ${repairCode("friendly-attraction")}` : "");
-  const sug = (s) => `${esc(value(kv(s, "value")))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}${heard(s)}`;
+  // and one from the reader's knowledge (Teach Ani), "your knowledge: <because>"
+  const sug = (s) => `${esc(value(kv(s, "value")))} (${esc(kv(s, "strength"))} strength), because ${sourceText(char, kv(s, "source"), from)}${knowOfSource(kv(s, "source"), el).map((e) => ` ${knowBadge(e)}`).join("")}${yoursOfSource(R, kv(s, "source"), el, kv(s, "value"), kv(s, "strength")).map((e) => ` ${yoursBadge(e)}`).join("")}${heard(s)}`;
   const kept = (cp.memory || []).filter((m) => m[0] === "suggestion:").map((m) => `<li>${sug(m)}</li>`).join("");
   const rejected = (cp.rejectedSuggestions || []).map((r) => `<li>${sug(kv(r, "suggestion"))}: set aside, ${esc(rejectText(kv(r, "reason")))}</li>`).join("");
   const conflicts = (cp.conflictsResolved || []).length;
@@ -4781,7 +4860,9 @@ function methodsBox(t) {
     }).join("");
     // a way of showing that is the revival's knowledge (REVIVE;KNOWCV's, source helps)
     const src = kv(kv(sc, "suggestion"), "source");
-    const ours = knowOn(R) && typeof src === "string" && KNOWN.verbs[src] && Array.isArray(m) && m[0] === KNOWN.verbs[src].method ? ` ${knowBadge(KNOWN.verbs[src])}` : "";
+    const ours = knowOn(R) && typeof src === "string" && KNOWN.verbs[src] && Array.isArray(m) && m[0] === KNOWN.verbs[src].method ? ` ${knowBadge(KNOWN.verbs[src])}`
+      // and a way of showing the reader taught Ani (Teach Ani: source (yours helps))
+      : yoursOfWay(R, src, m) ? ` <span class="yours-tag">(your way of showing it)</span> ${yoursBadge(yoursOfWay(R, src, m))}` : "";
     cards.push(`<div class="method ${isChosen ? "chosen" : ""}"><span class="verdict">${isChosen ? "Chosen" : "Scored lower"}</span><span>${methodText(m)} ${methodCode(m)}${ours}</span><div class="scores">${rows}</div>${drawnToLine(t, kv(kv(sc, "suggestion"), "value"))}</div>`);
   }
   if (!scores.length && t.choice.length) for (const m of t.choice) cards.push(`<div class="method chosen"><span class="verdict">Chosen</span><span>${Array.isArray(m) && m[0] === "method:" ? cap(methodText(m)) : methodText(m)} ${methodCode(m)}</span></div>`);
@@ -4847,6 +4928,14 @@ const AniWhy = (() => {
 const AniCritic = (() => {
 /*CRITICISM*/
   return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, taskSource, sourceNeeded, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
+})();
+// Teach Ani: src/teach.js itself and src/pipeline.js's yourKnowledgeDid and
+// knowledgeChanges, put in here by tools/build-film-app.mjs, for app/film/teach.js.
+// (In the claude.ai copy the names are Ani's runtime's own, which bundles both, run on the
+// page as it loads: teachRuntime.)
+const AniTeach = await (async () => {
+/*TEACH*/
+  return { NOTEBOOK_FORMAT, NOTEBOOK_VERSION, MAX_NOTEBOOKS, PIECE_KINDS, WORD_TYPES, RELATIONSHIP_TYPES, STRENGTHS, MOVEMENT_ELEMENTS, LOOK_ELEMENTS, RELATIVE_ELEMENTS, COMPARISONS, VERBS, WAYS, WHO, BEST_WHEN, FEELING_CHANGES, checkNotebook, notebookToLisp, yoursIndex, pieceWords, legitimacyQuestion, extensionsFor, yourKnowledgeDid, knowledgeChanges };
 })();
 const WHY_OF = new WeakMap();
 function whyOf(run, sc) {
@@ -5304,7 +5393,8 @@ function whyPanel(char) {
   sections += critSceneBox(R, s);
   sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
   // the reader's criticism of this film, if any, and what it did in this scene (app/film/criticism.js)
-  side.innerHTML = head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + fixSection + sections;
+  // and what the reader's knowledge did, if the film was made with it (app/film/teach.js)
+  side.innerHTML = head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + teachHere(R, s, char) + fixSection + sections;
   if (/[?&]open(&|$)/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
   side.querySelector("#back-to-story").addEventListener("click", () => select(null));
   const run = R;
@@ -5353,6 +5443,7 @@ function nearWord(w) {
 function chipKind(w) {
   const i = WORDS[w];
   if (!i) return "unknown";
+  if (i.yours) return i.suggests ? "suggests yours" : "known yours";
   const ours = i.revival ? " ours" : "";
   if (i.kind && i.suggests) return "suggests" + ours;
   return (i.kind ? "known" : "related") + ours;
@@ -5368,6 +5459,7 @@ function chipTitle(w, forRelationship) {
       ? `Ani doesn't know “${plain(w)}”${near ? ` (it knows “${plain(near)}”)` : ""}: it is remembered, but suggests nothing.`
       : `Ani doesn't know “${plain(w)}”: it suggests nothing, and as a personality word Ani as in 1978 stops on it (the revival's repairs leave it out).`;
   }
+  if (i.yours) return `Your word, from “${i.notebook}”${rel ? `: ${rel}` : ""}. Ani knows it only in a film you make with your knowledge (Teach Ani).`;
   const ours = i.revival ? " It is the revival's knowledge, not Ken's." : "";
   if (i.kind && i.suggests) return `Ani has its own suggestions for “${plain(w)}”${rel ? `; it is also ${rel}` : ""}.${ours} (${wordAt(i)})`;
   if (i.kind) return `Ani knows “${plain(w)}” but has no suggestions of its own for it${rel ? `; it is ${rel}` : ""}.${ours} (${wordAt(i)})`;
@@ -6091,7 +6183,7 @@ function editorPanel() {
       <div class="ed-lisp-wrap" id="ed-lisp-wrap"><textarea id="ed-lisp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="The film description, in Lisp"></textarea><button type="button" class="btn done" id="ed-done">Done</button></div>
     </div></details>
     <div id="ed-check"></div>
-    <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>
+    <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani">Make it with my knowledge</button>` : ""}
       <button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
     <div class="make-settings"><div class="seg" role="group" aria-label="Frames a second"><button type="button" data-fps="4" aria-pressed="${editor.fps === 4}">4 a second</button><button type="button" data-fps="24" aria-pressed="${editor.fps === 24}">24</button></div>${modeSwitch()}</div>
     <p class="note" id="ed-fps-note"></p>
@@ -6146,9 +6238,10 @@ function chipsFor(ws, target, forRelationship) {
   const chips = ws.map((w, k) => `<span class="chip ${chipKind(w)}${removable ? "" : " fixed"}" title="${esc(chipTitle(w, forRelationship))}">${esc(plain(w))}${removable ? `<button type="button" data-remove="${k}" data-target="${key}" aria-label="Remove ${esc(plain(w))}">×</button>` : ""}</span>`).join("");
   const kind = forRelationship ? "relationship" : SLOT_KIND[target.slot];
   const { known, related } = wordsOfKind(kind);
-  const opt = (w) => `<option value="${esc(w)}">${esc(plain(w))}${WORDS[w].kind ? "" : ` (${esc(relationNote(w))})`}${WORDS[w].revival ? " · the revival's" : ""}</option>`;
+  const opt = (w) => `<option value="${esc(w)}">${esc(plain(w))}${WORDS[w].kind ? "" : ` (${esc(relationNote(w))})`}${WORDS[w].revival ? " · the revival's" : WORDS[w].yours ? " · yours" : ""}</option>`;
   const k2 = known.filter((w) => !ws.includes(w)), r2 = related.filter((w) => !ws.includes(w));
-  const select = `<select data-target="${key}" aria-label="Add a word"><option value="">+ add</option>${k2.length ? `<optgroup label="Words Ani knows">${k2.map(opt).join("")}</optgroup>` : ""}${r2.length ? `<optgroup label="Known only through another word">${r2.map(opt).join("")}</optgroup>` : ""}</select>`;
+  // and, at the end of the list, a word Ani doesn't know yet: Teach Ani, its form for this kind
+  const select = `<select data-target="${key}" aria-label="Add a word"><option value="">+ add</option>${k2.length ? `<optgroup label="Words Ani knows">${k2.map(opt).join("")}</optgroup>` : ""}${r2.length ? `<optgroup label="Known only through another word">${r2.map(opt).join("")}</optgroup>` : ""}<option value="${TEACH_A_WORD}">+ teach Ani a word…</option></select>`;
   return `<div class="chips">${chips}${select}</div>`;
 }
 function refreshEditor({ fromLisp = false } = {}) {
@@ -6209,10 +6302,16 @@ function refreshEditor({ fromLisp = false } = {}) {
   // a story the switch's extensions would take further can be made with them at once
   side.querySelector("#ed-make-mend").hidden = !(unmet.length && SWITCHED.includes(refused ? "change" : "mend") && !blocked);
 }
+const TEACH_A_WORD = "+teach";
 function onChipSelect(e) {
   const sel = e.target.closest("select[data-target]");
   if (!sel || !sel.value) return;
   const target = JSON.parse(sel.dataset.target);
+  if (sel.value === TEACH_A_WORD) {
+    sel.value = "";
+    openTeach(target.char ? { kind: "word", fields: { type: SLOT_KIND[target.slot] || "personality" } } : { kind: "relationship" });
+    return;
+  }
   const story = readStory(editor.text);
   const cur = target.char ? (story.characters[target.char] || {})[target.slot] || [] : (story.relationships.find((r) => r.from === target.from && r.to === target.to) || {}).how || [];
   setEditorText(setWords(editor.text, target, [...cur, sel.value]));
@@ -6252,13 +6351,23 @@ function lastTyped(R) {
     return L.ttyText.join("").slice(-4000).replace(/\\r/g, "").split("\\n").map(function (l) { return l.trim(); }).filter(Boolean).slice(-6);
   };
 }`;
-const GLUE = TYPED + `
+// Teach Ani's jobs (app/film/teach.js teachJob): Ani's check of notebooks, the trial job
+// (src/pipeline.js checkKnowledge), and a rehearsal of a piece on a little story (rehearse),
+// in the worker or on the page.
+const TEACH_JOB = `
+function teachJob(R, fs, m) {
+  if (m.check) return R.checkKnowledge(fs, m.notebooks, { extensions: m.extensions || [], characters: m.characters || [] });
+  var r = R.rehearse(fs, m.piece, m.notebooks, { extensions: m.extensions || [] });
+  return { piece: r.piece, story: r.story, outcome: r.outcome || null, seconds: r.seconds, error: r.error || null };
+}`;
+const GLUE = TYPED + TEACH_JOB + `
 self.onmessage = function (e) {
   var t0 = Date.now();
   var typed = lastTyped(AniRuntime);
   function post(m) { m.t = Date.now() - t0; postMessage(m); }
   try {
     var fs = AniRuntime.makeBundleFileSystem(JSON.parse(e.data.bundle));
+    if (e.data.teach) { post({ type: "teach", result: teachJob(AniRuntime, fs, e.data.teach) }); return; }
     // every film keeps its working files, so that it can be remade with criticism; a remake
     // (e.data.remake: the film as made, and the record of criticism) is made from them
     var options = {
@@ -6268,6 +6377,7 @@ self.onmessage = function (e) {
       frames: e.data.frames,
       fps: e.data.fps,
       extensions: e.data.extensions || [],
+      knowledge: e.data.knowledge || null,
       progress: function (step, what, scene) { post({ type: "progress", step: step, what: what, scene: scene || null }); },
       onPass1: function (p) { post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }); },
       onScene: function (s) { if (s.error) s.typed = typed(); post({ type: "scene", scene: s }); },
@@ -6417,7 +6527,7 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
         w.onmessage = (e) => { heard = true; onWorker(run, e.data); };
         // a page whose sandbox refuses workers made from blobs hears nothing but this
         w.onerror = (e) => { e.preventDefault(); if (!heard) { w.terminate(); ani.worker = null; runInPage(run, description, remake); } else finishRun(run, { error: e.message || "The worker running Ani failed." }); };
-        w.postMessage({ bundle: ani.bundle, description, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions, ...(remake ? { remake } : {}) });
+        w.postMessage({ bundle: ani.bundle, description, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions, ...(run.knowledge && run.knowledge.length ? { knowledge: run.knowledge } : {}), ...(remake ? { remake } : {}) });
       }
     }
   } catch (err) {
@@ -6432,11 +6542,24 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
 // lastTyped, as self.AniLastTyped), as the claude.ai copy's own script is put on it, so
 // that it needs no eval (the review of stage 7, M3); a page that refuses inline scripts
 // too doesn't run it, and Ani can't start, which the page says.
+// (the claude.ai copy has run the runtime as it loaded, for Teach Ani: teachRuntime)
 function runtimeOnPage() {
   const el = document.createElement("script");
-  el.textContent = `(() => {\n${ani.runtime}\n${TYPED}\nself.AniLastTyped = lastTyped;\n})();`;
+  el.textContent = `(() => {\n${self.AniRuntime ? "" : ani.runtime}\n${TYPED}\n${TEACH_JOB}\nself.AniLastTyped = lastTyped;\nself.AniTeachJob = teachJob;\n})();`;
   document.head.append(el);
   if (!self.AniRuntime || !self.AniLastTyped) throw new Error("this page refused the script that runs Ani");
+  return self.AniRuntime;
+}
+// The claude.ai copy's Teach Ani (tools/build-film-app.mjs teachFromRuntime): Ani's runtime,
+// which bundles src/teach.js and src/pipeline.js, run on the page as it loads, as
+// runtimeOnPage runs it, so that their code is carried once.
+async function teachRuntime() {
+  if (!self.AniRuntime) {
+    const el = document.createElement("script");
+    el.textContent = `(() => {\n${await unpack(document.getElementById("ani-runtime").textContent)}\n})();`;
+    document.head.append(el);
+  }
+  if (!self.AniRuntime) throw new Error("this page refused the script that runs Ani");
   return self.AniRuntime;
 }
 // Ani on the page itself, a step at a time, for a page that may not start a worker (a
@@ -6456,7 +6579,7 @@ async function runInPage(run, description, remake = null) {
   let steps;
   try {
     const options = {
-      description, keepGoing: true, keepFiles: true, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions,
+      description, keepGoing: true, keepFiles: true, frames: CAP_SECONDS * run.fps, fps: run.fps, extensions: run.extensions, ...(run.knowledge && run.knowledge.length ? { knowledge: run.knowledge } : {}),
       progress: (step, what, scene) => post({ type: "progress", step, what, scene: scene || null }),
       onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }),
       onScene: (s) => post({ type: "scene", scene: s.error ? { ...s, typed: typed() } : s }),
@@ -6560,12 +6683,14 @@ function stopRun({ quiet = false } = {}) {
 // Any film may keep its working files (files, src/pipeline.js filesOf), which a remake is
 // made from, and a remade one the film it was remade from (remadeFrom) and how each scene was
 // made again (remade), which a page that doesn't know them leaves be.
-const runVersion = (run) => (run.criticism && run.criticism.length ? 3 : runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
+// A film made with the reader's knowledge (Teach Ani) is version 3 too, keeping the notebooks
+// it was made with, as they were (knowledge), so that it can be explained after they change.
+const runVersion = (run) => ((run.criticism && run.criticism.length) || (run.knowledge && run.knowledge.length) ? 3 : runExtensions(run).length || run.raw.appearances || hasLooks(run) ? 2 : 1);
 // what the page tidied first, and the story as told, in either version (a reader that
 // doesn't know them leaves them be)
 const madeFrom = (run) => ({ ...(run.tidied && run.tidied.length ? { tidied: run.tidied } : {}), ...(run.told ? { told: run.told } : {}) });
 const version2 = (run) => (runVersion(run) >= 2 ? { extensions: runExtensions(run), ...(run.raw.repairs ? { repairs: run.raw.repairs } : {}), ...(run.raw.appearances ? { appearances: run.raw.appearances } : {}), ...(run.raw.changes ? { changes: run.raw.changes } : {}) } : {});
-const version3 = (run) => ({ ...(runVersion(run) === 3 ? { criticism: run.criticism } : {}), ...(run.raw.files ? { files: run.raw.files } : {}), ...(run.remadeFrom ? { remadeFrom: run.remadeFrom } : {}), ...(run.remade ? { remade: run.remade } : {}) });
+const version3 = (run) => ({ ...(runVersion(run) === 3 && run.criticism && run.criticism.length ? { criticism: run.criticism } : {}), ...(run.knowledge && run.knowledge.length ? { knowledge: run.knowledge } : {}), ...(run.teachFrom ? { teachFrom: run.teachFrom } : {}), ...(run.raw.files ? { files: run.raw.files } : {}), ...(run.remadeFrom ? { remadeFrom: run.remadeFrom } : {}), ...(run.remade ? { remade: run.remade } : {}) });
 // a film as it is kept, and as a film file has it inside
 const filmData = (run) => ({ v: runVersion(run), cindy: run.cindy, choicePoints: run.raw.choicePoints, scenes: run.raw.scenes.filter(Boolean), made: run.status && run.status.made, seconds: run.status && run.status.seconds, ...version2(run), ...version3(run), ...madeFrom(run) });
 // A film kept as it was read back (from "Your films", a film file or RUN_KEY): version 1 is
@@ -6577,6 +6702,8 @@ function runFromData(d, { label = null, short = "Yours" } = {}) {
   run.fps = fpsOf(run.scenes.find(ready));
   run.status = { running: false, made: d.made, seconds: d.seconds, restored: true };
   if (d.v === 3 && Array.isArray(d.criticism) && d.criticism.length) run.criticism = d.criticism;
+  if (d.v === 3 && Array.isArray(d.knowledge) && d.knowledge.length) run.knowledge = d.knowledge;
+  if (d.teachFrom) run.teachFrom = d.teachFrom;
   if (d.files && typeof d.files === "object") run.raw.files = d.files;
   if (d.remadeFrom) run.remadeFrom = d.remadeFrom;
   if (d.remade) run.remade = d.remade;
@@ -6794,6 +6921,7 @@ function comparePanel() {
     <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
     ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${running ? "" : stopBox(b)}
+    ${teachChangedSection(a, b)}
     ${critChangedSection(a, b)}
     ${mine ? "" : `<p class="note">${kenLeft ? "On the right" : "On the left"}: ${esc(b.label)}, one of your films${b.status && b.status.made ? `, made ${esc(shortDate(b.status.made))}` : ""}.</p>`}
     ${apart && !kenPlus ? `<p class="note">These are two different stories, so they can't be compared scene by scene: Ken's Cinderella, with his four characters in five scenes, and ${esc(storyTitle(b))}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>` : ""}
@@ -6866,6 +6994,7 @@ function pairPanel(a, b) {
   side.innerHTML = `
     <div class="side-head"><h2>${same && a.cindy === b.cindy ? "Two films of one description" : versions ? "Two versions of one story" : "Two different stories"}</h2></div>
     ${[a, b].some((x) => x === RUNS[1] && x.status && x.status.running) ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(RUNS[1].status)).toFixed(1)}%"></i></span><span class="note what"></span><div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
+    ${teachChangedSection(a, b) || teachChangedSection(b, a)}
     ${critChangedSection(a, b) || critChangedSection(b, a)}
     <div><p class="label">What each was told</p><ul class="changes">${each}</ul></div>
     ${body}
@@ -6919,6 +7048,7 @@ function sidePanel() {
   if (state.panel === "edit") return editorPanel();
   if (state.panel === "tell") return tellerPanel();
   if (state.panel === "films") return filmsPanel();
+  if (state.panel === "teach") return teachPanel();
   if (state.panel === "compare") return comparePanel();
   return using(screenRun(state.view === 1 ? 1 : 0) || RUNS[0], storyPanel);
 }
@@ -6966,7 +7096,7 @@ function goScene(i, time = 0) {
   drawBands();
   render();
   if (!document.getElementById("save-panel").hidden) renderSavePanel();
-  if (state.panel === "edit" || state.panel === "tell" || state.panel === "films") return;
+  if (state.panel === "edit" || state.panel === "tell" || state.panel === "films" || state.panel === "teach") return;
   if (state.panel === "why" && state.selected && !ready(sceneOf(state.selected.run))) { state.selected = null; state.panel = defaultPanel(); }
   renderSide();
 }
@@ -6978,7 +7108,7 @@ function select(sel, { scroll = true, panel = null } = {}) {
   renderSide();
   draw();
   // on a narrow screen the panel is below the film
-  if ((sel || panel === "edit" || panel === "films") && scroll && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
+  if ((sel || panel === "edit" || panel === "films" || panel === "teach") && scroll && window.matchMedia && window.matchMedia("(max-width: 900px)").matches) {
     document.getElementById("side").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 }
@@ -7118,7 +7248,12 @@ document.addEventListener("drop", async (e) => {
   const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
   if (!file || !/\.json$/i.test(file.name)) return;
   e.preventDefault();
-  try { await openFilm(await readFilmFile(await file.text()), file.name); } catch (err) { toggleSavePanel(true); setSaveStatus(err.message); }
+  const text = await file.text();
+  // a notebook of knowledge (Teach Ani), saved as <title>.ani-knowledge.json
+  let format = null;
+  try { format = JSON.parse(text).format; } catch { /* not JSON: said as a film file */ }
+  if (format === AniTeach.NOTEBOOK_FORMAT) { try { await library.ready; await openKnowledgeText(text, file.name); } catch (err) { openTeach({ note: esc(err.message) }); } return; }
+  try { await openFilm(await readFilmFile(text), file.name); } catch (err) { toggleSavePanel(true); setSaveStatus(err.message); }
 });
 
 /*FILM-PARTS*/
@@ -7132,6 +7267,7 @@ const goBack = savedView();
 if (goBack) view.restoring = true; // (nothing kept until it is back)
 if (goBack || !fromHash()) goScene(0, 0.25);
 library.ready = startLibrary();
+startTeaching().catch((e) => console.error(e));
 (goBack ? library.ready.then(() => restoreView(goBack)) : restoreRun()).catch((e) => console.error(e)).finally(() => { view.restoring = false; });
 probeModels();
 </script>

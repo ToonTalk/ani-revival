@@ -78,33 +78,34 @@ const LENGTH = ["short", "medium", "long"];
 const ATTRACTION = ["(positive low)", "(positive medium)", "(positive high)", "(negative low)", "(negative medium)", "(negative high)"];
 // The elements of how a character moves that a word may suggest a value for (the
 // choice points of pass 1, normal-movement-element's offspring), in the editor's plain
-// words, with the values each takes: three-valued as Ken's (not low), dscrp.17:78; the
+// words (and as a noun, for pieceWords' "A grumpy character's speed is low"), with the
+// values each takes: three-valued as Ken's (not low), dscrp.17:78; the
 // path's length short, medium or long (evil's short, graceful's long); the attractions
 // signed (shy's (negative high), dscrp.17:66).
 export const MOVEMENT_ELEMENTS = {
-  speed: { words: "speed", values: THREE },
-  "path-curvature": { words: "how curved its paths are", values: THREE },
-  "path-length": { words: "how long its paths are", values: LENGTH },
-  "path-jaggedness": { words: "how jagged its paths are", values: THREE },
-  "activity-level": { words: "how active it is", values: THREE },
-  "rhythmic-level": { words: "how rhythmic it is", values: THREE },
-  repetiveness: { words: "how repetitive it is", values: THREE },
-  acceleration: { words: "how quickly it gets going", values: THREE },
-  deliberateness: { words: "how deliberate it is", values: THREE },
-  "attraction-towards-friends": { words: "how drawn it is to its friends", values: ATTRACTION },
-  "attraction-towards-enemies": { words: "how drawn it is to its enemies", values: ATTRACTION },
-  "attraction-towards-strangers": { words: "how drawn it is to strangers", values: ATTRACTION },
+  speed: { words: "speed", noun: "speed", values: THREE },
+  "path-curvature": { words: "how curved its paths are", noun: "path curvature", values: THREE },
+  "path-length": { words: "how long its paths are", noun: "path length", values: LENGTH },
+  "path-jaggedness": { words: "how jagged its paths are", noun: "path jaggedness", values: THREE },
+  "activity-level": { words: "how active it is", noun: "activity", values: THREE },
+  "rhythmic-level": { words: "how rhythmic it is", noun: "rhythm", values: THREE },
+  repetiveness: { words: "how repetitive it is", noun: "repetitiveness", values: THREE },
+  acceleration: { words: "how quickly it gets going", noun: "acceleration", values: THREE },
+  deliberateness: { words: "how deliberate it is", noun: "deliberateness", values: THREE },
+  "attraction-towards-friends": { words: "how drawn it is to its friends", noun: "attraction to friends", values: ATTRACTION },
+  "attraction-towards-enemies": { words: "how drawn it is to its enemies", noun: "attraction to enemies", values: ATTRACTION },
+  "attraction-towards-strangers": { words: "how drawn it is to strangers", noun: "attraction to strangers", values: ATTRACTION },
 };
 // With APPEAR, how a character looks (REVIVE;APPEAR's elements, the hue one of six on
 // REVIVE;COLORS's painter's wheel).
 export const HUES = ["yellow", "orange", "red", "purple", "blue", "green"];
 export const LOOK_ELEMENTS = {
-  size: { words: "size", values: ["low", "medium", "high"] },
-  "shape-jaggedness": { words: "how jagged its shape is", values: ["low", "medium", "high"] },
-  "shape-complexity": { words: "how complex its shape is", values: ["low", "medium", "high"] },
-  "color-intensity": { words: "how bright its colors are", values: ["low", "medium", "high"] },
-  "color-saturation": { words: "how vivid its colors are", values: ["low", "medium", "high"] },
-  "color-hue": { words: "its hue", values: HUES },
+  size: { words: "size", noun: "size", values: ["low", "medium", "high"] },
+  "shape-jaggedness": { words: "how jagged its shape is", noun: "shape jaggedness", values: ["low", "medium", "high"] },
+  "shape-complexity": { words: "how complex its shape is", noun: "shape complexity", values: ["low", "medium", "high"] },
+  "color-intensity": { words: "how bright its colors are", noun: "brightness", values: ["low", "medium", "high"] },
+  "color-saturation": { words: "how vivid its colors are", noun: "color vividness", values: ["low", "medium", "high"] },
+  "color-hue": { words: "its hue", noun: "hue", values: HUES },
 };
 // The relative elements a relationship may suggest a comparison for (loves' list,
 // relate.22:22-24), and the comparisons COSUG takes (cosug.215:302-312).
@@ -890,8 +891,8 @@ const valueWords = (element, value) => {
 export function pieceWords(p) {
   switch (p.kind) {
     case "word": return `"${p.word}" is a word for what a character is ${p.type === "physical" ? "like to look at" : p.type === "movement" ? "like in how it moves" : "like inside"}${p.like ? `, and means much the same as "${p.like}"` : p.opposite ? `, and is the opposite of "${p.opposite}"` : ""}.`;
-    case "suggests": return `A ${p.word} character's ${MOVEMENT_ELEMENTS[p.element] ? MOVEMENT_ELEMENTS[p.element].words : say(p.element)} is ${valueWords(p.element, p.value)}, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}.`;
-    case "looks": return `A ${p.word} character's ${LOOK_ELEMENTS[p.element] ? LOOK_ELEMENTS[p.element].words : say(p.element)} is ${say(p.value)}, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}.`;
+    case "suggests": return `A ${p.word} character's ${MOVEMENT_ELEMENTS[p.element] ? MOVEMENT_ELEMENTS[p.element].noun : say(p.element)} is ${valueWords(p.element, p.value)}, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}.`;
+    case "looks": return `A ${p.word} character's ${LOOK_ELEMENTS[p.element] ? LOOK_ELEMENTS[p.element].noun : say(p.element)} is ${say(p.value)}, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}.`;
     case "shows": return `A ${p.word} character shows it by ${VERBS[p.verb] ? VERBS[p.verb].words : say(p.verb)} ${p.who === "enemy" ? "an enemy" : p.who === "friend" ? "a friend" : "a stranger"}, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}.`;
     case "relationship": return `"${p.word}" is a way one character can be to another, about ${p.type === "domination" ? "who is in charge" : "liking and disliking"}${p.like ? `, much the same as "${p.like}"` : p.opposite ? `, the opposite of "${p.opposite}"` : ""}.`;
     case "relationship-shows": return `One who ${say(p.word)} another shows it by ${VERBS[p.verb] ? VERBS[p.verb].words : say(p.verb)} it, ${p.strength === "high" ? "strongly" : p.strength === "low" ? "weakly" : "medium strongly"}${{ always: "", "in-charge": ", best when it is in charge", "not-in-charge": ", best when it is not in charge", dislikes: ", best when it doesn't like the other" }[p.bestWhen || "always"]}.`;
