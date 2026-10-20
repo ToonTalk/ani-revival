@@ -4663,38 +4663,48 @@ function lookChangeText(sc, sub, x) {
 // What a caption says at frame f of scene i of a run, as html: the part ("Scene 1 · The
 // Introduction · part 1 of 4"), what is shown and why, and more (meanwhile, a change, a
 // look); for the screen's caption and a video's subtitles.
+// The facts of a caption at frame f of the scene shown (each setting's caption is made
+// from these: app/film/ages.js): the part playing and those alongside it; each task with a
+// way of showing in them, in order (a way of doing something, with the top of its chain,
+// or the showing of a change of who someone is); the changes of feeling; the changes being
+// shown; and those wandering while a feeling changes.
+function captionFacts(sc, f) {
+  const subs = subsceneAt(f);
+  const main = subs.find((x) => !x.parasite) || subs[0];
+  if (!main) return null;
+  const ways = [], changes = [], transforms = [];
+  for (const sub of subs) {
+    for (const t of tasksIn(sub.name)) {
+      const m = t.choice[0];
+      if (!Array.isArray(m)) continue;
+      if (m[0] === "change:" || m[0] === "change-to:") { changes.push(t); continue; }
+      if (m[0] === "method:") continue;
+      // a change of who someone is, shown here (REVIVE;CHSHOW)
+      if (CHANGE_METHODS.includes(m[0]) || m[0] === "bridge-to:") {
+        ways.push({ kind: "change", t, m });
+        for (const x of (sc.glass.changesShown || []).filter((y) => y.task === t.name)) transforms.push(x);
+        continue;
+      }
+      ways.push({ kind: "way", t, m, top: purpose(t) });
+    }
+  }
+  // a character whose only part is a change of feeling, wandering while it runs (REVIVE;SEEN)
+  const wanderers = [...new Set(sc.activities.filter((a) => a.base === "wandering-while-changes-run" && a.begin < a.end && f >= a.begin && f <= a.end).flatMap((a) => a.chars))];
+  return { sc, f, subs, main, parts: sc.subscenes.length, alongside: subs.filter((x) => x !== main).map((x) => x.n), ways, changes, transforms, wanderers };
+}
 function captionAt(run, i, f) {
   return atScene(i, () => using(run, () => {
     const sc = run.scenes[i];
-    const subs = subsceneAt(f);
-    const main = subs.find((x) => !x.parasite) || subs[0];
-    if (!main) return { part: esc(sc.title), text: "The screen is cleared before the scene begins.", more: [] };
-    const parts = sc.subscenes.length;
-    const alongside = subs.filter((x) => x !== main).map((x) => x.n);
-    const shows = [], changes = [], transforms = [];
-    for (const sub of subs) {
-      for (const t of tasksIn(sub.name)) {
-        const m = t.choice[0];
-        if (!Array.isArray(m)) continue;
-        if (m[0] === "change:" || m[0] === "change-to:") { changes.push(t); continue; }
-        if (m[0] === "method:") continue;
-        // a change of who someone is, shown here (REVIVE;CHSHOW)
-        if (CHANGE_METHODS.includes(m[0]) || m[0] === "bridge-to:") {
-          shows.push(changeShowLine(sc, t, m));
-          for (const x of (sc.glass.changesShown || []).filter((y) => y.task === t.name)) transforms.push(x);
-          continue;
-        }
-        const top = purpose(t);
-        shows.push(`<b>${cap(methodText(m))}</b>, ${top === t ? taskText(t.kind, t.description) : taskText(top.kind, top.description).replace(/^to establish /, "to show ")}.`);
-      }
-    }
+    const facts = captionFacts(sc, f);
+    if (!facts) return { part: esc(sc.title), text: "The screen is cleared before the scene begins.", more: [] };
+    const { subs, main, parts, alongside, changes, transforms, wanderers } = facts;
+    const shows = facts.ways.map(({ kind, t, m, top }) => (kind === "change" ? changeShowLine(sc, t, m)
+      : `<b>${cap(methodText(m))}</b>, ${top === t ? taskText(t.kind, t.description) : taskText(top.kind, top.description).replace(/^to establish /, "to show ")}.`));
     const feel = changes.map((t) => about(t.description));
     const more = [];
     // what the change's showing is doing now: the cause on its way, the touch, her changing
     for (const x of transforms) { const line = changePhaseLine(sc, x, f); if (line) more.push(line); }
     if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how they move, to show that ${feel.join(" and that ")}.`);
-    // a character whose only part is a change of feeling, wandering while it runs (REVIVE;SEEN)
-    const wanderers = [...new Set(sc.activities.filter((a) => a.base === "wandering-while-changes-run" && a.begin < a.end && f >= a.begin && f <= a.end).flatMap((a) => a.chars))];
     if (wanderers.length) more.push(`${cap(who(wanderers))} ${wanderers.length > 1 ? "wander" : agree(meet(run.story, wanderers[0]), "wanders", "wander")} about while the change runs, so that it is seen (the revival's repair).`);
     // how they look, changed beside how they move (REVIVE;ALTER: joy brightens, sadness
     // dims), which only color shows; and a change that shows nothing here
@@ -4958,10 +4968,21 @@ function methodsBox(t) {
   }
   return `<div class="methods">${cards.join("")}</div>`;
 }
-function chainOfTask(t) {
-  const steps = [];
-  let below = null; // the task before, which this one is shown by
+// The chain of a task, from it up to the description: each task with the one below it,
+// which it is shown by (the facts each setting's "Why" is said from).
+function chainFacts(t) {
+  const out = [];
+  let below = null;
   for (let guard = 0; t && guard < 6; guard++) {
+    out.push({ t, below });
+    below = t;
+    t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
+  }
+  return out;
+}
+function chainOfTask(task) {
+  const steps = [];
+  for (const { t, below } of chainFacts(task)) {
     const k = knowOfTask(t);
     // a way a word borrowed from its neighbor (REVIVE;KNOW's sharing), the one shown
     const b = knowOn(R) && below ? borrowedFor(scene(), t.name).find((x) => x.way === show(below.description)) : null;
@@ -4972,8 +4993,6 @@ function chainOfTask(t) {
     const same = below && t.kind === "establish" && runExtensions(R).includes("slips") ? identicalOf(t.actor) : null;
     const one = same && show(same.main.value) === show(below.description) ? ` <span class="made-with">With SLIPS, ${identicalSaid(same).replace(/^./, (x) => x.toLowerCase())}</span>` : "";
     steps.push(`<li><span>${cap(taskText(t.kind, t.description))}${t.source === "initial-description" ? " — as the film description asks." : ","} ${taskCode(t)}${ours}${one}</span></li>`);
-    below = t;
-    t = t.source && t.source !== "initial-description" ? taskByName(t.source) : null;
   }
   return `<ul class="chain">${steps.join("")}</ul>`;
 }
@@ -5132,22 +5151,38 @@ function changeLine(form, extensions) {
 // Why this way and not another: the task's ways CHOMET weighed (chomet.123:216-255), each
 // suggestion's scores weighted by the film's levels, the highest chosen; and those it set
 // aside, with why.
-function wayWhy(t, method) {
+// The facts of it (each setting's sentence is made from these: app/film/ages.js): how many
+// ways were weighed ("only": the one way offered; "weighed": the chosen one scored highest
+// against the best other; "offered": no score of it), the chosen way's scores, the best
+// other way, the kinds of score where the chosen one was higher, and the ways set aside,
+// each with Ani's reason.
+const WAY_KINDS = [["strength", "how strongly it was suggested"], ["prerequisite", "its prerequisites"], ["best-when", "when it is best"], ["time-fit", "fitting the time"], ["originality", "originality"], ["variety", "variety"]];
+function wayFacts(t, method) {
   const v = t.actor.variables;
   const scores = v.scores ? lispList(parse(v.scores)) : [];
   const rejected = v["rejected-suggestions"] ? lispList(parse(v["rejected-suggestions"])) : [];
   const valueOf = (sug) => kv(kv(sug, "value"), "value") ?? kv(sug, "value");
   const chosen = scores.find((x) => show(valueOf(kv(x, "suggestion"))) === show(method)) || null;
   const others = scores.filter((x) => x !== chosen);
-  const KINDS = [["strength", "how strongly it was suggested"], ["prerequisite", "its prerequisites"], ["best-when", "when it is best"], ["time-fit", "fitting the time"], ["originality", "originality"], ["variety", "variety"]];
+  const kind = !scores.length || (scores.length === 1 && !rejected.length) ? "only" : chosen && others.length ? "weighed" : "offered";
+  const best = kind === "weighed" ? others[0] : null;
+  return {
+    kind, weighed: scores.length, chosen, method,
+    other: best ? valueOf(kv(best, "suggestion")) : null,
+    better: best ? WAY_KINDS.filter(([key]) => Number(kv(chosen, key)) > Number(kv(best, key))).map(([key]) => ({ kind: key, mine: kv(chosen, key), theirs: kv(best, key) })) : [],
+    setAside: rejected.map((r) => ({ way: valueOf(kv(r, "suggestion")), reason: kv(r, "reason") })),
+  };
+}
+function wayWhy(t, method) {
+  const x = wayFacts(t, method);
+  const name = Object.fromEntries(WAY_KINDS);
   let out;
-  if (!scores.length || (scores.length === 1 && !rejected.length)) out = "it was the one way Ani's suggestions offered for this";
-  else if (chosen && others.length) {
-    const best = others[0];
-    const better = KINDS.filter(([key]) => Number(kv(chosen, key)) > Number(kv(best, key))).map(([key, name]) => `${name} (${kv(chosen, key)} against ${kv(best, key)})`);
-    out = `Ani weighed ${NUMBER_WORDS[scores.length] || scores.length} ways, each score weighted by the film's levels, and this one came out highest${better.length ? `, on ${words(better)}` : ""} (${kenAt("chomet.123:216-255")}); the other was ${wayQ(valueOf(kv(best, "suggestion")))}`;
+  if (x.kind === "only") out = "it was the one way Ani's suggestions offered for this";
+  else if (x.kind === "weighed") {
+    const better = x.better.map((b) => `${name[b.kind]} (${b.mine} against ${b.theirs})`);
+    out = `Ani weighed ${NUMBER_WORDS[x.weighed] || x.weighed} ways, each score weighted by the film's levels, and this one came out highest${better.length ? `, on ${words(better)}` : ""} (${kenAt("chomet.123:216-255")}); the other was ${wayQ(x.other)}`;
   } else out = "it was the way Ani's suggestions offered";
-  if (rejected.length) out += `; it set aside ${words(rejected.map((r) => `${wayQ(valueOf(kv(r, "suggestion")))} (${rejectText(kv(r, "reason"))})`))}`;
+  if (x.setAside.length) out += `; it set aside ${words(x.setAside.map((r) => `${wayQ(r.way)} (${rejectText(r.reason)})`))}`;
   return out;
 }
 // The timing of an activity, step by step, from the scene's length to the frames it ran:
@@ -5199,21 +5234,28 @@ function partSteps(run, w, part) {
   return `Part ${part.n} runs ${sec(part.runningTime)}, its longest task's time${ext.length ? ` and ${words(ext)}` : ""}${stretched ? `; its ways of showing are stretched by ${+part.stretchedBy.toFixed(2)} to fill it` : ""} (${kenAt("scene.9:137-170")}).`;
 }
 // The short answer to "why so long": the step's own time, and where it came from.
-function longWords(run, sc, w, a, char, f) {
-  const k = meet(run.story, char);
+// The facts of it (each setting's sentence is made from these: app/film/ages.js): the run
+// of the step playing at frame f (or the last before it), which of how many runs, its
+// seconds, what stops it, how this run ended, Ken's repeat, and its part and task.
+function longFacts(sc, w, a, f) {
   const runs = (a.film && a.film.spans) || [];
   let i = runs.findIndex((r) => f >= r.begin && f <= r.end);
   if (i < 0) i = Math.max(0, runs.map((r) => r.end <= f).lastIndexOf(true));
-  const r = runs[i];
-  const fps = fpsOf(sc);
+  const r = runs[i] || null;
+  return {
+    r, i, runs: runs.length, seconds: r ? (r.end - r.begin) / fpsOf(sc) : null, stops: a.stops, ended: (a.ended && a.ended[i]) || null, repeated: a.repeated || null,
+    part: w.parts.find((p) => p.name === a.subscene) || null, task: a.task ? w.tasks.find((t) => t.name === a.task) || null : null, method: a.method,
+  };
+}
+function longWords(run, sc, w, a, char, f) {
+  const k = meet(run.story, char);
+  const { r, i, runs, seconds, ended: end, part, task } = longFacts(sc, w, a, f);
   const out = [];
   if (r) {
     const stops = stopWords(a.stops, k, char);
-    const ended = a.ended && a.ended[i] ? endedWords(a.ended[i], k, char) : "";
-    out.push(`${r.begin === r.end ? `It takes no time (${frameAt(sc, r.begin)})` : `It lasts ${sec((r.end - r.begin) / fps)} (${framesAt(sc, r.begin, r.end)})`}${stops.length ? `: it stops ${orWords(stops)}` : ""}${ended ? `, and here ${ended}` : ""}${a.repeated && runs.length > 1 ? `; this is the ${ordinal(i + 1)} of its ${countWords(runs.length)} runs, from Ken's (repeat ${a.repeated} ...)` : ""}.`);
+    const ended = end ? endedWords(end, k, char) : "";
+    out.push(`${r.begin === r.end ? `It takes no time (${frameAt(sc, r.begin)})` : `It lasts ${sec(seconds)} (${framesAt(sc, r.begin, r.end)})`}${stops.length ? `: it stops ${orWords(stops)}` : ""}${ended ? `, and here ${ended}` : ""}${a.repeated && runs > 1 ? `; this is the ${ordinal(i + 1)} of its ${countWords(runs)} runs, from Ken's (repeat ${a.repeated} ...)` : ""}.`);
   }
-  const part = w.parts.find((p) => p.name === a.subscene);
-  const task = a.task ? w.tasks.find((t) => t.name === a.task) : null;
   const planned = plannedWords(run, sc, w, part, task, a.method);
   if (planned) out.push(planned);
   return out.join(" ");
