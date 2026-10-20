@@ -82,6 +82,8 @@ header .intro { color: var(--muted); font-size: 1.02rem; }
 header .guides { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; padding: 0; }
 header .guides a { display: inline-block; padding: 6px 14px; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent-soft); color: var(--accent); text-decoration: none; font-weight: 600; font-size: .95rem; }
 header .guides a:hover { text-decoration: underline; }
+header .guides .teach-head { padding: 6px 14px; border: 1px solid var(--yours); border-radius: 999px; background: var(--yours-soft); color: var(--yours); font: inherit; font-weight: 600; font-size: .95rem; cursor: pointer; }
+header .guides .teach-head:hover { text-decoration: underline; }
 
 .stage { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 22px; align-items: start; }
 .stage.both { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
@@ -126,6 +128,10 @@ header .guides a:hover { text-decoration: underline; }
 .scrub canvas { position: absolute; inset: 9px 0 auto 0; width: 100%; height: 16px; border-radius: 4px; }
 .scrub input { position: absolute; inset: 0; width: 100%; margin: 0; opacity: 0.0001; cursor: pointer; }
 .scrub .head { position: absolute; top: 5px; width: 2px; height: 24px; background: var(--ink); border-radius: 1px; pointer-events: none; }
+.bands-key { margin: -4px 0 0; font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.bands-key .sw { display: inline-block; width: 18px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+.bands-key .sw-part { background: linear-gradient(90deg, color-mix(in srgb, var(--muted) 32%, var(--rule)) 50%, color-mix(in srgb, var(--accent) 32%, var(--rule)) 50%); }
+.bands-key .sw-along { height: 4px; vertical-align: 1px; background: var(--godmother); opacity: 0.8; }
 .frame-label { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); min-width: 10ch; text-align: right; font-variant-numeric: tabular-nums; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
 .seg button { border: 0; background: var(--sheet); padding: 0 10px; height: 32px; cursor: pointer; font-size: 0.84rem; }
@@ -222,6 +228,9 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .tl li li[aria-current="true"] { background: var(--accent-soft); border-radius: 4px; }
 .tl li li.still .linkish { color: var(--muted); font-style: italic; }
 .tl .fr { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); display: inline-block; min-width: 8ch; }
+.tl li li .fr .fr-go, .tl .note .fr-go { font: inherit; color: var(--muted); text-decoration: underline dotted; }
+.tl li li .fr .fr-go:hover, .tl .note .fr-go:hover { color: var(--accent); }
+.tl li li .fr { min-width: 11ch; }
 .code-link { font-family: var(--mono); font-size: 0.74rem; white-space: nowrap; margin-left: 4px; }
 .code-link::before { content: "‹›"; margin-right: 3px; color: var(--muted); }
 
@@ -328,6 +337,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .crit-list { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .crit-state { color: var(--muted); font-size: 0.8rem; }
 .crit-new .crit-state, .crit-changed .crit-state { color: var(--accent); font-weight: 600; }
+.crit-tell > summary { font-weight: 600; color: var(--accent); }
+.crit-tell .body { display: grid; gap: 8px; }
+.crq-items { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.crq-item .btn { height: auto; min-height: 30px; padding: 3px 10px; margin-top: 4px; }
 .crit-buttons { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: baseline; }
 .crit-btn { border: 1px solid var(--accent); background: var(--sheet); color: var(--accent); border-radius: 999px; padding: 0 9px; font-size: 0.8rem; line-height: 1.6; cursor: pointer; }
 .crit-btn:hover { background: var(--accent-soft); }
@@ -454,6 +467,10 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .kept-note ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
 .kept-note .kept-where { color: var(--ink); font-weight: 600; font-size: 0.84rem; }
 footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-width: 90ch; border-top: 1px solid var(--rule); padding-top: 14px; }
+.report-ask { position: fixed; right: 16px; bottom: 16px; z-index: 50; max-width: min(26rem, calc(100vw - 32px)); display: grid; gap: 8px; padding: 12px 14px; border-radius: 10px; background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); font-size: 0.9rem; }
+.report-ask p { margin: 0; }
+.report-ask pre { max-height: 12rem; overflow: auto; font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cp .teach-offer { color: var(--yours); text-align: left; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 </style>
 
@@ -462,7 +479,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
     <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
     <h1>Ani's Cinderella and Beyond</h1>
     <p class="intro">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
-    <p class="more-pages guides"><a href="students.html">A guide for students</a><a href="teachers.html">A guide for teachers</a><a href="making-of.html">How this was made</a></p>
+    <p class="more-pages guides"><a href="students.html">A guide for students</a><a href="teachers.html">A guide for teachers</a><a href="making-of.html">How this was made</a><button type="button" class="teach-head" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button></p>
   </header>
 
   <div class="runbar" id="runbar" hidden>
@@ -502,6 +519,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
         </div>
         <button class="btn" id="save" type="button" aria-expanded="false" aria-controls="save-panel">Save</button>
       </div>
+      <p class="bands-key" id="bands-key"></p>
       <div class="save-panel" id="save-panel" hidden></div>
       <div class="captions" id="captions">
         <p class="caption" id="caption-0" aria-live="polite"></p>
@@ -519,7 +537,7 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
     <p class="more-pages">More about Ani: <a href="making-of.html">How this was made</a> · <a href="students.html">A guide for students</a> · <a href="teachers.html">A guide for teachers</a>.</p>
     <details class="kept-note" id="kept-note"><summary>What this page keeps in your browser</summary><div class="body" id="kept-body"></div></details>
-    <p class="reporting" hidden>When something on this page goes wrong, the error is reported to Ken so that he can fix it, without any story, key or personal data.</p>
+    <p class="reporting" hidden>When something on this page goes wrong, the page asks whether you would like to send Ken a report of the error, so that he can fix it, without any story, key or personal data. Nothing is sent unless you press Send.</p>
   </footer>
 </div>
 
@@ -926,6 +944,7 @@ function icon(c, size = 16, run = R) {
 // and its scenes.
 const RUNS = [];
 const LIB_RUNS = new Map();
+const SCENE_RUN = new WeakMap(); // each scene's run (filmFrame)
 let R = null;
 function using(run, f) {
   const keep = R;
@@ -1281,7 +1300,8 @@ if (CODE_SITE) document.querySelectorAll(".code-pages a").forEach((a) => { if (C
 // The site's pages about Ani (site/pages/, which tools/build-site.mjs puts beside the film
 // page): linked as they are on the site, at ../site/pages/ in app/film.html, and in the
 // claude.ai copy at the site, or left out with the code pages.
-if (CODE_SITE) document.querySelectorAll(".more-pages a").forEach((a) => { if (CODE_SITE === "none") a.closest(".more-pages").hidden = true; else a.href = CODE_SITE + a.getAttribute("href").split("/").pop(); });
+// (the header's row keeps Teach Ani where the guides aren't linked)
+if (CODE_SITE) document.querySelectorAll(".more-pages a").forEach((a) => { if (CODE_SITE !== "none") a.href = CODE_SITE + a.getAttribute("href").split("/").pop(); else if (a.closest(".guides")) a.hidden = true; else a.closest(".more-pages").hidden = true; });
 function methodCode(m, which = "define") {
   if (!Array.isArray(m)) return "";
   if (m[0] === "method:") { const v = kv(m, "value"); return Array.isArray(v) ? codeLink(CODE.convey.file, CODE.convey.verbs[v[0]]) : ""; }
@@ -1781,7 +1801,7 @@ function repairSentence({ actor, what, notes }, sc) {
     // REVIVE;CHSHOW: the film kept going while a change was shown
     case "film-waited-for-change": {
       const at = Array.isArray(because) ? because[because.length - 1] : null;
-      return `${at !== null && at !== undefined ? `At frame ${esc(at)} a` : "A"} part that extends the one where a change is shown ended first, and Ken's code would have stopped the film there, in the middle of the change; the revival's repairs keep it going until the part that shows the change has ended. Ken's own scenes show no change, and stop as they did.`;
+      return `${at !== null && at !== undefined ? `At ${esc(frameAt(sc, at))} a` : "A"} part that extends the one where a change is shown ended first, and Ken's code would have stopped the film there, in the middle of the change; the revival's repairs keep it going until the part that shows the change has ended. Ken's own scenes show no change, and stop as they did.`;
     }
     // REVIVE;SEEN: a character whose only part is a change of feeling wanders while it runs
     case "nothing-to-do": {
@@ -1796,7 +1816,7 @@ function repairSentence({ actor, what, notes }, sc) {
       const w = sc && sc.glass ? (sc.glass.wanders || []).find((x) => x.plan === actor) : null;
       const c = w ? w.character : null;
       const k = c ? meet(R.story, c) : { she: "they", her: "them" };
-      return `${at !== null && at !== undefined ? `At frame ${esc(at)}` : "Here"} Ken's Director would have stopped the film, a part having ended with nothing else of the scene's to run, while ${c ? who(c) : "a character"} still wandered to show ${c ? theirs(c) : "their"} changes; the revival's repair kept it going until ${c ? `${k.her} ` : "the "}wander ended, as it does while a change is shown.`;
+      return `${at !== null && at !== undefined ? `At ${esc(frameAt(sc, at))}` : "Here"} Ken's Director would have stopped the film, a part having ended with nothing else of the scene's to run, while ${c ? who(c) : "a character"} still wandered to show ${c ? theirs(c) : "their"} changes; the revival's repair kept it going until ${c ? `${k.her} ` : "the "}wander ended, as it does while a change is shown.`;
     }
     // REVIVE;MEND20: a character shown off the stage past a corner
     case "offstage-corner": {
@@ -2034,7 +2054,7 @@ function optInSentence({ actor, what, notes }, sc) {
     case "film-waited-for-activity": {
       const b = lispList(lispList(because)[0]);
       const at = b[b.length - 1];
-      return `${Number.isFinite(Number(at)) ? `At frame ${esc(at)} a` : "A"} feeling's part ended with the activity it extends still running. Ken's Director stops the film when a part ends and nothing seems to be running (${kenAt("action.152:67-91")}), but the part a feeling's part extends is never on its list of running parts, so in 1978 the film was cut there; SLIPS keeps filming until that part ends.`;
+      return `${Number.isFinite(Number(at)) ? `At ${esc(frameAt(sc, at))} a` : "A"} feeling's part ended with the activity it extends still running. Ken's Director stops the film when a part ends and nothing seems to be running (${kenAt("action.152:67-91")}), but the part a feeling's part extends is never on its list of running parts, so in 1978 the film was cut there; SLIPS keeps filming until that part ends.`;
     }
     // S9, S10 and S11 (REVIVE;SLIPS9), on Director's part, one note for each change
     case "change-at-its-speed": {
@@ -2189,7 +2209,7 @@ function slipsSaid(run, scenes) {
     const conv = sc.glass.tasks.map(taskInfo).find((t) => t.source === n.actor && Array.isArray(t.description) && t.description[2] === found);
     const sub = conv ? sc.subscenes.find((s) => s.name === conv.actor.variables.subscene) : null;
     const same = identicalOf(est);
-    const where = sub ? ` (part ${sub.n}${sub.begin !== null ? `, frames ${sub.begin} to ${sub.end}` : ""})` : "";
+    const where = sub ? ` (part ${sub.n}${sub.begin !== null ? `, ${framesAt(sc, sub.begin, sub.end)}` : ""})` : "";
     const not = same ? `, not ${words(same.others.map((o) => (Array.isArray(o.value) ? who(o.value[2]) : esc(show(o.value)))))}` : "";
     const which = how === "all" ? "who is all of them" : how === "any" ? "who is one of them" : `who is ${ws.length > 2 ? "none of them" : "neither"}`;
     out.push(`In ${esc(title)}, ${conv ? about(conv.description) : `${who(subject)}'s part finds ${who(found)}`}${where}${not}: ${subject ? `${who(subject)}'s part` : "the part"} asks for someone in the scene, ideally ${esc(words(ws.map(plain)))}, and failing that anyone (thesis p. 100), and is-not found ${who(found)}, ${which}; in 1978 Ken's is-not, given the task and not the scene, never found anyone (${kenAt("sugest.123:333-335")}, ${kenAt("scene.9:380")}).${same ? ` ${identicalSaid(same).replace(/: so [^:]*$/, ".")}` : ""} (S1 and S2)`);
@@ -3504,7 +3524,7 @@ function changeFrames(sc, x) {
   };
 }
 const secondsWords = (n) => { const r = Math.round(Number(n) * 10) / 10; return `${r} second${r === 1 ? "" : "s"}`; };
-const framesWords = (p) => (!p ? "" : p.end > p.begin ? ` (frames ${p.begin} to ${p.end})` : ` (frame ${p.begin})`);
+const framesWords = (sc, p) => (!p ? "" : ` (${framesAt(sc, p.begin, Math.max(p.begin, p.end))})`);
 // whether a bridge raises its element (a dynamics value by its rank, a look's number)
 const rises = (b) => (RANK[b.now] !== undefined && RANK[b.was] !== undefined ? RANK[b.now] > RANK[b.was] : Number(b.now) > Number(b.was));
 // A change made at once: a magical cause's (the revival's rule), or one whose bridges take
@@ -3744,11 +3764,11 @@ function bridgeSentence(run, x, c) {
   let walk = "";
   if (by && stopped) {
     const d = fr.walk ? apart(sc, by, c, fr.walk.end) : null;
-    walk = `${who(by)} goes towards ${k.her}${framesWords(fr.walk)} but never reaches ${k.her}: the revival's repairs stop ${theirs(by)} walk${fr.walk ? ` at frame ${fr.walk.end}` : ""}${d !== null ? `, their centers ${d} dots apart,` : ""} as if there (MEND12)`;
-  } else if (by) walk = `${who(by)} goes to ${k.her}${!fr.walk ? "" : fr.walk.end > fr.walk.begin ? ` (frames ${fr.walk.begin} to ${fr.walk.end})` : ` (they touch as the part begins, at frame ${fr.walk.end})`}`;
+    walk = `${who(by)} goes towards ${k.her}${framesWords(sc, fr.walk)} but never reaches ${k.her}: the revival's repairs stop ${theirs(by)} walk${fr.walk ? ` at ${frameAt(sc, fr.walk.end)}` : ""}${d !== null ? `, their centers ${d} dots apart,` : ""} as if there (MEND12)`;
+  } else if (by) walk = `${who(by)} goes to ${k.her}${!fr.walk ? "" : fr.walk.end > fr.walk.begin ? ` (${framesAt(sc, fr.walk.begin, fr.walk.end)})` : ` (they touch as the part begins, at ${frameAt(sc, fr.walk.end)})`}`;
   const touched = by && !stopped;
   const what = shown.bridges.length ? bridgeWords(c, shown.bridges, instant) : "";
-  const wander = shown.wanders && shown.wanders.plans.length ? `${k.she} ${s("wanders", "wander")} about for ${secondsWords(shown.seconds)}${framesWords(fr.wander)}` : "";
+  const wander = shown.wanders && shown.wanders.plans.length ? `${k.she} ${s("wanders", "wander")} about for ${secondsWords(shown.seconds)}${framesWords(sc, fr.wander)}` : "";
   // her bridges beside another character's showing, with no way of showing of their own
   const beside = shown.shownBy === "alone" ? (sc.glass.changesShown || []).find((y) => y !== shown && y.task && y.task === shown.task && y.shownBy && y.shownBy !== "alone") : null;
   const moves = sc.activities.some((a) => a.chars.includes(c) && a.subscene && show(a.subscene) === shown.subscene);
@@ -3761,8 +3781,8 @@ function bridgeSentence(run, x, c) {
     const magic = magicalCause(shown);
     const drawn = drawnFrom(sc, shown, fr);
     const shapes = shown.rate !== "instantaneous" ? ", since Director has no in-between for the two shapes" : magic ? `, since ${magic === c ? `${k.she} ${s("is", "are")} magical` : isMagical(magic)} (the revival's rule)` : "";
-    const when = touched ? `${walk}, and when they touch, at frame ${fr.walk ? fr.walk.end : "?"}, ` : walk ? `${walk}; without their touching, ` : alone ? `${alone}: ` : drawn !== null ? `at frame ${drawn}, ` : "";
-    const later = (walk || alone) && drawn !== null && (!fr.walk || drawn > fr.walk.end) ? ` (Director draws the change from frame ${drawn})` : "";
+    const when = touched ? `${walk}, and when they touch, at ${fr.walk ? frameAt(sc, fr.walk.end) : "a frame not known"}, ` : walk ? `${walk}; without their touching, ` : alone ? `${alone}: ` : drawn !== null ? `at ${frameAt(sc, drawn)}, ` : "";
+    const later = (walk || alone) && drawn !== null && (!fr.walk || drawn > fr.walk.end) ? ` (Director draws the change from ${frameAt(sc, drawn)})` : "";
     body = `${when}${what} at once${later}${shapes}${wander ? `; then ${wander}, so that the change is seen` : ""}`;
   } else {
     const as = carried ? `as ${carriedWords(shown)}` : shown.wanders && shown.wanders.plans.length ? `as ${k.she} ${s("wanders", "wander")}` : "";
@@ -3772,7 +3792,7 @@ function bridgeSentence(run, x, c) {
     const end = bridgeEnd(sc, shown);
     const ended = end === "cut" ? "; the scene ends before the change is complete"
       : end === "kept" ? "; a part that extends this one ended first, and the revival's repairs kept the film going until the change had been shown (Ken's code would have stopped it in the middle)" : "";
-    body = `${how}, gradually, over ${secondsWords(seconds)}${framesWords(fr.bridge)}: ${what}; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” (thesis p. 169)${ended}${still}`;
+    body = `${how}, gradually, over ${secondsWords(seconds)}${framesWords(sc, fr.bridge)}: ${what}; gradually, since an abrupt change “could easily be misinterpreted as meaning something else” (thesis p. 169)${ended}${still}`;
   }
   const morph = shown.bridges.some((b) => /^(shape-|color-hue)/.test(b.element) && !b.atOnce);
   const ideal = shown.bridging ? shown.bridging.ideal : shown.ideal;
@@ -4074,7 +4094,9 @@ function prepScene(s, run) {
     if (base === "bridging-the-gap") for (const m of code.matchAll(/\(ask ([a-z0-9+-]+) gradually change\b/g)) chars.add(m[1]);
     for (const span of spans.get(p.name) || []) activities.push({ name: p.name, base, chars: [...chars], begin: span.begin, end: span.end === null ? last : span.end, subscene: v(p.name, "subscene") });
   }
-  return { ...s, title, actors, v, subscenes, activities, last };
+  const out = { ...s, title, actors, v, subscenes, activities, last };
+  if (run) SCENE_RUN.set(out, run);
+  return out;
 }
 // extensions: the revival's extensions it was made with (none: by Ani as in 1978);
 // repairs, the notes they left in pass 1; appearances, how Ani chose each character's
@@ -4213,6 +4235,35 @@ const ready = (sc) => !!sc && !sc.error && sc.film.frames.length > 0;
 // show the frame each film had reached at the same moment.
 const fpsOf = (sc) => (sc && sc.film && sc.film.fps) || 4;
 const frameIn = (sc) => Math.max(0, Math.min(sc.last, Math.floor(state.time * fpsOf(sc) + 1e-6) || 0));
+// Frames are numbered across the whole film (Ken, 20 October: "the frame numbers should be
+// for the entire film not the scene"): a scene's frame f is the film's frame filmFrame(sc,
+// f), counting every frame of the scenes before it from the first scene's frame 0. The
+// scene's own frame is said beside it, in brackets, where the visitor is (the player, the
+// glass box's heading); every other sentence says the film's. Each scene knows its run
+// (SCENE_RUN, set by prepScene).
+function filmFrame(sc, f) {
+  const run = sc && SCENE_RUN.get(sc);
+  let n = 0;
+  for (const s of run ? run.scenes : []) { if (s === sc) return n + Number(f); if (ready(s)) n += s.last + 1; }
+  return Number(f);
+}
+const frameNo = (sc, f) => (Number.isFinite(Number(f)) ? filmFrame(sc, f).toLocaleString("en-US") : String(f));
+const frameAt = (sc, f) => `frame ${frameNo(sc, f)}`;
+const framesAt = (sc, b, e, to = " to ") => (b === e ? frameAt(sc, b) : `frames ${frameNo(sc, b)}${to}${frameNo(sc, e)}`);
+// a frame to click, which shows it (the film on a screen; else just the number)
+function frameGo(sc, f, text = frameNo(sc, f)) {
+  const run = sc && SCENE_RUN.get(sc), r = run ? shown().find((x) => screenRun(x) === run) : undefined;
+  return r === undefined ? text : `<button type="button" class="linkish fr-go" data-frame-go="${r}|${run.scenes.indexOf(sc)}|${f}" title="Show this frame (the scene's frame ${f})">${text}</button>`;
+}
+const framesGo = (sc, b, e) => (b === e ? frameGo(sc, b) : `${frameGo(sc, b)}–${frameGo(sc, e)}`);
+// The first frame of a scene with someone on it (Director's frame 0 is the cleared screen),
+// where a scene chosen above the film opens (Ken, 20 October), the later of the screens'.
+const firstShown = (sc) => Math.max(0, sc.film.frames.findIndex((fr) => Object.values(fr.chars).some((c) => c && c.visible)));
+function sceneStart(i) {
+  let t = 0;
+  for (const r of shown()) { const run = screenRun(r), sc = run && run.scenes[i]; if (ready(sc)) t = Math.max(t, firstShown(sc) / fpsOf(sc)); }
+  return t && t + 1e-4;
+}
 // the longest of the scenes shown, in seconds: the scrubber's length
 function maxTime() {
   let m = 0;
@@ -4457,6 +4508,8 @@ function pointer(canvas, ev) {
 
 const bands = document.getElementById("bands");
 const bctx = bands.getContext("2d");
+// Each lane's parts, where they are on the strip, for its hover titles (bandsAt).
+const BAND_PARTS = [];
 function drawBands() {
   const w = bands.clientWidth || 600;
   const dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -4467,6 +4520,8 @@ function drawBands() {
   bctx.fillRect(0, 0, w, 16);
   const span = Math.max(0.25, maxTime());
   const lanes = shown();
+  BAND_PARTS.length = 0;
+  let along = false;
   lanes.forEach((r, lane) => {
     const s = sceneOf(r);
     if (!ready(s)) return;
@@ -4485,9 +4540,35 @@ function drawBands() {
         bctx.font = `600 ${height >= 16 ? 10 : 7}px ` + css.getPropertyValue("--body");
         bctx.fillText(String(sub.n), x(sub.begin) + 4, top + height * 0.72);
       }
+      along ||= !!sub.parasite;
+      BAND_PARTS.push({ r, s, sub, x0: x(sub.begin), x1: x(sub.end), y0: y, y1: y + h });
     }
   });
+  // the key, below the strip: what its colors are (Ken, 20 October: "It isn't clear what the
+  // orange bar in the frame progress bar means")
+  const key = document.getElementById("bands-key");
+  if (key) key.innerHTML = BAND_PARTS.length ? `<span><span class="sw sw-part"></span>The scene's parts, in turn${lanes.length > 1 ? " (above, the left film; below, the right)" : ""}</span>${along ? `<span><span class="sw sw-along"></span>A part running alongside another: it has only changes of feeling, so Ani runs it while the part before it goes on, made longer to hold it (Ken's SCENE, ${kenAt("scene.9:216-240")})</span>` : ""}` : "";
 }
+// What a part of the strip is, for its hover title: "Part 2 of 3: frames 192 to 250"; the
+// thin orange one, "Part 3, running alongside part 2: ...".
+function bandTitle(b) {
+  const { s, sub } = b;
+  const host = sub.parasite && Array.isArray(sub.parasite) ? s.subscenes.find((x) => x.name === show(sub.parasite[1])) : null;
+  const frames = framesAt(s, sub.begin, sub.end);
+  return sub.parasite
+    ? `Part ${sub.n}, running alongside part ${host ? host.n : "before it"} (${frames}): it has only changes of feeling, so Ani runs it while that part goes on, made longer to hold it`
+    : `Part ${sub.n} of ${s.subscenes.length}: ${frames}${s.subscenes.some((x) => x.parasite && x.parasite[1] && show(x.parasite[1]) === sub.name) ? ", with a part of feelings running alongside it" : ""}`;
+}
+const scrubBox = document.querySelector(".scrub");
+scrubBox.addEventListener("mousemove", (e) => {
+  const box = bands.getBoundingClientRect();
+  const x = e.clientX - box.left, y = e.clientY - box.top;
+  const hit = BAND_PARTS.filter((b) => x >= b.x0 && x <= b.x1);
+  // the thin one, where the pointer is on it (or near the strip's foot); else the part there
+  const b = hit.find((p) => p.sub.parasite && y >= p.y0 - 2 && y <= p.y1 + 6) || hit.find((p) => !p.sub.parasite && y >= p.y0 - 9 && y <= p.y1 + 9) || hit[0];
+  const t = b ? bandTitle(b) : "";
+  if (scrub.title !== t) scrub.title = t;
+});
 function placeHead() {
   const head = document.getElementById("head");
   head.style.left = `calc(${(state.time / Math.max(0.25, maxTime())) * 100}% - 1px)`;
@@ -4695,7 +4776,7 @@ function storyPanel() {
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
     ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
-  side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), 0)));
+  side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), sceneStart(Number(b.dataset.scene)))));
   side.querySelector("#open-editor").addEventListener("click", openEditor);
   side.querySelector("#open-teller").addEventListener("click", openTeller);
   side.querySelector("#show-lisp").addEventListener("click", (e) => {
@@ -4831,6 +4912,7 @@ function choicePointBox(char, el, from = null) {
     ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${fix ? `<p class="fix-line">${fix.html} ${repairCode(fix.what)}</p>` : ""}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
+    ${from ? "" : teachWordOffers(char, el, cp)}
     ${more}</div>`;
 }
 // DETAIL's best-when clauses of a way of showing, (drawn-to a b), with the status each had
@@ -4924,8 +5006,9 @@ const AniWhy = (() => {
 })();
 // The record of a reader's criticism of a film, and what a remake with it changed: src/pipeline.js's
 // own helpers (addCriticism, criticismChanges, ...), put in here by tools/build-film-app.mjs,
-// for app/film/criticism.js.
-const AniCritic = (() => {
+// for app/film/criticism.js. (In the claude.ai copy the names are Ani's runtime's own, as
+// Teach Ani's are: teachRuntime.)
+const AniCritic = await (async () => {
 /*CRITICISM*/
   return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, taskSource, sourceNeeded, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
 })();
@@ -4955,7 +5038,6 @@ const ordinal = (n) => ORDINALS[n] || `${n}th`;
 const COUNTS = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
 const countWords = (n) => COUNTS[n] || String(n);
 const orWords = (list) => (list.length > 1 ? list.slice(0, -1).join(", ") + " or " + list[list.length - 1] : list[0] || "");
-const framesSpan = (b, e) => (b === e ? `frame ${b}` : `frames ${b} to ${e}`);
 // a share of a whole in words: "half", "a fifth", "two thirds"
 function fracWords(x) {
   const names = { 2: ["half", "halves"], 3: ["third", "thirds"], 4: ["quarter", "quarters"], 5: ["fifth", "fifths"], 6: ["sixth", "sixths"], 8: ["eighth", "eighths"], 10: ["tenth", "tenths"] };
@@ -5086,7 +5168,7 @@ function timingSteps(run, sc, w, a, char) {
   const stops = stopWords(a.stops, k, char);
   steps.push(`This step begins ${beginWords(w, a.beginTime || "0.0")}${stops.length ? ` and stops ${orWords(stops)}` : ""}${a.stops.some((s) => ["after-seconds", "when-there", "original-distance", "fraction-of-distance"].includes(s.kind)) ? ` (Ken's conditions, ${kenAt("dichar.103:401-499")})` : ""}.${a.repeated ? ` Ken's plan repeats it ${a.repeated} times, (repeat ${a.repeated} ...).` : ""}`);
   const runs = (a.film && a.film.spans) || [];
-  if (runs.length === 1) steps.push(`In the film it ran from frame ${runs[0].begin} to ${runs[0].end} (${sec((runs[0].end - runs[0].begin) / fpsOf(sc))})${a.ended[0] ? `, and ended because ${endedWords(a.ended[0], k, char)}` : ""}.`);
+  if (runs.length === 1) steps.push(`In the film it ran from ${frameGo(sc, runs[0].begin, frameAt(sc, runs[0].begin))} to ${frameGo(sc, runs[0].end, frameNo(sc, runs[0].end))} (${sec((runs[0].end - runs[0].begin) / fpsOf(sc))})${a.ended[0] ? `, and ended because ${endedWords(a.ended[0], k, char)}` : ""}.`);
   else if (runs.length > 1) steps.push(`In the film it ran ${runs.length} times: ${runs.map((r) => (r.begin === r.end ? `${r.begin}` : `${r.begin} to ${r.end}`)).join(", ")} (frames), ${sec(a.film.seconds)} in all.`);
   else steps.push("It didn't run in the film: the scene ended first.");
   return steps;
@@ -5126,7 +5208,7 @@ function longWords(run, sc, w, a, char, f) {
   if (r) {
     const stops = stopWords(a.stops, k, char);
     const ended = a.ended && a.ended[i] ? endedWords(a.ended[i], k, char) : "";
-    out.push(`${r.begin === r.end ? `It takes no time (frame ${r.begin})` : `It lasts ${sec((r.end - r.begin) / fps)} (${framesSpan(r.begin, r.end)})`}${stops.length ? `: it stops ${orWords(stops)}` : ""}${ended ? `, and here ${ended}` : ""}${a.repeated && runs.length > 1 ? `; this is the ${ordinal(i + 1)} of its ${countWords(runs.length)} runs, from Ken's (repeat ${a.repeated} ...)` : ""}.`);
+    out.push(`${r.begin === r.end ? `It takes no time (${frameAt(sc, r.begin)})` : `It lasts ${sec((r.end - r.begin) / fps)} (${framesAt(sc, r.begin, r.end)})`}${stops.length ? `: it stops ${orWords(stops)}` : ""}${ended ? `, and here ${ended}` : ""}${a.repeated && runs.length > 1 ? `; this is the ${ordinal(i + 1)} of its ${countWords(runs.length)} runs, from Ken's (repeat ${a.repeated} ...)` : ""}.`);
   }
   const part = w.parts.find((p) => p.name === a.subscene);
   const task = a.task ? w.tasks.find((t) => t.name === a.task) : null;
@@ -5159,14 +5241,14 @@ function onlyChangesWhy(run, sc, w, a, char, f) {
     const moved = (a.waitsFor || []).map((p) => w.activities.find((x) => x.plan === p)).filter((x) => x && x.film && x.film.spans.length);
     const lastEnd = Math.max(-1, ...moved.flatMap((x) => x.film.spans.map((s) => s.end)));
     const mover = moved.find((x) => x.film.spans.some((s) => s.end === lastEnd));
-    long = r.end === r.begin ? `${cap(k.she)} ${agree(k, "has", "have")} nothing to wait for${mover ? ` (${para(`“${esc(ACTIVITY[mover.activity] || plain(mover.activity))}”`, mover.plan)} ended at frame ${lastEnd})` : ""}, and ${agree(k, "wanders", "wander")} from frame ${r.end}.`
-      : `${cap(k.she)} ${agree(k, "waits", "wait")} from frame ${r.begin} to ${r.end} (${sec((r.end - r.begin) / fps)})${mover ? `, until ${para(`“${esc(ACTIVITY[mover.activity] || plain(mover.activity))}”`, mover.plan)}, which moves ${k.her}, ends at frame ${lastEnd}` : ""}${a.ended[0] === "changes-ended" ? `; ${theirs(char)} changes ended first, so ${k.she} doesn't wander` : ""}.`;
+    long = r.end === r.begin ? `${cap(k.she)} ${agree(k, "has", "have")} nothing to wait for${mover ? ` (${para(`“${esc(ACTIVITY[mover.activity] || plain(mover.activity))}”`, mover.plan)} ended at ${frameAt(sc, lastEnd)})` : ""}, and ${agree(k, "wanders", "wander")} from ${frameAt(sc, r.end)}.`
+      : `${cap(k.she)} ${agree(k, "waits", "wait")} from ${frameAt(sc, r.begin)} to ${frameNo(sc, r.end)} (${sec((r.end - r.begin) / fps)})${mover ? `, until ${para(`“${esc(ACTIVITY[mover.activity] || plain(mover.activity))}”`, mover.plan)}, which moves ${k.her}, ends at ${frameAt(sc, lastEnd)}` : ""}${a.ended[0] === "changes-ended" ? `; ${theirs(char)} changes ended first, so ${k.she} doesn't wander` : ""}.`;
   } else if (r) {
     const ext = runExtensions(run).filter((id) => extNamed(id));
     const changes = ((part && part.changesFor[char]) || []).map((form) => changeLine(form, ext)).filter((x) => x && x.director);
     const longest = changes.sort((x, y) => y.director - x.director)[0];
     const slips = ext.includes("slips");
-    long = `${cap(k.she)} ${agree(k, "wanders", "wander")} from frame ${r.begin} to ${r.end} (${sec((r.end - r.begin) / fps)}), until ${theirs(char)} changes end${longest ? `: the longest, ${theirs(char)} ${longest.what}, takes Director ${sec(longest.director)} from the part's start${!slips && longest.director > longest.ani * 1.5 ? `, where Ani planned ${sec(longest.ani)} (Director takes four times as long over a change at high speed as Ani's estimate, ${kenAt("dichar.103:102-121")})` : ""}` : ""}.`;
+    long = `${cap(k.she)} ${agree(k, "wanders", "wander")} from ${frameAt(sc, r.begin)} to ${frameNo(sc, r.end)} (${sec((r.end - r.begin) / fps)}), until ${theirs(char)} changes end${longest ? `: the longest, ${theirs(char)} ${longest.what}, takes Director ${sec(longest.director)} from the part's start${!slips && longest.director > longest.ani * 1.5 ? `, where Ani planned ${sec(longest.ani)} (Director takes four times as long over a change at high speed as Ani's estimate, ${kenAt("dichar.103:102-121")})` : ""}` : ""}.`;
   }
   return { way, long };
 }
@@ -5175,9 +5257,9 @@ function stillWhy(run, sc, w, s) {
   const fps = fpsOf(sc);
   const part = w.parts.find((p) => p.name === s.part);
   const n = part ? part.n : "?";
-  const head = `No one on the stage moves from frame ${s.from} to ${s.to} (${sec(s.seconds)}), in part ${n}.`;
+  const head = `No one on the stage moves from ${frameAt(sc, s.from)} to ${frameNo(sc, s.to)} (${sec(s.seconds)}), in part ${n}.`;
   const after = (s.after || []).map((p) => w.activities.find((x) => x.plan === p)).filter(Boolean);
-  const afterWords = after.length ? `${words([...new Set(after.map((x) => `${para(`“${esc(ACTIVITY[x.activity] || plain(x.activity))}”`, x.plan)}`))])} ended at frame ${s.from}` : "";
+  const afterWords = after.length ? `${words([...new Set(after.map((x) => `${para(`“${esc(ACTIVITY[x.activity] || plain(x.activity))}”`, x.plan)}`))])} ended at ${frameAt(sc, s.from)}` : "";
   let why;
   if (s.kind === "repeat-unwinding") why = `${afterWords ? `${cap(afterWords)}, the last of the ${s.repeat} runs of Ken's (repeat ${s.repeat} ...), and` : `The ${s.repeat} runs of Ken's (repeat ${s.repeat} ...) are over, and`} his Director takes a tick for each run to unwind: it runs a repeat as a sequence of a run and the repeat of one fewer, and each run's sequence: runs its empty rest the next tick (${kenAt("action.152:94-123")}), so the part ends ${s.repeat} ticks later, with nothing left to do. It is Ken's Director's, and the revival leaves it alone.`;
   else if (s.kind === "only-changes" || s.kind === "changes-running") {
@@ -5237,21 +5319,21 @@ function timelineBox(r, sc, char = null) {
       // a step run more than three times is one line: its first frame to its last, and how often
       if (spans.length > 3) {
         const at = spans.find(here) || spans[0];
-        rows.push({ at: spans[0].begin, html: `<li${mine}${spans.some(here) ? ' aria-current="true"' : ""}><button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${mid(at)}|${esc(a.plan)}"><span class="fr">${spans[0].begin}–${spans[spans.length - 1].end}</span> ${whoText}: ${what}, ${spans.length} times</button></li>` });
+        rows.push({ at: spans[0].begin, html: `<li${mine}${spans.some(here) ? ' aria-current="true"' : ""}><span class="fr">${framesGo(sc, spans[0].begin, spans[spans.length - 1].end)}</span> <button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${mid(at)}|${esc(a.plan)}">${whoText}: ${what}, ${spans.length} times</button></li>` });
         continue;
       }
-      for (const [i, s] of spans.entries()) rows.push({ at: s.begin, html: `<li${mine}${here(s) ? ' aria-current="true"' : ""}><button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${mid(s)}|${esc(a.plan)}"><span class="fr">${s.begin === s.end ? s.begin : `${s.begin}–${s.end}`}</span> ${whoText}: ${what}${spans.length > 1 ? ` (${i + 1} of ${spans.length})` : ""}</button></li>` });
+      for (const [i, s] of spans.entries()) rows.push({ at: s.begin, html: `<li${mine}${here(s) ? ' aria-current="true"' : ""}><span class="fr">${framesGo(sc, s.begin, s.end)}</span> <button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${mid(s)}|${esc(a.plan)}">${whoText}: ${what}${spans.length > 1 ? ` (${i + 1} of ${spans.length})` : ""}</button></li>` });
     }
     for (const s of w.stills.filter((x) => x.part === p.name)) {
       const { at } = stillWhy(run, sc, w, s);
       const c = Object.keys(sc.film.frames[at].chars).find((x) => sc.film.frames[at].chars[x].visible);
-      rows.push({ at: s.from + 0.5, html: `<li class="still"${f > s.from && f <= s.to ? ' aria-current="true"' : ""}><button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${at}|"><span class="fr">${s.from}–${s.to}</span> no one moves (${sec(s.seconds)})</button></li>` });
+      rows.push({ at: s.from + 0.5, html: `<li class="still"${f > s.from && f <= s.to ? ' aria-current="true"' : ""}><span class="fr">${framesGo(sc, s.from, s.to)}</span> <button type="button" class="linkish" data-tl="${r}|${esc(c || "")}|${at}|">no one moves (${sec(s.seconds)})</button></li>` });
     }
     rows.sort((x, y) => x.at - y.at);
-    const span = p.film ? `${p.film.begin === p.film.end ? `frame ${p.film.begin}` : `frames ${p.film.begin}–${p.film.end}`}, ${sec((p.film.end - p.film.begin) / fps)}` : "not reached";
+    const span = p.film ? `${p.film.begin === p.film.end ? `frame ${frameGo(sc, p.film.begin)}` : `frames ${framesGo(sc, p.film.begin, p.film.end)}`}, ${sec((p.film.end - p.film.begin) / fps)}` : "not reached";
     return `<li><p><b>Part ${p.n}</b> <span class="note">${span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}${critPaceButtons(run, sc, w, p, { short: true })}</p>${rows.length ? `<ul>${rows.map((x) => x.html).join("")}</ul>` : ""}</li>`;
   }).join("");
-  return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">Each part's frames and what it is for, and each step in it; click one for why it is done that way and lasts that long.</p><ol class="tl">${parts}</ol></div></details>`;
+  return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">Each part's frames (the film's, counted from its first scene; click one to see it) and what it is for, and each step in it; click a step for why it is done that way and lasts that long.</p><ol class="tl">${parts}</ol></div></details>`;
 }
 // A step of the timeline: its frame, and the glass box of the one who does it, open at it.
 document.addEventListener("click", (e) => {
@@ -5266,6 +5348,20 @@ document.addEventListener("click", (e) => {
   if (c) select({ run: Number(r), char: c, plan: plan || null });
   else renderSide();
 });
+// A frame said in the glass box or the timeline, clicked: the film there (filmFrame's frameGo).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("[data-frame-go]");
+  if (!b) return;
+  const [r, i, f] = b.dataset.frameGo.split("|").map(Number);
+  const run = screenRun(r), sc = run && run.scenes[i];
+  if (!ready(sc)) return;
+  pause();
+  const t = f / fpsOf(sc) + 1e-4;
+  if (i !== state.scene) { goScene(i, t); return; }
+  state.time = t;
+  render();
+  if (state.panel === "why" && state.selected) renderSide();
+});
 // Where she has nothing to do while the part goes on: what keeps it going, and how long
 // Ani planned it, with its timing a click away.
 function partGoesOnBox(run, sc, mainName, char, f) {
@@ -5274,12 +5370,12 @@ function partGoesOnBox(run, sc, mainName, char, f) {
   if (!part || !part.film || part.film.end <= f) return "";
   const k = meet(run.story, char);
   const others = w.activities.filter((a) => (a.subscene === part.name || w.parts.some((p) => p.name === a.subscene && p.parasiteOn === part.name)) && !a.characters.includes(char) && a.film && a.film.spans.some((s) => s.begin <= f && s.end > f));
-  const doing = others.map((a) => { const s = a.film.spans.find((x) => x.begin <= f && x.end > f); return `${who(a.characters.filter((x) => run.cast.includes(x)))} ${agree(meet(run.story, a.characters[0]), "is", "are")} ${para(esc(ACTIVITY[a.activity] || plain(a.activity)), a.plan)} (to frame ${s.end})`; });
+  const doing = others.map((a) => { const s = a.film.spans.find((x) => x.begin <= f && x.end > f); return `${who(a.characters.filter((x) => run.cast.includes(x)))} ${agree(meet(run.story, a.characters[0]), "is", "are")} ${para(esc(ACTIVITY[a.activity] || plain(a.activity)), a.plan)} (to ${frameAt(sc, s.end)})`; });
   const steps = [partSteps(run, w, part)];
   // the part's way of showing, and how long Ani planned it
   const main = w.tasks.find((t) => part.tasks.includes(t.name) && t.kind === "convey" && t.chosen.length && t.runningTime !== null);
   const planned = main ? plannedWords(run, sc, w, part, main, main.chosen[0]) : "";
-  const lead = `Part ${part.n} goes on to frame ${part.film.end}${doing.length ? `: meanwhile ${words([...new Set(doing)])}` : ""}, and ${k.she} ${agree(k, "has", "have")} no step of ${theirs(char)} own in it now.${planned ? ` ${planned}` : ""}`;
+  const lead = `Part ${part.n} goes on to ${frameAt(sc, part.film.end)}${doing.length ? `: meanwhile ${words([...new Set(doing)])}` : ""}, and ${k.she} ${agree(k, "has", "have")} no step of ${theirs(char)} own in it now.${planned ? ` ${planned}` : ""}`;
   return `<div class="why-act"><p><span class="label">Why so long</span> ${lead}</p><details><summary>How Ani timed the part</summary><div class="body"><ul class="chain timing">${steps.map((x) => `<li><span>${x}</span></li>`).join("")}</ul></div></details></div>`;
 }
 function whyPanel(char) {
@@ -5295,7 +5391,7 @@ function whyPanel(char) {
   const k = meet(R.story, char);
   const runNote = state.view === "both" || R !== RUNS[0] ? `${esc(R.label)} · ` : "";
   const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(k.name)}</h2></div><button type="button" class="linkish" id="back-to-story">Back</button></div>
-    <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${f} of ${s.last} (${(f / fpsOf(s)).toFixed(1)} s, at ${fpsOf(s)} frames a second)</p>`;
+    <p class="where">${runNote}${esc(s.title)}${main ? ` · part ${main.n} of ${s.subscenes.length}` : ""} · frame ${frameNo(s, f)} (scene frame ${f} of ${s.last}; ${(f / fpsOf(s)).toFixed(1)} s, at ${fpsOf(s)} frames a second)</p>`;
   let lead, whyBox = "", sections = "";
   // what the revival's repairs did in this scene (and in pass 1), those about this
   // character first; shown after Why, or first if there is no Why; and, apart, what SLIPS'
@@ -5349,9 +5445,9 @@ function whyPanel(char) {
     const reached = between && !between.next && between.prev && between.prev.base === "goes-to-to-transform" ? changeOfActivity(between.prev) : null;
     const kr = reached ? meet(R.story, reached.character) : null;
     lead = (reached
-      ? `<p class="lead">${esc(cap(k.the))} ${walkStopped(s, reached) ? `went towards ${esc(who(reached.character))} until the revival's repairs stopped the walk, as if there, without their touching (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end})` : `went to ${esc(who(reached.character))} until they touched (${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end})`}, and ${agree(k, "stands", "stand")} by while ${esc(kr.she)} ${atOnce(reached) ? `${agree(kr, "wanders", "wander")} about as ${esc(kr.she)} ${agree(kr, "has", "have")} become` : agree(kr, "changes", "change")} (the revival's choice: the thesis gives the cause nothing more to do).</p>`
+      ? `<p class="lead">${esc(cap(k.the))} ${walkStopped(s, reached) ? `went towards ${esc(who(reached.character))} until the revival's repairs stopped the walk, as if there, without their touching (${para(label(between.prev), between.prev.name)} ended at ${frameAt(s, between.prev.end)})` : `went to ${esc(who(reached.character))} until they touched (${para(label(between.prev), between.prev.name)} ended at ${frameAt(s, between.prev.end)})`}, and ${agree(k, "stands", "stand")} by while ${esc(kr.she)} ${atOnce(reached) ? `${agree(kr, "wanders", "wander")} about as ${esc(kr.she)} ${agree(kr, "has", "have")} become` : agree(kr, "changes", "change")} (the revival's choice: the thesis gives the cause nothing more to do).</p>`
       : between
-      ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at frame ${between.prev.end}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at frame ${between.next.begin}` : ""}.</p>`
+      ? `<p class="lead">${esc(cap(k.the))} is between two steps of the plan${between.prev ? `: ${para(label(between.prev), between.prev.name)} ended at ${frameAt(s, between.prev.end)}` : ""}${between.next ? `${between.prev ? ", and" : ":"} ${para(label(between.next), between.next.name)} begins at ${frameAt(s, between.next.begin)}` : ""}.</p>`
       : `<p class="lead">${esc(cap(k.the))} is ${para(label(act) + (with_.length ? ` (with ${esc(who(with_))})` : ""), act.name)}.</p>`) +
       (method ? `<p>This is part of Ani's plan for ${main ? `part ${main.n}` : "this part"}: ${para(cap(methodText(method)), method)}. ${methodCode(method, "run")}</p>` : "");
     whyBox = between || reached ? (main ? partGoesOnBox(R, s, main.name, char, f) : "") : actWhyBox(R, s, act, char, f);
@@ -5368,7 +5464,7 @@ function whyPanel(char) {
       : (CHANGE_METHODS.includes(fam) || fam === "bridge-to:") && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, the revival's way of showing a change (REVIVE;CHSHOW), made from DISPLY's and MEND's parts ${methodCode([fam], "run")}`
       : !CODE.display.methods[fam] && CODE.revive && CODE.revive.methods[fam] ? `Written by ${esc(fam)}, which the revival made from DISPLY's parts ${methodCode([fam], "run")}`
       : `Written by the method's code in DISPLY ${methodCode([fam], "run")}`;
-    if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from frame ${act.begin} to ${act.end}` : ""}.</p></div></details>`;
+    if (code) sections += `<details><summary>The plan, in Ani's words</summary><div class="body"><p class="note">${writer}, and run by Director.</p><pre class="lisp">${esc(pretty(parse(code.variables.plans)))}</pre><p class="note">It begins ${code.variables["begin-time"] ? beginText(parse(code.variables["begin-time"])) : "when the part does"}${act.begin !== null ? `; here it ran from ${frameAt(s, act.begin)} to ${frameNo(s, act.end)}` : ""}.</p></div></details>`;
   }
   // in a film made with Ani's looks (REVIVE;APPEAR), how it chose this one
   const looks = looksBody(R, char, "look-box", s);
@@ -6156,6 +6252,7 @@ const FPS_KEY = "ani-cinderella:run-fps:v1";
 const editor = { text: null, lisp: null, fps: Number(store.get(FPS_KEY)) === 24 ? 24 : 4, tidied: [], told: (() => { try { return JSON.parse(store.get(TOLD_KEY) || "null"); } catch { return null; } })() };
 function openEditor() {
   editor.text = store.get(DRAFT_KEY) || (RUNS[1] ? RUNS[1].cindy : DATA.cindy);
+  editor.note = "";
   select(null, { panel: "edit" });
 }
 // A text from anywhere but the reader's typing is tidied at once; what they type is
@@ -6171,8 +6268,11 @@ function setTold(told) {
   editor.told = told;
   if (told) store.set(TOLD_KEY, JSON.stringify(told)); else try { localStorage.removeItem(TOLD_KEY); } catch { /* nothing kept */ }
 }
-// Make the film of the editor's text, tidied first.
-function makeFromEditor() {
+// Make the film of the editor's text, tidied first, at the frames a second its button says
+// (Ken, 20 October: one quick and jerky, one slow and smoother), remembered for next time.
+function makeFromEditor(fps = editor.fps) {
+  editor.fps = fps === 24 ? 24 : 4;
+  store.set(FPS_KEY, String(editor.fps));
   setEditorText(editor.text);
   if (checkStory(editor.text).problems.length) return;
   startRun(editor.text, editor.fps, modeExtensions(), { tidied: editor.tidied, told: editor.told });
@@ -6181,22 +6281,24 @@ function editorPanel() {
   const side = document.getElementById("side");
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
+    ${editor.note ? `<p class="note crit-added" aria-live="polite">${editor.note}</p>` : ""}
     <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
     <p class="note">Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it.${SWITCHED.includes("know") ? " With the revival's extensions, words outlined in purple are the revival's knowledge, and Ani knows them too." : ""} Hover over a word for more.</p>
-    <details id="ed-lisp-box"><summary>Ani's version</summary><div class="body">
+    <details id="ed-lisp-box"${editor.openLisp ? " open" : ""}><summary>Ani's version</summary><div class="body">
       <p class="note">The film description as Ani reads it, in Ken's Lisp. Change anything here, the scenes too; the words above follow.</p>
       <div class="ed-lisp-wrap" id="ed-lisp-wrap"><textarea id="ed-lisp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="The film description, in Lisp"></textarea><button type="button" class="btn done" id="ed-done">Done</button></div>
     </div></details>
     <div id="ed-check"></div>
-    <div class="actions"><button type="button" class="btn primary" id="ed-make">Make the film</button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani">Make it with my knowledge</button>` : ""}
-      <button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
-    <div class="make-settings"><div class="seg" role="group" aria-label="Frames a second"><button type="button" data-fps="4" aria-pressed="${editor.fps === 4}">4 a second</button><button type="button" data-fps="24" aria-pressed="${editor.fps === 24}">24</button></div>${modeSwitch()}</div>
-    <p class="note" id="ed-fps-note"></p>
+    <div class="actions"><button type="button" class="btn primary" id="ed-make" data-make-fps="4"></button><button type="button" class="btn" id="ed-make-24" data-make-fps="24"></button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor="4" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 4 frames a second">Make it with my knowledge, quickly</button><button type="button" class="btn yours" data-teach-make-editor="24" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 24 frames a second">Make it with my knowledge, smoothly</button>` : ""}
+      <button type="button" class="linkish" data-teach-open title="Add to what Ani knows, for every story: a word, what it suggests, a way of showing, a feeling">Teach Ani</button><button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
+    <div class="make-settings">${modeSwitch()}</div>
+    <p class="note" id="ed-fps-note">Quickly is at 4 frames a second, as Ken's TV previews ran: jerky, and made in two or three minutes on a recent computer (five with Ken's beautified scene). Smoothly is at 24, as Ken's camera shot the film: about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is filmed.</p>
     ${SWITCHED.length ? `<p class="note mode-note">${esc(modeNote())}</p>${extensionsPanel()}` : ""}`;
-  side.querySelector("#ed-close").addEventListener("click", () => select(null));
+  editor.openLisp = false;
+  side.querySelector("#ed-close").addEventListener("click", () => { editor.note = ""; select(null); });
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
@@ -6212,15 +6314,7 @@ function editorPanel() {
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
-  const fpsNote = () => { side.querySelector("#ed-fps-note").textContent = editor.fps === 24 ? "At 24 frames a second, as Ken's camera shot the film: smoother, and about six times as long to make (a quarter of an hour on a recent computer, half an hour with Ken's beautified scene)." : "At 4 frames a second, as Ken's TV previews ran: quicker to make (two or three minutes on a recent computer). Choose 24 for the film's own rate."; };
-  side.querySelectorAll("[data-fps]").forEach((b) => b.addEventListener("click", () => {
-    editor.fps = Number(b.dataset.fps);
-    store.set(FPS_KEY, String(editor.fps));
-    side.querySelectorAll("[data-fps]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-    fpsNote();
-  }));
-  fpsNote();
-  side.querySelector("#ed-make").addEventListener("click", makeFromEditor);
+  side.querySelectorAll("[data-make-fps]").forEach((b) => b.addEventListener("click", () => makeFromEditor(Number(b.dataset.makeFps))));
   side.querySelector("#ed-make-mend").addEventListener("click", () => {
     if (checkStory(tidyStory(editor.text, { extensions: [...SWITCHED] }).text, { extensions: [...SWITCHED] }).problems.length) return;
     setMode("revival");
@@ -6305,8 +6399,13 @@ function refreshEditor({ fromLisp = false } = {}) {
   const blocked = problems.length > 0 || (!changes.length && !switchChanges1978());
   // a story that changes someone isn't made without CHANGE, as in 1978 (REVIVE;CHANGE)
   const refused = unmet.some((x) => x.change);
+  const again = RUNS[1] && RUNS[1].status && RUNS[1].status.running ? "Start again: " : "";
+  const beautified = hasBeautified(editor.text);
   make.disabled = blocked || refused;
-  make.textContent = RUNS[1] && RUNS[1].status && RUNS[1].status.running ? "Start again with this" : "Make the film";
+  make.textContent = `${again}Make it quickly (jerky, 4 frames a second, about ${beautified ? 5 : 3} minutes)`;
+  const smooth = side.querySelector("#ed-make-24");
+  smooth.disabled = blocked || refused;
+  smooth.textContent = `${again}Make it smoothly (24 frames a second, about ${beautified ? 30 : 15} minutes)`;
   // a story the switch's extensions would take further can be made with them at once
   side.querySelector("#ed-make-mend").hidden = !(unmet.length && SWITCHED.includes(refused ? "change" : "mend") && !blocked);
 }
@@ -6448,7 +6547,9 @@ const runTime = (st) => Date.now() - st.started - (st.paused || 0);
 const SILENT_MS = 5 * 60000;
 // (a remake of a film kept without its working files says so all the way through)
 function runWords(st) {
-  const frame = st.step === "film" && st.frameScene === st.scene && Number.isFinite(st.frame) ? ` · frame ${st.frame}` : "";
+  const run = [RUNS[1], ...LIB_RUNS.values()].find((x) => x && x.status === st), i = run ? run.sceneIds.indexOf(st.scene) : -1;
+  const base = i > 0 ? run.scenes.slice(0, i).reduce((n, x) => n + (ready(x) ? x.last + 1 : 0), 0) : 0;
+  const frame = st.step === "film" && st.frameScene === st.scene && Number.isFinite(st.frame) ? ` · frame ${(base + st.frame).toLocaleString("en-US")}` : "";
   return `${st.scratch ? `${st.scratch}: ` : ""}${st.what || ""}${frame} · ${clock(runTime(st))}`;
 }
 function runNotes(st) {
@@ -6840,7 +6941,7 @@ function toldWords(run) {
 // "why?" beside a choice, "why?" beside a look, and the scene cards, in a compare panel
 // about film b
 function wireCompare(side, b) {
-  side.querySelectorAll(".scene-card").forEach((el) => el.addEventListener("click", () => goScene(Number(el.dataset.scene), 0)));
+  side.querySelectorAll(".scene-card").forEach((el) => el.addEventListener("click", () => goScene(Number(el.dataset.scene), sceneStart(Number(el.dataset.scene)))));
   side.querySelectorAll("[data-cmp-cp]").forEach((el) => el.addEventListener("click", (ev) => {
     ev.preventDefault(); // (one in a note's summary opens the box, not the note)
     const [c, e] = el.dataset.cmpCp.split("|");
@@ -6931,6 +7032,7 @@ function comparePanel() {
     ${running ? "" : stopBox(b)}
     ${teachChangedSection(a, b)}
     ${critChangedSection(a, b)}
+    ${running ? "" : critBox(b)}
     ${mine ? "" : `<p class="note">${kenLeft ? "On the right" : "On the left"}: ${esc(b.label)}, one of your films${b.status && b.status.made ? `, made ${esc(shortDate(b.status.made))}` : ""}.</p>`}
     ${apart && !kenPlus ? `<p class="note">These are two different stories, so they can't be compared scene by scene: Ken's Cinderella, with his four characters in five scenes, and ${esc(storyTitle(b))}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>` : ""}
     <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
@@ -7071,7 +7173,10 @@ function render() {
   scrub.max = String(total);
   scrub.step = String(1 / finestFps());
   scrub.value = String(Math.min(state.time, total));
-  document.getElementById("frame-label").textContent = `${state.time.toFixed(1)} / ${total.toFixed(1)} s`;
+  // the time, and the frame each screen shows, the film's and, in brackets, the scene's
+  const at = shown().map((r) => sceneOf(r)).filter(ready).map((sc) => [frameNo(sc, frameIn(sc)), frameIn(sc)]);
+  const many = at.length > 1 ? "s" : "";
+  document.getElementById("frame-label").textContent = `${state.time.toFixed(1)} / ${total.toFixed(1)} s${at.length ? ` · frame${many} ${at.map((x) => x[0]).join(" | ")} (scene frame${many} ${at.map((x) => x[1]).join(" | ")})` : ""}`;
   for (const r of shown()) caption(r);
   scheduleSave();
 }
@@ -7083,7 +7188,7 @@ function renderSceneButtons() {
   const titles = [...Array(count).keys()].map((i) => (same ? runs[0].titles[runs[0].sceneIds[i]] : `Scene ${i + 1}`));
   const el = document.getElementById("scenes");
   el.innerHTML = titles.map((t, i) => `<button type="button" aria-pressed="${i === state.scene}"${same ? "" : ` title="${esc(runs.map((r) => r.titles[r.sceneIds[i]] || "—").join(" / "))}"`}>${esc(t)}</button>`).join("");
-  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => goScene(i, 0)));
+  el.querySelectorAll("button").forEach((b, i) => b.addEventListener("click", () => goScene(i, sceneStart(i))));
   // each character as it is drawn: "Cinderella: star", or, where the two films draw it
   // differently (one made with Ani's looks), "Cinderella: star in 1978, circle in yours"
   // (two of the reader's films: "on the left", "on the right")
@@ -7273,7 +7378,7 @@ renderSceneButtons();
 // the 1978 film; else it opens on the 1978 film, with the newest of "Your films" as theirs.
 const goBack = savedView();
 if (goBack) view.restoring = true; // (nothing kept until it is back)
-if (goBack || !fromHash()) goScene(0, 0.25);
+if (goBack || !fromHash()) goScene(0, sceneStart(0));
 library.ready = startLibrary();
 startTeaching().catch((e) => console.error(e));
 (goBack ? library.ready.then(() => restoreView(goBack)) : restoreRun()).catch((e) => console.error(e)).finally(() => { view.restoring = false; });

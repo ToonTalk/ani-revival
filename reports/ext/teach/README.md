@@ -96,6 +96,8 @@ Your legitimacy rule is a question, not a gate (`legitimacyQuestion(word)`): "Wo
 
 ## For the page
 
+*On the page (since 20 October, Ken's testing on the page (3)):* "Teach Ani" is also in the header's row beside the guides, and in the editor's actions, as well as beside "Change the story"; and where the glass box gives Ani's words as the reasons for a choice of pass 1 ("The Prince's speed: high ... because he is strong"), "Teach Ani something different about “strong”" opens the form for what a word suggests, with the word, the element and another value filled in (`teachWordOffers`, app/film/teach.js). "Tell Ani what's wrong" (criticism C4, `reports/ext/critic/README.md`) sends what is really knowledge here, its form filled in.
+
 Everything is in `src/teach.js` (no Lisp: the page and the worker can import it) and `src/pipeline.js` (the worker).
 
 **The notebook format** (`ani-knowledge`, version 1):

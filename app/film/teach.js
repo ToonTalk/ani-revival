@@ -596,7 +596,9 @@ function makeWithKnowledge(before = teachBase(), { description = undefined, exte
   startRun(description !== undefined ? cindy : ken ? null : before.cindy, rate, ext, { run, pair: [ref, "cur"] });
 }
 // From the editor: its story, with the switch's extensions and its frames a second.
-function makeEditorWithKnowledge() {
+function makeEditorWithKnowledge(fps = editor.fps) {
+  editor.fps = fps === 24 ? 24 : 4;
+  store.set(FPS_KEY, String(editor.fps));
   setEditorText(editor.text);
   const ext = modeExtensions();
   const text = tidyStory(editor.text, { extensions: ext }).text;
@@ -780,6 +782,29 @@ function teachLooks(run, c) {
   return lines.join("");
 }
 const shortDay = (iso) => { const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleDateString(undefined, { day: "numeric", month: "long" }); };
+
+// ---- from the glass box
+
+// Where the glass box gives the words behind one of pass 1's choices ("The hare's speed:
+// high ... because they are quick and brazen"), Teach Ani something different about each
+// of Ani's own words there, the form open and filled in: the word, the element, and another
+// value (Ken, 20 October: "Where is the teach Ani interface?"). Ani keeps its own
+// suggestion; a learner's is added beside it, and COSUG weighs the two.
+function teachWordOffers(char, el, cp) {
+  const E = AniTeach.MOVEMENT_ELEMENTS[el];
+  if (!E || !cp) return "";
+  const W = aniWords(runExtensions(R)), offers = new Map();
+  for (const m of (cp.memory || []).filter((x) => x[0] === "suggestion:")) {
+    const src = kv(m, "source"), v = show(kv(m, "value"));
+    for (const x of Array.isArray(src) && src[0] === "and" ? src.slice(1) : [src]) {
+      const w = typeof x === "string" ? x : Array.isArray(x) && (x[0] === "opposite-of" || x[0] === "neighbor-of") ? x[1] : null;
+      if (!w || !W[w] || W[w].yours || offers.has(w)) continue;
+      const value = (v === "high" && E.values.includes("low") ? "low" : v === "low" && E.values.includes("high") ? "high" : E.values.find((y) => y !== v)) || E.values[0];
+      offers.set(w, { kind: "suggests", fields: { what: "moves", word: w, element: el, value }, note: esc(`“${plain(w)}” suggests ${v} for ${E.noun} in Ani's knowledge. Say what you would have it suggest, and why: Ani keeps its own suggestion, and weighs yours beside it.`) });
+    }
+  }
+  return [...offers].map(([w, given]) => `<button type="button" class="linkish teach-offer" data-teach-open="${esc(JSON.stringify(given))}">Teach Ani something different about “${esc(plain(w))}”</button>`).join(" ");
+}
 
 // ---- files
 
@@ -987,7 +1012,7 @@ document.addEventListener("click", (e) => {
     openTeach(given);
     return;
   }
-  if (b.dataset.teachMakeEditor !== undefined) { makeEditorWithKnowledge(); return; }
+  if (b.dataset.teachMakeEditor !== undefined) { makeEditorWithKnowledge(Number(b.dataset.teachMakeEditor) || editor.fps); return; }
   if (state.panel === "teach" && Object.keys(b.dataset).some((k) => k.startsWith("teach"))) teachAct(b);
 });
 // a notebook's title, renamed with Enter

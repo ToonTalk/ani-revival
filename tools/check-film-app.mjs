@@ -405,12 +405,14 @@ try {
   const pending = new Map();
   const errors = [];
   const sentryAsked = []; // requests for anything of Sentry's while the page has no DSN
+  const sdkAsked = []; // requests for Sentry's bundle, at any time
   let reporting = false;
   ws.addEventListener("message", (e) => {
     const m = JSON.parse(e.data);
     if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.reject(new Error(m.error.message)) : p.resolve(m.result); }
     if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
     if (m.method === "Network.requestWillBeSent" && !reporting && /sentry/i.test(m.params.request.url)) sentryAsked.push(m.params.request.url);
+    if (m.method === "Network.requestWillBeSent" && /sentry-cdn/i.test(m.params.request.url)) sdkAsked.push(m.params.request.url);
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => { const n = ++id; pending.set(n, { resolve, reject }); ws.send(JSON.stringify({ id: n, method, params })); });
   const js = async (expr) => {
@@ -456,6 +458,189 @@ try {
   })()`);
   check(errors.length === 0 && /^0\.0 \//.test(played), "Play from the start of each scene, twenty times, without an error");
   await shot("1-film.png");
+
+  // Ken's testing on the page (3), 20 October: frames are numbered across the whole film,
+  // and the player says the frame beside the time, the scene's own in brackets; a scene
+  // chosen above the film opens on its first frame with someone on it (frame 0 is the
+  // cleared screen); a frame said in the timeline shows it when clicked; the strip's colors
+  // are explained, in hover titles and a key below it (the thin orange one, a part of only
+  // feelings running alongside another: Ken's SCENE, scene.9:216-240); Teach Ani is in the
+  // header's row, and where a choice's reasons are words of Ani's, "Teach Ani something
+  // different about" each opens its form, filled in
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
+  const round3 = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.querySelector('#rate [data-rate="4"]').click();
+    await wait(100);
+    document.querySelectorAll("#scenes button")[1].click();
+    await wait(100);
+    const label = document.getElementById("frame-label").textContent;
+    const ka = t.RUNS[0].scenes[1], intro = t.RUNS[0].scenes[0];
+    const f = Math.floor(t.state.time * 4 + 1e-6);
+    const someone = Object.values(ka.film.frames[f].chars).some((c) => c && c.visible);
+    const blank0 = !Object.values(ka.film.frames[0].chars).some((c) => c && c.visible);
+    // the strip: a hover title on each part, the thin orange one's too, and the key
+    const box = document.getElementById("bands").getBoundingClientRect(), scrub = document.querySelector(".scrub");
+    const titles = new Set();
+    for (let x = 0.02; x < 1; x += 0.04) for (const y of [3, 14]) { scrub.dispatchEvent(new MouseEvent("mousemove", { clientX: box.left + box.width * x, clientY: box.top + y, bubbles: true })); titles.add(document.getElementById("scrub").title); }
+    const key = document.getElementById("bands-key").innerText;
+    // the glass box's heading, at that frame
+    t.select({ run: 0, char: "cinderella" });
+    await wait(100);
+    const where = document.querySelector("#side .where").innerText;
+    // the timeline, in the story panel: a frame clicked is shown
+    t.select(null);
+    await wait(100);
+    const tl = document.querySelector("#side details.timeline");
+    tl.open = true;
+    const go = [...tl.querySelectorAll("[data-frame-go]")][3];
+    const [, , gf] = go.dataset.frameGo.split("|").map(Number);
+    const goText = go.textContent;
+    go.click();
+    await wait(100);
+    const jumped = Math.floor(t.state.time * 4 + 1e-6) === gf && document.getElementById("frame-label").textContent.includes("scene frame " + gf + ")");
+    // Teach Ani, in the header's row
+    document.querySelector("header [data-teach-open]").click();
+    await wait(100);
+    const teachPanel = t.state.panel;
+    // "Teach Ani something different about" a word, in a choice point's reasons
+    const cp = t.using(t.RUNS[0], () => t.choicePointBox("prince", "speed"));
+    const div = document.createElement("div");
+    div.innerHTML = cp;
+    document.body.append(div);
+    const offer = div.querySelector(".teach-offer");
+    const offerText = offer ? offer.textContent : "";
+    if (offer) offer.click();
+    await wait(100);
+    div.remove();
+    const form = t.teachUi.form;
+    return { label, f, base: intro.last + 1, someone, blank0, titles: [...titles].filter(Boolean), key, where, goText, gf, jumped, teachPanel, offerText, form: form && { kind: form.kind, word: form.f.word, element: form.f.element, value: form.f.value }, panel: t.state.panel };
+  })()`);
+  const lm = /^0\.\d \/ [\d.]+ s · frame ([\d,]+) \(scene frame (\d+)\)$/.exec(round3.label);
+  check(!!lm && Number(lm[1].replace(/,/g, "")) === round3.base + round3.f && Number(lm[2]) === round3.f && round3.f > 0 && round3.someone && round3.blank0,
+    `a scene chosen above the film opens on its first frame with someone on it (Kept Apart's frame ${round3.f}; its frame 0 is the cleared screen), and the player says the film's frame beside the time, the scene's in brackets (${round3.label})`);
+  check(round3.titles.some((x) => /^Part 2 of 3: frames [\d,]+ to [\d,]+, with a part of feelings running alongside it$/.test(x)) && round3.titles.some((x) => /^Part 3, running alongside part 2 \(frames [\d,]+ to [\d,]+\): it has only changes of feeling, so Ani runs it while that part goes on, made longer to hold it$/.test(x))
+    && /The scene's parts, in turn/.test(round3.key) && /A part running alongside another: it has only changes of feeling, so Ani runs it while the part before it goes on, made longer to hold it \(Ken's SCENE, scene\.9:216-240\)/.test(round3.key),
+    `the strip's parts have hover titles (${round3.titles.length}: ${round3.titles.slice(0, 2).join("; ")}), and a key below it says what the thin orange one is`);
+  check(/^Kept Apart · part \d+ of \d+ · frame [\d,]+ \(scene frame \d+ of 115; [\d.]+ s, at 4 frames a second\)$/.test(round3.where) && Number(/frame ([\d,]+) \(/.exec(round3.where)[1].replace(/,/g, "")) === round3.base + round3.f,
+    `the glass box's heading says the film's frame, the scene's in brackets (${round3.where})`);
+  check(round3.jumped && Number(round3.goText.replace(/,/g, "")) === round3.base + round3.gf, `a frame in the timeline (${round3.goText}) shows that frame when clicked`);
+  check(round3.teachPanel === "teach" && /^Teach Ani something different about “[a-z -]+”$/.test(round3.offerText) && round3.form && round3.form.kind === "suggests" && round3.form.element === "speed" && round3.offerText.includes(`“${round3.form.word.replace(/-/g, " ")}”`) && round3.form.value !== "high" && round3.panel === "teach",
+    `Teach Ani is in the header's row, and the Prince's speed (high) offers "${round3.offerText}", which opens its form filled in (${round3.form ? `${round3.form.word}: speed ${round3.form.value}` : "none"})`);
+  await shot("16-teach-from-a-choice.png");
+
+  // Ken's decision of 20 October on making a film: no 4/24 toggle beside "Make the film", but
+  // two buttons, quick and jerky (4 frames a second) and slow and smoother (24), the one
+  // pressed remembered; the player's 4/24 for his 1978 film is as it was
+  const makeButtons = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    t.select(null, { panel: "edit" });
+    await wait(200);
+    const side = document.getElementById("side");
+    [...side.querySelectorAll("[data-preset]")].find((b) => b.textContent === "A shy Prince").click();
+    await wait(300);
+    const quick = document.getElementById("ed-make").textContent, smooth = document.getElementById("ed-make-24").textContent;
+    const toggle = !!side.querySelector("[data-fps]"), rate = !!document.querySelector('#rate [data-rate="24"]');
+    document.getElementById("ed-make-24").click();
+    await wait(500);
+    const fps = t.RUNS[1] && t.RUNS[1].status && t.RUNS[1].status.running ? t.RUNS[1].fps || null : "not running";
+    const kept = localStorage.getItem("ani-cinderella:run-fps:v1");
+    t.stopRun();
+    await wait(300);
+    return { quick, smooth, toggle, rate, fps, kept };
+  })()`);
+  check(makeButtons.quick === "Make it quickly (jerky, 4 frames a second, about 3 minutes)" && makeButtons.smooth === "Make it smoothly (24 frames a second, about 15 minutes)" && !makeButtons.toggle && makeButtons.rate && makeButtons.kept === "24" && makeButtons.fps === 24,
+    `"Change the story" has two buttons, "${makeButtons.quick}" and "${makeButtons.smooth}", and no 4/24 toggle; the one pressed is remembered (${makeButtons.kept}), and the 1978 film's 4/24 is as it was (made at ${makeButtons.fps})`);
+  await js(`(() => { localStorage.setItem("ani-cinderella:run-fps:v1", "4"); localStorage.removeItem("ani-cinderella:draft:v1"); })()`);
+
+  // "Tell Ani what's wrong" (criticism C4), on Ken's film, with the model's reply stood in
+  // for (no model is called here): the request goes to the provider chosen, and only there,
+  // with the visitor's words and the film as the glass box tells it, and no key in its body;
+  // the schema is strict (every object's properties all required, no others), its enums the
+  // film's own scenes, parts, ways and cast; each item is shown, with what can be done with
+  // it, and nothing is added until the visitor says so: a part too quick goes to "Your
+  // criticism" with the visitor's words, knowledge to Teach Ani, its form filled in, and
+  // what Ani has no notion of is refused with Ken's sentence (p. 191)
+  await open();
+  await send("Page.navigate", { url: `${base}/app/film.check.html` });
+  for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
+  const c4 = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.querySelector('#rate [data-rate="4"]').click();
+    document.querySelectorAll("#scenes button")[2].click();
+    await wait(200);
+    const SAID = "No Longer Kept Apart is too quick, and it feels gloomy; pretty characters should move fast";
+    const real = window.fetch, calls = [];
+    window.fetch = async (url, opts) => {
+      calls.push(String(url));
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      const body = JSON.parse(opts.body);
+      window.__c4body = body;
+      const parts = body.output_config.format.schema.properties.items.items.anyOf.find((x) => x.properties.kind.enum[0] === "pace").properties.part.enum;
+      // the part of No Longer Kept Apart, as the prompt lists it
+      const p = (/Scene “No Longer Kept Apart”[\\s\\S]*?Part 1 \\((p\\d+)\\)/.exec(body.messages[0].content) || [])[1];
+      const reply = { items: [
+        { kind: "pace", part: p || parts[0], direction: "too-quick", said: "No Longer Kept Apart is too quick" },
+        { kind: "cannot", about: "mood", explain: "Mood is not something Ani takes into account", said: "it feels gloomy" },
+        { kind: "teach", word: "pretty", element: "speed", value: "high", because: "pretty characters dance about", said: "pretty characters should move fast" },
+        { kind: "pace", part: "p999", direction: "too-slow", said: "a part the film doesn't have" } ] };
+      return new Response(JSON.stringify({ content: [{ type: "text", text: JSON.stringify(reply) }] }), { status: 200 });
+    };
+    const side = document.getElementById("side");
+    const tell = side.querySelector(".crit-tell");
+    if (!tell) return { error: "no Tell Ani what's wrong" };
+    tell.open = true;
+    side.querySelector('[data-crq-provider="anthropic"]').click();
+    await wait(100);
+    const key = document.getElementById("crq-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input", { bubbles: true }));
+    const words = document.getElementById("crq-words");
+    words.value = SAID;
+    words.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector('.crit-tell [data-crq="go"]').click();
+    for (let k = 0; k < 50 && !document.querySelector(".crq-items"); k++) await wait(100);
+    const body = window.__c4body;
+    window.fetch = real;
+    const items = [...document.querySelectorAll(".crq-item")].map((x) => x.innerText);
+    const pendingBefore = t.pendingOf(t.RUNS[0]).length;
+    // strict: every object's properties all required, none other allowed
+    const strict = (x) => !x || typeof x !== "object" ? true : Array.isArray(x) ? x.every(strict) : (x.type !== "object" || (x.additionalProperties === false && JSON.stringify(Object.keys(x.properties).sort()) === JSON.stringify([...x.required].sort()))) && Object.values(x).every(strict);
+    const schema = body && body.output_config.format.schema;
+    const kinds = schema ? schema.properties.items.items.anyOf : [];
+    const enumOf = (kind, prop) => { const k = kinds.find((x) => x.properties.kind.enum[0] === kind); return k ? k.properties[prop].enum || (k.properties[prop].items || {}).enum : null; };
+    window.scrollTo(0, 0);
+    document.querySelector(".crq-items").scrollIntoView({ block: "center" });
+    await wait(100);
+    window.__c4shot = true;
+    document.querySelector('.crq-item [data-crq="act"]').click();
+    await wait(200);
+    const pending = t.pendingOf(t.RUNS[0]).map((c) => ({ kind: c.kind, scene: c.scene, direction: c.direction, said: c.said }));
+    const listed = [...document.querySelectorAll(".crit-list li")].map((x) => x.innerText);
+    const teachButton = [...document.querySelectorAll(".crq-item")].find((x) => /Knowledge/.test(x.innerText)).querySelector('[data-crq="act"]');
+    teachButton.click();
+    await wait(200);
+    const form = t.teachUi.form;
+    return {
+      calls, items, pendingBefore, pending, listed, strict: strict(schema), panel: t.state.panel,
+      form: form && { kind: form.kind, word: form.f.word, element: form.f.element, value: form.f.value, because: form.f.because },
+      prompt: body ? body.messages[0].content : "", keyInBody: JSON.stringify(body || {}).includes("test-key-not-real"), keyHeader: !!body,
+      scenes: enumOf("start-far", "scene"), cast: enumOf("start-far", "who"), sceneIds: t.RUNS[0].sceneIds, castIds: t.RUNS[0].cast, kinds: kinds.map((x) => x.properties.kind.enum[0]),
+    };
+  })()`);
+  check(!c4.error && c4.calls.length === 1 && /^https:\/\/api\.anthropic\.com\//.test(c4.calls[0]) && !c4.keyInBody && c4.prompt.includes("No Longer Kept Apart is too quick, and it feels gloomy; pretty characters should move fast") && /Scene “No Longer Kept Apart” \(id no-longer-kept-apart\)/.test(c4.prompt) && /thesis p\. 191/.test(c4.prompt),
+    `"Tell Ani what's wrong" asks only the provider chosen (${(c4.calls || []).join(", ")}), with the visitor's words and the film as the glass box tells it, and no key in the request's body`);
+  check(c4.strict && JSON.stringify(c4.scenes) === JSON.stringify(c4.sceneIds) && JSON.stringify(c4.cast) === JSON.stringify(c4.castIds) && c4.kinds.join() === "another-way,pace,keep-apart,start-far,story,teach,cannot",
+    `its schema is strict, its enums the film's own scenes and cast, its kinds ${c4.kinds && c4.kinds.join(", ")}`);
+  check(c4.items.length === 4 && /^Not something Ani can change: the model named a part this film doesn't have\./.test(c4.items[3]) && /^Criticism: part 1 of No Longer Kept Apart is too quick \(you said “No Longer Kept Apart is too quick”\) Add to your criticism$/.test(c4.items[0])
+    && /^Ani can't take this criticism: Mood is not something Ani takes into account\. As Ken wrote, “Ani currently has practically no conception of rhythm, for example, and so could not respond to criticisms of the film's rhythm\. The same holds for notions such as climax, tension, mood, or humor\./.test(c4.items[1])
+    && /^Knowledge, true of any pretty character in any story, not criticism of this film: a pretty character's speed is high\./.test(c4.items[2]) && c4.pendingBefore === 0,
+    `each item is shown in plain words, with what can be done with it, and nothing added yet (${c4.items.map((x) => x.split(":")[0]).join("; ")})`);
+  check(c4.pending.length === 1 && c4.pending[0].kind === "pace" && c4.pending[0].scene === "no-longer-kept-apart" && c4.pending[0].direction === "too-quick" && c4.pending[0].said === "No Longer Kept Apart is too quick" && /you said “No Longer Kept Apart is too quick”/.test(c4.listed.join(" ")),
+    `"Add to your criticism" adds it, with the visitor's words (${c4.listed.join(" | ")})`);
+  check(c4.panel === "teach" && c4.form && c4.form.kind === "suggests" && c4.form.word === "pretty" && c4.form.element === "speed" && c4.form.value === "high" && c4.form.because === "pretty characters dance about",
+    `"Teach Ani this" opens Teach Ani's form filled in (${c4.form ? `${c4.form.word}: ${c4.form.element} ${c4.form.value}, because ${c4.form.because}` : "none"})`);
 
   // the film opens in color (Ken, 15 October), and a visitor's choice of TV is kept
   const pictureAt = () => js(`document.getElementById("mode-color").getAttribute("aria-pressed") + " " + document.getElementById("mode-bw").getAttribute("aria-pressed")`);
@@ -1409,6 +1594,60 @@ try {
   check(/The hare: eight-pointed star/.test(fable) && /The tortoise: square/.test(fable), `the hare and the tortoise are drawn as Ani chose them (${fable.replace(/\n/g, "; ")})`);
   const tortoise = await clickOn("fig-1", "The tortoise", `() => { const d = document.querySelector("#side details.looks"); if (!d) return { found: true, text: "" }; d.open = true; return { found: true, text: d.innerText }; }`);
   check(/simple because he moves fast \(Ani made him fast because he is hard working and determined and the film's energy is high\), though slower than the hare\./.test(tortoise.text || ""), `the tortoise's "How he looks" says why he moves fast, and that he is slower than the hare: ${(tortoise.text || "").split("\n").filter((l) => l.trim())[1] || ""}`);
+
+  // "Tell Ani what's wrong" with Ken's own example (20 October), on the tortoise and the hare
+  // just made: "the hare is unhappy and should move slowly in the final scene" is a change to
+  // the story, not criticism of how Ani made the film, so it goes to "Change the story" with
+  // (establish (emotional-state hare (joy (negative high)))) added to The Finish, for the
+  // visitor to look over and make (the model's reply stood in for; no model is called)
+  const hare = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const SAID = "the hare is unhappy and should move slowly in the final scene";
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await wait(200);
+    const real = window.fetch, calls = [];
+    window.fetch = async (url, opts) => {
+      calls.push(String(url));
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      window.__hareBody = JSON.parse(opts.body);
+      const reply = { items: [{ kind: "story", scene: "the-finish", add: { kind: "establish-emotional-state", who: "hare", feelings: [{ feeling: "joy", sign: "negative", amount: "high" }] }, change: "the hare is unhappy in the final scene", said: SAID }] };
+      return new Response(JSON.stringify({ content: [{ type: "text", text: JSON.stringify(reply) }] }), { status: 200 });
+    };
+    const side = document.getElementById("side");
+    const tell = side.querySelector(".crit-tell");
+    if (!tell) return { error: "no Tell Ani what's wrong: " + side.innerText.slice(0, 200) };
+    tell.open = true;
+    side.querySelector('[data-crq-provider="anthropic"]').click();
+    await wait(100);
+    const key = document.getElementById("crq-key");
+    key.value = "test-key-not-real";
+    key.dispatchEvent(new Event("input", { bubbles: true }));
+    const words = document.getElementById("crq-words");
+    words.value = SAID;
+    words.dispatchEvent(new Event("input", { bubbles: true }));
+    document.querySelector('.crit-tell [data-crq="go"]').click();
+    for (let k = 0; k < 50 && !document.querySelector(".crq-items"); k++) await wait(100);
+    window.fetch = real;
+    const body = window.__hareBody;
+    const item = (document.querySelector(".crq-item") || {}).innerText || "";
+    const schema = body && body.output_config.format.schema;
+    const story = schema && schema.properties.items.items.anyOf.find((x) => x.properties.kind.enum[0] === "story");
+    document.querySelector('.crq-item [data-crq="act"]').click();
+    await wait(300);
+    const lisp = document.getElementById("ed-lisp").value;
+    const finish = lisp.slice(lisp.indexOf("(define the-finish scene"), lisp.indexOf("(declare"));
+    return { calls, item, panel: side.querySelector("h2").innerText, note: (document.querySelector("#side .crit-added") || {}).innerText || "", finish, lispOpen: document.getElementById("ed-lisp-box").open,
+      scenes: story ? story.properties.scene.enum : null, who: story ? story.properties.add.anyOf[0].properties.who.enum : null, prompt: body ? body.messages[0].content.includes(SAID) : false,
+      rest: /\\(define the-boast scene/.test(lisp) && /\\(define the-race scene/.test(lisp) && /\\(define tortoise-and-hare-film film/.test(lisp) && (lisp.match(/emotional-state hare \\(joy/g) || []).length === 1 };
+  })()`);
+  check(!hare.error && hare.calls.length === 1 && hare.prompt && JSON.stringify(hare.scenes) === JSON.stringify(["the-boast", "the-race", "the-finish", "none"]) && JSON.stringify(hare.who) === JSON.stringify(["hare", "tortoise"])
+    && /^A change to the story, not criticism of how Ani made it: the hare is unhappy in the final scene\. In The Finish, Ani would be told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\): the hare is [a-z ]*unhappy\./.test(hare.item),
+    `Ken's "the hare is unhappy and should move slowly in the final scene" is read as a change to the story (${(hare.item || hare.error || "").split("(you said")[0].trim()})`);
+  check(hare.panel === "Change the story" && /^From “Tell Ani what's wrong”: in The Finish, Ani is told \(establish \(emotional-state hare \(joy \(negative high\)\)\)\)/.test(hare.note) && hare.lispOpen
+    && /\(establish \(emotional-state hare \(pride \(negative high\)\)\)\)\s*\n\s*\(establish \(emotional-state hare \(joy \(negative high\)\)\)\)\)\)/.test(hare.finish) && hare.rest,
+    `"Change the story this way" opens the editor with the task added to The Finish, and the rest of the story as it was, for the visitor to make (${hare.note.slice(0, 60)}...)`);
+  await shot("18-hare-to-the-editor.png");
+  await js(`document.getElementById("ed-close").click()`);
 
   // a story whose scene is called fear (test/stories/stress/know-scene-named-fear.lisp, as
   // the model's reply): with KNOW, fear is a feeling EMOTE defines, and would replace the
@@ -3056,23 +3295,47 @@ try {
   const quiet = await js(`({ sdk: typeof window.Sentry, script: !!document.querySelector('script[src*="sentry"]'), note: document.querySelector(".reporting").hidden, send: !!document.querySelector(".send-story") })`);
   check(!sentryAsked.length && quiet.sdk === "undefined" && !quiet.script && quiet.note && !quiet.send, `with no DSN, nothing of Sentry's is loaded or asked for, the page doesn't say errors are reported, and offers no story to send${sentryAsked.length ? ` (asked for ${sentryAsked[0]})` : ""}`);
 
-  // with a DSN, as on the site (here it points at this server): an uncaught error arrives
-  // with no key, story text or user; a story goes only when the visitor confirms
+  // with a DSN, as on the site (here it points at this server): nothing is sent, or loaded,
+  // without the visitor's say-so (Ken, 20 October): an uncaught error shows a small notice,
+  // "Ani ran into an error. Send a report to Ken, without any story, key or personal data?",
+  // with what would be sent a click away, and nothing of Sentry's is asked for until Send;
+  // then the error arrives with no key, story text or user; "Don't ask again" is kept in this
+  // browser, and after it nothing is asked or sent; a story goes only when the visitor confirms
   reporting = true;
   const SECRET = "sk-check-NOT-A-REAL-KEY-0123456789", TOLD = "Once upon a check, a tortoise raced a hare across the meadow and won.";
-  await js(`(() => { localStorage.setItem("ani-cinderella:keys:v1", JSON.stringify({ anthropic: ${JSON.stringify(SECRET)} })); localStorage.setItem("ani-cinderella:story:v1", ${JSON.stringify(TOLD)}); })()`);
+  await js(`(() => { localStorage.setItem("ani-cinderella:keys:v1", JSON.stringify({ anthropic: ${JSON.stringify(SECRET)} })); localStorage.setItem("ani-cinderella:story:v1", ${JSON.stringify(TOLD)}); localStorage.removeItem("ani-cinderella:error-reports:v1"); })()`);
+  const sdkAskedBefore = sdkAsked.length;
   await send("Page.navigate", { url: `${base}/app/film.report-check.html` });
+  for (let k = 0; k < 50; k++) { await sleep(200); if (await js(`!!document.getElementById("caption-0") && document.getElementById("caption-0").innerText.length > 0`).catch(() => false)) break; }
+  const noted = await js(`document.querySelector(".reporting").hidden ? "" : document.querySelector(".reporting").innerText`);
+  await js(`setTimeout(() => { throw new Error("a deliberate check error, with ${SECRET} and ${TOLD}"); }, 0)`);
+  await sleep(1500);
+  const asked = await js(`(() => { const box = document.getElementById("report-ask"); if (!box || box.hidden) return null; const d = box.querySelector("details"); d.open = true; return { text: box.innerText, shown: d.querySelector("pre").innerText, sdk: typeof window.Sentry }; })()`);
+  check(/Nothing is sent unless you press Send/.test(noted) && asked && /^Ani ran into an error\. Send a report to Ken, without any story, key or personal data\?/.test(asked.text) && /Send\s+Don't send\s+Don't ask again/.test(asked.text)
+    && /a deliberate check error, with \[removed\] and \[removed\]/.test(asked.shown) && !asked.shown.includes(SECRET) && !asked.shown.includes(TOLD) && envelopes.length === 0 && asked.sdk === "undefined" && sdkAsked.length === sdkAskedBefore,
+    `an uncaught error sends nothing: the page asks (${asked ? asked.text.split("\n")[0] : "no notice"}), with what would be sent a click away, its key and story text removed, and nothing of Sentry's is loaded or asked for until Send`);
+  await shot("15-error-notice.png");
+  await phone("15b-error-notice-phone.png", `document.getElementById("report-ask")`);
+  await js(`document.querySelector('#report-ask [data-report="send"]').click()`);
   let sdk = false;
   for (let k = 0; k < 75 && !sdk; k++) { await sleep(200); sdk = await js(`typeof window.Sentry === "object" && !!window.Sentry.getClient && !!window.Sentry.getClient()`).catch(() => false); }
-  if (!sdk) console.log("skip  the reporting checks: Sentry's SDK couldn't be loaded here");
+  if (!sdk) console.log("skip  the reporting checks after Send: Sentry's SDK couldn't be loaded here");
   else {
-    const noted = await js(`!document.querySelector(".reporting").hidden`);
-    await js(`setTimeout(() => { throw new Error("a deliberate check error, with ${SECRET} and ${TOLD}"); }, 0)`);
     for (let k = 0; k < 50 && !envelopes.length; k++) await sleep(200);
     const error = envelopes.join("\n");
     errors.splice(0, errors.length, ...errors.filter((e) => !/a deliberate check error/.test(e)));
-    check(noted && /a deliberate check error, with \[removed\] and \[removed\]/.test(error) && !error.includes(SECRET) && !error.includes(TOLD) && !/"user"/.test(error) && !/ip_address/.test(error) && /"infer_ip":"never"/.test(error) && !/"breadcrumbs":\[\{/.test(error),
-      `an uncaught error is reported, its key and story text removed, with no user, IP address or breadcrumbs (${envelopes.length} envelope${envelopes.length === 1 ? "" : "s"}, ${error.length} bytes)`);
+    check(/a deliberate check error, with \[removed\] and \[removed\]/.test(error) && /error-sent-by-visitor/.test(error) && !error.includes(SECRET) && !error.includes(TOLD) && !/"user"/.test(error) && !/ip_address/.test(error) && /"infer_ip":"never"/.test(error) && !/"breadcrumbs":\[\{/.test(error),
+      `on Send, the error is reported, its key and story text removed, with no user, IP address or breadcrumbs (${envelopes.length} envelope${envelopes.length === 1 ? "" : "s"}, ${error.length} bytes)`);
+    // "Don't ask again": kept, and after it nothing asked or sent
+    const sent = envelopes.length;
+    await js(`setTimeout(() => { throw new Error("a deliberate check error, the second"); }, 0)`);
+    await sleep(800);
+    const second = await js(`(() => { const box = document.getElementById("report-ask"); return !!box && !box.hidden && /Ani ran into an error/.test(box.innerText); })()`);
+    await js(`document.querySelector('#report-ask [data-report="never"]').click()`);
+    await js(`setTimeout(() => { throw new Error("a deliberate check error, the third"); }, 0)`);
+    await sleep(1500);
+    const never = await js(`({ kept: localStorage.getItem("ani-cinderella:error-reports:v1"), shown: !!document.getElementById("report-ask") && !document.getElementById("report-ask").hidden })`);
+    check(second && never.kept === "never" && !never.shown && envelopes.length === sent, `"Don't ask again" is kept in this browser (${never.kept}), and after it an error is neither asked about nor sent`);
     const before = envelopes.length;
     const offer = await js(`(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms));

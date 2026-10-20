@@ -450,6 +450,8 @@ async function deleteFilm(id) {
 // read when it is opened, with "Forget all of it", which clears everything the page keeps
 // (in localStorage and sessionStorage, the keys named ani-cinderella:..., and its IndexedDB
 // database) and starts the page afresh.
+// (whether to ask about reporting an error to Ken: "never", once the visitor said so; report.js)
+const REPORT_KEY = "ani-cinderella:error-reports:v1";
 const KEPT_WHAT = () => [
   [COLOR_KEY, "Whether the film is shown in color or as Ken's TV previews ran (TV)"],
   [RATE_KEY, "Which frames a second the 1978 film is shown at"],
@@ -464,6 +466,7 @@ const KEPT_WHAT = () => [
   [VIDEO_KEY, "The video options: title cards and subtitles"],
   [RUN_KEY, "Your last film, where this browser won't keep a library of them"],
   [KNOWLEDGE_KEY, "Your notebooks of knowledge (Teach Ani), where this browser won't keep a library"],
+  [REPORT_KEY, "That you said “Don't ask again” when Ani ran into an error: no report is ever sent from this browser"],
 ];
 const PAGE_PREFIX = "ani-cinderella:";
 function keysIn(storage) {
