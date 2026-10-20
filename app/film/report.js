@@ -102,7 +102,8 @@ document.addEventListener("click", async (e) => {
     }
     sent = await S.flush(5000).catch(() => false);
   }
-  if (box) {
+  // (unless another error came while it was sent, and is being asked about)
+  if (box && !report.open) {
     box.innerHTML = `<p>${sent ? "Sent. Thank you: Ken will see it with Ani's other reports." : "It couldn't be sent from here just now."}</p>`;
     setTimeout(() => { if (!report.open) box.hidden = true; }, 4000);
   }

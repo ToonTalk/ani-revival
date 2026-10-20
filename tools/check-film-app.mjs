@@ -3351,6 +3351,7 @@ try {
     check(/a deliberate check error, with \[removed\] and \[removed\]/.test(error) && /error-sent-by-visitor/.test(error) && !error.includes(SECRET) && !error.includes(TOLD) && !/"user"/.test(error) && !/ip_address/.test(error) && /"infer_ip":"never"/.test(error) && !/"breadcrumbs":\[\{/.test(error),
       `on Send, the error is reported, its key and story text removed, with no user, IP address or breadcrumbs (${envelopes.length} envelope${envelopes.length === 1 ? "" : "s"}, ${error.length} bytes)`);
     // "Don't ask again": kept, and after it nothing asked or sent
+    for (let k = 0; k < 50 && !(await js(`/^Sent\\./.test((document.getElementById("report-ask") || {}).innerText || "")`)); k++) await sleep(200);
     const sent = envelopes.length;
     await js(`setTimeout(() => { throw new Error("a deliberate check error, the second"); }, 0)`);
     await sleep(800);
