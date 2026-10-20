@@ -2237,8 +2237,17 @@ const keyOf = (n) => `${n.dir};${n.fn1} ${n.fn2}`;
 // makeFilmSteps keepFiles) made again from the first scene criticized on, heeding the
 // record (criticism, the whole record: what was criticized before and still is, and
 // anything new; none, to make it again without). A generator, as makeFilmSteps, with its
-// callbacks and onKept(scene, how, error). Pass 1 is not run again (no criticism of pass
-// 1's choices before stage C6): the film's KEN;CP is mounted with its other files. Then
+// callbacks and onKept(scene, how, error). Pass 1 is not run again unless a pass-1
+// choice is criticized (stage C6), now or in the record the film was made with: the
+// film's KEN;CP is mounted with its other files. With one, pass 1 is made again from
+// the first scene, the choice points criticized chosen afresh and every other choice
+// held as KEN;CP had it (REVIVE;HOLD hold-all-but-choice-points), then, to compare, made
+// again with every choice afresh (save false): remade.pass1 is { held, differences,
+// knockOns }, held the choices holding kept that would have come out otherwise
+// ({ choicePoint, heldAt, wouldHaveChosen }), differences every choice the full recompute
+// made otherwise than the film ({ choicePoint, before, after, criticized }), knockOns
+// those not criticized; CHANGE's fresh looks are made again too; and every scene is
+// planned again (from is ignored). Then
 //   - each scene before from (by default the first scene criticized, by this record or
 //     the one previous was made with, so that a criticism taken out is made again) is
 //     kept as it was: its glass box, its film, its files (onKept(scene, "before"));
@@ -2482,6 +2491,16 @@ export function remakeFilm(fs, options = {}) {
 //              disply.311:465-473; the revival's table counts walks to contact and walks
 //              together, its choice 8); else met, with notes or without (nothing needed
 //              setting aside)
+//       choice  choice: { choicePoint, before, after, recomputed, knockOns, held,
+//              resolvedForIt, rejected }, from pass 1 as the film had it and as made
+//              again: the value before and after, the full recompute's value for it,
+//              its knock-ons and the choices held (remade.pass1's: a comparison only),
+//              how many of Ken's conflicts were resolved for it (criticized-by-you), and
+//              the reason its suggestion was rejected for, if it was
+//              (self-conflicting-suggestion: (less-than low)); notes, its choice point's
+//              (scene null). met when its choice point noted it heeded (the value moved
+//              as asked), not-met otherwise, not-reached when the film has no such
+//              choice point
 //       start-far  start: { walkedOn, frame }, from the scene's film: whether she was
 //              first seen off the picture and walked on, and the frame. not-reached when
 //              she is never on the stage; met when she was placed far (a heeded note, or

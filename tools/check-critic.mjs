@@ -51,6 +51,21 @@
 //   nlka-too-slow-fit    "too slow" on it: the scene already at its least, the pace keeps it
 //                        within its length-bounds, as FIT does: not met, held to them, and
 //                        the scene kept
+// and criticism of a pass-1 choice (stage C6, the revival's extension of Ken's idea: a
+// direction, never a value; pass 1 made again with everyone else held, every scene
+// planned again, and one whose program is unchanged keeping its film):
+//   choice-prince        "the Prince moves too fast" (the design's probe): high to medium,
+//                        the fairy godmother's speed held, which a full recompute would
+//                        have taken from medium to high (a comparison only)
+//   choice-impossible    "Cinderella moves too fast", her speed low already: Ken's rules
+//                        refuse (less-than low) as self-conflicting; not met, every scene
+//                        kept
+//   choice-not-high      "not high" on the stepmother's speed
+//   hare-too-fast        a story's hare (test/stories/tortoise-and-hare.lisp, made with the
+//                        page's set): "the hare moves too fast"
+//   hare-slower-last-scene  "the hare should be slower in the last scene": refused, since a
+//                        pass-1 choice is for the whole film; per scene it is a feeling of
+//                        the scene's, a change to the story (the editor's)
 // For each, besides its own checks: the scenes before the first criticized are kept,
 // not planned again; every scene from it on is planned again, and one whose program is
 // unchanged keeps its film; the record's every criticism leaves a note where Ani heeded
@@ -70,7 +85,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { remakeFilm, criticismChanges, contactsIn, closestApproach, taskDescription, whyTheyAct, SCENES, EXTENSIONS } from "../src/pipeline.js";
 import { film1978, film1978at24, filmWith, BASE_24 } from "./critic-base.mjs";
-import { makeFilm } from "../src/pipeline.js";
+import { makeFilm, storyPlan, storyOutline, checkRecord, CHOICE_PER_SCENE, CRITICISM_KINDS } from "../src/pipeline.js";
 
 const args = process.argv.slice(2);
 const save = args.includes("--save");
@@ -81,7 +96,7 @@ const frameCap = fps === 24 ? 6000 : 1000;
 const only = args.filter((a, i) => !a.startsWith("--") && args[i - 1] !== "--fps");
 // the stages built: C1 with REVIVE;CRITIC, C2 with CRITPC, C3 with CRITSC
 const criticFiles = EXTENSIONS.find((e) => e.id === "critic").files;
-const BUILT = { C1: true, C2: criticFiles.includes("critpc"), C3: criticFiles.includes("critsc") };
+const BUILT = { C1: true, C2: criticFiles.includes("critpc"), C3: criticFiles.includes("critsc"), C6: CRITICISM_KINDS.includes("choice") };
 
 const NLKA = "(undoes fairy-godmother (from-scene kept-apart (convey (prevents step-mother (meets cinderella prince)))))";
 const GUARD = "(prevents step-mother (meets cinderella prince))";
@@ -92,7 +107,18 @@ const SLOW = { ...PACE, direction: "too-slow", ...you("Too slow") };
 const FAR = { id: "c2", kind: "start-far", scene: "no-longer-kept-apart", who: "fairy-godmother", from: "cinderella", ...you("Have the fairy godmother start far from Cinderella") };
 const APART = { id: "c1", kind: "keep-apart", scenes: ["introduction", "kept-apart"], between: ["cinderella", "prince"], ...you("Cinderella is not to meet the Prince until the third scene") };
 
+const PRINCE_FAST = { id: "c1", kind: "choice", character: "prince", element: "speed", direction: "lower", was: "high", ...you("The Prince moves too fast") };
+// the page's set of extensions (tools/check-film-app.mjs REVIVAL), which the hare's film is made with
+const PAGE_SET = ["mend", "know", "appear", "change", "seen", "fit"];
+
 const read = (p) => readFileSync(p, "utf8");
+// The tortoise and the hare (test/stories/tortoise-and-hare.lisp), made as the page
+// makes it, with the revival's extensions and its files kept, as a film to remake.
+function hare() {
+  const story = read("test/stories/tortoise-and-hare.lisp");
+  const made = makeFilm(makeProjectFileSystem(), { description: story, extensions: PAGE_SET, keepFiles: true, fps, frames: frameCap });
+  return { ...made, description: story };
+}
 const VETO = (id, task, vetoes) => ({ id, kind: "another-way", scene: "no-longer-kept-apart", task, level: "display", vetoes, ...you("Not this way: another way") });
 // Ken's story with a feeling after No Longer Kept Apart's undoing (a part SCENE redoes by
 // extending the one before, extend-last-actions-of, scene.9:224-240), made to that scene
@@ -375,6 +401,56 @@ const EXAMPLES = [
       expectEqual("No Longer Kept Apart planned again, the same program: its film kept, and the rest", howOf(run), { introduction: "kept", "kept-apart": "kept", "no-longer-kept-apart": "unchanged", meeting: "unchanged", justice: "unchanged" });
     },
   },
+  // ---- criticism of a pass-1 choice (stage C6, the revival's extension of Ken's idea)
+  {
+    name: "choice-prince", stages: "C6", base: "1978", record: [PRINCE_FAST],
+    check(run, ch, prev) {
+      passOneAgain(run, ch, prev, { "prince speed": ["high", "medium"] });
+      const c = ch.criticism[0];
+      expectEqual("met: his speed lower, by Ken's COSUG combining the criticism with his other suggestions", [c.outcome, c.choice.before, c.choice.after], ["met", "high", "medium"]);
+      expectEqual("the note on his choice point", c.notes.map((n) => [n.heeded, n.was, n.now, n.because]), [[true, "high", "medium", "(less-than high)"]]);
+      const sources = JSON.stringify(sceneChoice(run, "prince", "speed").memory);
+      check("his winning suggestion's sources include you", /\["criticism-by-you","c1"\]/.test(sources) ? null : sources.slice(0, 300));
+      // the knock-on the design's probe found: the fairy godmother's speed, through the
+      // relative suggestions, medium to high; held as it was, and shown as a comparison
+      expectEqual("held: the fairy godmother's speed kept at medium, where on its own Ani would have chosen high", c.choice.held.map((h) => [h.choicePoint.join(" "), h.heldAt, h.wouldHaveChosen]), [["choice-point-of fairy-godmother speed", "medium", "high"]]);
+      expectEqual("the full recompute's knock-ons, a comparison only", c.choice.knockOns.map((k) => [k.choicePoint.join(" "), k.before, k.after]), [["choice-point-of fairy-godmother speed", "medium", "high"]]);
+    },
+  },
+  {
+    name: "choice-impossible", stages: "C6", base: "1978", record: [{ id: "c1", kind: "choice", character: "cinderella", element: "speed", direction: "lower", was: "low", ...you("Cinderella moves too fast") }],
+    check(run, ch, prev) {
+      passOneAgain(run, ch, prev, {});
+      const c = ch.criticism[0];
+      expectEqual("not met: low is her slowest, and Ken's rules refuse (less-than low) as self-conflicting", [c.outcome, c.choice.after, c.choice.rejected], ["not-met", "low", "self-conflicting-suggestion"]);
+      expectEqual("the note says why", c.notes.map((n) => [n.heeded, n.was, n.because]), [[false, "low", "(self-conflicting-suggestion)"]]);
+      expectEqual("pass 1 as the film had it: every scene planned again, the same program, its film kept", Object.values(howOf(run)), SCENES.map(() => "unchanged"));
+    },
+  },
+  {
+    name: "choice-not-high", stages: "C6", base: "1978", record: [{ id: "c1", kind: "choice", character: "step-mother", element: "speed", direction: "not", was: "high", ...you("The stepmother's speed: not high") }],
+    check(run, ch, prev) {
+      const c = ch.criticism[0];
+      passOneAgain(run, ch, prev, { "step-mother speed": ["high", c.choice.after] });
+      expectEqual("met: not high", [c.outcome, c.choice.after !== "high"], ["met", true]);
+    },
+  },
+  {
+    // a story's hare: the tortoise and the hare (test/stories/tortoise-and-hare.lisp), as
+    // the page makes it, with the revival's extensions
+    name: "hare-too-fast", stages: "C6", base: "hare", record: [{ id: "c1", kind: "choice", character: "hare", element: "speed", direction: "lower", was: "medium", ...you("The hare moves too fast") }],
+    check(run, ch, prev) {
+      const c = ch.criticism[0];
+      passOneAgain(run, ch, prev, { "hare speed": ["medium", "low"] });
+      expectEqual("met: the hare's speed lower, medium to low (in the film the tortoise is the fast one)", [c.outcome, c.choice.after], ["met", "low"]);
+    },
+  },
+  {
+    // per scene: a pass-1 choice is for the whole film; slower in the last scene is a
+    // feeling of that scene's, a change to the story (the editor's), not a criticism
+    name: "hare-slower-last-scene", stages: "C6", base: "hare", refused: true,
+    record: [{ id: "c1", kind: "choice", character: "hare", element: "speed", direction: "lower", was: "medium", scene: "the-finish", ...you("The hare should be slower in the last scene") }],
+  },
   {
     name: "meeting-far", stages: "C3", base: "1978", record: [{ id: "c1", kind: "start-far", scene: "meeting", who: "cinderella", from: "prince", ...you("Have Cinderella start far from the Prince") }],
     check(run, ch) {
@@ -385,6 +461,25 @@ const EXAMPLES = [
     },
   },
 ];
+
+// A choice point of a run's pass 1.
+const sceneChoice = (run, character, element) => run.choicePoints.find((p) => JSON.stringify(p.name) === JSON.stringify(["choice-point-of", character, element]));
+
+// A criticism of a pass-1 choice: pass 1 made again, only the choices of changed
+// ("character element": [before, after]) differing from the film's, every other held;
+// every scene planned again, and a scene whose program is unchanged keeps its film.
+function passOneAgain(run, ch, prev, changed) {
+  check("pass 1 made again, the remake from the first scene", run.remade.pass1 && run.remade.from === prev.scenes[0].id ? null : JSON.stringify(run.remade).slice(0, 200));
+  const was = new Map(prev.choicePoints.map((p) => [JSON.stringify(p.name), p.currentChoice]));
+  const differ = run.choicePoints.filter((p) => JSON.stringify(was.get(JSON.stringify(p.name))) !== JSON.stringify(p.currentChoice))
+    .map((p) => [p.name.slice(1).join(" "), [was.get(JSON.stringify(p.name)), p.currentChoice]]);
+  expectEqual(`everyone else held: the choices that differ from the film's (${run.choicePoints.length})`, Object.fromEntries(differ), changed);
+  check("every scene planned again", run.remade.scenes.every((s) => s.how === "unchanged" || s.how === "refilmed") ? null : JSON.stringify(run.remade.scenes));
+  for (const s of run.scenes) {
+    const k = prev.scenes.findIndex((x) => x.id === s.id);
+    if (howOf(run)[s.id] === "unchanged") check(`${s.id}: the same program, so the same film`, s.film === prev.scenes[k].film ? null : "a film other than the kept one");
+  }
+}
 
 // Her first frame on the stage puts her off the picture: she walks on.
 function firstSeenOffThePicture(f, who) {
@@ -424,9 +519,12 @@ function nearByEscape(run, ch, id, atLeast) {
     near.distance !== null && near.distance < 0.33 && near.distance >= atLeast && acts.some((a) => /^\(activity-of prisoner-escapes/.test(a.plan)) && ch.criticism[0].outcome === "partly" ? null : JSON.stringify({ near, acts: acts.map((a) => a.plan), outcome: ch.criticism[0].outcome }));
 }
 
-const FILE_KEY = (run, scene) => {
-  // the scene's program among the run's files: KEN;<fn1> <fn2>
-  const fn = { introduction: "INTROD UCTION", "kept-apart": "KEPT APART", "no-longer-kept-apart": "NO LONGER", meeting: "MEET ING", justice: "JUST ICE" }[scene];
+const FILE_KEY = (run, scene, description) => {
+  // the scene's program among the run's files: KEN;<fn1> <fn2>, Ken's, or a story's as
+  // storyPlan names it
+  const ken = { introduction: "INTROD UCTION", "kept-apart": "KEPT APART", "no-longer-kept-apart": "NO LONGER", meeting: "MEET ING", justice: "JUST ICE" }[scene];
+  const story = !ken && description ? storyPlan(storyOutline(description)).scenes.find((s) => s.id === scene) : null;
+  const fn = ken || story.file.map((x) => String(x).toUpperCase().slice(0, 6)).join(" ");
   return { key: `KEN;${fn}`, file: `ken-${fn.toLowerCase().replace(" ", ".")}` };
 };
 
@@ -458,12 +556,26 @@ if (fps === 24 && args.includes("--make-base")) {
   console.log(`saved  ${BASE_24} (${((Date.now() - t) / 1000).toFixed(0)} s)`);
 }
 const bases = {};
-const baseOf = (b) => (bases[b] ||= b === "nlkajoy" ? nlkaJoy() : fps === 24 ? film1978at24() : b === "1978" ? film1978() : filmWith(b));
+const baseOf = (b) => (bases[b] ||= b === "nlkajoy" ? nlkaJoy() : b === "hare" ? hare() : fps === 24 ? film1978at24() : b === "1978" ? film1978() : filmWith(b));
 for (const ex of EXAMPLES) {
   if (only.length && !only.includes(ex.name)) continue;
   if (!ex.stages.split(" ").every((st) => BUILT[st])) continue;
   if (fps === 24 && !ex.fps24) continue;
   console.log(`\n${ex.name}`);
+  if (ex.refused) {
+    // not a criticism Ani takes: the record refuses it, saying why and where it belongs
+    let said = null;
+    try {
+      checkRecord(ex.record);
+    } catch (e) {
+      said = e.message;
+    }
+    expectEqual("refused: a pass-1 choice is for the whole film; per scene it is a change to the story, for the editor", said, `criticism c1: ${CHOICE_PER_SCENE}`);
+    const dir = `reports/ext/critic/${ex.name}`;
+    if (save) mkdirSync(dir, { recursive: true });
+    golden(dir, "summary.json", JSON.stringify({ base: ex.base, record: ex.record, refused: said }, null, 1) + "\n");
+    continue;
+  }
   const previous = baseOf(ex.base);
   const t = Date.now();
   let run;
@@ -499,7 +611,7 @@ for (const ex of EXAMPLES) {
     golden(dir, `${s.id}.glass.json`, JSON.stringify(s.glass, null, 1));
     if (how !== "refilmed") return;
     golden(dir, `${s.id}.film.json`, JSON.stringify(s.film));
-    const { key, file } = FILE_KEY(run, s.id);
+    const { key, file } = FILE_KEY(run, s.id, previous.description);
     golden(dir, file, run.files[key]);
   });
 }

@@ -23,7 +23,10 @@
 ;;;    something is shown (a display method) and what is shown (a convey method);
 ;;;  - too quick or too slow (Ken's (2)): REVIVE;CRITPC;
 ;;;  - keep two apart in a scene (Ken's (3)) and start one far from another (his remedy
-;;;    for No Longer Kept Apart, p. 69): REVIVE;CRITSC.
+;;;    for No Longer Kept Apart, p. 69): REVIVE;CRITSC;
+;;;  - a pass-1 choice (the revival's extension of Ken's idea, "the Prince moves too
+;;;    fast"): this file, section 5, where CHOOSE gathers suggestions, resolves
+;;;    conflicts (Ken's stub) and records a choice.
 ;;; A film with no criticism never loads this file. Loaded with an empty record, every
 ;;; wrapper passes straight through (node tools/check-1978.mjs --extensions critic).
 ;;;
@@ -296,14 +299,17 @@
 	     (t nil))))
 
 ;; Why the criticism was not met: the reason its suggestion was rejected for, from the
-;; choice point's rejected-suggestions, or (not-chosen) if it was combined away.
+;; choice point's rejected-suggestions, or (not-chosen) if it was combined away. A
+;; self-conflicting suggestion is rejected as the list of the conflict's offenders, one
+;; long (conflict-resolved, choose.198:319-322, 557-560), so that is looked into too.
 (defun critic-choice-why-not (choice-point c)
   (do ((r (ask ,choice-point recall your rejected-suggestions) (rest r)))
       ((null r) '(not-chosen))
-      (and (not (atom (first r)))
-	   (critic-choice-suggestion? (get (first r) 'suggestion))
-	   (equal (get (get (first r) 'suggestion) 'source) (list 'criticism-by-you (get c 'id)))
-	   (return (list (get (first r) 'reason))))))
+      (let ((s (and (not (atom (first r))) (get (first r) 'suggestion))))
+	   (and (not (atom s)) (not (atom (first s))) (setq s (first s)))
+	   (and (critic-choice-suggestion? s)
+		(equal (get s 'source) (list 'criticism-by-you (get c 'id)))
+		(return (list (get (first r) 'reason)))))))
 
 (defun record-choice-heeding-criticism (choice-point suggestion)
   (let ((chosen (funcall (revival-wrapped 'record-choice 'critic) choice-point suggestion))
