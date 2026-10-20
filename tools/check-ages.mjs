@@ -205,6 +205,57 @@ try {
     }
   }
   if (ONLY === "a") throw null;
+  // ---------------------------------------------------------------- the setting (A1)
+  // G (the hash and the storage): a link sets the age, says so, and it is remembered; with a
+  // moment it opens the moment at that age; a reload keeps it; 12+ puts the page back.
+  await open("film.ages.html", "#ages-6-8");
+  const linked = await js(`({ cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:age:v1"), note: document.getElementById("age-note").hidden ? "" : document.getElementById("age-note").innerText, inDrawer: !!document.querySelector("#grownups #ages"), intro: [...document.querySelectorAll("header .intro")].filter((p) => p.offsetParent).map((p) => p.innerText).join(" | "), color: window.__ages.state.color })`);
+  check(/(^| )age-6-8( |$)/.test(linked.cls) && linked.kept === "6-8" && /This link set the page for ages 6–8/.test(linked.note) && linked.inDrawer && /^Ani is a computer program from 1978\./.test(linked.intro) && linked.color,
+    `G. #ages-6-8 sets the page for ages 6–8, says so, and is kept in this browser; the control is in For grown-ups, the intro is one line, the film in color: ${linked.note} | ${linked.intro}`);
+  await send("Page.navigate", { url: `${base}/app/film.ages.html#kept-apart.48.cinderella.ages-9-11` });
+  await sleep(300);
+  await send("Page.reload", {});
+  for (let k = 0; k < 100 && !(await js("!!window.__ages && document.getElementById('caption-0').innerText.length > 0").catch(() => false)); k++) await sleep(200);
+  const moment = await js(`({ cls: document.documentElement.className, scene: window.__ages.state.scene, panel: window.__ages.state.panel, who: window.__ages.state.selected && window.__ages.state.selected.char, kept: localStorage.getItem("ani-cinderella:age:v1") })`);
+  check(/(^| )age-9-11( |$)/.test(moment.cls) && moment.scene === 1 && moment.panel === "why" && moment.who === "cinderella" && moment.kept === "9-11", `G. #kept-apart.48.cinderella.ages-9-11 opens the moment at ages 9–11 (${JSON.stringify(moment)})`);
+  await open();
+  const kept = await js(`document.documentElement.className`);
+  check(/(^| )age-9-11( |$)/.test(kept), "G. the age is kept: the page opened again without a link is at ages 9–11");
+  const back12 = await js(`(() => { document.querySelector('#ages [data-age="12"]').click(); return { cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:age:v1"), legend: document.querySelectorAll("#legend .chip").length, label: document.getElementById("frame-label").textContent }; })()`);
+  check(!/age-/.test(back12.cls) && back12.kept === "12" && back12.legend === 0 && /frame/.test(back12.label), "G. 12+ chosen: the page is as it was (no chips in the legend, the frame said)");
+  // H (sizes at 6–8): every control shown is at least 44 by 44 px, and at 375 px wide the page
+  // doesn't scroll sideways (a link in a sentence is WCAG 2.5.5's inline exception)
+  const SIDE_TOO = "";
+  const SIZES = `(() => {
+    const small = [];
+    for (const b of document.querySelectorAll("header button, header a, header summary, .controls button, #scenes button, #legend button, #runbar button, footer button${SIDE_TOO}")) {
+      const r = b.getBoundingClientRect();
+      if (!r.width || !r.height || getComputedStyle(b).visibility === "hidden") continue;
+      if (b.classList.contains("linkish") && b.closest("p, li") && b.closest("p, li").textContent.trim().length > b.textContent.trim().length + 20) continue; // a button in a sentence
+      if (r.width < 43.5 || r.height < 43.5) small.push((b.textContent || b.getAttribute("aria-label") || b.className).trim().slice(0, 30) + " " + Math.round(r.width) + "x" + Math.round(r.height));
+    }
+    return { small, scroll: document.documentElement.scrollWidth - window.innerWidth };
+  })()`;
+  await js(`document.querySelector('#ages [data-age="6-8"]').click()`);
+  await sleep(200);
+  const big = await js(SIZES);
+  check(!big.small.length, `H. at 6–8 every control is at least 44 by 44 px${big.small.length ? `: ${big.small.slice(0, 12).join("; ")}` : ""}`);
+  await shot("ages-6-8-desktop.png");
+  await phone();
+  await sleep(400);
+  const narrow = await js(SIZES);
+  check(narrow.scroll <= 0, `H. at 6–8, 375 px wide, the page doesn't scroll sideways (${narrow.scroll} px over)`);
+  await shot("ages-6-8-phone.png");
+  await desktop();
+  await js(`document.querySelector('#ages [data-age="9-11"]').click()`);
+  await sleep(200);
+  await shot("ages-9-11-desktop.png");
+  await phone();
+  await sleep(400);
+  await shot("ages-9-11-phone.png");
+  await desktop();
+  await js(`document.querySelector('#ages [data-age="12"]').click()`);
+  if (ONLY === "a1") throw null;
   /*AGES-TESTS*/
 } catch (e) {
   if (e) { console.error(e); failures++; }

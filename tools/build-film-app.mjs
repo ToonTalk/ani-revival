@@ -640,7 +640,7 @@ const SCENES = [
 
 export const sizes = {};
 // the links to the site's pages about Ani (site/pages/), as the template has them
-export const MORE_PAGES = /href="((?:making-of|students|teachers)\.html)"/g;
+export const MORE_PAGES = /href="((?:making-of|students|teachers)\.html(?:#[\w-]+)?)"/g;
 export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = null, site = "" } = {}) {
   const fs = makeProjectFileSystem(root);
   const cindy = fs.textOf(fs.find({ dir: "KEN", fn1: "CINDY", fn2: "46" }));
@@ -701,7 +701,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["ages.js", "llm.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
   for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": claudeArtifact ? teachFromRuntime(template, "CRITICISM") : criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);

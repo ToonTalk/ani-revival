@@ -479,14 +479,64 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
 .report-ask pre { max-height: 12rem; overflow: auto; font-size: 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
 .cp .teach-offer { color: var(--yours); text-align: left; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* The age setting (app/film/ages.js; reports/chapter-x/design-young-children.md, section 4):
+   classes on <html>, age-6-8 and age-9-11; at 12+ (neither) the page is as it was. A part
+   hidden at a setting is display: none, so that a screen reader doesn't read it either. */
+.only-68, .only-911, .only-simple, .grownups.only-68 { display: none; }
+html.age-6-8 .only-68, html.age-9-11 .only-911, html.age-6-8 .only-simple, html.age-9-11 .only-simple { display: revert; }
+html.age-6-8 .not-68, html.age-9-11 .not-911, html.age-6-8 .not-simple, html.age-9-11 .not-simple { display: none !important; }
+header .guides .ages-home { display: inline-flex; }
+.ages { display: inline-flex; align-items: center; gap: 8px; }
+.ages-label { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
+.ages .seg button { height: 34px; font-size: 0.9rem; min-width: 44px; }
+.age-note { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
+html.age-6-8 .grownups { display: block; justify-self: start; border: 1px solid var(--rule); border-radius: 10px; padding: 6px 12px; background: var(--sheet); }
+.grownups > .body { padding-left: 0; }
+html.age-6-8 .film-setting, html.age-9-11 .film-setting, html.age-6-8 #frame-label, html.age-6-8 .bands-key { display: none !important; }
+html.age-6-8.film-settings .film-setting, html.age-9-11.film-settings .film-setting { display: inline-flex !important; }
+html.age-6-8.film-settings #rate[hidden], html.age-9-11.film-settings #rate[hidden] { display: none !important; }
+html.age-6-8 footer > :not(.only-68):not(.reporting) { display: none; }
+html.age-6-8.footer-open footer > .footer-more, html.age-6-8.footer-open footer > .code-pages:not([hidden]), html.age-6-8.footer-open footer > .more-pages:not([hidden]), html.age-6-8.footer-open footer > .kept-note { display: revert; }
+/* 9–11: the side panel's text a little larger */
+html.age-9-11 .side { font-size: 1rem; }
+html.age-9-11 .side .note, html.age-9-11 .side .linkish, html.age-9-11 .caption .part { font-size: max(0.95rem, 1em * 0.95); }
+html.age-9-11 .seg button, html.age-9-11 .btn { min-height: 32px; min-width: 32px; }
+/* 6–8: larger type, and every control at least 44 by 44 px (the main ones 48 to 56) */
+html.age-6-8 body { font-size: 1.15rem; line-height: 1.5; }
+html.age-6-8 .btn, html.age-6-8 .seg button, html.age-6-8 .crit-btn { min-height: 44px; min-width: 44px; }
+html.age-6-8 #play { height: 56px; min-width: 128px; font-size: 1.25rem; border-radius: 12px; }
+html.age-6-8 #back, html.age-6-8 #fwd { height: 56px; min-width: 64px; font-size: 1.1rem; grid-template-rows: auto auto; line-height: 1.1; }
+html.age-6-8 #back::after { content: "Back"; font-size: 0.8rem; }
+html.age-6-8 #fwd::after { content: "Next"; font-size: 0.8rem; }
+html.age-6-8 .scrub { height: 48px; }
+html.age-6-8 .scrub canvas { inset: 14px 0 auto 0; height: 20px; }
+html.age-6-8 .scrub .head { top: 8px; height: 32px; }
+html.age-6-8 .scenes button { min-height: 48px; padding: 6px 16px; font-size: 1rem; }
+html.age-6-8 .caption { font-size: 1.35rem; line-height: 1.5; }
+html.age-6-8 .caption .part { font-size: 1rem; }
+html.age-6-8 .side { font-size: 1.1rem; line-height: 1.5; }
+html.age-6-8 .side .lead, html.age-6-8 .side .lead-68 { font-size: 1.4rem; line-height: 1.45; }
+html.age-6-8 .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
+html.age-6-8 .runbar .seg button { min-height: 48px; font-size: 1rem; }
+html.age-6-8 header .guides a { padding: 10px 16px; }
+html.age-6-8 summary, html.age-6-8 #about-page { min-height: 44px; display: flex; align-items: center; }
+html.age-6-8 #about-page { display: inline-flex; }
+.legend .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 4px 12px 4px 8px; cursor: pointer; color: var(--ink); font-size: 0.92rem; min-height: 32px; }
+.legend .chip:hover { border-color: var(--accent); }
+html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 16px 6px 10px; }
 </style>
 
 <div class="wrap">
   <header>
     <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
     <h1>Ani's Cinderella and Beyond</h1>
-    <p class="intro">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
-    <p class="more-pages guides"><a href="../site/pages/students.html">A guide for students</a><a href="../site/pages/teachers.html">A guide for teachers</a><a href="../site/pages/making-of.html">How this was made</a><button type="button" class="teach-head" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button></p>
+    <p class="intro not-simple">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
+    <p class="intro only-911">Ani, the program in Ken Kahn's 1979 thesis at MIT, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
+    <p class="intro only-68">Ani is a computer program from 1978. It made this film from a story. Press Play, then tap a shape to ask why.</p>
+    <p class="more-pages guides"><a href="../site/pages/students.html" class="not-68">A guide for students</a><a href="../site/pages/teachers.html" class="not-simple">A guide for teachers</a><a href="../site/pages/making-of.html" class="not-simple">How this was made</a><a href="../site/pages/teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span></p>
+    <details class="grownups only-68" id="grownups"><summary>For grown-ups</summary><div class="body"><div id="grownups-ages"></div><p class="note">The age setting is kept in this browser. A link sets it for a class: add <code>#ages-6-8</code>, <code>#ages-9-11</code> or <code>#ages-12</code> to the page's address.</p><p><button type="button" class="btn" data-film-settings aria-expanded="false">Film settings</button> <span class="note">Frames a second, TV or color, and Save.</span></p><div id="grownups-speech"></div></div></details>
+    <p class="age-note" id="age-note" role="status" hidden><span></span> <button type="button" class="linkish" id="age-note-close">OK</button></p>
   </header>
 
   <div class="runbar" id="runbar" hidden>
@@ -519,12 +569,13 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
-        <div class="seg" role="group" aria-label="The 1978 film's frames a second" id="rate" hidden></div>
-        <div class="seg" role="group" aria-label="Picture">
+        <button type="button" class="btn only-911" data-film-settings aria-expanded="false">Film settings</button>
+        <div class="seg film-setting" role="group" aria-label="The 1978 film's frames a second" id="rate" hidden></div>
+        <div class="seg film-setting" role="group" aria-label="Picture">
           <button type="button" id="mode-bw" aria-pressed="false">TV</button>
           <button type="button" id="mode-color" aria-pressed="true">Color</button>
         </div>
-        <button class="btn" id="save" type="button" aria-expanded="false" aria-controls="save-panel">Save</button>
+        <button class="btn film-setting" id="save" type="button" aria-expanded="false" aria-controls="save-panel">Save</button>
       </div>
       <p class="bands-key" id="bands-key"></p>
       <div class="save-panel" id="save-panel" hidden></div>
@@ -539,7 +590,9 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
   </main>
 
   <footer>
-    <p>The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani itself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
+    <p class="only-68">This film was made by Ani, a computer program Ken Kahn wrote at MIT in 1978. Everything Ani says about why is from Ani's own notes.</p>
+    <p class="only-68"><button type="button" class="linkish" id="about-page" aria-expanded="false">About this page</button></p>
+    <p class="footer-more">The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani itself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
     <p class="more-pages">More about Ani: <a href="../site/pages/making-of.html">How this was made</a> · <a href="../site/pages/students.html">A guide for students</a> · <a href="../site/pages/teachers.html">A guide for teachers</a>.</p>
@@ -9535,7 +9588,7 @@ function render() {
   // the time, and the frame each screen shows, the film's and, in brackets, the scene's
   const at = shown().map((r) => sceneOf(r)).filter(ready).map((sc) => [frameNo(sc, frameIn(sc)), frameIn(sc)]);
   const many = at.length > 1 ? "s" : "";
-  document.getElementById("frame-label").textContent = `${state.time.toFixed(1)} / ${total.toFixed(1)} s${at.length ? ` · frame${many} ${at.map((x) => x[0]).join(" | ")} (scene frame${many} ${at.map((x) => x[1]).join(" | ")})` : ""}`;
+  document.getElementById("frame-label").textContent = simpleAge() ? `${state.time.toFixed(1)} / ${total.toFixed(1)} s` : `${state.time.toFixed(1)} / ${total.toFixed(1)} s${at.length ? ` · frame${many} ${at.map((x) => x[0]).join(" | ")} (scene frame${many} ${at.map((x) => x[1]).join(" | ")})` : ""}`;
   for (const r of shown()) caption(r);
   scheduleSave();
 }
@@ -9554,6 +9607,8 @@ function renderSceneButtons() {
   const cast = [];
   for (const run of runs) for (const c of run.cast) { const x = cast.find((y) => y[0] === c); if (x) x[1].push(run); else cast.push([c, [run]]); }
   const inWhich = (r) => { const k = runs.indexOf(r), n = pairShort(runs, k); return n === "1978" ? "in 1978" : n === "Yours" ? "in yours" : `on the ${n.toLowerCase()}`; };
+  // (at 6–8 and 9–11, each a button that opens the character: app/film/ages.js)
+  if (simpleAge()) { ageLegend(cast, runs); return; }
   document.getElementById("legend").innerHTML = cast.map(([c, rs]) => {
     const differ = rs.length > 1 && rs[0].shapes[c] !== rs[1].shapes[c];
     const shapes = differ ? rs.map((r) => `${shapeName(r.shapes[c])} ${inWhich(r)}`).join(", ") : shapeName(rs[0].shapes[c]);
@@ -9665,6 +9720,8 @@ function setColor(color, { remember = true } = {}) {
   document.getElementById("mode-color").setAttribute("aria-pressed", String(color));
   draw();
   for (const r of shown()) caption(r); // a film made with Ani's looks says whose colors they are
+  // at 6–8 a character's name has its color, or not in TV's black and white (app/film/ages.js)
+  if (young()) { renderSceneButtons(); renderSide(); }
   scheduleSave();
 }
 
@@ -9700,9 +9757,13 @@ if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEven
 
 // A link can open the 1978 film at a moment: #kept-apart.48, #kept-apart.48.cinderella,
 // and in color with .color at the end, or in TV's black and white with .tv (for that
-// visit: the visitor's own choice is kept).
+// visit: the visitor's own choice is kept). And set the age (app/film/ages.js), alone or
+// with a moment: #ages-6-8, #kept-apart.48.cinderella.ages-6-8.
 function fromHash() {
-  const parts = decodeURIComponent(location.hash.slice(1)).split(".");
+  const all = decodeURIComponent(location.hash.slice(1)).split(".");
+  const age = ageOfHash(all);
+  if (age) setAge(age, { link: true });
+  const parts = all.filter((p) => !/^ages-/.test(p));
   const i = SCENE_IDS.indexOf(parts[0]);
   if (i < 0) return false;
   if (state.view !== 0) setView(0);
@@ -9727,6 +9788,155 @@ document.addEventListener("drop", async (e) => {
   if (format === AniTeach.NOTEBOOK_FORMAT) { try { await library.ready; await openKnowledgeText(text, file.name); } catch (err) { openTeach({ note: esc(err.message) }); } return; }
   try { await openFilm(await readFilmFile(text), file.name); } catch (err) { toggleSavePanel(true); setSaveStatus(err.message); }
 });
+
+// ---------------------------------------------------------------- the age setting
+
+// How the page presents Ani: for ages 6–8, ages 9–11, or 12 and over (today's page, the
+// default), reports/chapter-x/design-young-children.md. The setting changes only words and
+// what is shown: it never reaches Ani, a film, a film file, "Your films", a criticism or a
+// notebook, and "Ani as in 1978" and every film are the same at every setting. It is kept
+// in this browser (AGE_KEY), and a teacher sets it for a class with a link, a bare token in
+// the page's dot-separated hash: #ages-6-8, #ages-9-11, #ages-12, alone or with a moment
+// (#kept-apart.48.cinderella.ages-6-8). A link can set the age; it can never turn on
+// Talk to Ani (app/film/speech.js).
+const AGES = ["6-8", "9-11", "12"];
+const AGE_KEY = "ani-cinderella:age:v1";
+const AGE_NAMES = { "6-8": "ages 6–8", "9-11": "ages 9–11", 12: "12 and over" };
+let AGE = AGES.includes(store.get(AGE_KEY)) ? store.get(AGE_KEY) : "12";
+const young = () => AGE === "6-8";
+const simpleAge = () => AGE !== "12";
+// the age a link's hash names, if one of its parts is ages-...
+function ageOfHash(parts) {
+  for (const p of parts) { const m = /^ages-(6-8|9-11|12)$/.exec(p); if (m) return m[1]; }
+  return null;
+}
+// The runbar's words for the films at 6–8, and today's
+const RUNBAR_WORDS = { 0: ["Ani's 1978 film", "Ken's film"], 1: ["Your version", "My film"] };
+// The classes on <html> the style sheet reads (age-6-8, age-9-11), the control's pressed
+// button, where the control is (in the header; at 6–8 in "For grown-ups", so that a child
+// doesn't switch it by accident), and the runbar's words.
+function applyAge() {
+  const html = document.documentElement;
+  html.classList.toggle("age-6-8", AGE === "6-8");
+  html.classList.toggle("age-9-11", AGE === "9-11");
+  document.querySelectorAll("#ages [data-age]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.age === AGE)));
+  const ages = document.getElementById("ages");
+  const home = document.getElementById(young() ? "grownups-ages" : "ages-home");
+  if (ages && home && ages.parentElement !== home) home.append(ages);
+  document.querySelectorAll("#runbar [data-view]").forEach((b) => { const w = RUNBAR_WORDS[b.dataset.view]; if (w) b.textContent = w[young() ? 1 : 0]; });
+}
+// at 6–8 the film is shown in color, whatever this browser kept (a grown-up can still
+// choose TV in For grown-ups' film settings)
+function youngColor({ boot = false } = {}) {
+  if (!young() || state.color || ageColorChosen) return;
+  if (!boot) { setColor(true, { remember: false }); return; }
+  state.color = true;
+  document.getElementById("mode-bw").setAttribute("aria-pressed", "false");
+  document.getElementById("mode-color").setAttribute("aria-pressed", "true");
+}
+let ageColorChosen = false;
+document.getElementById("mode-bw").addEventListener("click", () => { ageColorChosen = true; });
+// Set the age: kept in this browser (unless remember is false), and the page drawn again at
+// it; from a link, with a note that says so.
+function setAge(age, { remember = true, link = false } = {}) {
+  if (!AGES.includes(age)) return;
+  const changed = age !== AGE;
+  AGE = age;
+  if (remember) store.set(AGE_KEY, age);
+  applyAge();
+  youngColor();
+  const note = document.getElementById("age-note");
+  if (note && link) {
+    note.hidden = false;
+    note.querySelector("span").textContent = `This link set the page for ${AGE_NAMES[age]}. A grown-up can change it ${young() ? "in “For grown-ups”, at the top" : "at the top"}.`;
+  }
+  if (!changed) return;
+  if (typeof onAgeChanged === "function") onAgeChanged();
+  lastPanel = null;
+  layout();
+  renderSceneButtons();
+  updateRunbar();
+  render();
+  renderSide();
+}
+document.querySelectorAll("#ages [data-age]").forEach((b) => b.addEventListener("click", () => setAge(b.dataset.age)));
+document.getElementById("age-note-close").addEventListener("click", () => { document.getElementById("age-note").hidden = true; });
+// "Film settings": frames a second, TV or color and Save, folded away at 9–11 (beside the
+// controls) and at 6–8 (in For grown-ups)
+document.querySelectorAll("[data-film-settings]").forEach((b) => b.addEventListener("click", () => {
+  const on = document.documentElement.classList.toggle("film-settings");
+  document.querySelectorAll("[data-film-settings]").forEach((x) => x.setAttribute("aria-expanded", String(on)));
+}));
+// "About this page", the footer's rest at 6–8
+document.getElementById("about-page").addEventListener("click", (e) => {
+  const on = document.documentElement.classList.toggle("footer-open");
+  e.currentTarget.setAttribute("aria-expanded", String(on));
+});
+applyAge();
+youngColor({ boot: true });
+
+// ---------------------------------------------------------------- naming the characters
+
+// At 6–8 a character is named by what the child sees: "the" + color + shape ("the red
+// square"), in TV's black and white by its shape alone; at 9–11 and 12+ by its name. A
+// shape is "it". Names are a tap away: the legend's chips and the panel's heading show both.
+const SHAPE_WORDS = { star: "star", square: "square", triangle: "triangle", circle: "circle", pentagon: "five-sided shape", hexagon: "six-sided shape", octagon: "eight-sided shape", "eight-pointed-star": "star with eight points", "ten-pointed-star": "star with ten points" };
+// each 1978 shape's color, as the film draws it (SHAPE_LOOK), in a word
+const FILM_HUE = { star: "green", square: "red", triangle: "yellow", circle: "orange", pentagon: "blue", hexagon: "purple" };
+const shapeOfChar = (run, c) => (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c] || "circle";
+// a character's color in a word: in a film made with Ani's colors, the hue of its look as
+// at its first appearance in the scene (a color that dims or brightens renames no one);
+// else its 1978 color, that of the shape it would have had
+function hueOfChar(run, c, sc = null) {
+  const own = run && run.cast && lookOf(run, c);
+  if (own && own.color) {
+    let look = own;
+    if (sc && sc.film && sc.film.looks) { const first = sc.film.looks.find((x) => x[1] === c && x[2] && x[2].color); if (first) look = first[2]; }
+    const [h, sat] = look.color;
+    return sat === 0 ? "gray" : look.hue || HUES.find((x) => HUE_ANGLE[x] === h) || "colored";
+  }
+  const slot = (run && run.slots && run.slots[c]) || (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
+  return FILM_HUE[slot] || "orange";
+}
+// the 6–8 names of a run's cast, told apart where two would be the same: by size, then by
+// name ("the circle (the tortoise)")
+function kidNames(run, sc = null) {
+  const color = state.color;
+  const base = Object.fromEntries(run.cast.map((c) => [c, `${color ? `${hueOfChar(run, c, sc)} ` : ""}${SHAPE_WORDS[shapeOfChar(run, c)] || plain(shapeOfChar(run, c))}`]));
+  const out = {};
+  for (const c of run.cast) {
+    const same = run.cast.filter((o) => base[o] === base[c]);
+    if (same.length < 2) { out[c] = `the ${base[c]}`; continue; }
+    const size = (x) => { const l = lookOf(run, x); const w = l ? sizeWord(l.aniSize) : ""; return w === "large" || w === "fairly large" ? "big" : w === "small" || w === "fairly small" ? "small" : ""; };
+    const sizes = same.map(size);
+    out[c] = sizes.every(Boolean) && new Set(sizes).size === sizes.length ? `the ${size(c)} ${base[c]}` : `the ${base[c]} (${meet(run.story, c).the})`;
+  }
+  return out;
+}
+// A character as the setting names it: at 6–8 "the red square", else as the page names it.
+function nameAt(c, run = R) {
+  if (!young() || !run || !run.cast || !run.cast.includes(c)) return who(c);
+  const sc = run.scenes && typeof state.scene === "number" ? run.scenes[state.scene] : null;
+  return kidNames(run, sc)[c] || who(c);
+}
+// "the red square · the stepmother", for a heading or a chip
+const bothNames = (c, run = R) => `${nameAt(c, run)} · ${meet(run.story, c).the}`;
+
+// The legend at 6–8 and 9–11: each character a button that opens it (a keyboard and screen
+// reader's way to the panel, which the film's picture lacks), "green star · Cinderella" or
+// "Cinderella (star)".
+function ageLegend(cast, runs) {
+  const el = document.getElementById("legend");
+  el.innerHTML = cast.map(([c, rs]) => {
+    const run = rs[0], r = shown().find((k) => screenRun(k) === run) ?? 0;
+    const label = young() ? using(run, () => `${nameAt(c, run).replace(/^the /, "")} · ${meet(run.story, c).name}`) : `${meet(run.story, c).name} (${SHAPE_WORDS[shapeOfChar(run, c)] || shapeName(shapeOfChar(run, c))})`;
+    return `<button type="button" class="chip" data-chip="${esc(c)}" data-slot="${r}">${icon(c, young() ? 22 : 16, run)}<span>${esc(cap(label))}</span></button>`;
+  }).join("");
+  el.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => {
+    const r = Number(b.dataset.slot);
+    if (ready(sceneOf(r))) select({ run: r, char: b.dataset.chip });
+  }));
+}
 
 // ---------------------------------------------------------------- telling Ani a new story
 
@@ -11511,6 +11721,7 @@ const KEPT_WHAT = () => [
   [VIDEO_KEY, "The video options: title cards and subtitles"],
   [RUN_KEY, "Your last film, where this browser won't keep a library of them"],
   [KNOWLEDGE_KEY, "Your notebooks of knowledge (Teach Ani), where this browser won't keep a library"],
+  [AGE_KEY, "Your age setting (6–8, 9–11 or 12+). Nothing about you is kept"],
   [REPORT_KEY, "That you said “Don't ask again” when Ani ran into an error: no report is ever sent from this browser"],
 ];
 const PAGE_PREFIX = "ani-cinderella:";

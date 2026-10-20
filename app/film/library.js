@@ -466,6 +466,7 @@ const KEPT_WHAT = () => [
   [VIDEO_KEY, "The video options: title cards and subtitles"],
   [RUN_KEY, "Your last film, where this browser won't keep a library of them"],
   [KNOWLEDGE_KEY, "Your notebooks of knowledge (Teach Ani), where this browser won't keep a library"],
+  [AGE_KEY, "Your age setting (6–8, 9–11 or 12+). Nothing about you is kept"],
   [REPORT_KEY, "That you said “Don't ask again” when Ani ran into an error: no report is ever sent from this browser"],
 ];
 const PAGE_PREFIX = "ani-cinderella:";
