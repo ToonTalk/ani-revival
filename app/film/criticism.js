@@ -88,6 +88,8 @@ const sceneTitleOf = (run, id) => run.titles[id] || titleCase(id);
 // the item's words say already.
 const BUTTON_WORDS = new Set(["Too quick", "Too slow", "Not this way: another way", "Show something else"]);
 const saidWords = (item) => (item && item.said && !BUTTON_WORDS.has(item.said) ? ` <span class="was">(you said “${esc(item.said)}”)</span>` : "");
+// a pass-1 choice criticized, in the run's names (R): "the Prince moves too fast"
+const choicePhrase = (item) => `${who(item.character)}${esc(AniCritic.choiceWords(item).slice(item.character.length))}`;
 // An item in plain words (HTML), with the reader's own words if they gave any.
 function critWords(run, item, { said = true } = {}) {
   const t = (id) => esc(sceneTitleOf(run, id));
@@ -96,10 +98,13 @@ function critWords(run, item, { said = true } = {}) {
       ? `${t(item.scene)}: not ${vetoWords(run, item)} to establish ${critTask(run, item.scene, item.task)}; something else`
       : `${t(item.scene)}: not ${vetoWords(run, item)}; another way to show that ${critTask(run, item.scene, item.task)}`;
     if (item.kind === "pace") return `${t(item.scene)}: too ${item.direction === "too-quick" ? "quick" : "slow"}${item.times > 1 ? ` (said ${countWords(item.times)} times)` : ""}, the part where ${item.tasks.length === 1 ? critTask(run, item.scene, item.tasks[0]) : words(item.tasks.map((x) => critTask(run, item.scene, x)))}`;
+    if (item.kind === "choice") return choicePhrase(item);
     if (item.kind === "keep-apart") return `keep ${who(item.between[0])} and ${who(item.between[1])} apart in ${words(item.scenes.map((id) => esc(midTitle(run, id))))}`;
     return `${t(item.scene)}: ${who(item.who)} starts far from ${who(item.from)}`;
   });
-  return `${cap(w)}${said ? saidWords(item) : ""}`;
+  // (a choice's words said as they were offered aren't said twice)
+  const same = item.kind === "choice" && item.said && unmark(w).toLowerCase() === item.said.toLowerCase();
+  return `${cap(w)}${said && !same ? saidWords(item) : ""}`;
 }
 // A film's criticism in a few words each, for its title in "Your films": ", with your
 // criticism: No Longer Kept Apart too quick; ...".
@@ -109,11 +114,13 @@ function critTitle(run) {
   const bits = run.criticism.map((c) => (c.kind === "pace" ? `${t(c.scene)} too ${c.direction === "too-quick" ? "quick" : "slow"}`
     : c.kind === "another-way" ? `not ${plain(c.vetoes)} in ${t(c.scene)}`
     : c.kind === "keep-apart" ? `${name(c.between[0])} and ${name(c.between[1])} kept apart`
+    : c.kind === "choice" ? unmark(using(run, () => choicePhrase(c)))
     : `${name(c.who)} starting far from ${name(c.from)}`));
   return `, with your criticism: ${cap(bits.join("; "))}`;
 }
 // The scenes a record (and the film's own) reaches from: the first criticized, by index.
 function critFrom(run, record = pendingOf(run)) {
+  if ([...record, ...critRecord(run)].some((c) => c.kind === "choice")) return 0;
   const k = [...record, ...critRecord(run)].flatMap(AniCritic.criticismScenes).map((id) => run.sceneIds.indexOf(id)).filter((i) => i >= 0);
   return k.length ? Math.min(...k) : run.sceneIds.length;
 }
@@ -123,6 +130,8 @@ const filesOf = (run) => (run === RUNS[0] ? kenFilesAt(runFps(run)) : run.raw.fi
 function remakePlan(run) {
   if (!filesOf(run)) return "This film was saved before Ani kept its working files, so it is made again from the start, heeding your criticism.";
   const k = critFrom(run);
+  const choices = pendingOf(run).filter((c) => c.kind === "choice");
+  if (choices.length) return `Ani will make pass 1 again, choosing ${words(choices.map((c) => `${unmark(using(run, () => who(c.character)))}'s ${elementName(c.element)}`))} afresh with your criticism and holding every other choice as it was, then plan every scene again, and film again those whose plan changes.${runFps(run) === 24 ? " It is made at 24 frames a second, as this film was." : " It is made at 4 frames a second, as this film was."}`;
   const again = run.sceneIds.slice(k).map((id) => midTitle(run, id));
   const kept = run.sceneIds.slice(0, k).map((id) => midTitle(run, id));
   // (a remake is made at the film's own frames a second, never another's)
@@ -396,6 +405,9 @@ function kenExamples(run) {
   if (run.sceneIds.slice(0, 2).join() === "introduction,kept-apart" && onStage(run, run.scenes[0]).includes("prince")) {
     out.push(["Cinderella is not to meet the Prince until the third scene", [{ kind: "keep-apart", scenes: ["introduction", "kept-apart"], between: ["cinderella", "prince"], said: "Cinderella is not to meet the Prince until the third scene" }], "p. 64"]);
   }
+  // the revival's (C6): a pass-1 choice, the design's own probe
+  const prince = run.cp && run.cp.get(show(["choice-point-of", "prince", "speed"]));
+  if (prince && prince.currentChoice === "high") out.push(["the Prince moves too fast", [{ kind: "choice", character: "prince", element: "speed", direction: "lower", was: "high", said: "The Prince moves too fast" }], "the revival's"]);
   return out;
 }
 function tryCriticizing(run) {
@@ -477,7 +489,7 @@ function startRemake(orig) {
   run.pending = record.map((c) => ({ ...c }));
   if (orig.knowledge && orig.knowledge.length) run.knowledge = orig.knowledge;
   run.remadeFrom = { ken, fps, id: ken ? null : orig.libId || null, title: ken ? "Ani's 1978 film" : (orig.libId && libraryTitle(orig.libId)) || orig.label, made: (orig.status && orig.status.made) || null, print: ken ? null : printOf(orig) };
-  run.remaking = { from: files ? critFrom(orig, record) : 0, fromScratch: !files };
+  run.remaking = { from: files ? critFrom(orig, record) : 0, fromScratch: !files, pass1: [...record, ...critRecord(orig)].some((c) => c.kind === "choice") };
   run.keptHow = {};
   // the film remade from has its own record again, if it is looked at later
   if (ken) KEN_PENDING[fps] = [];
@@ -617,6 +629,37 @@ function critStart(run, sc, subName, char) {
   return n ? `<p class="made-with">${critNoteSentence(run, sc, n)}</p>` : "";
 }
 
+// ---- a pass-1 choice criticized (C6, the revival's extension of Ken's idea)
+
+// In a choice point of how a character moves whose value is a name: "This is wrong: the
+// hare moves too fast", "... moves too slowly", "Not medium", a direction from the value
+// the film has, never a value; and what a criticism did there.
+function critChoiceButtons(char, el, cp) {
+  const run = R, v = cp && show(cp.currentChoice);
+  if (!AniCritic || !remakeable(run) || !AniTeach.MOVEMENT_ELEMENTS[el] || !/^(low|medium|high|short|long)$/.test(v || "")) return "";
+  const the = meet(run.story, char).the, lead = `${char.replace(/-/g, " ")} `;
+  const b = (direction) => {
+    const item = { kind: "choice", character: char, element: el, direction, was: v };
+    const said = direction === "not" ? `${cap(the)}'s ${elementName(el)} is not ${v}` : `${cap(the)} ${AniCritic.choiceWords(item).slice(lead.length)}`;
+    return critButton(run, { ...item, said }, `This is wrong: ${direction === "not" ? `not ${v}` : said.charAt(0).toLowerCase() + said.slice(1)}`, "Ani makes pass 1 again with your criticism as a suggestion, everyone else held as they were (the revival's extension of Ken's criticism)");
+  };
+  return `<p class="crit-choice"><span class="label">The revival's: criticism of pass 1's choices</span> <span class="crit-buttons">${b("lower")} ${b("higher")} ${b("not")}</span>${DIRECTOR_READS.includes(el) ? "" : ` <span class="note">Ani chooses this, but nothing that draws the film reads it, so the film won't change.</span>`}</p>`;
+}
+function critChoiceNotes(char, el, cp) {
+  const out = [], said = (id) => { const it = critItem(R, id); return esc(it ? it.said || AniCritic.choiceWords(it) : "your criticism"); };
+  for (const m of (cp.memory || []).filter((x) => x[0] === "heeded-criticism:" || x[0] === "unmet-criticism:")) {
+    const was = esc(show(kv(m, "was"))), because = show(kv(m, "because"));
+    out.push(m[0] === "heeded-criticism:" ? `${was} before; ${esc(show(kv(m, "now")))} now, because you said “${said(kv(m, "id"))}”.`
+      : /self-conflicting/.test(because) ? `Ani couldn't heed “${said(kv(m, "id"))}”: ${was} is as far as it goes that way, and Ken's rules refuse a value beyond it (impossible-relative-value; self-conflicting-suggestion, ${kenAt("choose.198:319-322")}).`
+      : `Ani weighed “${said(kv(m, "id"))}” with the other suggestions, and the value came out as before.`);
+  }
+  const held = ((R.remade && R.remade.pass1 && R.remade.pass1.held) || []).find((h) => h.choicePoint[1] === char && h.choicePoint[2] === el);
+  if (held) out.push(`Held as it was, ${esc(show(held.heldAt))}, while pass 1 was made again for your criticism; on its own Ani would have chosen ${esc(show(held.wouldHaveChosen))}.`);
+  const n = (cp.conflictsResolved || []).filter((c) => /criticized-by-you/.test(show(c))).length;
+  if (n) out.push(`Ani took your criticism over ${n === 1 ? "a suggestion" : `${n} suggestions`} it conflicted with (Ken's place for it: try-to-resolve-using-criticism, ${kenAt("choose.198:587-589")}).`);
+  return out.length ? `<p class="note crit-here">${out.join(" ")} ${fileLink("critic")}</p>` : "";
+}
+
 // ---- "What your criticism changed", beside the film it was remade from
 
 // Whether b was remade from a (Ken's film at its rate, or one of the reader's films).
@@ -673,6 +716,12 @@ function critOutcome(run, sc0, c) {
       if (parts.length && lost.length * 2 > parts.length) out.push(`Most of ${esc(midTitle(run, id))} couldn't be made without bringing ${who(item.between[0])} and ${who(item.between[1])} together; that is what ${esc(midTitle(run, id))} is for. Perhaps this is a change to the story.`);
     }
   }
+  if (item.kind === "choice" && c.choice) {
+    const k = c.choice, el = (p) => `${using(run, () => who(p[1]))}'s ${elementName(p[2])}`;
+    out.push(`${cap(el(AniCritic.choicePointOf(item)))}: ${esc(show(k.before))} in the film remade from, ${esc(show(k.after))} now.`);
+    if (k.rejected) out.push(`Ani couldn't: ${esc(show(k.before))} is as far as it goes that way, and Ken's rules refuse a value beyond it as a ${esc(plain(show(k.rejected)))} (choose.198:319-322).`);
+    for (const h of k.knockOns || []) out.push(`Had Ani chosen everything afresh, ${el(h.choicePoint)} would have gone from ${esc(show(h.before))} to ${esc(show(h.after))} too; the remake held it.`);
+  }
   if (item.kind === "start-far" && c.start && c.start.frame !== null) {
     if (c.start.walkedOn) out.push(`In the film ${who(item.who)} is first seen off the picture (${frameAt(scOf(item.scene), c.start.frame)}) and walks on.`);
     else if (!c.notes.length) {
@@ -716,8 +765,8 @@ function critPrevScene(run, id) {
 function critChangedSection(a, b) {
   if (!AniCritic || !remadeFrom(a, b)) return "";
   const running = b.status && b.status.running;
-  const prev = { scenes: a.raw.scenes.filter(Boolean) };
-  const now = { scenes: b.raw.scenes.filter(Boolean), criticism: critRecord(b), remade: b.remade || { scenes: Object.entries(b.keptHow || {}).map(([id, how]) => ({ id, how: how === "before" ? "kept" : how })) } };
+  const prev = { scenes: a.raw.scenes.filter(Boolean), choicePoints: a.raw.choicePoints };
+  const now = { scenes: b.raw.scenes.filter(Boolean), choicePoints: b.raw.choicePoints, criticism: critRecord(b), remade: b.remade || { scenes: Object.entries(b.keptHow || {}).map(([id, how]) => ({ id, how: how === "before" ? "kept" : how })) } };
   let ch;
   try { ch = using(b, () => AniCritic.criticismChanges(prev, now)); } catch (e) { console.error(e); return ""; }
   const taken = critRecord(a).filter((x) => !critRecord(b).some((y) => sameCrit(x, y)));

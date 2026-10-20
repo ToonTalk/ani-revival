@@ -256,6 +256,9 @@ Times in Node: the Prince 4 minutes (two pass 1s of 20 seconds, then five scenes
 
 ### For the page (C6)
 
+*On the page (20 October, merged with Ken's testing on the page (3)):* each choice point of how a character moves whose value is a name offers "This is wrong: the hare moves too fast", "... moves too slowly" and "This is wrong: not medium", under "The revival's: criticism of pass 1's choices" (`critChoiceButtons`, app/film/criticism.js), with a note where nothing that draws the film reads the element; "Try criticizing" has "the Prince moves too fast (the revival's)"; "Your criticism" says the remake makes pass 1 again; the remade film's choice point says "high before; medium now, because you said ...", Ani's refusal where it couldn't, the choices held ("Held as it was, medium ...; on its own Ani would have chosen high") and the conflicts resolved for it (`critChoiceNotes`), and its suggestion's source "you said ..."; "What your criticism changed" says the value before and after and each knock-on the remake held. "Tell Ani what's wrong" (C4) has a `choice` kind (`character`, `element`, `direction`), and sends one scene's "slower" to the editor as a story item. Checked in `tools/check-film-app.mjs` (the Prince, 192, 116, 16, 201 and 111 frames, as `choice-prince` has it).
+
+
 **The record.** A new kind, `choice` (`CRITICISM_KINDS`):
 
 | kind | fields | Lisp |

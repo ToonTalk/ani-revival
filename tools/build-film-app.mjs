@@ -488,7 +488,7 @@ function whyFunctions(root) {
 // put in before them, as src/pipeline.js has it. The build checks that the page's copies say
 // what src/pipeline.js says of tools/check-critic.mjs's goldens (reports/ext/critic/), with
 // the films as the page carries them (packFilm), and keep a record as it keeps one.
-const CRITIC_FUNCTIONS = ["readForms", "printForm", "CRITICISM_KINDS", "PACE_FACTOR", "isName", "isForm", "normalForm", "checkCriticism", "checkRecord", "paceFactor", "criticismScenes", "addCriticism", "removeCriticism", "criticismWords", "taskDescription", "taskSource", "sourceNeeded", "namesTask", "criticismChanges", "contactsIn", "closestApproach"];
+const CRITIC_FUNCTIONS = ["readForms", "printForm", "CRITICISM_KINDS", "CHOICE_DIRECTIONS", "CHOICE_PER_SCENE", "CHOICE_WORDS", "choiceWords", "choicePointOf", "choicePointLisp", "choiceKey", "PACE_FACTOR", "isName", "isForm", "normalForm", "checkCriticism", "checkRecord", "paceFactor", "criticismScenes", "addCriticism", "removeCriticism", "criticismWords", "taskDescription", "taskSource", "sourceNeeded", "namesTask", "criticismChanges", "contactsIn", "closestApproach"];
 // A golden of tools/check-critic.mjs as a remade film: each scene planned again with its
 // glass box there, each filmed again with its film there, the rest the film it was remade
 // from (as src/pipeline.js remakeFilmSteps keeps them).

@@ -633,7 +633,7 @@ try {
   })()`);
   check(!c4.error && c4.calls.length === 1 && /^https:\/\/api\.anthropic\.com\//.test(c4.calls[0]) && !c4.keyInBody && c4.prompt.includes("No Longer Kept Apart is too quick, and it feels gloomy; pretty characters should move fast") && /Scene “No Longer Kept Apart” \(id no-longer-kept-apart\)/.test(c4.prompt) && /thesis p\. 191/.test(c4.prompt),
     `"Tell Ani what's wrong" asks only the provider chosen (${(c4.calls || []).join(", ")}), with the visitor's words and the film as the glass box tells it, and no key in the request's body`);
-  check(c4.strict && JSON.stringify(c4.scenes) === JSON.stringify(c4.sceneIds) && JSON.stringify(c4.cast) === JSON.stringify(c4.castIds) && c4.kinds.join() === "another-way,pace,keep-apart,start-far,story,teach,cannot",
+  check(c4.strict && JSON.stringify(c4.scenes) === JSON.stringify(c4.sceneIds) && JSON.stringify(c4.cast) === JSON.stringify(c4.castIds) && c4.kinds.join() === "another-way,pace,choice,keep-apart,start-far,story,teach,cannot",
     `its schema is strict, its enums the film's own scenes and cast, its kinds ${c4.kinds && c4.kinds.join(", ")}`);
   check(c4.items.length === 4 && /^Not something Ani can change: the model named a part this film doesn't have\./.test(c4.items[3]) && /^Criticism: part 1 of No Longer Kept Apart is too quick \(you said “No Longer Kept Apart is too quick”\) Add to your criticism$/.test(c4.items[0])
     && /^Ani can't take this criticism: Mood is not something Ani takes into account\. As Ken wrote, “Ani currently has practically no conception of rhythm, for example, and so could not respond to criticisms of the film's rhythm\. The same holds for notions such as climax, tension, mood, or humor\./.test(c4.items[1])
@@ -2942,6 +2942,28 @@ try {
     // nlka-veto: 23, 178, 100
     check(!veto.error && veto.frames.join() === "192,116,23,178,100" && /Ani set aside “the fairy godmother goes to Cinderella and accompanies her”, vetoed by you, and chose among the ways left/.test(vetoed.here) && /^Vetoed by you/i.test(vetoed.card) && vetoed.struck,
       `"Not this way", as reports/ext/critic/nlka-veto has it (${veto.frames.join(", ")}): the godmother's way is struck through in "How Ani chose this", vetoed by you, and the glass box says what Ani did`);
+    // a pass-1 choice criticized (C6, the revival's extension of Ken's idea): the Prince's
+    // speed in his choice point offers "This is wrong: the Prince moves too fast", "Try
+    // criticizing" has it, and the remake makes pass 1 again with everyone else held, as
+    // reports/ext/critic/choice-prince has it (192, 116, 16, 201 and 111 frames): the
+    // Prince's speed high to medium, said in his choice point, the fairy godmother's held,
+    // and the full recompute's knock-on said in "What your criticism changed"
+    await toCheckPage();
+    const offered = await js(`(() => { const t = window.__check; t.setView(0); t.goScene(0, 1); t.select(null); const html = t.using(t.RUNS[0], () => t.choicePointBox("prince", "speed")); const d = document.createElement("div"); d.innerHTML = html; return { buttons: [...d.querySelectorAll(".crit-choice .crit-btn")].map((b) => b.textContent), label: (d.querySelector(".crit-choice .label") || {}).textContent || "", tried: [...document.querySelectorAll("#side .crit-try button")].map((b) => b.textContent) }; })()`);
+    check(offered.buttons.join() === "This is wrong: the Prince moves too fast,This is wrong: the Prince moves too slowly,This is wrong: not high" && /The revival's: criticism of pass 1's choices/.test(offered.label) && offered.tried.includes("the Prince moves too fast"),
+      `the Prince's speed (high) offers ${offered.buttons.map((b) => `"${b}"`).join(", ")}, labeled the revival's, and "Try criticizing" has "the Prince moves too fast"`);
+    await js(`[...document.querySelectorAll("#side .crit-try button")].find((b) => b.textContent === "the Prince moves too fast").click()`);
+    await sleep(300);
+    const plan6 = await js(`(document.getElementById("crit") || {}).innerText || ""`);
+    await js(`document.querySelector("#crit .crit-go").click()`);
+    const choice = await remakeDone("the Prince moves too fast");
+    const boxes = await js(`(() => { const t = window.__check; const text = (c) => { const d = document.createElement("div"); d.innerHTML = t.using(t.RUNS[1], () => t.choicePointBox(c, "speed")); return d.innerText; }; return { prince: text("prince"), godmother: text("fairy-godmother") }; })()`);
+    check(!choice.error && choice.frames.join() === "192,116,16,201,111" && /Ani will make pass 1 again, choosing the Prince's speed afresh with your criticism and holding every other choice as it was/.test(plan6)
+      && /Met the Prince moves too fast/i.test(choice.side) && /The Prince's speed: high in the film remade from, medium now\./.test(choice.side) && /Had Ani chosen everything afresh, the fairy godmother's speed would have gone from medium to high too; the remake held it\./.test(choice.side),
+      `"the Prince moves too fast", as reports/ext/critic/choice-prince has it (${choice.frames.join(", ")}; ${choice.how.join(", ")}): met, high to medium, and the knock-on the remake held said beside Ken's film`);
+    check(/high before; medium now, because you said “The Prince moves too fast”\./.test(boxes.prince) && /you said “The Prince moves too fast”/.test(boxes.prince.replace(/high before[^.]*\./, "")) && /Held as it was, medium, while pass 1 was made again for your criticism; on its own Ani would have chosen high\./.test(boxes.godmother),
+      `the remade film's choice points: the Prince's "high before; medium now, because you said ...", his suggestion's source "you said ...", and the fairy godmother's speed "held as it was, medium; on its own Ani would have chosen high"`);
+    await shot("24-choice-criticized.png");
     // "not this way" on the stepmother's guarding in Kept Apart: offered with a caution, and
     // when Ani stops in Ken's unfinished chases-to, the film kept as it was from there and
     // the criticism "couldn't be made", said in plain words (reports/ext/critic/ka-veto-guard)

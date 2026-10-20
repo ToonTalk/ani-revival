@@ -4882,6 +4882,8 @@ function sourceText(c, s, from = null) {
       rels.set(key, [...(rels.get(key) || []), `${who(a === c ? b : a)}'s`]);
     } else if (x[0] === "dynamics-of") out.add(`how ${k.she} ${agree(k, "moves", "move")}: ${theirs(c)} ${esc(elementWords(x[2]))}${(() => { const d = (from && from.cp(["choice-point-of", x[1], x[2]])) || cpNamed(R, ["choice-point-of", x[1], x[2]]); return d ? ` is ${esc(plain(show(d.currentChoice)))}` : ""; })()}`);
     else if (x[0] === "uniqueness-summary:") stand.add(kv(x, "of-who"));
+    // a pass-1 choice criticized (C6): "you said he moves too fast"
+    else if (x[0] === "criticism-by-you") { const it = critItem(R, x[1]); out.add(`you said “${esc(it ? it.said || AniCritic.choiceWords(it) : "so")}”`); }
     else if (x[0] === "comparison-summary:") out.add(`${who((kv(x, "of-who") || []).slice(1))} are ${(kv(x, "similarity-level") || [])[0] === "negative" ? "unlike" : "like"} each other`);
     else out.add(esc(plain(show(x))));
   }
@@ -4912,7 +4914,7 @@ function choicePointBox(char, el, from = null) {
     ${kept ? `<span>Suggestions Ani kept:</span><ul>${kept}</ul>` : ""}${rejected ? `<span>Set aside:</span><ul>${rejected}</ul>` : ""}
     ${fix ? `<p class="fix-line">${fix.html} ${repairCode(fix.what)}</p>` : ""}
     ${conflicts ? `<span class="note">${conflicts} conflict${conflicts > 1 ? "s" : ""} between suggestions ${conflicts > 1 ? "were" : "was"} settled on the way.</span>` : ""}
-    ${from ? "" : teachWordOffers(char, el, cp)}
+    ${from ? "" : critChoiceNotes(char, el, cp) + critChoiceButtons(char, el, cp) + teachWordOffers(char, el, cp)}
     ${more}</div>`;
 }
 // DETAIL's best-when clauses of a way of showing, (drawn-to a b), with the status each had
@@ -5010,7 +5012,7 @@ const AniWhy = (() => {
 // Teach Ani's are: teachRuntime.)
 const AniCritic = await (async () => {
 /*CRITICISM*/
-  return { addCriticism, removeCriticism, checkRecord, criticismWords, criticismScenes, paceFactor, taskDescription, taskSource, sourceNeeded, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
+  return { addCriticism, removeCriticism, checkRecord, criticismWords, choiceWords, choicePointOf, CHOICE_PER_SCENE, criticismScenes, paceFactor, taskDescription, taskSource, sourceNeeded, criticismChanges, closestApproach, PACE_FACTOR, SMALL_DISTANCE };
 })();
 // Teach Ani: src/teach.js itself and src/pipeline.js's yourKnowledgeDid and
 // knowledgeChanges, put in here by tools/build-film-app.mjs, for app/film/teach.js.
@@ -6527,7 +6529,7 @@ function progressOf(st, run = RUNS[1]) {
   if (!st.running) return 1;
   // (a remake from its working files has no pass 1 and no fresh looks, and starts at the first scene criticized)
   const remaking = run && run.remaking && !run.remaking.fromScratch ? run.remaking : null;
-  const steps = [...(remaking ? [] : [["pass1", null]]), ...(run ? run.sceneIds : SCENE_IDS).filter((id, i) => !remaking || i >= remaking.from).flatMap((id) => [...(run && run.changing[id] && !remaking ? [["fresh-look", id], ["recompute", id]] : []), ["pass2", id], ["film", id]])];
+  const steps = [...(remaking && !remaking.pass1 ? [] : [["pass1", null], ...(remaking ? [["recompute", null]] : [])]), ...(run ? run.sceneIds : SCENE_IDS).filter((id, i) => !remaking || i >= remaking.from).flatMap((id) => [...(run && run.changing[id] && !remaking ? [["fresh-look", id], ["recompute", id]] : []), ["pass2", id], ["film", id]])];
   const fps = (run && run.fps) || 4;
   const total = steps.reduce((a, s) => a + stepSeconds(s, fps), 0);
   const k = steps.findIndex(([s, id]) => s === st.step && (s === "pass1" || id === st.scene));

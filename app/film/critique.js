@@ -92,6 +92,8 @@ function critiqueSchema(run, film = critiqueFilm(run)) {
   const tids = Object.keys(film.tasks), pids = Object.keys(film.parts);
   if (tids.length) kinds.push(obj({ kind: one(["another-way"]), task: one(tids), level: one(["how", "what"]), said: str }));
   if (pids.length) kinds.push(obj({ kind: one(["pace"]), part: one(pids), direction: one(["too-quick", "too-slow"]), said: str }));
+  const els = Object.keys(AniTeach.MOVEMENT_ELEMENTS).filter((el) => run.cast.some((c) => run.cp.has(show(["choice-point-of", c, el]))));
+  if (AniCritic.choiceWords && els.length) kinds.push(obj({ kind: one(["choice"]), character: cast, element: one(els), direction: one(["lower", "higher", "not"]), said: str }));
   kinds.push(obj({ kind: one(["keep-apart"]), scenes: list(one(ids)), between: { ...list(cast, 2), maxItems: 2 }, said: str }));
   kinds.push(obj({ kind: one(["start-far"]), scene: one(ids), who: cast, from: cast, said: str }));
   const task = storyTaskSchema(runExtensions(run), cast);
@@ -117,6 +119,7 @@ ${film.scenes.join("\n\n")}
 THE KINDS OF ITEM:
 - "another-way": a task's way of showing is wrong. level "how": Ani sets the way it chose aside and shows the task another way (only for a task that weighed other ways); level "what": for a task Ani chose in order to establish something, Ani establishes that some other way. task: a t id above.
 - "pace": a part is too quick (Ani gives it half as long again, within the time the story gives the scene) or too slow (a third less). part: a p id above.
+- "choice": how a character moves in the whole film is wrong (the revival's extension of Ken's criticism): Ani chose each character's speed, the curvature, length and jaggedness of its paths and so on once, for every scene (listed above); direction "lower" (the hare moves too fast: speed lower), "higher", or "not" (not the value it has); Ani makes that choice again with the criticism, everyone else's as they were. Something about one scene only is not a choice but a story item (a feeling in that scene).
 - "keep-apart": two characters should not come close to each other in these scenes (Ken's example: Cinderella is not to meet the Prince until the third scene).
 - "start-far": a character should start far from another in a scene, and walk on (Ken's example: the fairy godmother should start far from Cinderella).
 - "story": what is really a change to the film description, not to how Ani made the film: what the characters are like, feel, or do in a scene. scene: where the change goes ("none" if it is about a character in every scene); add: the task to add to that scene, in the form of the description's tasks (kind "no-task" if it isn't one); change: the change in a few plain words. For example, "the hare is unhappy and should move slowly in the final scene" is a story item for the last scene, adding the task {"kind": "establish-emotional-state", "who": "hare", "feelings": [{"feeling": "joy", "sign": "negative", "amount": "high"}]}: Ani shows an unhappy character moving slowly.
@@ -212,6 +215,12 @@ function critiqueItem(run, film, x, said) {
       if (!p || !["too-quick", "too-slow"].includes(x.direction)) return { ...out, html: `<b>Not something Ani can change:</b> the model named a part this film doesn't have.${you}` };
       const { n, ...rest } = p;
       return crit({ kind: "pace", ...rest, direction: x.direction }, `part ${n} of ${sceneTitle_(p.scene)} is ${x.direction === "too-quick" ? "too quick" : "too slow"}`);
+    }
+    case "choice": {
+      const cp = run.cp.get(show(["choice-point-of", x.character, x.element])), v = cp && show(cp.currentChoice);
+      if (!cp || !AniCritic.choiceWords || !["lower", "higher", "not"].includes(x.direction)) return { ...out, html: `<b>Not something Ani can change:</b> the model named a choice this film doesn't have.${you}` };
+      const item = { kind: "choice", character: x.character, element: x.element, direction: x.direction, was: v };
+      return crit(item, `the revival's: ${esc(AniCritic.choiceWords(item).replace(x.character.replace(/-/g, " "), meet(run.story, x.character).the))} (${esc(elementName(x.element))} ${esc(v)} now; pass 1 made again with it, everyone else as they were)`);
     }
     case "keep-apart": {
       const scenes = [...new Set((x.scenes || []).filter((id) => run.sceneIds.includes(id)))], b = [...new Set((x.between || []).filter((c) => run.cast.includes(c)))];
