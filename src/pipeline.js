@@ -293,18 +293,33 @@ export const withTeach = (extensions = []) => (extensions.includes("teach") ? ex
 // (src/glassbox-pass1.js collectAppearances). setup, if given, is called with the Lisp
 // once it has booted, before DATEST loads (tools/check-appear.mjs leaves out some of
 // APPEAR's knowledge with it).
-export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null, knowledge = null } = {}) {
-  const L = boot(fs, { backtrace, extensions, criticism, knowledge });
+// hold, a criticism of a pass-1 choice's (REVIVE;CRITIC, stage C6): the choice points
+// to choose afresh, as Lisp ("(choice-point-of prince speed)"), every other choice held
+// as KEN;CP > has it (REVIVE;HOLD hold-all-but-choice-points, before (z)); the result
+// then has held, each choice held that would have come out differently, { choicePoint,
+// heldAt, wouldHaveChosen }, as freshLook's. save: false leaves KEN;CP as it was (the
+// full recompute a criticism is compared with).
+export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null, knowledge = null, hold = null, save = true } = {}) {
+  const L = boot(fs, { backtrace, extensions: hold ? withCritic(extensions) : extensions, criticism, knowledge });
   if (setup) setup(L);
   L.evalString("(load '|ken;datest >|)");
   L.evalString("(init nil)");
+  if (hold) L.evalString(`(hold-all-but-choice-points '(${hold.join(" ")}) '((ken) cp >))`);
   L.evalString("(z)");
   for (const e of extensionsFor(extensions)) if (e.afterPass1) L.evalString(e.afterPass1);
-  L.evalString(`(save-answers '((ken) cp ${cpVersion}))`);
+  let held = null;
+  if (hold) {
+    held = L.toArray(L.evalString(":change-held-against")).reverse().map((x) => {
+      const [choicePoint, heldAt, wouldHaveChosen] = L.toArray(x).map((y) => toJSON(L, y));
+      return { choicePoint, heldAt, wouldHaveChosen };
+    });
+    L.evalString("(setq :change-held nil)"); // nothing more is held
+  }
+  if (save) L.evalString(`(save-answers '((ken) cp ${cpVersion}))`);
   const choicePoints = collectChoicePoints(L);
   const repairs = noting(L) ? repairNotes(L) : [];
   const appearances = choosesLooks(extensions) ? collectAppearances(L) : null;
-  return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), ...(appearances ? { appearances } : {}), lisp: L };
+  return { choices: choicePoints.length, choicePoints, ...(repairs.length ? { repairs } : {}), ...(appearances ? { appearances } : {}), ...(held ? { held } : {}), lisp: L };
 }
 
 // ---------------------------------------------------------------- pass 1 again
@@ -377,9 +392,9 @@ const choicePointCharacters = (name) => (Array.isArray(name) ? (Array.isArray(na
 // { before, after, changed }, each as lookOf gives it (values then has the elements of a
 // look too, use "looks"); held: each other choice the fresh look held that would have
 // come out differently, { choicePoint, heldAt, wouldHaveChosen }.
-export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null } = {}) {
+export function freshLook(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null, criticism = null } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge, criticism });
   const lisp = (x) => L.print(x).toLowerCase();
   L.evalString("(load '|ken;datest >|)");
   const definitions = L.toArray(L.evalString(`(take-a-fresh-look '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} '((ken1) ${s.become} become) ${afterZ(extensions)})`));
@@ -428,9 +443,9 @@ function looksOf(L, oldLook, newLook) {
   return { before, after, changed };
 }
 
-export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null } = {}) {
+export function recomputeEveryone(fs, scene, { plan, extensions = [], becomes = null, backtrace = false, knowledge = null, criticism = null } = {}) {
   const s = plan.scenes.find((x) => x.id === scene);
-  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge });
+  const L = boot(fs, { backtrace, extensions: withChange(extensions), knowledge, criticism });
   L.evalString("(load '|ken;datest >|)");
   const differences = L.toArray(L.evalString(`(recompute-everyone-as-of '${scene} '((ken) cp >) ${becomeFiles(becomes || s.becomes || [])} ${afterZ(extensions)})`)).map((x) => {
     const [choicePoint, before, after] = L.toArray(x).map((y) => toJSON(L, y));
@@ -1923,8 +1938,42 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
 //                item for a part: two that name the same task are refused (checkRecord)
 //   keep-apart   scenes (one or more), between ([a, b], two characters)
 //   start-far    scene, who, from (two characters): who starts far from from
+//   choice       the revival's extension (stage C6): a pass-1 choice criticized,
+//                character, element (a choice point (choice-point-of character element),
+//                "speed", "path-curvature", ...), direction ("lower", "higher" or "not":
+//                a direction, never a value) and was (the value the film criticized has
+//                there, which the direction is from: "high"). For the whole film: a
+//                choice item has no scene (CHOICE_PER_SCENE says why). A record has one
+//                choice item for a choice point (addCriticism replaces it)
 // The Lisp sees it as KEN1;FILM CRITIC (criticismToLisp), without the words said.
-export const CRITICISM_KINDS = ["another-way", "pace", "keep-apart", "start-far"];
+export const CRITICISM_KINDS = ["another-way", "pace", "keep-apart", "start-far", "choice"];
+// A pass-1 choice's direction in Ken's own value language (cosug.215:302-307, 382-400):
+// lower, (less-than high); higher, (greater-than low); not, (not high).
+export const CHOICE_DIRECTIONS = { lower: "less-than", higher: "greater-than", not: "not" };
+// Why a choice item has no scene: a pass-1 choice is a character's for the whole film
+// (pass 2 reads it in every scene, scene.9:265-275); slower in one scene is a feeling
+// of that scene's, which Ani shows by changing how she moves there (EMOTE's joy changes
+// her speed, emote.9:12-35), so it is a change to the story, the editor's, not a
+// criticism of Ani's choice.
+export const CHOICE_PER_SCENE = "A pass-1 choice is for the whole film: Ani chooses how a character moves once, and every scene reads it. Slower in one scene is a feeling in that scene (Ani shows a character's joy, or its lack, by how fast she moves there), so it is a change to the story: say how the character feels in that scene, in the editor.";
+// The words of a choice criticism, by element and direction ("moves too fast"); the
+// others "has too much ..."/"has too little ...".
+const CHOICE_WORDS = {
+  speed: { lower: "moves too fast", higher: "moves too slowly" },
+  "path-curvature": { lower: "moves in paths too curvy", higher: "moves in paths too straight" },
+  "path-length": { lower: "takes paths too long", higher: "takes paths too short" },
+  "path-jaggedness": { lower: "moves in paths too jagged", higher: "moves in paths too smooth" },
+};
+export function choiceWords(item) {
+  const name = (x) => String(x).replace(/-/g, " ");
+  if (item.direction === "not") return `${name(item.character)}'s ${name(item.element)}: not ${name(item.was)}`;
+  const w = CHOICE_WORDS[item.element];
+  return `${name(item.character)} ${w ? w[item.direction] : `has too ${item.direction === "lower" ? "much" : "little"} ${name(item.element)}`}`;
+}
+// The choice point a choice item names, as the glass box names it, and as Lisp.
+export const choicePointOf = (item) => ["choice-point-of", item.character, item.element];
+const choicePointLisp = (item) => `(choice-point-of ${item.character} ${item.element})`;
+const choiceKey = (item) => `${item.character} ${item.element}`;
 // One "too quick" is half as long again (the revival's choice, pending Ken: design
 // question 3), compounding; within the part's allocated time and SCENE's stretch of 8
 // and 1/8 (REVIVE;CRITPC).
@@ -1972,6 +2021,12 @@ export function checkCriticism(item) {
   } else if (item.kind === "start-far") {
     if (!isName(item.scene)) bad("needs its scene");
     two(item.who, item.from, "who and from");
+  } else if (item.kind === "choice") {
+    if (item.scene !== undefined || item.scenes !== undefined) bad(CHOICE_PER_SCENE);
+    if (!isName(item.character)) bad("needs its character");
+    if (!isName(item.element)) bad("needs its element, a choice of pass 1's (speed, path-curvature, ...)");
+    if (!Object.hasOwn(CHOICE_DIRECTIONS, item.direction)) bad("direction is lower, higher or not: a direction, never a value");
+    if (!isName(item.was)) bad("was is the value the film has, which the direction is from (low, medium, high, ...)");
   }
   return item;
 }
@@ -1985,6 +2040,11 @@ export function checkRecord(record) {
     checkCriticism(c);
     if (ids.has(c.id)) throw new Error(`criticism ${c.id}: its id is used twice`);
     ids.add(c.id);
+    if (c.kind === "choice") {
+      const other = paced.get(`choice ${choiceKey(c)}`);
+      if (other) throw new Error(`criticism ${c.id}: ${other} already criticizes that choice; a choice point has one choice item (addCriticism replaces it)`);
+      paced.set(`choice ${choiceKey(c)}`, c.id);
+    }
     if (c.kind !== "pace") continue;
     c.tasks.forEach((t, k) => {
       const key = `${c.scene} ${normalForm(t)} ${(c.sources && c.sources[k]) || ""}`;
@@ -2004,8 +2064,10 @@ export function paceFactor(item) {
 }
 
 // The scenes an item criticizes.
+// A choice item criticizes pass 1, which every scene reads: none of them by name, all
+// of them in effect (remakeFilmSteps remakes from pass 1).
 export function criticismScenes(item) {
-  return item.kind === "keep-apart" ? [...item.scenes] : [item.scene];
+  return item.kind === "keep-apart" ? [...item.scenes] : item.kind === "choice" ? [] : [item.scene];
 }
 
 // The record as KEN1;FILM CRITIC: a comment, then one (criticism: ...) form an item,
@@ -2021,6 +2083,7 @@ export function criticismToLisp(record) {
     if (c.kind === "pace") parts.push(`scene ${c.scene}`, `tasks (${c.tasks.map(normalForm).join(" ")})`, ...(c.sources && c.sources.some(Boolean) ? [`sources (${c.sources.map(source).join(" ")})`] : []), `direction ${c.direction}`, `factor ${lispFloat(paceFactor(c))}`);
     if (c.kind === "keep-apart") parts.push(`scenes (${c.scenes.join(" ")})`, `between (${c.between.join(" ")})`);
     if (c.kind === "start-far") parts.push(`scene ${c.scene}`, `who ${c.who}`, `from ${c.from}`);
+    if (c.kind === "choice") parts.push(`choice-point ${choicePointLisp(c)}`, `direction ${c.direction}`, `was ${c.was}`, `value (${CHOICE_DIRECTIONS[c.direction]} ${c.was})`);
     parts.push(`by ${c.by || "you"}`);
     lines.push(`(criticism: ${parts.join(" ")})`);
   }
@@ -2059,8 +2122,16 @@ export function addCriticism(record = [], item) {
     (c.kind === "another-way" && x.scene === c.scene && x.task === c.task && (x.source || null) === (c.source || null) && x.level === c.level && x.vetoes === c.vetoes)
     || (c.kind === "pace" && x.scene === c.scene && sameSet(named(x), named(c)))
     || (c.kind === "keep-apart" && sameSet(x.scenes, c.scenes) && sameSet(x.between, c.between))
-    || (c.kind === "start-far" && x.scene === c.scene && x.who === c.who && x.from === c.from));
+    || (c.kind === "start-far" && x.scene === c.scene && x.who === c.who && x.from === c.from)
+    || (c.kind === "choice" && choiceKey(x) === choiceKey(c)));
   const there = record.find(same);
+  // a choice point criticized again, from the film as it is now (which heeds the item
+  // there): the new item, from its value, in the old one's place, keeping its id
+  if (there && c.kind === "choice") {
+    if (there.direction === c.direction && there.was === c.was) return { record: [...record], item: there };
+    const replaced = { ...c, id: item.id || there.id };
+    return { record: record.map((x) => (x === there ? replaced : x)), item: replaced };
+  }
   if (!there) return { record: checkRecord([...record, c]), item: c };
   if (c.kind !== "pace") return { record: [...record], item: there };
   const times = there.direction === c.direction ? there.times + c.times : there.times - c.times;
@@ -2080,6 +2151,7 @@ export function criticismWords(item) {
   if (item.kind === "another-way") return `${name(item.scene)}: not this way, another way than ${name(item.vetoes)}${item.level === "convey" ? " (what is shown)" : ""}`;
   if (item.kind === "pace") return `${name(item.scene)}: this part is ${item.direction === "too-quick" ? "too quick" : "too slow"}${item.times > 1 ? ` (said ${item.times} times)` : ""}`;
   if (item.kind === "keep-apart") return `keep ${name(item.between[0])} and ${name(item.between[1])} apart in ${item.scenes.map(name).join(" and ")}`;
+  if (item.kind === "choice") return choiceWords(item);
   return `${name(item.scene)}: ${name(item.who)} starts far from ${name(item.from)}`;
 }
 
@@ -2165,8 +2237,17 @@ const keyOf = (n) => `${n.dir};${n.fn1} ${n.fn2}`;
 // makeFilmSteps keepFiles) made again from the first scene criticized on, heeding the
 // record (criticism, the whole record: what was criticized before and still is, and
 // anything new; none, to make it again without). A generator, as makeFilmSteps, with its
-// callbacks and onKept(scene, how, error). Pass 1 is not run again (no criticism of pass
-// 1's choices before stage C6): the film's KEN;CP is mounted with its other files. Then
+// callbacks and onKept(scene, how, error). Pass 1 is not run again unless a pass-1
+// choice is criticized (stage C6), now or in the record the film was made with: the
+// film's KEN;CP is mounted with its other files. With one, pass 1 is made again from
+// the first scene, the choice points criticized chosen afresh and every other choice
+// held as KEN;CP had it (REVIVE;HOLD hold-all-but-choice-points), then, to compare, made
+// again with every choice afresh (save false): remade.pass1 is { held, differences,
+// knockOns }, held the choices holding kept that would have come out otherwise
+// ({ choicePoint, heldAt, wouldHaveChosen }), differences every choice the full recompute
+// made otherwise than the film ({ choicePoint, before, after, criticized }), knockOns
+// those not criticized; CHANGE's fresh looks are made again too; and every scene is
+// planned again (from is ignored). Then
 //   - each scene before from (by default the first scene criticized, by this record or
 //     the one previous was made with, so that a criticism taken out is made again) is
 //     kept as it was: its glass box, its film, its files (onKept(scene, "before"));
@@ -2210,6 +2291,12 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   const heed = { ...(record.length ? { criticism: record } : {}), ...(knowledge ? { knowledge } : {}) };
   const order = previous.scenes.map((s) => s.id);
   for (const c of record) for (const s of criticismScenes(c)) if (!order.includes(s)) throw new Error(`criticism ${c.id}: the film has no scene ${s}`);
+  // a criticism of a pass-1 choice (stage C6): pass 1 made again, the choice points
+  // criticized now or before (so that one taken out is chosen again without it) chosen
+  // afresh, everyone else held as the film had them; and every scene planned again
+  const hasChoicePoint = (c) => (previous.choicePoints || []).some((p) => JSON.stringify(p.name) === JSON.stringify(choicePointOf(c)));
+  for (const c of record) if (c.kind === "choice" && !hasChoicePoint(c)) throw new Error(`criticism ${c.id}: the film has no choice point ${choicePointLisp(c)}`);
+  const freed = [...new Map([...record, ...(previous.criticism || [])].filter((c) => c.kind === "choice").map((c) => [choiceKey(c), c])).values()];
   // the film's rate and cap, unless asked otherwise
   const madeAt = (previous.scenes.find((s) => s.film) || { film: {} }).film.fps || 4;
   fps = fps || madeAt;
@@ -2218,7 +2305,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   const sameSet = (a, b) => [...new Set(a)].sort().join() === [...new Set(b)].sort().join();
   const sameDirector = sameSet(extensionsFor(base).map((e) => e.id), extensionsFor(previous.extensions || []).map((e) => e.id));
   const criticized = [...record, ...(previous.criticism || [])].flatMap(criticismScenes).map((s) => order.indexOf(s)).filter((k) => k >= 0);
-  const startAt = !sameDirector ? 0 : from !== null ? order.indexOf(from) : Math.min(order.length, ...criticized);
+  const startAt = !sameDirector || freed.length ? 0 : from !== null ? order.indexOf(from) : Math.min(order.length, ...criticized);
   if (startAt < 0) throw new Error(`the film has no scene ${from}`);
   if (!previous.files) {
     progress("remake", "This film was saved before Ani kept its working files, so it is made again from the start");
@@ -2244,6 +2331,25 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   if (base.length) out.extensions = extensionsFor(base).map((e) => e.id);
   if (previous.repairs) out.repairs = previous.repairs;
   if (previous.appearances) out.appearances = previous.appearances;
+  let again = null; // pass 1 made again: { held, differences, knockOns }
+  if (freed.length) {
+    const who = freed.map((c) => `${c.character.replace(/-/g, " ")}'s ${c.element.replace(/-/g, " ")}`).join(" and ");
+    progress("pass1", `Pass 1 again: ${who} chosen afresh with your criticism, everyone else held as they were`);
+    yield;
+    const p1 = pass1(fs, { extensions: base, ...heed, hold: freed.map(choicePointLisp) });
+    progress("recompute", "Pass 1 again, to compare: every choice made afresh with your criticism");
+    yield;
+    const full = pass1(fs, { extensions: base, ...heed, save: false });
+    // the full recompute against the film's choices: what holding the others held back
+    const was = new Map((previous.choicePoints || []).map((p) => [JSON.stringify(p.name), p.currentChoice]));
+    const differences = full.choicePoints.filter((p) => was.has(JSON.stringify(p.name)) && JSON.stringify(was.get(JSON.stringify(p.name))) !== JSON.stringify(p.currentChoice))
+      .map((p) => ({ choicePoint: p.name, before: was.get(JSON.stringify(p.name)), after: p.currentChoice, criticized: freed.some((c) => JSON.stringify(choicePointOf(c)) === JSON.stringify(p.name)) }));
+    again = { held: p1.held || [], differences, knockOns: differences.filter((d) => !d.criticized) };
+    out.choices = p1.choices;
+    out.choicePoints = p1.choicePoints;
+    if (p1.repairs) out.repairs = p1.repairs; else delete out.repairs;
+    if (p1.appearances) out.appearances = p1.appearances; else delete out.appearances;
+  }
   onPass1({ choices: out.choices, choicePoints: out.choicePoints, ...(out.repairs ? { repairs: out.repairs } : {}), ...(out.appearances ? { appearances: out.appearances } : {}) });
   const how = [];
   const became = [];
@@ -2252,7 +2358,28 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
     const scene = prev.id;
     const planned = change && plan ? plan.scenes.find((s) => s.id === scene) : null;
     const earlier = [...became];
-    if (planned && planned.changes) {
+    if (planned && planned.changes && again) {
+      // pass 1 made again: the fresh look at whoever the scene changes made again too,
+      // from the new KEN;CP, heeding the criticism, as makeFilmSteps makes it
+      const changing = [...new Set(planned.changes.flatMap((c) => c.characters))];
+      try {
+        progress("fresh-look", `Pass 1 again: a fresh look at ${changing.map((c) => c.replace(/-/g, " ")).join(" and ")}, who change${changing.length > 1 ? "" : "s"} in ${scene.replace(/-/g, " ")}`, scene);
+        yield;
+        const look = freshLook(fs, scene, { plan, extensions: base, becomes: earlier, ...heed });
+        progress("recompute", `Pass 1 again, to compare: everyone chosen afresh as of ${scene.replace(/-/g, " ")}`, scene);
+        yield;
+        const recompute = recomputeEveryone(fs, scene, { plan, extensions: base, becomes: earlier, ...heed });
+        const record1 = changeRecord(look, recompute, planned);
+        (out.changes ||= {})[scene] = record1;
+        became.push(planned.become);
+        onChange(scene, record1);
+      } catch (e) {
+        if (!keepGoing) throw e;
+        const record1 = { scene, error: String((e && e.message) || e) };
+        (out.changes ||= {})[scene] = record1;
+        onChange(scene, record1);
+      }
+    } else if (planned && planned.changes) {
       // the fresh look as previous made it (pass 1's, which no criticism here reaches)
       const record1 = previous.changes && previous.changes[scene];
       if (record1) (out.changes ||= {})[scene] = record1;
@@ -2307,7 +2434,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   }
   if (heed.criticism) out.criticism = record;
   if (knowledge) out.knowledge = knowledge;
-  out.remade = { from: order[startAt] || null, ...(stopped ? { stopped } : {}), scenes: how };
+  out.remade = { from: order[startAt] || null, ...(again ? { pass1: again } : {}), ...(stopped ? { stopped } : {}), scenes: how };
   if (keepFiles) out.files = filesOf(fs);
   return out;
 }
@@ -2364,6 +2491,16 @@ export function remakeFilm(fs, options = {}) {
 //              disply.311:465-473; the revival's table counts walks to contact and walks
 //              together, its choice 8); else met, with notes or without (nothing needed
 //              setting aside)
+//       choice  choice: { choicePoint, before, after, recomputed, knockOns, held,
+//              resolvedForIt, rejected }, from pass 1 as the film had it and as made
+//              again: the value before and after, the full recompute's value for it,
+//              its knock-ons and the choices held (remade.pass1's: a comparison only),
+//              how many of Ken's conflicts were resolved for it (criticized-by-you), and
+//              the reason its suggestion was rejected for, if it was
+//              (self-conflicting-suggestion: (less-than low)); notes, its choice point's
+//              (scene null). met when its choice point noted it heeded (the value moved
+//              as asked), not-met otherwise, not-reached when the film has no such
+//              choice point
 //       start-far  start: { walkedOn, frame }, from the scene's film: whether she was
 //              first seen off the picture and walked on, and the frame. not-reached when
 //              she is never on the stage; met when she was placed far (a heeded note, or
@@ -2452,10 +2589,40 @@ export function criticismChanges(previous, remade) {
         start = k < 0 ? { walkedOn: null, frame: null } : { walkedOn: !s.film.frames[k].segs[item.who] && s.film.frames.slice(k).some((fr) => fr.segs[item.who]), frame: k };
       }
     }
+    // a pass-1 choice: the notes its choice point memorized (REVIVE;CRITIC's
+    // record-choice), the value before and after, and what holding the others held back
+    let choice = null;
+    if (item.kind === "choice") {
+      const name = choicePointOf(item);
+      const key = JSON.stringify(name);
+      const find = (run) => (run.choicePoints || []).find((p) => JSON.stringify(p.name) === key) || null;
+      const b = find(previous), a = find(remade);
+      for (const m of (a && a.memory) || []) {
+        if (!Array.isArray(m) || (m[0] !== "heeded-criticism:" && m[0] !== "unmet-criticism:")) continue;
+        const get = (k) => { const i = m.indexOf(k); return i > 0 ? printForm(m[i + 1]) : null; };
+        if (get("id") !== item.id) continue;
+        const heededHere = m[0] === "heeded-criticism:";
+        notes.push({ scene: null, actor: printForm(name), id: item.id, heeded: heededHere, what: get("what"), was: get("was"), ...(heededHere ? { now: get("now") } : {}), because: get("because"), note: printForm(m) });
+      }
+      const p1 = (remade.remade && remade.remade.pass1) || null;
+      const full = p1 ? p1.differences.find((d) => JSON.stringify(d.choicePoint) === key) : null;
+      choice = {
+        choicePoint: printForm(name), before: b ? b.currentChoice : null, after: a ? a.currentChoice : null,
+        // the full recompute's value for it, and what it would have changed of the others'
+        // (a comparison only: the remake held them), and the others held at their values
+        recomputed: full ? full.after : b ? b.currentChoice : null,
+        knockOns: p1 ? p1.knockOns : [], held: p1 ? p1.held : [],
+        // Ken's conflicts resolved for it (his stub), and the reason it was rejected for
+        resolvedForIt: ((a && a.conflictsResolved) || []).filter((c) => Array.isArray(c) && c[c.indexOf("how-resolved") + 1] === "criticized-by-you").length,
+        rejected: (((a && a.rejectedSuggestions) || []).find((r) => Array.isArray(r) && JSON.stringify(r).includes(`["criticism-by-you","${item.id}"]`)) || [])[2] || null,
+      };
+      named = Boolean(a);
+    }
     const heeded = notes.filter((n) => n.heeded), unmet = notes.filter((n) => !n.heeded);
     const why = (n) => String(n.because || "");
     let outcome;
     if (stopped && criticismScenes(item).some((id) => order.indexOf(id) >= order.indexOf(stopped.scene))) outcome = "stopped";
+    else if (item.kind === "choice") outcome = !named ? "not-reached" : heeded.length ? "met" : "not-met";
     else if (item.kind === "another-way") {
       const left = (remade.scenes || []).filter((s) => s.id === item.scene && s.glass).flatMap((s) => s.glass.tasks.filter((t) => namesTask(item, t, s.glass)));
       outcome = !named || !heeded.length ? "not-reached" : left.some((t) => t.variables.status === "cant-do") && cantDo.some((x) => x.task === item.task) ? "not-met" : unmet.length ? "partly" : "met";
@@ -2476,7 +2643,7 @@ export function criticismChanges(previous, remade) {
     }
     return {
       id: item.id, item, words: criticismWords(item), outcome, notes, cantDo,
-      ...(item.kind === "keep-apart" ? { contacts, closest } : {}), ...(item.kind === "pace" ? { pace } : {}), ...(item.kind === "start-far" ? { start } : {}),
+      ...(item.kind === "keep-apart" ? { contacts, closest } : {}), ...(item.kind === "pace" ? { pace } : {}), ...(item.kind === "start-far" ? { start } : {}), ...(item.kind === "choice" ? { choice } : {}),
       ...(outcome === "stopped" ? { stopped } : {}),
     };
   });
