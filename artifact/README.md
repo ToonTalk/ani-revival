@@ -50,4 +50,4 @@ will be hosted on GitHub Pages"), with a note at its top pointing to the readabl
 https://toontalk.github.io/ani/, and its code, https://github.com/ToonTalk/ani: 910,802
 bytes, where without minifying it had reached 953,064, over the limit; with the age
 setting's 9–11 sentences, Read aloud and Talk to Ani (which is never offered here: the
-frame has no microphone), 923,235.
+frame has no microphone), 923,235; with Read aloud offered at 12+ too, 923,723.

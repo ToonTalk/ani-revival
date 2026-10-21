@@ -3295,6 +3295,7 @@ try {
     const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)};
     return { local, session: before.session.filter((k) => !/:last$/.test(k) && sessionStorage.getItem(k) !== null), films: t.library.films.length, runbar: document.getElementById("runbar").hidden, view: String(t.state.view), panel: t.state.panel, side: document.querySelector("#side h2").innerText, caption: document.getElementById("caption-0").innerText,
       picture: document.getElementById("mode-color").getAttribute("aria-pressed"), rate: (document.querySelector('#rate [aria-pressed="true"]') || {}).textContent || "", more: [...document.querySelectorAll(".more-pages a")].filter((a) => getComputedStyle(a).display !== "none").map((a) => a.getAttribute("href") + "=" + a.textContent).join(", "), note: !document.getElementById("kept-note").open,
+      speech: [document.getElementById("speech-settings").parentElement.id, document.querySelector("#speech-settings summary").textContent, document.getElementById("speech-settings").open, getComputedStyle(document.getElementById("read-aloud")).display, document.querySelectorAll(".mic-row").length, document.getElementById("talk-cmd").hidden].join(","),
       prompts1978: [await hex(t.storyPrompt(STORY, { extensions: [] })), await hex(t.storyPrompt(STORY, { extensions: [], format: "json" }))],
       promptsRevival: [await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)} })), await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)}, format: "json" })), await hex(JSON.stringify(t.storySchema(${JSON.stringify(REVIVAL)})))] };
   })()`);
@@ -3302,8 +3303,9 @@ try {
     `"Forget all of it" clears everything the page kept (localStorage, sessionStorage and its IndexedDB films), and the page starts afresh${forgot.local.length || forgot.session.length ? `: left ${[...forgot.local, ...forgot.session].join(", ")}` : ""}`);
   check(forgot.view === "0" && forgot.panel === "story" && forgot.side === "What Ani was told" && /The stepmother pushes Cinderella around/.test(forgot.caption) && forgot.picture === "true" && forgot.rate === "24 a second" && forgot.note
     && forgot.more === "../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers, ../site/pages/making-of.html=How this was made, ../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
+    && forgot.speech === "speech-head,Speech,false,none,0,true"
     && JSON.stringify(forgot.prompts1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(forgot.promptsRevival) === JSON.stringify(PROMPT_REVIVAL_SHA),
-    `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts as pinned (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);
+    `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films, speech out of the way: a closed "Speech" in the header, Read aloud off and not beside Play, no microphone), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts as pinned (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);
   // back to the switch's extensions, for what follows
   // (the 1978 film is at 24 frames a second again, as before this section)
   await js(`(() => { localStorage.setItem("ani-cinderella:mode:v1", "revival"); })()`);

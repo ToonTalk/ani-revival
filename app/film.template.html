@@ -555,6 +555,14 @@ html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
 .speech-settings .body p { margin: 6px 0; }
 .talk-optin { display: flex; gap: 8px; align-items: flex-start; }
 html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
+/* at 12+ the speech settings are a small "Speech" in the header's row, opening over the page */
+header .guides .speech-head { display: inline-flex; align-items: center; position: relative; }
+.speech-head .speech-settings { border-top: 0; padding-top: 0; }
+.speech-head .speech-settings > summary { cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--muted); padding: 6px 4px; }
+.speech-head .speech-settings[open] > .body { position: absolute; left: 0; top: 100%; z-index: 40; width: min(26rem, calc(100vw - 32px)); box-sizing: border-box; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 14px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); font-size: 0.92rem; }
+.speech-head .speech-settings > .body { grid-template-columns: minmax(0, 1fr); }
+.speech-head .speech-settings select { max-width: 100%; }
+@media (max-width: 700px) { .speech-head .speech-settings[open] > .body { position: fixed; left: 16px; right: 16px; top: auto; width: auto; max-height: 70vh; overflow: auto; } }
 </style>
 
 <div class="wrap">
@@ -564,7 +572,7 @@ html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
     <p class="intro not-simple">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
     <p class="intro only-911">Ani, the program in Ken Kahn's 1979 thesis at MIT, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
     <p class="intro only-68">Ani is a computer program from 1978. It made this film from a story. Press Play, then tap a shape to ask why.</p>
-    <p class="more-pages guides"><a href="students.html" class="not-68">A guide for students</a><a href="teachers.html" class="not-simple">A guide for teachers</a><a href="making-of.html" class="not-simple">How this was made</a><a href="teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span></p>
+    <p class="more-pages guides"><a href="students.html" class="not-68">A guide for students</a><a href="teachers.html" class="not-simple">A guide for teachers</a><a href="making-of.html" class="not-simple">How this was made</a><a href="teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span><span id="speech-head" class="speech-head not-simple"></span></p>
     <details class="grownups only-68" id="grownups"><summary>For grown-ups</summary><div class="body"><div id="grownups-ages"></div><p class="note">The age setting is kept in this browser. A link sets it for a class: add <code>#ages-6-8</code>, <code>#ages-9-11</code> or <code>#ages-12</code> to the page's address.</p><p><button type="button" class="btn" data-film-settings aria-expanded="false">Film settings</button> <span class="note">Frames a second, TV or color, and Save.</span></p><div id="grownups-speech"></div></div></details>
     <p class="age-note" id="age-note" role="status" hidden><span></span> <button type="button" class="linkish" id="age-note-close">OK</button></p>
   </header>
@@ -598,7 +606,7 @@ html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
         <button class="btn primary" id="play" type="button">Play</button>
         <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
-        <button class="btn only-simple read-aloud" id="read-aloud" type="button" aria-pressed="false" title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
+        <button class="btn read-aloud" id="read-aloud" type="button" aria-pressed="false" hidden title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
         <button class="btn only-68 mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>

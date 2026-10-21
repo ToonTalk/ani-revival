@@ -562,6 +562,14 @@ html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
 .speech-settings .body p { margin: 6px 0; }
 .talk-optin { display: flex; gap: 8px; align-items: flex-start; }
 html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
+/* at 12+ the speech settings are a small "Speech" in the header's row, opening over the page */
+header .guides .speech-head { display: inline-flex; align-items: center; position: relative; }
+.speech-head .speech-settings { border-top: 0; padding-top: 0; }
+.speech-head .speech-settings > summary { cursor: pointer; font-size: 0.9rem; font-weight: 600; color: var(--muted); padding: 6px 4px; }
+.speech-head .speech-settings[open] > .body { position: absolute; left: 0; top: 100%; z-index: 40; width: min(26rem, calc(100vw - 32px)); box-sizing: border-box; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 14px; box-shadow: 0 6px 24px rgb(0 0 0 / 0.18); font-size: 0.92rem; }
+.speech-head .speech-settings > .body { grid-template-columns: minmax(0, 1fr); }
+.speech-head .speech-settings select { max-width: 100%; }
+@media (max-width: 700px) { .speech-head .speech-settings[open] > .body { position: fixed; left: 16px; right: 16px; top: auto; width: auto; max-height: 70vh; overflow: auto; } }
 </style>
 
 <div class="wrap">
@@ -571,7 +579,7 @@ html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
     <p class="intro not-simple">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
     <p class="intro only-911">Ani, the program in Ken Kahn's 1979 thesis at MIT, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
     <p class="intro only-68">Ani is a computer program from 1978. It made this film from a story. Press Play, then tap a shape to ask why.</p>
-    <p class="more-pages guides"><a href="../site/pages/students.html" class="not-68">A guide for students</a><a href="../site/pages/teachers.html" class="not-simple">A guide for teachers</a><a href="../site/pages/making-of.html" class="not-simple">How this was made</a><a href="../site/pages/teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span></p>
+    <p class="more-pages guides"><a href="../site/pages/students.html" class="not-68">A guide for students</a><a href="../site/pages/teachers.html" class="not-simple">A guide for teachers</a><a href="../site/pages/making-of.html" class="not-simple">How this was made</a><a href="../site/pages/teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span><span id="speech-head" class="speech-head not-simple"></span></p>
     <details class="grownups only-68" id="grownups"><summary>For grown-ups</summary><div class="body"><div id="grownups-ages"></div><p class="note">The age setting is kept in this browser. A link sets it for a class: add <code>#ages-6-8</code>, <code>#ages-9-11</code> or <code>#ages-12</code> to the page's address.</p><p><button type="button" class="btn" data-film-settings aria-expanded="false">Film settings</button> <span class="note">Frames a second, TV or color, and Save.</span></p><div id="grownups-speech"></div></div></details>
     <p class="age-note" id="age-note" role="status" hidden><span></span> <button type="button" class="linkish" id="age-note-close">OK</button></p>
   </header>
@@ -605,7 +613,7 @@ html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
         <button class="btn primary" id="play" type="button">Play</button>
         <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
-        <button class="btn only-simple read-aloud" id="read-aloud" type="button" aria-pressed="false" title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
+        <button class="btn read-aloud" id="read-aloud" type="button" aria-pressed="false" hidden title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
         <button class="btn only-68 mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
@@ -10956,8 +10964,10 @@ function showDraft(failure = null) {
 
 // ---------------------------------------------------------------- speech: Read aloud and Talk to Ani
 
-// reports/chapter-x/design-young-children.md §8 and §9. Both are for the simpler settings
-// (ages 9–11 and 6–8); at 12+ the page is as it was, with neither.
+// reports/chapter-x/design-young-children.md §8 and §9. Both are at every setting: at 9–11
+// and 6–8 Read aloud is beside Play; at 12+ both are off at first and out of the way, in a
+// small "Speech" in the header's row, so that the page looks as it was (Read aloud appears
+// beside Play only once it is turned on, and at 12+ the film never waits for the voice).
 // Read aloud uses the browser's own voices (speechSynthesis): nothing is sent by the page,
 // and the computer's local voices work offline. It reads each new caption as the film
 // plays (at 6–8 the film waits for the voice), and any box's "Read this".
@@ -10978,10 +10988,11 @@ const SAY_AS = { Ani: "Annie" };
 let SPEECH = (() => { try { const v = JSON.parse(store.get(SPEECH_KEY) || "null"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch { return {}; } })();
 const saveSpeech = () => store.set(SPEECH_KEY, JSON.stringify(SPEECH));
 const speechSupported = () => typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance === "function";
-// Read aloud: on at 6–8 unless turned off there, off at 9–11 unless turned on; never at 12+
-const readAloudOn = () => simpleAge() && speechSupported() && (SPEECH.read ?? young());
-// the film waits for the voice: at 6–8 unless chosen otherwise
-const waitForVoice = () => SPEECH.wait ?? young();
+// Read aloud: on at 6–8 unless turned off there, off at 9–11 unless turned on; at 12+ off
+// unless turned on at 12+ (its own switch, read12, so that a child's setting doesn't carry)
+const readAloudOn = () => speechSupported() && (simpleAge() ? (SPEECH.read ?? young()) : !!SPEECH.read12);
+// the film waits for the voice: at 6–8 unless chosen otherwise; never at 12+
+const waitForVoice = () => simpleAge() && (SPEECH.wait ?? young());
 const speechRate = () => Number(SPEECH.rate) || (young() ? 0.85 : 1);
 const sayAs = (text) => Object.entries(SAY_AS).reduce((t, [w, said]) => t.replace(new RegExp(`\\b${w}\\b`, "g"), said), text);
 // the text of some HTML, as it is to be said: no markup, no quotation marks, "s" as seconds
@@ -11128,7 +11139,7 @@ document.addEventListener("keydown", (e) => {
 // the browser's recognizer, where there is one (never in the claude.ai copy, whose frame
 // has no microphone)
 const recognizer = () => (ARTIFACT_BUILD ? null : window.SpeechRecognition || window.webkitSpeechRecognition || null);
-const talkOn = () => simpleAge() && !!SPEECH.talk && !!recognizer();
+const talkOn = () => !!SPEECH.talk && !!recognizer();
 // whether this browser turns speech into words on this computer (Chrome's on-device
 // recognition, where it offers it and has the language installed): asked once, with a
 // time limit, and only after the grown-up's opt-in
@@ -11255,13 +11266,15 @@ function speechSettings() {
   const current = speechVoice();
   const Rec = recognizer();
   const local = onDevice === true;
-  body.innerHTML = `${speechSupported() ? `
+  body.innerHTML = `${speechSupported() && !simpleAge() ? `<p><label class="check talk-optin"><input type="checkbox" id="speech-read"${readAloudOn() ? " checked" : ""}> <span><b>Read aloud</b>: Ani reads each caption with this computer's own voice.</span></label></p>` : ""}${speechSupported() ? `
     <p><label>Voice <select id="speech-voice">${voices.map((v) => `<option value="${esc(v.voiceURI)}"${current && v.voiceURI === current.voiceURI ? " selected" : ""}>${esc(v.name)}${v.localService ? " (works offline)" : ""}</option>`).join("") || "<option value=\"\">The browser's voice</option>"}</select></label> <button type="button" class="btn" id="speech-try">Try</button></p>
     <p><label>How fast <input type="range" id="speech-rate" min="0.6" max="1.4" step="0.05" value="${speechRate()}"></label></p>
-    <p class="seg" role="group" aria-label="While Ani reads aloud"><button type="button" data-speech-wait="1" aria-pressed="${waitForVoice()}">Wait for the voice</button><button type="button" data-speech-wait="0" aria-pressed="${!waitForVoice()}">Keep going</button></p>
+    ${simpleAge() ? `<p class="seg" role="group" aria-label="While Ani reads aloud"><button type="button" data-speech-wait="1" aria-pressed="${waitForVoice()}">Wait for the voice</button><button type="button" data-speech-wait="0" aria-pressed="${!waitForVoice()}">Keep going</button></p>` : ""}
     <p class="note">If you use a screen reader, you may prefer Read aloud off.</p>` : ""}
     ${Rec ? `<p><label class="check talk-optin"><input type="checkbox" id="speech-talk"${SPEECH.talk ? " checked" : ""}> <span><b>Talk to Ani with your voice.</b> ${local ? "This browser turns it into words on this computer; nothing is sent." : "When you press the microphone, your browser sends what you say to the company that makes it (Google for Chrome, Microsoft for Edge, Apple for Safari) to turn it into words. The page keeps only the words, in the box, and no recording. Nothing is sent until the microphone is pressed."}</span></label></p>
-    <p class="note">For a grown-up to decide, on this computer. A link can't turn it on.${SPEECH.talk && SPEECH.talkSince ? ` Turned on ${esc(String(SPEECH.talkSince).slice(0, 10))}.` : ""}</p>` : `<p class="note">${esc(DICTATION)}</p>`}`;
+    <p class="note">${simpleAge() ? "For a grown-up to decide" : "Off until you turn it on"}, on this computer. A link can't turn it on.${SPEECH.talk && SPEECH.talkSince ? ` Turned on ${esc(String(SPEECH.talkSince).slice(0, 10))}.` : ""}</p>` : `<p class="note">${esc(DICTATION)}</p>`}`;
+  const read = body.querySelector("#speech-read");
+  if (read) read.addEventListener("change", () => { toggleReadAloud(); const again = document.getElementById("speech-read"); if (again) again.focus(); });
   const sel = body.querySelector("#speech-voice");
   if (sel) sel.addEventListener("change", () => { SPEECH.voice = sel.value; saveSpeech(); });
   const tryIt = body.querySelector("#speech-try");
@@ -11279,29 +11292,35 @@ function speechSettings() {
   });
 }
 // The Read aloud switch and the command microphone beside Play, the speech settings in their
-// place (For grown-ups at 6–8, beside the controls at 9–11), the captions' live region (off
-// while Ani reads aloud, so a screen reader doesn't say each caption twice), and the
-// microphones by the boxes.
+// place (For grown-ups at 6–8, beside the controls at 9–11, the header's row at 12+), the
+// captions' live region (off while Ani reads aloud, so a screen reader doesn't say each
+// caption twice), and the microphones by the boxes.
 function applySpeech() {
   const btn = document.getElementById("read-aloud");
-  if (btn) { btn.hidden = !speechSupported(); btn.setAttribute("aria-pressed", String(!!readAloudOn())); }
+  if (btn) { btn.hidden = !speechSupported() || (!simpleAge() && !readAloudOn()); btn.setAttribute("aria-pressed", String(!!readAloudOn())); }
   const cmd = document.getElementById("talk-cmd");
   if (cmd) cmd.hidden = !(talkOn() && young());
   const el = document.getElementById("speech-settings");
-  const home = document.getElementById(young() ? "grownups-speech" : "speech-home");
+  const home = document.getElementById(young() ? "grownups-speech" : simpleAge() ? "speech-home" : "speech-head");
   if (el && home && el.parentElement !== home) home.append(el);
+  const summary = el && el.querySelector("summary");
+  if (summary) summary.textContent = simpleAge() ? "Speech settings" : "Speech";
   for (const c of document.querySelectorAll(".caption")) c.setAttribute("aria-live", readAloudOn() ? "off" : "polite");
   if (!readAloudOn()) stopSpeaking();
   speechSettings();
   if (!talkOn()) document.querySelectorAll(".mic-row").forEach((x) => { const box = x.previousElementSibling; if (box) delete box.dataset.mic; x.remove(); });
   addMics();
 }
-document.getElementById("read-aloud").addEventListener("click", () => {
-  SPEECH.read = !readAloudOn();
+function toggleReadAloud() {
+  SPEECH[simpleAge() ? "read" : "read12"] = !readAloudOn();
   saveSpeech();
   applySpeech();
   if (readAloudOn()) { lastSaid = ""; lastScene = null; const el = document.getElementById(`caption-${readScreen}`); if (el && el.dataset.html) captionHeard(readScreen, { text: captionMain(el), part: "" }); }
-});
+}
+document.getElementById("read-aloud").addEventListener("click", () => toggleReadAloud());
+// at 12+ "Speech" opens over the page: a click elsewhere or Escape closes it
+document.addEventListener("click", (e) => { const d = document.getElementById("speech-settings"); if (d && d.open && !simpleAge() && !d.contains(e.target)) d.open = false; });
+document.addEventListener("keydown", (e) => { const d = document.getElementById("speech-settings"); if (e.key === "Escape" && d && d.open && !simpleAge()) { d.open = false; d.querySelector("summary").focus(); } });
 document.getElementById("talk-cmd").addEventListener("click", (e) => listen(e.currentTarget, { done: heardCommand }));
 if (speechSupported() && typeof window.speechSynthesis.addEventListener === "function") window.speechSynthesis.addEventListener("voiceschanged", () => speechSettings());
 const onSpeechAge = () => { lastSaid = ""; lastScene = null; applySpeech(); };

@@ -18,6 +18,10 @@
 //      voice says Ani as SAY_AS has it; no recognizer before the grown-up's opt-in, a final
 //      result fills the box and sends nothing, "play" plays, anything else is said back, and
 //      with no recognition no microphone is shown and the settings point to dictation.
+//   F12. Speech at 12+: out of the way (a small "Speech" in the header's row, closed), Read
+//      aloud off and not beside Play, nothing said, no microphone; turned on there, it reads
+//      and appears beside Play, and the film doesn't wait for the voice; Talk to Ani only
+//      after the opt-in, then a microphone by the story box and none beside Play.
 //   G. Presentation only: a film's data is the same at every age, with no age in it; the
 //      hash token sets and remembers the age; a link can't turn on Talk to Ani.
 //   H. Accessibility: controls at 6–8 at least 44 px and at 9–11 at least 32 px, no
@@ -25,7 +29,7 @@
 //      the captions' live region is off while Ani reads aloud, a line says who is on the
 //      screen, the guides' links follow the setting, and the text colors meet 4.5:1.
 //   A6. At 9–11, Tell Ani's model settings under More settings and Teach Ani's kinds 1 and 2
-//      first; at 12+ both as they were, and no Read aloud.
+//      first; at 12+ both as they were, and Read aloud not beside Play (off at first).
 //   Not yet: the 6–8 wording (its own templates, WORDS_6_8, the goldens of
 //   reports/chapter-x/design-young-children.md "Tests" C, D, E and I); at 6–8 the page shows
 //   the 9–11 sentences for now (app/film/ages.js AGE_68_WORDING).
@@ -411,7 +415,7 @@ try {
     window.__ages.select(null, { scroll: false });
     return out;
   })()`);
-  check(!a6at12.folded && a6at12.readAloud === "none", "A6. at 12+, Tell Ani is as it was, and there is no Read aloud");
+  check(!a6at12.folded && a6at12.readAloud === "none", "A6. at 12+, Tell Ani is as it was, and Read aloud (off at first) isn't beside Play");
 
   // ---------------------------------------------------------------- G: presentation only
   const films = await js(`(async () => {
@@ -500,6 +504,54 @@ try {
   const none = await js(`(async () => { const d = document.getElementById("speech-settings"); d.open = true; await new Promise((r) => setTimeout(r, 100)); return { mics: document.querySelectorAll(".mic, .mic-row").length - document.querySelectorAll(".mic[hidden]").length, text: d.innerText }; })()`);
   check(none.mics === 0 && /Windows\+H/.test(none.text), "F. where the browser has no recognition, no microphone is shown, and the settings point to the computer's own dictation");
   await js(`document.querySelector('#ages [data-age="12"]').click()`);
+  await sleep(200);
+  const none12 = await js(`(async () => { const d = document.getElementById("speech-settings"); d.open = true; await new Promise((r) => setTimeout(r, 100)); const out = { mics: document.querySelectorAll(".mic, .mic-row").length - document.querySelectorAll(".mic[hidden]").length, text: d.innerText }; d.open = false; return out; })()`);
+  check(none12.mics === 0 && /Windows\+H/.test(none12.text), "F12. at 12+ too, with no recognition, no microphone, and the settings point to dictation");
+
+  // ---------------------------------------------------------------- F12: speech at 12+
+  await js(`localStorage.removeItem("ani-cinderella:speech:v1"); localStorage.setItem("ani-cinderella:age:v1", "12")`);
+  await send("Page.navigate", { url: "about:blank" });
+  await open("film.speech.html");
+  const s12 = await js(`(async () => {
+    const t = window.__ages, S = window.__speech, wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
+    const d = document.getElementById("speech-settings"), btn = document.getElementById("read-aloud");
+    out.where = d.parentElement.id; out.summary = d.querySelector("summary").textContent; out.closed = !d.open;
+    out.shown = getComputedStyle(document.getElementById("speech-head")).display !== "none";
+    out.btnBefore = getComputedStyle(btn).display; out.live = document.getElementById("caption-0").getAttribute("aria-live");
+    t.goScene(0, 0); await wait(700);
+    out.saidBefore = S.said.filter((x) => x !== "<cancel>").length;
+    out.micsBefore = document.querySelectorAll(".mic-row").length + (document.getElementById("talk-cmd").hidden ? 0 : 1);
+    d.querySelector("summary").click(); await wait(100);
+    const box = document.getElementById("speech-read");
+    out.unchecked = !!box && !box.checked; out.noWait = !d.querySelector("[data-speech-wait]");
+    out.note = d.innerText;
+    box.click(); await wait(700);
+    out.btnAfter = getComputedStyle(btn).display; out.pressed = btn.getAttribute("aria-pressed");
+    out.first = S.said.filter((x) => x !== "<cancel>").slice(0, 1);
+    out.kept = localStorage.getItem("ani-cinderella:speech:v1");
+    document.body.click(); await wait(50); out.closedByClick = !d.open;
+    document.getElementById("play").click(); await wait(400);
+    const n0 = S.said.length;
+    t.goScene(1, 0.1); await wait(300);
+    const a = t.state.time; await wait(800); out.moving = t.state.time - a;
+    out.saidNext = S.said.slice(n0).filter((x) => x !== "<cancel>").length;
+    document.getElementById("play").click(); await wait(100);
+    d.open = true; await wait(50);
+    document.getElementById("speech-talk").click(); await wait(300);
+    document.getElementById("open-teller").click(); await wait(400);
+    out.mics = document.querySelectorAll(".mic-row").length; out.cmd = document.getElementById("talk-cmd").hidden;
+    out.byStory = !!document.querySelector("#tell-story + .mic-row");
+    out.recognizers = S.made.length;
+    window.__ages.select(null, { scroll: false });
+    return out;
+  })()`);
+  check(s12.where === "speech-head" && s12.summary === "Speech" && s12.closed && s12.shown && s12.btnBefore === "none" && s12.live === "polite" && s12.saidBefore === 0 && s12.micsBefore === 0,
+    `F12. at 12+ speech is out of the way: a closed "Speech" in the header's row, Read aloud off and not beside Play, nothing said, no microphone (${s12.where}, ${s12.summary}, said ${s12.saidBefore})`);
+  check(s12.unchecked && s12.noWait && /Off until you turn it on, on this computer\. A link can't turn it on\./.test(s12.note) && s12.btnAfter !== "none" && s12.pressed === "true" && s12.first.length && /"read12":true/.test(s12.kept || "") && !/"read":/.test(s12.kept || "") && s12.closedByClick,
+    `F12. turned on in "Speech", Read aloud reads (${s12.first.join(" ").slice(0, 60)}…) and appears beside Play, kept for 12+ only; no wait-for-the-voice choice; a click elsewhere closes "Speech"`);
+  check(s12.moving > 0.3 && s12.saidNext > 0, `F12. at 12+ the film doesn't wait for the voice (it moved ${s12.moving.toFixed(2)} s while the voice was still speaking, and said the new caption)`);
+  check(s12.mics === 1 && s12.byStory && s12.cmd && s12.recognizers === 0, "F12. at 12+ Talk to Ani after the opt-in: a microphone by the story box, none beside Play, and nothing listening until it is pressed");
+  await js(`localStorage.removeItem("ani-cinderella:speech:v1")`);
   /*AGES-TESTS*/
 } catch (e) {
   if (e) { console.error(e); failures++; }
