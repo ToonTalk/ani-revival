@@ -10,6 +10,10 @@
 //      with no Nano) and "Your criticism" relabeled "Criticism of this film" (no "your"
 //      for what is kept on a shared computer, Ken): a script compared every one of the 4,094
 //      with the last commit's, and those 10 labels were the only difference.
+//      And again later that day, with two of Ken's settings read by their form (settingWords:
+//      "mood joyous and anticipatory", "mood very joyous", were "mood and joyous to
+//      anticipatory", "mood very to joyous"): the story panel at each scene, 10, the only
+//      difference.
 //   (Since 21 October 2026 the settings are 6–11 and 12+: Ken's decision, 6–8 gone and 9–11
 //   become 6–11; the old links #ages-6-8 and #ages-9-11 open 6–11.)
 //   B. True to the glass box, at 6–11: each "to show what … is like: …" names exactly the
@@ -35,6 +39,11 @@
 //      voice says Ani as SAY_AS has it; no recognizer before the grown-up's opt-in, a final
 //      result fills the box and sends nothing, "play" plays, anything else is said back, and
 //      with no recognition no microphone is shown and the settings point to dictation.
+//      The voice (Ken: "when possible use a female voice"): app/film/speech.js chooseVoice
+//      given made-up lists of voices: a woman's English voice of the page's English, a
+//      natural or online one first; another English, then any woman's English voice; offline
+//      only a local one; with no woman's voice, the default English one; the visitor's
+//      choice always wins.
 //   F12. Speech at 12+: out of the way (a small "Speech" in the header's row, closed), Read
 //      aloud off and not beside Play, nothing said, no microphone; turned on there, it reads
 //      and appears beside Play, and the film doesn't wait for the voice; Talk to Ani only
@@ -68,7 +77,7 @@ const sha = (s) => createHash("sha256").update(s).digest("hex").slice(0, 24);
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css", ".png": "image/png" };
 
 // the page's functions on window.__ages, as tools/check-film-app.mjs hands them on window.__check
-const HOOKED = ["captionAt", "select", "goScene", "RUNS", "state", "whyOf", "frameIn", "setRate", "renderSide", "AGES", "GLOSS", "filmData"];
+const HOOKED = ["captionAt", "select", "goScene", "RUNS", "state", "whyOf", "frameIn", "setRate", "renderSide", "AGES", "GLOSS", "filmData", "chooseVoice"];
 const hookLine = `\nwindow.__ages = { ${HOOKED.map((n) => `get ${n}() { try { return ${n}; } catch { return undefined; } }`).join(", ")} };\n`;
 const hooked = (html) => { const end = html.lastIndexOf("</script>"); return html.slice(0, end) + hookLine + html.slice(end); };
 const page = () => readFileSync("app/film.html", "utf8");
@@ -504,6 +513,32 @@ try {
   check(read.before === "false,false,0" && read.pressed === "true" && read.live === "off" && read.first.length && /^Scene one: /.test(read.first[0]), `F. at 6–11 Read aloud is beside Play and off until turned on; on, the captions' live region is off, and a scene begins with its title (${read.before}): ${read.first.join(" ")}`);
   check(read.saidWhileSpeaking === 0 && read.held === 0 && /^Scene two: /.test(read.next[0] || "") && read.moving > 0 && read.cancelled, `F. at 6–11, with "Wait for the voice" chosen, a new caption waits for the voice (the film held still, then went on with the next caption said), and Pause stops the voice`);
   check(read.annie && read.recognizers === 0, "F. the voice says Ani as SAY_AS respells it, and no recognizer is made before the grown-up's opt-in");
+  // the voice chosen when the visitor has chosen none: a woman's, when there is one
+  const voices = await js(`(() => {
+    const choose = window.__ages.chooseVoice, v = (name, lang, local = true, def = false) => ({ name, lang, localService: local, default: def, voiceURI: name });
+    const win = [v("Microsoft David - English (United States)", "en-US", true, true), v("Microsoft Mark - English (United States)", "en-US"), v("Microsoft Zira - English (United States)", "en-US"), v("Microsoft Hazel - English (United Kingdom)", "en-GB"), v("Microsoft Aria Online (Natural) - English (United States)", "en-US", false), v("Microsoft Guy Online (Natural) - English (United States)", "en-US", false), v("Microsoft Sonia Online (Natural) - English (United Kingdom)", "en-GB", false), v("Microsoft Hedda - German (Germany)", "de-DE")];
+    const chrome = [v("Google Deutsch", "de-DE", false), v("Google US English", "en-US", false), v("Google UK English Male", "en-GB", false), v("Google UK English Female", "en-GB", false)];
+    const apple = [v("Daniel", "en-GB", true, true), v("Alex", "en-US"), v("Samantha", "en-US"), v("Karen", "en-AU"), v("Moira", "en-IE")];
+    const android = [v("English United States (male)", "en-US", true, true), v("English United Kingdom (female)", "en-GB")];
+    const men = [v("Microsoft David - English (United States)", "en-US", true, true), v("Microsoft Mark - English (United States)", "en-US"), v("Google UK English Male", "en-GB", false), v("Thomas", "fr-FR")];
+    const n = (x) => (x ? x.name : null);
+    return {
+      winUS: n(choose(win, { lang: "en-US" })), winGB: n(choose(win, { lang: "en-GB" })), winOff: n(choose(win, { lang: "en-US", online: false })),
+      chosen: n(choose(win, { chosen: "Microsoft Mark - English (United States)", lang: "en-US" })), chosenOffOnline: n(choose(win, { chosen: "Microsoft Guy Online (Natural) - English (United States)", online: false })),
+      chromeUS: n(choose(chrome, { lang: "en-US" })), chromeGB: n(choose(chrome, { lang: "en-GB" })),
+      apple: n(choose(apple, { lang: "en-US" })), appleGB: n(choose(apple, { lang: "en-GB" })),
+      android: n(choose(android, { lang: "en-US" })),
+      men: n(choose(men, { lang: "en-US" })), none: n(choose([v("Thomas", "fr-FR")], { lang: "en-US" })),
+    };
+  })()`);
+  const wantVoices = {
+    winUS: "Microsoft Aria Online (Natural) - English (United States)", winGB: "Microsoft Sonia Online (Natural) - English (United Kingdom)", winOff: "Microsoft Zira - English (United States)",
+    chosen: "Microsoft Mark - English (United States)", chosenOffOnline: "Microsoft Zira - English (United States)",
+    chromeUS: "Google US English", chromeGB: "Google UK English Female", apple: "Samantha", appleGB: "Samantha",
+    android: "English United Kingdom (female)", men: "Microsoft David - English (United States)", none: null,
+  };
+  const voiceMiss = Object.keys(wantVoices).filter((k) => voices[k] !== wantVoices[k]);
+  check(!voiceMiss.length, `F. the voice, with none chosen, is a woman's English voice when there is one (the page's English, natural or online first; offline a local one); the visitor's choice wins; with none, the default English voice${voiceMiss.length ? `; wrong: ${voiceMiss.map((k) => `${k} ${voices[k]}`).join(" | ")}` : ""}`);
   // Talk to Ani: opt-in in the settings, a microphone by the story box, words in the box and
   // nothing sent; a command beside Play at 6–11; an unknown phrase said back; a link can't
   // turn it on

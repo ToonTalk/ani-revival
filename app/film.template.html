@@ -875,7 +875,7 @@ function storyInWords(story) {
       const st = story.scenes[id];
       const tasks = asOf(id, () => tasksOf(st.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))));
       const set = st.settings || {};
-      const how = [set.mood && `${show(set.mood).replace(/[()]/g, "").replace(/^changes /, "changing from ")} mood`, set.rhythm && `${show(set.rhythm).replace(/[()]/g, "").replace(/^changes /, "changing from ")} rhythm`, set.length && `${set.length} length`].filter(Boolean).map((t) => t.replace(/ (\w+) (mood|rhythm)$/, (m, a, b) => (/changing from/.test(t) ? ` to ${a} ${b}` : m)));
+      const how = [set.mood && `${settingWords(set.mood)} mood`, set.rhythm && `${settingWords(set.rhythm)} rhythm`, set.length && `${set.length} length`].filter(Boolean);
       return `<li><b>${esc(titleOf(story, id))}</b>${how.length ? ` <span class="note">(${esc(how.join(", "))})</span>` : ""}: ${esc(tasks.join("; "))}.</li>`;
     }).join("");
     return `<p class="label">The characters</p><ul class="changes">${chars}</ul>${rels ? `<p class="label">How they feel about each other</p><ul class="changes">${rels}</ul>` : ""}<p class="label">The scenes</p><ol class="changes">${scenes}</ol>`;
@@ -4883,8 +4883,7 @@ function storyPanel() {
     // (at 6–11 each task is what Ani was asked to show: "that ...", "what ... is like")
     const tasks = st ? asOf(id, () => tasksOf(st.tasks).map((t) => `<li>${simpleAge() ? taskText(t[0], t[1]).replace(/^to (establish|convey) /, "") : cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("")) : "";
     const set = st ? st.settings : {};
-    const setting = (v) => show(v).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1");
-    const mood = simpleAge() ? kidSettings(set) : [set.mood && `mood ${setting(set.mood)}`, set.rhythm && `rhythm ${setting(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
+    const mood = simpleAge() ? kidSettings(set) : [set.mood && `mood ${settingWords(set.mood)}`, set.rhythm && `rhythm ${settingWords(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
     return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${id === cur}"><span class="t">${esc(run.titles[id])}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
   }).join("");
   side.innerHTML = `
@@ -4915,6 +4914,13 @@ function storyPanel() {
       if (m) m.scrollIntoView({ block: "nearest" });
     }
   });
+}
+
+// A scene's setting at 12+, read by its form as kidSettings reads it at 6–11: (changes a b)
+// "changing from a to b", (and a b) "a and b", (very a) "very a", a word as it is.
+function settingWords(v) {
+  const w = (x) => (Array.isArray(x) ? (x[0] === "changes" ? `changing from ${w(x[1])} to ${w(x[2])}` : x[0] === "and" ? x.slice(1).map(w).join(" and ") : x.map(w).join(" ")) : String(x));
+  return w(typeof v === "string" && /^\(/.test(v) ? parse(v) : v);
 }
 
 // A scene's settings at 6–11: "mood: hopeful, then depressing · pace: fast, then slow · a
@@ -5266,7 +5272,7 @@ function changeLine(form, extensions) {
   const el = forAt >= 0 ? f[forAt + 1] : null;
   const factor = by >= 0 ? Number(f[by + 1]) : NaN;
   const look = f.includes("look");
-  const what = !el ? (look || /(shape|color|hue)/.test(show(f)) ? "change of look" : "change") : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
+  const what = !el ? (look || /\b(shape|color|hue)/.test(show(f)) ? "change of look" : "change") : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
   return { what, ani: t.aniSeconds, director: t.directorSeconds };
 }
 // Why this way and not another: the task's ways CHOMET weighed (chomet.123:216-255), each

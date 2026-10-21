@@ -39,16 +39,35 @@ function sayText(html) {
   d.querySelectorAll("button:not(.gl), .note, pre, .read-this").forEach((x) => x.remove());
   return d.textContent.replace(/[“”"]/g, "").replace(/(\d) s\b/g, "$1 seconds").replace(/\s+/g, " ").trim();
 }
-// the voice: the one chosen, if this computer has it; else, offline, a local English one;
-// else the browser's default English one
+// The voice: the one the visitor chose, if this computer has it (and, offline, if it works
+// offline). Else, Ken: "when possible use a female voice for text-to-speech". The Web Speech
+// API says nothing of a voice's sex, so FEMALE_VOICES names the women's voices of Windows
+// (Microsoft's, Natural/Online among them), Chrome (Google UK English Female; Google US
+// English is a woman's), Apple and Android (whose names say "female"). Among them: the
+// page's English first (en-US, or the browser's own English, such as en-GB), then a
+// natural or online one, then any English one. Offline only voices that work offline count.
+// With no woman's English voice here, as before: the browser's default English voice,
+// else an en-US one, else any English one; with none, null (the browser's own choice).
+// (Ani itself is still "it" in the page's words; this is only the voice.)
+const FEMALE_VOICES = /\b(Aria|Jenny|Zira|Hazel|Susan|Libby|Sonia|Ava|Emma|Michelle|Ana|Clara|Natasha|Neerja|Maisie|Mia|Hollie|Catherine|Heera|Linda|Eva|Cora|Elizabeth|Jane|Nancy|Sara|Amber|Ashley|Monica|Samantha|Karen|Moira|Tessa|Victoria|Fiona|Serena|Allison|Kate|Veena|Zoe|Nicky|Kathy|Vicki|Agnes|Martha|Female)\b|^Google US English$/i;
+const isFemaleVoice = (v) => FEMALE_VOICES.test(v.name || "") && !/\bmale\b/i.test(v.name || "");
+function chooseVoice(voices, { chosen = null, online = true, lang = "en-US" } = {}) {
+  const english = voices.filter((v) => /^en\b/i.test(v.lang));
+  const mine = voices.find((v) => v.voiceURI === chosen);
+  if (mine && (online || mine.localService)) return mine;
+  const usable = english.filter((v) => online || v.localService);
+  const want = String(lang).toLowerCase().replace(/_/g, "-");
+  const score = (v) => (String(v.lang).toLowerCase().replace(/_/g, "-") === want ? 2 : 0) + (/\b(Natural|Online|Neural|Premium|Enhanced)\b/i.test(v.name || "") || !v.localService ? 1 : 0);
+  const women = usable.filter(isFemaleVoice);
+  if (women.length) return women.reduce((a, b) => (score(b) > score(a) ? b : a));
+  if (!online) return usable.find((v) => /en-US/i.test(v.lang)) || usable[0] || null;
+  return english.find((v) => v.default) || english.find((v) => /en-US/i.test(v.lang)) || english[0] || null;
+}
+// the page's English: the browser's own if it is a kind of English (en-GB, en-AU, ...), else en-US
+const speechLang = () => (typeof navigator !== "undefined" && /^en-[a-z]{2}$/i.test(navigator.language || "") ? navigator.language : "en-US");
 function speechVoice() {
   const voices = speechSupported() ? window.speechSynthesis.getVoices() : [];
-  const english = voices.filter((v) => /^en\b/i.test(v.lang));
-  const chosen = voices.find((v) => v.voiceURI === SPEECH.voice);
-  if (chosen && (navigator.onLine !== false || chosen.localService)) return chosen;
-  const local = english.filter((v) => v.localService);
-  if (navigator.onLine === false) return local.find((v) => /en-US/i.test(v.lang)) || local[0] || null;
-  return english.find((v) => v.default) || english.find((v) => /en-US/i.test(v.lang)) || english[0] || null;
+  return chooseVoice(voices, { chosen: SPEECH.voice || null, online: navigator.onLine !== false, lang: speechLang() });
 }
 // Speaking: one sentence an utterance (Chrome's network voices cut off long ones); done()
 // once the last has ended, or was cancelled.

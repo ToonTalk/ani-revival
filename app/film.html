@@ -882,7 +882,7 @@ function storyInWords(story) {
       const st = story.scenes[id];
       const tasks = asOf(id, () => tasksOf(st.tasks).map((x) => cap(taskText(x[0], x[1]).replace(/^to /, ""))));
       const set = st.settings || {};
-      const how = [set.mood && `${show(set.mood).replace(/[()]/g, "").replace(/^changes /, "changing from ")} mood`, set.rhythm && `${show(set.rhythm).replace(/[()]/g, "").replace(/^changes /, "changing from ")} rhythm`, set.length && `${set.length} length`].filter(Boolean).map((t) => t.replace(/ (\w+) (mood|rhythm)$/, (m, a, b) => (/changing from/.test(t) ? ` to ${a} ${b}` : m)));
+      const how = [set.mood && `${settingWords(set.mood)} mood`, set.rhythm && `${settingWords(set.rhythm)} rhythm`, set.length && `${set.length} length`].filter(Boolean);
       return `<li><b>${esc(titleOf(story, id))}</b>${how.length ? ` <span class="note">(${esc(how.join(", "))})</span>` : ""}: ${esc(tasks.join("; "))}.</li>`;
     }).join("");
     return `<p class="label">The characters</p><ul class="changes">${chars}</ul>${rels ? `<p class="label">How they feel about each other</p><ul class="changes">${rels}</ul>` : ""}<p class="label">The scenes</p><ol class="changes">${scenes}</ol>`;
@@ -4890,8 +4890,7 @@ function storyPanel() {
     // (at 6–11 each task is what Ani was asked to show: "that ...", "what ... is like")
     const tasks = st ? asOf(id, () => tasksOf(st.tasks).map((t) => `<li>${simpleAge() ? taskText(t[0], t[1]).replace(/^to (establish|convey) /, "") : cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("")) : "";
     const set = st ? st.settings : {};
-    const setting = (v) => show(v).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1");
-    const mood = simpleAge() ? kidSettings(set) : [set.mood && `mood ${setting(set.mood)}`, set.rhythm && `rhythm ${setting(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
+    const mood = simpleAge() ? kidSettings(set) : [set.mood && `mood ${settingWords(set.mood)}`, set.rhythm && `rhythm ${settingWords(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
     return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${id === cur}"><span class="t">${esc(run.titles[id])}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
   }).join("");
   side.innerHTML = `
@@ -4922,6 +4921,13 @@ function storyPanel() {
       if (m) m.scrollIntoView({ block: "nearest" });
     }
   });
+}
+
+// A scene's setting at 12+, read by its form as kidSettings reads it at 6–11: (changes a b)
+// "changing from a to b", (and a b) "a and b", (very a) "very a", a word as it is.
+function settingWords(v) {
+  const w = (x) => (Array.isArray(x) ? (x[0] === "changes" ? `changing from ${w(x[1])} to ${w(x[2])}` : x[0] === "and" ? x.slice(1).map(w).join(" and ") : x.map(w).join(" ")) : String(x));
+  return w(typeof v === "string" && /^\(/.test(v) ? parse(v) : v);
 }
 
 // A scene's settings at 6–11: "mood: hopeful, then depressing · pace: fast, then slow · a
@@ -7386,7 +7392,7 @@ function changeLine(form, extensions) {
   const el = forAt >= 0 ? f[forAt + 1] : null;
   const factor = by >= 0 ? Number(f[by + 1]) : NaN;
   const look = f.includes("look");
-  const what = !el ? (look || /(shape|color|hue)/.test(show(f)) ? "change of look" : "change") : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
+  const what = !el ? (look || /\b(shape|color|hue)/.test(show(f)) ? "change of look" : "change") : `${look ? elementName(el) : elementWords(el)}${factor > 0 ? ` by ${+factor.toFixed(2)}` : ""}${at >= 0 ? ` at ${esc(f[at + 1])} speed` : ""}`;
   return { what, ani: t.aniSeconds, director: t.directorSeconds };
 }
 // Why this way and not another: the task's ways CHOMET weighed (chomet.123:216-255), each
@@ -10304,7 +10310,7 @@ function ageCaption(run, i, f, full) {
   // the 12+ caption's other lines (a change shown, colors), as they are, but for the notes of
   // the revival's corrections and details (SLIPS, DETAIL, FIT), which say how Ken's code was
   // mended, in its own words: they stay in the 12+ caption
-  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x) && !/(SLIPS|DETAIL|FIT)|the revival's (correction|rule)/.test(x)));
+  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x) && !/\b(SLIPS|DETAIL|FIT)\b|the revival's (correction|rule)/.test(x)));
   return { part: `Scene ${i + 1} · ${esc(sc.title)}`, text: glossed(shows.join(" ")) || (feel.length ? "" : full.text), more: more.map(glossed) };
 }
 
@@ -11147,16 +11153,35 @@ function sayText(html) {
   d.querySelectorAll("button:not(.gl), .note, pre, .read-this").forEach((x) => x.remove());
   return d.textContent.replace(/[“”"]/g, "").replace(/(\d) s\b/g, "$1 seconds").replace(/\s+/g, " ").trim();
 }
-// the voice: the one chosen, if this computer has it; else, offline, a local English one;
-// else the browser's default English one
+// The voice: the one the visitor chose, if this computer has it (and, offline, if it works
+// offline). Else, Ken: "when possible use a female voice for text-to-speech". The Web Speech
+// API says nothing of a voice's sex, so FEMALE_VOICES names the women's voices of Windows
+// (Microsoft's, Natural/Online among them), Chrome (Google UK English Female; Google US
+// English is a woman's), Apple and Android (whose names say "female"). Among them: the
+// page's English first (en-US, or the browser's own English, such as en-GB), then a
+// natural or online one, then any English one. Offline only voices that work offline count.
+// With no woman's English voice here, as before: the browser's default English voice,
+// else an en-US one, else any English one; with none, null (the browser's own choice).
+// (Ani itself is still "it" in the page's words; this is only the voice.)
+const FEMALE_VOICES = /\b(Aria|Jenny|Zira|Hazel|Susan|Libby|Sonia|Ava|Emma|Michelle|Ana|Clara|Natasha|Neerja|Maisie|Mia|Hollie|Catherine|Heera|Linda|Eva|Cora|Elizabeth|Jane|Nancy|Sara|Amber|Ashley|Monica|Samantha|Karen|Moira|Tessa|Victoria|Fiona|Serena|Allison|Kate|Veena|Zoe|Nicky|Kathy|Vicki|Agnes|Martha|Female)\b|^Google US English$/i;
+const isFemaleVoice = (v) => FEMALE_VOICES.test(v.name || "") && !/\bmale\b/i.test(v.name || "");
+function chooseVoice(voices, { chosen = null, online = true, lang = "en-US" } = {}) {
+  const english = voices.filter((v) => /^en\b/i.test(v.lang));
+  const mine = voices.find((v) => v.voiceURI === chosen);
+  if (mine && (online || mine.localService)) return mine;
+  const usable = english.filter((v) => online || v.localService);
+  const want = String(lang).toLowerCase().replace(/_/g, "-");
+  const score = (v) => (String(v.lang).toLowerCase().replace(/_/g, "-") === want ? 2 : 0) + (/\b(Natural|Online|Neural|Premium|Enhanced)\b/i.test(v.name || "") || !v.localService ? 1 : 0);
+  const women = usable.filter(isFemaleVoice);
+  if (women.length) return women.reduce((a, b) => (score(b) > score(a) ? b : a));
+  if (!online) return usable.find((v) => /en-US/i.test(v.lang)) || usable[0] || null;
+  return english.find((v) => v.default) || english.find((v) => /en-US/i.test(v.lang)) || english[0] || null;
+}
+// the page's English: the browser's own if it is a kind of English (en-GB, en-AU, ...), else en-US
+const speechLang = () => (typeof navigator !== "undefined" && /^en-[a-z]{2}$/i.test(navigator.language || "") ? navigator.language : "en-US");
 function speechVoice() {
   const voices = speechSupported() ? window.speechSynthesis.getVoices() : [];
-  const english = voices.filter((v) => /^en\b/i.test(v.lang));
-  const chosen = voices.find((v) => v.voiceURI === SPEECH.voice);
-  if (chosen && (navigator.onLine !== false || chosen.localService)) return chosen;
-  const local = english.filter((v) => v.localService);
-  if (navigator.onLine === false) return local.find((v) => /en-US/i.test(v.lang)) || local[0] || null;
-  return english.find((v) => v.default) || english.find((v) => /en-US/i.test(v.lang)) || english[0] || null;
+  return chooseVoice(voices, { chosen: SPEECH.voice || null, online: navigator.onLine !== false, lang: speechLang() });
 }
 // Speaking: one sentence an utterance (Chrome's network voices cut off long ones); done()
 // once the last has ended, or was cancelled.

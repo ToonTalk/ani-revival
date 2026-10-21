@@ -439,7 +439,7 @@ function ageCaption(run, i, f, full) {
   // the 12+ caption's other lines (a change shown, colors), as they are, but for the notes of
   // the revival's corrections and details (SLIPS, DETAIL, FIT), which say how Ken's code was
   // mended, in its own words: they stay in the 12+ caption
-  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x) && !/(SLIPS|DETAIL|FIT)|the revival's (correction|rule)/.test(x)));
+  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x) && !/\b(SLIPS|DETAIL|FIT)\b|the revival's (correction|rule)/.test(x)));
   return { part: `Scene ${i + 1} · ${esc(sc.title)}`, text: glossed(shows.join(" ")) || (feel.length ? "" : full.text), more: more.map(glossed) };
 }
 
