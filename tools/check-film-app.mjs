@@ -3294,7 +3294,7 @@ try {
     const local = []; for (let k = 0; k < localStorage.length; k++) if (localStorage.key(k).startsWith("ani-cinderella:")) local.push(localStorage.key(k));
     const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)};
     return { local, session: before.session.filter((k) => !/:last$/.test(k) && sessionStorage.getItem(k) !== null), films: t.library.films.length, runbar: document.getElementById("runbar").hidden, view: String(t.state.view), panel: t.state.panel, side: document.querySelector("#side h2").innerText, caption: document.getElementById("caption-0").innerText,
-      picture: document.getElementById("mode-color").getAttribute("aria-pressed"), rate: (document.querySelector('#rate [aria-pressed="true"]') || {}).textContent || "", more: [...document.querySelectorAll(".more-pages a")].map((a) => a.getAttribute("href") + "=" + a.textContent).join(", "), note: !document.getElementById("kept-note").open,
+      picture: document.getElementById("mode-color").getAttribute("aria-pressed"), rate: (document.querySelector('#rate [aria-pressed="true"]') || {}).textContent || "", more: [...document.querySelectorAll(".more-pages a")].filter((a) => getComputedStyle(a).display !== "none").map((a) => a.getAttribute("href") + "=" + a.textContent).join(", "), note: !document.getElementById("kept-note").open,
       prompts1978: [await hex(t.storyPrompt(STORY, { extensions: [] })), await hex(t.storyPrompt(STORY, { extensions: [], format: "json" }))],
       promptsRevival: [await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)} })), await hex(t.storyPrompt(STORY, { extensions: ${JSON.stringify(REVIVAL)}, format: "json" })), await hex(JSON.stringify(t.storySchema(${JSON.stringify(REVIVAL)})))] };
   })()`);

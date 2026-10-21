@@ -48,4 +48,6 @@ changes (why they act as they do, the filming's progress), it is about 767 KB.
 Since 21 October 2026 it is minified (Ken: "The code won't be viewed since the nice code
 will be hosted on GitHub Pages"), with a note at its top pointing to the readable page,
 https://toontalk.github.io/ani/, and its code, https://github.com/ToonTalk/ani: 910,802
-bytes, where without minifying it had reached 953,064, over the limit.
+bytes, where without minifying it had reached 953,064, over the limit; with the age
+setting's 9–11 sentences, Read aloud and Talk to Ani (which is never offered here: the
+frame has no microphone), 923,235.
