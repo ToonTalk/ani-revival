@@ -474,53 +474,56 @@ footer { color: var(--muted); font-size: 0.84rem; display: grid; gap: 6px; max-w
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* The age setting (app/film/ages.js; reports/chapter-x/design-young-children.md, section 4):
-   classes on <html>, age-6-8 and age-9-11; at 12+ (neither) the page is as it was. A part
-   hidden at a setting is display: none, so that a screen reader doesn't read it either. */
-.only-68, .only-911, .only-simple, .grownups.only-68 { display: none; }
-html.age-6-8 .only-68, html.age-9-11 .only-911, html.age-6-8 .only-simple, html.age-9-11 .only-simple { display: revert; }
-html.age-6-8 .not-68, html.age-9-11 .not-911, html.age-6-8 .not-simple, html.age-9-11 .not-simple { display: none !important; }
+   a class on <html>, age-6-11, and big for its bigger buttons and words; at 12+ (neither)
+   the page is as it was. A part hidden at a setting is display: none, so that a screen
+   reader doesn't read it either. */
+.only-simple { display: none; }
+html.age-6-11 .only-simple { display: revert; }
+html.age-6-11 .not-simple { display: none !important; }
 header .guides .ages-home { display: inline-flex; }
+/* (the guides' links are inline-block, which would show the 6–11 one at 12+ too) */
+header .guides a.only-simple { display: none; }
+html.age-6-11 header .guides a.only-simple { display: inline-block; }
 .ages { display: inline-flex; align-items: center; gap: 8px; }
 .ages-label { font-size: 0.9rem; font-weight: 600; color: var(--muted); }
 .ages .seg button { height: 34px; font-size: 0.9rem; min-width: 44px; }
 .age-note { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; padding: 8px 12px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); }
-html.age-6-8 .grownups { display: block; justify-self: start; border: 1px solid var(--rule); border-radius: 10px; padding: 6px 12px; background: var(--sheet); }
-.grownups > .body { padding-left: 0; }
-html.age-6-8 .film-setting, html.age-9-11 .film-setting, html.age-6-8 #frame-label, html.age-6-8 .bands-key { display: none !important; }
-html.age-6-8.film-settings .film-setting, html.age-9-11.film-settings .film-setting { display: inline-flex !important; }
-html.age-6-8.film-settings #rate[hidden], html.age-9-11.film-settings #rate[hidden] { display: none !important; }
-html.age-6-8 footer > :not(.only-68):not(.reporting) { display: none; }
-html.age-6-8.footer-open footer > .footer-more, html.age-6-8.footer-open footer > .code-pages:not([hidden]), html.age-6-8.footer-open footer > .more-pages:not([hidden]), html.age-6-8.footer-open footer > .kept-note { display: revert; }
-/* 9–11: the side panel's text a little larger */
-html.age-9-11 .side { font-size: 1rem; }
-html.age-9-11 .side .note, html.age-9-11 .side .linkish, html.age-9-11 .caption .part { font-size: max(0.95rem, 1em * 0.95); }
-html.age-9-11 .seg button, html.age-9-11 .btn { min-height: 32px; min-width: 32px; }
-/* 6–8: larger type, and every control at least 44 by 44 px (the main ones 48 to 56) */
-html.age-6-8 body { font-size: 1.15rem; line-height: 1.5; }
-html.age-6-8 .btn, html.age-6-8 .seg button, html.age-6-8 .crit-btn { min-height: 44px; min-width: 44px; }
-html.age-6-8 #play { height: 56px; min-width: 128px; font-size: 1.25rem; border-radius: 12px; }
-html.age-6-8 #back, html.age-6-8 #fwd { height: 56px; min-width: 64px; font-size: 1.1rem; grid-template-rows: auto auto; line-height: 1.1; }
-html.age-6-8 #back::after { content: "Back"; font-size: 0.8rem; }
-html.age-6-8 #fwd::after { content: "Next"; font-size: 0.8rem; }
-html.age-6-8 .scrub { height: 48px; }
-html.age-6-8 .scrub canvas { inset: 14px 0 auto 0; height: 20px; }
-html.age-6-8 .scrub .head { top: 8px; height: 32px; }
-html.age-6-8 .scenes button { min-height: 48px; padding: 6px 16px; font-size: 1rem; }
-html.age-6-8 .caption { font-size: 1.35rem; line-height: 1.5; }
-html.age-6-8 .caption .part { font-size: 1rem; }
-html.age-6-8 .side { font-size: 1.1rem; line-height: 1.5; }
-html.age-6-8 .side .lead, html.age-6-8 .side .lead-68 { font-size: 1.4rem; line-height: 1.45; }
-html.age-6-8 .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
-html.age-6-8 .runbar .seg button { min-height: 48px; font-size: 1rem; }
-html.age-6-8 header .guides a { padding: 10px 16px; }
-/* (the guides' links are inline-block, which would show the 6–8 one at every setting) */
-header .guides a.only-68 { display: none; }
-html.age-6-8 header .guides a.only-68 { display: inline-block; }
-html.age-6-8 summary, html.age-6-8 #about-page { min-height: 44px; display: flex; align-items: center; }
-html.age-6-8 #about-page { display: inline-flex; }
+html.age-6-11 .film-setting { display: none !important; }
+html.age-6-11.film-settings .film-setting { display: inline-flex !important; }
+html.age-6-11.film-settings #rate[hidden] { display: none !important; }
+/* the footer at 6–11: a line or two, and the rest under "About this page" */
+html.age-6-11 footer > :not(.only-simple):not(.reporting):not(.kept-note) { display: none; }
+html.age-6-11.footer-open footer > .footer-more, html.age-6-11.footer-open footer > p:not(.only-simple):not(.reporting):not([hidden]), html.age-6-11.footer-open footer > .kept-note { display: revert; }
+html.age-6-11 #about-page { display: inline-flex; }
+/* 6–11: the side panel's text a little larger */
+html.age-6-11 .side { font-size: 1rem; }
+html.age-6-11 .side .note, html.age-6-11 .side .linkish, html.age-6-11 .caption .part { font-size: max(0.95rem, 1em * 0.95); }
+html.age-6-11 .seg button, html.age-6-11 .btn { min-height: 32px; min-width: 32px; }
+/* 6–11's "Bigger": larger type, and every control at least 44 by 44 px (the main ones 48 to 56) */
+html.age-6-11.big body { font-size: 1.15rem; line-height: 1.5; }
+html.age-6-11.big .btn, html.big .seg button, html.big .crit-btn { min-height: 44px; min-width: 44px; }
+html.age-6-11.big #play { height: 56px; min-width: 128px; font-size: 1.25rem; border-radius: 12px; }
+html.age-6-11.big #back, html.big #fwd { height: 56px; min-width: 64px; font-size: 1.1rem; grid-template-rows: auto auto; line-height: 1.1; }
+html.age-6-11.big #back::after { content: "Back"; font-size: 0.8rem; }
+html.age-6-11.big #fwd::after { content: "Next"; font-size: 0.8rem; }
+html.age-6-11.big .scrub { height: 48px; }
+html.age-6-11.big .scrub canvas { inset: 14px 0 auto 0; height: 20px; }
+html.age-6-11.big .scrub .head { top: 8px; height: 32px; }
+html.age-6-11.big .scenes button { min-height: 48px; padding: 6px 16px; font-size: 1rem; }
+html.age-6-11.big .caption { font-size: 1.35rem; line-height: 1.5; }
+html.age-6-11.big .caption .part { font-size: 1rem; }
+html.age-6-11.big .side { font-size: 1.1rem; line-height: 1.5; }
+html.age-6-11.big .side .lead { font-size: 1.4rem; line-height: 1.45; }
+html.age-6-11.big .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
+html.age-6-11.big .runbar .seg button { min-height: 48px; font-size: 1rem; }
+html.age-6-11.big header .guides a, html.big header .guides button { padding: 10px 16px; min-height: 44px; }
+html.age-6-11.big summary, html.big #about-page { min-height: 44px; display: flex; align-items: center; }
+html.age-6-11.big #about-page { display: inline-flex; }
+html.age-6-11.big .linkish, html.big .gl { min-height: 44px; }
+html.age-6-11.big .mic, html.big .read-aloud { min-height: 56px; }
+html.age-6-11.big .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 16px 6px 10px; }
 .legend .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 4px 12px 4px 8px; cursor: pointer; color: var(--ink); font-size: 0.92rem; min-height: 32px; }
 .legend .chip:hover { border-color: var(--accent); }
-html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 16px 6px 10px; }
 /* the simpler sentences (A2): a glossary term is a button with the dotted underline that
    marks the revival's readings, opening a popover; the simple boxes; Who decided's ladder;
    More, the 12+ panel of the same moment */
@@ -536,12 +539,11 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
 .age-people { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; }
 .age-people svg { vertical-align: -2px; }
 .read-this { margin-left: 4px; }
-html.age-6-8 em, html.age-9-11 .side em { font-style: normal; }
-html.age-6-8 .side .note, html.age-9-11 .side .note, html.age-6-8 .caption .part, html.age-9-11 .caption .part { color: var(--ink); }
-html.age-9-11 .linkish, html.age-9-11 .gl { min-height: 32px; }
-html.age-9-11 .scenes button { min-height: 32px; }
-html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
-@media (prefers-reduced-motion: reduce) { html.age-6-8 *, html.age-9-11 * { scroll-behavior: auto !important; } }
+html.age-6-11 .side em { font-style: normal; }
+html.age-6-11 .side .note, html.age-6-11 .caption .part { color: var(--ink); }
+html.age-6-11 .linkish, html.age-6-11 .gl { min-height: 32px; }
+html.age-6-11 .scenes button { min-height: 32px; }
+@media (prefers-reduced-motion: reduce) { html.age-6-11 * { scroll-behavior: auto !important; } }
 /* speech (A4, A5): Read aloud beside Play, the microphones (a static red dot while listening,
    words in progress in gray), the speech settings */
 .read-aloud[aria-pressed="true"], .mic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
@@ -551,10 +553,9 @@ html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
 .mic-status { font-size: 0.95rem; }
 .mic-status.interim { color: var(--muted); font-style: italic; }
 .speech-home { margin: 4px 0 0; }
-.speech-home .speech-settings > summary, .grownups .speech-settings > summary { cursor: pointer; }
+.speech-home .speech-settings > summary { cursor: pointer; }
 .speech-settings .body p { margin: 6px 0; }
 .talk-optin { display: flex; gap: 8px; align-items: flex-start; }
-html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
 /* at 12+ the speech settings are a small "Speech" in the header's row, opening over the page */
 header .guides .speech-head { display: inline-flex; align-items: center; position: relative; }
 .speech-head .speech-settings { border-top: 0; padding-top: 0; }
@@ -570,22 +571,20 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
     <p class="label">Ken Kahn's Ani (MIT, 1978), running again</p>
     <h1>Ani's Cinderella and Beyond</h1>
     <p class="intro not-simple">Ani, the program in Ken Kahn's 1979 <a href="https://dspace.mit.edu/entities/publication/8882ab3e-0f3c-41ad-9abd-aa9a8e3ce44d" target="_blank" rel="noopener">thesis</a> (rewritten as <a href="https://dspace.mit.edu/entities/publication/6abb311d-b27d-4829-9fc2-46baf6491077" target="_blank" rel="noopener">AI-TR-540</a>), turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why. You can also change the story and have Ani make the film again.</p>
-    <p class="intro only-911">Ani, the program in Ken Kahn's 1979 thesis at MIT, turned a short description of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
-    <p class="intro only-68">Ani is a computer program from 1978. It made this film from a story. Press Play, then tap a shape to ask why.</p>
-    <p class="more-pages guides"><a href="students.html" class="not-68">A guide for students</a><a href="teachers.html" class="not-simple">A guide for teachers</a><a href="making-of.html" class="not-simple">How this was made</a><a href="teachers.html#young" class="only-68">For grown-ups: using Ani with young children</a><button type="button" class="teach-head not-68" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-8" aria-pressed="false" title="For ages 6 to 8, with a grown-up: short sentences, shapes by their colors, read aloud">6–8</button><button type="button" data-age="9-11" aria-pressed="false" title="For ages 9 to 11: shorter sentences, Ani's words explained">9–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span><span id="speech-head" class="speech-head not-simple"></span></p>
-    <details class="grownups only-68" id="grownups"><summary>For grown-ups</summary><div class="body"><div id="grownups-ages"></div><p class="note">The age setting is kept in this browser. A link sets it for a class: add <code>#ages-6-8</code>, <code>#ages-9-11</code> or <code>#ages-12</code> to the page's address.</p><p><button type="button" class="btn" data-film-settings aria-expanded="false">Film settings</button> <span class="note">Frames a second, TV or color, and Save.</span></p><div id="grownups-speech"></div></div></details>
+    <p class="intro only-simple">Ani is a computer program that Ken Kahn wrote at MIT in 1978. It turned a short story of Cinderella into this film. Play it, then click a character to see what Ani decided it should do, and why.</p>
+    <p class="more-pages guides"><a href="students.html">A guide for students</a><a href="teachers.html" class="not-simple">A guide for teachers and parents</a><a href="teachers.html#young" class="only-simple">A guide for teachers and parents</a><a href="making-of.html" class="not-simple">How this was made</a><button type="button" class="teach-head" data-teach-open title="Add to what Ani knows: a word, what a word suggests, a way of showing, a feeling">Teach Ani</button><span id="ages-home" class="ages-home"><span class="ages" id="ages"><span class="ages-label" id="ages-label">Ages</span><span class="seg" role="group" aria-labelledby="ages-label"><button type="button" data-age="6-11" aria-pressed="false" title="For ages 6 to 11: shorter sentences in everyday words, Ani's words explained">6–11</button><button type="button" data-age="12" aria-pressed="true" title="For 12 and over: the whole page">12+</button></span></span></span><span id="speech-head" class="speech-head not-simple"></span></p>
     <p class="age-note" id="age-note" role="status" hidden><span></span> <button type="button" class="linkish" id="age-note-close">OK</button></p>
   </header>
 
   <div class="runbar" id="runbar" hidden>
     <div class="seg" role="group" aria-label="Which film">
       <button type="button" data-view="0" aria-pressed="true">Ani's 1978 film</button>
-      <button type="button" data-view="1" aria-pressed="false">Your version</button>
+      <button type="button" data-view="1" aria-pressed="false">The new version</button>
       <button type="button" data-view="both" aria-pressed="false">Side by side</button>
     </div>
     <span class="status" id="run-status"></span>
     <button type="button" class="linkish" id="run-stop" hidden>Stop</button>
-    <button type="button" class="linkish" id="open-films">Your films</button>
+    <button type="button" class="linkish" id="open-films">Films made here</button>
   </div>
 
   <div class="speech-home only-simple" id="speech-home"><details class="speech-settings" id="speech-settings"><summary>Speech settings</summary><div class="body"></div></details><span class="note" id="talk-heard" aria-live="polite"></span></div>
@@ -598,8 +597,8 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
           <div class="screen"><canvas width="551" height="413" aria-label="The film. Click a character to see why it does what it does."></canvas></div>
         </figure>
         <figure class="screen-fig" id="fig-1" hidden>
-          <figcaption class="which">Your version</figcaption>
-          <div class="screen"><canvas width="551" height="413" aria-label="Your version of the film. Click a character to see why it does what it does."></canvas></div>
+          <figcaption class="which">The new version</figcaption>
+          <div class="screen"><canvas width="551" height="413" aria-label="The new version of the film. Click a character to see why it does what it does."></canvas></div>
         </figure>
       </div>
       <div class="controls">
@@ -607,10 +606,11 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
         <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
         <button class="btn read-aloud" id="read-aloud" type="button" aria-pressed="false" hidden title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
-        <button class="btn only-68 mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
+        <button class="btn only-simple mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
-        <button type="button" class="btn only-911" data-film-settings aria-expanded="false">Film settings</button>
+        <button type="button" class="btn only-simple" id="bigger" aria-pressed="false" title="Bigger buttons and words">Bigger</button>
+        <button type="button" class="btn only-simple" data-film-settings aria-expanded="false">Film settings</button>
         <div class="seg film-setting" role="group" aria-label="The 1978 film's frames a second" id="rate" hidden></div>
         <div class="seg film-setting" role="group" aria-label="Picture">
           <button type="button" id="mode-bw" aria-pressed="false">TV</button>
@@ -632,13 +632,13 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
   </main>
 
   <footer>
-    <p class="only-68">This film was made by Ani, a computer program Ken Kahn wrote at MIT in 1978. Everything Ani says about why is from Ani's own notes.</p>
-    <p class="only-68"><button type="button" class="linkish" id="about-page" aria-expanded="false">About this page</button></p>
+    <p class="only-simple">This film was made by Ani, a computer program Ken Kahn wrote at MIT in 1978. Everything Ani says about why is from Ani's own notes.</p>
+    <p class="only-simple"><button type="button" class="linkish" id="about-page" aria-expanded="false">About this page</button></p>
     <p class="footer-more">The film is drawn from a record of every frame Director filmed when this revival ran Ani's scene programs on a 550 by 413 picture: 24 frames a second, as Ken's camera shot the film, or 4, as his TV previews ran, which is the run the thesis's flipbook shows. The two are different runs, because each scene is planned from where the last one's filming left the characters. The reasons are what Ani itself recorded while planning; the plain-English readings (dotted underline) are ours, and each one opens to Ani's own words.</p>
     <p>Making the film again runs Ani itself: the 1978 MacLisp files from the MIT tapes, on Director and a MacLisp interpreter rebuilt for this revival, here in your browser. A new story is first put into Ken's notation by a language model of your choice; everything after that is Ani's.</p>
     <p class="code-pages">Pass 1, where Ani chose each character's way of moving, has its own page: <a href="pass1.html">Ani's Choice Points</a>. The code itself, with every name linked to its definition: <a href="source.html">Ani's Code</a>.</p>
-    <p class="more-pages">More about Ani: <a href="making-of.html">How this was made</a> · <a href="students.html">A guide for students</a> · <a href="teachers.html">A guide for teachers</a>.</p>
-    <details class="kept-note" id="kept-note"><summary>What this page keeps in your browser</summary><div class="body" id="kept-body"></div></details>
+    <p class="more-pages">More about Ani: <a href="making-of.html">How this was made</a> · <a href="students.html">A guide for students</a> · <a href="teachers.html">A guide for teachers and parents</a>.</p>
+    <details class="kept-note" id="kept-note"><summary>What this page keeps in this browser</summary><div class="body" id="kept-body"></div></details>
     <p class="reporting" hidden>When something on this page goes wrong, the page asks whether you would like to send Ken a report of the error, so that he can fix it, without any story, key or personal data. Nothing is sent unless you press Send.</p>
   </footer>
 </div>
@@ -1496,11 +1496,11 @@ const runExtensions = (run) => (run && run.extensions) || [];
 const madeWith = (run) => {
   const ext = runExtensions(run), crit = !!(run && run.criticism && run.criticism.length), taught = !!(run && run.knowledge && run.knowledge.length);
   // (and one made with the reader's knowledge, which loads REVIVE;TEACH with MEND: Teach Ani)
-  const mend = (crit || taught) && !ext.includes("mend") ? `the revival's repairs (MEND), which your ${crit ? "criticism" : "knowledge"} loads` : "";
-  const know = run && run.knowledge && run.knowledge.length ? `, with your knowledge (${words(run.knowledge.map((n) => `“${n.title}”`))})` : "";
-  return `${ext.length ? `with ${extensionsName(ext)}${mend ? ` and ${mend}` : ""}` : `by Ani as in 1978${mend ? ` with ${mend}` : ""}`}${crit ? ", heeding your criticism" : ""}${know}`;
+  const mend = (crit || taught) && !ext.includes("mend") ? `the revival's repairs (MEND), which the ${crit ? "criticism" : "teaching"} loads` : "";
+  const know = run && run.knowledge && run.knowledge.length ? `, with the teaching (${words(run.knowledge.map((n) => `“${n.title}”`))})` : "";
+  return `${ext.length ? `with ${extensionsName(ext)}${mend ? ` and ${mend}` : ""}` : `by Ani as in 1978${mend ? ` with ${mend}` : ""}`}${crit ? ", heeding the criticism" : ""}${know}`;
 };
-const yoursLabel = (extensions) => (extensions.length ? `Your version, with ${extensionsName(extensions)}` : "Your version");
+const yoursLabel = (extensions) => (extensions.length ? `The new version, with ${extensionsName(extensions)}` : "The new version");
 // whether the extensions ticked change what Ken's own story makes (APPEAR does: Ani draws
 // his cast; KNOW, SLIPS and DETAIL change what his characters do)
 const switchChanges1978 = () => MODE === "revival" && CHOSEN.some((id) => extNamed(id).changes1978);
@@ -1569,7 +1569,7 @@ const EXTENSION_TEXT = {
   seen: "A feeling changes how a character moves (joy makes her faster and bouncier), but it “cannot stand alone” (thesis pp. 125-126): where a character has only a change of feeling in a part, Ken's SCENE stretches the activity before it to show the change, or, at the start of a scene, has her “wander around” “so that the changes are apparent”. In Director the stretched activity can end before the feeling does (a change at high speed runs four times as long as Ani planned), and she may have had no part in it, so everyone stood still while the feeling ran. With this repair, which Ken approved after testing this page, she wanders about in such a part once nothing else moves her, across the stage and back as SCENE's wander does, and stops when her changes end. In Ken's Cinderella, Cinderella and the Prince wander after they meet, at the end of the Meeting, while their joy runs, so Justice starts with them apart; in Kept Apart the stepmother and Cinderella stand guard to the end, as in 1978.",
   fit: "A scene's length (short, medium or long) gives it a least and a most time, and “Ani tries to constrain the film to be a (user) desired length” (thesis p. 126). But when a task's only way of showing didn't fit its share of the scene, Ken's code moved the task's time, judged the scene by a length the task would not have, and then gave the task its own ideal time, so No Longer Kept Apart ran 4 seconds against its own least of 10: “things happen too quickly and the fairy godmother just appears and is quickly gone” (p. 69). With these corrections, which Ken asked for on 16 and 17 October, a scene keeps the time its length gives it: once its tasks have their times, a scene shorter than its least (or longer than its most) has them moved to the bound, each within its own least and most where it can be, and its activities are stretched to fill it; a way of showing that needs more time is heard under the name Ken's scoring gives it; a walk stretched to fill a part takes the stretch once, where Ken's PLACE wrote it into the walk and his Director multiplied it in again; and a repeated walk takes its parent's speed once, not again each time it is set. In Ken's Cinderella the fairy godmother brings Cinderella to the Prince in No Longer Kept Apart's 10 seconds, Kept Apart takes its 30, the guard keeping her pace, and the stepmother's pushing in the Introduction no longer speeds up push by push. Never in “Ani as in 1978”: it needs MEND, and ticking it ticks MEND.",
   slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion, by what Director measured: nearly four times as long at high speed, under a quarter at low), grows once a tick, takes as many steps as it counts, is counted once in a walk set again, and is carried forth into the walks of its part and of the part it extends; and the film waits for the activity a feeling's part extends. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; in Kept Apart the feelings show on the guard's walks, Cinderella slower and straighter, the stepmother quicker and curving more (p. 66); and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and FIT, whose corrections of how a scene's time is divided it began with: ticking it ticks them, and MEND.",
-  critic: "Your criticism of a film, kept with the film, and heeded as Ken's thesis proposes (Chapter X, Section D, “Critics and Criticism”, pp. 189–191): a way of showing vetoed, which Ani sets aside and chooses among what is left; a part too quick or too slow, whose time Ani stretches by half again or shrinks by a third, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside; and one who starts far from another, placed far off and off the stage. It is never ticked: Ani loads it, with MEND, into every job of a film you have criticized (“Remake with my criticism”), whatever else the film was made with, and only then; a film with no criticism never loads it, and Ken's Cinderella with it loaded and nothing criticized comes out exactly as in 1978.",
+  critic: "Your criticism of a film, kept with the film, and heeded as Ken's thesis proposes (Chapter X, Section D, “Critics and Criticism”, pp. 189–191): a way of showing vetoed, which Ani sets aside and chooses among what is left; a part too quick or too slow, whose time Ani stretches by half again or shrinks by a third, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside; and one who starts far from another, placed far off and off the stage. It is never ticked: Ani loads it, with MEND, into every job of a film you have criticized (“Remake with this criticism”), whatever else the film was made with, and only then; a film with no criticism never loads it, and Ken's Cinderella with it loaded and nothing criticized comes out exactly as in 1978.",
   detail: "A few of the low-level details the thesis names as left undone (pp. 183-187, “Attending to Myriad Details”), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, a deliberate character going in longer arcs with smaller jags (X.B.3 (f)); its tendencies towards friends, enemies and strangers count in the best-when scores of the ways of showing that take it to another, or away (c); and a scene's rhythm, fast, slow or changing, speeds its characters up or slows them down a quarter, as a feeling would (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not; Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker; the tendencies decide nothing there. It needs MEND: ticking it ticks MEND.",
 };
 const REVIVE_TEXT = {
@@ -2697,7 +2697,9 @@ function stopBox(run) {
   // a film made with criticism: its jobs loaded MEND, the revival's repairs, as well
   const crit = !!(run.criticism && run.criticism.length);
   const items = list.map((s) => `<li><b>${esc(words(s.where))}</b>: ${s.text}${s.repair && !ours && !crit ? ` <span class="made-with">${esc(cap(REVIVAL))} ${esc(s.repair)}.</span>` : ""}${s.lisp ? `<details class="said"><summary>What Lisp said</summary><pre class="lisp">${esc(s.lisp)}</pre></details>` : ""}</li>`).join("");
-  return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : crit ? "Where Ani stopped, as in 1978 with the revival's repairs (MEND), which your criticism loads" : "Where Ani as in 1978 stopped"}</p><ul>${items}</ul>
+  // (at 6–11 a line or two, and Ani's own reasons under More)
+  const kidStop = `<p class="note">Ken's 1978 Ani couldn't finish ${list.length === 1 ? `${esc(words(list[0].where))}` : "some scenes"}: it met something in this story that Ken never gave it.${mendable(run) ? " The repairs added to Ani in 2026 can help it go on." : ""}</p>`;
+  return `<div class="stop-box"><p class="stopped">${ours ? `Where Ani stopped, even with ${esc(extensionsName(runExtensions(run)))}` : crit ? "Where Ani stopped, as in 1978 with the revival's repairs (MEND), which the criticism loads" : "Where Ani as in 1978 stopped"}</p>${at611More(`<ul>${items}</ul>`, kidStop, "More: why Ani stopped")}
     ${mendable(run) ? `<div class="actions"><button type="button" class="btn revival" data-remake>Make it again with ${esc(REVIVAL)}</button></div>` : ""}${sendStoryButton(run)}</div>`;
 }
 function remakeWithRepairs(run) {
@@ -4408,7 +4410,7 @@ function renderWhich() {
   }
   else {
     FIGS[0].fig.querySelector(".which").textContent = RUNS[0].label;
-    FIGS[1].fig.querySelector(".which").textContent = RUNS[1] ? RUNS[1].label : "Your version";
+    FIGS[1].fig.querySelector(".which").textContent = RUNS[1] ? RUNS[1].label : "The new version";
   }
 }
 // The films a screen can show: Ken's, the reader's version, and each of their films
@@ -4717,7 +4719,7 @@ function caption(r) {
   const tag = state.view === "both" ? `${esc(screenShort(r))} · ` : "";
   if (!ready(sc)) {
     const id = run.sceneIds[state.scene];
-    const stopped = sc ? `Ani stopped while making this scene. ${whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
+    const stopped = sc ? `Ani stopped while making this scene. ${simpleAge() ? "" : whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
     delete el.dataset.html;
     return;
@@ -4878,21 +4880,22 @@ function storyPanel() {
   const rels = run.story.relationships.map((r) => `<li>${cap(relationshipText(["relationship-of", r.from, r.to]))}.</li>`).join("");
   const cards = run.sceneIds.map((id, i) => {
     const st = run.story.scenes[id];
-    const tasks = st ? asOf(id, () => tasksOf(st.tasks).map((t) => `<li>${cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("")) : "";
+    // (at 6–11 each task is what Ani was asked to show: "that ...", "what ... is like")
+    const tasks = st ? asOf(id, () => tasksOf(st.tasks).map((t) => `<li>${simpleAge() ? taskText(t[0], t[1]).replace(/^to (establish|convey) /, "") : cap(taskText(t[0], t[1]).replace(/^to /, ""))}</li>`).join("")) : "";
     const set = st ? st.settings : {};
     const setting = (v) => show(v).replace(/[()]/g, "").replace(/changes /, "changing from ").replace(/ (\w+)$/, " to $1");
-    const mood = [set.mood && `mood ${setting(set.mood)}`, set.rhythm && `rhythm ${setting(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
+    const mood = simpleAge() ? kidSettings(set) : [set.mood && `mood ${setting(set.mood)}`, set.rhythm && `rhythm ${setting(set.rhythm)}`, set.length && `${set.length} length`].filter(Boolean).join(" · ");
     return `<button type="button" class="scene-card" data-scene="${i}" aria-current="${id === cur}"><span class="t">${esc(run.titles[id])}</span><ul>${tasks}</ul>${mood ? `<span class="mood">${esc(mood)}</span>` : ""}</button>`;
   }).join("");
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
-    <p class="note">${newStory ? "Your story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? "Ken's film description, unchanged. Ani planned every scene of this version from it." : mine ? "Your changes to the film description (new words are outlined). Ani planned every scene of your version from it." : "The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it."}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
+    <p class="note">${newStory ? "The new story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? at611("Ken's film description, unchanged. Ani planned every scene of this version from it.", "Ken's story, unchanged. Ani planned every scene of this version from it.") : mine ? at611("Changes to the film description (new words are outlined). Ani planned every scene of the new version from it.", "Ken's story, with changes (new words are outlined). Ani planned every scene of the new version from it.") : at611("The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it.", "The story Ken gave Ani in 1978, in plain words. Ani planned every scene from it.")}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
-    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
+    <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Films made here (${libraryFilms().length})</button>` : ""}</div>
     ${critBox(run)}
     ${simpleAge() ? ageStoryPeople(run, people) : `<div class="people">${people}</div>`}
     <div><p class="label">How they feel about each other</p><ul class="rels">${simpleAge() ? glossed(rels) : rels}</ul></div>
-    <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
+    <div class="scene-list"><p class="label">${at611("The scenes", "The scenes, and what Ani was asked to show in each")}</p>${cards}</div>
     ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
   side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), sceneStart(Number(b.dataset.scene)))));
@@ -4912,6 +4915,15 @@ function storyPanel() {
       if (m) m.scrollIntoView({ block: "nearest" });
     }
   });
+}
+
+// A scene's settings at 6–11: "mood: hopeful, then depressing · pace: fast, then slow · a
+// long scene", read from the settings as Ani was told them ((changes a b), (and a b),
+// (very a)); the mood's words are the record's.
+function kidSettings(set) {
+  const w = (v) => (Array.isArray(v) ? (v[0] === "changes" ? `${w(v[1])}, then ${w(v[2])}` : v[0] === "and" ? words(v.slice(1).map(w)) : v.map(w).join(" ")) : plain(String(v)));
+  const read = (v) => (typeof v === "string" && /^\(/.test(v) ? parse(v) : v);
+  return [set.mood && `mood: ${w(read(set.mood))}`, set.rhythm && `pace: ${w(read(set.rhythm))}`, set.length && `a ${plain(String(set.length))} scene`].filter(Boolean).join(" · ");
 }
 
 // ---------------------------------------------------------------- the side: why
@@ -5484,9 +5496,11 @@ function timelineBox(r, sc, char = null) {
     }
     rows.sort((x, y) => x.at - y.at);
     const span = p.film ? `${p.film.begin === p.film.end ? `frame ${frameGo(sc, p.film.begin)}` : `frames ${framesGo(sc, p.film.begin, p.film.end)}`}, ${sec((p.film.end - p.film.begin) / fps)}` : "not reached";
-    return `<li><p><b>Part ${p.n}</b> <span class="note">${span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}${critPaceButtons(run, sc, w, p, { short: true })}</p>${rows.length ? `<ul>${rows.map((x) => x.html).join("")}</ul>` : ""}</li>`;
+    // (at 6–11 how long the part lasts, without its frames)
+    const kidSpan = p.film ? sec((p.film.end - p.film.begin) / fps) : "not reached";
+    return `<li><p><b>Part ${p.n}</b> <span class="note">${simpleAge() ? `(${kidSpan}` : span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}${simpleAge() ? ")" : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}${critPaceButtons(run, sc, w, p, { short: true })}</p>${rows.length ? `<ul>${rows.map((x) => (simpleAge() ? x.html.replace(/<span class="fr">[\s\S]*?<\/span> (?=<button type="button" class="linkish" data-tl)/, "") : x.html)).join("")}</ul>` : ""}</li>`;
   }).join("");
-  return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">Each part's frames (the film's, counted from its first scene; click one to see it) and what it is for, and each step in it; click a step for why it is done that way and lasts that long.</p><ol class="tl">${parts}</ol></div></details>`;
+  return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">${at611("Each part's frames (the film's, counted from its first scene; click one to see it) and what it is for, and each step in it; click a step for why it is done that way and lasts that long.", "Each part of the scene, how long it lasts and what it is for, and each step in it. Click a step to see why it is done that way and lasts that long.")}</p><ol class="tl">${parts}</ol></div></details>`;
 }
 // A step of the timeline: its frame, and the glass box of the one who does it, open at it.
 document.addEventListener("click", (e) => {
@@ -5710,7 +5724,7 @@ function chipTitle(w, forRelationship) {
       ? `Ani doesn't know “${plain(w)}”${near ? ` (it knows “${plain(near)}”)` : ""}: it is remembered, but suggests nothing.`
       : `Ani doesn't know “${plain(w)}”: it suggests nothing, and as a personality word Ani as in 1978 stops on it (the revival's repairs leave it out).`;
   }
-  if (i.yours) return `Your word, from “${i.notebook}”${rel ? `: ${rel}` : ""}. Ani knows it only in a film you make with your knowledge (Teach Ani).`;
+  if (i.yours) return `A word taught to Ani, from “${i.notebook}”${rel ? `: ${rel}` : ""}. Ani knows it only in a film made with that teaching (Teach Ani).`;
   const ours = i.revival ? " It is the revival's knowledge, not Ken's." : "";
   if (i.kind && i.suggests) return `Ani has its own suggestions for “${plain(w)}”${rel ? `; it is also ${rel}` : ""}.${ours} (${wordAt(i)})`;
   if (i.kind) return `Ani knows “${plain(w)}” but has no suggestions of its own for it${rel ? `; it is ${rel}` : ""}.${ours} (${wordAt(i)})`;
@@ -5770,7 +5784,7 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
         // looks or moves Ani doesn't know suggests nothing, and it goes on
         // a word of the reader's notebooks (Teach Ani): Ani knows it only in a film made with them
         if (W[w] && W[w].yours) {
-          const yours = `“${esc(plain(w))}” (${esc(nameOf(story, name))}) is your word, from “${esc(W[w].notebook)}”: Ani knows it in a film you make with your knowledge (Make it with my knowledge)`;
+          const yours = `“${esc(plain(w))}” (${esc(nameOf(story, name))}) is a word taught to Ani, from “${esc(W[w].notebook)}”: Ani knows it in a film made with that teaching (Make it with this teaching)`;
           if (slot === "personality") stops.push({ as1978: `${yours}; made without it, Ani as in 1978 stops on it when a scene shows what ${esc(nameOf(story, name))} is like.`, mended: `${yours}; made without it, the revival's repairs leave it out.` });
           else notes.push(`${yours}; made without it, it suggests nothing.`);
           continue;
@@ -6438,21 +6452,21 @@ function editorPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
     ${editor.note ? `<p class="note crit-added" aria-live="polite">${editor.note}</p>` : ""}
-    <p class="note">Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.</p>
+    <p class="note">${at611("Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.", "Change what Ani is told about the characters, then have Ani plan and make all five scenes again, here on this computer. That takes two or three minutes (about five with Ken's beautified scene), and longer if this tab is in the background. Each scene plays as soon as it is made, beside the 1978 one.")}</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
-    <p class="note">Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it.${SWITCHED.includes("know") ? " With the revival's extensions, words outlined in purple are the revival's knowledge, and Ani knows them too." : ""} Hover over a word for more.</p>
+    <p class="note">${at611(`Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it.${SWITCHED.includes("know") ? " With the revival's extensions, words outlined in purple are the revival's knowledge, and Ani knows them too." : ""} Hover over a word for more.`, `Ani knows what shaded words mean for how a character moves; <i>slanted</i> ones it knows only as the opposite of another word, or close to one.${SWITCHED.includes("know") ? " Words outlined in purple were added to Ani in 2026." : ""} Hover over a word for more.`)}</p>
     <details id="ed-lisp-box"${editor.openLisp ? " open" : ""}><summary>Ani's version</summary><div class="body">
       <p class="note">The film description as Ani reads it, in Ken's Lisp. Change anything here, the scenes too; the words above follow.</p>
       <div class="ed-lisp-wrap" id="ed-lisp-wrap"><textarea id="ed-lisp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="The film description, in Lisp"></textarea><button type="button" class="btn done" id="ed-done">Done</button></div>
     </div></details>
     <div id="ed-check"></div>
-    <div class="actions"><button type="button" class="btn primary" id="ed-make" data-make-fps="4"></button><button type="button" class="btn" id="ed-make-24" data-make-fps="24"></button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor="4" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 4 frames a second">Make it with my knowledge, quickly</button><button type="button" class="btn yours" data-teach-make-editor="24" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 24 frames a second">Make it with my knowledge, smoothly</button>` : ""}
+    <div class="actions"><button type="button" class="btn primary" id="ed-make" data-make-fps="4"></button><button type="button" class="btn" id="ed-make-24" data-make-fps="24"></button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor="4" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 4 frames a second">Make it with this teaching, quickly</button><button type="button" class="btn yours" data-teach-make-editor="24" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 24 frames a second">Make it with this teaching, smoothly</button>` : ""}
       <button type="button" class="linkish" data-teach-open title="Add to what Ani knows, for every story: a word, what it suggests, a way of showing, a feeling">Teach Ani</button><button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
     <div class="make-settings">${modeSwitch()}</div>
-    <p class="note" id="ed-fps-note">Quickly is at 4 frames a second, as Ken's TV previews ran: jerky, and made in two or three minutes on a recent computer (five with Ken's beautified scene). Smoothly is at 24, as Ken's camera shot the film: about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is filmed.</p>
-    ${SWITCHED.length ? `<p class="note mode-note">${esc(modeNote())}</p>${extensionsPanel()}` : ""}`;
+    <p class="note" id="ed-fps-note">${at611("Quickly is at 4 frames a second, as Ken's TV previews ran: jerky, and made in two or three minutes on a recent computer (five with Ken's beautified scene). Smoothly is at 24, as Ken's camera shot the film: about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is filmed.", "Quickly is jerky, and takes two or three minutes (five with Ken's beautified scene). Smoothly takes about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is made.")}</p>
+    ${SWITCHED.length ? at611More(`<p class="note mode-note">${esc(modeNote())}</p>${extensionsPanel()}`, "", "More: the new parts added to Ani in 2026") : ""}`;
   side.querySelector("#ed-close").addEventListener("click", () => { editor.note = ""; editor.openLisp = false; select(null); });
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
@@ -6542,11 +6556,11 @@ function refreshEditor({ fromLisp = false } = {}) {
   const met = stops.filter((x) => !unmet.includes(x));
   side.querySelector("#ed-check").innerHTML = tidyNote([...editor.tidied, ...pending.fixes]) +
     (problems.length || unmet.length ? `<ul class="problems">${[...problems, ...unmet.map((x) => x.as1978)].map((p) => `<li>${p}</li>`).join("")}</ul>` : "") +
-    (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "Your story" : "Your changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
+    (story.error ? "" : changes.length ? `<div><p class="label">${fresh ? "The new story" : "Changes to Ken's story"}</p><ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul></div>`
       : switchChanges1978() ? `<p class="note">This is Ken's story as it is. With ${esc(extensionsName(CHOSEN))} Ani ${esc(clauseList(CHOSEN.filter((id) => extNamed(id).changes1978).map((id) => MODE_CLAUSE[id]).filter(Boolean)))}, so you can make it as it is, or change a word first.</p>`
       : `<p class="note">This is Ken's story as it is. Change a word, or try one of the ready-made changes.</p>`) +
     (notes.length || met.length ? `<ul class="changes note">${[...met.map((x) => `<span class="made-with">${x.mended}</span>`), ...notes].map((n) => `<li>${n}</li>`).join("")}</ul>` : "") +
-    (same && !RUNS[1].status?.running ? `<p class="note">Your version was made from exactly this, ${esc(madeWith(RUNS[1]))}.</p>` : "");
+    (same && !RUNS[1].status?.running ? `<p class="note">The new version was made from exactly this, ${esc(madeWith(RUNS[1]))}.</p>` : "");
   side.querySelectorAll("[data-preset]").forEach((b) => { if (PRESETS[Number(b.dataset.preset)].toggles) b.setAttribute("aria-pressed", String(!story.error && !!story.scenes[BEAUTIFIED])); });
   const make = side.querySelector("#ed-make");
   // Ken's story as it is can be made again when the extensions ticked change what it makes
@@ -7029,7 +7043,7 @@ function updateRunbar() {
   const run = RUNS[1];
   bar.hidden = !run;
   const films = libraryFilms().length;
-  document.getElementById("open-films").textContent = films ? `Your films (${films})` : "Your films";
+  document.getElementById("open-films").textContent = films ? `Films made here (${films})` : "Films made here";
   if (!run) return;
   bar.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(String(state.view) === b.dataset.view)));
   const st = run.status || {};
@@ -7182,7 +7196,7 @@ function comparePanel() {
     }).join("");
   const mine = b === RUNS[1];
   side.innerHTML = `
-    <div class="side-head"><h2>${other ? `Your story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
+    <div class="side-head"><h2>${other ? `The new story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
     ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${running ? "" : stopBox(b)}
     ${teachChangedSection(a, b)}
@@ -7191,7 +7205,7 @@ function comparePanel() {
     ${mine ? "" : `<p class="note">${kenLeft ? "On the right" : "On the left"}: ${esc(b.label)}, one of your films${b.status && b.status.made ? `, made ${esc(shortDate(b.status.made))}` : ""}.</p>`}
     ${apart && !kenPlus ? `<p class="note">These are two different stories, so they can't be compared scene by scene: Ken's Cinderella, with his four characters in five scenes, and ${esc(storyTitle(b))}. Each screen plays its own film, the first scene of one beside the first of the other, and so on.</p>` : ""}
     <div><p class="label">${other && !kenPlus ? "What you told Ani" : "What you changed"}</p>${changes.length ? `<ul class="changes">${changes.map((c) => `<li>${c}</li>`).join("")}</ul>` : `<p class="note">Nothing: this is Ken's story.</p>`}${tidyNote(b.tidied)}<p class="note${runExtensions(b).length ? " made-with" : ""}">${running ? "Being made" : "Made"} ${esc(madeWith(b))}.</p></div>
-    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how your characters move; click a character to see them.` : running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
+    <div><p class="label">${other ? "Ani's choices" : "How Ani's choices changed"}</p>${other ? `<p class="note">${moving.length ? `In pass 1 Ani made ${moving.length} choices about how the characters move; click a character to see them.` : running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>` : moving.length
       ? `<p class="note">In pass 1, ${diffs.length + relative} of Ani's ${moving.length} choices of how they move came out differently${relative ? ` (${relative} of them comparisons between two characters)` : ""}.</p>${cpRows ? `<ul class="changes">${cpRows}</ul>` : ""}<div id="cmp-cp"></div>`
       : `<p class="note">${running ? "Pass 1 is still choosing." : "Pass 1 didn't finish."}</p>`}${pass1Fixes.length ? repairList(pass1Fixes) : ""}${changeLines(b)}</div>
     ${optInSummary(b)}
@@ -7350,7 +7364,7 @@ function renderSceneButtons() {
   const cast = [];
   for (const run of runs) for (const c of run.cast) { const x = cast.find((y) => y[0] === c); if (x) x[1].push(run); else cast.push([c, [run]]); }
   const inWhich = (r) => { const k = runs.indexOf(r), n = pairShort(runs, k); return n === "1978" ? "in 1978" : n === "Yours" ? "in yours" : `on the ${n.toLowerCase()}`; };
-  // (at 6–8 and 9–11, each a button that opens the character: app/film/ages.js)
+  // (at 6–11, each a button that opens the character: app/film/ages.js)
   if (simpleAge()) { ageLegend(cast, runs); return; }
   document.getElementById("legend").innerHTML = cast.map(([c, rs]) => {
     const differ = rs.length > 1 && rs[0].shapes[c] !== rs[1].shapes[c];
@@ -7466,8 +7480,6 @@ function setColor(color, { remember = true } = {}) {
   document.getElementById("mode-color").setAttribute("aria-pressed", String(color));
   draw();
   for (const r of shown()) caption(r); // a film made with Ani's looks says whose colors they are
-  // at 6–8 a character's name has its color, or not in TV's black and white (app/film/ages.js)
-  if (young()) { renderSceneButtons(); renderSide(); }
   scheduleSave();
 }
 
@@ -7504,7 +7516,8 @@ if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEven
 // A link can open the 1978 film at a moment: #kept-apart.48, #kept-apart.48.cinderella,
 // and in color with .color at the end, or in TV's black and white with .tv (for that
 // visit: the visitor's own choice is kept). And set the age (app/film/ages.js), alone or
-// with a moment: #ages-6-8, #kept-apart.48.cinderella.ages-6-8.
+// with a moment: #ages-6-11, #kept-apart.48.cinderella.ages-6-11 (and the old #ages-6-8 and
+// #ages-9-11, which open 6–11).
 function fromHash() {
   const all = decodeURIComponent(location.hash.slice(1)).split(".");
   const age = ageOfHash(all);

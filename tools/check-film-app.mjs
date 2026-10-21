@@ -636,7 +636,7 @@ try {
     `"Tell Ani what's wrong" asks only the provider chosen (${(c4.calls || []).join(", ")}), with the visitor's words and the film as the glass box tells it, and no key in the request's body`);
   check(c4.strict && JSON.stringify(c4.scenes) === JSON.stringify(c4.sceneIds) && JSON.stringify(c4.cast) === JSON.stringify(c4.castIds) && c4.kinds.join() === "another-way,pace,choice,keep-apart,start-far,story,teach,cannot",
     `its schema is strict, its enums the film's own scenes and cast, its kinds ${c4.kinds && c4.kinds.join(", ")}`);
-  check(c4.items.length === 4 && /^Not something Ani can change: the model named a part this film doesn't have\./.test(c4.items[3]) && /^Criticism: part 1 of No Longer Kept Apart is too quick \(you said “No Longer Kept Apart is too quick”\) Add to your criticism$/.test(c4.items[0])
+  check(c4.items.length === 4 && /^Not something Ani can change: the model named a part this film doesn't have\./.test(c4.items[3]) && /^Criticism: part 1 of No Longer Kept Apart is too quick \(you said “No Longer Kept Apart is too quick”\) Add to the criticism$/.test(c4.items[0])
     && /^Ani can't take this criticism: Mood is not something Ani takes into account\. As Ken wrote, “Ani currently has practically no conception of rhythm, for example, and so could not respond to criticisms of the film's rhythm\. The same holds for notions such as climax, tension, mood, or humor\./.test(c4.items[1])
     && /^Knowledge, true of any pretty character in any story, not criticism of this film: a pretty character's speed is high\./.test(c4.items[2]) && c4.pendingBefore === 0,
     `each item is shown in plain words, with what can be done with it, and nothing added yet (${c4.items.map((x) => x.split(":")[0]).join("; ")})`);
@@ -993,7 +993,7 @@ try {
     }
     return "";
   })()`);
-  check(/Your version · The Introduction/.test(why), "clicking a character in the new film opens its glass box");
+  check(/The new version · The Introduction/.test(why), "clicking a character in the new film opens its glass box");
   await shot("3-side-by-side.png");
 
   await open();
@@ -1013,7 +1013,7 @@ try {
     const side = document.getElementById("side");
     return { button: document.getElementById("open-films").innerText, panel: side.querySelector("h2").innerText, items: [...side.querySelectorAll(".films > li")].map((li) => li.innerText.replace(/\\s+/g, " ")), old: localStorage.getItem("ani-cinderella:run:v1") };
   })()`);
-  check(kept1.button === "Your films (1)" && kept1.panel === "Your films" && kept1.items.length === 1 && /^Cinderella: the stepmother pretty, kind and good; the stepmother loves and is helpful/.test(kept1.items[0]) && /your version now/.test(kept1.items[0]) && /· 4 frames a second · by Ani as in 1978 · 5 scenes · \d+(\.\d)? [KM]B/.test(kept1.items[0]) && kept1.old === null,
+  check(kept1.button === "Films made here (1)" && kept1.panel === "Films made here" && kept1.items.length === 1 && /^Cinderella: the stepmother pretty, kind and good; the stepmother loves and is helpful/.test(kept1.items[0]) && /the new version now/.test(kept1.items[0]) && /· 4 frames a second · by Ani as in 1978 · 5 scenes · \d+(\.\d)? [KM]B/.test(kept1.items[0]) && kept1.old === null,
     `the film made is kept in "Your films" (IndexedDB), and is there after a reload, with its title, date, frames a second, how it was made and its size: ${kept1.items[0] || "none"}`);
   await send("Page.navigate", { url: `${base}/app/film.check.html` });
   for (let k = 0; k < 50 && !(await js("!!window.__check && !!window.__check.library.ready").catch(() => false)); k++) await sleep(200);
@@ -2231,7 +2231,7 @@ try {
   check(changeFile.saved && changeFile.version === 2 && changeFile.who === "step-mother" && changeFile.held === 1, `its film file (${changeFile.name}, version ${changeFile.version}) carries Ani's fresh look`);
   check(changeFile.title === "Change of Heart" && /^Little Red Riding Hood is a good, friendly girl/.test(changeFile.story || "") && changeFile.model === "claude-sonnet-5-5" && changeFile.provider === "Claude (Anthropic)" && changeFile.lisp && changeFile.extensions === "mend,know,appear,change,seen,fit" && /^A film of Change of Heart, made by Ani/.test(changeFile.about || ""),
     `and, readable at its top, the story as told in English, the model and provider that wrote it, and its Lisp (${changeFile.model}, ${changeFile.provider})`);
-  check(/^Your version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^Your version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
+  check(/^The new version, with the revival's extensions: 3 of 3 scenes filmed/.test(changeFile.old[0] || "") && /^The new version: 3 of 3 scenes filmed/.test(changeFile.old[1] || ""), `film files as the page wrote them before still open, version 2 and version 1 (${changeFile.old.map((x) => x.split(".")[0]).join("; ")})`);
 
   // Ken's own beautified scene, put back (REVIVE;CHSHOW, stage 6): "Change the story" offers
   // it, turning the switch to the extensions; in 1978 mode it is refused; Ken's CINDY is as
@@ -2657,7 +2657,7 @@ try {
     return { films, kind: pick(/^Cinderella: the stepmother pretty/), far: pick(/^Far/), detail: pick(/^Cinderella, as Ken told it$/, "detail"), slips: pick(/^Cinderella, as Ken told it$/, "slips"), current: t.RUNS[1] && t.RUNS[1].libId, button: document.getElementById("open-films").innerText,
       first: (document.querySelector("#side .films > li") || {}).innerText || "" };
   })()`);
-  check(put.every(Boolean) && lib.kind && lib.far && lib.detail && lib.slips && lib.current === lib.kind.id && lib.films[0].id === lib.kind.id && /your version now/.test(lib.first) && lib.button === `Your films (${lib.films.length})`,
+  check(put.every(Boolean) && lib.kind && lib.far && lib.detail && lib.slips && lib.current === lib.kind.id && lib.films[0].id === lib.kind.id && /the new version now/.test(lib.first) && lib.button === `Films made here (${lib.films.length})`,
     `"Your films" lists every film kept, the newest first, the reader's version marked (${lib.films.length}: ${lib.films.map((f) => f.title).join(" | ")})`);
   await shot("17-your-films.png");
   await phone("17b-your-films-phone.png", `document.querySelector("#side .films")`);
@@ -2754,7 +2754,7 @@ try {
       await wait(800);
       return { status: document.getElementById("run-status").innerText, current: window.__check.RUNS[1].libId, view: String(window.__check.state.view), pair: window.__check.state.pair.join() };
     })()`);
-    check(opened.current === lib.detail.id && /^Your version, with some of the revival's extensions \(MEND and DETAIL\): 5 of 5 scenes filmed/.test(opened.status) && opened.view === "both" && opened.pair === "ken,cur",
+    check(opened.current === lib.detail.id && /^The new version, with some of the revival's extensions \(MEND and DETAIL\): 5 of 5 scenes filmed/.test(opened.status) && opened.view === "both" && opened.pair === "ken,cur",
       `one of "Your films" opened becomes the reader's version, beside Ken's: ${opened.status}`);
     const deleted = await js(`(async () => {
       const wait = (ms) => new Promise((r) => setTimeout(r, ms)), t = window.__check;
@@ -2880,14 +2880,14 @@ try {
     const quick = await remakeDone("No Longer Kept Apart too quick");
     // nlka-too-quick: 30, 183, 90, the Introduction and Kept Apart kept
     check(!quick.error && quick.frames.join() === "192,116,30,183,90" && quick.how.join() === "kept,kept,refilmed,refilmed,refilmed" && quick.files && quick.pair === "ken,cur" && quick.view === "both"
-      && /What your criticism changed\s+Your version was remade from Ken's 1978 film \(on the left\) with your criticism\./i.test(quick.side) && /Met No Longer Kept Apart: too quick/i.test(quick.side) && /Ani gave it 5\.97 s instead of 3\.98 s, the walks slowed to fit \(stretched by 1\.5, where they were 1\)/.test(quick.side),
-      `"Remake with my criticism" remakes Ken's film in the worker from his files, as reports/ext/critic/nlka-too-quick has it (${quick.frames.join(", ")} frames; ${quick.how.join(", ")}), beside his, with "What your criticism changed": met, 5.97 s instead of 3.98`);
+      && /What the criticism changed\s+The new version was remade from Ken's 1978 film \(on the left\) with your criticism\./i.test(quick.side) && /Met No Longer Kept Apart: too quick/i.test(quick.side) && /Ani gave it 5\.97 s instead of 3\.98 s, the walks slowed to fit \(stretched by 1\.5, where they were 1\)/.test(quick.side),
+      `"Remake with this criticism" remakes Ken's film in the worker from his files, as reports/ext/critic/nlka-too-quick has it (${quick.frames.join(", ")} frames; ${quick.how.join(", ")}), beside his, with "What your criticism changed": met, 5.97 s instead of 3.98`);
     await shot("22-criticism-side-by-side.png");
     // the remade film, alone: its glass box, then "too quick" taken back and "start far" added
     await js(`(() => { const t = window.__check; t.setView(1); t.goScene(2, 2.0); t.select({ run: 1, char: "fairy-godmother" }); })()`);
     await sleep(400);
     const here = await js(`(document.querySelector("#side .crit-here") || {}).innerText || ""`);
-    check(/What your criticism did here \(1\)\s+You said this part was too quick: Ani gave it 5\.97 s instead of 3\.98 s/.test(here), `the remade film's glass box says "What your criticism did here": ${here.split("\n")[1] || ""}`);
+    check(/What the criticism did here \(1\)\s+You said this part was too quick: Ani gave it 5\.97 s instead of 3\.98 s/.test(here), `the remade film's glass box says "What your criticism did here": ${here.split("\n")[1] || ""}`);
     await js(`window.__check.select(null)`);
     await sleep(300);
     await js(`[...document.querySelectorAll("#crit button")].find((b) => b.textContent === "Take it back").click()`);
@@ -2904,13 +2904,13 @@ try {
       `a remade film criticized again and remade from its own files, as reports/ext/critic/nlka-start-far has it (${far.frames.join(", ")}), beside the film it was remade from: "too quick" taken back, "start far" met`);
     // a version-3 film file, and "Your films" after a reload
     const filed = await js(`(async () => { const t = window.__check; const text = await (await t.filmFile(t.RUNS[1])).text(); const outer = JSON.parse(text); const d = await t.readFilmFile(text); return { version: outer.version, outer: (outer.criticism || []).map((c) => c.kind).join(), inner: (d.criticism || []).map((c) => c.kind).join(), files: Object.keys(d.files || {}).length, from: d.remadeFrom ? d.remadeFrom.title : null }; })()`);
-    check(filed.version === 3 && filed.outer === "start-far" && filed.inner === "start-far" && filed.files >= 16 && /^Cinderella, as Ken told it, with your criticism: No Longer Kept Apart too quick$/.test(filed.from),
+    check(filed.version === 3 && filed.outer === "start-far" && filed.inner === "start-far" && filed.files >= 16 && /^Cinderella, as Ken told it, with criticism: No Longer Kept Apart too quick$/.test(filed.from),
       `a film remade with criticism is saved as a version-3 film file, with its criticism (outside and in), its ${filed.files} working files and the film it was remade from, and read back`);
     await send("Page.reload");
     for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring`).catch(() => false)); k++) await sleep(200);
     await sleep(800);
     const listedFilms = await js(`(async () => { const t = window.__check; await t.library.ready; return t.library.films.filter((f) => f.remadeFrom).map((f) => \`\${f.title} | \${f.criticism || 0} | \${f.remadeFrom.ken ? "ken" : f.remadeFrom.title}\`); })()`);
-    check(listedFilms.length >= 2 && listedFilms.some((x) => / \| 1 \| ken$/.test(x)) && listedFilms.some((x) => /^Cinderella, as Ken told it, with your criticism: The fairy godmother starting far\b.* \| 1 \| Cinderella, as Ken told it, with your criticism: No Longer Kept Apart too quick$/.test(x)),
+    check(listedFilms.length >= 2 && listedFilms.some((x) => / \| 1 \| ken$/.test(x)) && listedFilms.some((x) => /^Cinderella, as Ken told it, with criticism: The fairy godmother starting far\b.* \| 1 \| Cinderella, as Ken told it, with criticism: No Longer Kept Apart too quick$/.test(x)),
       `after a reload "Your films" has each remade film, with its criticism and the film it was remade from: ${listedFilms.join("; ")}`);
     // Ken's footnote (p. 64), from "Try criticizing"
     await toCheckPage();
@@ -3043,7 +3043,7 @@ try {
     await js(`(() => { window.__check.select(null); document.getElementById("open-teach").click(); })()`);
     await sleep(400);
     const panel = await js(`document.getElementById("side").innerText`);
-    check(/^Teach Ani\s+Back\s+Teach Ani something it doesn't know\. Ani will use it in every film you make with your knowledge\./.test(panel) && /\+ Teach Ani…\s+A word like another\s+What a word suggests\s+A relationship\s+Another way of showing a verb\s+A feeling\s+A verb as a kind of another/i.test(panel) && /Try teaching: grumpy is like mean · grumpy moves slowly · helping can look like going along with · jealous/.test(panel) && /About teaching Ani/.test(panel),
+    check(/^Teach Ani\s+Back\s+Teach Ani something it doesn't know\. Ani will use it in every film made with this teaching\./.test(panel) && /\+ Teach Ani…\s+A word like another\s+What a word suggests\s+A relationship\s+Another way of showing a verb\s+A feeling\s+A verb as a kind of another/i.test(panel) && /Try teaching: grumpy is like mean · grumpy moves slowly · helping can look like going along with · jealous/.test(panel) && /About teaching Ani/.test(panel),
       `"Teach Ani" beside "Change the story": a sentence, "+ Teach Ani…" with six kinds in order of ease, "Try teaching" with the design's four examples, and "About teaching Ani"`);
     const about = await js(`document.querySelector(".teach-about").textContent`);
     check(/Three Interactions between AI and Education/.test(about) && /Machine Intelligence 8/.test(about) && /AI-TR-540, pp\. 149–150/.test(about) && await js(`!!document.querySelector('.teach-about a[href*="drive.google.com/file/d/1_C_ZzwWCpTOa3Zp8UHAKFuVUA2JxeSSX"]') && !!document.querySelector('.teach-about a[href*="6abb311d-b27d-4829-9fc2-46baf6491077"]')`),
@@ -3111,7 +3111,7 @@ try {
     const afterAdd = await checked();
     console.log(`      (after "Add to Ani": ${afterAdd.split("\n").slice(0, 12).join(" | ").slice(0, 500)})`);
     const node = checkKnowledge(makeProjectFileSystem(), [{ format: "ani-knowledge", version: 1, title: "My knowledge", pieces: [{ id: "k1", kind: "word", word: "grumpy", type: "personality", like: "mean", because: "a grumpy character is a mean one" }] }], { extensions: [] });
-    check(/Added to “My knowledge”: "grumpy" is a word for what a character is like inside, and means much the same as "mean"\./.test(afterAdd) && /Ani hears it/i.test(afterAdd) && /Ani read your knowledge with Ken's files and heard every piece \([\d.]+ s\)/.test(afterAdd) && node.ok && node.notebooks[0].pieces.k1.heard,
+    check(/Added to “Teaching”: "grumpy" is a word for what a character is like inside, and means much the same as "mean"\./.test(afterAdd) && /Ani hears it/i.test(afterAdd) && /Ani read your knowledge with Ken's files and heard every piece \([\d.]+ s\)/.test(afterAdd) && node.ok && node.notebooks[0].pieces.k1.heard,
       `"Add to Ani" keeps the piece in a notebook, and "Check with Ani" runs the trial job in a worker: heard, as Node's checkKnowledge says (${(afterAdd.match(/heard every piece \(([\d.]+) s\)/) || [])[1]} s)`);
     await js(`document.querySelector('[data-teach-rehearse="k1"]').click()`);
     for (let k = 0; k < 120 && await js(`/Trying it/.test(document.getElementById("side").innerText)`); k++) await sleep(500);
@@ -3133,7 +3133,7 @@ try {
       await wait(1200);
       return { name, format: file.format, version: file.version, pieces: file.pieces.length, lisp: /;;yours k1: a grumpy character is a mean one/.test(file.lisp || ""), opened, count: t.TEACHING.notebooks.length, titles: t.TEACHING.notebooks.map((n) => n.title), same: t.TEACHING.notebooks.every((n) => JSON.stringify(n.pieces) === JSON.stringify(rec.pieces)) };
     })()`);
-    check(files.name === "my-knowledge.ani-knowledge.json" && files.format === "ani-knowledge" && files.version === 1 && files.pieces === 1 && files.lisp && /Opened my-knowledge\.ani-knowledge\.json: “My knowledge \(2\)”, 1 piece\./.test(files.opened) && files.count === 3 && files.same,
+    check(files.name === "teaching.ani-knowledge.json" && files.format === "ani-knowledge" && files.version === 1 && files.pieces === 1 && files.lisp && /Opened teaching\.ani-knowledge\.json: “Teaching \(2\)”, 1 piece\./.test(files.opened) && files.count === 3 && files.same,
       `"Save as a file" writes ${files.name} (the notebook, its Lisp beside it), and "Open a shared file" and a file dropped on the page open it as a notebook of its own: ${files.titles.join(", ")}`);
     const books = await js(`(async () => {
       const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -3159,7 +3159,7 @@ try {
     }
     await toCheckPage();
     const kept = await js(`(async () => { const t = window.__check; for (let k = 0; k < 50 && !t.TEACHING.loaded; k++) await new Promise((r) => setTimeout(r, 100)); return t.TEACHING.notebooks.map((n) => n.title + (n.used ? "+" : "-")); })()`);
-    check(books.titles.includes("A class dictionary") && books.boxes.filter((b) => b === "used").length === 4 && books.boxes.includes("disabled") && kept.join() === "My knowledge+,A class dictionary+,My knowledge (3)+",
+    check(books.titles.includes("A class dictionary") && books.boxes.filter((b) => b === "used").length === 4 && books.boxes.includes("disabled") && kept.join() === "Teaching+,A class dictionary+,Teaching (3)+",
       `notebooks renamed, used up to four (the fifth's tick disabled: ${books.boxes.join(", ")}), deleted after the page asks, and kept in this browser after a reload: ${kept.join(", ")}`);
     // the design's examples, made in the page's worker at 4 frames a second, each stopped
     // once its Introduction is filmed (the scene each changes), beside the film made without
@@ -3201,9 +3201,9 @@ try {
     })()`);
     await sleep(300);
     await shot("32-teach-badge.png");
-    check(grumpyUnknown === GOLD["grumpy-unknown"] && grumpy === GOLD.grumpy && !plainFilm.knowledge && plainFilm.version === 2 && /^What your knowledge did\s+Your version was made from “[^”]+” \(on the (left|right)\) again, with your knowledge: “Grumpy is like mean”\./i.test(grumpyDid) && /The Introduction: 226 frames, now 225\./.test(grumpyDid) && /Pass 1: 1 of Ani's 102 choices changed\./.test(grumpyDid) && /Won\s+"grumpy" is a word for what a character is like inside, and means much the same as "mean"\./i.test(grumpyDid),
+    check(grumpyUnknown === GOLD["grumpy-unknown"] && grumpy === GOLD.grumpy && !plainFilm.knowledge && plainFilm.version === 2 && /^What the teaching did\s+The new version was made from “[^”]+” \(on the (left|right)\) again, with this teaching: “Grumpy is like mean”\./i.test(grumpyDid) && /The Introduction: 226 frames, now 225\./.test(grumpyDid) && /Pass 1: 1 of Ani's 102 choices changed\./.test(grumpyDid) && /Won\s+"grumpy" is a word for what a character is like inside, and means much the same as "mean"\./i.test(grumpyDid),
       `"grumpy is like mean", made in the page's worker as Node makes it: the Introduction ${grumpyUnknown} frames with grumpy unknown, ${grumpy} with the knowledge (goldens ${GOLD["grumpy-unknown"]} and ${GOLD.grumpy}); the film made without it is version 2, with no knowledge; "What your knowledge did" beside it says the word won`);
-    check(/she is grumpy, which you taught Ani means much the same as mean/.test(badge.box) && badge.tags >= 1 && /your knowledge: “a grumpy character is a mean one”/.test(badge.box) && /^What your knowledge did here \(\d+\)/.test(badge.here),
+    check(/she is grumpy, which you taught Ani means much the same as mean/.test(badge.box) && badge.tags >= 1 && /teaching: “a grumpy character is a mean one”/.test(badge.box) && /^What the teaching did here \(\d+\)/.test(badge.here),
       `the glass box's badges: her attraction to enemies "because she is grumpy, which you taught Ani means much the same as mean", marked "your knowledge" with the reason; and "What your knowledge did here"`);
     // "grumpy moves slowly", beside the film where grumpy is unknown
     await example("grumpy-slow");
@@ -3281,8 +3281,8 @@ try {
     sessionStorage.setItem("ani-check-before", JSON.stringify(before));
     return { closed, text, before, asked };
   })()`);
-  check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes your films: Ani as in 1978, or with the revival's extensions \(ani-cinderella:mode:v1, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
-    && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Your films: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes your ${keptNote.before.films} films?(, your \\d+ notebooks? of knowledge)? and everything listed above`).test(keptNote.asked),
+  check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes the films made here: Ani as in 1978, or with the revival's extensions \(ani-cinderella:mode:v1, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
+    && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Films made here: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes the ${keptNote.before.films} films? made here(, the \\d+ notebooks? of teaching)? and everything listed above`).test(keptNote.asked),
     `"What this page keeps in your browser" (closed at first) says what is kept where: ${keptNote.before.local.length} keys in localStorage, ${keptNote.before.films} films in IndexedDB, ${keptNote.before.session.length} in sessionStorage; "Forget all of it" asks first`);
   await js(`document.getElementById("kept-yes").click()`);
   await sleep(1500);
@@ -3302,7 +3302,7 @@ try {
   check(!forgot.local.length && !forgot.session.length && forgot.films === 0 && forgot.runbar,
     `"Forget all of it" clears everything the page kept (localStorage, sessionStorage and its IndexedDB films), and the page starts afresh${forgot.local.length || forgot.session.length ? `: left ${[...forgot.local, ...forgot.session].join(", ")}` : ""}`);
   check(forgot.view === "0" && forgot.panel === "story" && forgot.side === "What Ani was told" && /The stepmother pushes Cinderella around/.test(forgot.caption) && forgot.picture === "true" && forgot.rate === "24 a second" && forgot.note
-    && forgot.more === "../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers, ../site/pages/making-of.html=How this was made, ../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers"
+    && forgot.more === "../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers and parents, ../site/pages/making-of.html=How this was made, ../site/pages/making-of.html=How this was made, ../site/pages/students.html=A guide for students, ../site/pages/teachers.html=A guide for teachers and parents"
     && forgot.speech === "speech-head,Speech,false,none,0,true"
     && JSON.stringify(forgot.prompts1978) === JSON.stringify(PROMPT_1978_SHA) && JSON.stringify(forgot.promptsRevival) === JSON.stringify(PROMPT_REVIVAL_SHA),
     `the page afresh is the default page as before (Ken's film in color at 24 a second, "What Ani was told", no films, speech out of the way: a closed "Speech" in the header, Read aloud off and not beside Play, no microphone), with the links to the pages about Ani (${forgot.more.split(", ").map((x) => x.split("=")[0]).join(", ")}), and its prompts as pinned (${forgot.prompts1978.concat(forgot.promptsRevival).map((h) => h.slice(0, 8)).join(", ")})`);

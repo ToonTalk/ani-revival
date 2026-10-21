@@ -16,7 +16,7 @@
 //     having been in it.
 //   - "Your criticism": the film's record, as it was made (heeded) and as the reader has
 //     changed it since (new, or taken back), each in plain words with "Take it back"; and
-//     "Remake with my criticism", which says what will be remade.
+//     "Remake with this criticism", which says what will be remade.
 //   - The remake: src/pipeline.js remakeFilmSteps, in the worker as a film is made, from the
 //     film's working files (films made from now on keep them; Ken's 1978 film is remade from
 //     the files the tools hold his run to, DATA.kenFiles; a film kept without them is made
@@ -116,7 +116,7 @@ function critTitle(run) {
     : c.kind === "keep-apart" ? `${name(c.between[0])} and ${name(c.between[1])} kept apart`
     : c.kind === "choice" ? unmark(using(run, () => choicePhrase(c)))
     : `${name(c.who)} starting far from ${name(c.from)}`));
-  return `, with your criticism: ${cap(bits.join("; "))}`;
+  return `, with criticism: ${cap(bits.join("; "))}`;
 }
 // The scenes a record (and the film's own) reaches from: the first criticized, by index.
 function critFrom(run, record = pendingOf(run)) {
@@ -167,7 +167,7 @@ function criticize(run, item) {
     const { item: kept, record } = AniCritic.addCriticism(pendingOf(run), { ...item, id: item.id || nextCritId(run) });
     setPending(run, record);
     critNote.run = run;
-    critNote.text = kept ? "Added to your criticism; remake the film when you are ready." : "That takes back the other: this part is no longer criticized.";
+    critNote.text = kept ? "Added to the criticism; remake the film when you are ready." : "That takes back the other: this part is no longer criticized.";
   } catch (e) {
     critNote.run = run;
     critNote.text = `Ani can't take that as criticism: ${e.message || e}`;
@@ -374,7 +374,7 @@ function critSceneBox(run, sc, { open = false } = {}) {
       criticize(run, { kind: "keep-apart", scenes, between: [x, y], said: `Keep ${unmark(who(x))} and ${unmark(who(y))} apart in ${scenes.map((id) => sceneTitleOf(run, id)).join(" and ")}` });
     });
     parts.push(`<div class="crit-apart"><p><b>Keep two apart in this scene</b>: <select aria-label="One of the two">${opts(cast, a)}</select> and <select aria-label="The other">${opts(cast, b)}</select>${k > 0 ? ` <label class="check"><input type="checkbox"> and the scenes before it</label>` : ""} <button type="button" class="crit-btn" data-crit-act="${go}">Keep them apart</button></p>
-      <p class="note">Ken's third kind of criticism (pp. 189–191): “this post-condition could be added to all the methods in that scene and it could be remade”. Every way of showing that would bring the two together is set aside, as a prerequisite not met.</p></div>`);
+      <p class="note">${at611("Ken's third kind of criticism (pp. 189–191): “this post-condition could be added to all the methods in that scene and it could be remade”. Every way of showing that would bring the two together is set aside, as a prerequisite not met.", "This was Ken's own idea for fixing a film. Ani then leaves out every way of showing that would bring the two together.")}</p></div>`);
   }
   for (const offer of startFarOffers(run, sc)) {
     const others = offer.partners;
@@ -384,7 +384,7 @@ function critSceneBox(run, sc, { open = false } = {}) {
     });
     const kw = meet(run.story, offer.who);
     parts.push(`<div class="crit-far"><p><b>Start far from</b>: ${name(offer.who)} ${agree(kw, "starts", "start")} where ${esc(sceneTitleOf(run, run.sceneIds[k - 1]))} left ${kw.her}, though ${kw.she} had no part in it. Have ${kw.her} start far from <select aria-label="Far from whom">${opts(others, offer.from)}</select> <button type="button" class="crit-btn" data-crit-act="${go}">Start far</button></p>
-      <p class="note">Ken's remedy for No Longer Kept Apart (p. 69): “have the fairy godmother start far from Cinderella”. PLACE places ${kw.her} far off and off the stage, and ${kw.she} ${agree(kw, "walks", "walk")} on.</p></div>`);
+      <p class="note">${at611(`Ken's remedy for No Longer Kept Apart (p. 69): “have the fairy godmother start far from Cinderella”. PLACE places ${kw.her} far off and off the stage, and ${kw.she} ${agree(kw, "walks", "walk")} on.`, `This was Ken's own idea for No Longer Kept Apart: “have the fairy godmother start far from Cinderella”. Ani then puts ${kw.her} far away, off the stage, and ${kw.she} ${agree(kw, "walks", "walk")} on.`)}</p></div>`);
   }
   if (!parts.length) return "";
   return `<details class="crit-scene"${open ? " open" : ""}><summary>Criticize ${esc(sc.title)} as a whole</summary><div class="body">${parts.join("")}</div></details>`;
@@ -433,7 +433,7 @@ function critBox(run, { compact = false } = {}) {
   const tell = compact ? "" : critiqueBox(run);
   if (!record.length && !pending.length) {
     if (compact) return note ? `<div class="crit" id="crit">${note}</div>` : "";
-    return try_ || note || tell ? `<div class="crit" id="crit"><p class="label">Your criticism</p>${note}${try_}${tell}${critAboutBox()}</div>` : "";
+    return try_ || note || tell ? `<div class="crit" id="crit"><p class="label">Criticism of this film</p>${note}${try_}${tell}${critAboutBox()}</div>` : "";
   }
   const rows = [];
   for (const c of pending) {
@@ -449,14 +449,16 @@ function critBox(run, { compact = false } = {}) {
   const busy = RUNS[1] && RUNS[1].status && RUNS[1].status.running;
   const changed = critChanged(run);
   const go = critAction(run, () => startRemake(run));
-  const plan = !remakeable(run) ? "This film wasn't made to its end, so it can't be remade with criticism: make it again first." : changed ? remakePlan(run) : "Nothing new to heed yet: this film was made with this criticism.";
-  return `<div class="crit" id="crit"><p class="label">Your criticism${record.length ? " of this film" : ""}</p>${note}<ul class="crit-list">${rows.join("")}</ul>
+  const plan = simpleAge()
+    ? (!remakeable(run) ? "This film wasn't finished, so it can't be made again with fixes: make it again first." : changed ? "Ani will make the film again, from the first scene with a fix, and show it beside this one." : "Nothing new to fix yet: this film was made with these fixes.")
+    : !remakeable(run) ? "This film wasn't made to its end, so it can't be remade with criticism: make it again first." : changed ? remakePlan(run) : "Nothing new to heed yet: this film was made with this criticism.";
+  return `<div class="crit" id="crit"><p class="label">Criticism of this film</p>${note}<ul class="crit-list">${rows.join("")}</ul>
     <p class="note">${esc(plan)}</p>
-    <div class="actions"><button type="button" class="btn primary crit-go" data-crit-act="${go}"${!changed || busy || !remakeable(run) ? " disabled" : ""}${busy ? ' title="Ani is making a film; remake this one when it has finished, or stop it"' : ""}>Remake with my criticism</button></div>
+    <div class="actions"><button type="button" class="btn primary crit-go" data-crit-act="${go}"${!changed || busy || !remakeable(run) ? " disabled" : ""}${busy ? ' title="Ani is making a film; remake this one when it has finished, or stop it"' : ""}>Remake with this criticism</button></div>
     ${compact ? "" : try_}${tell}${compact ? "" : critAboutBox()}</div>`;
 }
 // Where criticism comes from, a click away.
-const critAboutBox = () => `<details class="crit-about"><summary>About criticizing Ani's films</summary><div class="body"><p class="note">From ${critCite()}: the way Ken improved Ani, finding faulty reasoning and changing the program, “is a good one for constructing Ani but is not a reasonable method for a user trying to control Ani's decisions”; instead “Ani should be extended to accept criticism of the films and their justification.” The revival built his first three kinds: a way of showing vetoed (Ani sets it aside, “removing those alternatives that were vetoed by the user”), a part too quick or too slow (half as long again, or a third shorter, within the time the story gives the scene), and two characters kept apart in a scene, with his remedy of starting one far from another. ${fileLink("critic")}</p>
+const critAboutBox = () => `<details class="crit-about${simpleAge() ? " age-more" : ""}"><summary>${at611("About criticizing Ani's films", "More about fixing Ani's films")}</summary><div class="body"><p class="note">From ${critCite()}: the way Ken improved Ani, finding faulty reasoning and changing the program, “is a good one for constructing Ani but is not a reasonable method for a user trying to control Ani's decisions”; instead “Ani should be extended to accept criticism of the films and their justification.” The revival built his first three kinds: a way of showing vetoed (Ani sets it aside, “removing those alternatives that were vetoed by the user”), a part too quick or too slow (half as long again, or a third shorter, within the time the story gives the scene), and two characters kept apart in a scene, with his remedy of starting one far from another. ${fileLink("critic")}</p>
   <p class="note">Your criticism is kept with this film, not in its story and never in Ani's knowledge: a criticism is of how Ani made the film, not of what it is to show. Knowledge Ani lacks, true of any character in any story (“helping can look like going along with”), isn't a criticism of this film: <button type="button" class="linkish" data-teach-open="">Teach Ani instead</button>. Ani is remade from the first scene criticized; a later scene whose plan comes out the same keeps its film. That is the revival's stand-in, at the film's scale, for Ken's “unless necessary no other parts of the film” (p. 64), until Ani can hold a scene's other parts as they were (a later stage). If Ani stops on the way, the film is kept as it was from that scene on, and says why. Where Ani can't do what you ask, it says why; and of what it has no notion of, Ken wrote ${P191} (p. 191).</p></div></details>`;
 
 // The remake: a new film, the reader's version, made from the film's working files with
@@ -483,7 +485,7 @@ function startRemake(orig) {
     // a film made with the reader's knowledge is remade with it, as it was (Teach Ani)
     ...(orig.knowledge && orig.knowledge.length ? { knowledge: orig.knowledge } : {}),
   };
-  const run = makeRun({ label: record.length ? `${yoursLabel(runExtensions(orig))}, remade with your criticism` : `${yoursLabel(runExtensions(orig))}, remade without criticism`, short: "Yours", cindy: orig.cindy, choicePoints: orig.raw.choicePoints, extensions: runExtensions(orig), repairs: orig.raw.repairs, appearances: orig.raw.appearances, changes: orig.raw.changes, tidied: orig.tidied, told: orig.told });
+  const run = makeRun({ label: record.length ? `${yoursLabel(runExtensions(orig))}, remade with criticism` : `${yoursLabel(runExtensions(orig))}, remade without criticism`, short: "Yours", cindy: orig.cindy, choicePoints: orig.raw.choicePoints, extensions: runExtensions(orig), repairs: orig.raw.repairs, appearances: orig.raw.appearances, changes: orig.raw.changes, tidied: orig.tidied, told: orig.told });
   run.fps = fps;
   run.criticism = record;
   run.pending = record.map((c) => ({ ...c }));
@@ -574,7 +576,7 @@ function critHere(run, sc, char) {
   const mentions = (n) => `${n.was} ${n.now} ${n.because}`.split(/[\s()]+/).includes(char) || (critItem(run, n.id) || {}).who === char;
   const lines = [...notes.filter(mentions), ...notes.filter((n) => !mentions(n))].map((n) => critNoteSentence(run, sc, n));
   const cant = critCantDo(run, sc);
-  return `<details class="crit-here" open><summary>What your criticism did here (${lines.length + cant.length})</summary><div class="body"><ul class="fixes crit-fixes">${[...lines, ...cant].map((x) => `<li>${x}</li>`).join("")}</ul>
+  return `<details class="crit-here" open><summary>What the criticism did here (${lines.length + cant.length})</summary><div class="body"><ul class="fixes crit-fixes">${[...lines, ...cant].map((x) => `<li>${x}</li>`).join("")}</ul>
     <p class="note">Ani heeded your criticism where its own code chooses, as ${critCite()} proposes; nothing of it became Ani's knowledge. ${fileLink("critic")} ${fileLink("critpc")} ${fileLink("critsc")}</p></div></details>`;
 }
 // A way set aside by a criticism, as rejectText says it (R is the film's): vetoed by you,
@@ -784,9 +786,9 @@ function critChangedSection(a, b) {
     return `<li><b>${t}</b>: ${esc(HOW[s.how] || (running ? "not made yet" : "made"))}${fr}.${tasks ? `<ul class="changes">${tasks}</ul>` : ""}</li>`;
   }).join("");
   const left = state.view === "both" && screenRun(0) === a ? "left" : "right";
-  return `<div class="crit-changed"><p class="label">What your criticism changed</p>
-    <p class="note">${esc(b === RUNS[1] ? "Your version" : b.label)} was remade from ${a === RUNS[0] ? "Ken's 1978 film" : `“${esc(a.label)}”`} (on the ${left}) with your criticism${running ? "; Ani is still making it" : ""}.</p>
+  return `<div class="crit-changed"><p class="label">What the criticism changed</p>
+    <p class="note">${esc(b === RUNS[1] ? "The new version" : b.label)} was remade from ${a === RUNS[0] ? "Ken's 1978 film" : `“${esc(a.label)}”`} (on the ${left}) with your criticism${running ? "; Ani is still making it" : ""}.</p>
     <ul class="crit-outcomes">${items.join("")}</ul>
     <details${running ? " open" : ""}><summary>Scene by scene</summary><div class="body"><ul class="changes crit-scenes">${scenes}</ul></div></details>
-    <p class="note">How Ani heeded it, a click away on each screen: click a character for “What your criticism did here”. From ${critCite()}.</p></div>`;
+    <p class="note">How Ani heeded it, a click away on each screen: click a character for “What the criticism did here”. From ${critCite()}.</p></div>`;
 }

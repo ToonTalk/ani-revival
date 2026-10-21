@@ -1,63 +1,238 @@
 // ---------------------------------------------------------------- the age setting
 
-// How the page presents Ani: for ages 6–8, ages 9–11, or 12 and over (today's page, the
-// default), reports/chapter-x/design-young-children.md. The setting changes only words and
-// what is shown: it never reaches Ani, a film, a film file, "Your films", a criticism or a
-// notebook, and "Ani as in 1978" and every film are the same at every setting. It is kept
+// How the page presents Ani: for ages 6–11, or 12 and over (today's page, the default),
+// reports/chapter-x/design-young-children.md. The setting changes only words and what is
+// shown: it never reaches Ani, a film, a film file, the films kept here, a criticism or a
+// notebook, and "Ani as in 1978" and every film are the same at either setting. It is kept
 // in this browser (AGE_KEY), and a teacher sets it for a class with a link, a bare token in
-// the page's dot-separated hash: #ages-6-8, #ages-9-11, #ages-12, alone or with a moment
-// (#kept-apart.48.cinderella.ages-6-8). A link can set the age; it can never turn on
-// Talk to Ani (app/film/speech.js).
-const AGES = ["6-8", "9-11", "12"];
+// the page's dot-separated hash: #ages-6-11 or #ages-12, alone or with a moment
+// (#kept-apart.48.cinderella.ages-6-11). There were three settings until 21 October 2026
+// (6–8, 9–11 and 12+); Ken's decision then: "My grandchildren (5 and 7) would have no
+// problems with the 9-11 wording", so 6–8 went and 9–11 became 6–11. The old tokens
+// (#ages-6-8, #ages-9-11) and the old kept values still open 6–11 (OLD_AGES). A link can set
+// the age; it can never turn on Talk to Ani (app/film/speech.js).
+const AGES = ["6-11", "12"];
+const OLD_AGES = { "6-8": "6-11", "9-11": "6-11" };
 const AGE_KEY = "ani-cinderella:age:v1";
-const AGE_NAMES = { "6-8": "ages 6–8", "9-11": "ages 9–11", 12: "12 and over" };
-let AGE = AGES.includes(store.get(AGE_KEY)) ? store.get(AGE_KEY) : "12";
-const young = () => AGE === "6-8";
+const AGE_NAMES = { "6-11": "ages 6–11", 12: "12 and over" };
+const ageOf = (v) => (AGES.includes(v) ? v : OLD_AGES[v] || null);
+let AGE = ageOf(store.get(AGE_KEY)) || "12";
 const simpleAge = () => AGE !== "12";
+// The words the page shows: at 12+ as they were (full), at 6–11 in everyday words (kid),
+// written here by hand, never by a language model (reports/chapter-x/ages-6-11-words.md
+// lists each). at611More puts the 12+ text under "More" at 6–11, as the panels do.
+function at611(full, kid) { return simpleAge() ? kid : full; }
+function at611More(full, kid, label = "More") { return simpleAge() ? `${kid}<details class="age-more"><summary>${label}</summary><div class="body">${full}</div></details>` : full; }
+
+// ---- everyday words at 6–11, everywhere the page shows text
+
+// Beside the sentences written for 6–11 (at611, the templates below), the page's own words
+// for what it is and does (the revival, its extensions, a language model, Ken's notation,
+// a pass, a frame, criticism, ...) are said in everyday words wherever they are shown at
+// 6–11: a fixed table of phrases, in order, each with its replacement (EVERYDAY; the report
+// reports/chapter-x/ages-6-11-words.md lists them), put in the text and the titles, labels
+// and placeholders of what the page shows as it is drawn (a MutationObserver), and taken
+// out again at 12+ (each text as it was is kept). Never inside More (.age-more, the 12+
+// text), Lisp, code, or a box the reader types in; and never Ani's own words of the record
+// (dominates, is tolerant of, ...), which the table doesn't name. A replacement never holds
+// what it replaces, so drawing again changes nothing more.
+const EVERYDAY = [
+  // the page's citations of Ken's files, the thesis's pages and the extensions' names
+  [/\s*\((?:[a-z0-9]+\.\d+(?:, line \d+|:[\d, –-]+)|(?:the )?thesis,? pp?\. [^)]*|pp?\. [\d–-]+|AI-TR-540,? pp?\. [^)]*|REVIVE;[A-Z0-9]+|(?:MEND|KNOW|APPEAR|CHANGE|SEEN|FIT|SLIPS|DETAIL|CRITIC|TEACH)(?:, [^)]*)?)\)/g, ""],
+  [/\(the revival's\)/g, "(added in 2026)"],
+  [/\bWhat Lisp said\b/g, "More: what Ani's program said"],
+  // the revival and its extensions: what was added to Ani in 2026
+  [/\bAni with the revival's extensions\b/g, "Ani with the new parts added in 2026"],
+  [/\bsome of the revival's extensions\b/g, "some of the new parts added in 2026"],
+  [/\bthe revival's extensions\b/g, "the new parts added in 2026"],
+  [/\bThe revival's extensions\b/g, "The new parts added in 2026"],
+  [/\bthe revival's repairs\b/g, "the repairs added in 2026"],
+  [/\bThe revival's repairs\b/g, "The repairs added in 2026"],
+  [/\bthe revival's knowledge\b/g, "the knowledge added in 2026"],
+  [/\bthe revival's (correction|repair|rule|choice|reading)s?\b/g, "a $1 added in 2026"],
+  [/\bthe revival's own\b/g, "the 2026"],
+  [/\bthe revival's\b/g, "the 2026"],
+  [/\bThe revival's\b/g, "The 2026"],
+  [/\bthis revival\b/g, "this 2026 version of Ani"],
+  [/\bthe revival\b/g, "the 2026 version of Ani"],
+  [/\bThe revival\b/g, "The 2026 version of Ani"],
+  [/\bWhich extensions\b/g, "Which new parts"],
+  [/\bextensions\b/g, "new parts"],
+  [/\bextension\b/g, "new part"],
+  // a language model, Ken's notation and the film description
+  [/\ba language model\b/g, "an AI"],
+  [/\bA language model\b/g, "An AI"],
+  [/\blanguage models?\b/g, "AI"],
+  [/\bwrite Ken's notation itself\b/g, "write Ken's Lisp itself"],
+  [/\bput it into Ken's notation\b/g, "turned it into words Ani can read"],
+  [/\bin Ken's notation\b/g, "in words Ani can read"],
+  [/\binto Ken's notation\b/g, "into words Ani can read"],
+  [/\bKen's notation\b/g, "words Ani can read"],
+  [/\bthe film description\b/g, "the story"],
+  [/\bThe film description\b/g, "The story"],
+  [/\ba film description\b/g, "a story"],
+  [/\bfilm descriptions?\b/g, "story"],
+  [/\bAnthropic API key\b/g, "Key for Claude (from a grown-up)"],
+  [/\bOpenAI API key\b/g, "Key for ChatGPT (from a grown-up)"],
+  [/\bGemini API key\b/g, "Key for Gemini (from a grown-up)"],
+  [/\bAPI keys\b/g, "keys"],
+  [/\bAPI key\b/g, "key"],
+  [/\bthe model\b/g, "the AI"],
+  [/\bThe model\b/g, "The AI"],
+  [/\bTHE MODEL\b/g, "THE AI"],
+  [/\bWhich model\b/g, "Which AI"],
+  [/\ba model\b/g, "an AI"],
+  [/\bNo model\b/g, "No AI"],
+  // the glass box: what Ani noted while it planned
+  [/\bthe glass box tells it\b/g, "Ani's notes tell it"],
+  [/\bthe glass box (says|shows|gives)\b/g, (m, v) => `Ani's notes ${v.slice(0, -1)}`],
+  [/\bthe glass box\b/g, "Ani's notes"],
+  [/\bThe glass box\b/g, "Ani's notes"],
+  [/\bglass boxes\b/g, "Ani's notes"],
+  [/\bglass box\b/g, "Ani's notes"],
+  // Ani's two passes, and frames
+  [/\bPass ([12])\b/g, "Step $1"],
+  [/\bpass ([12])\b/g, "step $1"],
+  [/\bpass-1\b/g, "step-1"],
+  [/\bframes a second\b/g, "pictures a second"],
+  [/\bscene frames\b/g, "scene pictures"],
+  [/\bFrames\b/g, "Pictures"],
+  [/\bframes\b/g, "pictures"],
+  [/\bFrame\b/g, "Picture"],
+  [/\bframe\b/g, "picture"],
+  // criticism: fixing a film
+  [/\bRemake with this criticism\b/g, "Make it again with these fixes"],
+  [/\bremade with criticism\b/g, "made again with fixes"],
+  [/\bthis criticism\b/g, "these fixes"],
+  [/\bthe criticism\b/g, "the fixes"],
+  [/\byour criticism\b/g, "your fixes"],
+  [/\bCriticism of this film\b/g, "Fixing this film"],
+  [/\bCRITICISM OF THIS FILM\b/g, "FIXING THIS FILM"],
+  [/\bcriticism\b/g, "fixes"],
+  [/\bCriticism\b/g, "Fixes"],
+  [/\bcriticizing\b/g, "fixing"],
+  [/\bCriticize\b/g, "Fix something in"],
+  [/\bcriticized\b/g, "fixed"],
+  [/\bcriticize\b/g, "fix"],
+  [/\bnot yet heeded\b/g, "not used yet"],
+  [/\bheeded\b/g, "used"],
+  [/\bheeding\b/g, "using"],
+  [/\bheed\b/g, "use"],
+  // what Ani was asked: establish and convey are "show"
+  [/\bEstablish (that|what|how)\b/g, "Show $1"],
+  [/\bConvey (that|what|how)\b/g, "Show $1"],
+  [/\bto establish (that|what|how)\b/g, "to show $1"],
+  [/\bto convey (that|what|how)\b/g, "to show $1"],
+  [/\bconveying\b/g, "showing"],
+  // Ken's program that draws the film, and seconds
+  [/\bDirector stopped filming here\b/g, "The filming stopped here"],
+  [/(\d) s\b/g, "$1 seconds"],
+  [/(^|[^\d.])1 seconds\b/g, (m, a) => `${a}1 second`],
+  // a few more of the page's own words
+  [/\bWhich element\b/g, "Which part of how it moves"],
+  [/^Calls go straight from this page to ([^,]+), with your key; it is kept only in this tab unless you tick “Remember”\.$/, "Your story goes straight from this page to $1, with the key. The key is kept only in this tab unless “Remember” is ticked."],
+  [/^Model$/, "Which one"],
+  [/\b(normal|fast|slow|changing) rhythm\b/g, "$1 pace"],
+  [/\bVideos are WebM, at\b/g, "Videos are made at"],
+  [/\bin Ken's own notation\b/g, "in Ken's own Lisp"],
+  [/\bAs Ken's TV previews ran, and as the thesis's flipbook shows\b/g, "As Ken's quick TV previews ran"],
+  [/, whatever Ani's own estimate$/, ", whatever Ani first planned"],
+  [/\bis a word for personality\b/g, "is a word for what someone is like inside"],
+  [/\bwhich he wrote and left commented out\b/g, "which he wrote and then left out"],
+  [/, so that coming back from the code pages, or a reload, puts you back there\b/g, ", so that coming back to the page puts you back there"],
+];
+const everyday = (text) => EVERYDAY.reduce((t, [re, to]) => t.replace(re, to), text);
+// what was changed, to put back at 12+: text nodes and attributes, each as it was
+const EVERYDAY_WAS = new Map();
+const EVERYDAY_SKIP = ".age-more, pre, code, textarea, script, style, .lisp, #gl-pop .note";
+const EVERYDAY_ATTRS = ["title", "aria-label", "placeholder"];
+function everydayNode(node) {
+  if (node.nodeType === 3) {
+    const el = node.parentElement;
+    if (!el || el.closest(EVERYDAY_SKIP)) return;
+    const to = everyday(node.nodeValue);
+    if (to === node.nodeValue) return;
+    if (!EVERYDAY_WAS.has(node)) EVERYDAY_WAS.set(node, node.nodeValue);
+    node.nodeValue = to;
+    return;
+  }
+  if (node.nodeType !== 1 || node.closest(EVERYDAY_SKIP)) return;
+  for (const a of EVERYDAY_ATTRS) {
+    const v = node.getAttribute(a);
+    // (a title in Lisp, Ani's own record, stays as it is)
+    if (!v || /^\(/.test(v)) continue;
+    const to = everyday(v);
+    if (to === v) continue;
+    const was = EVERYDAY_WAS.get(node) || {};
+    if (!(a in was)) was[a] = v;
+    EVERYDAY_WAS.set(node, was);
+    node.setAttribute(a, to);
+  }
+  for (const c of node.childNodes) everydayNode(c);
+}
+let everydayWatch = null;
+function everydayWords() {
+  if (simpleAge()) {
+    everydayNode(document.body);
+    if (!everydayWatch) {
+      everydayWatch = new MutationObserver((records) => {
+        for (const r of records) {
+          if (r.type === "characterData") everydayNode(r.target);
+          else if (r.type === "attributes") everydayNode(r.target);
+          else for (const n of r.addedNodes) everydayNode(n);
+        }
+      });
+      everydayWatch.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: EVERYDAY_ATTRS });
+    }
+    return;
+  }
+  if (everydayWatch) { everydayWatch.disconnect(); everydayWatch = null; }
+  for (const [node, was] of EVERYDAY_WAS) {
+    if (!node.isConnected) continue;
+    if (node.nodeType === 3) node.nodeValue = was;
+    else for (const [a, v] of Object.entries(was)) node.setAttribute(a, v);
+  }
+  EVERYDAY_WAS.clear();
+}
 // the age a link's hash names, if one of its parts is ages-...
 function ageOfHash(parts) {
-  for (const p of parts) { const m = /^ages-(6-8|9-11|12)$/.exec(p); if (m) return m[1]; }
+  for (const p of parts) { const m = /^ages-(6-11|6-8|9-11|12)$/.exec(p); if (m) return ageOf(m[1]); }
   return null;
 }
-// The runbar's words for the films at 6–8, and today's
-const RUNBAR_WORDS = { 0: ["Ani's 1978 film", "Ken's film"], 1: ["Your version", "My film"] };
-// The classes on <html> the style sheet reads (age-6-8, age-9-11), the control's pressed
-// button, where the control is (in the header; at 6–8 in "For grown-ups", so that a child
-// doesn't switch it by accident), and the runbar's words.
+// Bigger buttons and words at 6–11, a choice kept in this browser (BIG_KEY): what 6–8 had,
+// now an option ("Bigger" beside the film's controls)
+const BIG_KEY = "ani-cinderella:bigger:v1";
+let BIG = store.get(BIG_KEY) === "1";
+// The class on <html> the style sheet reads (age-6-11, and big for bigger buttons and
+// words), and the control's pressed button.
 function applyAge() {
   const html = document.documentElement;
-  html.classList.toggle("age-6-8", AGE === "6-8");
-  html.classList.toggle("age-9-11", AGE === "9-11");
+  html.classList.toggle("age-6-11", AGE === "6-11");
+  html.classList.toggle("big", simpleAge() && BIG);
   document.querySelectorAll("#ages [data-age]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.age === AGE)));
-  const ages = document.getElementById("ages");
-  const home = document.getElementById(young() ? "grownups-ages" : "ages-home");
-  if (ages && home && ages.parentElement !== home) home.append(ages);
-  document.querySelectorAll("#runbar [data-view]").forEach((b) => { const w = RUNBAR_WORDS[b.dataset.view]; if (w) b.textContent = w[young() ? 1 : 0]; });
+  const big = document.getElementById("bigger");
+  if (big) big.setAttribute("aria-pressed", String(BIG));
+  everydayWords();
 }
-// at 6–8 the film is shown in color, whatever this browser kept (a grown-up can still
-// choose TV in For grown-ups' film settings)
-function youngColor({ boot = false } = {}) {
-  if (!young() || state.color || ageColorChosen) return;
-  if (!boot) { setColor(true, { remember: false }); return; }
-  state.color = true;
-  document.getElementById("mode-bw").setAttribute("aria-pressed", "false");
-  document.getElementById("mode-color").setAttribute("aria-pressed", "true");
-}
-let ageColorChosen = false;
-document.getElementById("mode-bw").addEventListener("click", () => { ageColorChosen = true; });
+document.getElementById("bigger").addEventListener("click", () => {
+  BIG = !BIG;
+  store.set(BIG_KEY, BIG ? "1" : "0");
+  applyAge();
+  if (typeof layout === "function") layout();
+});
 // Set the age: kept in this browser (unless remember is false), and the page drawn again at
 // it; from a link, with a note that says so.
 function setAge(age, { remember = true, link = false } = {}) {
-  if (!AGES.includes(age)) return;
+  age = ageOf(age);
+  if (!age) return;
   const changed = age !== AGE;
   AGE = age;
   if (remember) store.set(AGE_KEY, age);
   applyAge();
-  youngColor();
   const note = document.getElementById("age-note");
   if (note && link) {
     note.hidden = false;
-    note.querySelector("span").textContent = `This link set the page for ${AGE_NAMES[age]}. A grown-up can change it ${young() ? "in “For grown-ups”, at the top" : "at the top"}.`;
+    note.querySelector("span").textContent = `This link set the page for ${AGE_NAMES[age]}. A grown-up can change it at the top.`;
   }
   if (!changed) return;
   if (typeof onAgeChanged === "function") onAgeChanged();
@@ -70,76 +245,34 @@ function setAge(age, { remember = true, link = false } = {}) {
 }
 document.querySelectorAll("#ages [data-age]").forEach((b) => b.addEventListener("click", () => setAge(b.dataset.age)));
 document.getElementById("age-note-close").addEventListener("click", () => { document.getElementById("age-note").hidden = true; });
-// "Film settings": frames a second, TV or color and Save, folded away at 9–11 (beside the
-// controls) and at 6–8 (in For grown-ups)
+// "Film settings": frames a second, TV or color and Save, folded away at 6–11, beside the
+// controls
 document.querySelectorAll("[data-film-settings]").forEach((b) => b.addEventListener("click", () => {
   const on = document.documentElement.classList.toggle("film-settings");
   document.querySelectorAll("[data-film-settings]").forEach((x) => x.setAttribute("aria-expanded", String(on)));
 }));
-// "About this page", the footer's rest at 6–8
+// "About this page", the footer's rest at 6–11
 document.getElementById("about-page").addEventListener("click", (e) => {
   const on = document.documentElement.classList.toggle("footer-open");
   e.currentTarget.setAttribute("aria-expanded", String(on));
 });
 applyAge();
-youngColor({ boot: true });
 
 // ---------------------------------------------------------------- naming the characters
 
-// At 6–8 a character is named by what the child sees: "the" + color + shape ("the red
-// square"), in TV's black and white by its shape alone; at 9–11 and 12+ by its name. A
-// shape is "it". Names are a tap away: the legend's chips and the panel's heading show both.
 const SHAPE_WORDS = { star: "star", square: "square", triangle: "triangle", circle: "circle", pentagon: "five-sided shape", hexagon: "six-sided shape", octagon: "eight-sided shape", "eight-pointed-star": "star with eight points", "ten-pointed-star": "star with ten points" };
-// each 1978 shape's color, as the film draws it (SHAPE_LOOK), in a word
-const FILM_HUE = { star: "green", square: "red", triangle: "yellow", circle: "orange", pentagon: "blue", hexagon: "purple" };
 const shapeOfChar = (run, c) => (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c] || "circle";
-// a character's color in a word: in a film made with Ani's colors, the hue of its look as
-// at its first appearance in the scene (a color that dims or brightens renames no one);
-// else its 1978 color, that of the shape it would have had
-function hueOfChar(run, c, sc = null) {
-  const own = run && run.cast && lookOf(run, c);
-  if (own && own.color) {
-    let look = own;
-    if (sc && sc.film && sc.film.looks) { const first = sc.film.looks.find((x) => x[1] === c && x[2] && x[2].color); if (first) look = first[2]; }
-    const [h, sat] = look.color;
-    return sat === 0 ? "gray" : look.hue || HUES.find((x) => HUE_ANGLE[x] === h) || "colored";
-  }
-  const slot = (run && run.slots && run.slots[c]) || (run && run.shapes && run.shapes[c]) || KEN_SHAPE[c];
-  return FILM_HUE[slot] || "orange";
-}
-// the 6–8 names of a run's cast, told apart where two would be the same: by size, then by
-// name ("the circle (the tortoise)")
-function kidNames(run, sc = null) {
-  const color = state.color;
-  const base = Object.fromEntries(run.cast.map((c) => [c, `${color ? `${hueOfChar(run, c, sc)} ` : ""}${SHAPE_WORDS[shapeOfChar(run, c)] || plain(shapeOfChar(run, c))}`]));
-  const out = {};
-  for (const c of run.cast) {
-    const same = run.cast.filter((o) => base[o] === base[c]);
-    if (same.length < 2) { out[c] = `the ${base[c]}`; continue; }
-    const size = (x) => { const l = lookOf(run, x); const w = l ? sizeWord(l.aniSize) : ""; return w === "large" || w === "fairly large" ? "big" : w === "small" || w === "fairly small" ? "small" : ""; };
-    const sizes = same.map(size);
-    out[c] = sizes.every(Boolean) && new Set(sizes).size === sizes.length ? `the ${size(c)} ${base[c]}` : `the ${base[c]} (${meet(run.story, c).the})`;
-  }
-  return out;
-}
-// A character as the setting names it: at 6–8 "the red square", else as the page names it.
-function nameAt(c, run = R) {
-  if (!young() || !run || !run.cast || !run.cast.includes(c)) return who(c);
-  const sc = run.scenes && typeof state.scene === "number" ? run.scenes[state.scene] : null;
-  return kidNames(run, sc)[c] || who(c);
-}
-// "the red square · the stepmother", for a heading or a chip
-const bothNames = (c, run = R) => `${nameAt(c, run)} · ${meet(run.story, c).the}`;
+// A character as the page names it, and "Cinderella (star)" for a chip
+const nameAt = (c) => who(c);
 
-// The legend at 6–8 and 9–11: each character a button that opens it (a keyboard and screen
-// reader's way to the panel, which the film's picture lacks), "green star · Cinderella" or
-// "Cinderella (star)".
+// The legend at 6–11: each character a button that opens it (a keyboard and screen
+// reader's way to the panel, which the film's picture lacks), "Cinderella (star)".
 function ageLegend(cast, runs) {
   const el = document.getElementById("legend");
   el.innerHTML = cast.map(([c, rs]) => {
     const run = rs[0], r = shown().find((k) => screenRun(k) === run) ?? 0;
-    const label = young() ? using(run, () => `${nameAt(c, run).replace(/^the /, "")} · ${meet(run.story, c).name}`) : `${meet(run.story, c).name} (${SHAPE_WORDS[shapeOfChar(run, c)] || shapeName(shapeOfChar(run, c))})`;
-    return `<button type="button" class="chip" data-chip="${esc(c)}" data-slot="${r}">${icon(c, young() ? 22 : 16, run)}<span>${esc(cap(label))}</span></button>`;
+    const label = `${meet(run.story, c).name} (${SHAPE_WORDS[shapeOfChar(run, c)] || shapeName(shapeOfChar(run, c))})`;
+    return `<button type="button" class="chip" data-chip="${esc(c)}" data-slot="${r}">${icon(c, 16, run)}<span>${esc(cap(label))}</span></button>`;
   }).join("");
   el.querySelectorAll("[data-chip]").forEach((b) => b.addEventListener("click", () => {
     const r = Number(b.dataset.slot);
@@ -149,7 +282,7 @@ function ageLegend(cast, runs) {
 
 // ---------------------------------------------------------------- the simpler sentences (A2)
 
-// At 9–11 (and, for now, at 6–8: see AGE_68_WORDING) the explanations are said from the same
+// At 6–11 the explanations are said from the same
 // facts as the 12+ ones (captionFacts, wayFacts, longFacts, chainFacts, and the
 // related-suggestions items Ani's record keeps), by templates here: never by shortening a
 // 12+ sentence, and never by a language model. Each simple box ends in "More", which opens
@@ -157,13 +290,8 @@ function ageLegend(cast, runs) {
 // Ani's words stay as the record has them. A word in the glossary (GLOSS) is a button that
 // opens a popover with its meaning; the glossary holds only neutral words, and every other
 // word of the record passes through as it is, unglossed.
-// TODO(6–8 wording): ages 6–8 has no wording of its own yet. It shows the 9–11 sentences,
-// with bigger type and Read aloud on (app/film/speech.js); its own templates, word list and
-// glosses (reports/chapter-x/design-young-children.md §6.1, §7) are to be written and
-// reviewed by Ken and a primary teacher before they replace these.
-const AGE_68_WORDING = false;
 
-// The glossary: each term as the page writes it, its meaning at 9–11, and Ani's own word.
+// The glossary: each term as the page writes it, its meaning at 6–11, and Ani's own word.
 const GLOSS = {
   dominates: { said: "dominates", means: "is in charge of someone, and makes them do things", ani: "dominates" },
   "is-obedient-to": { said: "is obedient to", means: "does what someone tells them to do", ani: "is-obedient-to" },
@@ -296,7 +424,7 @@ function simplePurpose(t, top) {
   const a = about(d);
   return /^(what|how) /.test(a) ? `to show ${a}` : `to show that ${a}`;
 }
-// A caption at 9–11: the scene and its title; each way of showing and what it is for; the
+// A caption at 6–11: the scene and its title; each way of showing and what it is for; the
 // changes of feeling; and the 12+ caption's other lines as they are.
 function ageCaption(run, i, f, full) {
   const sc = run.scenes[i];
@@ -308,8 +436,10 @@ function ageCaption(run, i, f, full) {
   const feel = facts.changes.map((t) => about(t.description));
   if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how ${who(feelers)} ${feelers.length === 1 ? agree(meet(run.story, feelers[0]), "moves", "move") : "move"}, to show that ${feel.join(" and that ")}.`);
   if (facts.wanderers.length) more.push(`${cap(who(facts.wanderers))} ${facts.wanderers.length > 1 ? "wander" : agree(meet(run.story, facts.wanderers[0]), "wanders", "wander")} about, so that the change of feeling is seen.`);
-  // the 12+ caption's other lines (a change shown, colors, the revival's notes), as they are
-  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x)));
+  // the 12+ caption's other lines (a change shown, colors), as they are, but for the notes of
+  // the revival's corrections and details (SLIPS, DETAIL, FIT), which say how Ken's code was
+  // mended, in its own words: they stay in the 12+ caption
+  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x) && !/(SLIPS|DETAIL|FIT)|the revival's (correction|rule)/.test(x)));
   return { part: `Scene ${i + 1} · ${esc(sc.title)}`, text: glossed(shows.join(" ")) || (feel.length ? "" : full.text), more: more.map(glossed) };
 }
 
@@ -317,7 +447,7 @@ function ageCaption(run, i, f, full) {
 
 const SIMPLE_KINDS = { strength: "how strongly it was suggested", prerequisite: "what it needs being ready", "best-when": "suiting these two best", "time-fit": "fitting the time", originality: "not being used yet", variety: "making the film more varied" };
 const oneDecimal = (n) => `${Number(n).toFixed(1).replace(/\.0$/, "")} second${Number(Number(n).toFixed(1)) === 1 ? "" : "s"}`;
-// a reason a way was set aside, at 9–11
+// a reason a way was set aside, at 6–11
 function simpleReject(r) {
   const critic = critReject(r);
   if (critic) return critic.replace(/^vetoed by you/, "you said no to it");
@@ -330,7 +460,7 @@ function simpleReject(r) {
 }
 // a sentence without its links to Ken's code (kept in the 12+ view, under More)
 const noCitations = (html) => String(html).replace(/\s*\(?<a\b[^>]*>[^<]*<\/a>\)?/g, "").replace(/\s*\([a-z0-9]+\.\d+:[\d, –-]+\)/g, "").replace(/\s*\(\s*\)/g, "");
-// Why this way, at 9–11, from wayFacts
+// Why this way, at 6–11, from wayFacts
 function simpleWay(t, method) {
   const x = wayFacts(t, method);
   const out = [];
@@ -340,7 +470,7 @@ function simpleWay(t, method) {
   for (const r of x.setAside) out.push(`Ani set aside ${wayQ(r.way)}: ${simpleReject(r.reason)}.`);
   return out.join(" ");
 }
-// Why so long, at 9–11, from longFacts: how long it lasts, what stops it, Ken's repeat, the
+// Why so long, at 6–11, from longFacts: how long it lasts, what stops it, Ken's repeat, the
 // scene's length in the story, and a stretch to fill its part
 function simpleLong(run, sc, w, a, char, f) {
   const k = meet(run.story, char);
@@ -378,13 +508,13 @@ function simpleLadder(t, method) {
 }
 // a speaker button that reads the box it is in (app/film/speech.js), where the browser speaks
 const readButton = () => (speechAvailable() ? `<button type="button" class="linkish read-this" data-read-box aria-label="Read this aloud">Read this</button>` : "");
-// The panel of a character at 9–11: the heading, what the character is doing, why this
+// The panel of a character at 6–11: the heading, what the character is doing, why this
 // way, why so long and who decided (closed), each simple, with the criticism buttons; then
 // "More about Ani's choices", the 12+ panel of the same moment.
 function agePanel(x) {
   const { s, f, char, k, act, between, main } = x;
   const fps = fpsOf(s);
-  const name = young() ? bothNames(char) : k.name;
+  const name = k.name;
   const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(cap(name))}</h2></div><button type="button" class="linkish" id="back-to-story">Back</button></div>
     <p class="where">${state.view === "both" || R !== RUNS[0] ? `${esc(R.label)} · ` : ""}${esc(s.title)} · ${(f / fps).toFixed(1)} seconds in</p>`;
   let lead = "", why = "";
@@ -414,7 +544,7 @@ function agePanel(x) {
   const more = `<details class="age-more"><summary>More about Ani's choices</summary><div class="body">${x.where}${x.lead}${x.still}${x.whyBox}${x.more}</div></details>`;
   return head + x.crit + glossed(lead) + still + why + x.here + more;
 }
-// Where no one moves, at 9–11: for how long, with why under More (the 12+ box)
+// Where no one moves, at 6–11: for how long, with why under More (the 12+ box)
 function simpleStill(run, sc, f) {
   const w = whyOf(run, sc);
   const s = w && w.stills.find((x) => f > x.from && f <= x.to);
@@ -424,7 +554,7 @@ function simpleStill(run, sc, f) {
 
 // ---- what Ani was told
 
-// The story's characters at 9–11, a sentence or two each, and how they feel about each
+// The story's characters at 6–11, a sentence or two each, and how they feel about each
 // other, with the glossary; the words as the page shows them today are under More.
 function ageStoryPeople(run, people) {
   const lines = run.cast.map((c) => {
@@ -446,7 +576,7 @@ function ageStoryPeople(run, people) {
 // ---- for a screen reader (A7)
 
 // "On the screen now: the stepmother and Cinderella", a line read by a screen reader when
-// who is on the stage changes (the film's picture says nothing to one); at 6–8 and 9–11.
+// who is on the stage changes (the film's picture says nothing to one); at 6–11.
 function ageOnScreen(sc, f) {
   const el = document.getElementById("on-screen");
   const fr = sc && sc.film && sc.film.frames[f];

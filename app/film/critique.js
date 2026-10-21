@@ -139,7 +139,8 @@ function critiqueBox(run) {
   const busy = critique.busy && critique.run === run;
   const result = critique.run === run ? critiqueResult(run) : "";
   return `<details class="crit-tell"${critique.run === run && (critique.items || critique.error || busy) ? " open" : ""}><summary>Tell Ani what's wrong</summary><div class="body">
-    <p class="note">Say what is wrong with the film in your own words. A language model reads it into criticism Ani can heed, a change to the story, or something to teach Ani, and you choose what to do with each. Your words, with the film as the glass box tells it, go only to the model you choose.</p>
+    <p class="note">${at611("Say what is wrong with the film in your own words. A language model reads it into criticism Ani can heed, a change to the story, or something to teach Ani, and you choose what to do with each. Your words, with the film as the glass box tells it, go only to the model you choose.",
+      "Say what is wrong with the film in your own words. An AI reads them and turns them into fixes Ani can use, a change to the story, or something to teach Ani, and you choose what to do with each. Your words, and what Ani noted about the film, go only to the AI you choose.")}</p>
     <textarea id="crq-words" class="story-box" rows="3" placeholder="The fairy godmother just appears and is quickly gone…" aria-label="What is wrong with the film">${esc(critique.words)}</textarea>
     ${ids.length ? `<div class="seg" role="group" aria-label="Which model">${ids.map((x) => `<button type="button" data-crq-provider="${x}" data-crit-act="${critAction(run, () => { teller.provider = x; saveTellerSettings(); renderSide(); })}" aria-pressed="${x === id}">${esc(PROVIDERS[x].label)}</button>`).join("")}</div>` : `<p class="note">No model can be reached from here${IN_CLAUDE ? ": inside claude.ai the page can reach only Claude through claude.ai and Gemini Nano" : ""}.</p>`}
     ${p && p.key ? `<div class="key-row"><label for="crq-key">${esc(p.key)}</label><input id="crq-key" type="password" autocomplete="off" spellcheck="false" placeholder="from ${esc(p.keyHelp)}" value="${esc(teller.keys[id] || "")}"></div>` : ""}
@@ -197,7 +198,7 @@ function critiqueItem(run, film, x, said) {
   const out = { run, said: words_ };
   const crit = (item, html) => {
     const it = { ...item, said: words_ };
-    Object.assign(out, { html: `<b>Criticism:</b> ${html}${you}`, act: "Add to your criticism", primary: true, f: () => { out.done = "Added"; criticize(run, it); } });
+    Object.assign(out, { html: `<b>Criticism:</b> ${html}${you}`, act: "Add to the criticism", primary: true, f: () => { out.done = "Added"; criticize(run, it); } });
     return out;
   };
   const sceneTitle_ = (id) => esc(sceneTitleOf(run, id));

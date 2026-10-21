@@ -138,7 +138,7 @@ async function forgetNotebook(id) {
 // A film remade with criticism adds it, a few words each ("..., with your criticism:
 // No Longer Kept Apart too quick").
 function filmTitle(run) {
-  const critic = `${run.criticism && run.criticism.length ? critTitle(run) : ""}${run.knowledge && run.knowledge.length ? `, with your knowledge: ${run.knowledge.map((n) => n.title).join(", ")}` : ""}`;
+  const critic = `${run.criticism && run.criticism.length ? critTitle(run) : ""}${run.knowledge && run.knowledge.length ? `, with teaching: ${run.knowledge.map((n) => n.title).join(", ")}` : ""}`;
   const cut = (t) => (t.length > 90 ? `${t.slice(0, 88).replace(/[\s;,]+\S*$/, "")}…` : t);
   if (!sameCast(RUNS[0], run)) return cut(`${storyTitle(run)}${critic}`);
   const bits = changeBits(RUNS[0].story, run);
@@ -343,8 +343,8 @@ function openFilms() {
 const sizeWords = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 function filmFacts(f) {
   const told = f.told && (f.told.model || f.told.provider) ? `written by ${[f.told.provider, f.told.model].filter(Boolean).join(", ")}` : "";
-  const remade = f.remadeFrom ? `remade from ${f.remadeFrom.ken ? "Ken's 1978 film" : `“${f.remadeFrom.title || "another film"}”`} ${f.criticism ? `with your criticism (${f.criticism})` : "without criticism"}` : f.criticism ? `with your criticism (${f.criticism})` : "";
-  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", f.knowledge && f.knowledge.length ? `with your knowledge (${f.knowledge.join(", ")})` : "", remade, told,
+  const remade = f.remadeFrom ? `remade from ${f.remadeFrom.ken ? "Ken's 1978 film" : `“${f.remadeFrom.title || "another film"}”`} ${f.criticism ? `with criticism (${f.criticism})` : "without criticism"}` : f.criticism ? `with your criticism (${f.criticism})` : "";
+  return [shortDate(f.made), `${f.fps} frames a second`, f.extensions && f.extensions.length ? `with ${extensionsName(f.extensions)}` : "by Ani as in 1978", f.knowledge && f.knowledge.length ? `with teaching (${f.knowledge.join(", ")})` : "", remade, told,
     f.filmed < f.scenes ? `${f.filmed} of ${f.scenes} scenes${f.stopped ? ", stopped" : ""}` : `${f.scenes} scene${f.scenes === 1 ? "" : "s"}`, sizeWords(f.size || 0), f.file ? `opened from ${f.file}` : ""].filter(Boolean).join(" · ");
 }
 function setFilmsStatus(text) { const el = document.getElementById("films-status"); if (el) el.textContent = text; }
@@ -354,11 +354,12 @@ function filmsPanel() {
   const cur = RUNS[1] && RUNS[1].libId;
   const running = !!(RUNS[1] && RUNS[1].status && RUNS[1].status.running);
   const intro = library.state === "unavailable"
-    ? "This browser won't let the page keep a library of films here, so only your last film is kept, as before. Save a film as a film file to keep it."
-    : `Every film you make here, or open from a film file, is kept in this browser, and nowhere else, the newest first: up to ${LIBRARY_CAP}; past that the page lets go of the oldest to make room (those you renamed last of all), and says which. Save a film as a film file to keep it for good, or to watch it in another browser.`;
+    ? "This browser won't let the page keep a library of films here, so only the last film made is kept, as before. Save a film as a film file to keep it."
+    : at611(`Every film made here, or opened from a film file, is kept in this browser, and nowhere else, the newest first: up to ${LIBRARY_CAP}; past that the page lets go of the oldest to make room (those renamed last of all), and says which. Save a film as a film file to keep it for good, or to watch it in another browser.`,
+      `Every film made here, or opened from a film file, is kept on this computer, the newest first, up to ${LIBRARY_CAP}; after that the oldest are let go to make room. Save a film to a file to keep it for good.`);
   const dropped = library.dropped.length ? `<p class="note dropped">On this visit the page let go of ${words(library.dropped.map((f) => `“${esc(f.title)}” (made ${esc(shortDate(f.made))})`))} to make room.</p>` : "";
   const rows = films.map((f) => `<li class="film${f.id === cur ? " current" : ""}" data-film="${esc(f.id)}">
-      <div class="film-head"><span class="film-title">${esc(f.title)}</span>${f.id === cur ? ` <span class="tag">your version now</span>` : ""}</div>
+      <div class="film-head"><span class="film-title">${esc(f.title)}</span>${f.id === cur ? ` <span class="tag">the new version now</span>` : ""}</div>
       <p class="note">${esc(filmFacts(f))}</p>
       <div class="film-actions">
         <button type="button" class="linkish" data-film-act="open"${running ? ` disabled title="Ani is making a film; open this one when it has finished, or stop it"` : ""}>Open</button>
@@ -371,7 +372,7 @@ function filmsPanel() {
       <details><summary>What Ani was told</summary><div class="body"><ul class="changes">${(f.about || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>
     </li>`).join("");
   side.innerHTML = `
-    <div class="side-head"><h2>Your films</h2><button type="button" class="linkish" id="films-close">Back</button></div>
+    <div class="side-head"><h2>Films made here</h2><button type="button" class="linkish" id="films-close">Back</button></div>
     <p class="note">${intro}</p>
     ${dropped}
     ${films.length ? `<ul class="films">${rows}</ul>` : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
@@ -446,28 +447,32 @@ async function deleteFilm(id) {
 
 // ---------------------------------------------------------------- what this page keeps
 
-// "What this page keeps in your browser", in the footer: exactly what is kept, and where,
-// read when it is opened, with "Forget all of it", which clears everything the page keeps
-// (in localStorage and sessionStorage, the keys named ani-cinderella:..., and its IndexedDB
-// database) and starts the page afresh.
+// "What this page keeps in this browser", in the footer: exactly what is kept, and where,
+// read when it is opened, with "Forget all teaching saved on this computer" (app/film/teach.js,
+// forgetTeachingBox) and "Forget all of it", which clears everything the page keeps (in
+// localStorage and sessionStorage, the keys named ani-cinderella:..., and its IndexedDB
+// database) and starts the page afresh. Its words don't say "your": the computer may be
+// shared, and what is kept may be someone else's (Ken, 21 October).
 // (whether to ask about reporting an error to Ken: "never", once the visitor said so; report.js)
 const REPORT_KEY = "ani-cinderella:error-reports:v1";
 const KEPT_WHAT = () => [
   [COLOR_KEY, "Whether the film is shown in color or as Ken's TV previews ran (TV)"],
   [RATE_KEY, "Which frames a second the 1978 film is shown at"],
-  [MODE_KEY, "Which Ani makes your films: Ani as in 1978, or with the revival's extensions"],
-  [EXT_KEY, "The revival's extensions you ticked, when they aren't one of the switch's settings"],
-  [FPS_KEY, "The frames a second your films are made at"],
-  [DRAFT_KEY, "The film description you are changing in “Change the story”"],
-  [TOLD_KEY, "The story you told in English, and the model that put it into Ken's notation"],
-  [STORY_KEY, "The story you are telling in “Tell Ani a new story”"],
-  [SETTINGS_KEY, "The model you chose, and whether it writes JSON or Ken's Lisp"],
-  [KEYS_KEY, "Your API keys, only if you ticked “Remember keys in this browser”"],
+  [MODE_KEY, at611("Which Ani makes the films made here: Ani as in 1978, or with the revival's extensions", "Which Ani makes the films made here: Ani as in 1978, or with the new parts added in 2026")],
+  [EXT_KEY, at611("The revival's extensions ticked, when they aren't one of the switch's settings", "Which of the new parts added in 2026 are ticked")],
+  [FPS_KEY, at611("The frames a second the films are made at", "How smooth the films made here are")],
+  [DRAFT_KEY, at611("The film description being changed in “Change the story”", "The story being changed in “Change the story”")],
+  [TOLD_KEY, at611("The last story told in English, and the model that put it into Ken's notation", "The last story told to Ani, and the AI that turned it into words Ani can read")],
+  [STORY_KEY, "The story being told in “Tell Ani a new story”"],
+  [SETTINGS_KEY, at611("The model chosen, and whether it writes JSON or Ken's Lisp", "Which AI was chosen, and how it writes")],
+  [KEYS_KEY, at611("API keys, only if “Remember keys in this browser” was ticked", "Keys for the AI, only if “Remember keys in this browser” was ticked")],
   [VIDEO_KEY, "The video options: title cards and subtitles"],
-  [RUN_KEY, "Your last film, where this browser won't keep a library of them"],
-  [KNOWLEDGE_KEY, "Your notebooks of knowledge (Teach Ani), where this browser won't keep a library"],
-  [AGE_KEY, "Your age setting (6–8, 9–11 or 12+). Nothing about you is kept"],
-  [REPORT_KEY, "That you said “Don't ask again” when Ani ran into an error: no report is ever sent from this browser"],
+  [RUN_KEY, "The last film made here, where this browser won't keep a library of them"],
+  [KNOWLEDGE_KEY, "The notebooks of teaching (Teach Ani), where this browser won't keep a library"],
+  [AGE_KEY, "The age setting (6–11 or 12+). Nothing about anyone is kept"],
+  [BIG_KEY, "Whether buttons and words are bigger at 6–11"],
+  [SPEECH_KEY, "The speech settings: Read aloud, the voice, how fast, and whether Talk to Ani is on"],
+  [REPORT_KEY, "That “Don't ask again” was chosen when Ani ran into an error: no report is ever sent from this browser"],
 ];
 const PAGE_PREFIX = "ani-cinderella:";
 function keysIn(storage) {
@@ -480,27 +485,30 @@ function renderKept() {
   const local = keysIn(localStorage), sess = keysIn(sessionStorage);
   const known = KEPT_WHAT();
   const chars = (n) => (n >= 1024 ? `${Math.round(n / 1024)} thousand characters` : `${n} character${n === 1 ? "" : "s"}`);
-  const localItems = [...known.filter(([k]) => local.some(([x]) => x === k)).map(([k, what]) => `<li>${esc(what)} <span class="note">(${esc(k)}, ${chars(local.find(([x]) => x === k)[1])})</span></li>`),
+  const localItems = [...known.filter(([k]) => local.some(([x]) => x === k)).map(([k, what]) => `<li>${esc(what)}${at611(` <span class="note">(${esc(k)}, ${chars(local.find(([x]) => x === k)[1])})</span>`, "")}</li>`),
     ...local.filter(([x]) => !known.some(([k]) => k === x)).map(([k, n]) => `<li><span class="note">${esc(k)}, ${chars(n)}</span></li>`)];
   const films = libraryFilms(), size = films.reduce((n, f) => n + (f.size || 0), 0);
   const views = sess.filter(([k]) => k.startsWith(VIEW_KEY) && !/:(last|leaving)$/.test(k)).length;
-  const sessItems = sess.length ? [`<li>Where you are on the page: the films on the screens, the scene and the moment, the character you clicked and what you opened, so that coming back from the code pages, or a reload, puts you back there <span class="note">(${views} place${views === 1 ? "" : "s"} in this tab's history${sess.some(([k]) => k === `${VIEW_KEY}leaving`) ? ", and when you last left the page" : ""})</span></li>`] : [];
+  const sessItems = sess.length ? [`<li>Where you are on the page: the films on the screens, the scene and the moment, the character you clicked and what you opened, so that coming back from the code pages, or a reload, puts you back there${at611(` <span class="note">(${views} place${views === 1 ? "" : "s"} in this tab's history${sess.some(([k]) => k === `${VIEW_KEY}leaving`) ? ", and when you last left the page" : ""})</span>`, "")}</li>`] : [];
+  const nbs = TEACHING.notebooks.length;
   body.innerHTML = `
     <p>Everything here stays in this browser, for this page alone; the page sends none of it anywhere.</p>
-    <p class="kept-where">In localStorage, until you clear it</p>
+    <p class="kept-where">${at611("In localStorage, until you clear it", "Settings and stories, until they are forgotten")}</p>
     ${localItems.length ? `<ul>${localItems.join("")}</ul>` : `<p>Nothing now.</p>`}
-    <p class="kept-where">In IndexedDB (the database “${esc(LIBRARY_DB)}”), until you clear it</p>
-    <p>${library.state === "unavailable" ? "Nothing: this browser won't let the page keep a library here." : films.length ? `Your films: ${films.length} film${films.length === 1 ? "" : "s"}, ${sizeWords(size)} (each with its title, what Ani was told, how it was made and when).` : "Nothing now (your films are kept here once you make one)."}</p>
-    ${library.state !== "unavailable" && TEACHING.notebooks.length ? `<p>Your knowledge: ${TEACHING.notebooks.length} notebook${TEACHING.notebooks.length === 1 ? "" : "s"} (Teach Ani), each with its title and pieces.</p>` : ""}
-    <p class="kept-where">In sessionStorage, until this tab is closed</p>
+    <p class="kept-where">${at611(`In IndexedDB (the database “${esc(LIBRARY_DB)}”), until you clear it`, "Films and teaching, until they are forgotten")}</p>
+    <p>${library.state === "unavailable" ? "Nothing: this browser won't let the page keep a library here." : films.length ? `Films made here: ${films.length} film${films.length === 1 ? "" : "s"}, ${sizeWords(size)} (each with its title, what Ani was told, how it was made and when).` : "Nothing now (the films made here are kept here once one is made)."}</p>
+    ${library.state !== "unavailable" && nbs ? `<p>Teaching: ${nbs} notebook${nbs === 1 ? "" : "s"} (Teach Ani), each with its title and pieces.</p>` : ""}
+    <p class="kept-where">${at611("In sessionStorage, until this tab is closed", "Where you are on the page, until this tab is closed")}</p>
     ${sessItems.length ? `<ul>${sessItems.join("")}</ul>` : `<p>Nothing now.</p>`}
-    <p>Gemini Nano, if you have used it here, is kept by Chrome itself, not by this page.</p>
-    <div class="actions"><button type="button" class="btn danger" id="kept-forget">Forget all of it</button></div>
+    <p>${at611("Gemini Nano, if you have used it here, is kept by Chrome itself, not by this page.", "Gemini Nano, an AI that runs in Chrome, is kept by Chrome itself, not by this page.")}</p>
+    <div class="actions">${nbs ? `<button type="button" class="btn danger" id="kept-forget-teaching">Forget all teaching saved on this computer</button>` : ""}<button type="button" class="btn danger" id="kept-forget">Forget all of it</button></div>
+    ${nbs && teachUi.forgetAll === "kept" ? forgetTeachingBox("kept") : ""}
     <div class="kept-confirm" id="kept-confirm" hidden></div>`;
+  const ft = body.querySelector("#kept-forget-teaching");
+  if (ft) ft.addEventListener("click", () => { teachUi.forgetAll = "kept"; renderKept(); const y = body.querySelector("[data-forget-teaching]"); if (y) y.focus(); });
   body.querySelector("#kept-forget").addEventListener("click", () => {
     const box = body.querySelector("#kept-confirm");
-    const nbs = TEACHING.notebooks.length;
-    box.innerHTML = `<p>This deletes ${films.length ? `your ${films.length} film${films.length === 1 ? "" : "s"}${nbs ? ", " : " and "}` : ""}${nbs ? `your ${nbs} notebook${nbs === 1 ? "" : "s"} of knowledge and ` : ""}everything listed above from this browser, and starts the page afresh. It can't be undone.</p><div class="actions"><button type="button" class="btn danger" id="kept-yes">Forget it all</button><button type="button" class="linkish" id="kept-no">Keep it</button></div>`;
+    box.innerHTML = `<p>This deletes ${films.length ? `the ${films.length} film${films.length === 1 ? "" : "s"} made here${nbs ? ", " : " and "}` : ""}${nbs ? `the ${nbs} notebook${nbs === 1 ? "" : "s"} of teaching and ` : ""}everything listed above from this browser, and starts the page afresh. It can't be undone.</p><div class="actions"><button type="button" class="btn danger" id="kept-yes">Forget it all</button><button type="button" class="linkish" id="kept-no">Keep it</button></div>`;
     box.hidden = false;
     box.querySelector("#kept-yes").addEventListener("click", () => forgetAll());
     box.querySelector("#kept-no").addEventListener("click", () => { box.hidden = true; });

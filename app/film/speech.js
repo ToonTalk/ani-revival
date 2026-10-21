@@ -1,12 +1,13 @@
 // ---------------------------------------------------------------- speech: Read aloud and Talk to Ani
 
-// reports/chapter-x/design-young-children.md §8 and §9. Both are at every setting: at 9–11
-// and 6–8 Read aloud is beside Play; at 12+ both are off at first and out of the way, in a
+// reports/chapter-x/design-young-children.md §8 and §9. Both are at every setting: at 6–11
+// Read aloud is beside Play (off until turned on); at 12+ both are off at first and out of the way, in a
 // small "Speech" in the header's row, so that the page looks as it was (Read aloud appears
 // beside Play only once it is turned on, and at 12+ the film never waits for the voice).
 // Read aloud uses the browser's own voices (speechSynthesis): nothing is sent by the page,
 // and the computer's local voices work offline. It reads each new caption as the film
-// plays (at 6–8 the film waits for the voice), and any box's "Read this".
+// plays (at 6–11 the film waits for the voice if the speech settings say so), and any box's
+// "Read this".
 // Talk to Ani uses the browser's speech recognition, which in Chrome sends the audio to
 // Google (in Edge to Microsoft, in Safari to Apple). So it is off until a grown-up turns it
 // on, on this computer, in the speech settings; a link can never turn it on (the hash sets
@@ -24,12 +25,12 @@ const SAY_AS = { Ani: "Annie" };
 let SPEECH = (() => { try { const v = JSON.parse(store.get(SPEECH_KEY) || "null"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch { return {}; } })();
 const saveSpeech = () => store.set(SPEECH_KEY, JSON.stringify(SPEECH));
 const speechSupported = () => typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance === "function";
-// Read aloud: on at 6–8 unless turned off there, off at 9–11 unless turned on; at 12+ off
-// unless turned on at 12+ (its own switch, read12, so that a child's setting doesn't carry)
-const readAloudOn = () => speechSupported() && (simpleAge() ? (SPEECH.read ?? young()) : !!SPEECH.read12);
-// the film waits for the voice: at 6–8 unless chosen otherwise; never at 12+
-const waitForVoice = () => simpleAge() && (SPEECH.wait ?? young());
-const speechRate = () => Number(SPEECH.rate) || (young() ? 0.85 : 1);
+// Read aloud: off at 6–11 unless turned on; at 12+ off unless turned on at 12+ (its own
+// switch, read12, so that a child's setting doesn't carry)
+const readAloudOn = () => speechSupported() && (simpleAge() ? !!SPEECH.read : !!SPEECH.read12);
+// the film waits for the voice: at 6–11 only if chosen in the speech settings; never at 12+
+const waitForVoice = () => simpleAge() && !!SPEECH.wait;
+const speechRate = () => Number(SPEECH.rate) || 1;
 const sayAs = (text) => Object.entries(SAY_AS).reduce((t, [w, said]) => t.replace(new RegExp(`\\b${w}\\b`, "g"), said), text);
 // the text of some HTML, as it is to be said: no markup, no quotation marks, "s" as seconds
 function sayText(html) {
@@ -80,7 +81,7 @@ function stopSpeaking() {
 
 // ---- reading the captions as the film plays
 
-// The caption last said on each screen, and, at 6–8 (wait for the voice), the caption
+// The caption last said on each screen, and, when the film waits for the voice, the caption
 // waiting while the last is still being said: the film holds still meanwhile (the play loop
 // asks speechHolding), at most HOLD_MS.
 const HOLD_MS = 15000;
@@ -132,14 +133,15 @@ function sayHeld() {
   lastScene = x.scene;
   speak(x.say, () => sayHeld());
 }
-// Pause stops the voice; Play, at 6–8, says the caption again (the template's play and pause)
+// Pause stops the voice; Play, when the film waits for the voice, says the caption again (the
+// template's play and pause)
 function speechPaused() {
   clearTimeout(quietTimer);
   if (speaking || heldCaption) stopSpeaking();
 }
 function speechPlayed() {
   if (!readAloudOn()) return;
-  if (young()) {
+  if (waitForVoice()) {
     lastSaid = "";
     const el = document.getElementById(`caption-${readScreen}`);
     if (el && el.dataset.html) { const x = captionSay({ text: captionMain(el), part: "" }); lastSaid = x.main; lastScene = x.scene; speak(x.say, () => sayHeld()); }
@@ -150,7 +152,7 @@ const captionMain = (el) => el.dataset.html.replace(/<span class="part">[\s\S]*?
 // a screen tapped in Side by side is the one read
 document.addEventListener("click", (e) => { const fig = e.target.closest && e.target.closest(".screen-fig"); if (fig) readScreen = fig.id === "fig-1" ? 1 : 0; });
 
-// ---- "Read this", and the keys at 6–8
+// ---- "Read this"
 
 function readBox(el) {
   const box = el.closest(".age-box p, .who-decided, .still-box, .age-story, .lead, p, li, details") || el.parentElement;
@@ -162,14 +164,6 @@ document.addEventListener("click", (e) => {
   if (b.hasAttribute("data-read-text")) speak(sayAs(b.getAttribute("data-read-text")));
   else readBox(b);
 });
-// At 6–8: W opens Who decided for the character shown, R reads the panel's first sentence.
-document.addEventListener("keydown", (e) => {
-  if (!young() || e.ctrlKey || e.metaKey || e.altKey || (e.target.closest && e.target.closest("input, textarea, select"))) return;
-  const side = document.getElementById("side");
-  if (e.key === "w" || e.key === "W") { const d = side.querySelector(".who-decided"); if (d) { d.open = true; d.querySelector("summary").focus(); } }
-  else if (e.key === "r" || e.key === "R") { const lead = side.querySelector(".lead, .age-box p, .age-story"); if (lead && speechSupported()) speak(sayText(lead.innerHTML)); }
-});
-
 // ---- Talk to Ani
 
 // the browser's recognizer, where there is one (never in the claude.ai copy, whose frame
@@ -271,7 +265,7 @@ function addMics(root = document) {
   });
 }
 new MutationObserver(() => addMics()).observe(document.getElementById("side"), { childList: true, subtree: true });
-// Spoken commands at 6–8 (a microphone beside Play): matched on the words by this list,
+// Spoken commands at 6–11 (a microphone beside Play, once Talk to Ani is turned on): matched on the words by this list,
 // never by a language model; anything else is said back with what to try.
 const TALK_COMMANDS = [
   [/\b(play|start|go)\b/, () => { if (!state.playing) play(); }],
@@ -328,16 +322,16 @@ function speechSettings() {
   });
 }
 // The Read aloud switch and the command microphone beside Play, the speech settings in their
-// place (For grown-ups at 6–8, beside the controls at 9–11, the header's row at 12+), the
+// place (beside the controls at 6–11, the header's row at 12+), the
 // captions' live region (off while Ani reads aloud, so a screen reader doesn't say each
 // caption twice), and the microphones by the boxes.
 function applySpeech() {
   const btn = document.getElementById("read-aloud");
   if (btn) { btn.hidden = !speechSupported() || (!simpleAge() && !readAloudOn()); btn.setAttribute("aria-pressed", String(!!readAloudOn())); }
   const cmd = document.getElementById("talk-cmd");
-  if (cmd) cmd.hidden = !(talkOn() && young());
+  if (cmd) cmd.hidden = !(talkOn() && simpleAge());
   const el = document.getElementById("speech-settings");
-  const home = document.getElementById(young() ? "grownups-speech" : simpleAge() ? "speech-home" : "speech-head");
+  const home = document.getElementById(simpleAge() ? "speech-home" : "speech-head");
   if (el && home && el.parentElement !== home) home.append(el);
   const summary = el && el.querySelector("summary");
   if (summary) summary.textContent = simpleAge() ? "Speech settings" : "Speech";

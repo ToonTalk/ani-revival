@@ -473,7 +473,8 @@ function tellerPanel() {
   const side = document.getElementById("side");
   side.innerHTML = `
     <div class="side-head"><h2>Tell Ani a new story</h2><button type="button" class="linkish" id="tell-close">Back</button></div>
-    <p class="note">Tell a short story in plain English. A language model turns it into a film description in Ken's notation, using only the words Ani knows; you can look it over and change it; then Ani plans and films it, as it did Cinderella. Ani knows very little (no talking, no objects, nothing but movement), so simple stories of a few characters who love, hate, chase, guard and rescue each other work best.</p>
+    <p class="note">${at611("Tell a short story in plain English. A language model turns it into a film description in Ken's notation, using only the words Ani knows; you can look it over and change it; then Ani plans and films it, as it did Cinderella. Ani knows very little (no talking, no objects, nothing but movement), so simple stories of a few characters who love, hate, chase, guard and rescue each other work best.",
+      "Tell a short story. An AI turns your story into words Ani can read, using only the words Ani knows; you can look them over and change them; then Ani plans the film and makes it, as it did Cinderella. Ani knows very little (no talking, no things, only moving about), so simple stories work best: a few characters who love, hate, chase, guard and rescue each other.")}</p>
     <div class="presets"><span class="label">Try</span>${EXAMPLE_STORIES.map(([t], i) => `<button type="button" data-story="${i}">${esc(t)}</button>`).join("")}</div>
     <textarea id="tell-story" class="story-box" rows="6" placeholder="Once upon a time…" aria-label="Your story"></textarea>
     <div class="ed-group">
@@ -491,13 +492,13 @@ function tellerPanel() {
         <div class="chips" id="tell-model-chips"></div>
       </div>
     </div>
-    ${simpleAge() ? `<details class="more-settings"><summary>More settings</summary>` : ""}<div class="ed-group">
+    ${simpleAge() ? `<details class="more-settings"><summary>More settings, for grown-ups</summary>` : ""}<div class="ed-group">
       <p class="label">The model writes</p>
       <div class="seg" role="group" aria-label="What the model writes">${[["json", "JSON"], ["lisp", "Ken's Lisp"]].map(([f, label]) => `<button type="button" data-format="${f}" aria-pressed="${teller.format === f}">${label}</button>`).join("")}</div>
       <p class="note">As JSON, it can use only Ani's words and tasks where the model's maker holds it to a form, and the page puts it into Ken's notation; or it can write Ken's notation itself.</p>
     </div>
     ${SWITCHED.length ? `<div class="ed-group"><p class="label">Which Ani</p><div class="make-settings">${modeSwitch()}</div><p class="note mode-note">${esc(modeNote())}</p></div>` : ""}${simpleAge() ? "</details>" : ""}
-    <div class="actions"><button type="button" class="btn primary" id="tell-go">Write the film description</button><button type="button" class="linkish" id="tell-stop" hidden>Stop</button></div>
+    <div class="actions"><button type="button" class="btn primary" id="tell-go">${at611("Write the film description", "Turn it into words Ani can read")}</button><button type="button" class="linkish" id="tell-stop" hidden>Stop</button></div>
     <p class="note" id="tell-status" aria-live="polite"></p>
     <div id="tell-result"></div>`;
   side.querySelector("#tell-close").addEventListener("click", () => select(null));

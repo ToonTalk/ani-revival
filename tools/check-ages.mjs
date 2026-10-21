@@ -5,15 +5,32 @@
 //      every part and at every still; the story panel at each scene), byte for byte as
 //      reports/ext/ages/12plus.json has them (a hash each; --write-12plus writes it, as it
 //      was taken before stage A0's refactor).
-//   B. True to the glass box, at 9–11: each "to show what … is like: …" names exactly the
+//      Written again on 21 October 2026 with the page's button keys counted out (critAction's
+//      numbers, which a Gemini Nano answering the page's probe shifts; the check now runs
+//      with no Nano) and "Your criticism" relabeled "Criticism of this film" (no "your"
+//      for what is kept on a shared computer, Ken): a script compared every one of the 4,094
+//      with the last commit's, and those 10 labels were the only difference.
+//   (Since 21 October 2026 the settings are 6–11 and 12+: Ken's decision, 6–8 gone and 9–11
+//   become 6–11; the old links #ages-6-8 and #ages-9-11 open 6–11.)
+//   B. True to the glass box, at 6–11: each "to show what … is like: …" names exactly the
 //      source words the glass box gives its way, read here with this tool's own reader of the
 //      related-suggestions items, and a way that came from a relationship never says what
 //      someone is like; Who decided is a ladder (The story says, Ani knows, So Ani chose);
 //      every simple panel ends in More (the 12+ panel); the glossary's terms only are marked.
-//   C. No 9–11 sentence has Lisp, a citation of Ken's files or an actor's name.
-//   D. Length at 9–11: sentences over 22 words are counted, as a warning (the record's own
+//   C. No 6–11 sentence has Lisp, a citation of Ken's files or an actor's name.
+//   D. Length at 6–11: sentences over 22 words are counted, as a warning (the record's own
 //      lists of words make some longer).
-//   F. Speech: speechSynthesis and SpeechRecognition stood in for: at 6–8 Read aloud is on,
+//   E. Everyday words at 6–11: what the page shows (the story panel, a character's panel,
+//      Teach Ani, Tell Ani a new story, the editor, the footer), outside More, Lisp and the
+//      boxes typed in, has none of the page's own hard words (the revival, extensions, a
+//      language model, Ken's notation, the glass box, frames, criticism, heed, establish,
+//      convey, the thesis, an API key); and at 12+ again every word is back as it was.
+//   T. Teaching kept on a shared computer: Teach Ani's "Save this teaching to a file", "Open
+//      saved teaching…" and "Forget all teaching saved on this computer", which lists what it
+//      deletes in the page and deletes it only when confirmed, also in "What this page keeps";
+//      a new notebook is "Teaching", and no label says "my".
+//   F. Speech: speechSynthesis and SpeechRecognition stood in for: at 6–11 Read aloud is off
+//      until turned on; on, with "Wait for the voice" chosen in the speech settings,
 //      a scene begins with its title, a new caption waits for the voice, pause stops it, the
 //      voice says Ani as SAY_AS has it; no recognizer before the grown-up's opt-in, a final
 //      result fills the box and sends nothing, "play" plays, anything else is said back, and
@@ -24,15 +41,12 @@
 //      after the opt-in, then a microphone by the story box and none beside Play.
 //   G. Presentation only: a film's data is the same at every age, with no age in it; the
 //      hash token sets and remembers the age; a link can't turn on Talk to Ani.
-//   H. Accessibility: controls at 6–8 at least 44 px and at 9–11 at least 32 px, no
+//   H. Accessibility: controls at 6–11 at least 32 px (44 with "Bigger"), no
 //      horizontal scroll at 375 px, a glossary term opens with Enter and closes with Escape,
 //      the captions' live region is off while Ani reads aloud, a line says who is on the
 //      screen, the guides' links follow the setting, and the text colors meet 4.5:1.
-//   A6. At 9–11, Tell Ani's model settings under More settings and Teach Ani's kinds 1 and 2
+//   A6. At 6–11, Tell Ani's model settings under More settings and Teach Ani's kinds 1 and 2
 //      first; at 12+ both as they were, and Read aloud not beside Play (off at first).
-//   Not yet: the 6–8 wording (its own templates, WORDS_6_8, the goldens of
-//   reports/chapter-x/design-young-children.md "Tests" C, D, E and I); at 6–8 the page shows
-//   the 9–11 sentences for now (app/film/ages.js AGE_68_WORDING).
 // Usage: node tools/check-ages.mjs [--only a|a1] [--write-12plus] [--shots dir]
 //   (about five minutes)
 import { spawn } from "node:child_process";
@@ -63,7 +77,9 @@ const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(new URL(req.url, "http://x").pathname)).replace(/^[/\\]+/, "");
   const at = path.replace(/\\/g, "/");
   if (path.startsWith("..")) { res.writeHead(403).end(); return; }
-  if (at === "app/film.ages.html") { res.writeHead(200, { "content-type": "text/html" }).end(hooked(page())); return; }
+  // (with no Gemini Nano, whose answer to the page's probe comes at no set time and adds a
+  // button to "Tell Ani what's wrong")
+  if (at === "app/film.ages.html") { res.writeHead(200, { "content-type": "text/html" }).end(hooked(page()).replace("<head>", `<head>\n<script>${NO_NANO}</script>`)); return; }
   // with speech stood in for, before the page's own script runs (test F)
   if (at === "app/film.speech.html") { res.writeHead(200, { "content-type": "text/html" }).end(hooked(page()).replace("<head>", `<head>\n<script>${SPEECH_STUB}</script>`)); return; }
   if (at === "app/film.nospeech.html") { res.writeHead(200, { "content-type": "text/html" }).end(hooked(page()).replace("<head>", `<head>\n<script>${SPEECH_STUB}\ndelete window.SpeechRecognition; delete window.webkitSpeechRecognition;</script>`)); return; }
@@ -72,6 +88,7 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { "content-type": TYPES[extname(path)] || "application/octet-stream" }).end(body);
   } catch { res.writeHead(404).end(); }
 });
+const NO_NANO = `for (const k of ["LanguageModel", "ai"]) try { Object.defineProperty(window, k, { value: undefined, configurable: true }); } catch { /* not here */ }`;
 // speechSynthesis and SpeechRecognition stood in for: utterances recorded, each ended only
 // when the check says so (window.__speech.end()), recognizers counted as they are made
 const SPEECH_STUB = `
@@ -155,7 +172,8 @@ try {
   const SNAP = (rate, i) => `(async () => {
     const t = window.__ages, wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
     const side = document.getElementById("side");
-    const norm = (h) => h.replace(/data-crit-act="\d+"/g, 'data-crit-act="#"');
+    // (a critAction key counts the page's own buttons; written \\d here, inside a template)
+    const norm = (h) => h.replace(/data-crit-act="\\d+"/g, 'data-crit-act="#"');
     const rate = ${rate}, i = ${i};
     if (window.__rate !== rate) { t.setRate(rate); window.__rate = rate; await wait(50); }
     const run = t.RUNS[0];
@@ -216,23 +234,36 @@ try {
   // ---------------------------------------------------------------- the setting (A1)
   // G (the hash and the storage): a link sets the age, says so, and it is remembered; with a
   // moment it opens the moment at that age; a reload keeps it; 12+ puts the page back.
-  await open("film.ages.html", "#ages-6-8");
-  const linked = await js(`({ cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:age:v1"), note: document.getElementById("age-note").hidden ? "" : document.getElementById("age-note").innerText, inDrawer: !!document.querySelector("#grownups #ages"), intro: [...document.querySelectorAll("header .intro")].filter((p) => p.offsetParent).map((p) => p.innerText).join(" | "), color: window.__ages.state.color })`);
-  check(/(^| )age-6-8( |$)/.test(linked.cls) && linked.kept === "6-8" && /This link set the page for ages 6–8/.test(linked.note) && linked.inDrawer && /^Ani is a computer program from 1978\./.test(linked.intro) && linked.color,
-    `G. #ages-6-8 sets the page for ages 6–8, says so, and is kept in this browser; the control is in For grown-ups, the intro is one line, the film in color: ${linked.note} | ${linked.intro}`);
-  await send("Page.navigate", { url: `${base}/app/film.ages.html#kept-apart.48.cinderella.ages-9-11` });
+  await open("film.ages.html", "#ages-6-11");
+  const linked = await js(`({ cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:age:v1"), note: document.getElementById("age-note").hidden ? "" : document.getElementById("age-note").innerText, ages: [...document.querySelectorAll("#ages [data-age]")].map((b) => b.textContent).join(" "), intro: [...document.querySelectorAll("header .intro")].filter((p) => p.offsetParent).map((p) => p.innerText).join(" | ") })`);
+  check(/(^| )age-6-11( |$)/.test(linked.cls) && linked.kept === "6-11" && /This link set the page for ages 6–11/.test(linked.note) && linked.ages === "6–11 12+" && /^Ani is a computer program that Ken Kahn wrote at MIT in 1978\./.test(linked.intro),
+    `G. #ages-6-11 sets the page for ages 6–11, says so, and is kept in this browser; the setting offers ${linked.ages}: ${linked.note} | ${linked.intro}`);
+  // the old links, and an old kept value, open 6–11
+  const old = [];
+  for (const token of ["ages-6-8", "ages-9-11"]) {
+    await js(`localStorage.setItem("ani-cinderella:age:v1", "12")`);
+    await send("Page.navigate", { url: "about:blank" });
+    await open("film.ages.html", `#${token}`);
+    old.push(await js(`document.documentElement.className + " " + localStorage.getItem("ani-cinderella:age:v1")`));
+  }
+  await js(`localStorage.setItem("ani-cinderella:age:v1", "9-11")`);
+  await send("Page.navigate", { url: "about:blank" });
+  await open();
+  old.push(await js(`document.documentElement.className`));
+  check(old.every((x) => /(^| )age-6-11( |$)/.test(x)) && /6-11$/.test(old[0]) && /6-11$/.test(old[1]), `G. the old links #ages-6-8 and #ages-9-11, and a kept 9–11, open 6–11 (${old.join(" | ")})`);
+  await send("Page.navigate", { url: "about:blank" });
+  await open("film.ages.html", "#kept-apart.48.cinderella.ages-6-11");
   await sleep(300);
-  await send("Page.reload", {});
-  for (let k = 0; k < 100 && !(await js("!!window.__ages && document.getElementById('caption-0').innerText.length > 0").catch(() => false)); k++) await sleep(200);
   const moment = await js(`({ cls: document.documentElement.className, scene: window.__ages.state.scene, panel: window.__ages.state.panel, who: window.__ages.state.selected && window.__ages.state.selected.char, kept: localStorage.getItem("ani-cinderella:age:v1") })`);
-  check(/(^| )age-9-11( |$)/.test(moment.cls) && moment.scene === 1 && moment.panel === "why" && moment.who === "cinderella" && moment.kept === "9-11", `G. #kept-apart.48.cinderella.ages-9-11 opens the moment at ages 9–11 (${JSON.stringify(moment)})`);
+  check(/(^| )age-6-11( |$)/.test(moment.cls) && moment.scene === 1 && moment.panel === "why" && moment.who === "cinderella" && moment.kept === "6-11", `G. #kept-apart.48.cinderella.ages-6-11 opens the moment at ages 6–11 (${JSON.stringify(moment)})`);
   await open();
   const kept = await js(`document.documentElement.className`);
-  check(/(^| )age-9-11( |$)/.test(kept), "G. the age is kept: the page opened again without a link is at ages 9–11");
+  check(/(^| )age-6-11( |$)/.test(kept), "G. the age is kept: the page opened again without a link is at ages 6–11");
   const back12 = await js(`(() => { document.querySelector('#ages [data-age="12"]').click(); return { cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:age:v1"), legend: document.querySelectorAll("#legend .chip").length, label: document.getElementById("frame-label").textContent }; })()`);
   check(!/age-/.test(back12.cls) && back12.kept === "12" && back12.legend === 0 && /frame/.test(back12.label), "G. 12+ chosen: the page is as it was (no chips in the legend, the frame said)");
-  // H (sizes at 6–8): every control shown is at least 44 by 44 px, and at 375 px wide the page
-  // doesn't scroll sideways (a link in a sentence is WCAG 2.5.5's inline exception)
+  // H (sizes at 6–11 with "Bigger"): every control shown is at least 44 by 44 px, and at 375
+  // px wide the page doesn't scroll sideways (a link in a sentence is WCAG 2.5.5's inline
+  // exception)
   const SIDE_TOO = "";
   const SIZES = `(() => {
     const small = [];
@@ -244,32 +275,36 @@ try {
     }
     return { small, scroll: document.documentElement.scrollWidth - window.innerWidth };
   })()`;
-  await js(`document.querySelector('#ages [data-age="6-8"]').click()`);
+  await js(`document.querySelector('#ages [data-age="6-11"]').click()`);
+  await sleep(200);
+  const bigOn = await js(`(() => { document.getElementById("bigger").click(); return { cls: document.documentElement.className, kept: localStorage.getItem("ani-cinderella:bigger:v1"), pressed: document.getElementById("bigger").getAttribute("aria-pressed") }; })()`);
   await sleep(200);
   const big = await js(SIZES);
-  check(!big.small.length, `H. at 6–8 every control is at least 44 by 44 px${big.small.length ? `: ${big.small.slice(0, 12).join("; ")}` : ""}`);
-  await shot("ages-6-8-desktop.png");
+  check(/(^| )big( |$)/.test(bigOn.cls) && bigOn.kept === "1" && bigOn.pressed === "true" && !big.small.length, `H. at 6–11 with "Bigger" (kept in this browser), every control is at least 44 by 44 px${big.small.length ? `: ${big.small.slice(0, 12).join("; ")}` : ""}`);
+  await shot("ages-6-11-bigger-desktop.png");
   await phone();
   await sleep(400);
   const narrow = await js(SIZES);
-  check(narrow.scroll <= 0, `H. at 6–8, 375 px wide, the page doesn't scroll sideways (${narrow.scroll} px over)`);
-  await shot("ages-6-8-phone.png");
+  check(narrow.scroll <= 0, `H. at 6–11 with "Bigger", 375 px wide, the page doesn't scroll sideways (${narrow.scroll} px over)`);
+  await shot("ages-6-11-bigger-phone.png");
   await desktop();
-  await js(`document.querySelector('#ages [data-age="9-11"]').click()`);
+  await js(`document.getElementById("bigger").click()`);
   await sleep(200);
-  await shot("ages-9-11-desktop.png");
+  await shot("ages-6-11-desktop.png");
   await phone();
   await sleep(400);
-  await shot("ages-9-11-phone.png");
+  const narrow611 = await js(SIZES);
+  check(narrow611.scroll <= 0, `H. at 6–11, 375 px wide, the page doesn't scroll sideways (${narrow611.scroll} px over)`);
+  await shot("ages-6-11-phone.png");
   await desktop();
   await js(`document.querySelector('#ages [data-age="12"]').click()`);
   if (ONLY === "a1") throw null;
   // ---------------------------------------------------------------- the simpler sentences (A2)
-  // Every 9–11 caption of Ken's film at 4 frames a second, and each character's panel at the
+  // Every 6–11 caption of Ken's film at 4 frames a second, and each character's panel at the
   // start of each part (its simple boxes, not More), read as text by the check.
   await desktop();
   await open();
-  await js(`document.querySelector('#ages [data-age="9-11"]').click()`);
+  await js(`document.querySelector('#ages [data-age="6-11"]').click()`);
   await sleep(300);
   const simple = await js(`(async () => {
     const t = window.__ages, run = t.RUNS[0], out = { captions: [], panels: [], gl: {}, glass: [] };
@@ -301,11 +336,11 @@ try {
     return out;
   })()`);
   const allText = [...simple.captions, ...simple.panels.map((p) => p.text)];
-  // C at 9–11: no Lisp, no citation of Ken's files, no actor's name, and not the words
+  // C at 6–11: no Lisp, no citation of Ken's files, no actor's name, and not the words
   // subscene, method or element
   const lispy = allText.filter((s) => /\((set|define|establish|convey|method:|task:)\b|\b[a-z]+\.\d+:\d+|\b(establish|convey)-task-\d+|\b(subscene|method|element)s?\b/i.test(s));
-  check(!lispy.length && simple.captions.length > 20 && simple.panels.length > 20, `C. no 9–11 sentence has Lisp, a citation or an actor's name (${simple.captions.length} captions, ${simple.panels.length} panels)${lispy.length ? `: ${lispy.slice(0, 3).join(" ‖ ").slice(0, 400)}` : ""}`);
-  // B, independently of the page: the check's own reader of the glass boxes. Each 9–11
+  check(!lispy.length && simple.captions.length > 20 && simple.panels.length > 20, `C. no 6–11 sentence has Lisp, a citation or an actor's name (${simple.captions.length} captions, ${simple.panels.length} panels)${lispy.length ? `: ${lispy.slice(0, 3).join(" ‖ ").slice(0, 400)}` : ""}`);
+  // B, independently of the page: the check's own reader of the glass boxes. Each 6–11
   // "to show what X is like: words" names exactly the source words of the related-suggestions
   // items whose way is the one shown, and a way that came from a relationship never says
   // what someone is like.
@@ -329,19 +364,19 @@ try {
   const likeOk = likeLines.every((ws) => known.some((k) => k.kind === "personality" && k.sources.length === ws.length && ws.every((w) => k.sources.includes(w))));
   const relWays = new Set(known.filter((k) => k.kind !== "personality").map((k) => k.way.split(" ")[0]));
   const pushLike = simple.captions.filter((s) => /pushes [^,]+ around, to show what/.test(s));
-  check(likeLines.length > 0 && likeOk && !pushLike.length, `B. each 9–11 “to show what … is like: …” names exactly the source words the glass box gives its way (${likeLines.length} such sentences; ways from relationships: ${[...relWays].join(", ")}), and a push never says what someone is like`);
+  check(likeLines.length > 0 && likeOk && !pushLike.length, `B. each 6–11 “to show what … is like: …” names exactly the source words the glass box gives its way (${likeLines.length} such sentences; ways from relationships: ${[...relWays].join(", ")}), and a push never says what someone is like`);
   // the ladder: Who decided says what the story says, what Ani knows, and what Ani chose
   const ladders = simple.panels.filter((p) => /The story says/.test(p.text));
   check(ladders.length > 5 && ladders.every((p) => /So Ani chose/.test(p.text)) && simple.panels.every((p) => p.more), `B. Who decided is a ladder (The story says…, Ani knows…, So Ani chose…) in ${ladders.length} panels, and every simple panel ends in More, the 12+ panel`);
   // the glossary: its terms only; the record's other words pass through unglossed
   const glUsed = [...new Set([...Object.keys(simple.gl), ...simple.panels.flatMap((p) => p.gl)])];
   const GLOSSED = await js(`Object.keys(window.__ages.GLOSS || {})`);
-  check(glUsed.length >= 4 && GLOSSED.length > 0 && glUsed.every((g) => GLOSSED.includes(g)), `B. glossary terms marked in the 9–11 text: ${glUsed.join(", ")}`);
-  // D at 9–11: sentences of at most 22 words, boxes of at most 4 sentences (a warning, as the
+  check(glUsed.length >= 4 && GLOSSED.length > 0 && glUsed.every((g) => GLOSSED.includes(g)), `B. glossary terms marked in the 6–11 text: ${glUsed.join(", ")}`);
+  // D at 6–11: sentences of at most 22 words, boxes of at most 4 sentences (a warning, as the
   // record's own lists of words can make a sentence longer)
   const sentences = allText.flatMap((s) => s.split(/(?<=[.!?])\s+|\s\|\s|\n/)).map((s) => s.trim()).filter(Boolean);
   const long = sentences.filter((s) => s.split(/\s+/).length > 22);
-  console.log(`${long.length ? "warn" : "ok  "}  D. 9–11 sentences of more than 22 words: ${long.length} of ${sentences.length}${long.length ? ` (the longest ${Math.max(...long.map((s) => s.split(/\s+/).length))} words)` : ""}`);
+  console.log(`${long.length ? "warn" : "ok  "}  D. 6–11 sentences of more than 22 words: ${long.length} of ${sentences.length}${long.length ? ` (the longest ${Math.max(...long.map((s) => s.split(/\s+/).length))} words)` : ""}`);
   // H: a glossary term opens with Enter and closes with Escape, its text tied to it
   const pop = await js(`(async () => {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -359,16 +394,17 @@ try {
     return { ...open, closed: document.getElementById("gl-pop").hidden && b.getAttribute("aria-expanded") === "false", focus: document.activeElement === b };
   })()`);
   check(!pop.none && pop.expanded === "true" && pop.described === "gl-pop" && pop.shown && /Ani's word: “/.test(pop.text) && pop.closed && pop.focus, `H. a glossary term opens its popover (aria-expanded, aria-describedby) and Escape closes it, back on the term: ${(pop.text || "").replace(/\s+/g, " ").slice(0, 120)}`);
-  // H at 9–11: every control shown at least 32 by 32 px
+  // H at 6–11: every control shown at least 32 by 32 px
   const mid = await js(SIZES.replace("r.width < 43.5 || r.height < 43.5", "r.width < 31.5 || r.height < 31.5"));
-  check(!mid.small.length, `H. at 9–11 every control is at least 32 by 32 px${mid.small.length ? `: ${mid.small.slice(0, 12).join("; ")}` : ""}`);
+  check(!mid.small.length, `H. at 6–11 every control is at least 32 by 32 px${mid.small.length ? `: ${mid.small.slice(0, 12).join("; ")}` : ""}`);
   // A7: who is on the stage, for a screen reader
   const onScreen = await js(`document.getElementById("on-screen").textContent`);
   check(/^On the screen now: /.test(onScreen), `H. a line for a screen reader says who is on the screen: ${onScreen}`);
-  await shot("ages-9-11-panel.png");
-  // the guides' links follow the setting: the grown-ups' link only at 6–8
-  const guides = await js(`[...document.querySelectorAll("header .guides a")].filter((a) => getComputedStyle(a).display !== "none").map((a) => a.textContent)`);
-  check(!guides.some((g) => /grown-ups/.test(g)) && guides.some((g) => /students/.test(g)), `H. at 9–11 the header links to ${guides.join(", ")}`);
+  await shot("ages-6-11-panel.png");
+  // the guides' links follow the setting: the guide for teachers and parents at both, its
+  // part on young children at 6–11
+  const guides = await js(`[...document.querySelectorAll("header .guides a")].filter((a) => getComputedStyle(a).display !== "none").map((a) => a.getAttribute("href") + "=" + a.textContent)`);
+  check(guides.some((g) => /students\.html=A guide for students$/.test(g)) && guides.some((g) => /teachers\.html#young=A guide for teachers and parents$/.test(g)) && guides.length === 2, `H. at 6–11 the header links to ${guides.join(", ")}`);
   // H: the text tokens the simpler settings use meet 4.5:1 on the page's sheet, in both themes
   const CONTRAST = `(() => {
     const css = getComputedStyle(document.documentElement);
@@ -391,7 +427,7 @@ try {
     document.getElementById("open-teller").click();
     await wait(300);
     const more = document.querySelector("#side details.more-settings");
-    const out = { folded: !!more && !more.open && /The model writes/.test(more.innerText + more.textContent) && /Which Ani/.test(more.textContent) };
+    const out = { folded: !!more && !more.open && /The (model|AI) writes/.test(more.innerText + more.textContent) && /Which Ani/.test(more.textContent) };
     window.__ages.select(null, { scroll: false });
     await wait(100);
     const teach = document.querySelector("[data-teach-open]");
@@ -403,7 +439,7 @@ try {
     window.__ages.select(null, { scroll: false });
     return out;
   })()`);
-  check(a6.folded && a6.kinds.length === 2 && a6.more >= 3, `A6. at 9–11, Tell Ani's model settings are under More settings, and Teach Ani opens on ${a6.kinds.join(" and ")}, with ${a6.more} more kinds under More kinds`);
+  check(a6.folded && a6.kinds.length === 2 && a6.more >= 3, `A6. at 6–11, Tell Ani's model settings are under More settings, and Teach Ani opens on ${a6.kinds.join(" and ")}, with ${a6.more} more kinds under More kinds`);
   // and at 12+ both are as they were
   await js(`document.querySelector('#ages [data-age="12"]').click()`);
   await sleep(200);
@@ -421,23 +457,27 @@ try {
   const films = await js(`(async () => {
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     const out = {};
-    for (const age of ["12", "9-11", "6-8"]) {
+    for (const age of ["12", "6-11"]) {
       document.querySelector('#ages [data-age="' + age + '"]').click();
       await wait(150);
       out[age] = JSON.stringify(window.__ages.filmData(window.__ages.RUNS[0]));
     }
     document.querySelector('#ages [data-age="12"]').click();
-    return { same: out["12"] === out["9-11"] && out["12"] === out["6-8"], age: /ages?-?(6-8|9-11)|"age"/.test(out["6-8"]), n: out["12"].length };
+    return { same: out["12"] === out["6-11"], age: /ages?-?(6-11|6-8|9-11)|"age"/.test(out["6-11"]), n: out["12"].length };
   })()`);
   check(films.same && !films.age, `G. a film's data is the same at every age, with no age in it (${films.n.toLocaleString("en-US")} characters)`);
 
   // ---------------------------------------------------------------- F: speech (A4, A5)
-  await open("film.speech.html", "#ages-6-8");
+  await open("film.speech.html", "#ages-6-11");
   const read = await js(`(async () => {
     const t = window.__ages, S = window.__speech, wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
+    out.before = [document.getElementById("read-aloud").hidden, document.getElementById("read-aloud").getAttribute("aria-pressed"), S.said.filter((x) => x !== "<cancel>").length].join();
+    t.goScene(0, 0);
+    await wait(300);
+    document.getElementById("read-aloud").click();
+    document.querySelector('#speech-settings [data-speech-wait="1"]').click();
     out.pressed = document.getElementById("read-aloud").getAttribute("aria-pressed");
     out.live = document.getElementById("caption-0").getAttribute("aria-live");
-    t.goScene(0, 0);
     await wait(700);
     out.first = S.said.filter((x) => x !== "<cancel>").slice(0, 2);
     document.getElementById("play").click();
@@ -461,15 +501,14 @@ try {
     out.recognizers = S.made.length;
     return out;
   })()`);
-  check(read.pressed === "true" && read.live === "off" && read.first.length && /^Scene one: /.test(read.first[0]), `F. at 6–8 Read aloud is on, the captions' live region is off, and a scene begins with its title: ${read.first.join(" ")}`);
-  check(read.saidWhileSpeaking === 0 && read.held === 0 && /^Scene two: /.test(read.next[0] || "") && read.moving > 0 && read.cancelled, `F. at 6–8 a new caption waits for the voice (the film held still, then went on with the next caption said), and Pause stops the voice`);
+  check(read.before === "false,false,0" && read.pressed === "true" && read.live === "off" && read.first.length && /^Scene one: /.test(read.first[0]), `F. at 6–11 Read aloud is beside Play and off until turned on; on, the captions' live region is off, and a scene begins with its title (${read.before}): ${read.first.join(" ")}`);
+  check(read.saidWhileSpeaking === 0 && read.held === 0 && /^Scene two: /.test(read.next[0] || "") && read.moving > 0 && read.cancelled, `F. at 6–11, with "Wait for the voice" chosen, a new caption waits for the voice (the film held still, then went on with the next caption said), and Pause stops the voice`);
   check(read.annie && read.recognizers === 0, "F. the voice says Ani as SAY_AS respells it, and no recognizer is made before the grown-up's opt-in");
   // Talk to Ani: opt-in in the settings, a microphone by the story box, words in the box and
-  // nothing sent; a command at 6–8; an unknown phrase said back; a link can't turn it on
+  // nothing sent; a command beside Play at 6–11; an unknown phrase said back; a link can't
+  // turn it on
   const talk = await js(`(async () => {
     const t = window.__ages, S = window.__speech, wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
-    document.querySelector('#ages [data-age="9-11"]').click();
-    await wait(200);
     out.micsBefore = document.querySelectorAll(".mic-row").length + (document.getElementById("talk-cmd").hidden ? 0 : 1);
     document.getElementById("speech-talk").click();
     await wait(200);
@@ -485,8 +524,7 @@ try {
     out.box = document.getElementById("tell-story").value;
     out.sent = sent.length;
     window.fetch = real;
-    document.querySelector('#ages [data-age="6-8"]').click();
-    await wait(200);
+    out.cmdShown = !document.getElementById("talk-cmd").hidden;
     document.getElementById("talk-cmd").click(); await wait(50); S.hear("play"); await wait(200);
     out.played = t.state.playing;
     document.getElementById("talk-cmd").click(); await wait(50); S.hear("banana bread"); await wait(100);
@@ -494,7 +532,7 @@ try {
     return out;
   })()`);
   check(talk.micsBefore === 0 && talk.mics === 1 && talk.madeBeforePress === 0 && talk.box === "a timid goat crosses a bridge" && talk.sent === 0, "F. Talk to Ani: no microphone before the opt-in; after it, one by the story box, whose words go into the box, and nothing is sent");
-  check(talk.played && /^Ani heard: “banana bread”\. Try “play” or “why”\.$/.test(talk.heard), `F. at 6–8 “play” plays, and anything else is said back: ${talk.heard}`);
+  check(talk.cmdShown && talk.played && /^Ani heard: “banana bread”\. Try “play” or “why”\.$/.test(talk.heard), `F. at 6–11, with Talk to Ani on, a microphone beside Play: “play” plays, and anything else is said back: ${talk.heard}`);
   await js(`localStorage.removeItem("ani-cinderella:speech:v1")`);
   await send("Page.navigate", { url: "about:blank" });
   await open("film.speech.html", "#ages-9-11.talk.talk-to-ani");
@@ -552,6 +590,103 @@ try {
   check(s12.moving > 0.3 && s12.saidNext > 0, `F12. at 12+ the film doesn't wait for the voice (it moved ${s12.moving.toFixed(2)} s while the voice was still speaking, and said the new caption)`);
   check(s12.mics === 1 && s12.byStory && s12.cmd && s12.recognizers === 0, "F12. at 12+ Talk to Ani after the opt-in: a microphone by the story box, none beside Play, and nothing listening until it is pressed");
   await js(`localStorage.removeItem("ani-cinderella:speech:v1")`);
+
+  // ---------------------------------------------------------------- E: everyday words at 6–11
+  // What the page shows at 6–11, panel by panel, outside More, Lisp and the boxes typed in:
+  // none of the page's own hard words. Then at 12+ every word is back as it was.
+  await js(`localStorage.removeItem("ani-cinderella:speech:v1")`);
+  await send("Page.navigate", { url: "about:blank" });
+  await open("film.ages.html", "#ages-6-11");
+  const HARD = "\\b(revival|extensions?|language models?|notation|glass box(es)?|frames?|criticism|criticiz\\w*|heed\\w*|establish\\w*|convey\\w*|thesis|API keys?|Pass [12])\\b";
+  const everydayText = await js(`(async () => {
+    const t = window.__ages, wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
+    const side = document.getElementById("side");
+    // the text shown, as innerText reads it, without More, Lisp and the boxes typed in
+    const shown = (el) => {
+      const hide = [...el.querySelectorAll(".age-more, pre, textarea, code, .lisp, details.teach-lisp > .body, #ed-lisp-box > .body")];
+      hide.forEach((x) => { x.dataset.was = x.style.display; x.style.display = "none"; });
+      const text = el.innerText;
+      hide.forEach((x) => { x.style.display = x.dataset.was; });
+      return text;
+    };
+    const openAll = () => side.querySelectorAll("details:not(.age-more)").forEach((d) => { d.open = true; });
+    for (let i = 0; i < 5; i++) { t.goScene(i, 0.5); t.select(null, { scroll: false }); await wait(60); openAll(); await wait(30); out["story " + i] = shown(side); }
+    for (const ch of ["cinderella", "step-mother"]) { t.goScene(2, 1); t.select({ run: 0, char: ch }, { scroll: false }); await wait(60); openAll(); await wait(30); out["panel " + ch] = shown(side); }
+    t.select(null, { scroll: false }); await wait(50);
+    document.getElementById("open-teller").click(); await wait(300); openAll(); await wait(30); out.tell = shown(side);
+    t.select(null, { scroll: false }); await wait(50);
+    document.getElementById("open-editor").click(); await wait(600); openAll(); await wait(30); out.editor = shown(side);
+    t.select(null, { scroll: false }); await wait(50);
+    document.querySelector("[data-teach-open]").click(); await wait(800);
+    for (const b of document.querySelectorAll("#side .teach-kind")) { b.click(); await wait(150); openAll(); await wait(30); out["teach " + b.textContent] = shown(side); }
+    out.page = shown(document.querySelector("header")) + "\\n" + shown(document.querySelector(".controls")) + "\\n" + shown(document.querySelector("footer"));
+    t.select(null, { scroll: false });
+    return out;
+  })()`);
+  const hardRe = new RegExp(HARD, "i");
+  const hard = Object.entries(everydayText).flatMap(([k, v]) => v.split(/\n+/).filter((l) => hardRe.test(l)).map((l) => `${k}: ${l.trim().slice(0, 140)}`));
+  check(Object.keys(everydayText).length >= 12 && !hard.length, `E. at 6–11 none of the page's own hard words is shown outside More, Lisp and the boxes typed in (${Object.keys(everydayText).length} panels)${hard.length ? `: ${[...new Set(hard)].slice(0, 8).join(" ‖ ")}` : ""}`);
+  const back = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.querySelector('#ages [data-age="12"]').click();
+    await wait(150);
+    return { footer: document.querySelector("footer").textContent, label: document.getElementById("frame-label").textContent, aria: document.getElementById("back").getAttribute("aria-label") };
+  })()`);
+  check(/A new story is first put into Ken's notation by a language model of your choice/.test(back.footer) && /frame/.test(back.label) && back.aria === "Back one frame", `E. at 12+ again, every word is back as it was (the footer's “Ken's notation by a language model”, “${back.aria}”)`);
+
+  // ---------------------------------------------------------------- T: teaching on a shared computer
+  const teaching = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms)), out = {};
+    const until = async (f, ms = 3000) => { for (let k = 0; k < ms / 50 && !f(); k++) await wait(50); return f(); };
+    const side = document.getElementById("side");
+    document.querySelector("[data-teach-open]").click();
+    await until(() => side.querySelector(".teach-files"));
+    const btn = (nb) => side.querySelector('.teach-files [data-teach-nb="' + nb + '"]');
+    out.first = { save: !!btn("save-open") && btn("save-open").disabled, open: !!btn("file"), forget: !!btn("forget-all") };
+    side.querySelector('.teach-books [data-teach-nb="new"]').click();
+    await until(() => btn("forget-all"));
+    out.title = (side.querySelector(".teach-book-head b") || {}).textContent;
+    btn("forget-all").click();
+    await until(() => side.querySelector(".teach-forget"));
+    out.confirm = (side.querySelector(".teach-forget") || {}).innerText || "";
+    out.stillThere = /\\(1 notebook/.test(side.querySelector(".teach-books summary").textContent);
+    side.querySelector("[data-forget-teaching-no]").click();
+    await wait(100);
+    out.kept = !side.querySelector(".teach-forget") && /\\(1 notebook/.test(side.querySelector(".teach-books summary").textContent);
+    btn("forget-all").click();
+    await until(() => side.querySelector("[data-forget-teaching]"));
+    side.querySelector("[data-forget-teaching]").click();
+    await until(() => /\\(0 notebooks/.test((side.querySelector(".teach-books summary") || {}).textContent || ""));
+    out.after = side.querySelector(".teach-books summary").textContent + " | " + ((side.querySelector(".crit-added") || {}).textContent || "");
+    out.forgetGone = !btn("forget-all");
+    // and in "What this page keeps"
+    side.querySelector('.teach-books [data-teach-nb="new"]').click();
+    await until(() => btn("forget-all"));
+    const kept = document.getElementById("kept-note");
+    kept.open = true;
+    await until(() => document.getElementById("kept-forget-teaching"));
+    document.getElementById("kept-forget-teaching").click();
+    await until(() => document.querySelector("#kept-body [data-forget-teaching]"));
+    out.keptConfirm = (document.querySelector("#kept-body .teach-forget") || {}).innerText || "";
+    document.querySelector("#kept-body [data-forget-teaching]").click();
+    await until(() => !document.getElementById("kept-forget-teaching"));
+    out.keptAfter = !document.getElementById("kept-forget-teaching") && !/Teaching: /.test(document.getElementById("kept-body").innerText);
+    kept.open = false;
+    // no label says "my", at either age
+    const labels = () => [...document.querySelectorAll("button, summary, .label, h2, option, figcaption")].map((x) => x.textContent).filter((x) => /\\bmy\\b/i.test(x));
+    out.my12 = labels();
+    document.querySelector('#ages [data-age="6-11"]').click(); await wait(200);
+    out.my611 = labels();
+    document.querySelector('#ages [data-age="12"]').click(); await wait(100);
+    window.__ages.select(null, { scroll: false });
+    return out;
+  })()`);
+  check(teaching.first.save && teaching.first.open && !teaching.first.forget, `T. Teach Ani has "Save this teaching to a file" (not yet: nothing taught) and "Open saved teaching…", and with nothing kept no "Forget"`);
+  check(teaching.title === "Teaching" && /This deletes all the teaching kept on this computer, one notebook:\s*“Teaching” \(0 pieces\)/.test(teaching.confirm) && teaching.stillThere && teaching.kept,
+    `T. a new notebook is “${teaching.title}”; "Forget all teaching saved on this computer" lists what it deletes in the page, and "Keep it" keeps it: ${teaching.confirm.replace(/\s+/g, " ").slice(0, 160)}`);
+  check(/\(0 notebooks\)/.test(teaching.after) && /forgotten/.test(teaching.after) && teaching.forgetGone && /“Teaching” \(0 pieces\)/.test(teaching.keptConfirm) && teaching.keptAfter,
+    `T. confirmed, the teaching is forgotten (${teaching.after.trim()}); "What this page keeps" offers the same, with the same list`);
+  check(!teaching.my12.length && !teaching.my611.length, `T. no label says "my", at 12+ or 6–11${teaching.my12.length || teaching.my611.length ? `: ${[...teaching.my12, ...teaching.my611].join(" | ")}` : ""}`);
   /*AGES-TESTS*/
 } catch (e) {
   if (e) { console.error(e); failures++; }
