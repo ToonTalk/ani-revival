@@ -513,11 +513,48 @@ html.age-6-8 .side .lead, html.age-6-8 .side .lead-68 { font-size: 1.4rem; line-
 html.age-6-8 .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
 html.age-6-8 .runbar .seg button { min-height: 48px; font-size: 1rem; }
 html.age-6-8 header .guides a { padding: 10px 16px; }
+/* (the guides' links are inline-block, which would show the 6–8 one at every setting) */
+header .guides a.only-68 { display: none; }
+html.age-6-8 header .guides a.only-68 { display: inline-block; }
 html.age-6-8 summary, html.age-6-8 #about-page { min-height: 44px; display: flex; align-items: center; }
 html.age-6-8 #about-page { display: inline-flex; }
 .legend .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 4px 12px 4px 8px; cursor: pointer; color: var(--ink); font-size: 0.92rem; min-height: 32px; }
 .legend .chip:hover { border-color: var(--accent); }
 html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 16px 6px 10px; }
+/* the simpler sentences (A2): a glossary term is a button with the dotted underline that
+   marks the revival's readings, opening a popover; the simple boxes; Who decided's ladder;
+   More, the 12+ panel of the same moment */
+.gl { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; border-bottom: 1px dotted var(--ink); cursor: help; }
+.gl[aria-expanded="true"] { background: var(--accent-soft); }
+.gl-pop { position: absolute; z-index: 50; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); font-size: 0.95rem; line-height: 1.45; }
+.gl-pop p { margin: 0 0 6px; }
+.gl-pop .note { color: var(--ink); }
+.age-box { display: grid; gap: 10px; margin: 10px 0; }
+.age-box p { margin: 0; }
+.ladder { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+.age-more { margin-top: 14px; }
+.age-people { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; }
+.age-people svg { vertical-align: -2px; }
+.read-this { margin-left: 4px; }
+html.age-6-8 em, html.age-9-11 .side em { font-style: normal; }
+html.age-6-8 .side .note, html.age-9-11 .side .note, html.age-6-8 .caption .part, html.age-9-11 .caption .part { color: var(--ink); }
+html.age-9-11 .linkish, html.age-9-11 .gl { min-height: 32px; }
+html.age-9-11 .scenes button { min-height: 32px; }
+html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { html.age-6-8 *, html.age-9-11 * { scroll-behavior: auto !important; } }
+/* speech (A4, A5): Read aloud beside Play, the microphones (a static red dot while listening,
+   words in progress in gray), the speech settings */
+.read-aloud[aria-pressed="true"], .mic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.mic-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--muted); margin-right: 6px; vertical-align: -1px; }
+.mic.on .mic-dot { background: #d33; border-color: #d33; }
+.mic-row { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0; }
+.mic-status { font-size: 0.95rem; }
+.mic-status.interim { color: var(--muted); font-style: italic; }
+.speech-home { margin: 4px 0 0; }
+.speech-home .speech-settings > summary, .grownups .speech-settings > summary { cursor: pointer; }
+.speech-settings .body p { margin: 6px 0; }
+.talk-optin { display: flex; gap: 8px; align-items: flex-start; }
+html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
 </style>
 
 <div class="wrap">
@@ -543,6 +580,7 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
     <button type="button" class="linkish" id="open-films">Your films</button>
   </div>
 
+  <div class="speech-home only-simple" id="speech-home"><details class="speech-settings" id="speech-settings"><summary>Speech settings</summary><div class="body"></div></details><span class="note" id="talk-heard" aria-live="polite"></span></div>
   <main class="stage" id="stage">
     <section class="screen-col" aria-label="The film">
       <div class="scenes" id="scenes" role="group" aria-label="Scenes"></div>
@@ -560,6 +598,8 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
         <button class="btn primary" id="play" type="button">Play</button>
         <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
+        <button class="btn only-simple read-aloud" id="read-aloud" type="button" aria-pressed="false" title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
+        <button class="btn only-68 mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
         <button type="button" class="btn only-911" data-film-settings aria-expanded="false">Film settings</button>
@@ -577,6 +617,7 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
         <p class="caption" id="caption-1" aria-live="polite" hidden></p>
       </div>
       <div class="legend" id="legend"></div>
+      <p class="sr only-simple" id="on-screen" aria-live="polite"></p>
     </section>
 
     <aside class="side" id="side" aria-live="polite"></aside>
@@ -4664,19 +4705,22 @@ function caption(r) {
   const el = FIGS[r].caption;
   const run = screenRun(r);
   const sc = sceneOf(r);
-  if (!run) { el.innerHTML = ""; return; }
+  if (!run) { el.innerHTML = ""; delete el.dataset.html; return; }
   const tag = state.view === "both" ? `${esc(screenShort(r))} · ` : "";
   if (!ready(sc)) {
     const id = run.sceneIds[state.scene];
     const stopped = sc ? `Ani stopped while making this scene. ${whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
+    delete el.dataset.html;
     return;
   }
   const c = captionAt(run, state.scene, frameIn(sc));
+  if (r === 0 && simpleAge()) using(run, () => ageOnScreen(sc, frameIn(sc)));
   // whose colors these are, in a film made with Ani's looks
   const colors = !sc.film.looks || !state.color ? ""
     : `<span class="part">${hasColors(sc) ? "Ani chose these colors, as it chose the shapes and sizes." : "This film was made before Ani chose colors, so each character keeps the color it has with Ani as in 1978."}</span>`;
-  el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+  const html = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+  if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; if (typeof captionHeard === "function") captionHeard(r, c); }
 }
 const hasColors = (sc) => (sc.film.looks || []).some((x) => x[2] && x[2].color);
 // The changes of shape or size in a scene's looks within a second before frame f, from
@@ -4746,6 +4790,10 @@ function captionFacts(sc, f) {
   return { sc, f, subs, main, parts: sc.subscenes.length, alongside: subs.filter((x) => x !== main).map((x) => x.n), ways, changes, transforms, wanderers };
 }
 function captionAt(run, i, f) {
+  const full = captionAt12(run, i, f);
+  return simpleAge() && full.more ? atScene(i, () => using(run, () => ageCaption(run, i, f, full))) : full;
+}
+function captionAt12(run, i, f) {
   return atScene(i, () => using(run, () => {
     const sc = run.scenes[i];
     const facts = captionFacts(sc, f);
@@ -4834,8 +4882,8 @@ function storyPanel() {
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
     ${critBox(run)}
-    <div class="people">${people}</div>
-    <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
+    ${simpleAge() ? ageStoryPeople(run, people) : `<div class="people">${people}</div>`}
+    <div><p class="label">How they feel about each other</p><ul class="rels">${simpleAge() ? glossed(rels) : rels}</ul></div>
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
     ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
@@ -5587,7 +5635,9 @@ function whyPanel(char) {
   sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
   // the reader's criticism of this film, if any, and what it did in this scene (app/film/criticism.js)
   // and what the reader's knowledge did, if the film was made with it (app/film/teach.js)
-  side.innerHTML = head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + teachHere(R, s, char) + fixSection + sections;
+  side.innerHTML = simpleAge()
+    ? agePanel({ s, f, char, k, act, between, main, where: head.slice(head.indexOf('<p class="where">')), lead, still: stillBox(R, s, f), whyBox, crit: critBox(R, { compact: true }), here: critHere(R, s, char) + teachHere(R, s, char), more: fixSection + sections })
+    : head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + teachHere(R, s, char) + fixSection + sections;
   if (/[?&]open(&|$)/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
   side.querySelector("#back-to-story").addEventListener("click", () => select(null));
   const run = R;
@@ -7363,6 +7413,7 @@ function play() {
   let drawn = shownFrames();
   const loop = (now) => {
     if (!state.playing) return;
+    if (speechHolding()) { last = now; state.raf = requestAnimationFrame(loop); return; }
     state.time = Math.max(0, state.time + Math.min(0.25, Math.max(0, now - last) / 1000) * state.speed);
     last = now;
     if (state.time > maxTime()) {
@@ -7375,12 +7426,14 @@ function play() {
     state.raf = requestAnimationFrame(loop);
   };
   state.raf = requestAnimationFrame(loop);
+  speechPlayed();
 }
 function pause() {
   state.playing = false;
   cancelAnimationFrame(state.raf);
   document.getElementById("play").textContent = "Play";
   scheduleSave();
+  speechPaused();
 }
 // The 1978 film at 4 or 24 frames a second.
 function setRate(rate) {

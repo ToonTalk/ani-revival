@@ -336,7 +336,7 @@ function formBox() {
     ${needsNote(teachExtensions())}
     <div id="teach-form-check">${formCheck(form, pieces, refused, warned)}</div>
     <details class="teach-lisp"><summary>See it as Ani reads it</summary><div class="body"><p class="note">The Lisp your notebook becomes with this, in Ken's own notation (his DSCRP, RELATE, CONVEY and EMOTE). The grey lines say what each part is; your reason is kept on each “;;yours” line, and the part this form adds is marked.</p><pre class="lisp teach-lisp-text" id="teach-form-lisp">${rec ? lispPreview(rec, pieces) : ""}</pre></div></details>
-    <p class="note teach-legit">${esc(AniTeach.legitimacyQuestion(formWord(form)))}</p>
+    <p class="note teach-legit">${simpleAge() ? "Is this something everyone knows, that Ani was missing? (Ken's rule: only add obvious information that was lacking.)" : esc(AniTeach.legitimacyQuestion(formWord(form)))}</p>
     <div class="actions"><button type="button" class="btn primary" data-teach-add>Add to Ani</button><button type="button" class="linkish" data-teach-cancel>Cancel</button></div></div>`;
 }
 // What the page's own checks say of the form, as it is filled in: the reason, first.
@@ -389,7 +389,8 @@ function teachPanel() {
   const base = teachBase();
   const ext = runExtensions(base);
   const busy = !!(RUNS[1] && RUNS[1].status && RUNS[1].status.running);
-  const kinds = TEACH_KINDS.map(([k, label]) => `<button type="button" class="teach-kind" data-teach-kind="${k}"${teachUi.form && teachUi.form.kind === k ? ' aria-pressed="true"' : ""}>${esc(label)}</button>`).join("");
+  const kindButtons = TEACH_KINDS.map(([k, label]) => `<button type="button" class="teach-kind" data-teach-kind="${k}"${teachUi.form && teachUi.form.kind === k ? ' aria-pressed="true"' : ""}>${esc(label)}</button>`);
+  const kinds = simpleAge() ? `${kindButtons.slice(0, 2).join("")}<details class="more-kinds"${teachUi.form && !TEACH_KINDS.slice(0, 2).some(([k]) => k === teachUi.form.kind) ? " open" : ""}><summary>More kinds</summary>${kindButtons.slice(2).join("")}</details>` : kindButtons.join("");
   const book = rec ? `<div class="teach-book">
       <div class="teach-book-head"><b>${esc(rec.title)}</b> <span class="note">${rec.pieces.length} piece${rec.pieces.length === 1 ? "" : "s"}${rec.used ? ", used in your films" : ", not used now"}</span></div>
       ${rec.pieces.length ? `<ol class="teach-pieces">${rec.pieces.map((p) => pieceLine(rec, p)).join("")}</ol>` : `<p class="note">Nothing in it yet.</p>`}

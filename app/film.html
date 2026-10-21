@@ -520,11 +520,48 @@ html.age-6-8 .side .lead, html.age-6-8 .side .lead-68 { font-size: 1.4rem; line-
 html.age-6-8 .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
 html.age-6-8 .runbar .seg button { min-height: 48px; font-size: 1rem; }
 html.age-6-8 header .guides a { padding: 10px 16px; }
+/* (the guides' links are inline-block, which would show the 6–8 one at every setting) */
+header .guides a.only-68 { display: none; }
+html.age-6-8 header .guides a.only-68 { display: inline-block; }
 html.age-6-8 summary, html.age-6-8 #about-page { min-height: 44px; display: flex; align-items: center; }
 html.age-6-8 #about-page { display: inline-flex; }
 .legend .chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 4px 12px 4px 8px; cursor: pointer; color: var(--ink); font-size: 0.92rem; min-height: 32px; }
 .legend .chip:hover { border-color: var(--accent); }
 html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 16px 6px 10px; }
+/* the simpler sentences (A2): a glossary term is a button with the dotted underline that
+   marks the revival's readings, opening a popover; the simple boxes; Who decided's ladder;
+   More, the 12+ panel of the same moment */
+.gl { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; border-bottom: 1px dotted var(--ink); cursor: help; }
+.gl[aria-expanded="true"] { background: var(--accent-soft); }
+.gl-pop { position: absolute; z-index: 50; background: var(--sheet); color: var(--ink); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); font-size: 0.95rem; line-height: 1.45; }
+.gl-pop p { margin: 0 0 6px; }
+.gl-pop .note { color: var(--ink); }
+.age-box { display: grid; gap: 10px; margin: 10px 0; }
+.age-box p { margin: 0; }
+.ladder { margin: 0; padding-left: 1.4em; display: grid; gap: 6px; }
+.age-more { margin-top: 14px; }
+.age-people { list-style: none; padding: 0; margin: 0 0 8px; display: grid; gap: 8px; }
+.age-people svg { vertical-align: -2px; }
+.read-this { margin-left: 4px; }
+html.age-6-8 em, html.age-9-11 .side em { font-style: normal; }
+html.age-6-8 .side .note, html.age-9-11 .side .note, html.age-6-8 .caption .part, html.age-9-11 .caption .part { color: var(--ink); }
+html.age-9-11 .linkish, html.age-9-11 .gl { min-height: 32px; }
+html.age-9-11 .scenes button { min-height: 32px; }
+html.age-6-8 .linkish, html.age-6-8 .gl { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) { html.age-6-8 *, html.age-9-11 * { scroll-behavior: auto !important; } }
+/* speech (A4, A5): Read aloud beside Play, the microphones (a static red dot while listening,
+   words in progress in gray), the speech settings */
+.read-aloud[aria-pressed="true"], .mic[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.mic-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--muted); margin-right: 6px; vertical-align: -1px; }
+.mic.on .mic-dot { background: #d33; border-color: #d33; }
+.mic-row { display: inline-flex; align-items: center; gap: 8px; margin: 6px 0; }
+.mic-status { font-size: 0.95rem; }
+.mic-status.interim { color: var(--muted); font-style: italic; }
+.speech-home { margin: 4px 0 0; }
+.speech-home .speech-settings > summary, .grownups .speech-settings > summary { cursor: pointer; }
+.speech-settings .body p { margin: 6px 0; }
+.talk-optin { display: flex; gap: 8px; align-items: flex-start; }
+html.age-6-8 .mic, html.age-6-8 .read-aloud { min-height: 56px; }
 </style>
 
 <div class="wrap">
@@ -550,6 +587,7 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
     <button type="button" class="linkish" id="open-films">Your films</button>
   </div>
 
+  <div class="speech-home only-simple" id="speech-home"><details class="speech-settings" id="speech-settings"><summary>Speech settings</summary><div class="body"></div></details><span class="note" id="talk-heard" aria-live="polite"></span></div>
   <main class="stage" id="stage">
     <section class="screen-col" aria-label="The film">
       <div class="scenes" id="scenes" role="group" aria-label="Scenes"></div>
@@ -567,6 +605,8 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
         <button class="btn primary" id="play" type="button">Play</button>
         <button class="btn" id="back" type="button" aria-label="Back one frame">◂</button>
         <button class="btn" id="fwd" type="button" aria-label="Forward one frame">▸</button>
+        <button class="btn only-simple read-aloud" id="read-aloud" type="button" aria-pressed="false" title="Ani reads each caption aloud, with this computer's own voice">Read aloud</button>
+        <button class="btn only-68 mic" id="talk-cmd" type="button" aria-pressed="false" hidden title="Say play, stop, why, next scene, go back, or read it again"><span class="mic-dot" aria-hidden="true"></span>Talk</button>
         <div class="scrub"><canvas id="bands" width="600" height="16" aria-hidden="true"></canvas><div class="head" id="head"></div><input id="scrub" type="range" min="0" max="1" value="0" step="1" aria-label="Frame"></div>
         <span class="frame-label" id="frame-label"></span>
         <button type="button" class="btn only-911" data-film-settings aria-expanded="false">Film settings</button>
@@ -584,6 +624,7 @@ html.age-6-8 .legend .chip { min-height: 48px; font-size: 1.05rem; padding: 6px 
         <p class="caption" id="caption-1" aria-live="polite" hidden></p>
       </div>
       <div class="legend" id="legend"></div>
+      <p class="sr only-simple" id="on-screen" aria-live="polite"></p>
     </section>
 
     <aside class="side" id="side" aria-live="polite"></aside>
@@ -4671,19 +4712,22 @@ function caption(r) {
   const el = FIGS[r].caption;
   const run = screenRun(r);
   const sc = sceneOf(r);
-  if (!run) { el.innerHTML = ""; return; }
+  if (!run) { el.innerHTML = ""; delete el.dataset.html; return; }
   const tag = state.view === "both" ? `${esc(screenShort(r))} · ` : "";
   if (!ready(sc)) {
     const id = run.sceneIds[state.scene];
     const stopped = sc ? `Ani stopped while making this scene. ${whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
+    delete el.dataset.html;
     return;
   }
   const c = captionAt(run, state.scene, frameIn(sc));
+  if (r === 0 && simpleAge()) using(run, () => ageOnScreen(sc, frameIn(sc)));
   // whose colors these are, in a film made with Ani's looks
   const colors = !sc.film.looks || !state.color ? ""
     : `<span class="part">${hasColors(sc) ? "Ani chose these colors, as it chose the shapes and sizes." : "This film was made before Ani chose colors, so each character keeps the color it has with Ani as in 1978."}</span>`;
-  el.innerHTML = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+  const html = `<span class="part">${tag}${c.part}</span>${c.text}${c.more.map((x) => `<span class="part">${x}</span>`).join("")}${colors}`;
+  if (el.dataset.html !== html) { el.innerHTML = html; el.dataset.html = html; if (typeof captionHeard === "function") captionHeard(r, c); }
 }
 const hasColors = (sc) => (sc.film.looks || []).some((x) => x[2] && x[2].color);
 // The changes of shape or size in a scene's looks within a second before frame f, from
@@ -4753,6 +4797,10 @@ function captionFacts(sc, f) {
   return { sc, f, subs, main, parts: sc.subscenes.length, alongside: subs.filter((x) => x !== main).map((x) => x.n), ways, changes, transforms, wanderers };
 }
 function captionAt(run, i, f) {
+  const full = captionAt12(run, i, f);
+  return simpleAge() && full.more ? atScene(i, () => using(run, () => ageCaption(run, i, f, full))) : full;
+}
+function captionAt12(run, i, f) {
   return atScene(i, () => using(run, () => {
     const sc = run.scenes[i];
     const facts = captionFacts(sc, f);
@@ -4841,8 +4889,8 @@ function storyPanel() {
     ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Your films (${libraryFilms().length})</button>` : ""}</div>
     ${critBox(run)}
-    <div class="people">${people}</div>
-    <div><p class="label">How they feel about each other</p><ul class="rels">${rels}</ul></div>
+    ${simpleAge() ? ageStoryPeople(run, people) : `<div class="people">${people}</div>`}
+    <div><p class="label">How they feel about each other</p><ul class="rels">${simpleAge() ? glossed(rels) : rels}</ul></div>
     <div class="scene-list"><p class="label">The scenes</p>${cards}</div>
     ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
@@ -7707,7 +7755,9 @@ function whyPanel(char) {
   sections += `<details><summary>Ani's own records</summary><div class="body">${records}</div></details>`;
   // the reader's criticism of this film, if any, and what it did in this scene (app/film/criticism.js)
   // and what the reader's knowledge did, if the film was made with it (app/film/teach.js)
-  side.innerHTML = head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + teachHere(R, s, char) + fixSection + sections;
+  side.innerHTML = simpleAge()
+    ? agePanel({ s, f, char, k, act, between, main, where: head.slice(head.indexOf('<p class="where">')), lead, still: stillBox(R, s, f), whyBox, crit: critBox(R, { compact: true }), here: critHere(R, s, char) + teachHere(R, s, char), more: fixSection + sections })
+    : head + critBox(R, { compact: true }) + lead + stillBox(R, s, f) + whyBox + critHere(R, s, char) + teachHere(R, s, char) + fixSection + sections;
   if (/[?&]open(&|$)/.test(location.search)) side.querySelectorAll("details").forEach((d) => (d.open = true));
   side.querySelector("#back-to-story").addEventListener("click", () => select(null));
   const run = R;
@@ -9678,6 +9728,7 @@ function play() {
   let drawn = shownFrames();
   const loop = (now) => {
     if (!state.playing) return;
+    if (speechHolding()) { last = now; state.raf = requestAnimationFrame(loop); return; }
     state.time = Math.max(0, state.time + Math.min(0.25, Math.max(0, now - last) / 1000) * state.speed);
     last = now;
     if (state.time > maxTime()) {
@@ -9690,12 +9741,14 @@ function play() {
     state.raf = requestAnimationFrame(loop);
   };
   state.raf = requestAnimationFrame(loop);
+  speechPlayed();
 }
 function pause() {
   state.playing = false;
   cancelAnimationFrame(state.raf);
   document.getElementById("play").textContent = "Play";
   scheduleSave();
+  speechPaused();
 }
 // The 1978 film at 4 or 24 frames a second.
 function setRate(rate) {
@@ -9936,6 +9989,315 @@ function ageLegend(cast, runs) {
     const r = Number(b.dataset.slot);
     if (ready(sceneOf(r))) select({ run: r, char: b.dataset.chip });
   }));
+}
+
+// ---------------------------------------------------------------- the simpler sentences (A2)
+
+// At 9–11 (and, for now, at 6–8: see AGE_68_WORDING) the explanations are said from the same
+// facts as the 12+ ones (captionFacts, wayFacts, longFacts, chainFacts, and the
+// related-suggestions items Ani's record keeps), by templates here: never by shortening a
+// 12+ sentence, and never by a language model. Each simple box ends in "More", which opens
+// the 12+ text of the same moment, with its code citations and Ani's own records.
+// Ani's words stay as the record has them. A word in the glossary (GLOSS) is a button that
+// opens a popover with its meaning; the glossary holds only neutral words, and every other
+// word of the record passes through as it is, unglossed.
+// TODO(6–8 wording): ages 6–8 has no wording of its own yet. It shows the 9–11 sentences,
+// with bigger type and Read aloud on (app/film/speech.js); its own templates, word list and
+// glosses (reports/chapter-x/design-young-children.md §6.1, §7) are to be written and
+// reviewed by Ken and a primary teacher before they replace these.
+const AGE_68_WORDING = false;
+
+// The glossary: each term as the page writes it, its meaning at 9–11, and Ani's own word.
+const GLOSS = {
+  dominates: { said: "dominates", means: "is in charge of someone, and makes them do things", ani: "dominates" },
+  "is-obedient-to": { said: "is obedient to", means: "does what someone tells them to do", ani: "is-obedient-to" },
+  "is-tolerant-of": { said: "is tolerant of", means: "puts up with someone, even when they are unkind", ani: "is-tolerant-of" },
+  "is-polite-to": { said: "is polite to", means: "is careful to be nice to someone", ani: "is-polite-to" },
+  "is-impolite-to": { said: "is impolite to", means: "is rude to someone", ani: "is-impolite-to" },
+  "is-grateful-to": { said: "is grateful to", means: "is thankful for what someone did", ani: "is-grateful-to" },
+  "is-protective-of": { said: "is protective of", means: "looks after someone and keeps them safe", ani: "is-protective-of" },
+  "is-generous-towards": { said: "is generous towards", means: "gives a lot to someone, and is glad to", ani: "is-generous-towards" },
+  "is-helpful-towards": { said: "is helpful towards", means: "helps someone", ani: "is-helpful-towards" },
+  "hard-working": { said: "hard working", means: "does a lot of work, and does it well", ani: "hard-working" },
+  shabby: { said: "shabby", means: "worn out and old, like clothes that have been worn a lot", ani: "shabby" },
+  stubborn: { said: "stubborn", means: "won't change their mind", ani: "stubborn" },
+  determined: { said: "determined", means: "keeps trying until they get what they want", ani: "determined" },
+  brazen: { said: "brazen", means: "bold, and not at all shy", ani: "brazen" },
+  magical: { said: "magical", means: "can do magic", ani: "magical" },
+  graceful: { said: "graceful", means: "moves smoothly and beautifully", ani: "graceful" },
+  "getting-it-on": { said: "“getting it on”", means: "Ken's 1978 phrase for two people falling for each other and being happy together", ani: "getting-it-on" },
+  accompanys: { said: "accompanies", means: "goes along with someone", ani: "accompanys" },
+  prevents: { said: "prevents", means: "stops something from happening", ani: "prevents" },
+  undoes: { said: "undoes", means: "makes what happened before not count any more", ani: "undoes" },
+  aware: { said: "becomes aware", means: "finds out", ani: "aware" },
+};
+// each term's place in a sentence the page wrote (escaped HTML), longest first
+const GLOSS_TERMS = Object.entries(GLOSS).map(([key, g]) => [key, esc(g.said)]).sort((a, b) => b[1].length - a[1].length);
+const GLOSS_RE = new RegExp(`(^|[^\\w-])(${GLOSS_TERMS.map(([, s]) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(?![\\w-])`, "g");
+// Mark the glossary's terms in a sentence (HTML): in its text, never inside a tag, and each
+// term once a sentence.
+function glossed(html) {
+  const seen = new Set();
+  return String(html).split(/(<[^>]*>)/).map((part, n, all) => {
+    if (part.startsWith("<")) return part;
+    // not inside a button or a link already
+    const before = all.slice(0, n).join("");
+    if ((before.match(/<(button|a)\b/g) || []).length > (before.match(/<\/(button|a)>/g) || []).length) return part;
+    return part.replace(GLOSS_RE, (m, lead, term) => {
+      const key = (GLOSS_TERMS.find(([, s]) => s === term) || [])[0];
+      if (!key || seen.has(key)) return m;
+      seen.add(key);
+      return `${lead}<button type="button" class="gl" data-gl="${key}" aria-expanded="false">${term}</button>`;
+    });
+  }).join("");
+}
+// The popover: one for the page, opened by a term's button (click, tap or Enter), closed by
+// Escape, by the button again, or by a click elsewhere; its text is tied to the button
+// (aria-describedby).
+function glossPopover() {
+  let pop = document.getElementById("gl-pop");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "gl-pop";
+    pop.className = "gl-pop";
+    pop.setAttribute("role", "note");
+    pop.hidden = true;
+    document.body.append(pop);
+  }
+  return pop;
+}
+let glossOpen = null;
+function closeGloss({ focus = false } = {}) {
+  const pop = document.getElementById("gl-pop");
+  if (pop) pop.hidden = true;
+  if (glossOpen) {
+    glossOpen.setAttribute("aria-expanded", "false");
+    glossOpen.removeAttribute("aria-describedby");
+    if (focus && glossOpen.isConnected) glossOpen.focus();
+  }
+  glossOpen = null;
+}
+function openGloss(b) {
+  const g = GLOSS[b.dataset.gl];
+  if (!g) return;
+  if (glossOpen === b) { closeGloss(); return; }
+  closeGloss();
+  const pop = glossPopover();
+  const fromStory = R && typeof R.cindy === "string" && new RegExp(`(^|[\\s(])${g.ani.replace(/[-]/g, "\\-")}([\\s)]|$)`).test(R.cindy);
+  pop.innerHTML = `<p><b>${esc(g.said)}</b>: ${esc(g.means)}.</p><p class="note">Ani's word: “${esc(g.ani)}”${fromStory ? ". It is in the story Ani was told." : "."}</p>${speechAvailable() ? `<button type="button" class="linkish" data-read-text="${esc(`${g.said}: ${g.means}.`)}">Read this</button>` : ""}`;
+  pop.hidden = false;
+  const r = b.getBoundingClientRect();
+  const w = Math.min(320, window.innerWidth - 24);
+  pop.style.width = `${w}px`;
+  pop.style.left = `${Math.max(12, Math.min(window.innerWidth - w - 12, r.left + window.scrollX))}px`;
+  pop.style.top = `${r.bottom + window.scrollY + 6}px`;
+  b.setAttribute("aria-expanded", "true");
+  b.setAttribute("aria-describedby", "gl-pop");
+  glossOpen = b;
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("[data-gl]");
+  if (b) { e.preventDefault(); openGloss(b); return; }
+  if (glossOpen && !(e.target.closest && e.target.closest("#gl-pop"))) closeGloss();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && glossOpen) { e.stopPropagation(); closeGloss({ focus: true }); } }, true);
+// (speechAvailable is app/film/speech.js's; the glossary works without it)
+const speechAvailable = () => typeof speechSupported === "function" && speechSupported();
+
+// ---- the facts the simple sentences add: the words a way of showing came from
+
+// The words of the story whose suggestion a convey task's way was (wayFromWords): the related-suggestions
+// items of the task it was made for (its source), whose main suggestion's way is this
+// task's, with the others Ken's find-related-suggestions took as the same (relationship
+// identical). [] when the record names none.
+function wayFromWords(t) {
+  if (!t || !t.source || t.source === "initial-description") return [];
+  const up = taskByName(t.source);
+  if (!up || !up.actor || !up.actor.items) return [];
+  const want = show(t.description);
+  const out = [];
+  for (const item of up.actor.items) {
+    const x = parse(item);
+    if (!Array.isArray(x) || x[0] !== "related-suggestions:") continue;
+    const main = kv(x, "main-suggestion");
+    const value = kv(kv(main, "value"), "value");
+    if (show(value) !== want) continue;
+    for (const s of [main, ...lispList(kv(x, "others"))]) { const w = kv(s, "source"); if (typeof w === "string" && !out.includes(w)) out.push(w); }
+  }
+  return out;
+}
+
+// ---- captions
+
+// "to show that ...", or "to show what she is like: ...", from the top of the way's chain:
+// what the story asked for, and (for what a character is like) the words the way came from
+function simplePurpose(t, top) {
+  const d = top.description;
+  if (Array.isArray(d) && d[0] === "personality") {
+    const src = t === top ? [] : wayFromWords(t);
+    return src.length ? `to show what ${who(d[1])} is like: ${esc(words(src.map(plain)))}` : `to show what ${who(d[1])} is like`;
+  }
+  const a = about(d);
+  return /^(what|how) /.test(a) ? `to show ${a}` : `to show that ${a}`;
+}
+// A caption at 9–11: the scene and its title; each way of showing and what it is for; the
+// changes of feeling; and the 12+ caption's other lines as they are.
+function ageCaption(run, i, f, full) {
+  const sc = run.scenes[i];
+  const facts = captionFacts(sc, f);
+  if (!facts) return full;
+  const shows = facts.ways.map(({ kind, t, m, top }) => (kind === "change" ? changeShowLine(sc, t, m) : `${cap(methodText(m))}, ${simplePurpose(t, top)}.`));
+  const more = [];
+  const feelers = [...new Set(facts.changes.map((t) => (Array.isArray(t.description) ? t.description[1] : null)).filter(Boolean))];
+  const feel = facts.changes.map((t) => about(t.description));
+  if (feel.length) more.push(`${shows.length ? "Meanwhile" : "Here"} Ani changes how ${who(feelers)} ${feelers.length === 1 ? agree(meet(run.story, feelers[0]), "moves", "move") : "move"}, to show that ${feel.join(" and that ")}.`);
+  if (facts.wanderers.length) more.push(`${cap(who(facts.wanderers))} ${facts.wanderers.length > 1 ? "wander" : agree(meet(run.story, facts.wanderers[0]), "wanders", "wander")} about, so that the change of feeling is seen.`);
+  // the 12+ caption's other lines (a change shown, colors, the revival's notes), as they are
+  more.push(...full.more.filter((x) => !/^(Meanwhile|Here) Ani changes how they move, /.test(x) && !/ about while the change runs, so that it is seen/.test(x)));
+  return { part: `Scene ${i + 1} · ${esc(sc.title)}`, text: glossed(shows.join(" ")) || (feel.length ? "" : full.text), more: more.map(glossed) };
+}
+
+// ---- a character's panel
+
+const SIMPLE_KINDS = { strength: "how strongly it was suggested", prerequisite: "what it needs being ready", "best-when": "suiting these two best", "time-fit": "fitting the time", originality: "not being used yet", variety: "making the film more varied" };
+const oneDecimal = (n) => `${Number(n).toFixed(1).replace(/\.0$/, "")} second${Number(Number(n).toFixed(1)) === 1 ? "" : "s"}`;
+// a reason a way was set aside, at 9–11
+function simpleReject(r) {
+  const critic = critReject(r);
+  if (critic) return critic.replace(/^vetoed by you/, "you said no to it");
+  if (Array.isArray(r) && r[0] === "too-much-time:") {
+    const d = Number(kv(r, "ideal-difference"));
+    return `it would end ${oneDecimal(Math.abs(d))} too ${d < 0 ? "soon" : "late"}`;
+  }
+  if (r === "no-idea-how-to-convey-method") return "Ani had no way to show it";
+  return noCitations(rejectText(r));
+}
+// a sentence without its links to Ken's code (kept in the 12+ view, under More)
+const noCitations = (html) => String(html).replace(/\s*\(?<a\b[^>]*>[^<]*<\/a>\)?/g, "").replace(/\s*\([a-z0-9]+\.\d+:[\d, –-]+\)/g, "").replace(/\s*\(\s*\)/g, "");
+// Why this way, at 9–11, from wayFacts
+function simpleWay(t, method) {
+  const x = wayFacts(t, method);
+  const out = [];
+  if (x.kind === "only") out.push("Ani knew only one way to show this.");
+  else if (x.kind === "weighed") out.push(`Ani thought of ${x.weighed} ways, and this one scored best${x.better.length ? `, on ${words(x.better.map((b) => SIMPLE_KINDS[b.kind] || plain(b.kind)))}` : ""}. The other was ${wayQ(x.other)}.`);
+  else out.push("This was the way Ani's suggestions offered.");
+  for (const r of x.setAside) out.push(`Ani set aside ${wayQ(r.way)}: ${simpleReject(r.reason)}.`);
+  return out.join(" ");
+}
+// Why so long, at 9–11, from longFacts: how long it lasts, what stops it, Ken's repeat, the
+// scene's length in the story, and a stretch to fill its part
+function simpleLong(run, sc, w, a, char, f) {
+  const k = meet(run.story, char);
+  const x = longFacts(sc, w, a, f);
+  const out = [];
+  if (x.r) {
+    const stops = stopWords(a.stops, k, char).map((s) => s.replace(/(\d+(?:\.\d+)?) s\b/g, (m, d) => oneDecimal(d)));
+    out.push(`${x.r.begin === x.r.end ? "This step takes no time" : `This step lasts ${oneDecimal(x.seconds)}`}${stops.length ? `. It stops ${orWords(stops)}` : ""}.`);
+  }
+  if (a.repeated) out.push(`Ken's plan does it ${a.repeated} times.`);
+  const st = run.story.scenes[sc.id];
+  const length = st && st.settings && st.settings.length;
+  if (length && typeof length === "string") out.push(`${kenScene(run, sc.id) ? "Ken's story" : "The story"} asks for a ${esc(plain(length))} scene.`);
+  if (x.part && x.part.stretchedBy && x.part.stretchedBy > 1.005 && !x.part.parasiteOn) out.push("Ani stretched it to fill its part.");
+  return out.join(" ");
+}
+// Who decided, as a ladder: what the story says, what Ani knows that links it to the way,
+// and the way Ani chose
+function simpleLadder(t, method) {
+  const chain = chainFacts(t);
+  const top = chain[chain.length - 1].t;
+  const d = top.description;
+  const says = Array.isArray(d) && d[0] === "personality" ? `${who(d[1])} is ${esc(traitsOf(d[1]))}` : about(d);
+  const steps = [`<li><b>The story says</b> ${says}.</li>`];
+  // each link below the top: the words its suggestion came from
+  for (let n = chain.length - 2; n >= 0; n--) {
+    const { t: x } = chain[n];
+    const src = wayFromWords(x);
+    const k = knowOfTask(x);
+    const theirs = k ? " (from the revival's added knowledge)" : "";
+    steps.push(`<li><b>Ani knows</b>${theirs} ${src.length ? `that ${words(src.map((w) => `“${esc(plain(w))}”`))} can be shown by ${n === 0 ? "this way" : `showing that ${about(x.description)}`}` : n === 0 ? "a way to show this" : `that it can be shown by showing that ${about(x.description)}`}.</li>`);
+  }
+  steps.push(`<li><b>So Ani chose</b> this: ${methodText(method)}.</li>`);
+  return `<ol class="ladder">${steps.join("")}</ol>`;
+}
+// a speaker button that reads the box it is in (app/film/speech.js), where the browser speaks
+const readButton = () => (speechAvailable() ? `<button type="button" class="linkish read-this" data-read-box aria-label="Read this aloud">Read this</button>` : "");
+// The panel of a character at 9–11: the heading, what the character is doing, why this
+// way, why so long and who decided (closed), each simple, with the criticism buttons; then
+// "More about Ani's choices", the 12+ panel of the same moment.
+function agePanel(x) {
+  const { s, f, char, k, act, between, main } = x;
+  const fps = fpsOf(s);
+  const name = young() ? bothNames(char) : k.name;
+  const head = `<div class="side-head"><div class="who">${icon(char, 22)}<h2>${esc(cap(name))}</h2></div><button type="button" class="linkish" id="back-to-story">Back</button></div>
+    <p class="where">${state.view === "both" || R !== RUNS[0] ? `${esc(R.label)} · ` : ""}${esc(s.title)} · ${(f / fps).toFixed(1)} seconds in</p>`;
+  let lead = "", why = "";
+  if (!act) lead = x.lead;
+  else if (between) lead = `<p class="lead">${esc(cap(k.the))} is between two steps of Ani's plan.</p>`;
+  else {
+    const label = SEEN_ACTIVITIES.includes(act.base) ? seenLabel(act, char) : esc(ACTIVITY[act.base] || plain(act.base));
+    const with_ = act.chars.filter((c) => c !== char);
+    lead = `<p class="lead">${esc(cap(k.the))} is ${label}${with_.length ? ` (with ${esc(who(with_))})` : ""}.</p>`;
+    const w = whyOf(R, s);
+    const a = w && w.activities.find((y) => y.plan === act.name);
+    const t = taskOfActivity(act);
+    if (a && (a.by === "REVIVE;SEEN" || a.activity === "wander-around")) {
+      why = `<div class="age-box"><p><span class="label">Why this way</span> Ani has ${esc(k.the)} wander about, so that the change of feeling is seen (the revival's repair). ${readButton()}</p></div>`;
+    } else if (a && t) {
+      const method = parse(a.method || "nil");
+      const way = simpleWay(t, method);
+      const long = simpleLong(R, s, w, a, char, f);
+      why = `<div class="age-box">
+        <p><span class="label">Why this way</span> ${glossed(way)} ${readButton()}${noCitations(critWayButtons(R, s, t, method))}</p>
+        ${long ? `<p><span class="label">Why so long</span> ${long} ${readButton()}${noCitations(critPaceButtons(R, s, w, w.parts.find((p) => p.name === a.subscene)))}</p>` : ""}
+        <details class="who-decided"><summary>Who decided</summary><div class="body">${glossed(simpleLadder(t, method))}${readButton()}</div></details>
+      </div>`;
+    }
+  }
+  const still = simpleStill(R, s, f);
+  const more = `<details class="age-more"><summary>More about Ani's choices</summary><div class="body">${x.where}${x.lead}${x.still}${x.whyBox}${x.more}</div></details>`;
+  return head + x.crit + glossed(lead) + still + why + x.here + more;
+}
+// Where no one moves, at 9–11: for how long, with why under More (the 12+ box)
+function simpleStill(run, sc, f) {
+  const w = whyOf(run, sc);
+  const s = w && w.stills.find((x) => f > x.from && f <= x.to);
+  if (!s) return "";
+  return `<div class="still-box"><p>No one moves for ${oneDecimal(s.seconds)}. ${readButton()}</p></div>`;
+}
+
+// ---- what Ani was told
+
+// The story's characters at 9–11, a sentence or two each, and how they feel about each
+// other, with the glossary; the words as the page shows them today are under More.
+function ageStoryPeople(run, people) {
+  const lines = run.cast.map((c) => {
+    const k = run.story.characters[c];
+    if (!k) return "";
+    const m = meet(run.story, c);
+    const list = (ws) => esc(words(ws.map(plain)));
+    const parts = [];
+    if (k.personality.length) parts.push(`${esc(m.name)} is ${list(k.personality)}.`);
+    if (k.physical.length) parts.push(`${esc(cap(m.she))} ${agree(m, "is", "are")} ${list(k.physical)}.`);
+    if (k.movement.length) parts.push(`${esc(cap(m.she))} ${agree(m, "moves", "move")} in a way that is ${list(k.movement)}.`);
+    if (!parts.length) parts.push(`Ani was told nothing about what ${esc(m.the)} is like.`);
+    return `<li>${icon(c)} ${glossed(parts.join(" "))}</li>`;
+  }).join("");
+  return `<div class="age-story"><p class="label">Who is in the story</p><ul class="age-people">${lines}</ul>${readButton()}
+    <details class="age-more"><summary>More: the words Ani was told</summary><div class="body"><div class="people">${people}</div></div></details></div>`;
+}
+
+// ---- for a screen reader (A7)
+
+// "On the screen now: the stepmother and Cinderella", a line read by a screen reader when
+// who is on the stage changes (the film's picture says nothing to one); at 6–8 and 9–11.
+function ageOnScreen(sc, f) {
+  const el = document.getElementById("on-screen");
+  const fr = sc && sc.film && sc.film.frames[f];
+  if (!el || !fr) return;
+  const here = Object.keys(fr.chars || {}).filter((c) => R && R.cast && R.cast.includes(c));
+  const text = here.length ? `On the screen now: ${here.map((c) => nameAt(c)).join(", ").replace(/, ([^,]*)$/, " and $1")}.` : "No one is on the screen now.";
+  if (el.textContent !== text) el.textContent = text;
 }
 
 // ---------------------------------------------------------------- telling Ani a new story
@@ -10431,12 +10793,12 @@ function tellerPanel() {
         <div class="chips" id="tell-model-chips"></div>
       </div>
     </div>
-    <div class="ed-group">
+    ${simpleAge() ? `<details class="more-settings"><summary>More settings</summary>` : ""}<div class="ed-group">
       <p class="label">The model writes</p>
       <div class="seg" role="group" aria-label="What the model writes">${[["json", "JSON"], ["lisp", "Ken's Lisp"]].map(([f, label]) => `<button type="button" data-format="${f}" aria-pressed="${teller.format === f}">${label}</button>`).join("")}</div>
       <p class="note">As JSON, it can use only Ani's words and tasks where the model's maker holds it to a form, and the page puts it into Ken's notation; or it can write Ken's notation itself.</p>
     </div>
-    ${SWITCHED.length ? `<div class="ed-group"><p class="label">Which Ani</p><div class="make-settings">${modeSwitch()}</div><p class="note mode-note">${esc(modeNote())}</p></div>` : ""}
+    ${SWITCHED.length ? `<div class="ed-group"><p class="label">Which Ani</p><div class="make-settings">${modeSwitch()}</div><p class="note mode-note">${esc(modeNote())}</p></div>` : ""}${simpleAge() ? "</details>" : ""}
     <div class="actions"><button type="button" class="btn primary" id="tell-go">Write the film description</button><button type="button" class="linkish" id="tell-stop" hidden>Stop</button></div>
     <p class="note" id="tell-status" aria-live="polite"></p>
     <div id="tell-result"></div>`;
@@ -10591,6 +10953,362 @@ function showDraft(failure = null) {
     select(null, { panel: "edit" });
   });
 }
+
+// ---------------------------------------------------------------- speech: Read aloud and Talk to Ani
+
+// reports/chapter-x/design-young-children.md §8 and §9. Both are for the simpler settings
+// (ages 9–11 and 6–8); at 12+ the page is as it was, with neither.
+// Read aloud uses the browser's own voices (speechSynthesis): nothing is sent by the page,
+// and the computer's local voices work offline. It reads each new caption as the film
+// plays (at 6–8 the film waits for the voice), and any box's "Read this".
+// Talk to Ani uses the browser's speech recognition, which in Chrome sends the audio to
+// Google (in Edge to Microsoft, in Safari to Apple). So it is off until a grown-up turns it
+// on, on this computer, in the speech settings; a link can never turn it on (the hash sets
+// only the age, app/film/ages.js). Nothing is ever sent or made by speech alone: the words
+// go into a box, and the box's own button sends them. Where the browser has no recognition
+// (Firefox; the claude.ai copy, whose frame has no microphone; offline), no microphone is
+// shown, and the settings point to the computer's own dictation.
+// The settings are kept in this browser (SPEECH_KEY): Read aloud on or off, the voice, the
+// rate, whether the film waits for the voice, and Talk to Ani's opt-in with its date. No
+// voice, no recording and no words heard are kept.
+const SPEECH_KEY = "ani-cinderella:speech:v1";
+// How the voice is to say a word, for the synthesizer only (the page's text is unchanged):
+// Ken's "Ani" is AN-ee.
+const SAY_AS = { Ani: "Annie" };
+let SPEECH = (() => { try { const v = JSON.parse(store.get(SPEECH_KEY) || "null"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch { return {}; } })();
+const saveSpeech = () => store.set(SPEECH_KEY, JSON.stringify(SPEECH));
+const speechSupported = () => typeof window.speechSynthesis !== "undefined" && typeof window.SpeechSynthesisUtterance === "function";
+// Read aloud: on at 6–8 unless turned off there, off at 9–11 unless turned on; never at 12+
+const readAloudOn = () => simpleAge() && speechSupported() && (SPEECH.read ?? young());
+// the film waits for the voice: at 6–8 unless chosen otherwise
+const waitForVoice = () => SPEECH.wait ?? young();
+const speechRate = () => Number(SPEECH.rate) || (young() ? 0.85 : 1);
+const sayAs = (text) => Object.entries(SAY_AS).reduce((t, [w, said]) => t.replace(new RegExp(`\\b${w}\\b`, "g"), said), text);
+// the text of some HTML, as it is to be said: no markup, no quotation marks, "s" as seconds
+function sayText(html) {
+  const d = document.createElement("div");
+  d.innerHTML = String(html);
+  d.querySelectorAll("button:not(.gl), .note, pre, .read-this").forEach((x) => x.remove());
+  return d.textContent.replace(/[“”"]/g, "").replace(/(\d) s\b/g, "$1 seconds").replace(/\s+/g, " ").trim();
+}
+// the voice: the one chosen, if this computer has it; else, offline, a local English one;
+// else the browser's default English one
+function speechVoice() {
+  const voices = speechSupported() ? window.speechSynthesis.getVoices() : [];
+  const english = voices.filter((v) => /^en\b/i.test(v.lang));
+  const chosen = voices.find((v) => v.voiceURI === SPEECH.voice);
+  if (chosen && (navigator.onLine !== false || chosen.localService)) return chosen;
+  const local = english.filter((v) => v.localService);
+  if (navigator.onLine === false) return local.find((v) => /en-US/i.test(v.lang)) || local[0] || null;
+  return english.find((v) => v.default) || english.find((v) => /en-US/i.test(v.lang)) || english[0] || null;
+}
+// Speaking: one sentence an utterance (Chrome's network voices cut off long ones); done()
+// once the last has ended, or was cancelled.
+let speechGen = 0, speaking = false;
+function speak(text, done = null) {
+  if (!speechSupported() || !text) { if (done) done(); return; }
+  const gen = ++speechGen;
+  window.speechSynthesis.cancel();
+  const sentences = sayAs(text).match(/[^.!?]+[.!?]*\s*/g) || [text];
+  speaking = true;
+  let left = sentences.length;
+  const voice = speechVoice();
+  const finish = () => { if (gen !== speechGen) return; if (--left <= 0) { speaking = false; if (done) done(); } };
+  for (const s of sentences) {
+    const u = new window.SpeechSynthesisUtterance(s.trim());
+    if (voice) { u.voice = voice; u.lang = voice.lang; } else u.lang = "en-US";
+    u.rate = speechRate();
+    u.pitch = 1;
+    u.onend = finish;
+    u.onerror = finish;
+    window.speechSynthesis.speak(u);
+  }
+}
+function stopSpeaking() {
+  speechGen++;
+  speaking = false;
+  if (speechSupported()) window.speechSynthesis.cancel();
+  releaseHold();
+}
+
+// ---- reading the captions as the film plays
+
+// The caption last said on each screen, and, at 6–8 (wait for the voice), the caption
+// waiting while the last is still being said: the film holds still meanwhile (the play loop
+// asks speechHolding), at most HOLD_MS.
+const HOLD_MS = 15000;
+let lastSaid = "", lastScene = null, heldCaption = null, holdTimer = 0, quietTimer = 0;
+const speechHolding = () => heldCaption !== null;
+function releaseHold() {
+  clearTimeout(holdTimer);
+  heldCaption = null;
+}
+// the screen read: the first, or in Side by side the one last tapped
+let readScreen = 0;
+// what a caption says, aloud: a new scene's title first ("Scene two: Kept Apart.")
+function captionSay(c) {
+  const scene = state.scene;
+  const main = sayText(c.text) || sayText((c.more || [])[0] || "");
+  const title = scene !== lastScene ? `Scene ${countWords(scene + 1)}: ${sayText(R && R.scenes && R.scenes[scene] ? R.scenes[scene].title : c.part)}. ` : "";
+  return { main, say: title + main, scene };
+}
+// app/film.template.html's caption() calls this when a screen's caption changes
+function captionHeard(r, c) {
+  if (!readAloudOn() || (state.view === "both" ? r !== readScreen : r !== 0)) return;
+  // nothing is read by itself while Ani is making a film
+  if (RUNS.some((x) => x && x.status && x.status.running)) return;
+  const x = captionSay(c);
+  if (!x.main || x.main === lastSaid) return;
+  if (!state.playing) {
+    // stepping or scrubbing: said once the film has stood still a moment
+    stopSpeaking();
+    clearTimeout(quietTimer);
+    quietTimer = setTimeout(() => { lastSaid = x.main; lastScene = x.scene; speak(x.say); }, 400);
+    return;
+  }
+  if (speaking && waitForVoice()) {
+    // the picture doesn't run ahead of the voice: hold until it has finished
+    heldCaption = x;
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => sayHeld(), HOLD_MS);
+    return;
+  }
+  lastSaid = x.main;
+  lastScene = x.scene;
+  speak(x.say, () => sayHeld());
+}
+function sayHeld() {
+  const x = heldCaption;
+  releaseHold();
+  if (!x || !readAloudOn()) return;
+  lastSaid = x.main;
+  lastScene = x.scene;
+  speak(x.say, () => sayHeld());
+}
+// Pause stops the voice; Play, at 6–8, says the caption again (the template's play and pause)
+function speechPaused() {
+  clearTimeout(quietTimer);
+  if (speaking || heldCaption) stopSpeaking();
+}
+function speechPlayed() {
+  if (!readAloudOn()) return;
+  if (young()) {
+    lastSaid = "";
+    const el = document.getElementById(`caption-${readScreen}`);
+    if (el && el.dataset.html) { const x = captionSay({ text: captionMain(el), part: "" }); lastSaid = x.main; lastScene = x.scene; speak(x.say, () => sayHeld()); }
+  }
+}
+// the main sentences of a caption on the page, without its scene line and its other lines
+const captionMain = (el) => el.dataset.html.replace(/<span class="part">[\s\S]*?<\/span>/g, "");
+// a screen tapped in Side by side is the one read
+document.addEventListener("click", (e) => { const fig = e.target.closest && e.target.closest(".screen-fig"); if (fig) readScreen = fig.id === "fig-1" ? 1 : 0; });
+
+// ---- "Read this", and the keys at 6–8
+
+function readBox(el) {
+  const box = el.closest(".age-box p, .who-decided, .still-box, .age-story, .lead, p, li, details") || el.parentElement;
+  speak(sayText(box ? box.innerHTML : ""));
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest && e.target.closest("[data-read-box], [data-read-text]");
+  if (!b) return;
+  if (b.hasAttribute("data-read-text")) speak(sayAs(b.getAttribute("data-read-text")));
+  else readBox(b);
+});
+// At 6–8: W opens Who decided for the character shown, R reads the panel's first sentence.
+document.addEventListener("keydown", (e) => {
+  if (!young() || e.ctrlKey || e.metaKey || e.altKey || (e.target.closest && e.target.closest("input, textarea, select"))) return;
+  const side = document.getElementById("side");
+  if (e.key === "w" || e.key === "W") { const d = side.querySelector(".who-decided"); if (d) { d.open = true; d.querySelector("summary").focus(); } }
+  else if (e.key === "r" || e.key === "R") { const lead = side.querySelector(".lead, .age-box p, .age-story"); if (lead && speechSupported()) speak(sayText(lead.innerHTML)); }
+});
+
+// ---- Talk to Ani
+
+// the browser's recognizer, where there is one (never in the claude.ai copy, whose frame
+// has no microphone)
+const recognizer = () => (ARTIFACT_BUILD ? null : window.SpeechRecognition || window.webkitSpeechRecognition || null);
+const talkOn = () => simpleAge() && !!SPEECH.talk && !!recognizer();
+// whether this browser turns speech into words on this computer (Chrome's on-device
+// recognition, where it offers it and has the language installed): asked once, with a
+// time limit, and only after the grown-up's opt-in
+let onDevice = null;
+async function checkOnDevice() {
+  const R0 = recognizer();
+  if (!R0 || typeof R0.available !== "function") { onDevice = false; return false; }
+  try {
+    const got = await Promise.race([R0.available({ langs: ["en-US"], processLocally: true }), new Promise((r) => setTimeout(() => r("timeout"), 3000))]);
+    onDevice = got === "available";
+  } catch { onDevice = false; }
+  return onDevice;
+}
+const TALK_ERRORS = {
+  "not-allowed": "The microphone is blocked. A grown-up can allow it in the browser's settings.",
+  "service-not-allowed": "The microphone is blocked. A grown-up can allow it in the browser's settings.",
+  network: "Talking needs the internet in this browser.",
+  "no-speech": "Ani didn't hear anything. Try again, a bit closer.",
+  "audio-capture": "No microphone was found on this computer.",
+};
+let listening = null;
+// Listen once, into a box: words in progress shown in gray beside it, the final words put in
+// at the cursor; nothing is sent. done(words) for a command instead of a box.
+function listen(button, { box = null, done = null } = {}) {
+  if (listening) { const was = listening; listening = null; try { was.rec.stop(); } catch { /* stopped */ } if (was.button === button) return; }
+  const Rec = recognizer();
+  if (!Rec || !SPEECH.talk) return;
+  const status = button.parentElement.querySelector(".mic-status") || button.insertAdjacentElement("afterend", Object.assign(document.createElement("span"), { className: "mic-status" }));
+  const rec = new Rec();
+  rec.lang = "en-US";
+  rec.continuous = false;
+  rec.interimResults = true;
+  if (onDevice) try { rec.processLocally = true; } catch { /* not offered */ }
+  let heard = "", started = false;
+  const me = { rec, button };
+  listening = me;
+  const end = (msg = "") => {
+    clearTimeout(guard);
+    button.setAttribute("aria-pressed", "false");
+    button.classList.remove("on");
+    status.textContent = msg;
+    status.classList.remove("interim");
+    if (listening === me) listening = null;
+  };
+  // a microphone that never starts (a permission prompt left open) can't hang the button
+  const guard = setTimeout(() => { if (!started) { try { rec.abort(); } catch { /* gone */ } end("The microphone didn't start. Try again."); } }, 10000);
+  rec.onstart = () => { started = true; };
+  rec.onaudiostart = () => { started = true; };
+  rec.onresult = (e) => {
+    started = true;
+    let interim = "";
+    for (let k = e.resultIndex; k < e.results.length; k++) {
+      const res = e.results[k];
+      if (res.isFinal) heard += res[0].transcript;
+      else interim += res[0].transcript;
+    }
+    status.textContent = interim ? interim : "";
+    status.classList.toggle("interim", !!interim);
+  };
+  rec.onerror = (e) => end(TALK_ERRORS[e.error] || `Ani couldn't hear that (${e.error}).`);
+  rec.onend = () => {
+    const words = heard.trim();
+    if (listening === me || status.textContent === "Listening…" || status.classList.contains("interim")) end("");
+    if (!words) return;
+    if (box) {
+      const at = typeof box.selectionStart === "number" ? box.selectionStart : box.value.length;
+      const before = box.value.slice(0, at), after = box.value.slice(box.selectionEnd ?? at);
+      const join = before && !/\s$/.test(before) ? " " : "";
+      box.value = before + join + words + after;
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+      box.focus();
+    }
+    if (done) done(words);
+  };
+  button.setAttribute("aria-pressed", "true");
+  button.classList.add("on");
+  status.textContent = "Listening…";
+  try { rec.start(); } catch (err) { end(`Ani couldn't start listening (${err.message || err}).`); }
+}
+// The boxes that take words: a new story, "Tell Ani what's wrong", and Teach Ani's reasons
+const MIC_BOXES = "#tell-story, #crq-words, input[data-tf=\"because\"]";
+const micButton = (label) => `<button type="button" class="btn mic" aria-pressed="false" title="Talk instead of typing: press, speak, and press again (or stop speaking)"><span class="mic-dot" aria-hidden="true"></span>${label}</button>`;
+function addMics(root = document) {
+  if (!talkOn()) return;
+  root.querySelectorAll(MIC_BOXES).forEach((box) => {
+    if (box.dataset.mic) return;
+    box.dataset.mic = "1";
+    const wrap = document.createElement("span");
+    wrap.className = "mic-row";
+    wrap.innerHTML = micButton("Talk");
+    box.insertAdjacentElement("afterend", wrap);
+    wrap.querySelector("button").addEventListener("click", (e) => listen(e.currentTarget, { box }));
+  });
+}
+new MutationObserver(() => addMics()).observe(document.getElementById("side"), { childList: true, subtree: true });
+// Spoken commands at 6–8 (a microphone beside Play): matched on the words by this list,
+// never by a language model; anything else is said back with what to try.
+const TALK_COMMANDS = [
+  [/\b(play|start|go)\b/, () => { if (!state.playing) play(); }],
+  [/\b(stop|pause|wait)\b/, () => pause()],
+  [/\bwhy\b/, () => { const c = state.selected && state.selected.char; const d = document.querySelector("#side .who-decided"); if (c && d) d.open = true; else { const chip = document.querySelector("#legend [data-chip]"); if (chip) chip.click(); } }],
+  [/\bnext( scene)?\b/, () => { if (state.scene < sceneCount() - 1) goScene(state.scene + 1, 0); }],
+  [/\b(go )?back\b/, () => { goScene(Math.max(0, state.scene - 1), 0); }],
+  [/\b(read|say) it again\b|\bagain\b/, () => { lastSaid = ""; speechPlayed(); }],
+];
+function heardCommand(words) {
+  const said = words.toLowerCase();
+  const hit = TALK_COMMANDS.find(([re]) => re.test(said));
+  const note = document.getElementById("talk-heard");
+  if (hit) { if (note) note.textContent = ""; hit[1](); return true; }
+  if (note) note.textContent = `Ani heard: “${words}”. Try “play” or “why”.`;
+  return false;
+}
+
+// ---- the controls and the settings
+
+const DICTATION = "This browser can't turn speech into words. You can type, or use the computer's own dictation: on Windows press Windows+H; on a Mac press the Fn key twice; on an iPad, use the microphone on the keyboard.";
+function speechSettings() {
+  const el = document.getElementById("speech-settings");
+  if (!el) return;
+  const body = el.querySelector(".body");
+  if (!speechSupported() && !recognizer()) { body.innerHTML = `<p class="note">This browser can't read aloud. ${esc(DICTATION)}</p>`; return; }
+  const voices = speechSupported() ? window.speechSynthesis.getVoices().filter((v) => /^en\b/i.test(v.lang)).sort((a, b) => (/en-US/i.test(b.lang) - /en-US/i.test(a.lang))) : [];
+  const current = speechVoice();
+  const Rec = recognizer();
+  const local = onDevice === true;
+  body.innerHTML = `${speechSupported() ? `
+    <p><label>Voice <select id="speech-voice">${voices.map((v) => `<option value="${esc(v.voiceURI)}"${current && v.voiceURI === current.voiceURI ? " selected" : ""}>${esc(v.name)}${v.localService ? " (works offline)" : ""}</option>`).join("") || "<option value=\"\">The browser's voice</option>"}</select></label> <button type="button" class="btn" id="speech-try">Try</button></p>
+    <p><label>How fast <input type="range" id="speech-rate" min="0.6" max="1.4" step="0.05" value="${speechRate()}"></label></p>
+    <p class="seg" role="group" aria-label="While Ani reads aloud"><button type="button" data-speech-wait="1" aria-pressed="${waitForVoice()}">Wait for the voice</button><button type="button" data-speech-wait="0" aria-pressed="${!waitForVoice()}">Keep going</button></p>
+    <p class="note">If you use a screen reader, you may prefer Read aloud off.</p>` : ""}
+    ${Rec ? `<p><label class="check talk-optin"><input type="checkbox" id="speech-talk"${SPEECH.talk ? " checked" : ""}> <span><b>Talk to Ani with your voice.</b> ${local ? "This browser turns it into words on this computer; nothing is sent." : "When you press the microphone, your browser sends what you say to the company that makes it (Google for Chrome, Microsoft for Edge, Apple for Safari) to turn it into words. The page keeps only the words, in the box, and no recording. Nothing is sent until the microphone is pressed."}</span></label></p>
+    <p class="note">For a grown-up to decide, on this computer. A link can't turn it on.${SPEECH.talk && SPEECH.talkSince ? ` Turned on ${esc(String(SPEECH.talkSince).slice(0, 10))}.` : ""}</p>` : `<p class="note">${esc(DICTATION)}</p>`}`;
+  const sel = body.querySelector("#speech-voice");
+  if (sel) sel.addEventListener("change", () => { SPEECH.voice = sel.value; saveSpeech(); });
+  const tryIt = body.querySelector("#speech-try");
+  if (tryIt) tryIt.addEventListener("click", () => speak("Hello. I am Ani. Press Play, and I will read the film to you."));
+  const rate = body.querySelector("#speech-rate");
+  if (rate) rate.addEventListener("change", () => { SPEECH.rate = Number(rate.value); saveSpeech(); });
+  body.querySelectorAll("[data-speech-wait]").forEach((b) => b.addEventListener("click", () => { SPEECH.wait = b.dataset.speechWait === "1"; saveSpeech(); speechSettings(); }));
+  const talk = body.querySelector("#speech-talk");
+  if (talk) talk.addEventListener("change", async () => {
+    SPEECH.talk = talk.checked;
+    SPEECH.talkSince = talk.checked ? new Date().toISOString() : null;
+    saveSpeech();
+    if (talk.checked) await checkOnDevice();
+    applySpeech();
+  });
+}
+// The Read aloud switch and the command microphone beside Play, the speech settings in their
+// place (For grown-ups at 6–8, beside the controls at 9–11), the captions' live region (off
+// while Ani reads aloud, so a screen reader doesn't say each caption twice), and the
+// microphones by the boxes.
+function applySpeech() {
+  const btn = document.getElementById("read-aloud");
+  if (btn) { btn.hidden = !speechSupported(); btn.setAttribute("aria-pressed", String(!!readAloudOn())); }
+  const cmd = document.getElementById("talk-cmd");
+  if (cmd) cmd.hidden = !(talkOn() && young());
+  const el = document.getElementById("speech-settings");
+  const home = document.getElementById(young() ? "grownups-speech" : "speech-home");
+  if (el && home && el.parentElement !== home) home.append(el);
+  for (const c of document.querySelectorAll(".caption")) c.setAttribute("aria-live", readAloudOn() ? "off" : "polite");
+  if (!readAloudOn()) stopSpeaking();
+  speechSettings();
+  if (!talkOn()) document.querySelectorAll(".mic-row").forEach((x) => { const box = x.previousElementSibling; if (box) delete box.dataset.mic; x.remove(); });
+  addMics();
+}
+document.getElementById("read-aloud").addEventListener("click", () => {
+  SPEECH.read = !readAloudOn();
+  saveSpeech();
+  applySpeech();
+  if (readAloudOn()) { lastSaid = ""; lastScene = null; const el = document.getElementById(`caption-${readScreen}`); if (el && el.dataset.html) captionHeard(readScreen, { text: captionMain(el), part: "" }); }
+});
+document.getElementById("talk-cmd").addEventListener("click", (e) => listen(e.currentTarget, { done: heardCommand }));
+if (speechSupported() && typeof window.speechSynthesis.addEventListener === "function") window.speechSynthesis.addEventListener("voiceschanged", () => speechSettings());
+const onSpeechAge = () => { lastSaid = ""; lastScene = null; applySpeech(); };
+if (SPEECH.talk) checkOnDevice().then(() => speechSettings());
+applySpeech();
+// (app/film/ages.js's setAge calls this when the age changes)
+function onAgeChanged() { onSpeechAge(); }
 
 // ---------------------------------------------------------------- the JSON way
 
@@ -12414,7 +13132,7 @@ function critBox(run, { compact = false } = {}) {
     const was = record.find((x) => sameCrit(x, c));
     const state = !was ? "new" : sameItem(was, c) ? "heeded" : "changed";
     const k = critAction(run, () => { setPending(run, AniCritic.removeCriticism(pendingOf(run), c.id)); renderSide(); });
-    rows.push(`<li class="crit-${state}">${critWords(run, c)} <span class="crit-state">${state === "new" ? "not yet heeded" : state === "changed" ? "changed, not yet heeded" : "heeded in this film"}</span> <button type="button" class="linkish" data-crit-act="${k}">Take it back</button></li>`);
+    rows.push(`<li class="crit-${state}">${critWords(run, c)} <span class="crit-state">${simpleAge() ? (state === "heeded" ? "Ani made it again with that." : "Ani hasn't made it again yet.") : state === "new" ? "not yet heeded" : state === "changed" ? "changed, not yet heeded" : "heeded in this film"}</span> <button type="button" class="linkish" data-crit-act="${k}">Take it back</button></li>`);
   }
   for (const c of record.filter((x) => !pending.some((y) => sameCrit(x, y)))) {
     const k = critAction(run, () => { const p = pendingOf(run); setPending(run, [...p, c].sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)))); renderSide(); });
@@ -13405,7 +14123,7 @@ function formBox() {
     ${needsNote(teachExtensions())}
     <div id="teach-form-check">${formCheck(form, pieces, refused, warned)}</div>
     <details class="teach-lisp"><summary>See it as Ani reads it</summary><div class="body"><p class="note">The Lisp your notebook becomes with this, in Ken's own notation (his DSCRP, RELATE, CONVEY and EMOTE). The grey lines say what each part is; your reason is kept on each “;;yours” line, and the part this form adds is marked.</p><pre class="lisp teach-lisp-text" id="teach-form-lisp">${rec ? lispPreview(rec, pieces) : ""}</pre></div></details>
-    <p class="note teach-legit">${esc(AniTeach.legitimacyQuestion(formWord(form)))}</p>
+    <p class="note teach-legit">${simpleAge() ? "Is this something everyone knows, that Ani was missing? (Ken's rule: only add obvious information that was lacking.)" : esc(AniTeach.legitimacyQuestion(formWord(form)))}</p>
     <div class="actions"><button type="button" class="btn primary" data-teach-add>Add to Ani</button><button type="button" class="linkish" data-teach-cancel>Cancel</button></div></div>`;
 }
 // What the page's own checks say of the form, as it is filled in: the reason, first.
@@ -13458,7 +14176,8 @@ function teachPanel() {
   const base = teachBase();
   const ext = runExtensions(base);
   const busy = !!(RUNS[1] && RUNS[1].status && RUNS[1].status.running);
-  const kinds = TEACH_KINDS.map(([k, label]) => `<button type="button" class="teach-kind" data-teach-kind="${k}"${teachUi.form && teachUi.form.kind === k ? ' aria-pressed="true"' : ""}>${esc(label)}</button>`).join("");
+  const kindButtons = TEACH_KINDS.map(([k, label]) => `<button type="button" class="teach-kind" data-teach-kind="${k}"${teachUi.form && teachUi.form.kind === k ? ' aria-pressed="true"' : ""}>${esc(label)}</button>`);
+  const kinds = simpleAge() ? `${kindButtons.slice(0, 2).join("")}<details class="more-kinds"${teachUi.form && !TEACH_KINDS.slice(0, 2).some(([k]) => k === teachUi.form.kind) ? " open" : ""}><summary>More kinds</summary>${kindButtons.slice(2).join("")}</details>` : kindButtons.join("");
   const book = rec ? `<div class="teach-book">
       <div class="teach-book-head"><b>${esc(rec.title)}</b> <span class="note">${rec.pieces.length} piece${rec.pieces.length === 1 ? "" : "s"}${rec.used ? ", used in your films" : ", not used now"}</span></div>
       ${rec.pieces.length ? `<ol class="teach-pieces">${rec.pieces.map((p) => pieceLine(rec, p)).join("")}</ol>` : `<p class="note">Nothing in it yet.</p>`}

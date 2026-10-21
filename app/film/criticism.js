@@ -440,7 +440,7 @@ function critBox(run, { compact = false } = {}) {
     const was = record.find((x) => sameCrit(x, c));
     const state = !was ? "new" : sameItem(was, c) ? "heeded" : "changed";
     const k = critAction(run, () => { setPending(run, AniCritic.removeCriticism(pendingOf(run), c.id)); renderSide(); });
-    rows.push(`<li class="crit-${state}">${critWords(run, c)} <span class="crit-state">${state === "new" ? "not yet heeded" : state === "changed" ? "changed, not yet heeded" : "heeded in this film"}</span> <button type="button" class="linkish" data-crit-act="${k}">Take it back</button></li>`);
+    rows.push(`<li class="crit-${state}">${critWords(run, c)} <span class="crit-state">${simpleAge() ? (state === "heeded" ? "Ani made it again with that." : "Ani hasn't made it again yet.") : state === "new" ? "not yet heeded" : state === "changed" ? "changed, not yet heeded" : "heeded in this film"}</span> <button type="button" class="linkish" data-crit-act="${k}">Take it back</button></li>`);
   }
   for (const c of record.filter((x) => !pending.some((y) => sameCrit(x, y)))) {
     const k = critAction(run, () => { const p = pendingOf(run); setPending(run, [...p, c].sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)))); renderSide(); });
