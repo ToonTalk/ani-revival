@@ -189,7 +189,7 @@ import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
 import { storyWithoutClashes, makeFilm, pass1, checkKnowledge } from "../src/pipeline.js";
-import { withPageScript, PAGE_SCRIPT_ID } from "./build-film-app.mjs";
+import { withPageScript, PAGE_SCRIPT_ID, CHECK_HOOK_NAMES } from "./build-film-app.mjs";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3,
 // SEEN since his testing of 15 October, and FIT since his decisions of 16 and 17 October)
@@ -328,7 +328,8 @@ const STORY_FOR_PROMPTS = "A timid goat is afraid of a cruel troll, who chases h
 const NANO_TORTOISE = readFileSync("test/untidy/nano-tortoise.lisp", "utf8");
 const EXPECTED_NANO_LAST_FRAMES = [223, 211, 65, 16, 16, 112];
 // a page with its functions on window.__check, as tools/render-film-video.mjs hands them
-const CHECKED = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema"];
+// (the names are tools/build-film-app.mjs's, which the claude.ai copy's minifying keeps)
+const CHECKED = CHECK_HOOK_NAMES;
 // (the claude.ai copy's page script is packed, tools/build-film-app.mjs PAGE_LOADER: the
 // hook goes at its end, unpacked and packed again)
 const hooked = (html) => {

@@ -33,8 +33,10 @@ loads them as the page's worker does.
 It stays under claude.ai's limits: the build refuses a page over 950,000 bytes or a
 script over 800 KB. To keep well under, the revival's own Lisp goes in its bundle
 without comments (every line kept, and checked to read back as the same forms on the
-same lines; Ken's files go as they are), and the page's script goes without comments,
-gzipped and written as text, as the page's data is, in a block of its own that a small
+same lines; Ken's files go as they are), and the page's script goes minified (terser,
+a dev dependency only: its names shortened, but for those a check hooks by name, its
+comments and spaces left out; Ani's runtime with its local names shortened and nothing
+else; the style sheet without comments), gzipped and written as text, as the page's data is, in a block of its own that a small
 module script unpacks and puts on the page as a module script of its own. Nothing on
 the page needs `eval`: the in-page runner puts Ani's runtime on the page as a classic
 script in the same way, so the copy starts, and Ani runs, where a page may run inline
@@ -43,3 +45,7 @@ serves it so). Before 15 October the page script ran as the body of an async fun
 made with `new Function`, and the copy showed nothing at all where `eval` was refused
 (the review of stage 7, M3). Built on 15 October 2026, with SEEN and Ken's testing's
 changes (why they act as they do, the filming's progress), it is about 767 KB.
+Since 21 October 2026 it is minified (Ken: "The code won't be viewed since the nice code
+will be hosted on GitHub Pages"), with a note at its top pointing to the readable page,
+https://toontalk.github.io/ani/, and its code, https://github.com/ToonTalk/ani: 910,802
+bytes, where without minifying it had reached 953,064, over the limit.

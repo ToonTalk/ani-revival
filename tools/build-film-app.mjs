@@ -37,8 +37,11 @@
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
 //     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
 //     artifact refuses workers), and the code pages are linked at --site, or left out.
-//     To keep under claude.ai's limit, its page script goes without comments and
-//     indentation, gzipped and written as text, which a small module script (PAGE_LOADER)
+//     To keep under claude.ai's limit, its page script goes minified (terser, a dev
+//     dependency: names shortened, comments and spaces left out; minifyChecked), and
+//     Ani's runtime with its local names shortened (minifyRuntime), and its style sheet
+//     without comments (minifyCss), with a note at the top that points to the readable
+//     page (COMPRESSED_NOTE); the script gzipped and written as text, which a small module script (PAGE_LOADER)
 //     unpacks and runs as a module script of its own (so that it needs no eval), and the
 //     revival's own Lisp in its bundle without comments, every line kept
 //     (stripReviveComments); Ken's files go as they are.
@@ -59,6 +62,7 @@ import { bundleModules } from "./bundle-js.mjs";
 import { assembleBundle } from "./build-ani-bundle.mjs";
 import { fullPage } from "./page-shell.mjs";
 import { stripComments, stringsOf } from "./strip-js-comments.mjs";
+import { minify_sync } from "terser";
 import { stripLispComments, differentForms } from "./strip-lisp-comments.mjs";
 import { knowIndex } from "./know-index.mjs";
 
@@ -277,6 +281,55 @@ function stripChecked(js, what, ext) {
   rmSync(tmp, { force: true });
   if (checked.status !== 0) throw new Error(`${what} doesn't read as JavaScript without its comments: ${(checked.stderr || "").split("\n").slice(0, 5).join(" ")}`);
   return stripped;
+}
+
+// The claude.ai copy's page script, minified (terser, a build tool only: package.json's
+// devDependencies): its comments and spaces left out, its code compressed and its names
+// shortened, the top-level ones too, but for CHECK_HOOK_NAMES, which a check reaches by name
+// (tools/check-film-app.mjs hooks window.__check onto the
+// script's end); nothing at the top level is dropped (compress toplevel false), so each of
+// them is there to hook. Nothing else on the page reads a name of the script's: no inline
+// handlers, no window[name], no Function.name. The result must read as JavaScript (node
+// --check, as a module), or the build stops. The readable page is the site's
+// (https://toontalk.github.io/ani/), which isn't minified.
+export const CHECK_HOOK_NAMES = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema"];
+function minifyChecked(js, what) {
+  const out = minify_sync(js, { module: true, ecma: 2022, compress: { passes: 2, module: false, toplevel: false }, mangle: { module: true, toplevel: true, reserved: CHECK_HOOK_NAMES }, format: { comments: false } });
+  if (!out.code) throw new Error(`terser gave nothing for ${what}`);
+  const tmp = join(tmpdir(), `ani-minified-${process.pid}.mjs`);
+  writeFileSync(tmp, out.code);
+  const checked = spawnSync(process.execPath, ["--check", tmp], { encoding: "utf8" });
+  rmSync(tmp, { force: true });
+  if (checked.status !== 0) throw new Error(`${what} doesn't read as JavaScript minified: ${(checked.stderr || "").split("\n").slice(0, 5).join(" ")}`);
+  return out.code;
+}
+
+// What the claude.ai copy says of itself, at its top and its loader's: that it is compressed,
+// and where the readable page and its code are (tools/build-site.mjs SITE_URL; the site's
+// repository, public).
+const COMPRESSED_NOTE = "A compressed build of Ani's Cinderella and Beyond, minified to fit in a claude.ai artifact. The readable page is at https://toontalk.github.io/ani/ and its code at https://github.com/ToonTalk/ani";
+// The claude.ai copy's style sheet without its comments, and the white space beside { } ; and
+// at a line's ends (none that a selector or a value needs); its strings must come out as
+// written, or the build stops.
+function minifyCss(css) {
+  const strings = (t) => t.match(/"[^"\n]*"|'[^'\n]*'/g) || [];
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out = bare.replace(/\s*\n\s*/g, "\n").replace(/\s*([{};])\s*/g, "$1").replace(/\n/g, " ").trim();
+  if (JSON.stringify(strings(bare)) !== JSON.stringify(strings(out))) throw new Error("minifying the claude.ai copy's style sheet changed a string");
+  return out;
+}
+// Ani's runtime in the claude.ai copy, minified too, more carefully: its local names
+// shortened and nothing else (no compression of the code, and every function's and class's
+// name kept, which the Lisp's messages may print), as a classic script whose only global is
+// self.AniRuntime, read by its properties' names (TYPED, TEACH_JOB, teachFromRuntime).
+function minifyRuntime(js) {
+  const out = minify_sync(js, { ecma: 2022, compress: false, mangle: true, keep_fnames: true, keep_classnames: true, format: { comments: false } });
+  const tmp = join(tmpdir(), `ani-runtime-minified-${process.pid}.cjs`);
+  writeFileSync(tmp, out.code);
+  const checked = spawnSync(process.execPath, ["--check", tmp], { encoding: "utf8" });
+  rmSync(tmp, { force: true });
+  if (checked.status !== 0 || !/self\.AniRuntime\s*=/.test(out.code)) throw new Error("Ani's runtime doesn't read as JavaScript minified");
+  return out.code;
 }
 
 // The claude.ai copy's page script, packed (pack93 of its gzip, as the data blocks are),
@@ -697,7 +750,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const bundle = assembleBundle(fs, JSON.parse(readFileSync(`${root}/app/data/ani-bundle-files.json`, "utf8")));
   sizes.lispComments = claudeArtifact ? stripReviveComments(bundle) : 0;
   const template = readFileSync(`${root}/app/film.template.html`, "utf8");
-  const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
+  const blocks = { "/*FILM-DATA*/": packed(JSON.stringify(data)), "/*ANI-RUNTIME*/": packed(claudeArtifact ? minifyRuntime(runtime) : runtime), "/*ANI-BUNDLE*/": packed(JSON.stringify(bundle)) };
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
@@ -722,20 +775,20 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     const b = content.indexOf("</script>", a);
     if (a < open.length || b < 0 || content.indexOf(open, a) >= 0) throw new Error("the page should have one module script");
     const js = content.slice(a, b);
-    const stripped = stripChecked(js, "the claude.ai copy's script", ".mjs");
+    const stripped = minifyChecked(js, "the claude.ai copy's script");
     sizes.comments = js.length - stripped.length;
     // and it goes gzipped and written as text, as the page's data does, in a block of its
     // own (PAGE_SCRIPT_ID), which a small module script (PAGE_LOADER) unpacks and puts on
-    // the page as a module script of its own; stripChecked has read it as a module.
+    // the page as a module script of its own; minifyChecked has read it as a module.
     const packedScript = packText(stripped);
-    const loader = stripChecked(PAGE_LOADER, "the claude.ai copy's loader", ".mjs");
+    const loader = `\n/* ${COMPRESSED_NOTE} */\n` + stripChecked(PAGE_LOADER, "the claude.ai copy's loader", ".mjs");
     sizes.script = packedScript.length;
     content = content.slice(0, a - open.length) + `<script type="text/plain" id="${PAGE_SCRIPT_ID}">${packedScript}</script>\n` + open + loader + content.slice(b);
     // and its style sheet, packed in a block of its own (PAGE_STYLE_ID), which the loader puts
     // on the page first; the page is hidden until it has
     const so = content.indexOf("<style>"), sc = content.indexOf("</style>", so);
     if (so < 0 || sc < 0 || content.indexOf("<style>", so + 1) >= 0) throw new Error("the page should have one style sheet");
-    const packedStyle = packText(content.slice(so + "<style>".length, sc));
+    const packedStyle = packText(minifyCss(content.slice(so + "<style>".length, sc)));
     sizes.style = packedStyle.length;
     content = content.slice(0, so) + `<style>html:not(.styled) body { visibility: hidden; }</style>\n<script type="text/plain" id="${PAGE_STYLE_ID}">${packedStyle}</script>` + content.slice(sc + "</style>".length);
   }
@@ -746,8 +799,9 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     writeFileSync(contentOnly, content);
     return contentOnly;
   }
-  const page = fullPage(content);
+  let page = fullPage(content);
   if (claudeArtifact) {
+    page = page.replace(/^<!doctype html>\n/, (m) => `${m}<!-- ${COMPRESSED_NOTE} -->\n`);
     // claude.ai refused pages over about 950 KB, and drops an inline script over about 1.2 MB
     const scripts = [...page.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => Buffer.byteLength(m[1]));
     if (Buffer.byteLength(page) > 950000) throw new Error(`the claude.ai copy is ${Math.round(Buffer.byteLength(page) / 1024)} KB, over claude.ai's limit`);
@@ -765,5 +819,5 @@ if (process.argv[1]?.endsWith("build-film-app.mjs")) {
   const arg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
   const out = buildFilmApp(".", { contentOnly: arg("--content-only"), claudeArtifact: arg("--claude-artifact"), site: arg("--site") || "" });
   const kb = (n) => `${Math.round(n / 1024)} KB`;
-  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} of comments, indentation and spaces left out, and the script packed in ${kb(sizes.script)}, the style sheet in ${kb(sizes.style)}` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
+  console.log(`wrote ${out} (${readFileSync(out).length} bytes, ${kb(readFileSync(out).length)}: film data ${kb(sizes.data)}, Ani's runtime ${kb(sizes.runtime)}, Ani's files ${kb(sizes.bundle)}${sizes.comments ? `; ${kb(sizes.comments)} taken out by minifying the script, and the script packed in ${kb(sizes.script)}, the style sheet in ${kb(sizes.style)}` : ""}${sizes.lispComments ? `; the revival's Lisp without ${kb(sizes.lispComments)} of comments, every line kept and read back alike` : ""})`);
 }
