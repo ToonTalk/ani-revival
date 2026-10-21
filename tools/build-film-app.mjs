@@ -36,8 +36,9 @@
 // Usage: node tools/build-film-app.mjs [--content-only out.html] [--claude-artifact out.html [--site URL]]
 //   --content-only writes the page without its document skeleton (for publishing).
 //   --claude-artifact writes the copy for a claude.ai chat artifact: its models are only
-//     Claude through claude.ai and Gemini Nano, Ani runs on the page itself (a chat
-//     artifact refuses workers), and the code pages are linked at --site, or left out.
+//     Claude through claude.ai and Gemini Nano, Ani runs in a worker where the page may
+//     start one and otherwise on the page itself, a slice at a time (a chat artifact
+//     refuses workers), and the code pages are linked at --site, or left out.
 //     To keep under claude.ai's limit, its page script goes minified (terser, a dev
 //     dependency: names shortened, comments and spaces left out; minifyChecked), and
 //     Ani's runtime with its local names shortened (minifyRuntime), and its style sheet
@@ -293,7 +294,7 @@ function stripChecked(js, what, ext) {
 // handlers, no window[name], no Function.name. The result must read as JavaScript (node
 // --check, as a module), or the build stops. The readable page is the site's
 // (https://toontalk.github.io/ani/), which isn't minified.
-export const CHECK_HOOK_NAMES = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema"];
+export const CHECK_HOOK_NAMES = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema", "workerWorks"];
 function minifyChecked(js, what) {
   const out = minify_sync(js, { module: true, ecma: 2022, compress: { passes: 2, module: false, toplevel: false }, mangle: { module: true, toplevel: true, reserved: CHECK_HOOK_NAMES }, format: { comments: false } });
   if (!out.code) throw new Error(`terser gave nothing for ${what}`);

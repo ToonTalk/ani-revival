@@ -299,14 +299,28 @@ export const withTeach = (extensions = []) => (extensions.includes("teach") ? ex
 // then has held, each choice held that would have come out differently, { choicePoint,
 // heldAt, wouldHaveChosen }, as freshLook's. save: false leaves KEN;CP as it was (the
 // full recompute a criticism is compared with).
-export function pass1(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null, knowledge = null, hold = null, save = true } = {}) {
+export function pass1(fs, options = {}) {
+  const steps = pass1Steps(fs, options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+// The same, with slice, pausing (yield "slice") between its parts (init, (z), each
+// extension's afterPass1), as makeFilmSteps's slice asks; without, nowhere.
+export function* pass1Steps(fs, { cpVersion = 30, backtrace = false, extensions = [], setup = null, criticism = null, knowledge = null, hold = null, save = true, slice = null } = {}) {
   const L = boot(fs, { backtrace, extensions: hold ? withCritic(extensions) : extensions, criticism, knowledge });
   if (setup) setup(L);
   L.evalString("(load '|ken;datest >|)");
+  if (slice) yield "slice";
   L.evalString("(init nil)");
   if (hold) L.evalString(`(hold-all-but-choice-points '(${hold.join(" ")}) '((ken) cp >))`);
+  if (slice) yield "slice";
   L.evalString("(z)");
-  for (const e of extensionsFor(extensions)) if (e.afterPass1) L.evalString(e.afterPass1);
+  for (const e of extensionsFor(extensions)) if (e.afterPass1) {
+    if (slice) yield "slice";
+    L.evalString(e.afterPass1);
+  }
   let held = null;
   if (hold) {
     held = L.toArray(L.evalString(":change-held-against")).reverse().map((x) => {
@@ -1027,7 +1041,69 @@ export function recorder(L, { onClick = null, cast = CHARACTERS, looks = false }
 // setup, if given, is called with the Lisp once it has booted, before ANINIT loads, as
 // pass 1's and pass 2's are (tools/check-slips.mjs makes SLIPS's corrections one at a
 // time with it).
-export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null, criticism = null, knowledge = null } = {}) {
+// ANINIT's (m n), (ask ,movie-name film the next ,n ticks), a slice at a time: MOVIE's
+// method (movie.153:18-45) as it is, but with its do loop's variables kept between
+// slices in revive-slice-... and the loop left, between two ticks, when the slice is
+// over (REVIVE-SLICE-OVER?, filmSteps's). It is asked again until revive-slice-done.
+// Each tick runs with what the method binds bound as the method binds it (:self, length,
+// screen-mode and the do loop's), so Director's run is the method's.
+const SLICED_FILMING = `(progn
+ (setq revive-slice-started nil revive-slice-done nil)
+ (define-method (revive film the next ?length ticks a slice at a time) movie
+  (cond ((null revive-slice-started)
+	 (setq revive-slice-started t)
+	 (ask movie set your current-movie to ,(name-of :self))
+	 (setq revive-slice-screen-mode (ask screen recall your mode))
+	 (ask screen set your mode to ,(ask :self recall your screen-mode))
+	 (setq revive-slice-time 0
+	       revive-slice-frame-number (ask :self recall your frame-count)
+	       revive-slice-universe (ask :self recall your universe)
+	       revive-slice-new-frame-handler (ask :self recall your new-frame-handler)
+	       revive-slice-ticks-per-frame (ask :self recall your ticks-per-frame)
+	       revive-slice-frames-per-second (ask :self recall your frames-per-second)
+	       revive-slice-stopped? nil)))
+  (let ((screen-mode revive-slice-screen-mode))
+       (do ((time revive-slice-time (1+ time))
+	    (frame-number revive-slice-frame-number)
+	    (universe revive-slice-universe)
+	    (new-frame-handler revive-slice-new-frame-handler)
+	    (:ticks-per-frame revive-slice-ticks-per-frame)
+	    (:frames-per-second revive-slice-frames-per-second)
+	    (stopped? revive-slice-stopped? (ask :self recall your stopped?)))
+	   ((cond ((or stopped? (> time length)
+		       (null (ask ,universe recall your actors-to-run-next)))
+		   (setq revive-slice-done t)
+		   (ask screen set your mode to ,screen-mode)
+		   t)
+		  ((revive-slice-over?)
+		   (setq revive-slice-time time
+			 revive-slice-frame-number frame-number
+			 revive-slice-stopped? stopped?)
+		   t))
+	    frame-number)
+	   (cond ((= (\\ time :ticks-per-frame) 0)
+		  (put-in-wholine frame-number)
+		  (compile-using frame-handler
+				 (ask ,new-frame-handler
+				      just made frame number ,frame-number for ,:self))
+		  (ask :self set your frame-count to ,frame-number)
+		  (setq frame-number (1+ frame-number))))
+	   (compile-using universe (ask ,universe tick))))))`;
+export function film(fs, scene, options = {}) {
+  const steps = filmSteps(fs, scene, options);
+  for (;;) {
+    const r = steps.next();
+    if (r.done) return r.value;
+  }
+}
+// The same, a slice at a time: a generator that, with slice (milliseconds), pauses
+// (yield "slice") about that often while Director films, so that a page running Ani on
+// itself (the claude.ai copy) can answer between slices. Without slice it pauses
+// nowhere, and films as film does. A slice is whole ticks: Director films as ANINIT's
+// m does, (film the next n ticks) (movie.153:18-45), its do loop run by
+// SLICED_FILMING a slice at a time, with the same variables bound to the same values
+// at each tick, so that the film is the same, frame for frame.
+export function* filmSteps(fs, scene, { fps = 4, frames = 1000, backtrace = false, onClick = null, plan = null, extensions = [], setup = null, criticism = null, knowledge = null, slice = null } = {}) {
   const L = boot(fs, { backtrace, extensions, criticism, knowledge });
   if (setup) setup(L);
   L.evalString("(cs)");
@@ -1053,8 +1129,22 @@ export function film(fs, scene, { fps = 4, frames = 1000, backtrace = false, onC
   // what the extensions record besides (EXTENSIONS: recorder), such as the looks
   const more = Object.assign({}, ...extensionsFor(extensions).map((e) => e.recorder || {}));
   const record = recorder(L, { onClick, cast, ...more });
+  if (slice) yield "slice";
   L.evalString(`(start '${scene} ${fps})`);
-  L.evalString(`(m ${frames})`);
+  if (!slice) L.evalString(`(m ${frames})`);
+  else {
+    let deadline = 0, checked = 0;
+    // at least one tick a slice, however long a tick takes
+    L.defsubr("REVIVE-SLICE-OVER?", () => (++checked > 1 && performance.now() > deadline ? L.T : L.NIL));
+    L.evalString(SLICED_FILMING);
+    for (;;) {
+      deadline = performance.now() + slice;
+      checked = 0;
+      L.evalString(`(ask ,movie-name revive film the next ${frames} ticks a slice at a time)`);
+      if (L.evalString("revive-slice-done") !== L.NIL) break;
+      yield "slice";
+    }
+  }
   L.evalString(`(save-positions '${scene} '((ken1) ,(get '${scene} 'movie-name) posit))`);
   const f = { scene, ...record };
   if (fps !== 4) f.fps = fps; // Ken's TV previews ran at 4; the film was shot at 24 (ANINIT's running-color)
@@ -1824,7 +1914,9 @@ export function makeFilm(fs, options = {}) {
 // remakes a film from the first scene criticized, makes a film so when the film to remake
 // kept no files. keepFiles: the result's files are the text of every file the run wrote
 // (filesOf), which remakeFilmSteps remakes it from.
-export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null, criticism = null, knowledge = null, keepFiles = false } = {}) {
+// slice (milliseconds), if given, also pauses (yield "slice") about that often while a
+// scene is filmed (filmSteps), for a page that runs Ani on itself; the film is the same.
+export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, description = null, keepGoing = false, frames = 1000, fps = 4, extensions = [], onPass1 = () => {}, onScene = () => {}, onChange = () => {}, onFrame = null, criticism = null, knowledge = null, keepFiles = false, slice = null } = {}) {
   extensionsFor(extensions); // an unknown one stops the run before it starts
   if (criticism && criticism.length) checkRecord(criticism);
   if (knowledge && knowledge.length > MAX_NOTEBOOKS) throw new Error(`a film is made with up to ${MAX_NOTEBOOKS} notebooks of knowledge, not ${knowledge.length}`);
@@ -1860,7 +1952,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
   const order = scenes ? scenes.map(renamed) : plan ? plan.scenes.map((s) => s.id) : SCENES;
   progress("pass1", choosesLooks(extensions) ? "Pass 1: choosing how each character moves and looks" : "Pass 1: choosing how each character moves");
   yield;
-  const p1 = pass1(fs, { extensions, ...heed });
+  const p1 = yield* pass1Steps(fs, { extensions, slice, ...heed });
   const out = { choices: p1.choices, choicePoints: p1.choicePoints, scenes: [] };
   if (renames.length) out.renames = renames; // [{ kind, from, to }]: the scenes and characters renamed
   if (extensions.length) out.extensions = extensionsFor(extensions).map((e) => e.id);
@@ -1900,7 +1992,7 @@ export function* makeFilmSteps(fs, { progress = () => {}, scenes = null, descrip
       const { glass } = pass2(fs, scene, { plan, extensions, ...(planned ? { becomes: earlier } : {}), ...heed });
       progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
       yield;
-      const { film: f } = film(fs, scene, { plan, frames, fps, extensions, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
+      const { film: f } = yield* filmSteps(fs, scene, { plan, frames, fps, extensions, slice, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
       done = { id: scene, film: f, glass };
     } catch (e) {
       if (!keepGoing) throw e;
@@ -2280,7 +2372,7 @@ const keyOf = (n) => `${n.dir};${n.fn1} ${n.fn2}`;
 //           kept) or "after-stop" (after the scene where Ani stopped: kept likewise);
 //           stopped { scene, error }, what Lisp said where Ani stopped. (A film made
 //           from scratch may still have scenes that "failed", with keepGoing.)
-export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, extensions = null, description = null, progress = () => {}, keepGoing = false, frames = null, fps = null, onPass1 = () => {}, onScene = () => {}, onKept = () => {}, onChange = () => {}, onFrame = null, keepFiles = true } = {}) {
+export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, extensions = null, description = null, progress = () => {}, keepGoing = false, frames = null, fps = null, onPass1 = () => {}, onScene = () => {}, onKept = () => {}, onChange = () => {}, onFrame = null, keepFiles = true, slice = null } = {}) {
   if (!previous || !Array.isArray(previous.scenes)) throw new Error("remakeFilmSteps needs the film to remake (previous), as makeFilmSteps returned it");
   const record = checkRecord(criticism || []);
   const base = extensions || previous.extensions || [];
@@ -2310,7 +2402,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
   if (!previous.files) {
     progress("remake", "This film was saved before Ani kept its working files, so it is made again from the start");
     yield;
-    const out = yield* makeFilmSteps(fs, { progress, keepGoing, frames, fps, extensions: base, description, onPass1, onScene, onChange, onFrame, criticism: record, knowledge, keepFiles });
+    const out = yield* makeFilmSteps(fs, { progress, keepGoing, frames, fps, extensions: base, description, onPass1, onScene, onChange, onFrame, criticism: record, knowledge, keepFiles, slice });
     out.remade = { from: order[0] || null, fromScratch: true, scenes: out.scenes.map((s) => ({ id: s.id, how: s.error ? "failed" : "refilmed" })) };
     return out;
   }
@@ -2336,10 +2428,10 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
     const who = freed.map((c) => `${c.character.replace(/-/g, " ")}'s ${c.element.replace(/-/g, " ")}`).join(" and ");
     progress("pass1", `Pass 1 again: ${who} chosen afresh with your criticism, everyone else held as they were`);
     yield;
-    const p1 = pass1(fs, { extensions: base, ...heed, hold: freed.map(choicePointLisp) });
+    const p1 = yield* pass1Steps(fs, { extensions: base, slice, ...heed, hold: freed.map(choicePointLisp) });
     progress("recompute", "Pass 1 again, to compare: every choice made afresh with your criticism");
     yield;
-    const full = pass1(fs, { extensions: base, ...heed, save: false });
+    const full = yield* pass1Steps(fs, { extensions: base, slice, ...heed, save: false });
     // the full recompute against the film's choices: what holding the others held back
     const was = new Map((previous.choicePoints || []).map((p) => [JSON.stringify(p.name), p.currentChoice]));
     const differences = full.choicePoints.filter((p) => was.has(JSON.stringify(p.name)) && JSON.stringify(was.get(JSON.stringify(p.name))) !== JSON.stringify(p.currentChoice))
@@ -2415,7 +2507,7 @@ export function* remakeFilmSteps(fs, { previous, criticism = [], from = null, ex
       } else {
         progress("film", `Filming ${scene.replace(/-/g, " ")}`, scene);
         yield;
-        const { film: f } = film(fs, scene, { plan, frames, fps, extensions: base, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
+        const { film: f } = yield* filmSteps(fs, scene, { plan, frames, fps, extensions: base, slice, ...(onFrame ? { onClick: (i) => onFrame(scene, i) } : {}), ...heed });
         done = { id: scene, film: f, glass };
         how.push({ id: scene, how: "refilmed" });
       }

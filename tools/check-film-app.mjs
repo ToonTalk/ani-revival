@@ -1216,11 +1216,11 @@ try {
     const c = document.querySelector("#fig-0 canvas"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
     let lit = 0;
     for (let i = 0; i < d.length; i += 4) if (d[i] + d[i + 1] + d[i + 2] > 200) lit++;
-    return { given, caption: document.getElementById("caption-0").innerText, lit, providers: [...document.querySelectorAll("#tell-providers [data-provider]")].length };
+    return { given, caption: document.getElementById("caption-0").innerText, lit, providers: [...document.querySelectorAll("#tell-providers [data-provider]")].length, worker: await t.workerWorks() };
   })()`);
   const differ = Object.keys(jsonWay.given).filter((k) => jsonWay.given[k] !== copy.given[k]);
-  check(!differ.length && Object.keys(copy.given).length === 20 && /The stepmother pushes Cinderella around/.test(copy.caption) && copy.lit > 100 && errors.length === errorsBefore,
-    `the claude.ai copy starts and draws Ken's film (${copy.lit} lit dots), and gives a model the full page's prompt and schema word for word, as in 1978, with the extensions, and with SLIPS and DETAIL, in Lisp and JSON${differ.length ? ` (differ: ${differ.join(", ")})` : ""}`);
+  check(!differ.length && Object.keys(copy.given).length === 20 && /The stepmother pushes Cinderella around/.test(copy.caption) && copy.lit > 100 && copy.worker === true && errors.length === errorsBefore,
+    `the claude.ai copy starts and draws Ken's film (${copy.lit} lit dots), may start a worker where nothing refuses one (${copy.worker}), and gives a model the full page's prompt and schema word for word, as in 1978, with the extensions, and with SLIPS and DETAIL, in Lisp and JSON${differ.length ? ` (differ: ${differ.join(", ")})` : ""}`);
   // where eval is refused (a CSP without 'unsafe-eval'), it starts too, its page script put
   // on the page as a module script of its own, and Ani's runtime, which it runs on the page
   // itself, as a classic script: nothing on the page needs eval (the review of stage 7, M3)
@@ -1237,10 +1237,12 @@ try {
     const evalRefused = !window.__evalRan;
     let runtime = "";
     try { t.ani.runtime = await t.unpack(document.getElementById("ani-runtime").textContent); const R = t.runtimeOnPage(); runtime = typeof R.makeFilmSteps; } catch (e) { runtime = String(e.message || e); }
-    return { started: true, evalRefused, runtime, caption: document.getElementById("caption-0").innerText };
+    return { started: true, evalRefused, runtime, caption: document.getElementById("caption-0").innerText, worker: await t.workerWorks() };
   })()`).catch((e) => ({ started: false, error: e.message }));
-  check(noEval.started && noEval.evalRefused && noEval.runtime === "function" && /The stepmother pushes Cinderella around/.test(noEval.caption || ""),
-    `where eval is refused, the claude.ai copy starts and draws Ken's film, and Ani's runtime starts on the page with no eval (eval refused: ${noEval.evalRefused}; the runtime: ${noEval.runtime || noEval.error})`);
+  // (that CSP refuses scripts from blob: too, as a claude.ai chat's does, so the copy
+  // finds it may not start a worker, and runs Ani on the page: workerWorks)
+  check(noEval.started && noEval.evalRefused && noEval.runtime === "function" && noEval.worker === false && /The stepmother pushes Cinderella around/.test(noEval.caption || ""),
+    `where eval is refused, the claude.ai copy starts and draws Ken's film, and Ani's runtime starts on the page with no eval (eval refused: ${noEval.evalRefused}; the runtime: ${noEval.runtime || noEval.error}); where scripts from blob: are refused too, as in a claude.ai chat, it finds it may not start a worker (${noEval.worker})`);
 
   // the JSON way in the panel, with the model's replies stood in for: Anthropic first
   // refuses the schema (as for "Schema is too complex"), so the page asks again without

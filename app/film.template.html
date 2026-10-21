@@ -6471,9 +6471,11 @@ function editorPanel() {
     <div class="actions"><button type="button" class="btn primary" id="ed-make" data-make-fps="4"></button><button type="button" class="btn" id="ed-make-24" data-make-fps="24"></button><button type="button" class="btn revival" id="ed-make-mend" hidden>Make it with ${esc(REVIVAL)}</button>${TEACHING.notebooks.some((n) => n.used) ? `<button type="button" class="btn yours" data-teach-make-editor="4" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 4 frames a second">Make it with this teaching, quickly</button><button type="button" class="btn yours" data-teach-make-editor="24" title="The story here, with the switch's extensions, and the notebooks ticked in Teach Ani, at 24 frames a second">Make it with this teaching, smoothly</button>` : ""}
       <button type="button" class="linkish" data-teach-open title="Add to what Ani knows, for every story: a word, what it suggests, a way of showing, a feeling">Teach Ani</button><button type="button" class="linkish" id="ed-reset">Back to Ken's story</button></div>
     <div class="make-settings">${modeSwitch()}</div>
+    <p class="note warn" id="ed-inpage-note" hidden></p>
     <p class="note" id="ed-fps-note">${at611("Quickly is at 4 frames a second, as Ken's TV previews ran: jerky, and made in two or three minutes on a recent computer (five with Ken's beautified scene). Smoothly is at 24, as Ken's camera shot the film: about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is filmed.", "Quickly is jerky, and takes two or three minutes (five with Ken's beautified scene). Smoothly takes about a quarter of an hour (half an hour with the beautified scene). Each scene plays as soon as it is made.")}</p>
     ${SWITCHED.length ? at611More(`<p class="note mode-note">${esc(modeNote())}</p>${extensionsPanel()}`, "", "More: the new parts added to Ani in 2026") : ""}`;
   side.querySelector("#ed-close").addEventListener("click", () => { editor.note = ""; editor.openLisp = false; select(null); });
+  if (ARTIFACT_BUILD) workerWorks().then((ok) => { const n = document.getElementById("ed-inpage-note"); if (n && !ok) { n.innerHTML = inPageWarning(); n.hidden = false; } });
   side.querySelector("[data-tell]").addEventListener("click", openTeller);
   side.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => {
     const p = PRESETS[Number(b.dataset.preset)];
@@ -6678,6 +6680,17 @@ self.onmessage = function (e) {
   }
 };`;
 const ani = { runtime: null, bundle: null, worker: null, tick: null };
+// Where Ani runs in the background: the site (tools/build-site.mjs SITE_URL).
+const ANI_SITE = "https://toontalk.github.io/ani/";
+const siteLink = (text) => `<a href="${ANI_SITE}" target="_blank" rel="noopener">${text}</a>`;
+// Said before a film is made where Ani must run on the page itself (the claude.ai copy in
+// a claude.ai chat, workerWorks): a smooth film keeps the page busy for a long time.
+const inPageWarning = () => at611(
+  `Here Ani has to run on this page itself, not in the background. Made smoothly, a film keeps this page busy for a quarter of an hour or more (half an hour with Ken's beautified scene): it answers slowly all that time, and stops for up to about ten seconds while Ani chooses and plans; your browser may ask whether to wait (choose Wait). Made quickly, it takes two or three minutes. Or make it smoothly on ${siteLink("the site")}, where Ani runs in the background and this page stays free.`,
+  `Here Ani has to work on this page itself. Made smoothly, a film keeps the page busy for a quarter of an hour or more, and it sometimes stops for a few seconds; if your browser asks, choose Wait. Made quickly, it takes two or three minutes. Or make it smoothly on ${siteLink("the website")}, where the page stays free.`);
+const inPageWords = () => at611(
+  `This page can't run Ani in the background, so Ani runs on the page itself, a little at a time: the page answers between, slowly, and stops for up to about ten seconds while Ani chooses and plans (if your browser asks whether to wait, choose Wait). On ${siteLink("the site")} Ani runs in the background.`,
+  `Ani is working on this page itself, a little at a time, so the page is slow, and sometimes stops for a few seconds. If your browser asks whether to wait, choose Wait.`);
 // the screens showing a run's scene before it is made (what they say changes as Ani goes on)
 const unmadeShown = (run) => shown().filter((r) => screenRun(r) === run && !ready(sceneOf(r)));
 // How long each step took for Ken's story, in seconds: the progress bar's estimate; and,
@@ -6795,8 +6808,11 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
       ani.runtime = rt;
       ani.bundle = bundle;
     }
+    // the claude.ai copy tries a worker too, and runs Ani on the page only where it can't
+    // start one (a claude.ai chat refuses them: workerWorks)
+    const worker = !ARTIFACT_BUILD || await workerWorks();
     if (RUNS[1] !== run) return; // started again meanwhile
-    if (ARTIFACT_BUILD) { runInPage(run, description, remake); }
+    if (!worker) { runInPage(run, description, remake); }
     else {
       let heard = false;
       let w;
@@ -6846,9 +6862,31 @@ async function teachRuntime() {
   if (!self.AniRuntime) throw new Error("this page refused the script that runs Ani");
   return self.AniRuntime;
 }
-// Ani on the page itself, a step at a time, for a page that may not start a worker (a
-// claude.ai chat refuses them): the page shows each step before running it, and is
-// unresponsive while it runs (up to a minute).
+// Whether this page may start a worker made from a blob, asked once: a tiny one that
+// answers at once. A claude.ai chat refuses them (its content security policy lets
+// scripts come only from its own host and a few others, not blob:), and the claude.ai
+// copy then runs Ani on the page itself (runInPage); a published artifact, or the copy
+// opened anywhere else, starts them, and Ani runs there in the background, as on the site.
+let workerAsked = null;
+function workerWorks() {
+  return workerAsked || (workerAsked = new Promise((resolve) => {
+    let w = null, url = null;
+    const done = (ok) => { clearTimeout(timer); if (w) w.terminate(); if (url) URL.revokeObjectURL(url); resolve(ok); };
+    const timer = setTimeout(() => done(false), 4000);
+    try {
+      url = URL.createObjectURL(new Blob(["postMessage('ready');"], { type: "text/javascript" }));
+      w = new Worker(url);
+      w.onmessage = (e) => done(e.data === "ready");
+      w.onerror = (e) => { if (e && e.preventDefault) e.preventDefault(); done(false); };
+    } catch { done(false); }
+  }));
+}
+// Ani on the page itself, for a page that may not start a worker (a claude.ai chat
+// refuses them): a step at a time, the page showing each step before running it, and
+// each scene's filming and pass 1 in slices of about a twentieth of a second
+// (src/pipeline.js filmSteps, pass1Steps), with the page answering between them. What
+// can't be sliced, each of Ani's own runs (pass 1's choosing, a scene's planning, a
+// tick of Director's), holds the page: a few seconds, at most about ten.
 async function runInPage(run, description, remake = null) {
   run.status.inPage = true;
   let AniRuntime;
@@ -6868,20 +6906,36 @@ async function runInPage(run, description, remake = null) {
       onPass1: (p) => post({ type: "pass1", choices: p.choices, choicePoints: p.choicePoints, repairs: p.repairs || null, appearances: p.appearances || null }),
       onScene: (s) => post({ type: "scene", scene: s.error ? { ...s, typed: typed() } : s }),
       onChange: (scene, record) => post({ type: "change", scene, record }),
-      onFrame: (scene, frame) => { if (frame % 10 === 0) post({ type: "frame", scene, frame }); },
+      onFrame: (scene, frame) => post({ type: "frame", scene, frame }),
+      slice: IN_PAGE_SLICE,
     };
     steps = remake
       ? AniRuntime.remakeFilmSteps(fs, { ...options, previous: remake.previous, criticism: remake.criticism, onKept: (scene, how, error) => post({ type: "kept", scene, how, error: error || null, typed: how === "stopped" ? typed() : null }) })
       : AniRuntime.makeFilmSteps(fs, options);
   } catch (e) { failed(e); return; }
+  let r = { value: undefined };
   for (;;) {
-    await new Promise((r) => setTimeout(r, 80)); // let the page show the step first
+    // let the page show the step first; between slices, only let it answer
+    await (r.value === "slice" ? turn() : new Promise((ok) => setTimeout(ok, 80)));
     if (RUNS[1] !== run || !run.status.running) return;
-    let r;
     try { r = steps.next(); } catch (e) { failed(e); return; }
     if (r.done) { post({ type: "done", renames: (r.value && r.value.renames) || null, files: (r.value && r.value.files) || null, remade: (r.value && r.value.remade) || null }); return; }
   }
 }
+// How long Ani runs on the page before letting it answer (milliseconds), and a turn of
+// the page's own: a timer while it is shown, of a millisecond, not none, so that the
+// page's own timers that came due meanwhile (its progress bar) run first and it is drawn;
+// a message to itself while it is hidden (a hidden page's timers are slowed to one a
+// second, or one a minute).
+const IN_PAGE_SLICE = 50;
+const turnChannel = new MessageChannel();
+const turnsWaiting = [];
+turnChannel.port1.onmessage = () => { const f = turnsWaiting.shift(); if (f) f(); };
+const turn = () => new Promise((ok) => {
+  if (!document.hidden) { setTimeout(ok, 1); return; }
+  turnsWaiting.push(ok);
+  turnChannel.port2.postMessage(0);
+});
 function onWorker(run, m) {
   if (RUNS[1] !== run) return;
   run.status.heard = Date.now();
@@ -7203,7 +7257,7 @@ function comparePanel() {
   const mine = b === RUNS[1];
   side.innerHTML = `
     <div class="side-head"><h2>${other ? `The new story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
-    ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">This page can't run Ani in the background, so Ani runs on the page itself: the page stops responding while each step runs (up to a minute), and comes back between steps.</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
+    ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">${inPageWords()}</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${running ? "" : stopBox(b)}
     ${teachChangedSection(a, b)}
     ${critChangedSection(a, b)}

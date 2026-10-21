@@ -20,7 +20,7 @@
 //     (reports/loaded-files.json), besides the extensions' own;
 //   - with extensions, no job leaves a repair note: not pass 1, not pass 2 (its glass
 //     box), not the filming.
-// Usage: node tools/check-1978.mjs [--extensions a,b] [--quick] [--fps 24] [--save-loads]
+// Usage: node tools/check-1978.mjs [--extensions a,b] [--quick] [--fps 24] [--save-loads] [--slice ms]
 //   --quick       skip the filming (each pass 2 starts from reports/pass2's positions)
 //   --fps 24      film at 24 frames a second, as the film was shot, and check each
 //                 scene's glass box, frames and events against reports/film/24fps
@@ -28,6 +28,9 @@
 //                 then planned from where the 24-frames run left the characters, so its
 //                 files are not reports/pass2's, and only its glass box is checked. About
 //                 15 minutes, for occasional use.
+//   --slice ms    run pass 1 and the filming a slice at a time, as the claude.ai copy
+//                 runs them on its page (src/pipeline.js pass1Steps, filmSteps): the
+//                 same goldens must come out
 //   --save-loads  with no extensions, write reports/loaded-files.json from this run
 //   --knowledge f a learner's notebook (or a list of them) to make the film with
 //                 (src/pipeline.js boot's knowledge; TEACH is added to the extensions):
@@ -58,6 +61,7 @@ if (fps === 24 && quick) throw new Error("--quick skips the filming, so --fps 24
 // as tools/run-film.mjs films at 24: a scene takes six times the frames it takes at 4
 const frames = fps === 24 ? 6000 : 1000;
 const saveLoads = args.includes("--save-loads");
+const slice = opt("--slice") === null ? null : Number(opt("--slice")) || 50;
 if (saveLoads && (extensions.length || fps !== 4)) throw new Error("--save-loads records 1978 mode at 4 frames a second: run it with no extensions and no --fps");
 for (const e of chosen.filter((e) => e.changes1978)) console.log(`note: ${e.id} is meant to change Ken's Cinderella, so this check should fail with it`);
 const extensionFiles = new Set(chosen.flatMap((e) => e.files).map((f) => `REVIVE;${f.toUpperCase()}`));
@@ -172,7 +176,7 @@ console.log(`Ani as in 1978${extensions.length ? `, with the extensions ${extens
 
 // ---------------------------------------------------------------- pass 1
 job = "pass1";
-const p1 = run("pass 1", () => pass1(fs, { extensions, knowledge }));
+const p1 = run("pass 1", () => pass1(fs, { extensions, knowledge, slice }));
 {
   const cp = textIn(fs, "KEN", "CP", "30");
   const ours = cp ? choicesOfText(cp, "KEN;CP 30") : new Map();
@@ -224,7 +228,7 @@ for (const scene of SCENES) {
   }
 
   job = `film ${scene}`;
-  const f = run(`${scene}: filming`, () => film(fs, scene, { extensions, fps, frames, knowledge }));
+  const f = run(`${scene}: filming`, () => film(fs, scene, { extensions, fps, frames, knowledge, slice }));
   const goldenPath = `${fps === 24 ? "reports/film/24fps" : "reports/film"}/${scene}.film.json`;
   const golden = JSON.parse(read(goldenPath));
   const ours = f.value.film;
