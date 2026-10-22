@@ -952,8 +952,7 @@ async function teachAct(el) {
     // a piece about one of the story's characters is criticism of the film: her glass box
     const base = teachBase();
     const c = base.cast.find((x) => x === d.teachCriticize || plain(x) === plain(d.teachCriticize)) || base.cast[0];
-    if (state.view === "both" || base !== screenRun(0)) setView(base === RUNS[0] ? 0 : 1);
-    select({ run: base === RUNS[0] ? 0 : 1, char: c });
+    select({ run: showAlone(base), char: c });
   } else if (d.teachExample !== undefined) {
     const e = exampleOf(d.teachExample);
     if (e) { await useExample(e); if (!e.story) setRate(4); }

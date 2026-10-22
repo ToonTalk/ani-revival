@@ -180,8 +180,9 @@
 // the Lisp and the film as Node makes them; and a film told in English made again from its
 // words changed, the model (stood in for) writing the description again, shown with its
 // check before Ani films it, from "Your films" too.
-// Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach]   (about an hour)
+// Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach|compare]   (about an hour)
 //   --only teach  only the first checks and Teach Ani's (about a quarter of an hour)
+//   --only compare  only the first checks and "Compare two films" with the left slot's (minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
 // godmother transforming Cinderella in color: before, as they touch, and after; and "Your
@@ -275,6 +276,7 @@ const shotsAt = process.argv.indexOf("--shots");
 const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
 const onlyAt = process.argv.indexOf("--only");
 const ONLY_TEACH = onlyAt > 0 && process.argv[onlyAt + 1] === "teach";
+const ONLY_COMPARE = onlyAt > 0 && process.argv[onlyAt + 1] === "compare";
 if (shots) mkdirSync(shots, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -879,6 +881,140 @@ try {
     await js(`(async () => { await window.__check.library.ready; for (let k = 0; k < 30 && !window.__check.RUNS[1]; k++) await new Promise((r) => setTimeout(r, 100)); })()`);
     await sleep(300);
   };
+  // Ken's decisions of 22 October: "Compare two films" over the screens, a menu for each
+  // screen of every film kept here and Ken's 1978 Cinderella, the newest first, the two
+  // chosen side by side with what changed between them; and the left slot, Ken's 1978 film
+  // until a film of a new story is made (a version of his Cinderella keeps it), then the
+  // film made before it, by its title; what the visitor chooses wins, and stays, a reload
+  // too. Two films are kept for it, made here in Node: Ken's story as he told it, and a new
+  // story (test/stories/stress/know-protective.lisp); then a story told (its Lisp handed to
+  // the page, test/stories/stress/only-relationship.lisp) is made in the page's worker.
+  const compareTwoFilms = async () => {
+    const half = async (name) => {
+      if (!shots) return;
+      const m = await send("Page.getLayoutMetrics");
+      const v = m.cssLayoutViewport || m.layoutViewport;
+      const r = await send("Page.captureScreenshot", { format: "png", clip: { x: v.pageX, y: v.pageY, width: v.clientWidth, height: v.clientHeight, scale: 0.5 } });
+      writeFileSync(join(shots, name), Buffer.from(r.data, "base64"));
+    };
+    await toCheckPage();
+    const kept = await js(`(async () => {
+      const t = window.__check;
+      const ken = t.makeRun({ label: "x", short: "x", cindy: t.DATA.cindy, choicePoints: t.DATA.pass1.choicePoints, scenes: t.DATA.scenes });
+      ken.status = { running: false, made: new Date(Date.now() - 180000).toISOString(), seconds: 30 };
+      const a = await t.keepFilm(ken);
+      const kp = JSON.parse(${JSON.stringify(JSON.stringify(NEWER["know-protective"]))});
+      const run = t.makeRun({ label: "x", short: "x", cindy: kp.story, choicePoints: kp.choicePoints, scenes: kp.scenes, extensions: kp.extensions, repairs: kp.repairs, appearances: kp.appearances });
+      run.status = { running: false, made: new Date(Date.now() - 120000).toISOString(), seconds: 20 };
+      const b = await t.keepFilm(run);
+      return { ken: a.id, story: b.id, title: t.library.films.find((f) => f.id === b.id).title, newest: t.library.films[0].id };
+    })()`);
+    // a story told: the left slot becomes the film made before it, by its title
+    const told = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      t.state.chosen = null;
+      const before = t.library.films[0];
+      t.startRun(${JSON.stringify(NEWER["only-relationship"].story)}, 4, ["mend"], { told: { story: "Two who care only for each other.", provider: "a stand-in", model: "the check" } });
+      for (let k = 0; k < 600 && t.RUNS[1].status && t.RUNS[1].status.running; k++) await wait(250);
+      for (let k = 0; k < 40 && !t.RUNS[1].libId; k++) await wait(250);
+      await wait(300);
+      const b0 = document.querySelector('#runbar [data-view="0"]');
+      return { before: before.id, beforeTitle: before.title, pair: t.state.pair.join(), view: String(t.state.view), label: b0.textContent, made: !t.RUNS[1].status.running && t.RUNS[1].scenes.some((s) => s && s.film && s.film.frames.length), id: t.RUNS[1].libId };
+    })()`);
+    check(kept.newest === kept.story && told.before === kept.story && told.made && told.pair === `lib:${kept.story},cur` && told.label === kept.title && told.view === "1",
+      `after a story told and made, the runbar's left slot is the film made before it, by its title ("${told.label}"; pair ${told.pair}, the new version alone)`);
+    const sideTold = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.querySelector('#runbar [data-view="both"]').click();
+      await wait(400);
+      return { pair: t.state.pair.join(), head: document.querySelector("#side h2").innerText, side: document.getElementById("side").innerText, which: [...document.querySelectorAll("select.which-film")].map((s) => s.value) };
+    })()`);
+    check(sideTold.pair === `lib:${kept.story},cur` && sideTold.head === "Two different stories" && /These are two different stories, so they can't be compared scene by scene/.test(sideTold.side) && sideTold.which.join() === `lib:${kept.story},cur`,
+      `side by side, that film and the new one are two different stories, said plainly (${sideTold.head})`);
+    await js(`(() => { window.__check.goScene(0, 3); document.getElementById("runbar").scrollIntoView({ block: "start" }); })()`);
+    await half("40-left-slot-after-a-told-story.png");
+    // a reload keeps it
+    await send("Page.reload");
+    for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring && !!window.__check.RUNS[1]`).catch(() => false)); k++) await sleep(200);
+    await sleep(800);
+    const reTold = await js(`({ pair: window.__check.state.pair.join(), view: String(window.__check.state.view), label: document.querySelector('#runbar [data-view="0"]').textContent })`);
+    check(reTold.pair === `lib:${kept.story},cur` && reTold.view === "both" && reTold.label === kept.title, `and a reload puts it back (${reTold.pair}, ${reTold.view})`);
+    // a version of Ken's Cinderella opened: the 1978 film is the left slot again
+    const opened = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById("open-films").click();
+      await wait(300);
+      const ken = document.querySelector('#side [data-film="ken"]');
+      const kenText = ken ? ken.innerText : "";
+      document.querySelector('#side [data-film="${kept.ken}"] [data-film-act="open"]').click();
+      for (let k = 0; k < 40 && t.RUNS[1].libId !== "${kept.ken}"; k++) await wait(100);
+      await wait(300);
+      return { kenText, pair: t.state.pair.join(), label: document.querySelector('#runbar [data-view="0"]').textContent };
+    })()`);
+    check(/Ani's 1978 film/.test(opened.kenText) && /on the left/.test(opened.kenText) && opened.pair === "ken,cur" && opened.label === "Ani's 1978 film",
+      `a version of Ken's Cinderella opened has Ken's 1978 film in the left slot again, and "Films made here" lists his film too (${opened.pair})`);
+    // Compare two films: two of the films kept, chosen from the menus
+    const menus = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const button = document.getElementById("compare-two");
+      button.click();
+      await wait(200);
+      const box = document.getElementById("compare-pick");
+      const sel = [...box.querySelectorAll("select")];
+      const options = sel[0] ? [...sel[0].options].map((o) => [o.value, o.text]) : [];
+      return { button: button.innerText, visible: !box.hidden && button.getAttribute("aria-expanded") === "true", labels: [...box.querySelectorAll("label")].map((l) => l.firstChild.textContent.trim()), options, films: t.library.films.map((f) => f.id), selected: sel.map((s) => s.value) };
+    })()`);
+    const want = [...menus.films.map((id) => (id === kept.ken ? "cur" : `lib:${id}`)), "ken"];
+    check(menus.button === "Compare two films" && menus.visible && menus.labels.join() === "On the left,On the right" && menus.options.map(([v]) => v).join() === want.join() && /^Ani's 1978 film: Ken's Cinderella · 1978$/.test(menus.options[menus.options.length - 1][1]) && menus.options.some(([, x]) => x.startsWith(`${kept.title} · `)) && menus.selected.join() === "ken,cur",
+      `"Compare two films" opens a menu for each screen: every film kept here by title and when made, the newest first, then Ken's 1978 film (${menus.options.length} films; ${menus.options.slice(0, 2).map(([, x]) => x).join(" | ")} …)`);
+    await js(`(() => { window.__check.goScene(1, 2); document.getElementById("runbar").scrollIntoView({ block: "start" }); })()`);
+    await half("41-compare-two-films-menus.png");
+    const chose = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const box = document.getElementById("compare-pick");
+      const [l, r] = box.querySelectorAll("select");
+      l.value = "lib:${told.id}"; r.value = "lib:${kept.story}";
+      box.querySelector("#compare-go").click();
+      for (let k = 0; k < 40 && t.state.view !== "both"; k++) await wait(100);
+      await wait(400);
+      return { pair: t.state.pair.join(), chosen: t.state.chosen, view: String(t.state.view), open: !box.hidden, head: document.querySelector("#side h2").innerText, side: document.getElementById("side").innerText, which: [...document.querySelectorAll("select.which-film")].map((s) => s.value), captions: [0, 1].map((r) => document.getElementById("caption-" + r).innerText.split("\\n")[0]) };
+    })()`);
+    const choseOk = { view: chose.view === "both", pair: chose.pair === `lib:${told.id},lib:${kept.story}`, chosen: chose.chosen === `lib:${told.id}`, closed: !chose.open, head: chose.head === "Two different stories", told: /What each was told/i.test(chose.side), apart: /These are two different stories/.test(chose.side), which: chose.which.join() === chose.pair, captions: /^Left · /.test(chose.captions[0]) && /^Right · /.test(chose.captions[1]) };
+    const choseFailed = Object.keys(choseOk).filter((k) => !choseOk[k]);
+    check(!choseFailed.length,
+      `the two chosen are shown side by side, with what changed between them: ${chose.head} (${chose.captions.join(" | ")})${choseFailed.length ? ` (not: ${choseFailed.join(", ")}; ${JSON.stringify({ pair: chose.pair, chosen: chose.chosen, which: chose.which, view: chose.view, side: chose.side.slice(0, 300) })})` : ""}`);
+    await js(`(() => { window.__check.goScene(0, 3); document.getElementById("runbar").scrollIntoView({ block: "start" }); })()`);
+    await half("42-compare-two-films-chosen.png");
+    // the visitor's choice wins: a new version opened keeps their left film
+    const wins = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      document.getElementById("open-films").click();
+      await wait(300);
+      document.querySelector('#side [data-film="${kept.story}"] [data-film-act="open"]').click();
+      for (let k = 0; k < 40 && t.RUNS[1].libId !== "${kept.story}"; k++) await wait(100);
+      await wait(300);
+      return { pair: t.state.pair.join(), label: document.querySelector('#runbar [data-view="0"]').textContent, chosen: t.state.chosen, auto: t.previousFilm(t.RUNS[1]) && t.previousFilm(t.RUNS[1]).id };
+    })()`);
+    const toldTitle = await js(`window.__check.library.films.find((f) => f.id === "${told.id}").title`);
+    check(wins.pair === `lib:${told.id},cur` && wins.chosen === `lib:${told.id}` && wins.auto !== told.id && wins.label === toldTitle,
+      `an explicit choice wins: another film opened keeps the chosen left film ("${wins.label}"), not the one before it`);
+    await send("Page.reload");
+    for (let k = 0; k < 75 && !(await js(`!!window.__check && !!window.__check.library.ready && !window.__check.view.restoring && !!window.__check.RUNS[1]`).catch(() => false)); k++) await sleep(200);
+    await sleep(800);
+    const reWins = await js(`({ pair: window.__check.state.pair.join(), chosen: window.__check.state.chosen, label: document.querySelector('#runbar [data-view="0"]').textContent, left: window.__check.screenRun(0) && window.__check.screenRun(0).libId })`);
+    check(reWins.pair === `lib:${told.id},cur` && reWins.chosen === `lib:${told.id}` && reWins.label === toldTitle && reWins.left === told.id, `and a reload restores the choice (${reWins.pair})`);
+    // a link to a moment of the 1978 film shows it, whatever had the left slot
+    const linked = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      location.hash = "kept-apart.48";
+      await wait(400);
+      return { view: String(t.state.view), ken: t.screenRun(0) === t.RUNS[0], label: document.querySelector('#runbar [data-view="0"]').textContent };
+    })()`);
+    check(linked.view === "0" && linked.ken && linked.label === "Ani's 1978 film", `a link to a moment of the 1978 film shows it on the left (${linked.label})`);
+    await js(`history.replaceState(history.state, "", location.pathname)`);
+  };
+  if (ONLY_COMPARE) await compareTwoFilms();
+  else {
   // (with --only teach, on to Teach Ani's checks)
   if (!ONLY_TEACH) {
 
@@ -1051,7 +1187,7 @@ try {
     document.getElementById("open-films").click();
     await wait(200);
     const side = document.getElementById("side");
-    return { button: document.getElementById("open-films").innerText, panel: side.querySelector("h2").innerText, items: [...side.querySelectorAll(".films > li")].map((li) => li.innerText.replace(/\\s+/g, " ")), old: localStorage.getItem("ani-cinderella:run:v1") };
+    return { button: document.getElementById("open-films").innerText, panel: side.querySelector("h2").innerText, items: [...side.querySelectorAll(".films > li:not(.ken-film)")].map((li) => li.innerText.replace(/\\s+/g, " ")), old: localStorage.getItem("ani-cinderella:run:v1") };
   })()`);
   check(kept1.button === "Films made here (1)" && kept1.panel === "Films made here" && kept1.items.length === 1 && /^Cinderella: the stepmother pretty, kind and good; the stepmother loves and is helpful/.test(kept1.items[0]) && /the new version now/.test(kept1.items[0]) && /· 4 frames a second · by Ani as in 1978 · 5 scenes · \d+(\.\d)? [KM]B/.test(kept1.items[0]) && kept1.old === null,
     `the film made is kept in "Your films" (IndexedDB), and is there after a reload, with its title, date, frames a second, how it was made and its size: ${kept1.items[0] || "none"}`);
@@ -3518,6 +3654,8 @@ try {
     `made again with the revival's extensions, every scene is made (${oneMended}; MEND21's notes ${atBound}), with no uncaught error`);
   }
 
+  if (!ONLY_TEACH) await compareTwoFilms();
+
   if (!ONLY_TEACH) {
   // what the page keeps in the browser, and "Forget all of it"
   await toCheckPage();
@@ -3648,6 +3786,7 @@ try {
     for (let k = 0; k < 50 && !/^Sent\./.test(thanked); k++) { await sleep(200); thanked = await js(`document.querySelector("#save-panel .send-box").innerText`); }
     check(/This is everything that will be sent to Ken/.test(offer.shown) && /"title": "Cinderella"/.test(offer.shown) && /"lisp": ";; -\*-lisp-\*-/.test(offer.shown) && /"extensions": \[/.test(offer.shown) && /"stopped": \[\]/.test(offer.shown) && /"provider": "\(none\)"/.test(offer.shown), "\"Send this story to Ken\" shows exactly what will be sent: the story, the Lisp, the model and provider, the extensions and where Ani stopped");
     check(declined && /A story sent to Ken: Cinderella/.test(story) && /\(define cinderella character/.test(story) && /story\.json/.test(story) && !story.includes(SECRET) && /^Sent\./.test(thanked), `nothing is sent until the visitor confirms; then the story arrives, with its Lisp, and no key (${story.length} bytes)`);
+  }
   }
   }
   // (the deliberate error the reporting check throws may be heard after it is set aside)

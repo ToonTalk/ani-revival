@@ -339,7 +339,7 @@ function renderSavePanel() {
   const both = runs.length > 1;
   const mine = RUNS[1];
   // the reader's films on the screens, each as a film file (with Ken's alone, their version)
-  const files = state.view === 0 ? (mine ? [mine] : []) : [...new Set(runs.filter((r) => r !== RUNS[0]))];
+  const files = state.view === 0 && runs[0] === RUNS[0] ? (mine ? [mine] : []) : [...new Set(runs.filter((r) => r !== RUNS[0]))];
   const fileLabel = (run, k) => (run === mine ? "The new version" : files.length > 1 ? `The film on the ${runs.indexOf(run) ? "right" : "left"}` : `“${run.label.length > 40 ? run.label.slice(0, 38) + "…" : run.label}”`);
   const sc = runs[0].scenes[state.scene];
   const { titles, subtitles } = videoOptions;

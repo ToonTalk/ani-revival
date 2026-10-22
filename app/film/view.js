@@ -64,7 +64,7 @@ function viewState() {
   return {
     v: 1, at: Date.now(),
     cur: cur ? { libId: cur.libId || null, running: !!(cur.status && cur.status.running) } : null,
-    pair: [...state.pair], view: state.view, rate: RATE, color: state.color,
+    pair: [...state.pair], chosen: state.chosen, view: state.view, rate: RATE, color: state.color,
     scene: state.scene, time: state.time, playing: state.playing,
     selected: state.selected ? { run: state.selected.run, char: state.selected.char, plan: state.selected.plan || null } : null,
     panel: state.panel, details: detailsOf(side), box: view.box,
@@ -152,6 +152,9 @@ async function restoreView(s) {
     if (!RUNS[1]) await restoreRun();
     for (const ref of Array.isArray(s.pair) ? s.pair : []) if (/^lib:/.test(ref)) await libraryRun(ref.slice(4));
     if (Array.isArray(s.pair) && s.pair.length === 2) state.pair = s.pair.map(String);
+    // the left film the visitor chose, theirs still; a film of "Films made here" read first
+    if (typeof s.chosen === "string" && /^lib:/.test(s.chosen)) await libraryRun(s.chosen.slice(4));
+    state.chosen = typeof s.chosen === "string" && (!/^lib:/.test(s.chosen) || libraryFilms().some((f) => `lib:${f.id}` === s.chosen)) ? s.chosen : null;
     state.selected = null;
     state.panel = "story";
     setView(s.view === "both" || s.view === 1 ? s.view : 0);

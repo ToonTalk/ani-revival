@@ -100,6 +100,13 @@ header .guides .teach-head:hover { text-decoration: underline; }
 .runbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
 .runbar .status { color: var(--muted); font-size: 0.88rem; font-variant-numeric: tabular-nums; }
 .runbar .run-note { display: block; color: var(--ink); max-width: 70ch; }
+.runbar .seg button[data-view="0"] { max-width: 30ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Compare two films: a menu for each screen, under the runbar */
+.compare-pick { flex-basis: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 8px 14px; align-items: end; border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; background: var(--paper); }
+.compare-pick[hidden] { display: none; }
+.compare-pick label { display: grid; gap: 3px; font-size: 0.86rem; color: var(--muted); min-width: 0; }
+.compare-pick select { font: inherit; font-size: 0.9rem; color: var(--ink); background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 5px 6px; width: 100%; min-width: 0; text-overflow: ellipsis; }
+.compare-pick .note, .compare-pick .actions { grid-column: 1 / -1; margin: 0; }
 .meter { width: 120px; height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; display: inline-block; vertical-align: middle; }
 .meter i { display: block; height: 100%; background: var(--accent); transition: width .5s linear; }
 
@@ -542,7 +549,7 @@ html.age-6-11.big .caption .part { font-size: 1rem; }
 html.age-6-11.big .side { font-size: 1.1rem; line-height: 1.5; }
 html.age-6-11.big .side .lead { font-size: 1.4rem; line-height: 1.45; }
 html.age-6-11.big .side .label { font-size: 0.95rem; letter-spacing: 0; text-transform: none; }
-html.age-6-11.big .runbar .seg button { min-height: 48px; font-size: 1rem; }
+html.age-6-11.big .runbar .seg button, html.age-6-11.big .runbar .compare-two { min-height: 48px; font-size: 1rem; }
 html.age-6-11.big header .guides a, html.big header .guides button { padding: 10px 16px; min-height: 44px; }
 html.age-6-11.big summary, html.big #about-page { min-height: 44px; display: flex; align-items: center; }
 html.age-6-11.big #about-page { display: inline-flex; }
@@ -609,9 +616,11 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
       <button type="button" data-view="1" aria-pressed="false">The new version</button>
       <button type="button" data-view="both" aria-pressed="false">Side by side</button>
     </div>
+    <button type="button" class="btn compare-two" id="compare-two" aria-expanded="false" aria-controls="compare-pick" title="Choose any two films to play side by side, and see what changed between them">Compare two films</button>
     <span class="status" id="run-status"></span>
     <button type="button" class="linkish" id="run-stop" hidden>Stop</button>
     <button type="button" class="linkish" id="open-films">Films made here</button>
+    <div class="compare-pick" id="compare-pick" role="group" aria-label="Compare two films" hidden></div>
   </div>
 
   <div class="speech-home only-simple" id="speech-home"><details class="speech-settings" id="speech-settings"><summary>Speech settings</summary><div class="body"></div></details><span class="note" id="talk-heard" aria-live="polite"></span></div>
@@ -4375,13 +4384,18 @@ function choicePoint(char, element) { return R.cp.get(show(["choice-point-of", c
 // The picture opens in color (Ken, 15 October), unless this browser keeps a visitor's
 // choice of TV (black and white, as Ken's TV previews ran).
 const COLOR_KEY = "ani-cinderella:picture:v1";
-// view: 0, Ken's 1978 film on the left screen; 1, the reader's version on the right one;
-// "both", the films of pair side by side, each "ken", "cur" (the reader's version, RUNS[1])
-// or "lib:<id>" (one of "Your films"), Ken's beside the reader's unless the reader chose
-// others (Ken, 16 October: "Should be able to play any 2 generated films side by side").
+// view: 0, the left slot's film (pair[0]) on the left screen; 1, the reader's version on
+// the right one; "both", the films of pair side by side, each "ken", "cur" (the reader's
+// version, RUNS[1]) or "lib:<id>" (one of "Your films"), Ken's beside the reader's unless
+// the reader chose others (Ken, 16 October: "Should be able to play any 2 generated films
+// side by side"). The left slot is Ken's 1978 film until a film of a new story is made or
+// opened here; then the film before it (Ken, 22 October: "'Ani's 1978 film' is nice at the
+// beginning but it's not helpful after someone has moved on to other stories"); see leftFor.
+// chosen: the left film the visitor chose (Compare two films, the lists over the screens, or
+// "Films made here"'s on the left), which stays theirs for the visit; null, none chosen.
 // selected: the character clicked, { run: the screen (0 or 1), char, plan, of: the run
 // shown there when it was clicked }.
-const state = { view: 0, pair: ["ken", "cur"], scene: 0, time: 0, playing: false, color: store.get(COLOR_KEY) !== "tv", selected: null, panel: "story", raf: null, speed: 1, cpOpen: null };
+const state = { view: 0, pair: ["ken", "cur"], chosen: null, scene: 0, time: 0, playing: false, color: store.get(COLOR_KEY) !== "tv", selected: null, panel: "story", raf: null, speed: 1, cpOpen: null };
 // where the visitor is on the page, kept in this tab (app/film/view.js)
 const view = { id: null, timer: null, restoring: false, forgetting: false, box: null, lost: false };
 const scene = () => R.scenes[state.scene];
@@ -4394,8 +4408,12 @@ function filmRun(ref) {
   if (RUNS[1] && RUNS[1].libId === id) return RUNS[1];
   return LIB_RUNS.get(id) || null;
 }
+// the left slot's film (Ken's, where the page doesn't have the one named)
+const leftRun = () => filmRun(state.pair[0]) || RUNS[0];
+// a film as a pair names it
+const refOf = (run) => (run === RUNS[0] ? "ken" : run && run === RUNS[1] ? "cur" : run && run.libId ? `lib:${run.libId}` : null);
 // the film on screen r (0, the left; 1, the right)
-const screenRun = (r) => (state.view === "both" ? filmRun(state.pair[r]) : r === 0 ? RUNS[0] : RUNS[1]) || null;
+const screenRun = (r) => (state.view === "both" ? filmRun(state.pair[r]) : r === 0 ? leftRun() : RUNS[1]) || null;
 // the screen showing a run (the one clicked, if both show it)
 const slotOf = (run) => (state.selected && screenRun(state.selected.run) === run ? state.selected.run : shown().find((r) => screenRun(r) === run) ?? 0);
 // a character clicked on a screen still showing the film it was clicked in
@@ -4485,7 +4503,7 @@ function renderWhich() {
     which.innerHTML = `<select class="which-film" data-slot="${r}" aria-label="The film on the ${r ? "right" : "left"}" title="Choose the film on this screen">${filmOptions(state.pair[r])}</select>`;
   }
   else {
-    FIGS[0].fig.querySelector(".which").textContent = RUNS[0].label;
+    FIGS[0].fig.querySelector(".which").textContent = leftRun().label;
     FIGS[1].fig.querySelector(".which").textContent = RUNS[1] ? RUNS[1].label : "The new version";
   }
 }
@@ -4501,19 +4519,142 @@ function filmOptions(ref) {
   const at = filmRun(ref) === cur && cur ? "cur" : ref;
   return opts.map(([v, label]) => `<option value="${esc(v)}"${v === at ? " selected" : ""}>${esc(label.length > 90 ? label.slice(0, 88) + "…" : label)}</option>`).join("");
 }
+// "Compare two films" (Ken, 22 October): a menu for each screen, left and right, of every
+// film kept in this browser and Ken's 1978 Cinderella, by title and when made, the newest
+// first; the two chosen go side by side (choosePair), with what changed between them.
+function compareChoices() {
+  const cur = RUNS[1];
+  const cut = (t) => (t.length > 70 ? `${t.slice(0, 68)}…` : t);
+  const out = libraryFilms().map((f) => [cur && cur.libId === f.id ? "cur" : `lib:${f.id}`, `${cut(f.title)} · ${shortDate(f.made)}${cur && cur.libId === f.id ? " (the new version)" : ""}`]);
+  if (cur && !cur.libId) out.unshift(["cur", `The new version${cur.status && cur.status.running ? ", being made" : ""}${cur.status && cur.status.made ? ` · ${shortDate(cur.status.made)}` : ""}`]);
+  out.push(["ken", "Ani's 1978 film: Ken's Cinderella · 1978"]);
+  return out;
+}
+function renderComparePick() {
+  const box = document.getElementById("compare-pick");
+  if (!box || box.hidden) return;
+  const choices = compareChoices();
+  const has = (ref) => choices.some(([v]) => v === ref);
+  // the screens' films, as they are now
+  const now = [state.pair[0], state.view === "both" ? state.pair[1] : "cur"].map((ref) => {
+    const run = filmRun(ref);
+    const v = run === RUNS[1] && run ? "cur" : run === RUNS[0] ? "ken" : ref;
+    return has(v) ? v : "ken";
+  });
+  // (drawn again only when the films or the screens change: not under the visitor's hand)
+  const key = JSON.stringify([choices, now, simpleAge()]);
+  if (box.dataset.key === key) return;
+  box.dataset.key = key;
+  const keep = [...box.querySelectorAll("select")].map((x) => x.value);
+  const menu = (slot, label) => {
+    const at = keep[slot] && has(keep[slot]) ? keep[slot] : now[slot];
+    return `<label>${label}<select data-pick="${slot}">${choices.map(([v, t]) => `<option value="${esc(v)}"${v === at ? " selected" : ""}>${esc(t)}</option>`).join("")}</select></label>`;
+  };
+  box.innerHTML = `<p class="note">${at611("Choose any two of the films kept in this browser, or Ken's 1978 film, to play side by side, with what changed between them.", "Pick two films to watch side by side. The page tells you what changed between them.")}</p>
+    ${menu(0, "On the left")}${menu(1, "On the right")}
+    <div class="actions"><button type="button" class="btn primary" id="compare-go">Show them side by side</button><button type="button" class="linkish" id="compare-close">Close</button><span class="note" id="compare-status" aria-live="polite"></span></div>`;
+}
+function toggleComparePick(force) {
+  const box = document.getElementById("compare-pick");
+  const open = force === undefined ? box.hidden : force;
+  if (open && box.hidden) { box.innerHTML = ""; box.dataset.key = ""; }
+  box.hidden = !open;
+  document.getElementById("compare-two").setAttribute("aria-expanded", String(open));
+  if (open) { renderComparePick(); box.querySelector("select").focus(); }
+}
+document.getElementById("compare-two").addEventListener("click", () => toggleComparePick());
+document.getElementById("compare-pick").addEventListener("click", async (e) => {
+  const box = document.getElementById("compare-pick");
+  if (e.target.closest("#compare-close")) { toggleComparePick(false); document.getElementById("compare-two").focus(); return; }
+  if (!e.target.closest("#compare-go")) return;
+  const pair = [...box.querySelectorAll("select")].map((x) => x.value);
+  box.querySelector("#compare-status").textContent = "Putting them on the screens…";
+  state.selected = null;
+  state.panel = "compare";
+  if (await choosePair(pair)) toggleComparePick(false);
+  else { const st = box.querySelector("#compare-status"); if (st) st.textContent = "That film couldn't be read back."; }
+});
 document.getElementById("screens").addEventListener("change", (e) => {
   const sel = e.target.closest && e.target.closest("select.which-film");
   if (sel) setPair(Number(sel.dataset.slot), sel.value);
 });
-// Put a film on one screen, the other keeping its own, side by side.
+// Put a film on one screen, the other keeping its own, side by side: the visitor's choice.
 async function setPair(r, ref) {
-  if (/^lib:/.test(ref) && !(await libraryRun(ref.slice(4)))) { layout(); return; }
-  const pair = state.view === "both" ? [...state.pair] : ["ken", "cur"];
+  const pair = [...state.pair];
   pair[r] = ref;
+  return choosePair(pair);
+}
+// Two films side by side, as the visitor chose them (Compare two films, the lists over the
+// screens, "Films made here"'s on the left and on the right): the left one is theirs for the
+// visit (state.chosen), whatever is made after. A film of "Films made here" is read first.
+async function choosePair(pair) {
+  pair = pair.map((ref) => (RUNS[1] && RUNS[1].libId && ref === `lib:${RUNS[1].libId}` ? "cur" : String(ref)));
+  for (const ref of pair) if (/^lib:/.test(ref) && !(await libraryRun(ref.slice(4)))) { layout(); return false; }
+  pairWait = null;
   state.pair = pair;
-  // the films read from "Your films" and no longer on a screen are let go (each may be a few MB)
-  for (const id of [...LIB_RUNS.keys()]) if (!pair.includes(`lib:${id}`)) LIB_RUNS.delete(id);
+  state.chosen = pair[0] === "cur" && RUNS[1] && RUNS[1].libId ? `lib:${RUNS[1].libId}` : pair[0];
+  letGoUnshown();
   setView("both");
+  return true;
+}
+// the films read from "Your films" and no longer on a screen are let go (each may be a few MB)
+function letGoUnshown() {
+  for (const id of [...LIB_RUNS.keys()]) if (!state.pair.includes(`lib:${id}`)) LIB_RUNS.delete(id);
+}
+// The film made here before a run (the newest kept other than it, or the next older than
+// it where it is kept itself), or null.
+function previousFilm(run) {
+  const films = libraryFilms();
+  const i = run && run.libId ? films.findIndex((f) => f.id === run.libId) : -1;
+  return (i >= 0 ? films[i + 1] : null) || films.find((f) => !run || f.id !== run.libId) || null;
+}
+// The left slot for a new version of the reader's (made, being made, or opened): the film the
+// visitor chose for it, if they did; else, for Ken's Cinderella, changed or not, his 1978
+// film, the natural one to compare it with; else, for a new story, the film made before it
+// (Ken, 22 October), or Ken's if there is none. was: the version it takes the place of.
+function leftFor(run, was = null) {
+  if (state.chosen) return state.chosen === "cur" ? (was && was.libId ? `lib:${was.libId}` : "ken") : state.chosen;
+  if (!run || sameCast(RUNS[0], run)) return "ken";
+  const f = previousFilm(run);
+  return f ? `lib:${f.id}` : "ken";
+}
+// The pair for a new version: its left slot, and it on the right. A film of "Films made here"
+// not read yet is read, and put there once it is (Ken's until then), unless the visitor has
+// chosen others meanwhile.
+let pairWait = null;
+function pairFor(run, was = null) {
+  const ref = leftFor(run, was);
+  const id = /^lib:/.test(ref) ? ref.slice(4) : null;
+  pairWait = null;
+  if (!id || LIB_RUNS.has(id)) return [ref, "cur"];
+  // the version it takes the place of, when that is the one: kept as one of "Your films"
+  if (was && was !== run && was.libId === id) {
+    const title = libraryTitle(id) || was.label;
+    Object.assign(was, { label: title, short: title.length > 24 ? `${title.slice(0, 22)}…` : title });
+    LIB_RUNS.set(id, was);
+    return [ref, "cur"];
+  }
+  if (!library.films.some((f) => f.id === id)) return ["ken", "cur"];
+  const wait = pairWait = { run, ref };
+  libraryRun(id).then((got) => {
+    if (pairWait !== wait) return;
+    pairWait = null;
+    if (!got || RUNS[1] !== run) return;
+    state.pair = [ref, state.pair[1]];
+    if (state.view === 0 || state.view === "both") setView(state.view);
+    else { renderWhich(); updateRunbar(); if (state.panel === "compare") renderSide(); scheduleSave(); }
+  }).catch((e) => console.error(e));
+  return ["ken", "cur"];
+}
+// Show a film by itself on a screen, and say which: the reader's version on the right, any
+// other on the left (the left slot then shows it).
+function showAlone(run) {
+  if (run === RUNS[1] && run) { if (state.view !== 1) setView(1); return 1; }
+  const ref = refOf(run);
+  const moved = !!ref && leftRun() !== run;
+  if (moved) { state.pair = [ref, state.pair[1]]; letGoUnshown(); }
+  if (state.view !== 0 || moved) setView(0);
+  return 0;
 }
 // a date as the films' lists say it: "16 Oct 2026, 10:42"
 const shortDate = (iso) => { const d = iso ? new Date(iso) : null; return d && !isNaN(d) ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "undated"; };
@@ -9223,10 +9364,13 @@ async function startRun(description, fps = editor.fps, extensions = modeExtensio
   }
   run.fps = fps;
   run.status = { running: true, started: Date.now(), stepStarted: Date.now(), step: remake ? "pass2" : "pass1", what: "Getting Ani ready", scene: null, heard: Date.now(), ...(remake && run.remaking && run.remaking.fromScratch ? { scratch: "This film was saved before Ani kept its working files, so it is made again from the start" } : {}) };
+  const was = RUNS[1];
+  state.pair = pair || pairFor(run, was);
+  if (pair) pairWait = null;
   RUNS[1] = run;
+  letGoUnshown();
   state.selected = null;
   state.panel = "compare";
-  state.pair = pair || ["ken", "cur"];
   view.lost = false;
   // a changed Cinderella is shown beside Ken's; a new story on its own; a remake beside the
   // film it was remade from
@@ -9515,11 +9659,13 @@ async function restoreRun() {
 // The reader's version is now this film (made, opened from a file or from "Your films"):
 // shown from its start, a changed Cinderella beside Ken's, a new story on its own.
 function showAsCurrent(run) {
+  const was = RUNS[1];
+  state.pair = pairFor(run, was);
   RUNS[1] = run;
+  letGoUnshown();
   state.selected = null;
   state.scene = 0;
   state.time = 0;
-  state.pair = ["ken", "cur"];
   view.lost = false;
   setView(sameStory(RUNS[0], run) ? "both" : 1);
 }
@@ -9535,6 +9681,12 @@ function updateRunbar() {
   document.getElementById("open-films").textContent = films ? `Films made here (${films})` : "Films made here";
   if (!run) return;
   bar.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", String(String(state.view) === b.dataset.view)));
+  // the left slot: Ken's 1978 film, or the film it shows by its title
+  const left = leftRun(), b0 = bar.querySelector('[data-view="0"]');
+  const leftName = left === RUNS[0] ? "Ani's 1978 film" : left === run ? "The new version" : left.label;
+  if (b0.textContent !== leftName) b0.textContent = leftName;
+  b0.title = left === RUNS[0] ? "Ken's Cinderella, as Ani made it in 1978" : `${left.label}${left.status && left.status.made ? `, made ${shortDate(left.status.made)}` : ""}`;
+  renderComparePick();
   const st = run.status || {};
   const status = document.getElementById("run-status");
   const filmed = run.scenes.filter(ready).length;
@@ -9726,7 +9878,8 @@ function pairPanel(a, b) {
   }
   // the same story (same characters and scenes), or versions of one (the same characters,
   // a scene put in or left out), or two different stories
-  const same = sameStory(a, b), versions = sameCast(a, b);
+  // (two stories of one cast, but with no scene in common, are two different stories)
+  const same = sameStory(a, b), versions = sameCast(a, b) && a.sceneIds.some((id) => b.sceneIds.includes(id));
   const each = [[na, a], [nb, b]].map(([n, run]) => `<li><b>${esc(n)}</b>, ${esc(run.label)}${run.status && run.status.made ? ` (${esc(shortDate(run.status.made))})` : ""}: ${run === RUNS[0] ? "Ken's film description, as he told it." : toldWords(run)} <span class="note${runExtensions(run).length ? " made-with" : ""}">Made ${esc(madeFacts(run))}.</span></li>`).join("");
   let body = "", scenes;
   if (versions) {
@@ -9887,7 +10040,7 @@ function select(sel, { scroll = true, panel = null } = {}) {
 }
 function setView(view) {
   state.view = view === "both" || view === 1 ? view : 0;
-  if (state.view !== "both" && !RUNS[state.view]) state.view = 0;
+  if (state.view === 1 && !RUNS[1]) state.view = 0;
   // side by side, a film the page no longer has gives way to Ken's, or the reader's
   if (state.view === "both") {
     state.pair = state.pair.map((ref, r) => (filmRun(ref) ? ref : r ? "cur" : "ken"));
@@ -10014,7 +10167,8 @@ function fromHash() {
   const parts = all.filter((p) => !/^ages-/.test(p));
   const i = SCENE_IDS.indexOf(parts[0]);
   if (i < 0) return false;
-  if (state.view !== 0) setView(0);
+  // (on the left, where another film had the left slot)
+  if (state.view !== 0 || leftRun() !== RUNS[0]) { if (leftRun() !== RUNS[0]) { pairWait = null; state.pair = ["ken", state.pair[1]]; } setView(0); }
   if (parts.includes("color")) setColor(true, { remember: false });
   else if (parts.includes("tv")) setColor(false, { remember: false });
   // the number is a frame at 4 a second, as the links have always counted
@@ -12714,7 +12868,7 @@ function renderSavePanel() {
   const both = runs.length > 1;
   const mine = RUNS[1];
   // the reader's films on the screens, each as a film file (with Ken's alone, their version)
-  const files = state.view === 0 ? (mine ? [mine] : []) : [...new Set(runs.filter((r) => r !== RUNS[0]))];
+  const files = state.view === 0 && runs[0] === RUNS[0] ? (mine ? [mine] : []) : [...new Set(runs.filter((r) => r !== RUNS[0]))];
   const fileLabel = (run, k) => (run === mine ? "The new version" : files.length > 1 ? `The film on the ${runs.indexOf(run) ? "right" : "left"}` : `“${run.label.length > 40 ? run.label.slice(0, 38) + "…" : run.label}”`);
   const sc = runs[0].scenes[state.scene];
   const { titles, subtitles } = videoOptions;
@@ -13145,11 +13299,18 @@ function filmsPanel() {
       <div class="film-confirm" hidden></div>
       <details><summary>What Ani was told</summary><div class="body"><ul class="changes">${(f.about || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>
     </li>`).join("");
+  // Ken's 1978 film, the oldest, last: to put beside any of them
+  const ken = `<li class="film ken-film" data-film="ken">
+      <div class="film-head"><span class="film-title">Ani's 1978 film</span></div>
+      <p class="note">${esc(at611("Ken's Cinderella, as Ani made it at MIT in 1978 · always here", "Ken's Cinderella, as Ani made it in 1978 · always here"))}</p>
+      <div class="film-actions"><span>Side by side: <button type="button" class="linkish" data-film-act="left">on the left</button> · <button type="button" class="linkish" data-film-act="right">on the right</button></span></div>
+    </li>`;
   side.innerHTML = `
     <div class="side-head"><h2>Films made here</h2><button type="button" class="linkish" id="films-close">Back</button></div>
     <p class="note">${intro}</p>
     ${dropped}
-    ${films.length ? `<ul class="films">${rows}</ul>` : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
+    ${films.length ? "" : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
+    <ul class="films">${rows}${ken}</ul>
     <div class="actions"><button type="button" class="btn" id="films-file">Open a saved film…</button></div>
     <p class="note" id="films-status" aria-live="polite"></p>`;
   side.querySelector("#films-close").addEventListener("click", () => select(null));
@@ -13157,6 +13318,10 @@ function filmsPanel() {
   side.querySelectorAll("[data-film-act]").forEach((b) => b.addEventListener("click", () => filmAction(b.closest("[data-film]").dataset.film, b.dataset.filmAct, b)));
 }
 async function filmAction(id, act, button) {
+  if (id === "ken") {
+    if (act === "left" || act === "right") { setFilmsStatus("Putting it on the screen…"); await setPair(act === "left" ? 0 : 1, "ken"); }
+    return;
+  }
   const f = library.films.find((x) => x.id === id);
   if (!f) return;
   const item = button.closest("[data-film]");
@@ -13214,6 +13379,7 @@ async function deleteFilm(id) {
   // the reader's version stays on its screen, no longer kept; a film beside it gives way
   if (RUNS[1] && RUNS[1].libId === id) { RUNS[1].libId = null; RUNS[1].status.kept = "deleted"; }
   const onScreen = state.pair.includes(`lib:${id}`);
+  if (state.chosen === `lib:${id}`) state.chosen = null;
   state.pair = state.pair.map((ref, r) => (ref === `lib:${id}` ? (r ? "cur" : "ken") : ref));
   filmsChanged();
   if (onScreen && state.view === "both") { const panel = state.panel; setView("both"); if (panel === "films") { state.panel = "films"; renderSide(); } }
@@ -13376,7 +13542,7 @@ function viewState() {
   return {
     v: 1, at: Date.now(),
     cur: cur ? { libId: cur.libId || null, running: !!(cur.status && cur.status.running) } : null,
-    pair: [...state.pair], view: state.view, rate: RATE, color: state.color,
+    pair: [...state.pair], chosen: state.chosen, view: state.view, rate: RATE, color: state.color,
     scene: state.scene, time: state.time, playing: state.playing,
     selected: state.selected ? { run: state.selected.run, char: state.selected.char, plan: state.selected.plan || null } : null,
     panel: state.panel, details: detailsOf(side), box: view.box,
@@ -13464,6 +13630,9 @@ async function restoreView(s) {
     if (!RUNS[1]) await restoreRun();
     for (const ref of Array.isArray(s.pair) ? s.pair : []) if (/^lib:/.test(ref)) await libraryRun(ref.slice(4));
     if (Array.isArray(s.pair) && s.pair.length === 2) state.pair = s.pair.map(String);
+    // the left film the visitor chose, theirs still; a film of "Films made here" read first
+    if (typeof s.chosen === "string" && /^lib:/.test(s.chosen)) await libraryRun(s.chosen.slice(4));
+    state.chosen = typeof s.chosen === "string" && (!/^lib:/.test(s.chosen) || libraryFilms().some((f) => `lib:${f.id}` === s.chosen)) ? s.chosen : null;
     state.selected = null;
     state.panel = "story";
     setView(s.view === "both" || s.view === 1 ? s.view : 0);
@@ -15556,8 +15725,7 @@ async function teachAct(el) {
     // a piece about one of the story's characters is criticism of the film: her glass box
     const base = teachBase();
     const c = base.cast.find((x) => x === d.teachCriticize || plain(x) === plain(d.teachCriticize)) || base.cast[0];
-    if (state.view === "both" || base !== screenRun(0)) setView(base === RUNS[0] ? 0 : 1);
-    select({ run: base === RUNS[0] ? 0 : 1, char: c });
+    select({ run: showAlone(base), char: c });
   } else if (d.teachExample !== undefined) {
     const e = exampleOf(d.teachExample);
     if (e) { await useExample(e); if (!e.story) setRate(4); }

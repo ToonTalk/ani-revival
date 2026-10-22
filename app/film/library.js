@@ -371,11 +371,18 @@ function filmsPanel() {
       <div class="film-confirm" hidden></div>
       <details><summary>What Ani was told</summary><div class="body"><ul class="changes">${(f.about || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></details>
     </li>`).join("");
+  // Ken's 1978 film, the oldest, last: to put beside any of them
+  const ken = `<li class="film ken-film" data-film="ken">
+      <div class="film-head"><span class="film-title">Ani's 1978 film</span></div>
+      <p class="note">${esc(at611("Ken's Cinderella, as Ani made it at MIT in 1978 · always here", "Ken's Cinderella, as Ani made it in 1978 · always here"))}</p>
+      <div class="film-actions"><span>Side by side: <button type="button" class="linkish" data-film-act="left">on the left</button> · <button type="button" class="linkish" data-film-act="right">on the right</button></span></div>
+    </li>`;
   side.innerHTML = `
     <div class="side-head"><h2>Films made here</h2><button type="button" class="linkish" id="films-close">Back</button></div>
     <p class="note">${intro}</p>
     ${dropped}
-    ${films.length ? `<ul class="films">${rows}</ul>` : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
+    ${films.length ? "" : `<p class="note">${library.state === "unavailable" ? "" : "No films yet. Change the story, or tell Ani a new one, and each film it makes is kept here."}</p>`}
+    <ul class="films">${rows}${ken}</ul>
     <div class="actions"><button type="button" class="btn" id="films-file">Open a saved film…</button></div>
     <p class="note" id="films-status" aria-live="polite"></p>`;
   side.querySelector("#films-close").addEventListener("click", () => select(null));
@@ -383,6 +390,10 @@ function filmsPanel() {
   side.querySelectorAll("[data-film-act]").forEach((b) => b.addEventListener("click", () => filmAction(b.closest("[data-film]").dataset.film, b.dataset.filmAct, b)));
 }
 async function filmAction(id, act, button) {
+  if (id === "ken") {
+    if (act === "left" || act === "right") { setFilmsStatus("Putting it on the screen…"); await setPair(act === "left" ? 0 : 1, "ken"); }
+    return;
+  }
   const f = library.films.find((x) => x.id === id);
   if (!f) return;
   const item = button.closest("[data-film]");
@@ -440,6 +451,7 @@ async function deleteFilm(id) {
   // the reader's version stays on its screen, no longer kept; a film beside it gives way
   if (RUNS[1] && RUNS[1].libId === id) { RUNS[1].libId = null; RUNS[1].status.kept = "deleted"; }
   const onScreen = state.pair.includes(`lib:${id}`);
+  if (state.chosen === `lib:${id}`) state.chosen = null;
   state.pair = state.pair.map((ref, r) => (ref === `lib:${id}` ? (r ? "cur" : "ken") : ref));
   filmsChanged();
   if (onScreen && state.view === "both") { const panel = state.panel; setView("both"); if (panel === "films") { state.panel = "films"; renderSide(); } }
