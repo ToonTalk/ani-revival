@@ -138,6 +138,14 @@ header .guides .teach-head:hover { text-decoration: underline; }
 .bands-key { margin: -4px 0 0; font-size: 0.78rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 14px; }
 .bands-key .sw { display: inline-block; width: 18px; height: 9px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
 .bands-key .sw-part { background: linear-gradient(90deg, color-mix(in srgb, var(--muted) 32%, var(--rule)) 50%, color-mix(in srgb, var(--accent) 32%, var(--rule)) 50%); }
+.length-line { margin: 4px 0 0; font-size: 0.82rem; color: var(--muted); }
+.length-line details { margin: 0; }
+.length-line summary { cursor: pointer; }
+.length-line summary .len-why { color: var(--accent); text-decoration: underline; }
+.length-line .body { color: var(--ink); font-size: 0.9rem; max-width: 72ch; }
+.length-list { margin: 4px 0 8px; padding-left: 20px; }
+.length-list li { margin: 4px 0; }
+table.length td:nth-child(3), table.length td:nth-child(4) { white-space: nowrap; }
 .bands-key .sw-along { height: 4px; vertical-align: 1px; background: var(--godmother); opacity: 0.8; }
 .frame-label { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); min-width: 10ch; text-align: right; font-variant-numeric: tabular-nums; }
 .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; flex-wrap: wrap; }
@@ -648,6 +656,7 @@ header .guides .speech-head { display: inline-flex; align-items: center; positio
         <button class="btn film-setting" id="save" type="button" aria-expanded="false" aria-controls="save-panel">Save</button>
       </div>
       <p class="bands-key" id="bands-key"></p>
+      <div class="length-line" id="length-line" hidden></div>
       <div class="save-panel" id="save-panel" hidden></div>
       <div class="captions" id="captions">
         <p class="caption" id="caption-0" aria-live="polite"></p>
@@ -1548,6 +1557,7 @@ const MODE_CLAUSE = {
   fit: "keeps each scene to the time its length gives it, a walk taking its stretch once",
   slips: "corrects slips in Ken's files",
   detail: "attends to a few of the thesis's “myriad details”",
+  timely: "has Director keep to the times Ani planned",
 };
 // clauses with an "and" of their own, set apart with commas: "A, B, and C"
 const clauseList = (clauses) => (clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : clauses[0] || "");
@@ -1615,6 +1625,7 @@ const EXTENSION_TEXT = {
   slips: "Corrections of slips in Ken's files: places where his code does other than the code beside it, his comments or his thesis say it is to do. Each correction quotes the line it corrects and comes with a written diff of his Cinderella, and the speed inversion went in only once a run confirmed it (Ken's decision 2). is-not looks for someone in the task's own scene, where it was given the task and never found anyone, and is-described-as is a preference, ideally all of the words, then any, then anyone (thesis p. 100); a high level of variety picks the least used value, as the thesis says (p. 85); friendly's tendencies are named as the elements are; a method's prerequisites are read where they are kept; MIDDLE compares itself with “not bottom”; and in Director a gradual change runs as long as Ani planned it (a run of his Cinderella confirmed the inversion, by what Director measured: nearly four times as long at high speed, under a quarter at low), grows once a tick, takes as many steps as it counts, is counted once in a walk set again, and is carried forth into the walks of its part and of the part it extends; and the film waits for the activity a feeling's part extends. In Ken's Cinderella, Cinderella helps her stepmother in the Introduction, not the Prince; in Kept Apart the feelings show on the guard's walks, Cinderella slower and straighter, the stepmother quicker and curving more (p. 66); and every feeling changes the characters at the pace Ani planned. It needs KNOW's way of showing helping, and FIT, whose corrections of how a scene's time is divided it began with: ticking it ticks them, and MEND.",
   critic: "Your criticism of a film, kept with the film, and heeded as Ken's thesis proposes (Chapter X, Section D, “Critics and Criticism”, pp. 189–191): a way of showing vetoed, which Ani sets aside and chooses among what is left; a part too quick or too slow, whose time Ani stretches by half again or shrinks by a third, within the time the story gives it; two characters kept apart in a scene, every way that would bring them together set aside; and one who starts far from another, placed far off and off the stage. It is never ticked: Ani loads it, with MEND, into every job of a film you have criticized (“Remake with this criticism”), whatever else the film was made with, and only then; a film with no criticism never loads it, and Ken's Cinderella with it loaded and nothing criticized comes out exactly as in 1978.",
   detail: "A few of the low-level details the thesis names as left undone (pp. 183-187, “Attending to Myriad Details”), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, a deliberate character going in longer arcs with smaller jags (X.B.3 (f)); its tendencies towards friends, enemies and strangers count in the best-when scores of the ways of showing that take it to another, or away (c); and a scene's rhythm, fast, slow or changing, speeds its characters up or slows them down a quarter, as a feeling would (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not; Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker; the tendencies decide nothing there. It needs MEND: ticking it ticks MEND.",
+  timely: "Ani plans each part of a scene to take a time and stretches its ways of showing to fill it (“Ani must often arbitrate between the different activities by stretching or shortening them”, thesis p. 126), but Director films the plan as it is written, not by the clock: a walk goes until it gets there or has gone its distance, a change of how someone moves takes the time its speed gives it, and the pauses in a way of showing stay as they are. So a film whose scenes are squeezed hard runs long: Ken's Cinderella set to one minute, every scene short, was planned at 61 seconds and filmed in 82. With this, Director holds each part to its planned end: a change that would run past it is made over the time left, a walk or a facing is quickened (at most four times), a pause is shortened, and, as a last resort, a walk still going when the time is up ends there. Opt-in, at Ken's request of 22 October; never in Ani as in 1978.",
 };
 const REVIVE_TEXT = {
   wrap: "The helper every extension goes through: it wraps one of Ken's functions once a job, and notes each repair where it acted.",
@@ -1674,6 +1685,7 @@ const REVIVE_TEXT = {
   critpc: "Too quick, too slow: the part's time half as long again for each “too quick”, a third shorter for each “too slow”, applied to the time Ken's code ends up giving it (his ideal-time-for-task, or his fitting of the whole scene to its length, adjust-task-lengths, which works from his own times), within the time the story gives the part and SCENE's own stretch of 8 and 1/8; SCENE then stretches or shrinks its walks to fit.",
   critsc: "Keep two apart in a scene: every way of showing that would bring the two together (a walk to touch the other, or the two walking together, read from the code of each way, DISPLY's and the revival's) set aside as a prerequisite not met; and start far from: where the scene places the two and the one to start far is still where an earlier scene left her, with no part yet in the scene, she is placed far off and off the stage by Ken's place-large-distance-apart (with MEND19's far place).",
   dtrhym: "B.2 (a) A scene's rhythm as changes of speed, made with DISPLY's change:, as joy's are: fast and slow a quarter faster or slower at medium speed in each part, a changing rhythm its first value in the first part and its last in the last, for each character who does something there; normal changes nothing.",
+  timely: "Each part's planned end, from its running time as it begins (action.152:33-41); a change of how someone moves or looks that would run past it made over the seconds left (dichar.103:102-121, as REVIVE;CHSHOW's change over seconds); a walk's speed, and a facing's, raised each tick by the ratio of what it needs to what is left, at most four times; a pause shortened to the time left; and a walk still going at the end ended there, as if there.",
 };
 const reviveFile = (name) => (CODE.revive ? CODE.revive.files.find((f) => f.name === name) : null);
 const fileLink = (name) => { const f = reviveFile(name); return f && CODE_SITE !== "none" ? `<a class="code-link" href="${CODE_SITE}source.html#${f.id}" title="${esc(f.its)}">code</a>` : ""; };
@@ -1705,9 +1717,9 @@ function extensionsPanel() {
   const NAMED = [["mend", "the repairs for new stories (MEND)"], ["know", "the knowledge Ken could have added (KNOW)"], ["appear", "Ani choosing how its characters look (APPEAR)"], ["change", "characters who change (CHANGE)"], ["seen", "changes seen when no one has anything to do (SEEN)"], ["fit", "scenes that keep their time (FIT)"]];
   const on = NAMED.filter(([id]) => SWITCHED.includes(id)).map(([, t]) => t);
   const count = ["no", "one", "two", "three", "four", "five", "six"][SWITCHED.length] || SWITCHED.length;
-  const opt = EXTENSIONS.filter((e) => e.optIn).map((e) => ({ slips: "corrections of slips in Ken's files (SLIPS)", detail: "a few of the thesis's “myriad details” (DETAIL)" })[e.id] || `${e.label} (${e.id.toUpperCase()})`);
+  const opt = EXTENSIONS.filter((e) => e.optIn).map((e) => ({ slips: "corrections of slips in Ken's files (SLIPS)", detail: "a few of the thesis's “myriad details” (DETAIL)", timely: "Director keeping to Ani's times (TIMELY)" })[e.id] || `${e.label} (${e.id.toUpperCase()})`);
   return `<details class="ext-panel"><summary>Which extensions</summary><div class="body">
-    <p class="note">The switch turns on ${count} of the revival's extensions: ${esc(words(on))}.${opt.length ? ` ${cap(NUMBER_WORDS[opt.length] || String(opt.length))} more ${opt.length > 1 ? "are" : "is"} opt-in, off unless you tick ${opt.length > 1 ? "them" : "it"} (Ken's decision 3): ${esc(words(opt))}.` : ""} Tick or untick any of them for the films made here: ticking one ticks those it needs, and unticking one unticks those that need it.</p>${groups}
+    <p class="note">The switch turns on ${count} of the revival's extensions: ${esc(words(on))}.${opt.length ? ` ${cap(NUMBER_WORDS[opt.length] || String(opt.length))} more ${opt.length > 1 ? "are" : "is"} opt-in, off unless you tick ${opt.length > 1 ? "them" : "it"} (Ken's decision 3${opt.length > 2 && extNamed("timely") ? ", and for TIMELY his request of 22 October" : ""}): ${esc(words(opt))}.` : ""} Tick or untick any of them for the films made here: ticking one ticks those it needs, and unticking one unticks those that need it.</p>${groups}
     <p class="note">Each is the revival's Lisp, in Ken's idioms, in files of its own that load after his only when the switch asks for them. Ken's 1978 film is shown as it was made, whichever is chosen.</p></div></details>`;
 }
 
@@ -1726,7 +1738,7 @@ const repairCode = (what) => { const at = CODE.revive && CODE.revive.notes[what]
 // one for each change, each walk set again, each walker).
 // the elements Director reads in a walk (dichar.103:164-169), for SLIPS13's sentence (deliberateness only with DETAIL's walk)
 const DIRECTOR_READS = ["speed", "path-curvature", "path-length", "path-jaggedness"];
-const GROUPED = new Set(["carried-forth", "combined-changes", "is-not-in-the-scene", "factors-once", "stretch-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency"]);
+const GROUPED = new Set(["carried-forth", "combined-changes", "is-not-in-the-scene", "factors-once", "stretch-once", "change-at-its-speed", "grown-once", "change-steps", "deliberate-walk", "rhythm-speed", "tendency", "change-kept-to-time", "walk-quickened", "turn-quickened", "walk-cut-short"]);
 function repairItems(run, notes, sc = null) {
   const seen = new Set(), items = [];
   for (const r of notes || []) {
@@ -2035,6 +2047,8 @@ const optInNote = (r) => OPT_IN_IDS.includes(noteExtension(noteKind(r)));
 // the glass box's sections for them, beside the repairs': [id, class, title, note]
 const OPT_SECTIONS = [
   ["slips", "corrections", "What the corrections of slips did here", "At each of these Ken's code did something other than what the code beside it, his comments or his thesis say it should: a slip. Each correction (SLIPS) is the revival's Lisp, quoting the line of his it corrects; open one for Ani's own record of it."],
+  // TIMELY (Ken's request of 22 October), opt-in: Director keeping to Ani's times
+  ["timely", "timed", "What keeping to Ani's times did here", "Ani planned each part to end at a time; Director films a plan as it is written, not by the clock, and a part can run on past its time. With TIMELY, Director held each part to its planned end: a change made over the time left, a walk or turn quickened, a pause shortened, and as a last resort a walk ended where it was. Each is the revival's Lisp; open one for Director's own record of it."],
   ["detail", "details-done", "What the details did here", "Ani as in 1978 left each of these undone (thesis pp. 183-187). Each detail (DETAIL) is the revival's reading of a sentence of the thesis, in its Lisp; open one for Ani's own record of it."],
   // FIT (Ken's decisions of 16 and 17 October): on with the revival's extensions, never in
   // Ani as in 1978; its notes said apart from the repairs, as corrections of Ken's timing
@@ -2301,6 +2315,29 @@ function optInSentence({ actor, what, notes }, sc) {
       const f0 = groups.length ? groups[0].f : 1;
       const all = groups.every((g) => g.f === f0);
       return `${inPart(actor)}${m ? `, as ${methodText(m)}` : ""}, SCENE ${all ? `${f0 < 1 ? "slows" : "speeds up"} the part's walks (${factor(f0)})` : "stretches the part's walks"} to fill its time. Ken's PLACE writes that into each new walk's own speed (${kenAt("place.45:455-461")}), and his Director multiplied it in again the first time the walk was set (${kenAt("dichar.103:27-31")}), so ${words(said)}. The revival takes it once (Ken's decision of 17 October; S16, with FIT).`;
+    }
+    // TIMELY (REVIVE;TIMELY): Director keeping to Ani's times, on the part, while filming
+    case "change-kept-to-time": {
+      const said = notes.map((n) => { const w = lispList(kv(n, "was")); return { c: w[0], what: w[1] === "look" ? "look" : elementWords(w[1]), secs: Number(w[w.length - 2]), now: Number(lispList(kv(n, "now"))[1]) }; });
+      const whose = [...new Set(said.map((x) => x.c))];
+      const longest = Math.max(...said.map((x) => x.secs));
+      const many = said.length > 1;
+      return `${inPart(actor)}, ${many ? `${NUMBER_WORDS[said.length] || said.length} changes of how ${who(whose)} ${whose.length > 1 ? "move and look" : "moves and looks"}` : `${who(said[0].c)}'s change of ${esc(said[0].what)}`} would have run past the part's planned end (${many ? "the longest, " : ""}${sec(longest)} at its speed, as Director runs a change, ${kenAt("dichar.103:102-121")}), so Director made ${many ? "them" : "it"} over the ${sec(said[0].now)} left, reaching the same factor sooner, as the revival's change over seconds does (REVIVE;CHSHOW; TIMELY).`;
+    }
+    case "walk-quickened": case "turn-quickened": {
+      const said = notes.map((n) => { const w = lispList(kv(n, "was")), x = lispList(kv(n, "now")), d = lispList(w[1]); return { c: w[0], needed: Number(d[1]), left: Number(d[4]), by: Number(x[2]) }; });
+      const turn = what === "turn-quickened";
+      return `${inPart(actor)}, ${words(said.map((x) => `${who(x.c)}'s ${turn ? "turn" : "walk"}, needing ${ticksWords(x.needed)} with ${x.left > 0 ? ticksWords(x.left) : "none"} left, was quickened up to ${+x.by.toFixed(2)} times`))}, so as to end by the part's planned end (TIMELY: ${turn ? "the rotational speed" : "the speed"} raised each tick by the ratio, at most four times, the range of Ken's own speeds, ${kenAt("interf.149:899-904")}).`;
+    }
+    case "walk-cut-short": {
+      const cs = [...new Set(notes.map((n) => lispList(kv(n, "was"))[0]))];
+      return `${inPart(actor)}, ${words(cs.map((c) => `${who(c)}'s walk`))} ${cs.length > 1 ? "were" : "was"} still going when the part's planned time was up, even quickened, so Director ended ${cs.length > 1 ? "them" : "it"} there, as if there, with what was to follow (TIMELY's last resort; Ken's walk ends when its stop condition says so, ${kenAt("dichar.103:156-200")}).`;
+    }
+    case "pause-shortened": {
+      const w = lispList(was);
+      const plan = Array.isArray(w[0]) ? show(w[0]) : "";
+      const act = (plan.match(/^\(activity-of ([a-z0-9-]+)/) || [])[1];
+      return `${inPart(actor)}, “${esc(ACTIVITY[act] || plain(act || "a step"))}” was to begin after a pause of ${sec(w[1])}, past the part's planned end; Director waited ${sec(now)} instead (TIMELY).`;
     }
     default: return null;
   }
@@ -5105,6 +5142,7 @@ function storyPanel() {
     ${simpleAge() ? ageStoryPeople(run, people) : `<div class="people">${people}</div>`}
     <div><p class="label">How they feel about each other</p><ul class="rels">${simpleAge() ? glossed(rels) : rels}</ul></div>
     <div class="scene-list"><p class="label">${at611("The scenes", "The scenes, and what Ani was asked to show in each")}</p>${cards}</div>
+    ${lengthBox(run)}
     ${ready(scene()) ? critSceneBox(run, scene()) + timelineBox(slotOf(run), scene()) : ""}
     <pre class="lisp" id="cindy" hidden></pre>`;
   side.querySelectorAll(".scene-card").forEach((b) => b.addEventListener("click", () => goScene(Number(b.dataset.scene), sceneStart(Number(b.dataset.scene)))));
@@ -5357,10 +5395,12 @@ function seenLabel(a, char) {
 // put in here by tools/build-film-app.mjs (reports/ext/change/README.md, "For the page: why
 // they act as they do"; Ken's testing of 15 October: "it is easy to find why characters
 // look as they do but harder to figure out why they act as they do"). Its copy reads the
-// page's own registry of extensions (EXTENSIONS). Each scene's is worked out once.
-const AniWhy = (() => {
+// page's own registry of extensions (EXTENSIONS). Each scene's is worked out once. And how
+// long the film is (lengthReport, Ken's request of 22 October). (In the claude.ai copy the
+// names are Ani's runtime's own, as Teach Ani's are: teachRuntime.)
+const AniWhy = await (async () => {
 /*WHY-THEY-ACT*/
-  return { whyTheyAct, changeSeconds };
+  return { whyTheyAct, changeSeconds, lengthReport, LENGTH_LITTLE };
 })();
 // The record of a reader's criticism of a film, and what a remake with it changed: src/pipeline.js's
 // own helpers (addCriticism, criticismChanges, ...), put in here by tools/build-film-app.mjs,
@@ -5545,6 +5585,8 @@ function timingSteps(run, sc, w, a, char) {
   if (runs.length === 1) steps.push(`In the film it ran from ${frameGo(sc, runs[0].begin, frameAt(sc, runs[0].begin))} to ${frameGo(sc, runs[0].end, frameNo(sc, runs[0].end))} (${sec((runs[0].end - runs[0].begin) / fpsOf(sc))})${a.ended[0] ? `, and ended because ${endedWords(a.ended[0], k, char)}` : ""}.`);
   else if (runs.length > 1) steps.push(`In the film it ran ${runs.length} times: ${runs.map((r) => (r.begin === r.end ? `${r.begin}` : `${r.begin} to ${r.end}`)).join(", ")} (frames), ${sec(a.film.seconds)} in all.`);
   else steps.push("It didn't run in the film: the scene ended first.");
+  const length = lengthTiming(run, sc, a, char);
+  if (length) steps.push(length);
   return steps;
 }
 // FIT's step in "How Ani timed it": the scene held to its length's bounds, and this task's
@@ -5717,6 +5759,159 @@ function timelineBox(r, sc, char = null) {
     return `<li><p><b>Part ${p.n}</b> <span class="note">${simpleAge() ? `(${kidSpan}` : span}${p.parasiteOn ? `, beside part ${partN(w, p.parasiteOn)}` : ""}${simpleAge() ? ")" : ""}</span>: ${esc(partWhat(w, p.name)) || "nothing new"}${critPaceButtons(run, sc, w, p, { short: true })}</p>${rows.length ? `<ul>${rows.map((x) => (simpleAge() ? x.html.replace(/<span class="fr">[\s\S]*?<\/span> (?=<button type="button" class="linkish" data-tl)/, "") : x.html)).join("")}</ul>` : ""}</li>`;
   }).join("");
   return `<details class="timeline"><summary>${esc(sc.title)}, part by part (${w.parts.length} part${w.parts.length === 1 ? "" : "s"})</summary><div class="body"><p class="note">${at611("Each part's frames (the film's, counted from its first scene; click one to see it) and what it is for, and each step in it; click a step for why it is done that way and lasts that long.", "Each part of the scene, how long it lasts and what it is for, and each step in it. Click a step to see why it is done that way and lasts that long.")}</p><ol class="tl">${parts}</ol></div></details>`;
+}
+// ---------------------------------------------------------------- how long the film is
+
+// With every film: what was asked for (the film's length and each scene's), what Ani
+// planned (each scene's time) and what Director took (each scene's filmed seconds), scene
+// by scene, and, where the film differs from its plan by more than a little, why: what ran
+// past its part's planned end (Ken's request of 22 October, option 3: his Cinderella set to
+// one minute with every scene short was planned at 61 seconds and filmed in 82). From
+// src/pipeline.js lengthReport, worked out once for each film whose scenes are all made: a
+// line under the strip, open for the whole of it, and the same in the story; a step in
+// "How Ani timed it".
+const LENGTH_OF = new WeakMap();
+function lengthOf(run) {
+  if (!run || !run.scenes || !run.scenes.length || !run.scenes.every(ready)) return null;
+  const key = run.scenes.map((s) => s.film.frames.length).join(" ");
+  let x = LENGTH_OF.get(run);
+  if (!x || x.key !== key) {
+    let report = null;
+    try { report = AniWhy.lengthReport(run.scenes.map((sc, i) => ({ id: run.sceneIds[i], glass: sc.glass, film: sc.film })), { cindy: run.cindy, extensions: runExtensions(run).filter((id) => extNamed(id)) }); }
+    catch (e) { console.error(e); }
+    x = { key, report };
+    LENGTH_OF.set(run, x);
+  }
+  return x.report;
+}
+const wholeSec = (n) => `${Math.round(Number(n))} s`;
+// "1 minute", "2 to 5 minutes"
+function askedWords(asked) {
+  const m = (s) => +(s / 60).toFixed(2);
+  const unit = (x) => `${x} minute${x === 1 ? "" : "s"}`;
+  return asked.least === asked.most ? unit(m(asked.least)) : `${m(asked.least)} to ${unit(m(asked.most))}`;
+}
+// whether the whole film differs from its plan by more than a little
+const filmDiffers = (rep) => Math.abs(rep.filmed - rep.planned) > Math.max(AniWhy.LENGTH_LITTLE.seconds, AniWhy.LENGTH_LITTLE.fraction * rep.planned);
+// the line: "Asked for 1 minute; planned 61 s; filmed 82 s — why"
+function lengthSummary(rep) {
+  const why = filmDiffers(rep) ? "why" : "how";
+  if (simpleAge()) return `${rep.asked ? `You asked for ${askedWords(rep.asked)}. ` : ""}Ani planned ${Math.round(rep.planned)} seconds. The film is ${Math.round(rep.filmed)} seconds long. <span class="len-why">${why === "why" ? "Why?" : "How?"}</span>`;
+  return `${rep.asked ? `Asked for ${askedWords(rep.asked)}; planned` : "Planned"} ${wholeSec(rep.planned)}; filmed ${wholeSec(rep.filmed)} — <span class="len-why">${why}</span>`;
+}
+let lengthKey = "";
+function lengthLine() {
+  const el = document.getElementById("length-line");
+  if (!el) return;
+  const reps = shown().map((r) => [r, screenRun(r)]).map(([r, run]) => [r, run, lengthOf(run)]).filter(([, , rep]) => rep && rep.planned !== null && rep.filmed !== null);
+  const key = `${AGE} ${reps.map(([r, run, rep]) => `${r}:${RUNS.indexOf(run)}:${(run && run.id) || ""}:${rep.planned}:${rep.filmed}`).join(" ")}`;
+  if (key === lengthKey) return;
+  lengthKey = key;
+  const open = [...el.querySelectorAll("details")].map((d) => d.open);
+  el.hidden = !reps.length;
+  el.innerHTML = reps.map(([r, run, rep], i) => `<details class="length-why"${open[i] ? " open" : ""}><summary><span>${reps.length > 1 ? `<b>${r === reps[0][0] ? at611("Left", "Left film") : at611("Right", "Right film")}:</b> ` : ""}${lengthSummary(rep)}</span></summary><div class="body">${using(run, () => lengthBody(run, rep))}</div></details>`).join("");
+}
+// In the story, closed: the same.
+function lengthBox(run) {
+  const rep = lengthOf(run);
+  if (!rep || rep.planned === null) return "";
+  return `<details class="length-report"><summary><span>How long the film is: ${simpleAge() ? `planned ${Math.round(rep.planned)} seconds, ${Math.round(rep.filmed)} seconds long` : `${rep.asked ? `asked for ${askedWords(rep.asked)}, ` : ""}planned ${wholeSec(rep.planned)}, filmed ${wholeSec(rep.filmed)}`}</span></summary><div class="body">${lengthBody(run, rep)}</div></details>`;
+}
+// what a step does until it ends, by its stop conditions (whyTheyAct's kinds)
+function lengthStops(stops, kid = false) {
+  const has = (k) => stops.includes(k);
+  if (has("after-a-hit")) return kid ? "hits and steps back" : "goes until the hit and the step back are done";
+  if (has("after-turning")) return kid ? "turns all the way" : "turns until it has turned as far as planned";
+  if (has("when-changes-ended")) return kid ? "keeps going until the feeling has changed" : "goes on until the changes end";
+  if (has("original-distance")) return kid ? "walks all the way" : "goes its whole distance";
+  if (has("when-there") && has("after-seconds")) return kid ? "walks all the way" : "goes until it gets there or its seconds are up";
+  if (has("when-there")) return kid ? "walks all the way to where they are going" : "goes until it gets there";
+  if (has("after-seconds")) return kid ? "goes on for as long as planned" : "goes for its seconds";
+  return kid ? "keeps going" : "goes until it is done";
+}
+// The report: the table, and why each scene that differs from its plan does.
+function lengthBody(run, rep) {
+  const kid = simpleAge();
+  const ext = runExtensions(run).filter((id) => extNamed(id));
+  const title = (s) => esc(run.titles[s.id] || s.id);
+  const diff = (s) => (s.differs ? ` <span class="note">(${s.filmed > s.planned ? "+" : "−"}${sec(Math.abs(s.filmed - s.planned))})</span>` : "");
+  const bounds = (s) => (s.lengthBounds ? (s.lengthBounds[0] === s.lengthBounds[1] ? sec(s.lengthBounds[0]) : `${sec(s.lengthBounds[0])} to ${sec(s.lengthBounds[1])}`) : "");
+  const rows = rep.scenes.map((s) => `<tr><th scope="row">${title(s)}</th><td>${esc(s.length || "medium")}${bounds(s) ? `: ${bounds(s)}` : ""}</td><td>${s.planned === null ? "—" : sec(s.planned)}</td><td>${s.filmed === null ? "—" : sec(s.filmed)}${diff(s)}</td></tr>`).join("");
+  const table = `<div class="table-wrap"><table class="dyn length"><thead><tr><th>Scene</th><th>${kid ? "Asked for" : "Its length"}</th><th>${kid ? "Ani planned" : "Ani planned"}</th><th>${kid ? "The film" : "Director filmed"}</th></tr></thead><tbody>${rows}<tr><th scope="row">${kid ? "The whole film" : "The film"}</th><td>${rep.asked ? askedWords(rep.asked) : ""}</td><td>${sec(rep.planned)}</td><td>${sec(rep.filmed)}</td></tr></tbody></table></div>`;
+  const why = rep.scenes.filter((s) => s.differs).map((s) => `<li>${lengthSceneWhy(run, s, ext, kid)}</li>`).join("");
+  const timely = lengthTimely(run, rep, kid);
+  const filmLisp = (/\(set your film-length to\s*(\(interval \(minutes [\d.]+\) \(minutes [\d.]+\)\))\)/.exec(run.cindy || "") || [])[1];
+  const intro = kid
+    ? `<p>${rep.asked ? `The story asks for a film of ${askedWords(rep.asked)}, and each scene gets its share. ` : ""}Ani planned how long each part of each scene takes. Then the moves are made one by one, and some take longer than Ani planned, or less.</p>`
+    : `<p class="note">${filmLisp ? `The film description asks for ${esc(filmLisp)}, ${askedWords(rep.asked)}, and` : "Each"} each scene's length (short, medium or long) gives it its share of the film's, a least and a most time (${kenAt("scene.9:346-357")}). Ani plans each scene's time within them (${kenAt("chomet.123:68-74")}${ext.includes("fit") ? "; FIT holds it to them" : ""}) and stretches each part's ways of showing to fill its part (${kenAt("scene.9:159-183")}). Director then films the plan as it is written, not by the clock: a walk goes until it gets there or has gone its distance (${kenAt("dichar.103:156-200")}), a change of how someone moves takes the time its speed gives it (${kenAt("dichar.103:102-121")}), and the pauses written into a way of showing stay as they are; so a film can run longer or shorter than its plan. Ken's Director measured the difference at the end of each part (time-estimate-error-for, ${kenAt("action.152:59-76")}), and nothing in 1978 read it.</p>`;
+  const verdict = rep.scenes.some((s) => s.differs)
+    ? `<p>${kid ? "Where the film is longer or shorter than Ani planned:" : "Where the film differs from Ani's plan by more than a little (a second, and a tenth of the scene's plan):"}</p><ul class="length-list">${why}</ul>`
+    : `<p>${kid ? "Every scene is about as long as Ani planned." : "Every scene is within a little of Ani's plan (a second, and a tenth of the scene's plan)."}</p>`;
+  return `${intro}${table}${verdict}${timely}`;
+}
+// Why one scene differs from its plan: its parts that ran past their planned end, and what
+// in each ran past it (the longest first), or that it ended sooner.
+function lengthSceneWhy(run, s, ext, kid) {
+  const title = esc(run.titles[s.id] || s.id);
+  const by = sec(Math.abs(s.filmed - s.planned));
+  if (s.sooner) return kid ? `In ${title}, they get where they are going sooner than Ani planned.` : `<b>${title}</b> ended ${by} sooner than planned: its steps got where they were going sooner than Ani estimated, and a step ends when it gets there (${kenAt("dichar.103:156-200")}).`;
+  const sc = run.scenes[run.sceneIds.indexOf(s.id)];
+  const w = sc ? whyOf(run, sc) : null;
+  const over = s.parts.filter((p) => p.over > AniWhy.LENGTH_LITTLE.part).sort((x, y) => y.over - x.over);
+  const said = over.slice(0, 3).map((p) => lengthPartWhy(run, w, p, ext, kid)).filter(Boolean);
+  const rest = over.length > 3 ? over.length - 3 : 0;
+  if (kid) return `In ${title} (${by} longer): ${said.join(" ")}`;
+  return `<b>${title}</b>, ${by} longer than planned. ${said.join(" ")}${rest ? ` ${cap(NUMBER_WORDS[rest] || String(rest))} more part${rest > 1 ? "s" : ""} ran a little past ${rest > 1 ? "theirs" : "its"}.` : ""}`;
+}
+function lengthPartWhy(run, w, p, ext, kid) {
+  const host = p.parasiteOn && w ? partN(w, p.parasiteOn) : null;
+  const seen = (c) => w && w.activities.some((a) => a.subscene === p.name && a.activity === "wandering-while-changes-run" && a.characters.includes(c));
+  if (p.changes.length) {
+    const top = p.changes[0];
+    const line = changeLine(top.form, ext);
+    const more = p.changes.length - 1;
+    if (kid) return `${cap(who(top.character))}'s feeling changes slowly: Ani planned ${Math.round(Math.max(1, top.aniSeconds))} seconds for it, but it takes ${Math.round(top.directorSeconds)}, and the film waits for it${seen(top.character) ? ` while ${meet(run.story, top.character).she} walks about` : ""}.`;
+    const inverted = !ext.includes("slips") && top.directorSeconds > top.aniSeconds * 1.5;
+    return `Part ${p.n}${host ? `, beside part ${host},` : ""} was planned for ${sec(p.planned)} and ran on ${sec(p.over)} past it: ${who(top.character)}'s ${line ? line.what : "change"} takes Director ${sec(top.directorSeconds)}, where Ani estimated ${sec(top.aniSeconds)}${inverted ? ` (Director multiplies a change's time by its speed's weight where Ani's estimate divides by it, ${kenAt("dichar.103:105-109")}, ${kenAt("disply.311:1104-1106")}: four times as long at high speed)` : ""}; a change runs at its speed, whatever time its part has (${kenAt("dichar.103:102-121")})${seen(top.character) ? `, and the film waits for it while ${who(top.character)} wanders (SEEN)` : ""}${more ? `; and ${NUMBER_WORDS[more] || more} more change${more > 1 ? "s" : ""} like it` : ""}.`;
+  }
+  const walks = p.walks.filter((x) => x.activity !== "waiting-to-wander").slice(0, 2);
+  if (!walks.length) return kid ? "" : `Part ${p.n}, planned for ${sec(p.planned)}, ran ${sec(p.filmed)}, a tick or two for each step to end and the next to begin.`;
+  const said = walks.map((x) => {
+    const cs = x.characters.filter((c) => run.cast.includes(c));
+    if (kid) return `${cap(who(cs.length ? cs : x.characters))} ${lengthStops(x.stops, true)}${x.pause >= 0.25 ? ", after waiting a moment" : ""}.`;
+    return `${para(`“${esc(ACTIVITY[x.activity] || plain(x.activity))}”`, x.plan)} (${esc(who(cs.length ? cs : x.characters))}) ${lengthStops(x.stops)}${x.runs > 1 ? `, ${NUMBER_WORDS[x.runs] || x.runs} times` : ""}${x.pause > 0 ? `, after a pause of ${sec(x.pause)} written into the way of showing` : ""}, and ended ${sec(x.over)} past the part's planned end`;
+  });
+  if (kid) return `${said.join(" ")} That takes longer than Ani planned.`;
+  return `Part ${p.n}, planned for ${sec(p.planned)}, ran ${sec(p.filmed)}: ${words(said)}.`;
+}
+// What REVIVE;TIMELY did, or that it can be ticked.
+function lengthTimely(run, rep, kid) {
+  const notes = rep.scenes.flatMap((s) => s.timely);
+  const made = runExtensions(run).includes("timely");
+  if (!made) return rep.scenes.some((s) => s.differs && !s.sooner) ? `<p class="note">${kid ? "There is a setting that makes Director keep to Ani's times, under the new parts added in 2026: “Director keeps to Ani's times”." : `To have Director keep to Ani's times, tick “Director keeps to Ani's times” (TIMELY) under Which extensions and make the film again.`}</p>` : "";
+  const count = (what) => notes.filter((n) => n.what === what).length;
+  const most = Math.max(1, ...notes.filter((n) => /quickened/.test(n.what)).map((n) => Number((/by ([\d.]+)/.exec(n.now) || [])[1]) || 1));
+  const parts = [
+    count("change-kept-to-time") && `${NUMBER_WORDS[count("change-kept-to-time")] || count("change-kept-to-time")} change${count("change-kept-to-time") > 1 ? "s" : ""} made in the time left`,
+    count("walk-quickened") && `${NUMBER_WORDS[count("walk-quickened")] || count("walk-quickened")} character${count("walk-quickened") > 1 ? "s'" : "'s"} walks quickened`,
+    count("turn-quickened") && `${NUMBER_WORDS[count("turn-quickened")] || count("turn-quickened")} character${count("turn-quickened") > 1 ? "s'" : "'s"} turns quickened`,
+    count("walk-cut-short") && `${NUMBER_WORDS[count("walk-cut-short")] || count("walk-cut-short")} walk${count("walk-cut-short") > 1 ? "s" : ""} cut short at their part's end`,
+    count("pause-shortened") && `${NUMBER_WORDS[count("pause-shortened")] || count("pause-shortened")} pause${count("pause-shortened") > 1 ? "s" : ""} shortened`,
+  ].filter(Boolean);
+  if (kid) return `<p class="note">Director was asked to keep to Ani's times${parts.length ? ", so it made some moves and feelings faster" + (count("walk-cut-short") ? " and stopped some moves early" : "") : ", and nothing needed to change"}.</p>`;
+  return `<p class="note">This film was made with “Director keeps to Ani's times” (TIMELY), which holds each part to its planned end${parts.length ? `: ${words(parts)}${count("walk-quickened") + count("turn-quickened") ? ` (at most ${+most.toFixed(2)} times as fast)` : ""}` : "; nothing needed it"}. The glass box says where. ${fileLink("timely")}</p>`;
+}
+// "How Ani timed it": the part's plan against its film, and what TIMELY did there for her.
+function lengthTiming(run, sc, a, char) {
+  const rep = lengthOf(run);
+  const s = rep && rep.scenes.find((x) => x.id === run.sceneIds[run.scenes.indexOf(sc)]);
+  const p = s && s.parts.find((x) => x.name === a.subscene);
+  if (!p) return "";
+  const mine = s.timely.filter((n) => n.part === a.subscene && (n.was.includes(`(${char} `) || n.was.startsWith(`(${char}`)));
+  const did = [...new Set(mine.map((n) => ({ "change-kept-to-time": "made a change in the time left", "walk-quickened": `quickened ${theirs(char)} walk${/by ([\d.]+)/.test(n.now) ? `, up to ${+Number(/by ([\d.]+)/.exec(n.now)[1]).toFixed(2)} times` : ""}`, "turn-quickened": `quickened ${theirs(char)} turns`, "walk-cut-short": `ended ${theirs(char)} walk at the part's end` })[n.what]).filter(Boolean))];
+  const over = p.over > AniWhy.LENGTH_LITTLE.part;
+  if (!over && !did.length) return "";
+  return `${over ? `Its part was planned for ${sec(p.planned)} and ran ${sec(p.filmed)}, ${sec(p.over)} past its planned end (“How long the film is”, in the story, says why).` : `Its part was planned for ${sec(p.planned)} and ran ${sec(p.filmed)}.`}${did.length ? ` Keeping to Ani's times (TIMELY), Director ${words(did)}.` : ""}`;
 }
 // A step of the timeline: its frame, and the glass box of the one who does it, open at it.
 document.addEventListener("click", (e) => {
@@ -7674,6 +7869,7 @@ function render() {
   const many = at.length > 1 ? "s" : "";
   document.getElementById("frame-label").textContent = simpleAge() ? `${state.time.toFixed(1)} / ${total.toFixed(1)} s` : `${state.time.toFixed(1)} / ${total.toFixed(1)} s${at.length ? ` · frame${many} ${at.map((x) => x[0]).join(" | ")} (scene frame${many} ${at.map((x) => x[1]).join(" | ")})` : ""}`;
   for (const r of shown()) caption(r);
+  lengthLine();
   scheduleSave();
 }
 // The scene buttons: the scenes of the film shown, or numbers for two different stories.

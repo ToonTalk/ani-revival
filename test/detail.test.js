@@ -30,7 +30,7 @@ test("the registry: DETAIL is knowledge, opt-in, changing Ken's Cinderella; it r
   // SEEN, since Ken's testing of 15 October, and FIT, since his decision of 16 October);
   // then CRITIC, loaded on demand with a film's criticism, and TEACH, with a learner's
   // knowledge, never by the switch
-  assert.deepEqual(EXTENSIONS.map((e) => e.id), ["mend", "appear", "change", "know", "seen", "fit", "slips", "detail", "critic", "teach"]);
+  assert.deepEqual(EXTENSIONS.map((e) => e.id), ["mend", "appear", "change", "know", "seen", "fit", "slips", "detail", "timely", "critic", "teach"]);
   // with DETAIL, Director reads deliberateness, and the best-when scores the tendencies
   assert.equal(elementUse("deliberateness", ["detail"]), "director");
   assert.equal(elementUse("attraction-towards-friends", ["detail"]), "best-when");

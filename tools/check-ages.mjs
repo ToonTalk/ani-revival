@@ -14,6 +14,9 @@
 //      "mood joyous and anticipatory", "mood very joyous", were "mood and joyous to
 //      anticipatory", "mood very to joyous"): the story panel at each scene, 10, the only
 //      difference.
+//      And on 22 October, with "How long the film is" (Ken's request, option 3): the story
+//      panel's box and "How Ani timed it"'s step where a part ran past its plan, 41 hashes;
+//      built with those two stubbed out, all 4,094 were as before.
 //   (Since 21 October 2026 the settings are 6–11 and 12+: Ken's decision, 6–8 gone and 9–11
 //   become 6–11; the old links #ages-6-8 and #ages-9-11 open 6–11.)
 //   B. True to the glass box, at 6–11: each "to show what … is like: …" names exactly the

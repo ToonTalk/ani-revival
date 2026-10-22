@@ -153,6 +153,21 @@ export const EXTENSIONS = [
     note: "A few of the low-level details the thesis names as left undone (pp. 183-187, \"Attending to Myriad Details\"), each the revival's reading of its sentence: a character's deliberateness shapes its path in Director's walk, how often, how quickly and how far it changes direction (f), a deliberate character going in longer arcs with smaller jags; its tendencies towards friends, enemies and strangers feed the best-when scores of the ways of showing that take it to another or away (c); and a scene's rhythm, fast, slow or changing, suggests changes of speed, as an emotional state does (B.2 (a)). In Ken's Cinderella the stepmother walks deliberately and the fairy godmother not, Kept Apart starts quicker and ends slower, and No Longer Kept Apart and the Meeting are quicker. Each leaves a note where it acted.",
   },
   {
+    // Ken's request of 22 October (option 3): a film of one minute with every scene short
+    // was planned at 61 seconds and filmed in 82. Opt-in, as SLIPS and DETAIL: never in
+    // the switch's six, never in "Ani as in 1978" (reports/ext/timely/README.md)
+    id: "timely",
+    label: "Director keeps to Ani's times",
+    group: "repairs",
+    optIn: true,
+    files: ["wrap", "timely"],
+    // FIT keeps the plan within the scene's length; a change made over the seconds left
+    // is REVIVE;CHSHOW's change over seconds
+    requires: ["fit", "change"],
+    changes1978: true,
+    note: "Ani plans each part of a scene to take a time, and stretches or squeezes its ways of showing to fill it (\"Ani must often arbitrate between the different activities by stretching or shortening them\", thesis p. 126); but Director realizes the plan as it is written, not by the clock: a walk goes until it gets there or has gone its distance, a change of how a character moves takes the time its speed gives it (and at high speed four times Ani's estimate), and the pauses within a way of showing are seconds SCENE's stretch doesn't reach. Ken's Director even measures how far each part ran from its estimate (time-estimate-error-for, action.152:59-76), and nothing reads it. So a film whose scenes are squeezed hard runs long: Ken's Cinderella set to one minute with every scene short was planned at 61 seconds and filmed in 82. With this repair, as each part begins Director knows when Ani planned it to end; a change that would run past that end is made over the seconds left; a walk that would is quickened, each tick, by as much as it needs, up to four times (the range of Ken's own speeds, low to high); a pause that would is shortened; and, as a last resort, a walk still going when its part's time is up ends there, as if it had got there. Each leaves a note where it acted.",
+  },
+  {
     // A user's criticism of a film (reports/chapter-x/design-criticism.md). onDemand: not
     // one the switch or the panel turns on; the pipeline loads it, with MEND, into every
     // job of a film that has criticism (boot's criticism), and never otherwise. With an
@@ -1422,6 +1437,73 @@ export function whyTheyAct(glass, film = null, { fps = (film && film.fps) || 4, 
   return { scene, parts, tasks, activities, stills };
 }
 
+// How long a film is: what was asked for, what Ani planned and what Director took, scene
+// by scene and part by part, and, where the film differs from the plan by more than a
+// little, what ran past the plan (Ken's request of 22 October: a film of one minute with
+// every scene short was planned at 61 seconds and filmed in 82). scenes: [{ id, glass,
+// film }], as the pipeline makes them; cindy: the film description, for its film-length;
+// extensions: the film's (with SLIPS a change runs as Ani planned it). Ken's Director
+// measures the same thing for each part, time-estimate-error-for (action.152:59-61,
+// 69-76), and nothing in 1978 read it. Returns
+//   { asked: { least, most } | null, planned, filmed, scenes: [{ id, length,
+//     lengthBounds, planned, filmed, differs, sooner, parts, timely }] }:
+// asked, the film's (set your film-length to (interval (minutes a) (minutes b))) in
+// seconds; planned, the running time CHOMET (and FIT) gave each scene (chomet.123:68-74);
+// filmed, its frames over its rate; differs, by more than a second and a tenth of the
+// plan; parts, each part with its planned and filmed seconds and how far past its planned
+// end it ran (over; a part of only changes, parasiteOn, begins its own time after the part
+// it extends), and for a part over by more than a quarter second what ran past its planned
+// end: walks, each plan of the part whose last run ended later ({ plan, activity,
+// characters, stops, over, runs, pause }, its stop conditions as whyTheyAct reads them,
+// pause the seconds its begin-time waits), and changes ({ character, form, aniSeconds,
+// directorSeconds }: Director's time over a change, from the part's beginning, past the
+// part's own); timely, what REVIVE;TIMELY did in the scene, its notes ({ part, what, was,
+// now, because } as Lisp text).
+export const LENGTH_LITTLE = { seconds: 1, fraction: 0.1, part: 0.25 };
+const TIMELY_NOTES = ["change-kept-to-time", "walk-quickened", "turn-quickened", "walk-cut-short", "pause-shortened"];
+export function lengthReport(scenes, { cindy = "", extensions = [] } = {}) {
+  const m = /\(set your film-length to\s*\(interval \(minutes ([\d.]+)\) \(minutes ([\d.]+)\)\)\)/.exec(cindy || "");
+  const asked = m ? { least: Number(m[1]) * 60, most: Number(m[2]) * 60 } : null;
+  const round = (x) => (x === null ? null : Math.round(x * 100) / 100);
+  const out = scenes.map((s) => {
+    if (!s || !s.glass || !s.film) return { id: s ? s.id : null, planned: null, filmed: null, differs: false, parts: [], timely: [] };
+    const fps = s.film.fps || 4;
+    const w = whyTheyAct(s.glass, s.film, { fps, extensions });
+    const planned = w.scene.runningTime;
+    const filmed = s.film.frames.length / fps;
+    const off = planned === null ? 0 : filmed - planned;
+    const differs = planned !== null && Math.abs(off) > Math.max(LENGTH_LITTLE.seconds, LENGTH_LITTLE.fraction * planned);
+    const parts = w.parts.filter((p) => p.film && p.runningTime !== null).map((p) => {
+      const end = p.film.begin + p.runningTime * fps;
+      const over = (p.film.end - end) / fps;
+      const part = { n: p.n, name: p.name, parasiteOn: p.parasiteOn, planned: round(p.runningTime), filmed: round((p.film.end - p.film.begin) / fps), over: round(over), walks: [], changes: [] };
+      if (over <= LENGTH_LITTLE.part) return part;
+      for (const a of w.activities) {
+        if (a.subscene !== p.name || !a.film || !a.film.spans.length) continue;
+        const last = Math.max(...a.film.spans.map((r) => r.end));
+        if (last <= end + 1) continue;
+        const b = readForms(String(a.beginTime || "0.0"))[0];
+        const pause = Array.isArray(b) && b[0] === "after" ? Number(b[2]) : Number(b);
+        part.walks.push({ plan: a.plan, activity: a.activity, characters: a.characters, by: a.by, stops: a.stops.map((x) => x.kind), over: round((last - end) / fps), runs: a.film.spans.length, pause: pause > 0 ? pause : 0, repeated: a.repeated });
+      }
+      for (const [character, forms] of Object.entries(p.changesFor)) {
+        for (const form of forms) {
+          const t = changeSeconds(form, extensions);
+          if (t.directorSeconds && t.directorSeconds > p.runningTime + 1 / fps) part.changes.push({ character, form, aniSeconds: t.aniSeconds, directorSeconds: t.directorSeconds });
+        }
+      }
+      part.walks.sort((x, y) => y.over - x.over);
+      part.changes.sort((x, y) => y.directorSeconds - x.directorSeconds);
+      return part;
+    });
+    const timely = (s.film.repairs || []).map((r) => ({ part: r.actor, n: readForms(String(r.note))[0] })).filter((x) => Array.isArray(x.n) && TIMELY_NOTES.includes(x.n[2]))
+      .map(({ part, n }) => ({ part, what: n[2], was: printForm(n[n.indexOf("was") + 1]), now: printForm(n[n.indexOf("now") + 1]), because: printForm(n[n.indexOf("because") + 1]) }));
+    return { id: s.id, length: w.scene.length, lengthBounds: w.scene.lengthBounds, planned: round(planned), filmed: round(filmed), differs, sooner: differs && off < 0, parts, timely };
+  });
+  const sum = (k) => (out.every((x) => x[k] !== null) ? round(out.reduce((a, x) => a + x[k], 0)) : null);
+  return { asked, planned: sum("planned"), filmed: sum("filmed"), scenes: out };
+}
+
 // The ends of the revival's walks with a character off the picture: for each plan a
 // revival's method wrote (whyTheyAct's activities, by other than DISPLY's), at the frame
 // each of its runs ended, each of its characters shown on the stage none of whose lines
@@ -1485,7 +1567,7 @@ function repeatAround(movements, plan) {
 // weight multiplying where Ani's divides: four times Ani's at high speed, a quarter at
 // low; as Ani's with SLIPS, whose S9 corrects it); a change in seconds (REVIVE;CHSHOW,
 // LOOKS) takes its seconds.
-function changeSeconds(form, extensions = []) {
+export function changeSeconds(form, extensions = []) {
   const f = readForms(form)[0];
   if (!Array.isArray(f)) return {};
   if (f[f.length - 1] === "seconds") { const s = Number(f[f.length - 2]); return { aniSeconds: s, directorSeconds: s }; }

@@ -295,7 +295,7 @@ function stripChecked(js, what, ext) {
 // handlers, no window[name], no Function.name. The result must read as JavaScript (node
 // --check, as a module), or the build stops. The readable page is the site's
 // (https://toontalk.github.io/ani/), which isn't minified.
-export const CHECK_HOOK_NAMES = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema", "workerWorks", "startRun", "screenRun", "previousFilm"];
+export const CHECK_HOOK_NAMES = ["tidyStory", "checkStory", "whyStopped", "stopBox", "makeRun", "using", "drawVideoFrame", "makeSubtitles", "RUNS", "DATA", "storySchema", "schemaFor", "slotWords", "lispFromJson", "jsonFromLisp", "cindyJson", "cindyExample", "sameForms", "formsOf", "storyPrompt", "storyFromReply", "printJson", "lispOf", "repairPrompt", "taskVerdict", "knowItems", "namesTaken", "extensionsPanel", "repairsIn", "repairCode", "drawFrame", "paintAt", "shapeChanges", "captionAt", "atScene", "looksBody", "drawnList", "screenRgb", "inkStyle", "lifted", "changedBody", "beautifiedCindy", "modeExtensions", "optInSummary", "select", "goScene", "setView", "runNotes", "runWords", "whyOf", "withoutBeautified", "hasBeautified", "setWords", "ani", "unpack", "runtimeOnPage", "keepFilm", "runFromData", "library", "filmData", "deflate", "inflate", "deleteFilm", "state", "view", "pendingOf", "criticize", "startRemake", "stopRun", "readFilmFile", "filmFile", "fitTiming", "openTeach", "TEACHING", "teachUi", "makeWithKnowledge", "openKnowledgeText", "notebookFileText", "notebookFileName", "vocabularyFor", "choicePointBox", "critBox", "filmData", "storySchema", "workerWorks", "startRun", "screenRun", "previousFilm", "lengthOf"];
 function minifyChecked(js, what) {
   const out = minify_sync(js, { module: true, ecma: 2022, compress: { passes: 2, module: false, toplevel: false }, mangle: { module: true, toplevel: true, reserved: CHECK_HOOK_NAMES }, format: { comments: false } });
   if (!out.code) throw new Error(`terser gave nothing for ${what}`);
@@ -501,7 +501,7 @@ function pipelineFunctions(root) {
 // 1978 film as the page carries it (packFilm: the picture's segments, no state) has the
 // same stretches of more than a second in a part with no one moving (whyTheyAct's stills)
 // as the film itself.
-const WHY_FUNCTIONS = ["readForms", "printForm", "extensionsFor", "collectWanders", "ACTIVITY_METHODS", "REVIVAL_METHODS", "whyTheyAct", "walkForm", "stopsOf", "repeatAround", "changeSeconds", "stillStretches"];
+const WHY_FUNCTIONS = ["readForms", "printForm", "extensionsFor", "collectWanders", "ACTIVITY_METHODS", "REVIVAL_METHODS", "whyTheyAct", "walkForm", "stopsOf", "repeatAround", "changeSeconds", "stillStretches", "LENGTH_LITTLE", "TIMELY_NOTES", "lengthReport"];
 export function unpackForCheck(film) {
   // as the page's unpackFilm does
   const last = {}, now = {}, at = {};
@@ -745,6 +745,18 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
     if (JSON.stringify(applyJsonPatch(base, patch)) !== JSON.stringify(s.glass)) throw new Error(`${s.id}'s 24-frame glass box doesn't come back from its differences`);
     if (JSON.stringify(patch).length < JSON.stringify(s.glass).length) { s.glassPatch = patch; delete s.glass; }
   }
+  // the claude.ai copy leaves out an extension's note (the registry's sentence, for
+  // programmers) where the page has its own sentence for it (the template's EXTENSION_TEXT),
+  // which is all the page shows: the note is in Ani's runtime too (src/pipeline.js), and the
+  // copy keeps under claude.ai's limit so
+  if (claudeArtifact) {
+    const template = readFileSync(`${root}/app/film.template.html`, "utf8");
+    const at = template.indexOf("const EXTENSION_TEXT = {");
+    const block = template.slice(at, template.indexOf("\n};", at));
+    const own = new Set([...block.matchAll(/^  ([a-z0-9]+): "/gm)].map((m) => m[1]));
+    if (at < 0 || !own.size) throw new Error("the template should have its EXTENSION_TEXT");
+    for (const e of data.extensions) if (own.has(e.id)) delete e.note;
+  }
   const packed = packText;
   // with the interpreter's Lisp, so the page can read what the Lisp that stopped typed last;
   // without its comments, as the claude.ai copy's script goes (stripChecked)
@@ -759,7 +771,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
   const parts = ["ages.js", "llm.js", "speech.js", "json.js", "scenes.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
-  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": claudeArtifact ? teachFromRuntime(template, "CRITICISM") : criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
+  for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": claudeArtifact ? (whyFunctions(root), teachFromRuntime(template, "WHY-THEY-ACT")) : whyFunctions(root), "/*CRITICISM*/": claudeArtifact ? teachFromRuntime(template, "CRITICISM") : criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);
     content = content.replace(mark, () => text);
   }

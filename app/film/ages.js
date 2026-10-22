@@ -38,7 +38,7 @@ function at611More(full, kid, label = "More") { return simpleAge() ? `${kid}<det
 // what it replaces, so drawing again changes nothing more.
 const EVERYDAY = [
   // the page's citations of Ken's files, the thesis's pages and the extensions' names
-  [/\s*\((?:[a-z0-9]+\.\d+(?:, line \d+|:[\d, –-]+)|(?:the )?thesis,? pp?\. [^)]*|pp?\. [\d–-]+|AI-TR-540,? pp?\. [^)]*|REVIVE;[A-Z0-9]+|(?:MEND|KNOW|APPEAR|CHANGE|SEEN|FIT|SLIPS|DETAIL|CRITIC|TEACH)(?:, [^)]*)?)\)/g, ""],
+  [/\s*\((?:[a-z0-9]+\.\d+(?:, line \d+|:[\d, –-]+)|(?:the )?thesis,? pp?\. [^)]*|pp?\. [\d–-]+|AI-TR-540,? pp?\. [^)]*|REVIVE;[A-Z0-9]+|(?:MEND|KNOW|APPEAR|CHANGE|SEEN|FIT|SLIPS|DETAIL|CRITIC|TEACH|TIMELY)(?:, [^)]*)?)\)/g, ""],
   [/\(the revival's\)/g, "(added in 2026)"],
   [/\bWhat Lisp said\b/g, "More: what Ani's program said"],
   // the revival and its extensions: what was added to Ani in 2026

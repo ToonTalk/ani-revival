@@ -29,6 +29,11 @@ tapes, on Director and a MacLisp interpreter rebuilt for the revival, in your br
   sentence each, what each repair did, with a link to its code. The extensions are the
   revival's Lisp, in Ken's idioms, in files of their own; Ken's own Cinderella is always
   shown as it was made.
+- **How long the film is**: under the film, what length was asked for, how long Ani
+  planned it and how long Director filmed it, with the reasons scene by scene; an
+  opt-in extension, "Director keeps to Ani's times", holds each part to its plan.
+- **Compare two films**: any two films kept in your browser, or Ken's, side by side,
+  with what changed between them.
 - **Save films** as videos, or as film files that open here again with all of Ani's
   reasons.
 - **Read the code**: [Ani's Code](https://toontalk.github.io/ani/source.html), every

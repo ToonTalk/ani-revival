@@ -180,9 +180,20 @@
 // the Lisp and the film as Node makes them; and a film told in English made again from its
 // words changed, the model (stood in for) writing the description again, shown with its
 // check before Ani films it, from "Your films" too.
-// Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach|compare]   (about an hour)
+// And how long the film is (Ken's request of 22 October, option 3): under the strip, for Ken's
+// 1978 film, "Asked for 2 to 5 minutes; planned … s; filmed … s", as src/pipeline.js
+// lengthReport says of it, and the report a click away (the table, what Director realizes
+// as written, Ken's own measure, time-estimate-error-for); his Cinderella with every scene
+// short and a film of 1 to 1 minutes, made with the revival's extensions, "Asked for 1
+// minute; planned … s; filmed … s — why", as Node says, the report naming the change of
+// feeling that runs past its part (Kept Apart's), the same box in the story; TIMELY in
+// "Which extensions", opt-in and unticked, and the film made with it in the page's worker
+// in the frames Node makes, less than half as far from its plan as without, with "What keeping to Ani's times
+// did here" in the glass box and the report saying what it did.
+// Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach|compare|length]   (about an hour)
 //   --only teach  only the first checks and Teach Ani's (about a quarter of an hour)
 //   --only compare  only the first checks and "Compare two films" with the left slot's (minutes)
+//   --only length  only the first checks and how long the film is, with TIMELY (ten minutes)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
 // a stop sentence and the Save panel are also taken at a phone's width, and the fairy
 // godmother transforming Cinderella in color: before, as they touch, and after; and "Your
@@ -200,7 +211,7 @@ import { writeFileSync, mkdirSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, extname, normalize } from "node:path";
 import { makeProjectFileSystem } from "../src/its/node-fs.js";
-import { storyWithoutClashes, makeFilm, pass1, checkKnowledge } from "../src/pipeline.js";
+import { storyWithoutClashes, makeFilm, pass1, checkKnowledge, lengthReport } from "../src/pipeline.js";
 import { withPageScript, PAGE_SCRIPT_ID, CHECK_HOOK_NAMES } from "./build-film-app.mjs";
 
 // the extensions the page's switch turns on (src/pipeline.js EXTENSIONS, Ken's decision 3,
@@ -277,6 +288,7 @@ const shots = shotsAt > 0 ? process.argv[shotsAt + 1] : null;
 const onlyAt = process.argv.indexOf("--only");
 const ONLY_TEACH = onlyAt > 0 && process.argv[onlyAt + 1] === "teach";
 const ONLY_COMPARE = onlyAt > 0 && process.argv[onlyAt + 1] === "compare";
+const ONLY_LENGTH = onlyAt > 0 && process.argv[onlyAt + 1] === "length";
 if (shots) mkdirSync(shots, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -1013,7 +1025,65 @@ try {
     check(linked.view === "0" && linked.ken && linked.label === "Ani's 1978 film", `a link to a moment of the 1978 film shows it on the left (${linked.label})`);
     await js(`history.replaceState(history.state, "", location.pathname)`);
   };
-  if (ONLY_COMPARE) await compareTwoFilms();
+
+  // How long the film is (Ken's request of 22 October, option 3), and TIMELY (opt-in): the
+  // line under the strip and its report, as src/pipeline.js lengthReport says of the film
+  // shown; Ken's one-minute Cinderella made with the revival's extensions, then with TIMELY.
+  const lengthChecks = async () => {
+    const lengthShown = (r) => js(`(() => {
+      const t = window.__check, run = t.screenRun(${r});
+      const line = document.getElementById("length-line");
+      const d = line.querySelector("details");
+      if (d) d.open = true;
+      return { hidden: line.hidden, summary: d ? d.querySelector("summary").innerText : "", body: d ? d.querySelector(".body").innerText : "", scenes: run.scenes.map((sc, i) => (sc && sc.film ? { id: run.sceneIds[i], glass: sc.glass, film: sc.film } : null)).filter(Boolean), cindy: run.cindy, extensions: run.extensions || [] };
+    })()`);
+    const lineFor = (rep) => `${rep.asked ? `Asked for ${rep.asked.least === rep.asked.most ? `${rep.asked.least / 60} minute${rep.asked.least === 60 ? "" : "s"}` : `${rep.asked.least / 60} to ${rep.asked.most / 60} minutes`}; planned` : "Planned"} ${Math.round(rep.planned)} s; filmed ${Math.round(rep.filmed)} s — `;
+    await toCheckPage();
+    await js(`(() => { window.__check.setView(0); })()`).catch(() => {});
+    await sleep(500);
+    const ken = await lengthShown(0);
+    const kenRep = lengthReport(ken.scenes, { cindy: ken.cindy, extensions: ken.extensions });
+    check(!ken.hidden && ken.summary.startsWith(lineFor(kenRep)) && /^Asked for 2 to 5 minutes; planned \d+ s; filmed \d+ s — (why|how)$/.test(ken.summary) && /Director filmed/i.test(ken.body) && /The film\s+2 to 5 minutes/i.test(ken.body) && /time-estimate-error-for/.test(ken.body),
+      `under the strip, Ken's 1978 film: "${ken.summary}", as src/pipeline.js lengthReport says, the report a click away`);
+    const ONE_MINUTE = KEN_CINDY.replace(/\(set your length to (long|medium)\)/g, "(set your length to short)").replace("(interval (minutes 2) (minutes 5))", "(interval (minutes 1) (minutes 1))");
+    const make = async (extensions) => js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      t.startRun(${JSON.stringify(ONE_MINUTE)}, 4, ${JSON.stringify(extensions)});
+      await wait(500);
+      for (let k = 0; k < 2400 && t.RUNS[1].status && t.RUNS[1].status.running; k++) await wait(250);
+      await wait(500);
+      t.setView(1);
+      await wait(500);
+      return t.RUNS[1].scenes.map((sc) => (sc && sc.film ? sc.film.frames.length : null));
+    })()`);
+    const sixFrames = await make(REVIVAL);
+    const six = await lengthShown(1);
+    const sixRep = lengthReport(six.scenes, { cindy: six.cindy, extensions: six.extensions });
+    const kept = sixRep.scenes.find((x) => x.id === "kept-apart");
+    const story = await js(`(() => { const t = window.__check; t.goScene(1, 0); t.select(null, { panel: "story" }); const box = document.querySelector("#side .length-report"); if (box) box.open = true; return box ? box.innerText : ""; })()`);
+    check(sixFrames.every((n) => n > 0) && six.summary === `${lineFor(sixRep)}why` && /^Asked for 1 minute; planned \d+ s; filmed \d+ s — why$/.test(six.summary) && kept.differs && /Kept Apart, [\d.]+ s longer than planned/.test(six.body) && /takes Director [\d.]+ s, where Ani estimated [\d.]+ s/.test(six.body) && /tick “Director keeps to Ani's times”/.test(six.body) && /How long the film is: asked for 1 minute/.test(story),
+      `Ken's Cinderella of one minute, every scene short, with the revival's extensions (${sixFrames.join(", ")} frames at 4 a second): "${six.summary}", as Node says; the report says why Kept Apart ran ${(kept.filmed - kept.planned).toFixed(1)} s long (a change of feeling past its part), and offers TIMELY; the same in the story`);
+    const timed = await js(`(() => { const t = window.__check, p = t.extensionsPanel(); return { listed: /data-ext="timely"/.test(p) && /Director keeps to Ani's times/.test(p), ticked: t.modeExtensions().includes("timely") }; })()`);
+    check(timed.listed && !timed.ticked, `TIMELY is in "Which extensions", opt-in and unticked (${JSON.stringify(timed)})`);
+    const withTimely = [...REVIVAL, "timely"];
+    const timelyFrames = await make(withTimely);
+    const node = makeFilm(makeProjectFileSystem(), { description: ONE_MINUTE, keepGoing: true, extensions: withTimely, frames: 1000, fps: 4 });
+    const nodeFrames = node.scenes.map((sc) => (sc && sc.film ? sc.film.frames.length : null));
+    const tl = await lengthShown(1);
+    const tlRep = lengthReport(tl.scenes, { cindy: tl.cindy, extensions: tl.extensions });
+    const glass = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      t.goScene(1, 40);
+      await wait(300);
+      t.select({ run: 1, char: "step-mother" });
+      await wait(500);
+      return [...document.querySelectorAll("#side details.timed")].map((d) => d.innerText).join(" | ");
+    })()`);
+    check(JSON.stringify(timelyFrames) === JSON.stringify(nodeFrames) && tl.summary.startsWith(lineFor(tlRep)) && Math.abs(tlRep.filmed - tlRep.planned) < 0.5 * Math.abs(sixRep.filmed - sixRep.planned) && /made with “Director keeps to Ani's times” \(TIMELY\)/.test(tl.body) && /What keeping to Ani's times did here/.test(glass),
+      `made with TIMELY ticked, in the frames Node makes (${timelyFrames.join(", ")}; Node ${nodeFrames.join(", ")}): "${tl.summary}", less than half as far from its plan as without (at 4 frames a second each part's end takes a tick or two); the glass box says what keeping to Ani's times did (${glass.slice(0, 120)}…)`);
+  };
+  if (ONLY_LENGTH) await lengthChecks();
+  else if (ONLY_COMPARE) await compareTwoFilms();
   else {
   // (with --only teach, on to Teach Ani's checks)
   if (!ONLY_TEACH) {
@@ -1058,8 +1128,8 @@ try {
     "and Ani's colors, with what COLORS and ALTER do, and nothing of colors to come");
   check(/Characters who change \(CHANGE\)\. A scene may change a character/.test(panel) && /fresh look/.test(panel) && /In the scene itself Ani shows the change \(p\. 169\): the cause goes to her and transforms her, or, with no cause, she wanders about as she changes/.test(panel) && /his own cinderella-beautified scene, put back as he wrote it, now plays/.test(panel) && !/isn't shown yet/.test(panel)
     && /CHSHOW Showing a change in its scene \(thesis p\. 169\)/.test(panel) && /noted as not bridged, since Director doesn't read it/.test(panel), "and characters who change, in a plain sentence, with what CHSHOW does: the change shown in its scene");
-  check(/The switch turns on six of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how its characters look \(APPEAR\), characters who change \(CHANGE\), changes seen when no one has anything to do \(SEEN\) and scenes that keep their time \(FIT\)\./.test(panel) && /Changes seen when no one has anything to do \(SEEN\)\. A feeling changes how a character moves/.test(panel) && /SEEN A character whose part is only changes of feeling waits until nothing else moves her/.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /A scene keeps its time \(FIT\)\. A scene's length \(short, medium or long\) gives it a least and a most time/.test(panel) && /FIT S15, a scene keeps its time/.test(panel) && /FITSTR S16, a walk SCENE stretches takes its stretch once/.test(panel) && /Two more are opt-in, off unless you tick them \(Ken's decision 3\): corrections of slips in Ken's files \(SLIPS\) and a few of the thesis's “myriad details” \(DETAIL\)\./.test(panel) && !/will be switches of their own/.test(panel),
-    "the panel says in a sentence which extensions the switch turns on, KNOW, SEEN and FIT among them with what each of their files does, and that SLIPS and DETAIL are opt-in");
+  check(/The switch turns on six of the revival's extensions: the repairs for new stories \(MEND\), the knowledge Ken could have added \(KNOW\), Ani choosing how its characters look \(APPEAR\), characters who change \(CHANGE\), changes seen when no one has anything to do \(SEEN\) and scenes that keep their time \(FIT\)\./.test(panel) && /Changes seen when no one has anything to do \(SEEN\)\. A feeling changes how a character moves/.test(panel) && /SEEN A character whose part is only changes of feeling waits until nothing else moves her/.test(panel) && /Knowledge Ken could have added \(KNOW\)\. Knowledge Ken could have added: the thesis says words such as/.test(panel) && /KNOWDI/.test(panel) && /helps-along, moves-away-from and follows-behind/.test(panel) && /A scene keeps its time \(FIT\)\. A scene's length \(short, medium or long\) gives it a least and a most time/.test(panel) && /FIT S15, a scene keeps its time/.test(panel) && /FITSTR S16, a walk SCENE stretches takes its stretch once/.test(panel) && /Three more are opt-in, off unless you tick them \(Ken's decision 3, and for TIMELY his request of 22 October\): corrections of slips in Ken's files \(SLIPS\), a few of the thesis's “myriad details” \(DETAIL\) and Director keeping to Ani's times \(TIMELY\)\./.test(panel) && !/will be switches of their own/.test(panel),
+    "the panel says in a sentence which extensions the switch turns on, KNOW, SEEN and FIT among them with what each of their files does, and that SLIPS, DETAIL and TIMELY are opt-in");
 
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
@@ -2679,7 +2749,7 @@ try {
   })()`);
   check(optDefault.first.pressed === "revival" && optDefault.first.ticks === [...REVIVAL].sort().join() && optDefault.first.ext === REVIVAL.join() && optDefault.first.mode === null && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978  1978",
     `the default page: the switch opens on "Ani with the revival's extensions", ${optDefault.first.ext} ticked and nothing more, keeping nothing; pressed, it keeps only the switch in this browser; "Ani as in 1978" unticks them all (${optDefault.back.trim()})`);
-  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, fit+, slips- opt-in; Criticism: ; Yours: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
+  check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, fit+, slips- opt-in, timely- opt-in; Criticism: ; Yours: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
     `"Which extensions" has the registry's two groups, each extension with its tick and its sentence, SLIPS and DETAIL opt-in and unticked: ${optDefault.groups}`);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   check(same(optDefault.prompts.page, PROMPT_REVIVAL_SHA) && same(optDefault.prompts.all, optDefault.prompts.page) && same(optDefault.prompts.slips, optDefault.prompts.mendKnow) && same(optDefault.prompts.detail, optDefault.prompts.mend) && optDefault.tidy === 0,
@@ -3655,6 +3725,7 @@ try {
   }
 
   if (!ONLY_TEACH) await compareTwoFilms();
+  if (!ONLY_TEACH) await lengthChecks();
 
   if (!ONLY_TEACH) {
   // what the page keeps in the browser, and "Forget all of it"
