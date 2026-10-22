@@ -55,7 +55,7 @@ export const EXTENSIONS = [
     id: "mend",
     label: "Repairs for new stories",
     group: "repairs",
-    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19", "mend20"],
+    files: ["wrap", "mend1", "mend2", "mend3", "mend4", "mend5", "mend6", "mend7", "mend8", "mend9", "mend10", "mend11", "mend12", "mend13", "mend14", "mend15", "mend16", "mend17", "mend18", "mend19", "mend20", "mend21"],
     requires: [],
     changes1978: false,
     note: "Repairs for failures new stories meet and Cinderella never does: (not X) and none values, unknown words, missing relationships and display methods, characters off the stage, COSUG's combine for change suggestions, two characters with nothing to compare, measuring from a small way from two places to a third, more than a few ways to convey what a task establishes, a scene that is one task shown by one, a place far off and off the stage that PLACE asks for and never defines, and a character shown off the stage past a corner, where Director's placing her again each tick stopped the film. Each leaves a (revival-repair: ...) note where it acted.",

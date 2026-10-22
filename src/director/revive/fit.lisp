@@ -270,8 +270,9 @@
 			   ((> new-length scene-maximum)
 			    (note-scene-time-sign scene new-length scene-maximum)
 			    (adjust-task-lengths scene (-$ scene-maximum new-length) last-time?))
-			   (t (shouldnt-happen 'redistribute-time-for-tasks
-					       '(arithmetic goofed up)))))))))
+			   ;;at a bound, within it (REVIVE;MEND21, which FIT's MEND loads)
+			   (t (redistribute-at-a-bound scene new-length scene-minimum
+						       scene-maximum))))))))
 
 (defun note-scene-time-sign (scene new-length bound)
   (revival-note scene 'scene-time-sign (-$ new-length bound) (-$ bound new-length)

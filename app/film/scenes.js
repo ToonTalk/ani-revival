@@ -439,8 +439,9 @@ document.addEventListener("click", (e) => {
   if (!run || !words_) return;
   teller.story = words_;
   store.set(STORY_KEY, words_);
-  if (runExtensions(run).length && MODE === "1978") setMode("revival");
-  else if (!runExtensions(run).length && MODE !== "1978") setMode("1978");
+  // told again as the film was made, for this visit (the visitor's own choice is kept)
+  if (runExtensions(run).length && MODE === "1978") setMode("revival", { remember: false });
+  else if (!runExtensions(run).length && MODE !== "1978") setMode("1978", { remember: false });
   editor.fps = runFps(run);
   openTeller();
   if (currentProvider()) draftStory();

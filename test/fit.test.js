@@ -108,11 +108,12 @@ test("S16: a walk multiply-dynamics-by-factor makes keeps its parent's factor, a
   assert.equal(ken.set, "(0.2 nil)");
 });
 
-test("each piece is wrapped once CHOMET loads, after MEND11's adjust-task-lengths; as in 1978 none is", () => {
+test("each piece is wrapped once CHOMET loads, after MEND11's adjust-task-lengths and MEND21's redistribute-time-for-tasks; as in 1978 none is", () => {
   const L = boot(makeProjectFileSystem(), { extensions: ["fit"] });
   const run = (src) => L.print(L.evalString(src)).toLowerCase();
   run("(load '|ken;chomet >|)");
-  for (const f of ["approve-or-remake-tasks-choices", "redistribute-time-for-tasks", "time-bounds-for-task"]) assert.equal(run(`(mapcar 'car (get '${f} 'revival-wraps))`), "(fit)", f);
+  for (const f of ["approve-or-remake-tasks-choices", "time-bounds-for-task"]) assert.equal(run(`(mapcar 'car (get '${f} 'revival-wraps))`), "(fit)", f);
+  assert.equal(run("(mapcar 'car (get 'redistribute-time-for-tasks 'revival-wraps))"), "(fit mend21)");
   assert.equal(run("(mapcar 'car (get 'adjust-task-lengths 'revival-wraps))"), "(fit mend11)");
   run("(load '|revive;fit >|)");
   assert.equal(run("(mapcar 'car (get 'approve-or-remake-tasks-choices 'revival-wraps))"), "(fit)");

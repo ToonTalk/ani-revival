@@ -2,7 +2,10 @@
 // editor makes a change ("A kind stepmother"), Ani makes the whole film again in the
 // page's worker, the frame counts match what Node makes of the same story, the glass
 // box opens on the new film, and the new film comes back after a reload. And the switch
-// for the films made here: it opens on "Ani as in 1978" and is kept in this browser; a
+// for the films made here: a fresh visit opens on "Ani with the revival's extensions"
+// (Ken's decision of 22 October 2026), a visitor of before whose v1 key said "1978" gets
+// them too (that key is forgotten), "Ani as in 1978 (Ken's program, unchanged)" is a click
+// away, and the choice is kept in this browser; then, in 1978 mode, a
 // new story that Ani as in 1978 stops on (test/stories/tortoise-and-hare.lisp, as the
 // model's reply) is explained, with "Make it again with the revival's extensions", which
 // makes it with MEND and APPEAR, and the glass box then says in plain English what each
@@ -99,9 +102,9 @@
 // (test/stories/six-colors.lisp), whose Prince the shape experts drew after relaxing
 // every constraint, has "How he looks" for everyone.
 // And SLIPS and DETAIL, the opt-in extensions (stage 7, Ken's decision 3): a visitor who
-// never ticks them sees the page as before (the switch opens on "Ani as in 1978" with
-// nothing ticked, "Ani with the revival's extensions" ticks MEND, KNOW, APPEAR and CHANGE
-// and nothing more, the prompt with them is today's, and with SLIPS and DETAIL ticked too
+// never ticks them sees the page as before (the switch opens on "Ani with the revival's
+// extensions" (since 22 October; before, on "Ani as in 1978") with MEND, KNOW, APPEAR,
+// CHANGE, SEEN and FIT ticked and nothing more, the prompt with them is today's, and with SLIPS and DETAIL ticked too
 // the same, and "Which extensions" has the registry's two groups, SLIPS and DETAIL opt-in
 // and unticked); ticked in 1978 mode, SLIPS brings KNOW and MEND and DETAIL brings MEND,
 // as reports/ext/slips/ and reports/ext/detail/ make Ken's Cinderella, and the page makes
@@ -879,23 +882,41 @@ try {
   // (with --only teach, on to Teach Ani's checks)
   if (!ONLY_TEACH) {
 
-  // the switch for the films made here: "Ani as in 1978" at first, kept in this browser
+  // the switch for the films made here: on a fresh visit "Ani with the revival's
+  // extensions" (Ken's decision, 22 October 2026); a visitor of before, whose v1 key said
+  // "1978" (which can't be told from the old default), gets them too, and the v1 key is
+  // forgotten; "Ani as in 1978 (Ken's program, unchanged)" a click away, kept in this browser
   const pressed = () => js(`[...document.querySelectorAll("#side [data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join()`);
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
   const first = await pressed();
+  const fresh = await js(`({ ext: window.__check && window.__check.modeExtensions ? window.__check.modeExtensions().join() : null, v2: localStorage.getItem("ani-cinderella:mode:v2"), label: document.querySelector('#side [data-mode="1978"]').textContent, title: document.querySelector('#side [data-mode="1978"]').title, other: document.querySelector('#side [data-mode="revival"]').textContent })`);
   const panel = await js(`(() => { const p = document.querySelector("#side .ext-panel"); return p ? (p.open ? "open" : "closed") + " " + p.textContent : "none"; })()`);
-  await js(`document.querySelector('#side [data-mode="revival"]').click()`);
+  await js(`localStorage.setItem("ani-cinderella:mode:v1", "1978")`);
+  await open();
+  await js(`document.getElementById("open-editor").click()`);
+  await sleep(200);
+  const migrated = await pressed();
+  const v1Gone = await js(`localStorage.getItem("ani-cinderella:mode:v1") === null`);
+  await js(`document.querySelector('#side [data-mode="1978"]').click()`);
+  await sleep(100);
+  const chose = await js(`localStorage.getItem("ani-cinderella:mode:v2")`);
   await open();
   await js(`document.getElementById("open-editor").click()`);
   await sleep(200);
   const kept = await pressed();
+  await js(`document.querySelector('#side [data-mode="revival"]').click()`);
+  await sleep(100);
+  const toRevival = await pressed();
   await js(`document.querySelector('#side [data-mode="1978"]').click()`);
   await sleep(100);
   const back = await pressed();
   await js(`document.getElementById("ed-close").click()`);
   await sleep(200);
-  check(first === "1978" && kept === "revival" && back === "1978", `the switch opens on "Ani as in 1978" and is kept in this browser (${first}, after a reload ${kept}, then ${back})`);
+  check(first === "revival" && (fresh.ext === null || fresh.ext === REVIVAL.join()) && fresh.v2 === null && fresh.label === "Ani as in 1978 (Ken's program, unchanged)" && /^Ken's program as he left it in 1978, nothing added/.test(fresh.title) && fresh.other === "Ani with the revival's extensions",
+    `a fresh visit opens on "${fresh.other}" (${fresh.ext}), nothing kept until the visitor chooses, and "${fresh.label}" is beside it`);
+  check(migrated === "revival" && v1Gone && chose === "1978" && kept === "1978" && toRevival === "revival" && back === "1978",
+    `a visitor of before whose v1 key said "1978" gets the extensions (${migrated}; the v1 key forgotten: ${v1Gone}); "Ani as in 1978" chosen is kept in this browser (${chose}, after a reload ${kept}), and the switch goes back and forth (${toRevival}, ${back})`);
   check(/^closed /.test(panel) && /MEND/.test(panel) && /APPEAR/.test(panel) && /SHAPES/.test(panel) && /SLIPS/.test(panel), "under it, a closed \"Which extensions\" panel lists the repairs and Ani choosing the looks");
   check(/Ani chooses each character's size, shape and colors as it chooses how the character moves/.test(panel) && /COLORS A small semantic net of six hues on a painter's wheel \(thesis p\. 240\)/.test(panel) && /ALTER Looks that change during a scene, as display methods beside Ken's changes of how a character moves \(thesis p\. 166\): joy brightens a character's colors and sadness dims them/.test(panel) && !/next stage|doesn't choose colors|keeps the color it has/.test(panel),
     "and Ani's colors, with what COLORS and ALTER do, and nothing of colors to come");
@@ -1571,7 +1592,7 @@ try {
   const t1 = Date.now();
   await js(`document.querySelector("#side .stop-box [data-remake]").click()`);
   await sleep(300);
-  const mode = await js(`localStorage.getItem("ani-cinderella:mode:v1")`);
+  const mode = await js(`localStorage.getItem("ani-cinderella:mode:v2")`);
   const mended = await finished();
   check(mode === "revival" && /with the revival's extensions: 3 of 3 scenes filmed/.test(mended), `with them, Ani makes it again (${Math.round((Date.now() - t1) / 1000)} s): ${mended}`);
   // the last frame of each scene of your version, at 4 frames a second
@@ -2490,13 +2511,14 @@ try {
     && /Director draws her by these; her look's change is bridged in Learning to Socialize, gradually, over 16 seconds Size small middle-sized why\?/.test(social.changed),
     "and \"How she has changed\" has the bridge: what changed, over how long, from which frame, and what was chosen again and not bridged");
   // SLIPS and DETAIL, the opt-in extensions (stage 7, Ken's decision 3). A visitor who
-  // never ticks them sees the page as before: the switch opens on "Ani as in 1978" with
-  // nothing ticked, "Ani with the revival's extensions" ticks the five and nothing more
-  // (and keeps no list of ticks, only the switch, as before), the prompt and schema with
+  // never ticks them sees the page as before: the switch opens on "Ani with the revival's
+  // extensions" (since 22 October; before, on "Ani as in 1978") with the six ticked and
+  // nothing more, keeping nothing; pressed, it keeps no list of ticks, only the switch;
+  // "Ani as in 1978" unticks them all, the prompt and schema with
   // the five are today's, and with SLIPS and DETAIL ticked too they are the same; "Which
   // extensions" has the registry's groups, SLIPS and DETAIL opt-in and unticked (and
   // CRITIC, in its own, with no tick)
-  await js(`(() => { for (const k of ["ani-cinderella:mode:v1", "ani-cinderella:extensions:v1", "ani-cinderella:run:v1"]) localStorage.removeItem(k); })()`);
+  await js(`(() => { for (const k of ["ani-cinderella:mode:v2", "ani-cinderella:extensions:v1", "ani-cinderella:run:v1"]) localStorage.removeItem(k); })()`);
   await send("Page.navigate", { url: `${base}/app/film.check.html` });
   for (let k = 0; k < 50 && !(await js("!!window.__check").catch(() => false)); k++) await sleep(200);
   const optDefault = await js(`(async () => {
@@ -2507,20 +2529,20 @@ try {
     const side = document.getElementById("side");
     const ticks = () => [...side.querySelectorAll("input[data-ext]")].filter((x) => x.checked).map((x) => x.dataset.ext).sort().join();
     const pressed = () => [...side.querySelectorAll("[data-mode]")].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.mode).join();
-    const first = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join() };
+    const first = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join(), mode: localStorage.getItem("ani-cinderella:mode:v2") };
     side.querySelector('[data-mode="revival"]').click();
     await wait(100);
-    const on = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join(), stored: localStorage.getItem("ani-cinderella:extensions:v1"), mode: localStorage.getItem("ani-cinderella:mode:v1") };
+    const on = { pressed: pressed(), ticks: ticks(), ext: t.modeExtensions().join(), stored: localStorage.getItem("ani-cinderella:extensions:v1"), mode: localStorage.getItem("ani-cinderella:mode:v2") };
     const panel = side.querySelector(".ext-panel");
     const groups = [...panel.querySelectorAll(".ext-group")].map((g) => g.querySelector(".label").textContent + ": " + [...g.querySelectorAll("input[data-ext]")].map((x) => x.dataset.ext + (x.checked ? "+" : "-") + (x.closest(".ext").querySelector(".opt-in") ? " opt-in" : "")).join(", ")).join("; ");
     const STORY = ${JSON.stringify(STORY_FOR_PROMPTS)}, prompts = {};
     for (const [k, ext] of [["page", ${JSON.stringify(REVIVAL)}], ["all", [...${JSON.stringify(REVIVAL)}, "slips", "detail"]], ["slips", ${JSON.stringify(WITH_SLIPS)}], ["mendKnow", ["mend", "know"]], ["detail", ${JSON.stringify(WITH_DETAIL)}], ["mend", ["mend"]]]) prompts[k] = [await hex(t.storyPrompt(STORY, { extensions: ext })), await hex(t.storyPrompt(STORY, { extensions: ext, format: "json" })), await hex(JSON.stringify(t.storySchema(ext)))];
     side.querySelector('[data-mode="1978"]').click();
     await wait(100);
-    return { first, on, groups, text: panel.textContent, prompts, back: pressed() + " " + ticks(), tidy: t.tidyStory(t.DATA.cindy, { extensions: [...${JSON.stringify(REVIVAL)}, "slips", "detail"] }).fixes.length };
+    return { first, on, groups, text: panel.textContent, prompts, back: pressed() + " " + ticks() + " " + localStorage.getItem("ani-cinderella:mode:v2"), tidy: t.tidyStory(t.DATA.cindy, { extensions: [...${JSON.stringify(REVIVAL)}, "slips", "detail"] }).fixes.length };
   })()`);
-  check(optDefault.first.pressed === "1978" && optDefault.first.ticks === "" && optDefault.first.ext === "" && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978 ",
-    `the default page is as before: the switch opens on "Ani as in 1978" with nothing ticked, and "Ani with the revival's extensions" ticks ${optDefault.on.ext} and nothing more, keeping only the switch in this browser`);
+  check(optDefault.first.pressed === "revival" && optDefault.first.ticks === [...REVIVAL].sort().join() && optDefault.first.ext === REVIVAL.join() && optDefault.first.mode === null && optDefault.on.pressed === "revival" && optDefault.on.ticks === [...REVIVAL].sort().join() && optDefault.on.ext === REVIVAL.join() && optDefault.on.stored === null && optDefault.on.mode === "revival" && optDefault.back === "1978  1978",
+    `the default page: the switch opens on "Ani with the revival's extensions", ${optDefault.first.ext} ticked and nothing more, keeping nothing; pressed, it keeps only the switch in this browser; "Ani as in 1978" unticks them all (${optDefault.back.trim()})`);
   check(optDefault.groups === "Knowledge: know+, appear+, change+, detail- opt-in; Repairs: mend+, seen+, fit+, slips- opt-in; Criticism: ; Yours: " && /Corrections of slips in Ken's files \(SLIPS\)\.\s+opt-in\s+Corrections of slips in Ken's files: places where his code does other than/.test(optDefault.text) && /A few of the "myriad details" \(DETAIL\)\.\s+opt-in\s+A few of the low-level details the thesis names as left undone/.test(optDefault.text) && /SLIPS1 S1 and S2: is-not/.test(optDefault.text) && /DTWALK \(f\) Deliberateness in Director's walk/.test(optDefault.text),
     `"Which extensions" has the registry's two groups, each extension with its tick and its sentence, SLIPS and DETAIL opt-in and unticked: ${optDefault.groups}`);
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -3443,6 +3465,60 @@ try {
   }
 
   if (!ONLY_TEACH) {
+  // Ken's testing of 22 October: his Cinderella with every scene short and a film of 1 to 1
+  // minutes, made as in 1978, stops in its first scene; the page then draws the panels of a
+  // film with a scene and no film in it (Ken's examples of criticism, onStage, threw:
+  // "Cannot read properties of undefined (reading 'frames')"), and no error is uncaught.
+  // The editor warns first that a film of one length makes Ani as in 1978 stop on a scene
+  // planned exactly at its one time (REDISTRIBUTE-TIME-FOR-TASKS, arithmetic goofed up),
+  // the page says why with the numbers, and with the revival's extensions (MEND21, a scene
+  // at its bound taken as within it) every scene is made.
+  await toCheckPage();
+  // (finished, above, belongs to the first part's block: the same wait, a run's status line
+  // until it no longer says what it is doing)
+  const madeBy = async (tries) => { let st = ""; for (let k = 0; k < tries; k++) { await sleep(3000); st = await js(`document.getElementById("run-status").innerText`); if (!/·/.test(st)) break; } return st; };
+  const errorsBefore1m = errors.length;
+  const oneMinute = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    document.getElementById("open-editor").click();
+    await wait(200);
+    document.getElementById("ed-reset").click();
+    await wait(200);
+    document.querySelector('#side [data-mode="1978"]').click();
+    await wait(100);
+    const ta = document.getElementById("ed-lisp");
+    ta.value = ta.value.split("\\n").map((l) => (/^\\s*\\(set your length to (long|medium|short)\\)\\)/.test(l) ? l.replace(/to (long|medium|short)/, "to short") : l)).join("\\n")
+      .replace("(set your film-length to (interval (minutes 2) (minutes 5)))", "(set your film-length to (interval (minutes 1) (minutes 1)))");
+    ta.dispatchEvent(new Event("input"));
+    await wait(700);
+    const warned = document.getElementById("ed-check").innerText;
+    const make = !document.getElementById("ed-make").disabled;
+    document.getElementById("ed-make").click();
+    return { warned, make };
+  })()`);
+  check(oneMinute.make && /The film's shortest and longest lengths are the same \(1 to 1 minutes\), so each scene's least time is its most, and Ani as in 1978 stops on a scene whose tasks come out exactly at it/.test(oneMinute.warned),
+    `Ken's story with every scene short and a film of 1 to 1 minutes: in 1978 mode the editor warns before making (${(oneMinute.warned.match(/The film's shortest[^.]*\./) || [""])[0]})`);
+  const oneStopped = await madeBy(400);
+  const oneAfter = await js(`(() => {
+    const t = window.__check, run = t.RUNS[1];
+    const box = document.querySelector("#side .stop-box");
+    const bound = t.whyStopped(run, "shouldnt happen (REDISTRIBUTE-TIME-FOR-TASKS (ARITHMETIC GOOFED UP))", [], "introduction");
+    return { first: !!run.scenes[0] && !!run.scenes[0].error, box: box ? box.innerText : "", remake: !!(box && box.querySelector("[data-remake]")), bound };
+  })()`);
+  const newErrors = errors.slice(errorsBefore1m);
+  check(oneMinute && /scenes? filmed/.test(oneStopped) && /stopped/.test(oneStopped) && oneAfter.first && newErrors.length === 0 && /Where Ani as in 1978 stopped/.test(oneAfter.box) && oneAfter.remake,
+    `made as in 1978 it stops in the Introduction (${oneStopped}), the page draws the film's panels with no uncaught error${newErrors.length ? ` (threw: ${newErrors.slice(0, 2).join(" | ")})` : ""}, says where Ani as in 1978 stopped, and offers the extensions`);
+  check(/^Ani fits each scene's tasks into its share of the film's length\. The Introduction gets exactly 12 seconds of the film's 1 to 1 minutes, its share by its length\. Ani's tasks here came out exactly at that time, which is both the scene's least and its most, since the film's shortest and longest lengths are the same, and Ken's CHOMET asks only whether a scene is within its bounds, below them or above them \(chomet\.123:59-65\): exactly at one is none of the three, and it stopped \(“arithmetic goofed up”\)\. Giving the film a range of lengths/.test(oneAfter.bound.text) && /exactly at its least or most time as within them/.test(oneAfter.bound.repair || ""),
+    `a stop on a scene planned exactly at its bounds is said with the numbers, and what to do: ${oneAfter.bound.text.slice(0, 160)}…`);
+  await js(`document.querySelector("#side .stop-box [data-remake]").click()`);
+  await sleep(300);
+  const oneMended = await madeBy(500);
+  const atBound = await js(`(() => { const t = window.__check, run = t.RUNS[1]; return run.scenes.filter((sc) => sc && !sc.error).flatMap((sc) => ((sc.glass && sc.glass.repairs) || []).map((r) => String(r.note))).filter((n) => /scene-at-its-bound/.test(n)).length; })()`);
+  check(/with the revival's extensions: 5 of 5 scenes filmed/.test(oneMended) && errors.length === errorsBefore1m,
+    `made again with the revival's extensions, every scene is made (${oneMended}; MEND21's notes ${atBound}), with no uncaught error`);
+  }
+
+  if (!ONLY_TEACH) {
   // what the page keeps in the browser, and "Forget all of it"
   await toCheckPage();
   const keptNote = await js(`(async () => {
@@ -3459,7 +3535,7 @@ try {
     sessionStorage.setItem("ani-check-before", JSON.stringify(before));
     return { closed, text, before, asked };
   })()`);
-  check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes the films made here: Ani as in 1978, or with the revival's extensions \(ani-cinderella:mode:v1, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
+  check(keptNote.closed && /^Everything here stays in this browser, for this page alone/.test(keptNote.text) && /In localStorage, until you clear it\n[^]*Which Ani makes the films made here, once the switch was pressed: Ani as in 1978, or with the revival's extensions \(until then, with the extensions\) \(ani-cinderella:mode:v2, \d+ characters?\)/.test(keptNote.text) && /Which frames a second the 1978 film is shown at \(ani-cinderella:rate:v1/.test(keptNote.text)
     && new RegExp(`In IndexedDB \\(the database “ani-cinderella”\\), until you clear it\\s+Films made here: ${keptNote.before.films} films?, `).test(keptNote.text) && /In sessionStorage, until this tab is closed\s+Where you are on the page: [^]*\(\d+ places? in this tab's history/.test(keptNote.text) && new RegExp(`This deletes the ${keptNote.before.films} films? made here(, the \\d+ notebooks? of teaching)? and everything listed above`).test(keptNote.asked),
     `"What this page keeps in your browser" (closed at first) says what is kept where: ${keptNote.before.local.length} keys in localStorage, ${keptNote.before.films} films in IndexedDB, ${keptNote.before.session.length} in sessionStorage; "Forget all of it" asks first`);
   await js(`document.getElementById("kept-yes").click()`);

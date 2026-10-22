@@ -308,7 +308,8 @@ function longerButton(run, id) {
 // ---- a scene's own: keep two apart, start one far from another
 
 // Those on the stage in a scene, in the cast's order.
-const onStage = (run, sc) => run.cast.filter((c) => sc.film.frames.some((fr) => fr.chars[c] && fr.chars[c].visible && fr.segs[c]));
+// (none in a scene Ani stopped in, which has no film)
+const onStage = (run, sc) => (ready(sc) ? run.cast.filter((c) => sc.film.frames.some((fr) => fr.chars[c] && fr.chars[c].visible && fr.segs[c])) : []);
 // Who starts the scene where an earlier scene left her, without having had a part in it
 // (Ken's No Longer Kept Apart: the fairy godmother "just appears", p. 69; the revival found
 // that his save-positions puts a character never shown at the center): each { who, from },

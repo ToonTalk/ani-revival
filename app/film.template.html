@@ -1495,16 +1495,25 @@ const extensionsName = (ids) => {
   return `some of the revival's extensions (${words(ids.map((x) => x.toUpperCase()))})`;
 };
 const REVIVAL = extensionsName(SWITCHED);
-// The visitor's choice, kept in this browser: the switch (MODE_KEY, as before), and, when
-// the ticks are other than the switch's two settings, the extensions ticked (EXT_KEY).
-const MODE_KEY = "ani-cinderella:mode:v1";
+// The visitor's choice, kept in this browser: the switch (MODE_KEY), and, when the ticks
+// are other than the switch's two settings, the extensions ticked (EXT_KEY). Films made
+// here are made with the revival's extensions unless the visitor chose "Ani as in 1978"
+// (Ken's decision of 22 October 2026: "users will expect the revival extensions as the
+// default - but there should still be a way to test the original"). Until then the page
+// opened in 1978 mode, and its key (v1) was written by the switch and also when the page
+// switched to how a film was made, so a kept "1978" can't be told from a default: v2 is
+// written only when the visitor presses the switch or ticks an extension, and v1 is
+// forgotten, so a visitor of before starts with the extensions.
+const MODE_KEY = "ani-cinderella:mode:v2";
+const OLD_MODE_KEY = "ani-cinderella:mode:v1";
 const EXT_KEY = "ani-cinderella:extensions:v1";
 function storedChoice() {
+  try { localStorage.removeItem(OLD_MODE_KEY); } catch { /* nothing kept */ }
   if (!SWITCHED.length) return [];
   let ids = null;
   try { const v = JSON.parse(store.get(EXT_KEY) || "null"); if (Array.isArray(v)) ids = v.filter((id) => typeof id === "string" && extNamed(id) && !extNamed(id).onDemand); } catch { ids = null; }
   if (ids) return withRequired(ids);
-  return store.get(MODE_KEY) === "revival" ? [...SWITCHED] : [];
+  return store.get(MODE_KEY) === "1978" ? [] : [...SWITCHED];
 }
 let CHOSEN = storedChoice();
 let MODE = CHOSEN.length ? "revival" : "1978";
@@ -1534,7 +1543,7 @@ const MODE_CLAUSE = {
 // clauses with an "and" of their own, set apart with commas: "A, B, and C"
 const clauseList = (clauses) => (clauses.length > 1 ? `${clauses.slice(0, -1).join(", ")}, and ${clauses[clauses.length - 1]}` : clauses[0] || "");
 function modeNote() {
-  if (MODE !== "revival") return "Ani as in 1978 runs Ken's files and nothing more, so a new story may stop where his Ani stopped; the page then says why.";
+  if (MODE !== "revival") return "Ani as in 1978 runs Ken's files and nothing more, his program unchanged, so a new story may stop where his Ani stopped; the page then says why.";
   return `With ${extensionsName(CHOSEN)}, Ani ${clauseList(CHOSEN.map((id) => MODE_CLAUSE[id]).filter(Boolean))}; the glass box says where each one acted.${switchChanges1978() ? " Ken's own Cinderella comes out differently with them: make it as it is to see." : " Ken's Cinderella comes out exactly as in 1978 with them."}`;
 }
 // The switch, beside the frame rate of the films made here: "Ani as in 1978", "Ani with the
@@ -1546,20 +1555,26 @@ function modeSwitch() {
   if (!SWITCHED.length) return "";
   const m = modeState();
   const some = m === "some" ? `<button type="button" data-mode="some" aria-pressed="true" title="Some of the revival's extensions are ticked, not all of the switch's: open “Which extensions” to see them">Some of them: ${esc(words(CHOSEN.map((x) => x.toUpperCase())))}</button>` : "";
-  return `<div class="seg mode" role="group" aria-label="Which Ani makes the film"><button type="button" data-mode="1978" aria-pressed="${m === "1978"}">Ani as in 1978</button><button type="button" data-mode="revival" aria-pressed="${m === "revival"}">Ani with ${esc(REVIVAL)}</button>${some}</div>`;
+  return `<div class="seg mode" role="group" aria-label="Which Ani makes the film"><button type="button" data-mode="1978" aria-pressed="${m === "1978"}" title="${esc(at611("Ken's program as he left it in 1978, nothing added: a new story may stop where his Ani stopped", "Ani just as Ken made it in 1978, with nothing added"))}">${esc(MODE_1978_LABEL())}</button><button type="button" data-mode="revival" aria-pressed="${m === "revival"}">Ani with ${esc(REVIVAL)}</button>${some}</div>`;
 }
+// The 1978 setting's label says what it is: Ken's program, unchanged.
+const MODE_1978_LABEL = () => at611("Ani as in 1978 (Ken's program, unchanged)", "Ani as in 1978 (just as Ken made it)");
 // "Ani with the revival's extensions" turns on the switch's six, keeping the opt-in ones
-// ticked; "Ani as in 1978" turns everything off.
-function setMode(mode) {
-  setChosen(mode === "revival" ? [...SWITCHED, ...CHOSEN] : []);
+// ticked; "Ani as in 1978" turns everything off. The visitor's choice is kept (remember);
+// the page's own switch to how a film was made, to change it or tell it again, is for this
+// visit only.
+function setMode(mode, { remember = true } = {}) {
+  setChosen(mode === "revival" ? [...SWITCHED, ...CHOSEN] : [], { remember });
 }
-function setChosen(ids) {
+function setChosen(ids, { remember = true } = {}) {
   CHOSEN = SWITCHED.length ? withRequired(ids) : [];
   MODE = CHOSEN.length ? "revival" : "1978";
   WORDS = vocabularyFor(modeExtensions());
-  store.set(MODE_KEY, MODE);
-  // the ticks are kept only when they are other than the switch's two settings
-  if (!CHOSEN.length || sameIds(CHOSEN, SWITCHED)) { try { localStorage.removeItem(EXT_KEY); } catch { /* nothing kept */ } } else store.set(EXT_KEY, JSON.stringify(CHOSEN));
+  if (remember) {
+    store.set(MODE_KEY, MODE);
+    // the ticks are kept only when they are other than the switch's two settings
+    if (!CHOSEN.length || sameIds(CHOSEN, SWITCHED)) { try { localStorage.removeItem(EXT_KEY); } catch { /* nothing kept */ } } else store.set(EXT_KEY, JSON.stringify(CHOSEN));
+  }
   document.querySelectorAll(".seg.mode").forEach((el) => { el.outerHTML = modeSwitch(); });
   document.querySelectorAll(".mode-note").forEach((el) => { el.textContent = modeNote(); });
   document.querySelectorAll("input[data-ext]").forEach((x) => { x.checked = CHOSEN.includes(x.dataset.ext); });
@@ -1621,6 +1636,7 @@ const REVIVE_TEXT = {
   mend17: "When Ani has more ways to show what a task establishes than the few it takes, it keeps the strongest few, as Ken's own code picks the strongest of one word's suggestions; Ken never wrote what it should do then.",
   mend18: "A scene whose only task is shown by one thing the characters do: with that one task in its place, Ken's SCENE took it for a list of tasks and stopped; now one task is the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 takes it.",
   mend20: "A character left off the stage past a corner, whom Director places again each tick until she is on it, with ymax a symbol, a comma left out (dichar.103:41-49), where Ani as in 1978 stopped (\"not a number: YMAX\"): the number is used, and at a place that can't move she is left for a walk to bring on.",
+  mend21: "A scene whose tasks come out exactly at its least or its most time (every scene does, when the film's shortest and longest lengths are the same, as a film of 1 to 1 minutes), which Ken's CHOMET, asking only whether it is within its bounds, below or above them, stopped on (“arithmetic goofed up”, chomet.123:59-65), is taken as within them, each task given its ideal time.",
   mend19: "Far off and off the stage, where PLACE asks to put a character with no place yet before two move towards each other, but never defines: it is defined as Ken's medium-distance-and-offstage is, at his good-distance-from-and-offstage.",
   seen: "A character whose part is only changes of feeling waits until nothing else moves her (her walks, turns and hits, another's walk with her, in her part or the one it extends), then wanders across the stage and back, as MEND9's wander-around does, while her changes still run, and stops when they end; nothing beside a repeated activity, which carries her to its end; and the film waits while she wanders, as it does for a change being shown.",
   know: "What KNOW's parts share and the rule each piece is judged by; and a word with no way of showing itself borrowing its neighbors' ways, as Ken's comment on bad has it (dscrp.17:183).",
@@ -1839,6 +1855,13 @@ function repairSentence({ actor, what, notes }, sc) {
     case "already-alone": {
       const [, x, y] = Array.isArray(d) && d[0] === "alone" ? d : [];
       return `To show ${x && y ? `${who(x)} and ${who(y)}` : "two characters"} alone, Ken's CONVEY sends everyone else off, but this story has no one else, and Ani as in 1978 stopped trying to time that; the revival's repairs set that way aside, since the two are already alone.`;
+    }
+    // REVIVE;MEND21: a scene planned exactly at its least or its most time
+    case "scene-at-its-bound": {
+      const v = lispList(because), at = (k) => { const i = v.indexOf(k); return i >= 0 ? Number(v[i + 1]) : NaN; };
+      const [n, lo, hi] = [at("new-length"), at("least"), at("most")];
+      const s1 = (x) => `${+x.toFixed(1)} seconds`;
+      return `Fitting the scene's tasks to its share of the film's length${Number.isFinite(lo) && Number.isFinite(hi) ? ` (${lo === hi ? `exactly ${s1(lo)}, since the film's shortest and longest lengths are the same` : `${s1(lo)} to ${s1(hi)}`})` : ""}, Ani planned it at${Number.isFinite(n) ? ` ${s1(n)},` : ""} exactly ${Number.isFinite(n) && n === lo ? "its least" : Number.isFinite(n) && n === hi ? "its most" : "a bound"}. Ken's CHOMET asks only whether a scene is within its bounds, below them or above them (${kenAt("chomet.123:59-65")}), and Ani as in 1978 stopped there (“arithmetic goofed up”); the revival's repairs take it as within them, and each task gets its ideal time.`;
     }
     case "no-running-time": {
       const status = Array.isArray(because) ? because[1] : null;
@@ -2592,6 +2615,22 @@ function knowOfSource(s, el) {
 
 // ---- when Ani stops
 
+// A scene's least and most seconds, as Ken's record-length-bounds-for-scenes reckons them
+// (scene.9:346-357): the film's shortest and longest lengths times the scene's length
+// (short 1, medium 2, long 3) over all of its scenes' lengths. { lo, hi, words }, or null.
+function sceneTimeBounds(text, ids, id) {
+  if (!text || typeof filmSettings !== "function") return null;
+  const story = readStory(text);
+  if (story.error || !ids || !ids.includes(id)) return null;
+  const film = filmSettings(text)["film-length"];
+  const secs = film ? filmLengthSeconds(film) : null;
+  if (!secs) return null;
+  const LEN = { short: 1, medium: 2, long: 3 };
+  const lens = ids.map((x) => { const sc = story.scenes[x]; const set = sc && sc.span ? Object.fromEntries(settingsIn(text, sc.span).map((y) => [y.key, y.value])) : {}; return LEN[set.length]; });
+  if (lens.some((x) => !x)) return null;
+  const share = lens[ids.indexOf(id)] / lens.reduce((a, b) => a + b, 0);
+  return { lo: secs[0] * share, hi: secs[1] * share, words: filmLengthWords(film) };
+}
 // Why Ani stopped, in a plain sentence, for the ways Ani as in 1978 is known to stop on a
 // new story (test/stories/stress/README.md), and what the revival's repairs do there, if
 // they go on: { text, repair }. msg is the error; typed, the last lines Lisp typed (an
@@ -2624,6 +2663,13 @@ function whyStopped(run, msg, typed = [], sceneId = null) {
   if (/CANT-HANDLE-YET-IN-CHASES-TO-INTIAL-LOCS/i.test(m)) return { text: "Ani chose to have one character chase another, and Ken's chases-to can't yet place the two when where they run to has a place and one of them has none (after a cut, say): a case he left unfinished, his break “can't handle yet in chases-to initial locations” (disply.311:95-111).", repair: null };
   if (/SMALL-WAY-FROM-CANT-DO-YET/i.test(m)) return { text: "A character had walked a small way towards another, and Ani asked how far that place is from a third one, which Ken's INTERF can't say.", repair: "measure it from where that small way went as the walk set off" };
   if (/EXPLORE-METHOD-SUGGESTIONS/i.test(m)) return { text: "Ani had more ways to show a relationship than the few it takes, and Ken never wrote what it does then (explore-method-suggestions).", repair: "keep the strongest few" };
+  // REVIVE;MEND21: a scene planned exactly at its least or its most time (chomet.123:59-65)
+  if (/REDISTRIBUTE-TIME-FOR-TASKS \(ARITHMETIC GOOFED UP\)/i.test(m)) {
+    const b = run && sceneId ? sceneTimeBounds(run.cindy, run.sceneIds, sceneId) : null;
+    const s1 = (x) => `${+x.toFixed(1)} seconds`;
+    const share = b ? `${esc((run.titles && run.titles[sceneId]) || sceneId)} gets ${b.lo === b.hi ? `exactly ${s1(b.lo)}` : `${s1(b.lo)} to ${s1(b.hi)}`} of the film's ${esc(b.words)}, its share by its length. ` : "";
+    return { text: `Ani fits each scene's tasks into its share of the film's length. ${share}Ani's tasks here came out exactly at ${b && b.lo === b.hi ? "that time, which is both the scene's least and its most, since the film's shortest and longest lengths are the same" : "the scene's least or most time"}, and Ken's CHOMET asks only whether a scene is within its bounds, below them or above them (chomet.123:59-65): exactly at one is none of the three, and it stopped (“arithmetic goofed up”).${b && b.lo === b.hi ? " Giving the film a range of lengths (say 1 to 2 minutes, under “The whole film” in “Change the story”) avoids it." : ""}`, repair: "take a scene planned exactly at its least or most time as within them" };
+  }
   // REVIVE;MEND18: a scene whose only task is a relationship Ani shows by one thing the
   // characters do (scene.9:535-538)
   if (/cdr of non-list: CONVEY-TASK/i.test(m)) return { text: "The scene's only task was to show a relationship, which Ani shows by one thing the characters do; with that one task in its place, Ken's SCENE took it for a list of tasks and stopped (scene.9:535-538).", repair: "take one task as the scene's whole order of tasks, as Ken's own reorder-task-ordering-1 does" };
@@ -2707,6 +2753,9 @@ function stopsOf(run) {
 const lispSaid = (error, typed) => [...(typed || []).filter((l) => !/^--- type \(\?\) for help/.test(l)), String(error || "")].filter(Boolean).join("\n");
 // Would the revival's repairs go on where this run, by Ani as in 1978, stopped?
 // (not a film made with criticism, whose jobs loaded MEND already)
+// who stopped: "Ani as in 1978" for a film made with it chosen (nothing loaded beside Ken's
+// files), so that a stop isn't taken for the page's default
+const whoStopped = (run) => (run && !runExtensions(run).length && !(run.criticism && run.criticism.length) && !(run.knowledge && run.knowledge.length) ? "Ani as in 1978" : "Ani");
 const mendable = (run) => !!run && !runExtensions(run).length && !(run.criticism && run.criticism.length) && SWITCHED.includes("mend") && !(run.status && run.status.running) && stopsOf(run).some((s) => s.repair);
 // Where a run stopped, and for a run by Ani as in 1978 that stopped where the revival's
 // repairs go on, the button that makes it again with them.
@@ -4739,7 +4788,7 @@ function caption(r) {
   const tag = state.view === "both" ? `${esc(screenShort(r))} · ` : "";
   if (!ready(sc)) {
     const id = run.sceneIds[state.scene];
-    const stopped = sc ? `Ani stopped while making this scene. ${simpleAge() ? "" : whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
+    const stopped = sc ? `${whoStopped(run)} stopped while making this scene. ${simpleAge() ? "" : whyStopped(run, sc.error, sc.typed, sc.id).text}${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}` : "";
     el.innerHTML = `<span class="part">${tag}${esc(id ? run.titles[id] : `Scene ${state.scene + 1}`)}</span>${!id ? "No such scene in this version." : sc ? stopped : run.status && run.status.running ? "Not made yet." : "Not made."}`;
     delete el.dataset.html;
     return;
@@ -5859,6 +5908,14 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
   if (!sceneIds.length) problems.push("It defines no scenes.");
   sceneIds.forEach((id, k) => checkTasks(story, id, sceneIds.slice(0, k), problems, stops, extensions));
   if (!story.films.length) problems.push("It defines no film: Ani needs one, like Ken's (define cinderella-film film ...).");
+  // a film of one length: every scene's least time is its most, and Ani as in 1978 stops on
+  // a scene planned exactly at it (REVIVE;MEND21)
+  const flen = typeof filmSettings === "function" ? filmSettings(text)["film-length"] : null;
+  const fsecs = flen ? filmLengthSeconds(flen) : null;
+  if (fsecs && fsecs[0] === fsecs[1]) stops.push({
+    as1978: `The film's shortest and longest lengths are the same (${esc(filmLengthWords(flen))}), so each scene's least time is its most, and Ani as in 1978 stops on a scene whose tasks come out exactly at it (“arithmetic goofed up”). Give the film a range of lengths, say ${+(fsecs[0] / 60).toFixed(2)} to ${+(fsecs[0] / 60).toFixed(2) + 1} minutes.`,
+    mended: `The film's shortest and longest lengths are the same (${esc(filmLengthWords(flen))}); where a scene's tasks come out exactly at its one time, the revival's repairs take it as within its bounds (REVIVE;MEND21).`,
+  });
   if (cast.length && !Object.values(story.characters).some((c) => c.role === "most-important")) notes.push("No character has (role-in-story most-important), as Ken gave Cinderella.");
   return { story, problems, notes, stops };
 }
@@ -7172,7 +7229,7 @@ function updateRunbar() {
     // in the tab's title too, which shows while the tab is in the background
     document.title = document.hidden ? `Ani: ${runWords(st)} (faster with this tab in front)` : PAGE_TITLE;
   } else if (st.error) {
-    status.innerHTML = `<span class="stopped">Ani stopped in pass 1: ${unmark(whyStopped(run, st.error, st.typed).text)}</span>${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}`;
+    status.innerHTML = `<span class="stopped">${whoStopped(run)} stopped in pass 1: ${unmark(whyStopped(run, st.error, st.typed).text)}</span>${mendable(run) ? ` <button type="button" class="linkish" data-remake>Make it again with ${esc(REVIVAL)}</button>` : ""}`;
   } else if (st.stopped) {
     status.textContent = `Stopped after ${clock(st.seconds * 1000)}, with ${filmed} of ${run.sceneIds.length} scenes filmed.${filmed ? keptWords(run) : ""}`;
     document.title = PAGE_TITLE;

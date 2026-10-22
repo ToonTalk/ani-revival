@@ -458,7 +458,7 @@ const REPORT_KEY = "ani-cinderella:error-reports:v1";
 const KEPT_WHAT = () => [
   [COLOR_KEY, "Whether the film is shown in color or as Ken's TV previews ran (TV)"],
   [RATE_KEY, "Which frames a second the 1978 film is shown at"],
-  [MODE_KEY, at611("Which Ani makes the films made here: Ani as in 1978, or with the revival's extensions", "Which Ani makes the films made here: Ani as in 1978, or with the new parts added in 2026")],
+  [MODE_KEY, at611("Which Ani makes the films made here, once the switch was pressed: Ani as in 1978, or with the revival's extensions (until then, with the extensions)", "Which Ani makes the films made here, once it was chosen: Ani as in 1978, or with the new parts added in 2026")],
   [EXT_KEY, at611("The revival's extensions ticked, when they aren't one of the switch's settings", "Which of the new parts added in 2026 are ticked")],
   [FPS_KEY, at611("The frames a second the films are made at", "How smooth the films made here are")],
   [DRAFT_KEY, at611("The film description being changed in “Change the story”", "The story being changed in “Change the story”")],

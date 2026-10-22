@@ -294,8 +294,12 @@ function critiqueToEditor(run, text, note) {
   editor.tidied = [...(run.tidied || [])];
   setTold(run.told || null);
   editor.fps = runFps(run);
-  if (runExtensions(run).length && MODE === "1978") setMode("revival");
-  else if (!runExtensions(run).length && MODE !== "1978") setMode("1978");
+  // (for this visit; the visitor's own choice is kept. Ken's own 1978 film, changed, is made
+  // as the switch is set, as "Change the story" makes it)
+  if (run !== RUNS[0]) {
+    if (runExtensions(run).length && MODE === "1978") setMode("revival", { remember: false });
+    else if (!runExtensions(run).length && MODE !== "1978") setMode("1978", { remember: false });
+  }
   editor.note = esc(note);
   editor.openLisp = !!text;
   select(null, { panel: "edit" });
