@@ -17,7 +17,8 @@
 // The page's script is the template's, with app/film/criticism.js (the reader's criticism of
 // a film, and remaking it with it), app/film/critique.js ("Tell Ani what's wrong", the
 // criticism in plain English that a language model reads), app/film/llm.js (telling Ani a new story),
-// app/film/json.js (the JSON way of telling it), app/film/save.js (saving films),
+// app/film/json.js (the JSON way of telling it), app/film/scenes.js (the scenes and the film's
+// settings in "Change the story", and remaking a film told in English), app/film/save.js (saving films),
 // app/film/library.js ("Your films", every film made kept in the browser, and your notebooks
 // of knowledge beside them, and what the page keeps there), app/film/teach.js (Teach Ani),
 // app/film/ages.js (the age setting, and the simpler sentences), app/film/speech.js (Read
@@ -756,7 +757,7 @@ export function buildFilmApp(root = ".", { contentOnly = null, claudeArtifact = 
   // the claude.ai copy reports nothing (its CSP refuses Sentry), so it has report.js's
   // two names, as they are with no DSN, and none of its code
   const reportOff = "const report = { on: false };\nconst sendStoryButton = () => \"\";\n";
-  const parts = ["ages.js", "llm.js", "speech.js", "json.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
+  const parts = ["ages.js", "llm.js", "speech.js", "json.js", "scenes.js", "save.js", "library.js", "view.js", "criticism.js", "critique.js", "teach.js", "report.js"].map((f) => (claudeArtifact && f === "report.js" ? reportOff : readFileSync(`${root}/app/film/${f}`, "utf8"))).join("\n");
   let content = template;
   for (const [mark, text] of Object.entries({ ...blocks, "/*FILM-PARTS*/": parts, "/*STORY-NAMES*/": pipelineFunctions(root), "/*WHY-THEY-ACT*/": whyFunctions(root), "/*CRITICISM*/": claudeArtifact ? teachFromRuntime(template, "CRITICISM") : criticFunctions(root), "/*TEACH*/": claudeArtifact ? teachFromRuntime(template) : teachFunctions(root) })) {
     if (content.split(mark).length !== 2) throw new Error(`the template should have one ${mark}`);

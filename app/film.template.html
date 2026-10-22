@@ -245,6 +245,26 @@ details > .body { display: grid; gap: 10px; padding: 10px 0 2px 16px; }
 .ed-row { display: grid; grid-template-columns: 8.5ch minmax(0, 1fr); gap: 6px; align-items: start; font-size: 0.9rem; }
 .ed-row > span:first-child { color: var(--muted); padding-top: 3px; font-size: 0.84rem; }
 .ed-rel { display: grid; gap: 4px; font-size: 0.9rem; }
+.ed-scene { display: grid; gap: 6px; border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; background: var(--sheet); font-size: 0.9rem; }
+.ed-scene > b { font-family: var(--display); font-weight: 600; font-size: 1rem; }
+.ed-tasks, .ed-steps { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+.ed-steps > li > .ed-tasks { padding-left: 0; list-style: none; }
+.ed-tasks li > span { margin-right: 4px; }
+.ed-x { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 6px; font-size: 1rem; line-height: 1.2; border-radius: 999px; }
+.ed-x:hover { color: var(--rejected); }
+.ed-sets, .ed-add { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.ed-add { border-top: 1px dashed var(--rule); padding-top: 6px; }
+.ed-add .note, .ed-add .actions { flex-basis: 100%; }
+.ed-set { display: inline-flex; gap: 6px; align-items: center; font-size: 0.86rem; }
+.ed-set > span { color: var(--muted); }
+.ed-set select, .ed-film-v select { max-width: 100%; font-size: 0.86rem; padding: 2px 4px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+.ed-add .ed-set select { max-width: 16em; }
+.ed-film-row { display: grid; grid-template-columns: 10ch minmax(0, 1fr); gap: 2px 8px; align-items: center; font-size: 0.9rem; }
+.ed-film-k { color: var(--muted); font-size: 0.86rem; }
+.ed-film-why { grid-column: 2; font-size: 0.82rem; }
+.told-box { display: grid; gap: 6px; }
+html.age-6-11 .ed-x, html.age-6-11 .ed-set select, html.age-6-11 .ed-film-v select { min-height: 32px; min-width: 32px; }
+html.age-6-11.big .ed-x, html.age-6-11.big .ed-set select, html.age-6-11.big .ed-film-v select { min-height: 44px; min-width: 44px; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
 .chip { display: inline-flex; align-items: center; gap: 2px; border: 1px solid var(--rule); border-radius: 999px; padding: 1px 4px 1px 10px; font-size: 0.86rem; background: var(--sheet); cursor: help; }
 .chip.suggests { background: var(--accent-soft); border-color: var(--accent-soft); }
@@ -4889,7 +4909,7 @@ function storyPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>${mine ? "What Ani was told this time" : "What Ani was told"}</h2><button type="button" class="linkish" id="show-lisp">Show it as Ani read it</button></div>
     <p class="note">${newStory ? "The new story, as Ani was told it. Ani planned every scene from it." : mine && run.cindy === DATA.cindy ? at611("Ken's film description, unchanged. Ani planned every scene of this version from it.", "Ken's story, unchanged. Ani planned every scene of this version from it.") : mine ? at611("Changes to the film description (new words are outlined). Ani planned every scene of the new version from it.", "Ken's story, with changes (new words are outlined). Ani planned every scene of the new version from it.") : at611("The film description, Appendix I of the thesis, in plain English. Ani planned every scene from it.", "The story Ken gave Ani in 1978, in plain words. Ani planned every scene from it.")}${mine ? ` <span${runExtensions(run).length ? ` class="made-with"` : ""}>It was made ${esc(madeWith(run))}.</span>` : ""}</p>
-    ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}
+    ${mine ? tidyNote(run.tidied) + stopBox(run) : ""}${toldBox(mine ? run : shown().map(screenRun).find((r) => r && r !== RUNS[0] && r.told && r.told.story))}
     <div class="actions"><button type="button" class="btn primary" id="open-editor">${RUNS[1] ? "Change the story again" : "Change the story"}</button><button type="button" class="btn" id="open-teller">Tell Ani a new story</button><button type="button" class="btn yours" data-teach-open id="open-teach">Teach Ani</button>${libraryFilms().length ? `<button type="button" class="linkish" data-open-films>Films made here (${libraryFilms().length})</button>` : ""}</div>
     ${critBox(run)}
     ${simpleAge() ? ageStoryPeople(run, people) : `<div class="people">${people}</div>`}
@@ -5781,7 +5801,7 @@ function checkStory(text, { extensions = modeExtensions() } = {}) {
   if (story.error) {
     const at = story.error.match(/line (\d+)/);
     const line = at ? String(text.split("\n")[Number(at[1]) - 1] || "").trim() : "";
-    problems.push(`Ani can't read this: ${esc(story.error)}${line ? `: <code>${esc(line.slice(0, 90))}</code>` : ""}. Fix it in “Ani's version” below.`);
+    problems.push(`Ani can't read this: ${esc(story.error)}${line ? `: <code>${esc(line.slice(0, 90))}</code>` : ""}. Fix it in “Edit the whole film description as text” below.`);
   }
   for (const [name, c] of Object.entries(story.characters)) {
     for (const [slot, ws] of c.slots) {
@@ -6347,14 +6367,40 @@ function storyChanges(a, b, textA, textB, { takeOut = false } = {}) {
     ? `Ken's own scene ${esc(titleOf(b, id))}, which he wrote and left commented out (cindy.46:94-105), put back as he wrote it: ${scene(b, id)}.${takeOut ? ` <button type="button" class="linkish" data-take-out="${BEAUTIFIED}">Take it out</button>` : ""}`
     : `A new scene, ${esc(titleOf(b, id))}: ${scene(b, id)}.`);
   for (const id of gone) out.push(`${esc(titleOf(a, id))} is left out.`);
-  // anything else: compare the texts with the characters', relationships' and the scenes
-  // added or taken away's definitions taken out
-  const rest = (text, story) => {
-    const spans = [...Object.values(story.characters).map((c) => c.span), ...story.relationships.map((r) => r.span), ...[...added, ...gone].filter((id) => story.scenes[id]).map((id) => story.scenes[id].span)].sort((p, q) => q.start - p.start);
+  // the scenes both have: their settings and their tasks, and anything else; and the film's
+  // settings (what "Change the story" changes with its menus)
+  const kept = Object.keys(b.scenes).filter((id) => a.scenes[id]);
+  const norm = (text, sp) => (sp ? text.slice(sp.start, sp.end).replace(/;[^\n]*/g, "").replace(/\s+/g, " ").trim() : "");
+  if (textA !== undefined) for (const id of kept) {
+    const sa = a.scenes[id], sb = b.scenes[id], bits = [];
+    for (const key of ["mood", "rhythm", "length"]) {
+      const x = sa.settings[key] === undefined ? null : show(sa.settings[key]), y = sb.settings[key] === undefined ? null : show(sb.settings[key]);
+      if (x !== y) bits.push(`${key} ${y === null ? "not set" : esc(settingWords(y))} <span class="was">(was ${x === null ? "not set" : esc(settingWords(x))})</span>`);
+    }
+    const ta = tasksOf(sa.tasks), tb = tasksOf(sb.tasks);
+    const said = (ts) => using({ story: b, cast: Object.keys(b.characters) }, () => words(ts.map((t) => taskText(t[0], t[1]).replace(/^to /, ""))));
+    const plus = tb.filter((t) => !ta.some((x) => show(x) === show(t))), minus = ta.filter((t) => !tb.some((x) => show(x) === show(t)));
+    if (plus.length) bits.push(`now ${said(plus)}`);
+    if (minus.length) bits.push(`<span class="was">(no longer ${said(minus)})</span>`);
+    if (!plus.length && !minus.length && ta.map(show).join() !== tb.map(show).join()) bits.push("its tasks in another order");
+    if (bits.length) out.push(`${esc(titleOf(b, id))}: ${bits.join("; ")}.`);
+    else if (norm(textA, sa.span) !== norm(textB, sb.span)) out.push(`Other changes in ${esc(titleOf(b, id))}.`);
+  }
+  const fa = textA !== undefined ? filmSettings(textA) : {}, fb = textA !== undefined ? filmSettings(textB) : {};
+  const filmBits = [...new Set([...Object.keys(fa), ...Object.keys(fb)])].filter((k) => fa[k] !== fb[k]).map((k) => {
+    const v = (x) => (x === undefined ? "not set" : k === "film-length" ? esc(filmLengthWords(x)) : esc(plain(String(x))));
+    return `${k === "film-length" ? "length" : esc(plain(k.replace(/^level of /, "")))} ${v(fb[k])} <span class="was">(was ${v(fa[k])})</span>`;
+  });
+  if (filmBits.length) out.push(`The film's ${filmBits.join("; ")}.`);
+  const fsa = textA !== undefined ? filmSpan(textA) : null, fsb = textA !== undefined ? filmSpan(textB) : null;
+  // anything else: the rest of the text, without what is said above
+  const restOf = (text, story, fs) => {
+    const spans = [...Object.values(story.characters).map((c) => c.span), ...story.relationships.map((r) => r.span), ...Object.keys(story.scenes).filter((id) => story.scenes[id].span).map((id) => story.scenes[id].span), ...(fs ? [fs] : [])].sort((p, q) => q.start - p.start);
     for (const sp of spans) text = text.slice(0, sp.start) + text.slice(sp.end);
     return text.replace(/;[^\n]*/g, "").replace(/\s+/g, " ").trim();
   };
-  if (textA !== undefined && rest(textA, a) !== rest(textB, b)) out.push("Other changes in Ani's version (scenes, settings or comments).");
+  if (textA !== undefined && !filmBits.length && norm(textA, fsa) !== norm(textB, fsb)) out.push("Other changes in the film's settings.");
+  if (textA !== undefined && restOf(textA, a, fsa) !== restOf(textB, b, fsb)) out.push("Other changes in the film description (comments or other definitions).");
   return out;
 }
 // Ken's own scene, which he wrote and left commented out (cindy.46:94-105): his CINDY 46
@@ -6460,11 +6506,14 @@ function editorPanel() {
     ${editor.note ? `<p class="note crit-added" aria-live="polite">${editor.note}</p>` : ""}
     <p class="note">${at611("Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.", "Change what Ani is told about the characters, then have Ani plan and make all five scenes again, here on this computer. That takes two or three minutes (about five with Ken's beautified scene), and longer if this tab is in the background. Each scene plays as soon as it is made, beside the 1978 one.")}</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
+    <div class="actions"><button type="button" class="btn" id="ed-open-text">Edit the whole film description as text</button></div>
     <div class="ed-group" id="ed-chars"></div>
     <div class="ed-group"><p class="label">How they feel about each other</p><div class="ed-group" id="ed-rels"></div></div>
     <p class="note">${at611(`Shaded words have suggestions of their own in Ani's code; <i>slanted</i> ones Ani knows only as the opposite of another, or close to it.${SWITCHED.includes("know") ? " With the revival's extensions, words outlined in purple are the revival's knowledge, and Ani knows them too." : ""} Hover over a word for more.`, `Ani knows what shaded words mean for how a character moves; <i>slanted</i> ones it knows only as the opposite of another word, or close to one.${SWITCHED.includes("know") ? " Words outlined in purple were added to Ani in 2026." : ""} Hover over a word for more.`)}</p>
-    <details id="ed-lisp-box"${editor.openLisp ? " open" : ""}><summary>Ani's version</summary><div class="body">
-      <p class="note">The film description as Ani reads it, in Ken's Lisp. Change anything here, the scenes too; the words above follow.</p>
+    <div class="ed-group"><p class="label">The scenes</p><div id="ed-scene-note"></div><div class="ed-group" id="ed-scenes"></div></div>
+    <div class="ed-group"><p class="label">The whole film</p><div class="ed-group" id="ed-film"></div></div>
+    <details id="ed-lisp-box"${editor.openLisp ? " open" : ""}><summary>Edit the whole film description as text</summary><div class="body">
+      <p class="note">${at611("The film description as Ani reads it, in Ken's Lisp. Change anything here; the words and menus above follow, and what they change shows here.", "The story as Ani reads it, in Ken's Lisp. Change anything here; the words and menus above follow, and what they change shows here.")}</p>
       <div class="ed-lisp-wrap" id="ed-lisp-wrap"><textarea id="ed-lisp" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="The film description, in Lisp"></textarea><button type="button" class="btn done" id="ed-done">Done</button></div>
     </div></details>
     <div id="ed-check"></div>
@@ -6509,6 +6558,8 @@ function editorPanel() {
   side.querySelector("#ed-done").addEventListener("click", () => { ta.blur(); wrap.classList.remove("pinned"); });
   side.addEventListener("change", onChipSelect);
   side.addEventListener("click", onChipRemove);
+  side.addEventListener("change", onScenesChange);
+  side.addEventListener("click", onScenesClick);
   refreshEditor();
 }
 function chipsFor(ws, target, forRelationship) {
@@ -6533,8 +6584,9 @@ function refreshEditor({ fromLisp = false } = {}) {
   const chars = side.querySelector("#ed-chars"), rels = side.querySelector("#ed-rels");
   const as1978 = MODE === "1978";
   if (story.error) {
-    chars.innerHTML = `<p class="note">The words can't be shown while Ani's version can't be read; fix it in “Ani's version” below.</p>`;
+    chars.innerHTML = `<p class="note">The words can't be shown while the film description can't be read; fix it in “Edit the whole film description as text” below.</p>`;
     rels.innerHTML = "";
+    side.querySelector("#ed-scenes").innerHTML = side.querySelector("#ed-film").innerHTML = side.querySelector("#ed-scene-note").innerHTML = "";
     side.querySelector("#ed-lisp-box").open = true;
   } else {
     const cast = Object.keys(story.characters);
@@ -6548,6 +6600,11 @@ function refreshEditor({ fromLisp = false } = {}) {
     rels.innerHTML = story.relationships.filter((r) => story.characters[r.from] && story.characters[r.to]).map((r) => `<div class="ed-rel"><span>${icon(r.from, 13, look)} ${esc(cap(nameOf(story, r.from)))} → ${esc(nameOf(story, r.to))}</span>${chipsFor(r.how, { from: r.from, to: r.to }, true)}</div>`).join("") +
       (story.missingPairs && story.missingPairs.length && as1978 ? `<div class="actions"><button type="button" class="btn" id="ed-fill">Fill in the ${story.missingPairs.length} missing relationship${story.missingPairs.length === 1 ? "" : "s"} (as “is polite to”)</button></div>` : "");
     rels.querySelector("#ed-fill")?.addEventListener("click", () => setEditorText(fillRelationships(editor.text)));
+    // the scenes and the film, read from the text as it is (what the menus change), not as tidied
+    const raw = readStory(editor.text);
+    side.querySelector("#ed-scene-note").innerHTML = sceneSettingsNote();
+    side.querySelector("#ed-scenes").innerHTML = raw.error ? "" : sceneCards(editor.text, raw);
+    side.querySelector("#ed-film").innerHTML = raw.error ? "" : filmBox(editor.text, raw);
   }
   const ta = side.querySelector("#ed-lisp");
   if (!fromLisp && ta.value !== editor.text) ta.value = editor.text;
@@ -7258,7 +7315,7 @@ function comparePanel() {
   side.innerHTML = `
     <div class="side-head"><h2>${other ? `The new story${b.story.films[0] ? `: ${esc(storyTitle(b))}` : ""}` : "Two films of one story"}</h2><button type="button" class="linkish" id="cmp-edit">${mine ? "Change the story again" : "Change this story"}</button></div>
     ${running ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(st)).toFixed(1)}%"></i></span><span class="note what"></span>${st.inPage ? `<p class="note inpage">${inPageWords()}</p>` : ""}<div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
-    ${running ? "" : stopBox(b)}
+    ${running ? "" : stopBox(b) + toldBox(b)}
     ${teachChangedSection(a, b)}
     ${critChangedSection(a, b)}
     ${running ? "" : critBox(b)}
@@ -7335,7 +7392,7 @@ function pairPanel(a, b) {
     ${[a, b].some((x) => x === RUNS[1] && x.status && x.status.running) ? `<div class="progress" id="progress"><span class="meter"><i style="width:${(100 * progressOf(RUNS[1].status)).toFixed(1)}%"></i></span><span class="note what"></span><div class="actions"><button type="button" class="linkish" id="cmp-stop">Stop</button></div></div>` : ""}
     ${teachChangedSection(a, b) || teachChangedSection(b, a)}
     ${critChangedSection(a, b) || critChangedSection(b, a)}
-    <div><p class="label">What each was told</p><ul class="changes">${each}</ul></div>
+    <div><p class="label">What each was told</p><ul class="changes">${each}</ul></div>${[a, b].some((x) => x === RUNS[1] && x.status && x.status.running) ? "" : toldBox([b, a].find((x) => x !== RUNS[0] && x.told && x.told.story))}
     ${body}
     <div class="scene-list"><p class="label">Scene by scene</p>${scenes}</div>${end}`;
   updateProgress();

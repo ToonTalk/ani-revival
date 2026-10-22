@@ -239,7 +239,7 @@ function critiqueItem(run, film, x, said) {
       Object.assign(out, {
         html: `<b>A change to the story</b>, not criticism of how Ani made it: ${esc(change || "the story told differently")}.${text ? ` In ${sceneTitle_(x.scene)}, Ani would be told <code>${esc(show(task))}</code>: ${about(task[1])}.` : ""}${you} <span class="note">Criticism is of how Ani made the film; what the film is to show is its story.</span>`,
         act: text ? "Change the story this way" : "Change the story", primary: true,
-        f: () => critiqueToEditor(run, text, text ? `From “Tell Ani what's wrong”: in ${sceneTitleOf(run, x.scene)}, Ani is told ${show(task)} (${unhtml(about(task[1]))}). Look it over in Ani's version below, then make the film.` : `From “Tell Ani what's wrong”: ${change || words_}. Change the story here, then make the film.`),
+        f: () => critiqueToEditor(run, text, text ? `From “Tell Ani what's wrong”: in ${sceneTitleOf(run, x.scene)}, Ani is told ${show(task)} (${unhtml(about(task[1]))}). Look it over in the text below (Edit the whole film description as text), then make the film.` : `From “Tell Ani what's wrong”: ${change || words_}. Change the story here, then make the film.`),
       });
       return out;
     }

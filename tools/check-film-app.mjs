@@ -169,6 +169,14 @@
 // files, the design's examples made in the page's worker in the frames Node makes them,
 // "What your knowledge did", the glass box's badges and a version-3 film file (see the
 // section below).
+// And Ken's testing of 22 October: the scenes and the film in "Change the story" (a card for
+// each scene, its tasks taken out and added, only what Ani can plan; menus for its mood,
+// rhythm and length; the film's length and levels, each with what it changes), Ken's CINDY
+// byte for byte through them; the text, "Edit the whole film description as text", and the
+// menus following each other; Kept Apart's length and the film's changed with the menus,
+// the Lisp and the film as Node makes them; and a film told in English made again from its
+// words changed, the model (stood in for) writing the description again, shown with its
+// check before Ani films it, from "Your films" too.
 // Usage: node tools/check-film-app.mjs [--shots <dir>] [--only teach]   (about an hour)
 //   --only teach  only the first checks and Teach Ani's (about a quarter of an hour)
 // With --shots, the change story's fresh look and "How she has changed", the tidy note,
@@ -236,6 +244,17 @@ const EXPECTED_BEAUTIFIED_LAST_FRAMES = [265, 119, 137, 33, 185, 106];
 const WITH_SLIPS = ["mend", "know", "fit", "slips"], WITH_DETAIL = ["mend", "detail"];
 const EXPECTED_SLIPS_LAST_FRAMES = [249, 121, 33, 184, 72];
 const EXPECTED_DETAIL_LAST_FRAMES = [188, 115, 15, 168, 86];
+// Ken's Cinderella with Kept Apart short (his: long) and the film one to three minutes
+// (his: two to five), changed with "Change the story"'s menus, made as in 1978 at 4 frames a
+// second: 192, 95, 32, 158 and 81 frames, as src/pipeline.js makeFilm makes it in Node (his:
+// 192, 116, 17, 179 and 84). (Kept Apart medium with the film one to three minutes stops
+// Ani as in 1978 in Kept Apart, BAD-MESSAGE; each alone films, 192, 116, 17, 182, 90 and
+// 193, 116, 26, 161, 90.)
+const SETTINGS_CHANGE = [['select[data-scene-set="length"][data-scene="kept-apart"]', "short"], ['select[data-film-length="lo"]', "1"], ['select[data-film-length="hi"]', "3"]];
+const SETTINGS_WORDS = "Ken's Cinderella with Kept Apart short and the film one to three minutes";
+const KEN_CINDY = (() => { const f = makeProjectFileSystem(); return f.textOf(f.find({ dir: "KEN", fn1: "CINDY", fn2: "46" })); })();
+const SETTINGS_TEXT = KEN_CINDY.replace(/(\(define kept-apart scene[^]*?\(set your length to )long\)/, "$1short)").replace("(interval (minutes 2) (minutes 5))", "(interval (minutes 1) (minutes 3))");
+const EXPECTED_SETTINGS_FRAMES = [192, 95, 32, 158, 81];
 // the prompt and schema with the switch's extensions (Lisp, JSON and the schema, for
 // STORY_FOR_PROMPTS), as SLIPS and DETAIL leave them (stage 7), with Ken's lines of 15
 // October on the story's own cast (only with the revival's extensions; the schema is as
@@ -3264,6 +3283,163 @@ try {
       `"Teach Ani instead" opens Teach Ani; and with ${prompts.used} notebooks used, the prompts and the schema are as pinned`);
     await js(`document.querySelector('#rate [data-rate="24"]').click()`);
     await sleep(200);
+  }
+
+  if (!ONLY_TEACH) {
+  // Ken's testing of 22 October (app/film/scenes.js): "Change the story" has a card for each
+  // scene (its tasks, each with a button to take it out, "+ add" offering only tasks Ani can
+  // plan, and menus for its mood, rhythm and length) and the film's settings (its length
+  // and levels, each with what it changes; the rhythm level, the film's mood and its focus
+  // said, not offered); every menu put back as it was leaves Ken's CINDY byte for byte; the
+  // text is "Edit the whole film description as text", opened from a button, and menus and
+  // text follow each other; Kept Apart's length and the film's length changed with the menus
+  // change the Lisp and the film, as Node makes it; and a film told in English keeps its
+  // words, editable, and "Change the story and make it again" has the model (stood in for)
+  // write the description again, shown with its check before Ani makes it, also after the
+  // film is opened again from "Your films".
+  await toCheckPage();
+  const menus = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    if (t.RUNS[1] && t.RUNS[1].status && t.RUNS[1].status.running) t.stopRun({ quiet: true });
+    t.select(null); await wait(100);
+    document.getElementById("open-editor").click(); await wait(400);
+    document.querySelector('#side [data-mode="1978"]').click(); await wait(200);
+    document.getElementById("ed-reset").click(); await wait(300);
+    const lisp = () => document.getElementById("ed-lisp").value;
+    const out = { ken: lisp() === t.DATA.cindy };
+    const set = async (sel, v) => { const el = document.querySelector("#side " + sel); if (!el) return false; el.value = v; el.dispatchEvent(new Event("change", { bubbles: true })); await wait(200); return true; };
+    // every menu given what it shows: nothing changes
+    const all = [...document.querySelectorAll("#side select[data-scene-set], #side select[data-film-level], #side select[data-film-length]")].map((el) => [el.dataset.sceneSet ? 'select[data-scene-set="' + el.dataset.sceneSet + '"][data-scene="' + el.dataset.scene + '"]' : el.dataset.filmLevel ? 'select[data-film-level="' + el.dataset.filmLevel + '"]' : 'select[data-film-length="' + el.dataset.filmLength + '"]', el.value]);
+    for (const [sel, v] of all) await set(sel, v);
+    out.menus = all.length;
+    out.same = lisp() === t.DATA.cindy;
+    out.scenes = [...document.querySelectorAll("#side [data-scene-card]")].map((c) => c.querySelector("b").textContent);
+    out.film = document.getElementById("ed-film").innerText;
+    out.button = document.getElementById("ed-open-text").textContent;
+    out.summary = document.querySelector("#ed-lisp-box summary").textContent;
+    out.closed = !document.getElementById("ed-lisp-box").open;
+    document.getElementById("ed-open-text").click(); await wait(200);
+    out.opened = document.getElementById("ed-lisp-box").open;
+    // Kept Apart long → medium, the film 2 to 5 minutes → 1 to 3, and back: Ken's again
+    await set('select[data-scene-set="length"][data-scene="kept-apart"]', "medium");
+    await set('select[data-film-length="lo"]', "1");
+    await set('select[data-film-length="hi"]', "3");
+    out.changedLisp = /\\(define kept-apart scene[^]*?\\(set your length to medium\\)\\)\\n/.test(lisp()) && lisp().includes("(set your film-length to (interval (minutes 1) (minutes 3)))") && lisp().length === t.DATA.cindy.length + 2;
+    out.changes = document.getElementById("ed-check").innerText;
+    await set('select[data-scene-set="length"][data-scene="kept-apart"]', "long");
+    await set('select[data-film-length="lo"]', "2");
+    await set('select[data-film-length="hi"]', "5");
+    out.back = lisp() === t.DATA.cindy;
+    // a task added to Justice and taken out again; the Meeting's first taken out, said
+    document.querySelector('#side [data-add-open="justice"]').click(); await wait(200);
+    out.kinds = [...document.querySelectorAll("#side select[data-add-kind] option")].map((o) => o.value);
+    await set("select[data-add-kind]", "chases");
+    await set('select[data-add-arg="0"]', "step-mother");
+    await set('select[data-add-arg="1"]', "cinderella");
+    out.preview = document.querySelector("#side .ed-add .note").innerText;
+    document.querySelector('#side [data-add-go="justice"]').click(); await wait(250);
+    out.added = lisp().includes("(establish (emotional-state step-mother (joy (negative high))))\\n\\t\\t      (convey (chases step-mother cinderella))))");
+    out.addedSaid = document.getElementById("ed-check").innerText;
+    const xs = document.querySelectorAll('#side [data-scene-card="justice"] [data-task-remove]');
+    xs[xs.length - 1].click(); await wait(250);
+    out.removedBack = lisp() === t.DATA.cindy;
+    // with the revival's extensions, meeting, helping and following are offered too
+    document.querySelector('#side [data-mode="revival"]').click(); await wait(250);
+    document.querySelector('#side [data-add-open="justice"]').click(); await wait(200);
+    out.kindsRevival = [...document.querySelectorAll("#side select[data-add-kind] option")].map((o) => o.value);
+    document.querySelector("#side [data-add-cancel]").click(); await wait(100);
+    document.querySelector('#side [data-mode="1978"]').click(); await wait(250);
+    // the text changed: the menus follow
+    const ta = document.getElementById("ed-lisp");
+    ta.value = t.DATA.cindy.replace("(set your level of energy to high)", "(set your level of energy to low)").replace("(set your mood to (very joyous))", "(set your mood to joyous)");
+    ta.dispatchEvent(new Event("input")); await wait(600);
+    out.follow = [document.querySelector('#side select[data-film-level="energy"]').value, document.querySelector('#side select[data-scene-set="mood"][data-scene="meeting"]').value];
+    ta.dispatchEvent(new Event("change")); await wait(200);
+    out.followSaid = document.getElementById("ed-check").innerText;
+    document.getElementById("ed-reset").click(); await wait(200);
+    return out;
+  })()`);
+  check(menus.ken && menus.menus === 5 * 3 + 2 + 7 && menus.same && menus.scenes.join() === "The Introduction,Kept Apart,No Longer Kept Apart,The Meeting,Justice",
+    `"Change the story" has a card for each of Ken's five scenes, and its ${menus.menus} menus (three a scene, the film's length and seven levels), each given what it shows, leave his CINDY byte for byte`);
+  check(/Variety[^]*glosug\.41:43-74/.test(menus.film) && /Complexity[^]*chomet\.123:478-490[^]*decides nothing in pass 1/.test(menus.film) && /Coherence[^]*chomet\.123:243-248/.test(menus.film) && /Not offered: the film's level of rhythm, which Ani's code defines \(glosug\.41:150\) and nothing reads/.test(menus.film) && /focus/.test(menus.film),
+    "the film's levels each say what they change in Ani's choices, with Ken's lines; the rhythm level, the film's mood and its focus are said, not offered");
+  check(menus.button === "Edit the whole film description as text" && menus.summary === "Edit the whole film description as text" && menus.closed && menus.opened, `the text is “${menus.summary}”, closed at first and opened by a button of that name`);
+  check(menus.changedLisp && /Kept Apart: length medium \(was long\)\./.test(menus.changes) && /The film's length 1 to 3 minutes \(was 2 to 5 minutes\)\./.test(menus.changes) && menus.back,
+    "Kept Apart's length and the film's length changed with the menus change those two forms alone, said in the changes; put back, Ken's CINDY again, byte for byte");
+  check(!menus.kinds.includes("meets") && !menus.kinds.includes("helps") && menus.kinds.includes("chases") && menus.kindsRevival.includes("meets") && menus.kindsRevival.includes("helps") && /Ani will be told to convey that the stepmother chases Cinderella/.test(menus.preview) && menus.added && /Justice: now convey that the stepmother chases Cinderella\./.test(menus.addedSaid) && menus.removedBack,
+    `"+ add" offers only what Ani can plan (meeting and helping only with the revival's extensions); a chase added to Justice goes under its last task, said; taken out, Ken's CINDY again`);
+  check(menus.follow.join() === "low,joyous" && /The Meeting: mood joyous \(was very joyous\)\./.test(menus.followSaid) && /The film's energy low \(was high\)\./.test(menus.followSaid), "the text changed, the menus follow (the energy low, the Meeting's mood joyous), and the changes say so");
+  await js(`document.getElementById("ed-open-text").scrollIntoView({ block: "start" })`);
+  await shot("15-scene-cards.png");
+
+  // the film made with the menus' change, at 4 frames a second, as Node makes it
+  const t15 = Date.now();
+  const madeSettings = await js(`(async () => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const set = async (sel, v) => { const el = document.querySelector("#side " + sel); el.value = v; el.dispatchEvent(new Event("change", { bubbles: true })); await wait(200); };
+    ${SETTINGS_CHANGE.map(([sel, v]) => `await set(${JSON.stringify(sel)}, ${JSON.stringify(v)});`).join("\n    ")}
+    const text = document.getElementById("ed-lisp").value;
+    document.getElementById("ed-make").click();
+    return text;
+  })()`);
+  let settingsStatus = "";
+  for (let k = 0; k < 150; k++) {
+    await sleep(4000);
+    settingsStatus = await js(`document.getElementById("run-status").innerText`);
+    if (!/·/.test(settingsStatus)) break;
+  }
+  const settingsFrames = await js(`window.__check.RUNS[1].scenes.map((s) => (s && s.film ? s.film.frames.length : null))`);
+  check(madeSettings === SETTINGS_TEXT && /5 of 5 scenes filmed/.test(settingsStatus) && settingsFrames.join() === EXPECTED_SETTINGS_FRAMES.join(),
+    `Ani makes the film of ${SETTINGS_WORDS} (${Math.round((Date.now() - t15) / 1000)} s), ${settingsFrames.join(", ")} frames, as Node makes it (Ken's: 192, 116, 17, 179, 84)`);
+
+  // a film told in English: its words, editable, and made again from them
+  const remade = await js(`(async () => {
+    const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const d = JSON.parse(JSON.stringify(t.filmData(t.RUNS[1])));
+    d.told = { story: "Cinderella is good and shy; her mean stepmother keeps her from the Prince.", provider: "Claude (Anthropic)", model: "claude-check" };
+    // (made a second later: another film, not the one just made kept again)
+    d.made = typeof d.made === "string" ? new Date(Date.parse(d.made) + 1000).toISOString() : (d.made || Date.now()) + 1000;
+    const kept = await t.keepFilm(t.runFromData(d));
+    t.select(null, { panel: "tell" }); await wait(200);
+    let side = document.getElementById("side");
+    side.querySelector('[data-format="lisp"]').click();
+    side.querySelector('[data-provider="anthropic"]').click(); await wait(100);
+    const key = side.querySelector("#tell-key"); key.value = "test-key-not-real"; key.dispatchEvent(new Event("input"));
+    t.select(null, { panel: "films" }); await wait(300);
+    document.querySelector('#side li[data-film="' + kept.id + '"] [data-film-act="open"]').click();
+    for (let k = 0; k < 50 && !(t.RUNS[1] && t.RUNS[1].libId === kept.id); k++) await wait(100);
+    t.select(null, { panel: "story" }); await wait(300);
+    side = document.getElementById("side");
+    const box = side.querySelector("#told-again");
+    const out = { again: !!kept.again, stored: !!(t.filmData(t.RUNS[1]).told && t.filmData(t.RUNS[1]).told.story === d.told.story), shown: box ? box.value : null, label: (side.querySelector(".told-box .label") || {}).textContent || "", button: (side.querySelector("#told-remake") || {}).textContent || "" };
+    if (!box) return out;
+    const lisp = await (await fetch("/test/stories/red-riding-hood.lisp")).text();
+    const real = window.fetch;
+    let asked = null;
+    window.fetch = async (url, opts) => {
+      if (!String(url).startsWith("https://api.anthropic.com/")) return real(url, opts);
+      asked = JSON.parse(opts.body);
+      return new Response(JSON.stringify({ content: [{ type: "text", text: "\`\`\`lisp\\n" + lisp + "\\n\`\`\`" }] }), { status: 200 });
+    };
+    box.value = "Little Red Riding Hood is good and friendly; a mean wolf chases her, and a strong woodcutter saves her.";
+    side.querySelector("#told-remake").click();
+    for (let k = 0; k < 60 && !document.querySelector("#tell-edit"); k++) await wait(100);
+    side = document.getElementById("side");
+    out.panel = side.querySelector("h2").innerText;
+    out.asked = !!asked && asked.messages[0].content.includes("a strong woodcutter saves her");
+    out.result = side.querySelector("#tell-result").innerText;
+    side.querySelector("#tell-edit").click(); await wait(300);
+    window.fetch = real;
+    out.editor = document.getElementById("ed-chars").innerText;
+    out.told = JSON.parse(localStorage.getItem("ani-cinderella:told:v1") || "null");
+    out.make = !document.getElementById("ed-make").disabled;
+    return out;
+  })()`);
+  check(!remade.again && remade.stored && remade.shown === "Cinderella is good and shy; her mean stepmother keeps her from the Prince." && /^The (new version's )?story,? as told$/i.test(remade.label) && remade.button === "Change the story and make it again",
+    `a film told in English, opened again from "Your films", shows its words, editable, with “${remade.button}”`);
+  check(remade.panel === "Tell Ani a new story" && remade.asked && /4 characters/.test(remade.result) && /nothing wrong/.test(remade.result) && /Red Riding Hood/.test(remade.editor) && remade.told && /strong woodcutter saves her/.test(remade.told.story) && remade.make,
+    "changed and made again, the model writes the description again from the changed words; the visitor sees it and Ani's checks of it, then the editor, ready to make the film, with the new words as told");
+  await shot("16-told-again.png");
   }
 
   if (!ONLY_TEACH) {
