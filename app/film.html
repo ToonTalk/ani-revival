@@ -501,6 +501,7 @@ html.age-6-11.big .ed-x, html.age-6-11.big .ed-set select, html.age-6-11.big .ed
 .film-rename { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .film-rename input { flex: 1 1 14em; font: inherit; font-size: 0.92rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 4px 8px; }
 .film-confirm, .kept-confirm { display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--rejected-soft); font-size: 0.88rem; }
+.replace-confirm { position: fixed; z-index: 60; top: 18%; left: 50%; transform: translateX(-50%); width: min(30rem, calc(100vw - 32px)); padding: 12px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3); }
 .btn.danger { border-color: var(--rejected); color: var(--rejected); }
 .dropped { border-left: 3px solid var(--rejected); padding-left: 10px; }
 /* what this page keeps in your browser */
@@ -9201,9 +9202,11 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-take-out]");
   if (!b) return;
   if (state.panel === "edit") { setEditorText(withoutBeautified(editor.text)); return; }
-  editor.text = withoutBeautified(RUNS[1] ? RUNS[1].cindy : editor.text);
-  store.set(DRAFT_KEY, editor.text);
-  select(null, { panel: "edit" });
+  replaceEditorText(() => {
+    editor.text = withoutBeautified(RUNS[1] ? RUNS[1].cindy : editor.text);
+    placedText(editor.text);
+    select(null, { panel: "edit" });
+  });
 });
 // Ready-made changes to try, each a few words for Ani; and Ken's own beautified scene, put
 // back, made with the revival's extensions (text: the whole description; revival: the switch
@@ -9235,11 +9238,53 @@ function openEditor() {
 // A text from anywhere but the reader's typing is tidied at once; what they type is
 // tidied when they leave the box, or make the film. fresh: another story, not this one changed.
 function setEditorText(text, { fromLisp = false, fresh = false } = {}) {
+  // the page's own tidying of what it put there is still the page's
+  const ours = text === store.get(DRAFT_KEY) && !handChanged();
   if (fresh) { editor.tidied = []; setTold(null); }
   if (!fromLisp) { const t = tidyStory(text); text = t.text; editor.tidied = [...editor.tidied, ...t.fixes]; }
   editor.text = text;
-  store.set(DRAFT_KEY, text);
+  if (ours) placedText(text); else store.set(DRAFT_KEY, text);
   refreshEditor({ fromLisp });
+}
+// Text put in the editor from elsewhere (a model's draft, a film's story, a change to it)
+// asks first, on the page (a claude.ai artifact shows no confirm()), when the editor's text
+// is not what the page last put there, Ken's or a film's: it has been changed by hand. Then
+// "Bring back the text you had" undoes it, once (Ken, 22 October). The page keeps a
+// fingerprint of what it put there (PLACED_KEY).
+const PLACED_KEY = "ani-cinderella:draft-placed:v1";
+const textPrint = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return `${t.length}.${h}`; };
+function placedText(text) { store.set(DRAFT_KEY, text); store.set(PLACED_KEY, textPrint(text)); }
+function handChanged() {
+  const now = store.get(DRAFT_KEY);
+  return !!now && now !== DATA.cindy && store.get(PLACED_KEY) !== textPrint(now) && !RUNS.some((r) => r && r.cindy === now);
+}
+function replaceEditorText(put) {
+  document.querySelector(".replace-confirm")?.remove();
+  if (!handChanged()) { editor.undo = null; return put(); }
+  const was = { text: store.get(DRAFT_KEY), tidied: editor.tidied, told: editor.told };
+  const box = document.createElement("div");
+  box.className = "kept-confirm replace-confirm";
+  box.setAttribute("role", "alertdialog");
+  box.innerHTML = `<p>The film description in “Change the story” has changes made there, and this puts other text in its place. “Bring back the text you had” there undoes it.</p><p><button type="button" class="btn primary" data-replace="yes">Replace the text</button> <button type="button" class="btn" data-replace="no">Keep the text</button></p>`;
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-replace]");
+    if (!b) return;
+    box.remove();
+    if (b.dataset.replace === "yes") { editor.undo = was; put(); }
+  });
+  document.body.append(box);
+  box.querySelector("[data-replace]").focus();
+}
+function undoReplace() {
+  const was = editor.undo;
+  editor.undo = null;
+  if (!was) return;
+  editor.text = was.text;
+  store.set(DRAFT_KEY, was.text);
+  editor.tidied = was.tidied;
+  setTold(was.told);
+  editor.note = "";
+  select(null, { panel: "edit" });
 }
 function setTold(told) {
   editor.told = told;
@@ -9259,6 +9304,7 @@ function editorPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
     ${editor.note ? `<p class="note crit-added" aria-live="polite">${editor.note}</p>` : ""}
+    ${editor.undo ? `<p class="note crit-added">The text that was here has been replaced. <button type="button" class="linkish" id="ed-undo">Bring back the text you had</button></p>` : ""}
     <p class="note">${at611("Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.", "Change what Ani is told about the characters, then have Ani plan and make all five scenes again, here on this computer. That takes two or three minutes (about five with Ken's beautified scene), and longer if this tab is in the background. Each scene plays as soon as it is made, beside the 1978 one.")}</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="actions"><button type="button" class="btn" id="ed-open-text">Edit the whole film description as text</button></div>
@@ -9295,6 +9341,7 @@ function editorPanel() {
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
+  side.querySelector("#ed-undo")?.addEventListener("click", undoReplace);
   side.querySelectorAll("[data-make-fps]").forEach((b) => b.addEventListener("click", () => makeFromEditor(Number(b.dataset.makeFps))));
   side.querySelector("#ed-make-mend").addEventListener("click", () => {
     if (checkStory(tidyStory(editor.text, { extensions: [...SWITCHED] }).text, { extensions: [...SWITCHED] }).problems.length) return;
@@ -11347,6 +11394,17 @@ async function postJSON(url, headers, body, signal) {
   }
   return json;
 }
+// A call that ends with "Stopped." when the signal is aborted, whatever the call does: a
+// claude.ai chat passes fetch to the chat through postMessage, which can't carry an
+// AbortSignal (a DataCloneError), so its keyless call is given none and raced against it.
+function stoppable(call, signal) {
+  if (!signal) return call;
+  return new Promise((ok, no) => {
+    const stop = () => no(Object.assign(new Error("Stopped."), { kind: "stopped" }));
+    if (signal.aborted) stop(); else signal.addEventListener("abort", stop, { once: true });
+    call.then(ok, no);
+  });
+}
 // A call given a schema (the JSON way's, storySchema) asks the provider to keep to it; one
 // that refuses it (a 400) is asked again without it, and the page's checks catch what the
 // schema would have.
@@ -11407,8 +11465,8 @@ const CALLS = {
         throw e;
       }
     }
-    // the claude.ai chat's proxy: the same call as with a key, but no key
-    const json = await postJSON("https://api.anthropic.com/v1/messages", { "content-type": "application/json" }, { model: model || KEYLESS_MODEL, max_tokens: 8000, messages: turns }, signal)
+    // the claude.ai chat's proxy: the same call as with a key, but no key, and no signal (stoppable)
+    const json = await stoppable(postJSON("https://api.anthropic.com/v1/messages", { "content-type": "application/json" }, { model: model || KEYLESS_MODEL, max_tokens: 8000, messages: turns }), signal)
       .catch((e) => { throw Object.assign(new Error(e.status === 401 || e.status === 403 ? "claude.ai didn't answer: sign in to claude.ai, then press your browser's reload button." : e.message), { kind: e.kind }); });
     if (!json || !Array.isArray(json.content)) throw new Error("The answer couldn't be read. If you are signed out of claude.ai, sign in, then press your browser's reload button.");
     return json.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
@@ -11666,15 +11724,15 @@ function showDraft(failure = null) {
     </div>`;
   result.querySelector("#tell-fix")?.addEventListener("click", () => draftStory({ repair: { turns: d.turns, reply: d.reply, problems, format: d.format, text: d.text } }));
   result.querySelector("#tell-fill")?.addEventListener("click", () => { d.text = fillRelationships(d.text); showDraft(); });
-  result.querySelector("#tell-edit").addEventListener("click", () => {
+  result.querySelector("#tell-edit").addEventListener("click", () => replaceEditorText(() => {
     // laid out to fit the editor; printed again only where not a word changes
     editor.text = formatLisp(d.text);
-    store.set(DRAFT_KEY, editor.text);
+    placedText(editor.text);
     // what the page tidied, and the story as told, go with it to the film
     editor.tidied = [...(d.tidied || [])];
     setTold({ story: d.story, provider: PROVIDERS[d.provider].org ? `${PROVIDERS[d.provider].label} (${PROVIDERS[d.provider].org})` : PROVIDERS[d.provider].label, model: d.model || (d.provider === "nano" ? "Gemini Nano" : "the usual model") });
     select(null, { panel: "edit" });
-  });
+  }));
 }
 
 // ---------------------------------------------------------------- speech: Read aloud and Talk to Ani
@@ -13499,11 +13557,13 @@ function keptWords(run) {
 // "Change this story", for one of the reader's films beside Ken's: its description in the
 // editor, with what the page tidied and the story as told.
 function editStoryOf(run) {
-  editor.text = run.cindy;
-  store.set(DRAFT_KEY, run.cindy);
-  editor.tidied = [...(run.tidied || [])];
-  setTold(run.told || null);
-  select(null, { panel: "edit" });
+  replaceEditorText(() => {
+    editor.text = run.cindy;
+    placedText(run.cindy);
+    editor.tidied = [...(run.tidied || [])];
+    setTold(run.told || null);
+    select(null, { panel: "edit" });
+  });
 }
 
 // ---- the panel
@@ -13645,6 +13705,7 @@ const KEPT_WHAT = () => [
   [EXT_KEY, at611("The revival's extensions ticked, when they aren't one of the switch's settings", "Which of the new parts added in 2026 are ticked")],
   [FPS_KEY, at611("The frames a second the films are made at", "How smooth the films made here are")],
   [DRAFT_KEY, at611("The film description being changed in “Change the story”", "The story being changed in “Change the story”")],
+  [PLACED_KEY, "A fingerprint of the text the page last put in “Change the story”, to ask before replacing changes made there"],
   [TOLD_KEY, at611("The last story told in English, and the model that put it into Ken's notation", "The last story told to Ani, and the AI that turned it into words Ani can read")],
   [STORY_KEY, "The story being told in “Tell Ani a new story”"],
   [SETTINGS_KEY, at611("The model chosen, and whether it writes JSON or Ken's Lisp", "Which AI was chosen, and how it writes")],
@@ -14173,7 +14234,7 @@ function paceTasks(w, part) {
 }
 // "Too quick" and "Too slow" for a part: each disabled where the part already takes all (or
 // the least) of the time the story gives it, saying so, with "Make the scene longer in the
-// story" where the scene's length can grow.
+// story" (or "shorter") where the scene's length can grow (or shrink).
 function critPaceButtons(run, sc, w, part, { short = false } = {}) {
   if (!critOK(run, sc) || !part || part.parasiteOn) return "";
   const tasks = paceTasks(w, part);
@@ -14190,32 +14251,34 @@ function critPaceButtons(run, sc, w, part, { short = false } = {}) {
   const leastOf = `This part already takes the least time your story gives it, ${esc(span)}`;
   const quick = most ? `<button type="button" class="crit-btn" disabled title="${allOf}">Too quick</button>` : critButton(run, item("too-quick", "Too quick"), "Too quick", "Ani gives the part half as long again, within the time the story gives it (thesis pp. 189–191)");
   const slow = least ? `<button type="button" class="crit-btn" disabled title="${leastOf}">Too slow</button>` : critButton(run, item("too-slow", "Too slow"), "Too slow", "Ani gives the part a third less time, within the time the story gives it (thesis pp. 189–191)");
-  const bound = short ? "" : most ? ` <span class="note">${allOf}.${longerButton(run, sc.id)}</span>` : least ? ` <span class="note">${leastOf}.</span>` : "";
+  const bound = short ? "" : most ? ` <span class="note">${allOf}.${lengthButton(run, sc.id, "longer")}</span>` : least ? ` <span class="note">${leastOf}.${lengthButton(run, sc.id, "shorter")}</span>` : "";
   return ` <span class="crit-buttons">${quick} ${slow}</span>${bound}`;
 }
 // "Make the scene longer in the story": the scene's length one step longer (short to
-// medium, medium to long), in the editor, for the reader to make; a change to the
-// description, not a criticism of how Ani made it.
-const LONGER = { short: "medium", medium: "long" };
-function longerText(run, id) {
+// medium, medium to long), and "Make the scene shorter in the story", one step shorter
+// (long to medium, medium to short), in the editor, for the reader to make; a change to
+// the description, not a criticism of how Ani made it.
+const LENGTH_STEP = { longer: { short: "medium", medium: "long" }, shorter: { long: "medium", medium: "short" } };
+function lengthText(run, id, way) {
   const sc = run.story.scenes[id];
   if (!sc || !sc.span) return null;
   const block = run.cindy.slice(sc.span.start, sc.span.end);
-  const m = /\(set your length to (short|medium)\)/.exec(block);
-  if (!m) return null;
-  return run.cindy.slice(0, sc.span.start) + block.replace(m[0], `(set your length to ${LONGER[m[1]]})`) + run.cindy.slice(sc.span.end);
+  const m = /\(set your length to (short|medium|long)\)/.exec(block);
+  const to = m && LENGTH_STEP[way][m[1]];
+  if (!to) return null;
+  return run.cindy.slice(0, sc.span.start) + block.replace(m[0], `(set your length to ${to})`) + run.cindy.slice(sc.span.end);
 }
-function longerButton(run, id) {
-  const text = longerText(run, id);
+function lengthButton(run, id, way) {
+  const text = lengthText(run, id, way);
   if (!text) return "";
-  const k = critAction(run, () => {
+  const k = critAction(run, () => replaceEditorText(() => {
     editor.text = text;
-    store.set(DRAFT_KEY, text);
+    placedText(text);
     editor.tidied = [...(run.tidied || [])];
     setTold(run.told || null);
     select(null, { panel: "edit" });
-  });
-  return ` <button type="button" class="linkish" data-crit-act="${k}">Make the scene longer in the story</button>`;
+  }));
+  return ` <button type="button" class="linkish" data-crit-act="${k}">${at611(`Make the scene ${way} in the story`, `Make this scene ${way}`)}</button>`;
 }
 
 // ---- a scene's own: keep two apart, start one far from another
@@ -14450,8 +14513,8 @@ function critNoteSentence(run, sc, n, { withSaid = true } = {}) {
     // the scene's adjustment was FIT's hold of the scene's time (its scene-time-kept note), or Ken's
     const fitted = [...(sc.glass.repairs || []), ...((sc.film && sc.film.repairs) || [])].some((r) => /what scene-time-kept /.test(r.note));
     const after = adjusted ? (fitted ? ` The revival had first held the scene to the time its length gives it (FIT, Ken's decision of 16 October), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.` : ` Ken's SCENE had first fitted the whole scene to its length (adjust-task-lengths, chomet.123:140-185), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.`) : "";
-    if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${quick && byStory ? longerButton(run, sc.id) : ""}`;
-    return `You said this part was too ${quick ? "quick" : "slow"}: Ani gave it ${sec(Number(now))} instead of ${sec(Number(was))}${stretched}${held ? `; held to ${esc(bound)}${quick && byStory ? ": this part already takes all the time your story gives the scene" : ""}` : ""}.${after}${said}${held && quick && byStory ? longerButton(run, sc.id) : ""}`;
+    if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${byStory ? lengthButton(run, sc.id, quick ? "longer" : "shorter") : ""}`;
+    return `You said this part was too ${quick ? "quick" : "slow"}: Ani gave it ${sec(Number(now))} instead of ${sec(Number(was))}${stretched}${held ? `; held to ${esc(bound)}${quick && byStory ? ": this part already takes all the time your story gives the scene" : ""}` : ""}.${after}${said}${held && byStory ? lengthButton(run, sc.id, quick ? "longer" : "shorter") : ""}`;
   }
   if (n.what === "start-far") {
     const c = item && item.who, from = item && item.from;
@@ -14998,8 +15061,11 @@ function withTaskIn(text, story, id, task) {
 // The editor, with the story changed, for the visitor to look over and make: made as the
 // film was (its extensions; its frames a second), its story as told kept.
 function critiqueToEditor(run, text, note) {
+  replaceEditorText(() => critiqueToEditor_(run, text, note));
+}
+function critiqueToEditor_(run, text, note) {
   editor.text = text || run.cindy;
-  store.set(DRAFT_KEY, editor.text);
+  placedText(editor.text);
   editor.tidied = [...(run.tidied || [])];
   setTold(run.told || null);
   editor.fps = runFps(run);

@@ -289,6 +289,7 @@ const onlyAt = process.argv.indexOf("--only");
 const ONLY_TEACH = onlyAt > 0 && process.argv[onlyAt + 1] === "teach";
 const ONLY_COMPARE = onlyAt > 0 && process.argv[onlyAt + 1] === "compare";
 const ONLY_LENGTH = onlyAt > 0 && process.argv[onlyAt + 1] === "length";
+const ONLY_REPLACE = onlyAt > 0 && process.argv[onlyAt + 1] === "replace";
 if (shots) mkdirSync(shots, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -1082,8 +1083,88 @@ try {
     check(JSON.stringify(timelyFrames) === JSON.stringify(nodeFrames) && tl.summary.startsWith(lineFor(tlRep)) && Math.abs(tlRep.filmed - tlRep.planned) < 0.5 * Math.abs(sixRep.filmed - sixRep.planned) && /made with “Director keeps to Ani's times” \(TIMELY\)/.test(tl.body) && /What keeping to Ani's times did here/.test(glass),
       `made with TIMELY ticked, in the frames Node makes (${timelyFrames.join(", ")}; Node ${nodeFrames.join(", ")}): "${tl.summary}", less than half as far from its plan as without (at 4 frames a second each part's end takes a tick or two); the glass box says what keeping to Ani's times did (${glass.slice(0, 120)}…)`);
   };
+  // Ken's decisions of 22 October: text put in "Change the story" from elsewhere (here a
+  // film's story, "Change this story") asks first, on the page, when the text there was
+  // changed by hand, and "Bring back the text you had" undoes it; "Keep the text" keeps it;
+  // text the page put there itself is replaced without asking. And "Make the scene shorter
+  // in the story" beside "longer": a scene's length one step shorter (long to medium, medium
+  // to short), the rest of the story as it was, in the editor, "Make this scene shorter" at
+  // 6–11; a short scene has no "shorter", a long one no "longer".
+  const replaceChecks = async () => {
+    await toCheckPage();
+    const r = await js(`(async () => {
+      const t = window.__check, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      if (t.RUNS[1] && t.RUNS[1].status && t.RUNS[1].status.running) t.stopRun({ quiet: true });
+      const box = () => document.querySelector(".replace-confirm");
+      const draft = () => localStorage.getItem("ani-cinderella:draft:v1");
+      const ken = t.RUNS[0], out = {};
+      // Ken's story placed (asked first if the text there was changed by hand)
+      t.editStoryOf(ken); await wait(200);
+      if (box()) { box().querySelector('[data-replace="yes"]').click(); await wait(300); }
+      out.placed = draft() === ken.cindy && !box();
+      t.editStoryOf(ken); await wait(200);
+      out.noAsk = !box() && !document.getElementById("ed-undo");
+      // changed by hand in the text
+      document.getElementById("ed-open-text").click(); await wait(200);
+      const ta = document.getElementById("ed-lisp");
+      const mine = ken.cindy.replace("(define cinderella character", "(define cinderella character ; changed by hand");
+      ta.value = mine; ta.dispatchEvent(new Event("change", { bubbles: true })); await wait(300);
+      out.mine = draft() === mine;
+      t.editStoryOf(ken); await wait(200);
+      out.asked = box() ? box().innerText : "";
+      out.notYet = draft() === mine;
+      if (box()) box().querySelector('[data-replace="no"]').click();
+      await wait(200);
+      out.kept = !box() && draft() === mine;
+      t.editStoryOf(ken); await wait(200);
+      if (box()) box().querySelector('[data-replace="yes"]').click();
+      await wait(300);
+      out.replaced = draft() === ken.cindy && document.getElementById("ed-lisp").value === ken.cindy;
+      const undo = document.getElementById("ed-undo");
+      out.undo = undo ? undo.parentNode.innerText : "";
+      if (undo) undo.click();
+      await wait(300);
+      out.back = draft() === mine && document.getElementById("ed-lisp").value === mine && !document.getElementById("ed-undo");
+      // back to Ken's for what follows
+      t.editStoryOf(ken); await wait(200);
+      if (box()) { box().querySelector('[data-replace="yes"]').click(); await wait(300); }
+      // longer and shorter, each scene of a story with every length (Red Riding Hood)
+      const rrh = (await (await fetch("/test/stories/red-riding-hood.lisp")).text()).replace(/\\r\\n/g, "\\n");
+      const story = { cindy: rrh, story: { scenes: {} }, tidied: [], told: null };
+      const re = /\\(define ([a-z0-9-]+) scene[^]*?(?=\\n\\(define |\\n\\(declare|$)/g;
+      for (let m; (m = re.exec(rrh)); ) story.story.scenes[m[1]] = { span: { start: m.index, end: m.index + m[0].length } };
+      out.lengths = {};
+      for (const [id, sc] of Object.entries(story.story.scenes)) {
+        const len = (/\\(set your length to (short|medium|long)\\)/.exec(rrh.slice(sc.span.start, sc.span.end)) || [])[1];
+        if (!len) continue;
+        const step = (way) => { const x = t.lengthText(story, id, way); if (!x) return null; const after = (/\\(set your length to (short|medium|long)\\)/.exec(x.slice(sc.span.start)) || [])[1]; return x.slice(0, sc.span.start) + x.slice(sc.span.start).replace("(set your length to " + after + ")", "(set your length to " + len + ")") === rrh ? after : "changed elsewhere"; };
+        out.lengths[id] = [len, step("longer"), step("shorter")];
+      }
+      // the button: "Make the scene shorter in the story", to the editor, no question asked
+      const id = Object.keys(out.lengths).find((k) => out.lengths[k][0] === "long");
+      out.label = t.lengthButton(story, id, "shorter");
+      const hold = document.createElement("div");
+      hold.innerHTML = out.label;
+      document.getElementById("side").append(hold);
+      hold.querySelector("button").click(); await wait(400);
+      if (box()) { out.askedAgain = true; box().querySelector('[data-replace="yes"]').click(); await wait(300); }
+      out.made = draft() === t.lengthText(story, id, "shorter") && t.state.panel === "edit";
+      // at 6–11
+      document.querySelector('[data-age="6-11"]').click(); await wait(200);
+      out.kid = t.lengthButton(story, id, "shorter");
+      document.querySelector('[data-age="12"]').click(); await wait(200);
+      return out;
+    })()`);
+    check(r.placed && r.noAsk && r.mine && /has changes made there, and this puts other text in its place/.test(r.asked) && r.notYet && r.kept && r.replaced && /^The text that was here has been replaced\. Bring back the text you had$/.test(r.undo) && r.back,
+      `text put in "Change the story" asks first only when the text there was changed by hand ("${(r.asked || "").split("\n")[0].slice(0, 70)}…"); "Keep the text" keeps it, "Replace the text" replaces it, and "Bring back the text you had" brings it back${Object.values(r).includes(false) ? `: ${JSON.stringify(r)}` : ""}`);
+    const lengthsOk = Object.values(r.lengths).every(([len, longer, shorter]) => longer === { short: "medium", medium: "long", long: null }[len] && shorter === { long: "medium", medium: "short", short: null }[len]);
+    const lens = Object.values(r.lengths).map(([l]) => l);
+    check(lengthsOk && ["short", "medium", "long"].every((l) => lens.includes(l)) && /data-crit-act="[^"]+">Make the scene shorter in the story<\/button>/.test(r.label) && r.made && !r.askedAgain && />Make this scene shorter<\/button>/.test(r.kid),
+      `"Make the scene shorter in the story" beside "longer": each scene one step shorter or longer, the rest as it was (${Object.entries(r.lengths).map(([k, v]) => `${k} ${v[0]}: ${v[1] || "-"}/${v[2] || "-"}`).join("; ")}), to the editor; "Make this scene shorter" at 6–11${lengthsOk && r.made ? "" : `: ${JSON.stringify(r)}`}`);
+  };
   if (ONLY_LENGTH) await lengthChecks();
   else if (ONLY_COMPARE) await compareTwoFilms();
+  else if (ONLY_REPLACE) await replaceChecks();
   else {
   // (with --only teach, on to Teach Ani's checks)
   if (!ONLY_TEACH) {
@@ -3726,6 +3807,7 @@ try {
 
   if (!ONLY_TEACH) await compareTwoFilms();
   if (!ONLY_TEACH) await lengthChecks();
+  if (!ONLY_TEACH) await replaceChecks();
 
   if (!ONLY_TEACH) {
   // what the page keeps in the browser, and "Forget all of it"

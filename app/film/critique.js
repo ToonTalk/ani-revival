@@ -289,8 +289,11 @@ function withTaskIn(text, story, id, task) {
 // The editor, with the story changed, for the visitor to look over and make: made as the
 // film was (its extensions; its frames a second), its story as told kept.
 function critiqueToEditor(run, text, note) {
+  replaceEditorText(() => critiqueToEditor_(run, text, note));
+}
+function critiqueToEditor_(run, text, note) {
   editor.text = text || run.cindy;
-  store.set(DRAFT_KEY, editor.text);
+  placedText(editor.text);
   editor.tidied = [...(run.tidied || [])];
   setTold(run.told || null);
   editor.fps = runFps(run);

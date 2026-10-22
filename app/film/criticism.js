@@ -260,7 +260,7 @@ function paceTasks(w, part) {
 }
 // "Too quick" and "Too slow" for a part: each disabled where the part already takes all (or
 // the least) of the time the story gives it, saying so, with "Make the scene longer in the
-// story" where the scene's length can grow.
+// story" (or "shorter") where the scene's length can grow (or shrink).
 function critPaceButtons(run, sc, w, part, { short = false } = {}) {
   if (!critOK(run, sc) || !part || part.parasiteOn) return "";
   const tasks = paceTasks(w, part);
@@ -277,32 +277,34 @@ function critPaceButtons(run, sc, w, part, { short = false } = {}) {
   const leastOf = `This part already takes the least time your story gives it, ${esc(span)}`;
   const quick = most ? `<button type="button" class="crit-btn" disabled title="${allOf}">Too quick</button>` : critButton(run, item("too-quick", "Too quick"), "Too quick", "Ani gives the part half as long again, within the time the story gives it (thesis pp. 189–191)");
   const slow = least ? `<button type="button" class="crit-btn" disabled title="${leastOf}">Too slow</button>` : critButton(run, item("too-slow", "Too slow"), "Too slow", "Ani gives the part a third less time, within the time the story gives it (thesis pp. 189–191)");
-  const bound = short ? "" : most ? ` <span class="note">${allOf}.${longerButton(run, sc.id)}</span>` : least ? ` <span class="note">${leastOf}.</span>` : "";
+  const bound = short ? "" : most ? ` <span class="note">${allOf}.${lengthButton(run, sc.id, "longer")}</span>` : least ? ` <span class="note">${leastOf}.${lengthButton(run, sc.id, "shorter")}</span>` : "";
   return ` <span class="crit-buttons">${quick} ${slow}</span>${bound}`;
 }
 // "Make the scene longer in the story": the scene's length one step longer (short to
-// medium, medium to long), in the editor, for the reader to make; a change to the
-// description, not a criticism of how Ani made it.
-const LONGER = { short: "medium", medium: "long" };
-function longerText(run, id) {
+// medium, medium to long), and "Make the scene shorter in the story", one step shorter
+// (long to medium, medium to short), in the editor, for the reader to make; a change to
+// the description, not a criticism of how Ani made it.
+const LENGTH_STEP = { longer: { short: "medium", medium: "long" }, shorter: { long: "medium", medium: "short" } };
+function lengthText(run, id, way) {
   const sc = run.story.scenes[id];
   if (!sc || !sc.span) return null;
   const block = run.cindy.slice(sc.span.start, sc.span.end);
-  const m = /\(set your length to (short|medium)\)/.exec(block);
-  if (!m) return null;
-  return run.cindy.slice(0, sc.span.start) + block.replace(m[0], `(set your length to ${LONGER[m[1]]})`) + run.cindy.slice(sc.span.end);
+  const m = /\(set your length to (short|medium|long)\)/.exec(block);
+  const to = m && LENGTH_STEP[way][m[1]];
+  if (!to) return null;
+  return run.cindy.slice(0, sc.span.start) + block.replace(m[0], `(set your length to ${to})`) + run.cindy.slice(sc.span.end);
 }
-function longerButton(run, id) {
-  const text = longerText(run, id);
+function lengthButton(run, id, way) {
+  const text = lengthText(run, id, way);
   if (!text) return "";
-  const k = critAction(run, () => {
+  const k = critAction(run, () => replaceEditorText(() => {
     editor.text = text;
-    store.set(DRAFT_KEY, text);
+    placedText(text);
     editor.tidied = [...(run.tidied || [])];
     setTold(run.told || null);
     select(null, { panel: "edit" });
-  });
-  return ` <button type="button" class="linkish" data-crit-act="${k}">Make the scene longer in the story</button>`;
+  }));
+  return ` <button type="button" class="linkish" data-crit-act="${k}">${at611(`Make the scene ${way} in the story`, `Make this scene ${way}`)}</button>`;
 }
 
 // ---- a scene's own: keep two apart, start one far from another
@@ -537,8 +539,8 @@ function critNoteSentence(run, sc, n, { withSaid = true } = {}) {
     // the scene's adjustment was FIT's hold of the scene's time (its scene-time-kept note), or Ken's
     const fitted = [...(sc.glass.repairs || []), ...((sc.film && sc.film.repairs) || [])].some((r) => /what scene-time-kept /.test(r.note));
     const after = adjusted ? (fitted ? ` The revival had first held the scene to the time its length gives it (FIT, Ken's decision of 16 October), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.` : ` Ken's SCENE had first fitted the whole scene to its length (adjust-task-lengths, chomet.123:140-185), which gave this part ${sec(Number(was))}; Ani heeded your criticism on the time that left it.`) : "";
-    if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${quick && byStory ? longerButton(run, sc.id) : ""}`;
-    return `You said this part was too ${quick ? "quick" : "slow"}: Ani gave it ${sec(Number(now))} instead of ${sec(Number(was))}${stretched}${held ? `; held to ${esc(bound)}${quick && byStory ? ": this part already takes all the time your story gives the scene" : ""}` : ""}.${after}${said}${held && quick && byStory ? longerButton(run, sc.id) : ""}`;
+    if (!n.heeded) return `You said this part was too ${quick ? "quick" : "slow"}, but it already takes ${quick ? "all the" : "the least"} time ${byStory ? "your story gives it" : "SCENE allows it"} (${esc(bound)}), so Ani left it at ${sec(Number(was))}.${after}${said}${byStory ? lengthButton(run, sc.id, quick ? "longer" : "shorter") : ""}`;
+    return `You said this part was too ${quick ? "quick" : "slow"}: Ani gave it ${sec(Number(now))} instead of ${sec(Number(was))}${stretched}${held ? `; held to ${esc(bound)}${quick && byStory ? ": this part already takes all the time your story gives the scene" : ""}` : ""}.${after}${said}${held && byStory ? lengthButton(run, sc.id, quick ? "longer" : "shorter") : ""}`;
   }
   if (n.what === "start-far") {
     const c = item && item.who, from = item && item.from;

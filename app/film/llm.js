@@ -323,6 +323,17 @@ async function postJSON(url, headers, body, signal) {
   }
   return json;
 }
+// A call that ends with "Stopped." when the signal is aborted, whatever the call does: a
+// claude.ai chat passes fetch to the chat through postMessage, which can't carry an
+// AbortSignal (a DataCloneError), so its keyless call is given none and raced against it.
+function stoppable(call, signal) {
+  if (!signal) return call;
+  return new Promise((ok, no) => {
+    const stop = () => no(Object.assign(new Error("Stopped."), { kind: "stopped" }));
+    if (signal.aborted) stop(); else signal.addEventListener("abort", stop, { once: true });
+    call.then(ok, no);
+  });
+}
 // A call given a schema (the JSON way's, storySchema) asks the provider to keep to it; one
 // that refuses it (a 400) is asked again without it, and the page's checks catch what the
 // schema would have.
@@ -383,8 +394,8 @@ const CALLS = {
         throw e;
       }
     }
-    // the claude.ai chat's proxy: the same call as with a key, but no key
-    const json = await postJSON("https://api.anthropic.com/v1/messages", { "content-type": "application/json" }, { model: model || KEYLESS_MODEL, max_tokens: 8000, messages: turns }, signal)
+    // the claude.ai chat's proxy: the same call as with a key, but no key, and no signal (stoppable)
+    const json = await stoppable(postJSON("https://api.anthropic.com/v1/messages", { "content-type": "application/json" }, { model: model || KEYLESS_MODEL, max_tokens: 8000, messages: turns }), signal)
       .catch((e) => { throw Object.assign(new Error(e.status === 401 || e.status === 403 ? "claude.ai didn't answer: sign in to claude.ai, then press your browser's reload button." : e.message), { kind: e.kind }); });
     if (!json || !Array.isArray(json.content)) throw new Error("The answer couldn't be read. If you are signed out of claude.ai, sign in, then press your browser's reload button.");
     return json.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
@@ -642,13 +653,13 @@ function showDraft(failure = null) {
     </div>`;
   result.querySelector("#tell-fix")?.addEventListener("click", () => draftStory({ repair: { turns: d.turns, reply: d.reply, problems, format: d.format, text: d.text } }));
   result.querySelector("#tell-fill")?.addEventListener("click", () => { d.text = fillRelationships(d.text); showDraft(); });
-  result.querySelector("#tell-edit").addEventListener("click", () => {
+  result.querySelector("#tell-edit").addEventListener("click", () => replaceEditorText(() => {
     // laid out to fit the editor; printed again only where not a word changes
     editor.text = formatLisp(d.text);
-    store.set(DRAFT_KEY, editor.text);
+    placedText(editor.text);
     // what the page tidied, and the story as told, go with it to the film
     editor.tidied = [...(d.tidied || [])];
     setTold({ story: d.story, provider: PROVIDERS[d.provider].org ? `${PROVIDERS[d.provider].label} (${PROVIDERS[d.provider].org})` : PROVIDERS[d.provider].label, model: d.model || (d.provider === "nano" ? "Gemini Nano" : "the usual model") });
     select(null, { panel: "edit" });
-  });
+  }));
 }

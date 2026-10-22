@@ -494,6 +494,7 @@ html.age-6-11.big .ed-x, html.age-6-11.big .ed-set select, html.age-6-11.big .ed
 .film-rename { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .film-rename input { flex: 1 1 14em; font: inherit; font-size: 0.92rem; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 4px 8px; }
 .film-confirm, .kept-confirm { display: grid; gap: 6px; padding: 8px 10px; border-radius: 8px; background: var(--rejected-soft); font-size: 0.88rem; }
+.replace-confirm { position: fixed; z-index: 60; top: 18%; left: 50%; transform: translateX(-50%); width: min(30rem, calc(100vw - 32px)); padding: 12px 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.3); }
 .btn.danger { border-color: var(--rejected); color: var(--rejected); }
 .dropped { border-left: 3px solid var(--rejected); padding-left: 10px; }
 /* what this page keeps in your browser */
@@ -6839,9 +6840,11 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest && e.target.closest("[data-take-out]");
   if (!b) return;
   if (state.panel === "edit") { setEditorText(withoutBeautified(editor.text)); return; }
-  editor.text = withoutBeautified(RUNS[1] ? RUNS[1].cindy : editor.text);
-  store.set(DRAFT_KEY, editor.text);
-  select(null, { panel: "edit" });
+  replaceEditorText(() => {
+    editor.text = withoutBeautified(RUNS[1] ? RUNS[1].cindy : editor.text);
+    placedText(editor.text);
+    select(null, { panel: "edit" });
+  });
 });
 // Ready-made changes to try, each a few words for Ani; and Ken's own beautified scene, put
 // back, made with the revival's extensions (text: the whole description; revival: the switch
@@ -6873,11 +6876,53 @@ function openEditor() {
 // A text from anywhere but the reader's typing is tidied at once; what they type is
 // tidied when they leave the box, or make the film. fresh: another story, not this one changed.
 function setEditorText(text, { fromLisp = false, fresh = false } = {}) {
+  // the page's own tidying of what it put there is still the page's
+  const ours = text === store.get(DRAFT_KEY) && !handChanged();
   if (fresh) { editor.tidied = []; setTold(null); }
   if (!fromLisp) { const t = tidyStory(text); text = t.text; editor.tidied = [...editor.tidied, ...t.fixes]; }
   editor.text = text;
-  store.set(DRAFT_KEY, text);
+  if (ours) placedText(text); else store.set(DRAFT_KEY, text);
   refreshEditor({ fromLisp });
+}
+// Text put in the editor from elsewhere (a model's draft, a film's story, a change to it)
+// asks first, on the page (a claude.ai artifact shows no confirm()), when the editor's text
+// is not what the page last put there, Ken's or a film's: it has been changed by hand. Then
+// "Bring back the text you had" undoes it, once (Ken, 22 October). The page keeps a
+// fingerprint of what it put there (PLACED_KEY).
+const PLACED_KEY = "ani-cinderella:draft-placed:v1";
+const textPrint = (t) => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0; return `${t.length}.${h}`; };
+function placedText(text) { store.set(DRAFT_KEY, text); store.set(PLACED_KEY, textPrint(text)); }
+function handChanged() {
+  const now = store.get(DRAFT_KEY);
+  return !!now && now !== DATA.cindy && store.get(PLACED_KEY) !== textPrint(now) && !RUNS.some((r) => r && r.cindy === now);
+}
+function replaceEditorText(put) {
+  document.querySelector(".replace-confirm")?.remove();
+  if (!handChanged()) { editor.undo = null; return put(); }
+  const was = { text: store.get(DRAFT_KEY), tidied: editor.tidied, told: editor.told };
+  const box = document.createElement("div");
+  box.className = "kept-confirm replace-confirm";
+  box.setAttribute("role", "alertdialog");
+  box.innerHTML = `<p>The film description in “Change the story” has changes made there, and this puts other text in its place. “Bring back the text you had” there undoes it.</p><p><button type="button" class="btn primary" data-replace="yes">Replace the text</button> <button type="button" class="btn" data-replace="no">Keep the text</button></p>`;
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-replace]");
+    if (!b) return;
+    box.remove();
+    if (b.dataset.replace === "yes") { editor.undo = was; put(); }
+  });
+  document.body.append(box);
+  box.querySelector("[data-replace]").focus();
+}
+function undoReplace() {
+  const was = editor.undo;
+  editor.undo = null;
+  if (!was) return;
+  editor.text = was.text;
+  store.set(DRAFT_KEY, was.text);
+  editor.tidied = was.tidied;
+  setTold(was.told);
+  editor.note = "";
+  select(null, { panel: "edit" });
 }
 function setTold(told) {
   editor.told = told;
@@ -6897,6 +6942,7 @@ function editorPanel() {
   side.innerHTML = `
     <div class="side-head"><h2>Change the story</h2><button type="button" class="linkish" id="ed-close">Back</button></div>
     ${editor.note ? `<p class="note crit-added" aria-live="polite">${editor.note}</p>` : ""}
+    ${editor.undo ? `<p class="note crit-added">The text that was here has been replaced. <button type="button" class="linkish" id="ed-undo">Bring back the text you had</button></p>` : ""}
     <p class="note">${at611("Change what Ani is told about the characters, then have Ani plan and film all five scenes again, here in your browser. That takes two or three minutes on a recent computer, about five with Ken's beautified scene (after it Ani takes a fresh look at Cinderella), and longer with this tab in the background; each scene plays as soon as it is filmed, beside the 1978 one.", "Change what Ani is told about the characters, then have Ani plan and make all five scenes again, here on this computer. That takes two or three minutes (about five with Ken's beautified scene), and longer if this tab is in the background. Each scene plays as soon as it is made, beside the 1978 one.")}</p>
     <div class="presets"><span class="label">Try</span>${PRESETS.map((p, i) => (p.available && !p.available() ? "" : `<button type="button" data-preset="${i}"${p.title ? ` title="${esc(p.title)}"` : ""}${p.toggles ? ` aria-pressed="${hasBeautified(editor.text)}"` : ""}>${esc(p.label)}</button>`)).join("")}<button type="button" data-tell>A story of your own…</button></div>
     <div class="actions"><button type="button" class="btn" id="ed-open-text">Edit the whole film description as text</button></div>
@@ -6933,6 +6979,7 @@ function editorPanel() {
     setEditorText(p.changes.reduce((t, [target, ws]) => setWords(t, target, ws), base), { fresh: true });
   }));
   side.querySelector("#ed-reset").addEventListener("click", () => setEditorText(DATA.cindy, { fresh: true }));
+  side.querySelector("#ed-undo")?.addEventListener("click", undoReplace);
   side.querySelectorAll("[data-make-fps]").forEach((b) => b.addEventListener("click", () => makeFromEditor(Number(b.dataset.makeFps))));
   side.querySelector("#ed-make-mend").addEventListener("click", () => {
     if (checkStory(tidyStory(editor.text, { extensions: [...SWITCHED] }).text, { extensions: [...SWITCHED] }).problems.length) return;

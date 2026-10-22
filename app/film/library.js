@@ -328,11 +328,13 @@ function keptWords(run) {
 // "Change this story", for one of the reader's films beside Ken's: its description in the
 // editor, with what the page tidied and the story as told.
 function editStoryOf(run) {
-  editor.text = run.cindy;
-  store.set(DRAFT_KEY, run.cindy);
-  editor.tidied = [...(run.tidied || [])];
-  setTold(run.told || null);
-  select(null, { panel: "edit" });
+  replaceEditorText(() => {
+    editor.text = run.cindy;
+    placedText(run.cindy);
+    editor.tidied = [...(run.tidied || [])];
+    setTold(run.told || null);
+    select(null, { panel: "edit" });
+  });
 }
 
 // ---- the panel
@@ -474,6 +476,7 @@ const KEPT_WHAT = () => [
   [EXT_KEY, at611("The revival's extensions ticked, when they aren't one of the switch's settings", "Which of the new parts added in 2026 are ticked")],
   [FPS_KEY, at611("The frames a second the films are made at", "How smooth the films made here are")],
   [DRAFT_KEY, at611("The film description being changed in “Change the story”", "The story being changed in “Change the story”")],
+  [PLACED_KEY, "A fingerprint of the text the page last put in “Change the story”, to ask before replacing changes made there"],
   [TOLD_KEY, at611("The last story told in English, and the model that put it into Ken's notation", "The last story told to Ani, and the AI that turned it into words Ani can read")],
   [STORY_KEY, "The story being told in “Tell Ani a new story”"],
   [SETTINGS_KEY, at611("The model chosen, and whether it writes JSON or Ken's Lisp", "Which AI was chosen, and how it writes")],
